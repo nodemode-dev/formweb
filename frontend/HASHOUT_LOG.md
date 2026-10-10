@@ -18,8 +18,18 @@
 | `src/ui/dom.ts` | Guarded text/value and keyed list updates |
 | `src/ui/icons.ts` | Original inline currentColor SVG icons |
 | `src/ui/canvas.ts` | Sandboxed keyed website DOM, responsive and CMS rendering |
+| `src/features/contracts.ts` | Typed persistent workflow descriptors and context |
+| `src/features/studio.ts` | Mounted advanced panels, input validation and real result viewer |
+| `src/features/authoring.ts` | Native design/component/CMS/locale/form workflows |
+| `src/features/advanced.ts` | Scoped state/timeline/overlay/locale/widget/experiment operations |
+| `src/features/services.ts` | Inbox, delivery, release, review, library and CSV API consumers |
+| `src/features/providers.ts` | Configured adapter transport, proposals, commerce and membership |
+| `src/features/code.ts` | Explicit code compilation, digest manifest and host installation |
+| `src/features/runtime-preview.ts` | Persistent isolated compiled-runtime iframe slots |
+| `ADVANCED_GUIDE.md` | Exact advanced UI flows and schemas |
 | `src/styles/tokens.css` | Themes, spacing and sole stacking registry |
 | `src/styles/app.css` | Studio layout and reserved panels |
+| `src/styles/features.css` | Reserved advanced Studio panes and compiled preview |
 
 ## Contents
 
@@ -198,3 +208,71 @@ The Studio Dark default follows the Form family surfaces and orange accent. Stud
 - logged: v0.1.0 · 2026-10-10
 
 Strict TypeScript checking and Vite production bundling passed after the final asset/CMS fixes on Node 24.19.0. Root observed the production editor in Chromium 153 with CPU 4x, 150 ms latency, 750 kbps download and disabled cache. Text edits retained the H1 node; a shared-engine update retained the focused inspector input, pending text and selection. The mounted iframe, sidebar and inspector had zero removals during the checked flow. Undo/redo, responsive styles, page/tree editing, CMS, locales, agent gating, raster upload, native import/export, local publication, audit and persistent theme controls were exercised. The planning sidecar and docs/VERIFICATION.md record the boundaries. No self-authored tests or test harness files were created.
+
+## v0.2.0 continuation
+
+The v0.1.0 entries above are historical. Its preview limitations are superseded by the separately compiled runtime below. The version marker here records the requested continuation; root performs the final package version bump and release verification.
+
+### src/main.ts · advanced seams and audit targeting
+
+- refers-to: `src/main.ts` :: feature imports, toolbar, layout inspector, update, keyboard guard, audit rows, final registration
+- kind: rationale
+- logged: v0.2.0 · 2026-10-10
+
+Handmade source regions add the Studio and RuntimePreview registrations without rebuilding the live editor shell. The toolbar selects any stored breakpoint and retains explicit viewport width. Flex wrap/order, grid rows/column/row placement, self alignment and flex are ordinary persistent inspector controls. Preview and its refresh icon consume the compiled preview route. The design iframe receives editing mode only. Audit rows retain page IDs as well as node IDs, and a page metadata issue opens that page's SEO inspector. Global delete/undo shortcuts are guarded while Studio is open. The interaction hint and Help paragraphs now explain advanced Studio and compiled Preview.
+
+### src/features/studio.ts · persistent authoring and service panels
+
+- refers-to: `src/features/studio.ts`, `src/features/contracts.ts` :: all descriptor mounting and execution
+- kind: rationale
+- logged: v0.2.0 · 2026-10-10
+
+Each workflow pane and its controls are mounted once. Category/action navigation toggles panes; list rows are keyed. Examples are loaded once or explicitly, so SSE updates never replace pending Studio input. The modal traps focus and restores the previous control on close. JSON, finite numbers, required fields and CSV size are checked locally; authoritative engine/service errors are displayed. Only the run button is disabled during a request, with fixed result space and no loading spinner. Native results are summarized; service envelopes retain their report/library details while immediately applying nested state. Provider statuses remain the actual response, with no inferred success claim. Path parameters are excluded from request bodies. File controls read an actual selected CSV. Code compilation is labeled Build & install and requires explicit source opt-in.
+
+### src/features · native and service consumers
+
+- refers-to: `src/features/authoring.ts`, `src/features/advanced.ts`, `src/features/services.ts`, `src/features/providers.ts`, `src/features/code.ts` :: workflow descriptors and exact operations
+- kind: explainer
+- logged: v0.2.0 · 2026-10-10
+
+Native workflows submit agreed page/breakpoint/token/preset/component/CMS commands or validated extension groups. Dedicated entry editors merge into current configuration for states, actions, timelines, overlays, translated media/routes, widgets, gates, experiments, conversion goals and redirects. Collection schema updates use collection.update with typed reference descriptors. JSON group editors expose Load current configuration because extension.set replaces that group. Services consume actual inbox/CSV/retention/delivery/release/branch/review/comment/presence/identity/access/activity/delete endpoints. Pinned library update requires an explicit update checkbox and reviewed digest; CSV import preserves type, presence and locale metadata. Provider panels inspect missing server environment names, deployment/domain/data-source states, pending translation review, synchronized products, signed orders, visitor groups and consented metrics. Secrets have no site/editor configuration field. The code panel uses the actual compiler response and preserves its digests before installing the validated definition and host binding.
+
+### src/features/runtime-preview.ts · compiled runtime with reserved continuity
+
+- refers-to: `src/features/runtime-preview.ts` :: constructor, update, compile, fit
+- kind: rationale
+- logged: v0.2.0 · 2026-10-10
+
+The design iframe and two compiled-runtime iframe slots remain mounted. A POST to /api/preview selects page and locale; the result URL loads into the inactive slot. The preceding view remains visible through load and two animation frames, then visibility switches once. Responsive size changes fit the existing frame without recompilation. Revision/page/locale changes request a new immutable preview. Each runtime frame allows scripts/forms/popups but omits same-origin access and sends no referrer. A failed/slow request reports its error and retains the previous view. Its compiled runtime owns forms, CMS queries, motion and integration behavior; the design surface does not execute them. Visitor-cookie semantics need final verification in a top-level publication.
+
+### src/api.ts, types and Vite · integration regions
+
+- refers-to: `src/api.ts` :: request; `src/types.ts` :: optional metadata/extensions/audit scope; `vite.config.ts` :: proxy
+- kind: rationale
+- logged: v0.2.0 · 2026-10-10
+
+The request helper accepts an explicit HTTP method for DELETE. Preview and snapshot-consuming advanced service/provider workflows wait for queued native edits. Native commands retain their existing serialized expectedRevision path. Types preserve optional extension and component metadata and audit page scope. Vite proxies compiled preview and active /sites routes through the existing loopback backend; host:false/strictPort remain unchanged.
+
+### src/styles/features.css · mounted panel dimensions
+
+- refers-to: `src/styles/features.css` :: all layout
+- kind: rationale
+- logged: v0.2.0 · 2026-10-10
+
+Studio reserves a fixed modal workspace with category/action/content columns and independent scrolling. Result panels reserve height. Feature styles consume existing theme/spacing/stacking tokens. Runtime frame slots share one reserved outer viewport and are absolutely positioned inside it. No new competing z-index registry is introduced.
+
+### Advanced continuation · verification boundary
+
+- refers-to: production build and independent root verification
+- kind: explainer
+- logged: v0.2.0 · 2026-10-10
+
+Strict TypeScript/Vite compilation passed during implementation. Root owns final throttled browser, provider fixture, MCP and release evidence. ADVANCED_GUIDE.md describes the consuming UI paths and exact schemas without claiming every external adapter was verified. No authored tests or persistent test runner were added. All new modules were authored directly; each existing-file change followed a current-region read and a direct single-region editor call, with no code-edit script, patch file, bundle or transformation tool.
+
+### Final source review · specific control corrections
+
+- refers-to: `src/api.ts` :: HTTP 409 handling; `src/main.ts` :: CMS binding readout; `src/features/services.ts` :: branch return/review/merge
+- kind: fix
+- logged: v0.2.0 · 2026-10-10
+
+Semantic HTTP 409 errors now preserve the service reason; only an explicit stale/revision conflict refreshes engine state and requests a reviewed retry. This keeps library digest acknowledgement and branch/translation-state failures actionable. The inspector recognizes an advanced CMS binding or list, shows its actual collection/field and reserves its legacy controls while providing a Studio edit action. A dedicated saved-main list/open workflow completes branch review and merge from Studio; merge includes the reviewed revision. These are direct edits of read regions, followed by strict production compilation. Final asset names are communicated to root for browser verification.

@@ -3,6 +3,9 @@ import type { AuditIssue, Collection, EditorState, Page, SiteNode } from './type
 import { Canvas } from './ui/canvas';
 import { element, keyed, options, text, value } from './ui/dom';
 import { icon, type Icon } from './ui/icons';
+import { FeatureStudio } from './features/studio';
+import { RuntimePreview } from './features/runtime-preview';
+import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
 const overlay = document.querySelector<HTMLElement>('#overlay-root')!;
@@ -124,8 +127,9 @@ const agentsButton = button('Agents off', 'bolt', async () => {
   status(agentsEnabled ? 'Agents enabled. MCP shares this site engine.' : 'Agent access disabled.');
 }, 'quiet');
 const previewButton = button('Preview', 'eye', () => { preview = !preview; update(state()); }, 'quiet');
+const refreshPreviewButton = iconButton('Refresh compiled runtime preview', 'redo', () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } });
 const publishButton = button('Publish', 'arrow', () => openDialog('publish'), 'primary');
-topActions.append(agentsButton, previewButton, publishButton);
+topActions.append(agentsButton, previewButton, refreshPreviewButton, publishButton);
 topbar.append(brand, menubar, topActions);
 
 const toolbar = element('div', 'toolbar');
@@ -153,6 +157,10 @@ viewportSize.max = '3840';
 viewportSize.setAttribute('aria-label', 'Canvas viewport width in pixels');
 viewportSize.addEventListener('change', () => { widths[breakpoint] = Math.min(3840, Math.max(240, Number(viewportSize.value) || 1280)); update(state()); });
 const localeSelect = select([{ id: 'en', name: 'EN' }]);
+const breakpointSelect = select([{ id: 'desktop', name: 'Desktop' }, { id: 'tablet', name: 'Tablet' }, { id: 'mobile', name: 'Mobile' }]);
+breakpointSelect.className = 'toolbar-select';
+breakpointSelect.setAttribute('aria-label', 'Responsive breakpoint');
+breakpointSelect.addEventListener('change', () => { breakpoint = breakpointSelect.value; update(state()); });
 localeSelect.className = 'toolbar-select';
 localeSelect.setAttribute('aria-label', 'Canvas locale');
 localeSelect.addEventListener('change', () => { locale = localeSelect.value; update(state()); });
@@ -160,7 +168,7 @@ toolbar.append(projectIdentity, fileActions);
 separator(toolbar);
 toolbar.append(historyActions);
 separator(toolbar);
-toolbar.append(viewportActions, viewportSize, element('span', 'toolbar-label', 'px'), element('div', 'toolbar-spacer'), localeSelect, button('Export', 'code', exportSite, 'quiet'), button('Audit', 'check', auditSite, 'quiet'));
+toolbar.append(viewportActions, breakpointSelect, viewportSize, element('span', 'toolbar-label', 'px'), element('div', 'toolbar-spacer'), localeSelect, button('Export', 'code', exportSite, 'quiet'), button('Audit', 'check', auditSite, 'quiet'));
 
 const workspace = element('main', 'workspace');
 const sidebar = element('aside', 'sidebar');
@@ -291,6 +299,14 @@ addStyle(layoutGrid, 'Padding', 'padding');
 addStyle(layoutGrid, 'Align', 'align-items', ['', 'stretch', 'center', 'flex-start', 'flex-end', 'baseline']);
 addStyle(layoutGrid, 'Justify', 'justify-content', ['', 'flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly']);
 addStyle(layoutGrid, 'Grid columns', 'grid-template-columns', undefined, true);
+addStyle(layoutGrid, 'Flex wrap', 'flex-wrap', ['', 'nowrap', 'wrap', 'wrap-reverse']);
+addStyle(layoutGrid, 'Order', 'order');
+addStyle(layoutGrid, 'Grid rows', 'grid-template-rows', undefined, true);
+addStyle(layoutGrid, 'Grid column', 'grid-column');
+addStyle(layoutGrid, 'Grid row', 'grid-row');
+addStyle(layoutGrid, 'Align self', 'align-self', ['', 'auto', 'stretch', 'center', 'start', 'end']);
+addStyle(layoutGrid, 'Justify self', 'justify-self', ['', 'auto', 'stretch', 'center', 'start', 'end']);
+addStyle(layoutGrid, 'Flex', 'flex');
 addStyle(layoutGrid, 'Max width', 'max-width');
 addStyle(layoutGrid, 'Margin', 'margin');
 layoutSection.append(layoutGrid);
@@ -354,7 +370,8 @@ bindingCollection.addEventListener('change', () => void run(async () => {
 }));
 bindingField.addEventListener('change', () => void run(() => nodePatch({ binding: { collection: bindingCollection.value, ...(bindingField.value ? { field: bindingField.value } : {}) } })));
 bindingGrid.append(field('Collection', bindingCollection, true), field('Field', bindingField, true));
-bindingSection.append(bindingGrid, element('p', 'micro', 'List bindings repeat published items in the canvas and export. Descendant fields use their current item. Image fields bind image sources.'));
+const bindingNote = element('p', 'micro', 'List bindings repeat published items in the canvas and export. Descendant fields use their current item. Image fields bind image sources.');
+bindingSection.append(bindingGrid, bindingNote, button('Advanced bindings & queries', undefined, () => featureStudio.open('cms', 'cms-binding')));
 const interactionSection = section(contentPane, 'Interaction');
 const interactionGrid = element('div', 'form-grid');
 const interactionTrigger = select([{ id: 'click', name: 'Click' }, { id: 'hover', name: 'Hover' }, { id: 'scroll', name: 'Scroll into view' }]);
@@ -372,7 +389,7 @@ async function saveInteraction(): Promise<void> {
 }
 for (const control of [interactionTrigger, interactionAction, interactionClass, interactionUrl, interactionDuration]) control.addEventListener('change', () => void run(saveInteraction));
 interactionGrid.append(field('Trigger', interactionTrigger), field('Action', interactionAction), field('Class', interactionClass), field('URL', interactionUrl), field('Duration (ms)', interactionDuration));
-interactionSection.append(interactionGrid, element('p', 'micro', 'Preview click and hover actions here. Export includes scroll-triggered animations. This inspector edits the first interaction.'));
+interactionSection.append(interactionGrid, element('p', 'micro', 'Preview runs the compiled website with forms and interactions. This inspector edits the first legacy action; Studio edits states, conditions, timelines and overlays.'));
 const hierarchySection = section(contentPane, 'Hierarchy');
 const hierarchyGrid = element('div', 'form-grid');
 const parentSelect = select([]);
@@ -552,7 +569,8 @@ for (const [heading, paragraph] of [
   ['Content & locales', 'CMS collections store typed fields and published or draft items. Content bindings render items on export. Locale dictionaries translate node text and page metadata.'],
   ['Shared agent control', 'Enable Agents to permit MCP tools to inspect and modify the current site. Commands, validation and undo are owned by the same Rust engine as the editor.'],
   ['Keyboard', 'Ctrl/Cmd+S saves. Ctrl/Cmd+Z undoes; add Shift to redo. Escape closes dialogs. Delete removes the selected element when a form control is not focused.'],
-  ['Release scope', 'FormWeb is an initial local builder. Custom domains, cloud collaboration, commerce, production analytics and full Framer/Webflow parity are not part of this release.']
+  ['Advanced studio', 'Studio opens persistent workflows for custom breakpoints, component properties and libraries, CMS queries and CSV, locale routes, motion, form delivery, release promotion, branch review and collaborator access. Review each example before applying it.'],
+  ['Runtime & providers', 'Preview compiles the selected page and locale into an isolated runtime. Connected providers report their required server settings and actual transport result. Membership, consent, commerce and code components are authored in Studio; external provider completion requires configuration and independent verification.']
 ]) {
   const block = element('div');
   block.append(element('h3', '', heading), element('p', '', paragraph));
@@ -583,6 +601,10 @@ function update(next: EditorState): void {
   lastState = next;
   const site = next.site;
   if (!site.pages.length) return;
+  if (!site.breakpoints.some(item => item.id === breakpoint)) breakpoint = site.breakpoints.find(item => item.maxWidth === 100000)?.id || site.breakpoints[0]?.id || 'desktop';
+  if (!widths[breakpoint]) widths[breakpoint] = Math.min(3840, site.breakpoints.find(item => item.id === breakpoint)?.maxWidth || 1280);
+  options(breakpointSelect, site.breakpoints.map(item => ({ id: item.id, name: item.name })));
+  value(breakpointSelect, breakpoint);
   if (!site.pages.some(page => page.id === pageId)) pageId = site.pages[0].id;
   const page = currentPage();
   if (!site.nodes[selectedId] || !descendants(page.root).has(selectedId)) selectedId = page.root;
@@ -664,11 +686,19 @@ function update(next: EditorState): void {
   attrsFields.forEach((control, name) => value(control, node.attrs[name] || ''));
   resetOverrides.disabled = breakpoint === 'desktop' || !Object.keys(node.breakpoints[breakpoint] || {}).length;
   options(bindingCollection, [{ id: '', name: 'No collection' }, ...Object.values(site.collections).map(collection => ({ id: collection.id, name: collection.name }))]);
-  value(bindingCollection, node.binding?.collection || '');
-  const collection = site.collections[node.binding?.collection || ''];
-  options(bindingField, [{ id: '', name: 'Repeat collection list' }, ...(collection?.fields || []).map(field => ({ id: field.name, name: `${field.name} (${field.type})` }))]);
-  value(bindingField, node.binding?.field || '');
-  bindingField.disabled = !node.binding;
+  const cmsGroup = site.extensions?.cms as { bindings?: Record<string, { collection: string; field?: string }>; lists?: Record<string, { collection: string }> } | undefined;
+  const advancedBinding = cmsGroup?.bindings?.[node.id] || cmsGroup?.lists?.[node.id];
+  const activeBinding = advancedBinding || node.binding;
+  value(bindingCollection, activeBinding?.collection || '');
+  const collection = site.collections[activeBinding?.collection || ''];
+  const boundField = 'field' in (activeBinding || {}) ? (activeBinding as { field?: string })?.field || '' : '';
+  const boundFields = (collection?.fields || []).map(field => ({ id: field.name, name: `${field.name} (${field.type})` }));
+  if (boundField && !boundFields.some(field => field.id === boundField)) boundFields.push({ id: boundField, name: boundField });
+  options(bindingField, [{ id: '', name: 'Repeat collection list' }, ...boundFields]);
+  value(bindingField, boundField);
+  bindingCollection.disabled = !!advancedBinding;
+  bindingField.disabled = !!advancedBinding || !node.binding;
+  text(bindingNote, advancedBinding ? 'Advanced binding or query active. Edit it in Studio and review compiled Preview; these basic controls are reserved for the original binding.' : 'List bindings repeat published items in the canvas and export. Descendant fields use their current item. Image fields bind image sources.');
   const interaction = node.interactions?.[0];
   value(interactionTrigger, interaction?.trigger || 'click');
   value(interactionAction, interaction?.action || '');
@@ -683,7 +713,8 @@ function update(next: EditorState): void {
   downButton.disabled = !parent || parent.children.indexOf(node.id) === parent.children.length - 1;
   deleteNodeButton.disabled = node.id === page.root;
   noindex.checked = !!page.seo.noindex;
-  canvas.render(site, page, selectedId, widths[breakpoint], locale, preview);
+  canvas.render(site, page, selectedId, widths[breakpoint], locale, false);
+  runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
   if (dialogMode === 'cms') updateCms();
   if (dialogMode === 'locales') updateLocales();
   if (dialogMode === 'tokens') updateTokens();
@@ -830,16 +861,17 @@ async function auditSite(): Promise<void> {
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
   openDialog('audit');
   text(auditSummary, result.issues.length ? `${result.issues.length} issues found. Select an element to resolve it in the inspector.` : 'No issues found by the built-in audit. Review content and exported pages before release.');
-  keyed(auditList, result.issues.map((issue, index) => ({ ...issue, key: `${issue.code}-${issue.node || ''}-${index}` })), issue => issue.key, () => {
+  keyed(auditList, result.issues.map((issue, index) => ({ ...issue, key: `${issue.code}-${issue.page || ''}-${issue.node || ''}-${index}` })), issue => issue.key, () => {
     const row = element('div', 'audit-row');
     const description = element('div', 'audit-description');
     description.append(element('span'), element('small'));
     row.append(element('span', 'audit-severity'), description, button('Select', undefined, () => {
       const id = row.dataset.node;
-      if (id && state().site.nodes[id]) {
-        const page = state().site.pages.find(page => descendants(page.root).has(id));
-        if (page) pageId = page.id;
-        selectedId = id;
+      const page = state().site.pages.find(page => page.id === row.dataset.page || !!id && descendants(page.root).has(id));
+      if (page) {
+        pageId = page.id;
+        selectedId = id && state().site.nodes[id] ? id : page.root;
+        if (!id) setInspector('page');
         closeDialog();
         update(state());
       }
@@ -847,10 +879,11 @@ async function auditSite(): Promise<void> {
     return row;
   }, (row, issue) => {
     row.dataset.node = issue.node || '';
+    row.dataset.page = issue.page || '';
     text(row.children[0] as HTMLElement, issue.severity);
     text(row.children[1].children[0] as HTMLElement, issue.message);
-    text(row.children[1].children[1] as HTMLElement, `${issue.code}${issue.node ? ' · ' + issue.node : ''}`);
-    (row.children[2] as HTMLButtonElement).hidden = !issue.node;
+    text(row.children[1].children[1] as HTMLElement, `${issue.code}${issue.node ? ' · ' + issue.node : issue.page ? ' · ' + issue.page : ''}`);
+    (row.children[2] as HTMLButtonElement).hidden = !issue.node && !issue.page;
   });
 }
 function updateCms(): void {
@@ -969,12 +1002,20 @@ document.addEventListener('keydown', event => {
     if (event.shiftKey && document.activeElement === first) { last?.focus(); event.preventDefault(); }
     else if (!event.shiftKey && document.activeElement === last) { first?.focus(); event.preventDefault(); }
   }
-  if (!lastState) return;
+  if (!lastState || featureStudio.opened) return;
   const editable = (event.target as Element).closest('input, textarea, select, [contenteditable=true]');
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); void run(saveProject); }
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !editable) { event.preventDefault(); void run(() => command(event.shiftKey ? 'history.redo' : 'history.undo')); }
   if (event.key === 'Delete' && !editable && scrim.hidden && currentNode().id !== currentPage().root) void run(() => command('node.remove', { id: currentNode().id }));
 });
+const runtimePreview = new RuntimePreview(stage, canvas.outer, status);
+const featureStudio = new FeatureStudio({
+  selection: () => ({ node: selectedId, page: pageId, breakpoint, locale, width: widths[breakpoint] }),
+  notify: status,
+  selectNode,
+  selectPage: id => { pageId = id; selectedId = currentPage().root; update(state()); }
+}, overlay);
+menubar.append(featureStudio.button);
 subscribe(update);
 setInspector('design');
 setSidebar('pages');

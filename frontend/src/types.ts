@@ -8,6 +8,8 @@ export interface SiteNode {
   styles: Record<string, string>;
   breakpoints: Record<string, Record<string, string>>;
   componentId?: string;
+  componentSourceId?: string;
+  overrides?: string[];
   binding?: { collection: string; field?: string };
   interactions?: Interaction[];
 }
@@ -44,7 +46,8 @@ export interface Site {
   locales: Record<string, Record<string, string>>;
   defaultLocale: string;
   settings: Record<string, string>;
+  extensions?: Record<string, unknown>;
 }
 export interface EditorState { site: Site; revision: number; canUndo: boolean; canRedo: boolean }
 export interface Command { command: string; params: Record<string, unknown> }
-export interface AuditIssue { severity: string; code: string; node?: string; message: string }
+export interface AuditIssue { severity: string; code: string; page?: string; node?: string; message: string }

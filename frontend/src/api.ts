@@ -21,10 +21,10 @@ function authHeaders(): Record<string, string> {
     return token ? { Authorization: `Bearer ${token}` } : {};
   } catch { return {}; }
 }
-export async function request<T>(path: string, body?: unknown): Promise<T> {
-  if (path === '/api/projects/save' || path === '/api/publish' || path === '/api/audit') await queue.catch(() => undefined);
+export async function request<T>(path: string, body?: unknown, method?: string): Promise<T> {
+  if (['/api/projects/save', '/api/publish', '/api/audit', '/api/preview'].includes(path) || path.startsWith('/api/libraries') || path.startsWith('/api/cms/') || path.startsWith('/api/branches') || path.startsWith('/api/providers/')) await queue.catch(() => undefined);
   const response = await fetch(apiBase + path, {
-    method: body === undefined ? 'GET' : 'POST',
+    method: method || (body === undefined ? 'GET' : 'POST'),
     headers: { ...authHeaders(), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
     credentials: 'same-origin',
     body: body === undefined ? undefined : JSON.stringify(body)
@@ -35,9 +35,9 @@ export async function request<T>(path: string, body?: unknown): Promise<T> {
       const error = await response.json();
       detail = typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail || error.error || error);
     } catch {}
-    if (response.status === 409 && path !== '/api/state') {
+    if (response.status === 409 && path !== '/api/state' && /revision conflict|revision is stale|stale.*revision/i.test(detail)) {
       accept(await request<EditorState>('/api/state'));
-      throw new Error('Another editor changed the site. Latest state loaded; your focused input is retained. Apply your change again.');
+      throw new Error(`${detail}. Latest state loaded; your focused input is retained. Review the current state and apply your change again.`);
     }
     throw new Error(detail);
   }
