@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark light" />
+  <title>FormWeb · NodeMode</title>
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem('formweb_theme')||'dark'}catch{}</script>
+  <link rel="stylesheet" href="/src/styles/tokens.css" />
+  <link rel="stylesheet" href="/src/styles/app.css" />
+</head>
+<body>
+  <div id="app" aria-label="FormWeb website editor"></div>
+  <div id="overlay-root"></div>
+  <input id="project-import" type="file" accept=".json,.fweb,application/json" hidden />
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
