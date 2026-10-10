@@ -1,0 +1,71 @@
+# FormWeb MCP Workflows
+
+## Connect and discover
+
+From the repository root, install and build with the documented launcher before starting the backend on loopback port 8240. The project MCP configuration launches `./formweb mcp` on Unix; the Windows dispatcher is `formweb.bat mcp`. The stdio process forwards to the running backend and does not start a separate Rust document engine. Use the repository's current setup documentation if a command or path has changed.
+
+The backend also exposes its SDK Streamable HTTP transport. Obtain the actual endpoint from project configuration and backend documentation. Agents is initially disabled; the authorized user enables it in the editor or starts the service with `FORMWEB_AGENTS=1`. Check actual connection status rather than assuming configuration means connection.
+
+Discover through `tools/list`, then call `get_site` and read resources `formweb://site` and `formweb://commands` as needed. The authoritative static catalogue is `backend/app/mcp_catalog.py`; tool descriptions and schemas own the full parameter contract. This reference supplies sequence and dependencies.
+
+Current tool names are `get_site`, `apply_commands`, `history`, `audit_site`, `save_project`, `list_projects`, `open_project`, `export_site`, `publish_site` and `list_submissions`. Check the live listing before use.
+
+## Workflow 1: build and inspect a responsive page
+
+Trigger: "Make a responsive FormWeb landing page with a hero, features and a contact section."
+
+1. `get_site`: retain the returned revision, page IDs, root IDs and existing content that the brief keeps.
+2. Plan the page hierarchy, normal-flow layout, styles, breakpoint overrides and content. Route to the layout, content or interaction specialist when that part needs its own checks.
+3. `apply_commands`: pass `commands` as entries containing `command` and `params`, and `expected_revision` from step 1. Example operation: `node.update` with the observed node ID and a `patch` containing only the intended properties.
+4. Inspect the returned state or call `get_site` again. Use the new revision for any next batch; old revisions are consumed evidence, not a reusable lock.
+5. `audit_site`: inspect each issue's severity, code, node and message. Correct relevant issues with another observed-revision batch.
+6. `export_site`: pass the requested `locale`; omitting it uses the observed site's `defaultLocale`. Inspect the returned ZIP path and manifest, then render exported pages at the planned widths.
+7. `save_project`: pass a meaningful `name` if requested. Record the returned project identity and revision.
+
+Result: an editable site plus an inspected export, with final revision, audit disposition and actual preview widths reported.
+
+## Workflow 2: revise CMS content and a translated page
+
+Trigger: "Update the FormWeb blog collection and export the Spanish page."
+
+1. `get_site`: read the current collection ID, field names, existing record IDs, page node IDs, translations and revision.
+2. `apply_commands`: use `cms.upsert` with the observed collection and intended item; use `locale.set` with locale `es` and the complete intended translation map. Keep existing keys that the update should preserve. Include `expected_revision` from step 1.
+3. `get_site`: confirm values and the returned revision. Inspect bindings before claiming the page displays a record.
+4. `audit_site`: resolve missing field and binding issues relevant to the request.
+5. `export_site` with `locale` `es`: inspect the exported page text, metadata, links and record content.
+6. `save_project`: persist the editable result and record its identity.
+
+Result: a saved site and Spanish export whose actual content is observed. Report missing dynamic CMS routing or locale behavior if the request needs it.
+
+## Workflow 3: save, publish locally and inspect a form
+
+Trigger: "Save my FormWeb contact page and publish a local preview so I can check submissions."
+
+1. `get_site`: inspect the site, intended form and current revision; verify that the request authorizes local capture and inspection.
+2. `audit_site`: disposition any relevant form, accessibility or metadata issue before publication.
+3. `save_project`: pass the requested `name`, retaining the returned project ID and revision.
+4. `publish_site`: pass the requested `slug` if supplied. Retain the returned local URL, slug and immutable version. Do not synthesize a URL from an assumed path.
+5. Open that local URL in a browser, inspect the intended content and submit the authorized example form data.
+6. `list_submissions`: inspect only the authorized captured record. Match the site and form IDs, and report the observed submission result without exposing unrelated records.
+
+Result: an editable saved project and verified local publication. This does not deploy to an external domain or configure email delivery.
+
+## Open and history operations
+
+Use `list_projects` to find a requested project ID, then `open_project` with `project_id`. Preserve current work first when needed. Call `get_site` after opening to inspect the loaded result.
+
+Use `history` with `action` `undo` or `redo` and optional `expected_revision` from a fresh `get_site` read. Inspect the result before continuing; undo changes which IDs and content exist.
+
+## Recover without duplicate work
+
+If `apply_commands` rejects its expected revision, call `get_site`, inspect the affected objects and send only the remaining intended change with the fresh revision. Do not blindly repeat the old batch. If the batch itself was rejected, it has no committed prefix; if an earlier batch succeeded, that earlier work remains.
+
+For absent tools, inspect the connection and use `tools/list`. For disabled Agents, inspect its actual enablement state. For authentication rejection, check whether the backend sets `FORMWEB_AUTH_TOKEN` and whether the client sends its matching bearer token. Inspect presence only, without printing values. Distinguish the local endpoint from an optional proxy and follow the configured proxy's documented authentication when applicable. This release has no account-token refresh flow.
+
+Call a failing tool directly using its live schema. If that call fails too, the server, transport or permission is the problem. Return the observed error and preserved state instead of inventing a successful response.
+
+## Keep the pair discoverable
+
+The repository documentation should link to `.claude/skills/formweb-harness/SKILL.md` and its MCP setup. Project clients load this committed skill directory; a standalone `.skill` package must be installed or enabled separately on another supported surface.
+
+First task to try: "In FormWeb, inspect the current site, change the hero headline, audit it, and save an editable project." Do not assume a package has been enabled just because it was delivered. Record recurring real workflow failures outside the skill as future evaluation inputs, then revise and revalidate this pack with the repository version.
