@@ -51,3 +51,110 @@ Raster upload, exported binary equality, portable HTML image references, immutab
 Native save/download/load/reopen passed. A native file containing an owned image imported into a fresh data directory and restored the image, which returned 200. Restarting the backend restored the exact autosaved site, saved projects, publication records and local submissions. Optional bearer-to-browser-cookie authentication and cookie-authenticated SSE passed; a browser API cookie did not authenticate MCP (401). The stdio HTTP client explicitly disables environmental proxies so loopback operation does not depend on unrelated SOCKS settings. SDK response objects use Python snake_case attributes while JSON wire aliases remain camelCase.
 
 These were manual diagnostics, with no authored test suite or persistent test runner. Local snapshots, local submissions and local file paths do not establish cloud hosting, email delivery, cloud collaboration or cross-machine project synchronization.
+
+## v0.2.0 service and MCP closure
+
+This section supersedes the v0.1.0 process-local history, ten-tool catalogue, two-resource catalogue, scalar-only form and bearer-only identity descriptions above. The earlier sections retain their historical observation record.
+
+### File ownership and navigation
+
+| File | Runtime responsibility |
+| --- | --- |
+| `app/config.py` | Loopback port/origins, platform-aware core path, ignored runtime data, size boundaries and release version. |
+| `app/engine.py` | Single Rust process, JSON-lines acknowledgements, revision conflict mapping and full checkpoint crash recovery. |
+| `app/store.py` | SQLite projects, checkpoints, autosave metadata, frozen releases and submissions; explicit WAL checkpoints on acknowledged autosaves and close. |
+| `app/service.py` | Shared REST/MCP action lock, main/branch automatic capture, native file saves, project lifecycle, publication and form intake. |
+| `app/assets.py` | Bounded digest-checked raster intake, project ownership, history-wide native asset embedding and compiled page asset ownership. |
+| `app/access.py` | Hashed bearer identities, project roles, per-identity browser sessions, attributed activity and presence. |
+| `app/collaboration.py` | Isolated branches, recursive three-way review, explicit conflicts, one-undo merges and stable node-ID comments. |
+| `app/forms.py` | Typed frozen form validation, inline error payloads, tracking, scoped CSV inbox and persisted retention policies. |
+| `app/releases.py` | Exact frozen-byte promotion/rollback, release ownership, redirects and nonce-bound immutable previews. |
+| `app/delivery.py` | Durable signed webhook jobs/attempts, approved-host transport, deduplication, retry/restart and retention pruning. |
+| `app/content_services.py` | Typed CMS CSV, project-scoped local immutable component libraries and reviewed digest-pinned updates. |
+| `app/code_components.py` | Explicit opt-in code compilation through the actual pinned TypeScript compiler helper. |
+| `app/advanced_catalog.py` | Strict schemas for 35 implemented advanced workflow tools. |
+| `app/workflows.py` | Shared advanced REST/MCP dispatch, native envelope validation and service role guards. |
+| `app/advanced_routes.py` | Schema-checked workflow routes, compiled preview/site serving and frozen route/asset/form visitor gates. |
+| `app/main.py` | FastAPI lifecycle, local Host/Origin/auth boundary, SSE, basic editor API and provider/workflow registration. |
+| `app/mcp_catalog.py` | Ten basic tool descriptors. |
+| `app/mcp_server.py` | Actual official SDK server, 61 tools, 13 resources and per-request bearer actor derivation. |
+| `setup/mcp_stdio.py` | Official SDK stdio-to-existing-HTTP proxy sharing this service and engine. |
+| `app/providers/` | Twelve Python files and provider-local context map in `app/providers/HASHOUT_LOG.md`, including nonce-bound visitor/consent tokens. |
+| `.env.example` | Local core/auth/Node/webhook environment defaults. |
+| `.env.providers.example` | Explicitly unconfigured translation, deployment, commerce and external-fetch provider environment template. |
+
+`app/providers/HASHOUT_LOG.md` is the provider module map and transport/privacy context. Root helpers `delivery.py`, `content_services.py` and `code_components.py` were authored by the parent build agent and integrated through the same shared service and permissions. No additional dependency was introduced for these modules; JSON Schema validation uses the official SDK's already-installed permissive transitive dependency.
+
+### Checkpoint and project durability
+
+The native checkpoint is `{schemaVersion:1,site,revision,undo,redo}`. Every acknowledged operation captures a complete validated Rust checkpoint. Startup and subprocess crash recovery restore the exact last acknowledged revision and complete history. Explicit project opening restores history while advancing the active revision. Invalid checkpoint documents and cross-site history are rejected atomically by Rust.
+
+Main project mutations automatically update that named project's SQLite site/checkpoint without changing its display name. Active branch mutations automatically update only that branch snapshot and checkpoint. Switching projects or branches therefore retains acknowledged edits and undo/redo without requiring a second Save. Explicit Save also writes the portable `.fweb` file; current and project-ID download endpoints generate the latest corresponding acknowledged document/checkpoint. The on-disk path returned by explicit Save remains that explicit portable snapshot until the next explicit Save.
+
+Portable native files now include the complete checkpoint and the union of owned raster assets referenced by current, undo and redo documents. This prevents undo from restoring a missing image after import into a fresh runtime data directory. Native envelopes and HTTP/MCP transport bodies are bounded at 64 MiB, history at 100 entries per direction and 32 MiB, current native sites at 8 MiB, individual rasters at 8 MiB and embedded asset count at 500. Legacy envelopes without checkpoint or assets remain accepted. Extra images restored before an invalid model rejection can remain as inert local digest files; the active model is unchanged.
+
+Deleting a project requires management permission, removes its saved document/checkpoint, branches, branch checkpoints, comments, presence and grants. Frozen published versions and attributed historical activity remain independent release/audit records. If a named owner deletes the active project, its identity owns the fresh workspace; other identities receive no implicit access to it.
+
+### Collaboration and attribution
+
+Configured `FORMWEB_AUTH_TOKEN` is required before editor identities can be created. With authentication unconfigured, the local owner mode cannot claim enforced separate user roles. If identities already exist and root authentication is removed, dropping Authorization fails closed. Identity bearer tokens are revealed once and stored only as hashes. Browser control API/SSE cookies are random per identity, HttpOnly, SameSite Strict, process-bound and expire after twelve hours. MCP always requires the corresponding bearer identity and ignores browser cookies.
+
+Roles are `viewer`, `reviewer`, `editor`, `publisher` and `owner`, with read/comment/review/edit/publish/manage permissions. The same service checks guard HTTP and official SDK tool/resource operations. Each MCP callback derives its actor from `ServerRequestContext.request.headers`; it does not inherit the manager's startup ContextVar identity. Presence lasts one minute unless refreshed. Comments retain the authored node ID through reorder and serialize author identity/name. Activity records accepted operations with the same REST/MCP actor.
+
+Branches store base/current branch snapshots separately from main. Saving an open branch never overwrites main. Review requires main to be open and returns changes, current revision and conflicts with escaped JSON pointers. Dictionaries merge recursively; differing arrays are atomic conflicts. Merges require explicit `current` or `branch` choices for every conflict and can require `expectedRevision`; Rust records the merged site as one undo entry. Revision conflicts return HTTP 409 or an MCP execution error with status 409. A caller can read the fresh state and explicitly retry; no conflicting mutation is silently replayed.
+
+SSE queues carry the affected project ID, coalesce slow subscribers and recheck current authentication/project permission before delivering state or keepalive. Revoked access emits an access-denied event and closes the stream. Browser cookies authenticate SSE without putting bearer tokens into query strings.
+
+### Forms, inbox and delivery
+
+Frozen publication and immutable preview forms validate their own saved document, not a later draft. Public default form endpoints are usable by visitors; a form reachable only through gated pages requires a matching visitor membership. Editor bearer identities do not substitute for website visitor identities. A shared form reachable from a public page remains public.
+
+`extensions.forms.forms` configures success/error messages, success redirect, tracking query fields and per-field constraints. Intake returns field-specific `errors` with HTTP 422; typed outputs include finite numbers, checkbox booleans and bounded multiple-choice arrays. Required flags, email, URL, ISO dates, numeric bounds/step, radio/select choices, repeated-field cardinality, min/max lengths and a restricted regular-expression subset are checked. Patterns exclude groups, alternation, backreferences and more than one unbounded quantifier. Files are unsupported. Bodies are bounded at 64 KiB, field count at 128, values at 4096 characters, and IP requests at twelve per minute; the honeypot rejects automated entries before storage.
+
+Inbox and CSV reads filter by permitted site IDs. CSV prefixes formula-like cells and carries typed values and declared tracking fields. Retention is persisted per site or for the root owner's global policy, applies at startup and every minute, and removes submission metadata plus corresponding durable delivery jobs and attempts. An already-initiated outbound network request cannot be recalled by deletion.
+
+Webhook configuration contains approved endpoint URLs and `secretEnv` references, never inline secrets. `FORMWEB_WEBHOOK_HOSTS` is an exact host allowlist; production transport requires HTTPS/TLS on port 443, pins the approved resolved address and preserves hostname TLS validation. Explicit `FORMWEB_ALLOW_LOCAL_WEBHOOKS=1` exists only for loopback diagnostics. `FORMWEB_WEBHOOK_SECRET` is an example signing reference. Jobs survive restart, deduplicate submission/endpoint pairs, retain bounded attempt history and retry at most eight times with capped backoff. Terminal client errors exclude retryable 408/429. Signatures cover timestamp, job ID and the exact JSON body. Accepted locally stored submissions report queued or unavailable delivery honestly; no email delivery is claimed.
+
+### Frozen releases and compiled preview privacy
+
+Promotion and rollback move the active pointer to existing frozen files without rebuilding or mutating them. Native redirect maps accept legacy string targets (301) or exact `{to,status}` records with 301/302/307/308; frozen legacy list manifests remain supported. Native cycles, invalid status, normalized duplicate sources and self redirects reject atomically; a malformed frozen cycle returns 409. Frozen, active and preview redirects retain their package prefix. Active and version-qualified paths normalize directory indexes and resolve localized/CMS aliases through `routes.json` before membership authorization. Preview URLs select the exact compiled page/locale manifest entry and confirm its bytes exist before reporting success. Publication URLs use the manifest's real default-locale entry; root paths without index bytes redirect to that entry, and promotion validates those actual frozen bytes instead of requiring a root index file.
+
+Compiled previews carry a one-hour nonce bound to immutable document/files. Their iframes have opaque origins and permit scripts/forms without same-origin access. `Origin:null` is allowed only for a verified nonce-bound preview/public runtime path, never editor APIs or MCP. Preview visitor/consent continuity uses nonce-bound `X-FormWeb-Visitor` and `X-FormWeb-Consent` tokens with credential omission; published visitor sessions use a separate HttpOnly cookie. Referrers are suppressed. Code component assets receive a response CSP sandbox with scripts permitted and network forbidden, including direct URL navigation.
+
+Protected local publications omit the editable graph. Portable static export rejects sites with membership gates instead of exporting private content behind client-side hiding. Generic source-free `assets/runtime.js` and `assets/site.css` remain public. `asset-access.json` records compiler-derived code/CSS page ownership; Python unions owned raster references from actual rendered route HTML/page CSS. An asset with any public owning page is public. Otherwise at least one actual owning page must authorize the visitor; assets without ownership deny access when gates exist. Private route CSS, media and code are served with `private, no-store`.
+
+### Official SDK workflows and configuration
+
+Actual discovery is 61 tools: ten basic editor tools, 35 advanced service tools and 16 provider tools. Thirteen resources expose permitted site/commands/checkpoint/branches/releases/comments/access/activity/presence/deliveries/inbox/providers/catalog state. `GET /api/catalog` contains exact input schemas and advanced route mappings. Streamable HTTP and stdio initialize with protocol `2025-11-25`; SDK lifecycle owns capabilities, notifications and protocol errors. Tool execution failures use `isError:true` and structured status/details. The stdio proxy initializes and forwards to the running HTTP service and creates no separate engine.
+
+`FORMWEB_NODE_BIN` can select Node; blank discovers Node from PATH. Component builds additionally require the pinned frontend compiler installed by the family installer. Core executable/data/frontend overrides `FORMWEB_CORE_BIN`, `FORMWEB_DATA_DIR` and `FORMWEB_FRONTEND_DIST` must be actual paths when supplied; blank path overrides are not sample defaults. Provider settings and unconfigured vendor limitations are in `docs/PROVIDER_RESEARCH_v0.2.0.md` and `.env.providers.example`. Translation, remote deployment/domain and Shopify paths require credentials and an independently observable vendor service; local contract fixtures do not establish a real vendor deployment or purchase. Local membership, analytics and delivery remain service-backed workflows, not cloud synchronization.
+
+### Observed v0.2.0 execution
+
+Python source and the stdio entrypoint compiled. Manual diagnostics ran actual product services and compiled Rust with isolated data, with no authored test suite or persistent runner. Independent service namespaces required service and clients to start in the same execution invocation. Evidence is retained in the planning sidecar research set:
+
+| Observation artifact | Actual result |
+| --- | --- |
+| `backend-observations-v0.2.0.json` | Official HTTP SDK 61 tools/13 resources, viewer denial, attributed presence, isolated branch save, conflicting review/merge, frozen promotion and opaque preview boundaries. |
+| `history-observations-v0.2.0.json` | Full history native import, deleted-current-image history asset restoration, exact backend checkpoint restart and atomic invalid-history rejection. |
+| `crash-observations-v0.2.0.json` | Killed real Rust process, exact checkpoint/revision recovery and usable undo afterward. |
+| `forms-release-observations-v0.2.0.json` | Six field errors, typed/multiple/tracking storage, signed 500-to-204 retry, immutable schema, rollback byte equality and retention deleting delivery PII. |
+| `branch-durability-observations-v0.2.0.json` | Eight passed main/branch auto-capture, switch/restart/history and explicit display-name preservation observations. |
+| `role-lifecycle-observations-v0.2.0.json` | Sixteen passed viewer negatives, comment reorder/restart, simultaneous writers 200/409, explicit retry, both actors, browser cookie/SSE, durable named-owner delete and fresh workspace denial. |
+| `stdio-observations-v0.2.0.json` | Actual official SDK stdio protocol/discovery, shared REST mutation, advanced checkpoint/resource, viewer denial and attributed proxy presence. |
+| `large-native-mcp-observations-v0.2.0.json` | 8,884,869-byte native request through actual SDK imported and restored exact raster bytes beyond the previous eight-MiB transport cap. |
+| `form-gate-observations-v0.2.0.json` | Public form accepted, anonymous private form denied, actual visitor registration/login, private form accepted and exactly two stored rows. |
+| `delivery-observations-v0.2.0.json` | Parent helper signed retry, deduplication and interrupted-job restart behavior. |
+| `content-observations-v0.2.0.json` | Parent helper seven typed CSV/library workflow observations, including reviewed updates, detach and unrelated viewer denial. |
+| `provider-validation/provider-verification-final.json` | Independent provider 43 actual HTTP and six MCP fixture observations. |
+| `gated-audit/observations-owner-final.json` | Independent 109 alias/public/private asset observations, including public counter/media functionality, EN/FR CMS protection and no public private-content markers. |
+| `retention-startup-observations-v0.2.0.json` | Persisted zero-day policy and automatic startup pruning of a previously acknowledged submission. |
+| `compiler-forms-browser-observations-v020.json` | Independent real browser inline errors/input preservation, repeated success/reset/tracking, scoped redirect and opaque preview form submission. |
+| `redirect-preview-observations-v0.2.0.json` | Fifteen frozen/active/preview redirect status cases, four atomic invalid cases and translated-slug preview HTTP 200. |
+| `localized-entry-observations-v0.2.0.json` | Default French localized home without root index publishes/promotes/redirects correctly with exact frozen bytes and working page-relative assets. |
+
+A first stdio diagnostic incorrectly read identity creation as a nested `identity` object and stopped before role checks; the corrected diagnostic consumed the actual flat response and all recorded observations passed. The first branch durability diagnostic detected implicit save renaming the explicit project display name; the smallest store title fallback correction passed the rerun. An initial process lookup utility failure prevented one early crash diagnostic from touching the core; the corrected known-process diagnostic performed and recorded the actual crash/recovery.
+
+Source changes were handmade single-region direct edits against live reads. Mechanical line-selection misses in releases redirect insertion and automatic persist insertion were immediately reread and corrected before compilation; the parent also reported a two-region helper editing miss. These misses are recorded explicitly, with unrelated working regions restored, and are not described as ideal SEDO compliance. No source rewrite, source-edit script, patch/diff applier, test suite or dependency addition was used. Backend files do not mutate the editor DOM; frontend throttled stability verification belongs to the frontend/root ledger.
+
+Local library review digests cover the selected component record, its full node subtree, its advanced component definition, copied tokens, breakpoints, locales and form configuration for subtree forms. A definition or copied dependency change therefore appears in review even when node markup is identical. The immutable library-version acknowledgement digest is SHA256 over canonical sorted JSON of its entire native envelope, including owned raster bytes; `reviewDigest` must match that selected version before update. Metadata-only names outside those component/dependency fields do not imply a component change. Project-scoped library ownership migrates from an unsaved site's key to its saved project ID alongside grants, assets, comments, presence, activity and releases.

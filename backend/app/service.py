@@ -11,9 +11,14 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from uuid import uuid4
 
+from .access import AccessControl, actor
 from .assets import bundle_assets, file_bytes, project_envelope
+from .collaboration import Collaboration
 from .config import DATA_DIR, PUBLIC_BASE
+from .delivery import DeliveryQueue
 from .engine import EngineError, RustEngine
+from .forms import Forms
+from .releases import Releases
 from .store import Store, now
 
 
@@ -37,60 +42,148 @@ class Studio:
 
     async def start(self):
         self.store = Store()
+        self.access = AccessControl(self.store)
+        self.collaboration = Collaboration(self)
+        self.forms = Forms(self)
+        self.releases = Releases(self)
+        self.delivery = DeliveryQueue(self.store)
         await self.engine.start()
+        checkpoint = self.store.get_meta('autosaveCheckpoint')
         autosave = self.store.get_meta('autosave')
-        if autosave:
-            await self.engine.request('load', {'site': autosave['site']})
+        if checkpoint:
+            await self.engine.request('restore', {'checkpoint': checkpoint, 'restoreRevision': checkpoint['revision']})
+        elif autosave:
+            await self.engine.request('load', {'site': autosave['site'], 'restoreRevision': autosave['revision']})
         await self.persist(await self.state())
+        self.forms.apply_retention()
+        await self.delivery.start()
+        self.retention_task = asyncio.create_task(self.retention_loop())
+
+    async def retention_loop(self):
+        while True:
+            await asyncio.sleep(60)
+            async with self.action_lock:
+                self.forms.apply_retention()
 
     async def close(self):
+        if getattr(self, 'retention_task', None):
+            self.retention_task.cancel()
+            try:
+                await self.retention_task
+            except asyncio.CancelledError:
+                pass
+            self.retention_task = None
+        if hasattr(self, 'delivery'):
+            await self.delivery.close()
         await self.engine.close()
         if self.store:
             self.store.close()
             self.store = None
 
     async def state(self):
+        self.access.authorize('read')
         return await self.engine.request('state')
 
     async def persist(self, state: dict[str, Any]):
-        self.store.set_meta('autosave', state)
+        checkpoint = await self.engine.request('checkpoint')
+        metadata = {'autosave': state, 'autosaveCheckpoint': checkpoint}
+        branch_id = self.store.get_meta('activeBranch')
+        project_id = self.store.get_meta('currentProject')
+        if branch_id:
+            self.store.db.execute('UPDATE branches SET site=?,updated_at=? WHERE id=?', (json.dumps(state['site']), now(), branch_id))
+            metadata['branchCheckpoint:' + branch_id] = checkpoint
+        elif project_id:
+            self.store.db.execute('UPDATE projects SET site=?,revision=?,updated_at=? WHERE id=?', (json.dumps(state['site']), state['revision'], now(), project_id))
+            self.store.db.execute('INSERT INTO project_checkpoints VALUES(?,?) ON CONFLICT(project_id) DO UPDATE SET checkpoint=excluded.checkpoint', (project_id, json.dumps(checkpoint)))
+        self.store.set_metas(metadata)
         for queue in tuple(self.subscribers):
             if queue.full():
                 queue.get_nowait()
-            queue.put_nowait(state)
+            queue.put_nowait((state, self.access.project_key()))
         return state
 
     async def mutate(self, method: str, params: dict[str, Any]):
+        identity = self.access.authorize('edit')
+        previous_role = self.access.role()
         async with self.action_lock:
             result = await self.engine.request(method, params)
-            state = result if isinstance(result, dict) and 'site' in result else await self.state()
-            if method in ('new', 'load'):
-                self.store.set_meta('currentProject', None)
+            state = result if isinstance(result, dict) and 'site' in result else await self.engine.request('state')
+            if method in ('new', 'load', 'restore'):
+                self.store.set_metas({'currentProject': None, 'activeBranch': None})
+                if not identity['root']:
+                    self.store.db.execute('INSERT OR REPLACE INTO members VALUES(?,?,?)', (state['site']['id'], identity['id'], previous_role))
+                    self.store.db.commit()
+            self.access.record('engine.' + method, {'command': params.get('command'), 'revision': state['revision']})
             return await self.persist(state)
 
     async def save_project(self, name: str | None = None):
+        self.access.authorize('edit')
         async with self.action_lock:
             state = await self.state()
-            result = self.store.save_project(state, name, self.store.get_meta('currentProject'))
+            checkpoint = await self.engine.request('checkpoint')
+            active_branch = self.store.get_meta('activeBranch')
+            if active_branch:
+                result = await self.collaboration.capture(active_branch)
+                self.store.set_meta('branchCheckpoint:' + active_branch, checkpoint)
+                return {**result, 'branch': True, 'name': self.collaboration.branch(active_branch)['name'], 'downloadUrl': '/api/project-file'}
+            previous_key = self.access.project_key()
+            envelope = project_envelope(state['site'], checkpoint)
+            result = self.store.save_project(state, name, self.store.get_meta('currentProject'), checkpoint)
+            if previous_key != result['id']:
+                self.store.db.execute('INSERT OR IGNORE INTO members SELECT ?,identity_id,role FROM members WHERE project_id=?', (result['id'], previous_key))
+                for table in ('library_versions', 'asset_owners', 'comments', 'presence', 'activity', 'release_projects'):
+                    if self.store.db.execute('SELECT 1 FROM sqlite_master WHERE type=? AND name=?', ('table', table)).fetchone():
+                        self.store.db.execute(f'UPDATE {table} SET project_id=? WHERE project_id=?', (result['id'], previous_key))
+                self.store.db.commit()
             folder = DATA_DIR / 'projects'
             folder.mkdir(parents=True, exist_ok=True)
             target = folder / (result['id'] + '.fweb')
             pending = folder / ('.pending-' + uuid4().hex)
-            envelope = project_envelope(state['site'])
             pending.write_text(json.dumps(envelope, ensure_ascii=False, indent=2), encoding='utf-8')
             pending.replace(target)
+            self.access.record('project.save', {'id': result['id'], 'revision': state['revision']})
             return {**result, 'path': str(target), 'downloadUrl': '/api/projects/' + result['id'] + '/file'}
 
     async def open_project(self, project_id: str):
+        self.access.authorize('edit', project_id)
         async with self.action_lock:
             site = self.store.project(project_id)
             if site is None:
                 raise EngineError('Project not found.', 404)
-            state = await self.engine.request('load', {'site': site})
-            self.store.set_meta('currentProject', project_id)
+            checkpoint = self.store.project_checkpoint(project_id)
+            state = await self.engine.request('restore', {'checkpoint': checkpoint}) if checkpoint else await self.engine.request('load', {'site': site})
+            self.store.set_metas({'currentProject': project_id, 'activeBranch': None})
+            self.access.record('project.open', {'id': project_id}, project_id)
             return await self.persist(state)
 
+    def projects(self):
+        self.access.authorize('read')
+        return {'projects': [row for row in self.store.projects()['projects'] if self.access.role(row['id']) in ('viewer', 'reviewer', 'editor', 'publisher', 'owner')]}
+
+    async def delete_project(self, project_id):
+        self.access.authorize('manage', project_id)
+        if self.store.project(project_id) is None:
+            raise EngineError('Project not found.', 404)
+        async with self.action_lock:
+            self.access.record('project.delete', {'id': project_id}, project_id)
+            branch_ids = [row['id'] for row in self.store.db.execute('SELECT id FROM branches WHERE project_id=?', (project_id,))]
+            self.store.db.executemany('DELETE FROM meta WHERE key=?', [('branchCheckpoint:' + branch_id,) for branch_id in branch_ids])
+            for table, column in (('projects', 'id'), ('project_checkpoints', 'project_id'), ('members', 'project_id'), ('branches', 'project_id'), ('comments', 'project_id'), ('presence', 'project_id')):
+                self.store.db.execute(f'DELETE FROM {table} WHERE {column}=?', (project_id,))
+            self.store.db.commit()
+            (DATA_DIR / 'projects' / (project_id + '.fweb')).unlink(missing_ok=True)
+            if self.store.get_meta('currentProject') == project_id:
+                state = await self.engine.request('new', {})
+                self.store.set_metas({'currentProject': None, 'activeBranch': None})
+                identity = actor.get()
+                if not identity['root']:
+                    self.store.db.execute('INSERT OR REPLACE INTO members VALUES(?,?,?)', (state['site']['id'], identity['id'], 'owner'))
+                    self.store.db.commit()
+                await self.persist(state)
+            return {'id': project_id, 'deleted': True}
+
     async def export_files(self, locale: str | None = None):
+        self.access.authorize('read')
         if locale is not None and len(locale) > 40:
             raise EngineError('Locale is too long.')
         params = {'formsEndpoint': PUBLIC_BASE}
@@ -119,9 +212,14 @@ class Studio:
         folder.mkdir(parents=True, exist_ok=True)
         target = folder / f'site-{uuid4().hex[:12]}.zip'
         target.write_bytes(data)
+        self.store.set_meta('export:' + target.name, self.access.project_key())
+        self.access.record('site.export', {'file': target.name})
         return {'path': str(target), 'files': [file['path'] for file in manifest['files']], 'warnings': manifest.get('warnings', []), 'downloadUrl': f'/api/exports/{target.name}'}
 
     async def publish(self, slug: str | None = None):
+        self.access.authorize('publish')
+        if self.store.get_meta('activeBranch'):
+            raise EngineError('Review and merge this branch into its main project before publishing.', 409)
         async with self.action_lock:
             state = await self.state()
             slug = slug or re.sub(r'[^a-z0-9]+', '-', state['site']['name'].lower()).strip('-')[:60] or 'site'
@@ -132,7 +230,7 @@ class Studio:
             root.mkdir(parents=True, exist_ok=True)
             temp = root / ('.pending-' + uuid4().hex)
             target = root / version
-            result = bundle_assets(await self.engine.request('export', {'locale': state['site'].get('defaultLocale', 'en'), 'formsEndpoint': f'{PUBLIC_BASE}/published/{slug}/{version}', 'baseUrl': f'{PUBLIC_BASE}/published/{slug}/{version}/'}))
+            result = bundle_assets(await self.engine.request('export', {'locale': state['site'].get('defaultLocale', 'en'), 'formsEndpoint': f'{PUBLIC_BASE}/published/{slug}/{version}', 'baseUrl': f'{PUBLIC_BASE}/published/{slug}/{version}/', 'privateMembers': True}))
             try:
                 temp.mkdir()
                 for file in result['files']:
@@ -140,13 +238,16 @@ class Studio:
                     path = temp.joinpath(*relative.parts)
                     path.parent.mkdir(parents=True, exist_ok=True)
                     path.write_bytes(file_bytes(file))
+                entry_path = self.releases.entry_path(state['site'], temp)
                 temp.rename(target)
                 self.store.add_publication(slug, version, state['site'])
+                self.releases.remember(slug, version)
+                self.access.record('release.create', {'slug': slug, 'version': version})
             except Exception:
                 shutil.rmtree(temp, ignore_errors=True)
                 shutil.rmtree(target, ignore_errors=True)
                 raise
-            return {'url': f'{PUBLIC_BASE}/published/{slug}/{version}/', 'version': version, 'slug': slug, 'local': True, 'warnings': result.get('warnings', [])}
+            return {'url': f'{PUBLIC_BASE}/published/{slug}/{version}/{entry_path}', 'version': version, 'slug': slug, 'local': True, 'warnings': result.get('warnings', [])}
 
     def allow_form_request(self, address: str):
         stamp = time.monotonic()
@@ -161,73 +262,35 @@ class Studio:
                 if not self.rate_limits[key] or self.rate_limits[key][-1] < stamp - 60:
                     del self.rate_limits[key]
 
-    async def submit_form(self, site_id: str, form_id: str, values: dict[str, Any], address: str, slug: str | None = None, version: str | None = None):
+    async def submit_form(self, site_id: str, form_id: str, values: dict[str, Any], address: str, slug: str | None = None, version: str | None = None, preview_token: str | None = None):
         self.allow_form_request(address)
         if values.get('_formweb_hp'):
             raise EngineError('Submission rejected.', 400)
-        if slug is not None or version is not None:
+        if preview_token:
+            site = self.releases.preview_site(preview_token)
+            if site['id'] != site_id:
+                raise EngineError('Preview site does not match this form.', 404)
+            source = 'preview'
+        elif slug is not None or version is not None:
             if not slug or not version:
                 raise EngineError('Publication slug and version must both be supplied.')
             site = self.store.publication_site(site_id, slug, version)
+            source = 'published'
         else:
-            state = await self.state()
-            site = state['site'] if state['site']['id'] == site_id else self.store.published_site(site_id)
+            site = self.store.published_site(site_id)
+            if site is None:
+                current = await self.engine.request('state')
+                site = current['site'] if current['site']['id'] == site_id else None
+            source = 'local-export'
         if not site:
             raise EngineError('Site not found.', 404)
-        form = site['nodes'].get(form_id)
-        if not form or form['tag'] != 'form':
-            raise EngineError('Form not found.', 404)
-        fields: dict[str, dict] = {}
-        pending = list(form.get('children', []))
-        while pending:
-            node = site['nodes'][pending.pop()]
-            pending.extend(node.get('children', []))
-            attrs = node.get('attrs', {})
-            if node['tag'] in ('input', 'select', 'textarea') and attrs.get('name') and attrs.get('type') != 'submit':
-                fields[attrs['name']] = node
-        if len(values) > 64 or set(values) - set(fields) - {'_formweb_hp'}:
-            raise EngineError('Submission contains unrecognized fields.')
-        output = {}
-        for name, field in fields.items():
-            attrs = field.get('attrs', {})
-            value = values.get(name, '')
-            if not isinstance(value, (str, int, float, bool)):
-                raise EngineError(f'{name}: value must be scalar.')
-            value = str(value).strip()
-            try:
-                maximum = max(0, min(int(attrs.get('maxlength', '4096')), 4096))
-            except (TypeError, ValueError):
-                maximum = 4096
-            if len(value) > maximum:
-                raise EngineError(f'{name}: value is too long.')
-            kind = attrs.get('type', 'text')
-            if kind == 'file':
-                raise EngineError(f'{name}: file uploads are not supported.')
-            if kind == 'checkbox':
-                checked = bool(value) and value.lower() not in ('false', '0', 'off')
-                if 'required' in attrs and not checked:
-                    raise EngineError(f'{name}: checkbox must be checked.')
-                output[name] = checked
-                continue
-            if 'required' in attrs and not value:
-                raise EngineError(f'{name}: value is required.')
-            if value and kind == 'email' and not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', value):
-                raise EngineError(f'{name}: enter a valid email address.')
-            if value and kind in ('number', 'range'):
-                try:
-                    number = float(value)
-                    if not float('-inf') < number < float('inf'):
-                        raise ValueError()
-                    if 'min' in attrs and number < float(attrs['min']):
-                        raise ValueError()
-                    if 'max' in attrs and number > float(attrs['max']):
-                        raise ValueError()
-                except ValueError as error:
-                    raise EngineError(f'{name}: number is outside the valid range.') from error
-                output[name] = number
-            else:
-                output[name] = value
-        return self.store.add_submission(site_id, form_id, output)
+        output, tracking, config = self.forms.validate(site, form_id, values)
+        result = self.store.add_submission(site_id, form_id, output)
+        publication = f'{slug}/{version}' if slug and version else None
+        self.forms.record_tracking(result['id'], tracking, source, publication)
+        submission = {**result, 'siteId': site_id, 'formId': form_id, 'values': output, 'tracking': tracking, 'source': source, 'publication': publication}
+        delivery = await self.delivery.enqueue(submission)
+        return {**result, 'successMessage': config.get('successMessage', 'Your submission was stored.'), 'successRedirect': config.get('successRedirect'), 'delivery': delivery}
 
 
 studio = Studio()

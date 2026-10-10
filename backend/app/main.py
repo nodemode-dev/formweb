@@ -1,6 +1,5 @@
 import asyncio
 import json
-import secrets
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -10,14 +9,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.responses import FileResponse, JSONResponse, Response, StreamingResponse
 
-from .assets import MIME_TYPES, asset_path, ingest, list_assets, project_envelope, restore_project_assets
+from .access import actor
+from .advanced_routes import router as advanced_router, form_gate, serve_release, submission_values
+from .assets import MIME_TYPES, asset_path, ingest, list_assets, own_asset, project_envelope, visible_assets
 from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_FILE_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
 from .mcp_server import mcp, mcp_app
+from .providers.routes import router as provider_router
 from .service import safe_export_path, studio
+from .workflows import load_native
 
 
-AUTH_SESSION = secrets.token_urlsafe(32)
 
 class LocalAccess:
     def __init__(self, app):
@@ -26,37 +28,53 @@ class LocalAccess:
     async def __call__(self, scope, receive, send):
         if scope['type'] != 'http':
             return await self.app(scope, receive, send)
+        import re
+        from urllib.parse import parse_qs
         headers = {key.decode().lower(): value.decode() for key, value in scope.get('headers', [])}
         path = scope['path']
         origin = headers.get('origin')
-        host = headers.get('host', '')
         allowed_hosts = {f'localhost:{PORT}', f'127.0.0.1:{PORT}', f'[::1]:{PORT}'}
-        error = None
-        status = 403
-        if host not in allowed_hosts:
-            error, status = 'This service accepts exact loopback hostnames only.', 421
-        elif origin is not None and origin not in ORIGINS:
-            error = 'Origin is not allowed.'
-        elif path == '/mcp' and not studio.agents_enabled:
-            error = 'Agents are disabled. Enable Agents in the editor or set FORMWEB_AGENTS=1.'
-        elif AUTH_TOKEN and (path == '/mcp' or path.startswith('/api/')) and not path.startswith('/api/forms/') and scope['method'] != 'OPTIONS':
-            supplied = headers.get('authorization', '')
-            cookies = dict(piece.strip().split('=', 1) for piece in headers.get('cookie', '').split(';') if '=' in piece)
-            bearer_ok = secrets.compare_digest(supplied.encode(), ('Bearer ' + AUTH_TOKEN).encode())
-            cookie_ok = path != '/mcp' and secrets.compare_digest(cookies.get('formweb_session', '').encode(), AUTH_SESSION.encode())
-            if not bearer_ok and not cookie_ok:
-                error, status = 'A valid FORMWEB_AUTH_TOKEN bearer token is required.', 401
-        length = headers.get('content-length', '')
-        maximum = MAX_PROJECT_FILE_BYTES if path == '/api/load' else MAX_DOCUMENT_BYTES
-        if length and (not length.isdecimal() or int(length) > maximum):
-            error, status = 'Request body exceeds the configured size limit.', 413
-        if error:
-            return await JSONResponse({'detail': error}, status_code=status)(scope, receive, send)
+        preview_match = re.match(r'^/preview/([^/]+)(?:/|$)', path)
+        runtime = path.startswith('/api/runtime/')
+        query = parse_qs(scope.get('query_string', b'').decode(errors='replace'))
+        preview_token = preview_match.group(1) if preview_match else headers.get('x-formweb-preview') or query.get('previewToken', [''])[0]
+        verified_preview = bool((preview_match or runtime) and studio.releases.valid_preview(preview_token))
+        if verified_preview:
+            scope['formweb.preview'] = True
+            scope['formweb.previewToken'] = preview_token
+        public_form = bool(re.fullmatch(r'/api/forms/[^/]+/[^/]+', path))
+        public = public_form or runtime or path == '/api/providers/commerce/webhook' or path.startswith(('/published/', '/sites/', '/preview/'))
+        control = path == '/mcp' or path.startswith('/api/') and not public and path not in ('/api/health', '/api/system')
+        identity = {'id': 'visitor', 'name': 'Website visitor', 'root': False}
+        try:
+            if headers.get('host', '') not in allowed_hosts:
+                raise EngineError('This service accepts exact loopback hostnames only.', 421)
+            if origin is not None and origin not in ORIGINS and not (origin == 'null' and verified_preview):
+                raise EngineError('Origin is not allowed.', 403)
+            if path == '/mcp' and not studio.agents_enabled:
+                raise EngineError('Agents are disabled. Enable Agents in the editor or set FORMWEB_AGENTS=1.', 403)
+            if control and scope['method'] != 'OPTIONS':
+                identity = studio.access.authenticate(headers, mcp=path == '/mcp')
+            maximum = MAX_PROJECT_FILE_BYTES if path in ('/api/load', '/mcp') else MAX_DOCUMENT_BYTES
+            length = headers.get('content-length', '')
+            if length and (not length.isdecimal() or int(length) > maximum):
+                raise EngineError('Request body exceeds the configured size limit.', 413)
+        except EngineError as error:
+            return await JSONResponse({'detail': str(error)}, status_code=error.status)(scope, receive, send)
+        if origin == 'null' and verified_preview and scope['method'] == 'OPTIONS':
+            return await Response(status_code=204, headers={'Access-Control-Allow-Origin': 'null', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-FormWeb-Preview, X-FormWeb-Visitor, X-FormWeb-Consent', 'Vary': 'Origin'})(scope, receive, send)
+        scope['formweb.identity'] = identity
+        context_token = actor.set(identity)
         async def guarded_send(message):
             if message['type'] == 'http.response.start':
-                message['headers'] = list(message.get('headers', [])) + [(b'x-content-type-options', b'nosniff'), (b'referrer-policy', b'strict-origin-when-cross-origin')]
+                message['headers'] = list(message.get('headers', [])) + [(b'x-content-type-options', b'nosniff'), (b'referrer-policy', b'no-referrer')]
+                if origin == 'null' and verified_preview:
+                    message['headers'].extend([(b'access-control-allow-origin', b'null'), (b'vary', b'Origin')])
             await send(message)
-        await self.app(scope, receive, guarded_send)
+        try:
+            await self.app(scope, receive, guarded_send)
+        finally:
+            actor.reset(context_token)
 
 
 @asynccontextmanager
@@ -70,13 +88,15 @@ async def lifespan(app):
 
 
 app = FastAPI(title='FormWeb', version=VERSION, lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename'], expose_headers=['Content-Disposition'], allow_credentials=True)
+app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename'], expose_headers=['Content-Disposition'], allow_credentials=True)
 app.add_middleware(LocalAccess)
+app.include_router(advanced_router)
+app.include_router(provider_router)
 
 
 @app.exception_handler(EngineError)
 async def engine_error(request, error):
-    return JSONResponse({'detail': str(error)}, status_code=error.status)
+    return JSONResponse({'detail': str(error), **getattr(error, 'details', {})}, status_code=error.status)
 
 
 class Command(BaseModel):
@@ -118,17 +138,24 @@ async def limited_body(request: Request, maximum=MAX_DOCUMENT_BYTES):
 
 @app.post('/api/assets')
 async def upload_asset(request: Request):
+    studio.access.authorize('edit')
     body = await limited_body(request)
-    return ingest(body, request.headers.get('content-type', '').split(';', 1)[0], request.headers.get('x-filename'))
+    result = ingest(body, request.headers.get('content-type', '').split(';', 1)[0], request.headers.get('x-filename'))
+    own_asset(studio, result['id'])
+    studio.access.record('asset.upload', {'id': result['id']})
+    return result
 
 
 @app.get('/api/assets')
 async def assets():
-    return list_assets()
+    allowed = visible_assets(studio)
+    return {'assets': [item for item in list_assets()['assets'] if item['id'] in allowed]}
 
 
 @app.get('/api/assets/{asset_id}')
 async def image_asset(asset_id: str):
+    if asset_id not in visible_assets(studio):
+        raise EngineError('Asset not found for this identity.', 404)
     target = asset_path(asset_id)
     return FileResponse(target, media_type=MIME_TYPES[target.suffix[1:]], headers={'Cache-Control': 'private, max-age=31536000, immutable'})
 
@@ -146,15 +173,17 @@ async def system():
 
 @app.post('/api/agents')
 async def agents(body: Agents):
+    studio.access.authorize('manage')
+    studio.access.record('agents.configure', {'enabled': body.enabled})
     studio.agents_enabled = body.enabled
     return await system()
 
 @app.post('/api/auth')
 async def authenticate(request: Request):
-    if AUTH_TOKEN and not secrets.compare_digest(request.headers.get('authorization', '').encode(), ('Bearer ' + AUTH_TOKEN).encode()):
-        raise EngineError('Invalid bearer token.', 401)
-    response = JSONResponse({'authenticated': True})
-    response.set_cookie('formweb_session', AUTH_SESSION, httponly=True, samesite='strict', path='/api', max_age=43200)
+    identity = studio.access.authenticate(request.headers, mcp=True)
+    session = studio.access.browser_session(identity)
+    response = JSONResponse({'authenticated': True, 'identity': identity})
+    response.set_cookie('formweb_session', session, httponly=True, samesite='strict', path='/api', max_age=43200)
     return response
 
 
@@ -185,27 +214,20 @@ async def load(request: Request):
         body = json.loads(await limited_body(request, MAX_PROJECT_FILE_BYTES))
     except (ValueError, UnicodeDecodeError) as error:
         raise EngineError('Project file is not valid JSON.') from error
-    if not isinstance(body, dict) or not isinstance(body.get('site'), dict):
-        raise EngineError('Expected an object containing site.')
-    if 'format' in body and (body['format'] != 'com.nodemode.formweb' or body.get('version') != 1):
-        raise EngineError('Unsupported FormWeb project file format or version.')
-    if len(json.dumps(body['site']).encode()) > MAX_DOCUMENT_BYTES:
-        raise EngineError('Editable site content exceeds 8 MiB.', 413)
-    restore_project_assets(body)
-    return await studio.mutate('load', {'site': body['site']})
+    return await load_native(body)
 
 
 @app.get('/api/project-file')
 @app.get('/api/project/download')
 async def project_file():
     current = await studio.state()
-    envelope = project_envelope(current['site'])
+    envelope = project_envelope(current['site'], await studio.engine.request('checkpoint'))
     return Response(json.dumps(envelope, ensure_ascii=False, indent=2), media_type='application/json', headers={'Content-Disposition': 'attachment; filename="site.fweb"'})
 
 
 @app.get('/api/projects')
 async def projects():
-    return studio.store.projects()
+    return studio.projects()
 
 
 @app.post('/api/projects/save')
@@ -220,15 +242,17 @@ async def open_project(project_id: str):
 
 @app.get('/api/projects/{project_id}/file')
 async def saved_project_file(project_id: str):
+    studio.access.authorize('read', project_id)
     site = studio.store.project(project_id)
     if site is None:
         raise EngineError('Project not found.', 404)
-    envelope = project_envelope(site)
+    envelope = project_envelope(site, studio.store.project_checkpoint(project_id))
     return Response(json.dumps(envelope, ensure_ascii=False, indent=2), media_type='application/json', headers={'Content-Disposition': 'attachment; filename="site.fweb"'})
 
 
 @app.get('/api/audit')
 async def audit():
+    studio.access.authorize('read')
     return await studio.engine.request('audit')
 
 
@@ -242,6 +266,10 @@ async def export(locale: str | None = None):
 async def download_export(filename: str):
     if not filename.startswith('site-') or not filename.endswith('.zip') or '/' in filename or '\\' in filename:
         raise EngineError('Export not found.', 404)
+    project_id = studio.store.get_meta('export:' + filename)
+    if project_id is None and not actor.get()['root']:
+        raise EngineError('Legacy export is available only to the local owner.', 403)
+    studio.access.authorize('read', project_id)
     path = DATA_DIR / 'exports' / filename
     if not path.is_file():
         raise EngineError('Export not found.', 404)
@@ -255,39 +283,24 @@ async def publish(body: Publish):
 
 @app.get('/api/publications')
 async def publications():
-    return studio.store.publications()
+    return {'publications': studio.releases.list()['releases']}
 
 
 @app.get('/api/forms')
-async def forms():
-    return studio.store.submissions()
+async def forms(siteId: str | None = None):
+    return studio.forms.inbox(siteId)
 
 
 @app.post('/api/forms/{site_id}/{form_id}')
 @app.post('/published/{slug}/{version}/api/forms/{site_id}/{form_id}')
 async def submit(site_id: str, form_id: str, request: Request, slug: str | None = None, version: str | None = None):
-    body = await limited_body(request, MAX_FORM_BYTES)
-    content_type = request.headers.get('content-type', '').split(';', 1)[0]
-    if content_type == 'application/json':
-        try:
-            values = json.loads(body)
-        except (ValueError, UnicodeDecodeError) as error:
-            raise EngineError('Submission must be valid JSON.') from error
-    elif content_type == 'application/x-www-form-urlencoded':
-        from urllib.parse import parse_qs
-        try:
-            values = {name: entries[-1] for name, entries in parse_qs(body.decode('utf-8'), keep_blank_values=True, max_num_fields=65).items()}
-        except (ValueError, UnicodeDecodeError) as error:
-            raise EngineError('Submission could not be decoded.') from error
-    else:
-        raise EngineError('Use JSON or URL-encoded form fields.', 415)
-    if not isinstance(values, dict):
-        raise EngineError('Submission fields must be an object.')
-    return await studio.submit_form(site_id, form_id, values, request.client.host if request.client else 'local', slug, version)
+    form_gate(request, site_id, form_id, slug, version)
+    return await studio.submit_form(site_id, form_id, await submission_values(request), request.client.host if request.client else 'local', slug, version)
 
 
 @app.get('/api/events')
 async def events(request: Request):
+    studio.access.authorize('read')
     queue = asyncio.Queue(maxsize=8)
     studio.subscribers.add(queue)
     async def stream():
@@ -295,27 +308,27 @@ async def events(request: Request):
             yield 'event: state\ndata: ' + json.dumps(await studio.state(), separators=(',', ':')) + '\n\n'
             while not await request.is_disconnected():
                 try:
-                    current = await asyncio.wait_for(queue.get(), timeout=15)
-                    yield 'event: state\ndata: ' + json.dumps(current, separators=(',', ':')) + '\n\n'
-                except asyncio.TimeoutError:
-                    yield ': keepalive\n\n'
+                    try:
+                        current, project_id = await asyncio.wait_for(queue.get(), timeout=15)
+                    except asyncio.TimeoutError:
+                        current, project_id = None, studio.access.project_key()
+                    studio.access.authenticate(request.headers)
+                    studio.access.authorize('read', project_id)
+                    if current is None:
+                        yield ': keepalive\n\n'
+                    else:
+                        yield 'event: state\ndata: ' + json.dumps(current, separators=(',', ':')) + '\n\n'
+                except EngineError:
+                    yield 'event: access\ndata: {"denied":true}\n\n'
+                    return
         finally:
             studio.subscribers.discard(queue)
     return StreamingResponse(stream(), media_type='text/event-stream', headers={'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no'})
 
 
 @app.get('/published/{slug}/{version}/{path:path}')
-async def publication(slug: str, version: str, path: str):
-    relative = safe_export_path(path + 'index.html' if path.endswith('/') else path or 'index.html')
-    root = (DATA_DIR / 'publications' / slug / version).resolve()
-    if not root.is_relative_to((DATA_DIR / 'publications').resolve()):
-        raise EngineError('Publication not found.', 404)
-    target = root.joinpath(*relative.parts).resolve()
-    if target.is_dir():
-        target = (target / 'index.html').resolve()
-    if not target.is_relative_to(root) or not target.is_file() or version.startswith('.'):
-        raise EngineError('Publication file not found.', 404)
-    return FileResponse(target, headers={'Cache-Control': 'public, max-age=31536000, immutable'})
+async def publication(slug: str, version: str, path: str, request: Request):
+    return await serve_release(slug, version, path, request)
 
 
 app.router.routes.extend(mcp_app.routes)

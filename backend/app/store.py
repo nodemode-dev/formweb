@@ -22,6 +22,7 @@ class Store:
         CREATE TABLE IF NOT EXISTS projects (id TEXT PRIMARY KEY, name TEXT NOT NULL, site TEXT NOT NULL, revision INTEGER NOT NULL, updated_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS publications (slug TEXT NOT NULL, version TEXT NOT NULL, site_id TEXT NOT NULL, site TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(slug,version));
         CREATE TABLE IF NOT EXISTS submissions (id TEXT PRIMARY KEY, site_id TEXT NOT NULL, form_id TEXT NOT NULL, values_json TEXT NOT NULL, created_at TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS project_checkpoints (project_id TEXT PRIMARY KEY,checkpoint TEXT NOT NULL);
         ''')
         self.db.commit()
 
@@ -33,13 +34,25 @@ class Store:
         self.db.execute('INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value', (key, json.dumps(value)))
         self.db.commit()
 
-    def save_project(self, state: dict[str, Any], name: str | None, project_id: str | None):
+    def save_project(self, state: dict[str, Any], name: str | None, project_id: str | None, checkpoint=None):
         project_id = project_id or str(uuid4())
-        title = (name or state['site']['name']).strip()[:160] or 'Untitled site'
+        existing = self.db.execute('SELECT name FROM projects WHERE id=?', (project_id,)).fetchone()
+        title = (name if name is not None else existing['name'] if existing else state['site']['name']).strip()[:160] or 'Untitled site'
         self.db.execute('INSERT INTO projects VALUES(?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET name=excluded.name,site=excluded.site,revision=excluded.revision,updated_at=excluded.updated_at', (project_id, title, json.dumps(state['site']), state['revision'], now()))
+        if checkpoint is not None:
+            self.db.execute('INSERT INTO project_checkpoints VALUES(?,?) ON CONFLICT(project_id) DO UPDATE SET checkpoint=excluded.checkpoint', (project_id, json.dumps(checkpoint)))
+        self.db.execute('INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value', ('currentProject', json.dumps(project_id)))
         self.db.commit()
-        self.set_meta('currentProject', project_id)
         return {'id': project_id, 'name': title, 'revision': state['revision']}
+
+    def project_checkpoint(self, project_id):
+        row = self.db.execute('SELECT checkpoint FROM project_checkpoints WHERE project_id=?', (project_id,)).fetchone()
+        return json.loads(row['checkpoint']) if row else None
+
+    def set_metas(self, values):
+        self.db.executemany('INSERT INTO meta VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value', [(key, json.dumps(value)) for key, value in values.items()])
+        self.db.commit()
+        self.db.execute('PRAGMA wal_checkpoint(PASSIVE)').fetchone()
 
     def projects(self):
         return {'projects': [{'id': row['id'], 'name': row['name'], 'updatedAt': row['updated_at']} for row in self.db.execute('SELECT id,name,updated_at FROM projects ORDER BY updated_at DESC')]}
@@ -74,4 +87,5 @@ class Store:
         return {'submissions': [{'id': row['id'], 'siteId': row['site_id'], 'formId': row['form_id'], 'values': json.loads(row['values_json']), 'createdAt': row['created_at']} for row in self.db.execute('SELECT * FROM submissions ORDER BY created_at DESC LIMIT 500')]}
 
     def close(self):
+        self.db.execute('PRAGMA wal_checkpoint(TRUNCATE)').fetchone()
         self.db.close()

@@ -22,6 +22,7 @@ class RustEngine:
         self.request_id = 0
         self.cached_state: dict[str, Any] | None = None
         self.commands: list[str] = []
+        self.cached_checkpoint: dict[str, Any] | None = None
 
     async def start(self):
         async with self.lock:
@@ -29,11 +30,12 @@ class RustEngine:
             info = await self._exchange('hello', {})
             self.commands = info.get('commands', [])
             self.cached_state = await self._exchange('state', {})
+            self.cached_checkpoint = await self._exchange('checkpoint', {})
 
     async def _start(self):
         if not CORE_BIN.is_file():
             raise EngineError(f'Rust engine missing: {CORE_BIN}. Run ./formweb build.', 503)
-        self.process = await asyncio.create_subprocess_exec(str(CORE_BIN), stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, limit=32 * 1024 * 1024)
+        self.process = await asyncio.create_subprocess_exec(str(CORE_BIN), stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, limit=64 * 1024 * 1024)
         self.stderr_task = asyncio.create_task(self._drain_stderr())
 
     async def _drain_stderr(self):
@@ -58,7 +60,7 @@ class RustEngine:
             reply = json.loads(line)
             if reply.get('id') != request_id:
                 raise EngineError('Rust engine protocol response mismatch.', 503)
-        except (OSError, asyncio.TimeoutError, json.JSONDecodeError) as error:
+        except (OSError, asyncio.TimeoutError, ValueError) as error:
             await self._stop()
             raise EngineError('Rust engine transport interrupted; the last acknowledged document will be recovered.', 503) from error
         if not reply.get('ok'):
@@ -70,13 +72,19 @@ class RustEngine:
         async with self.lock:
             if not self.process or self.process.returncode is not None:
                 last = self.cached_state
+                checkpoint = self.cached_checkpoint
                 await self._stop()
                 await self._start()
-                if last:
+                if checkpoint:
+                    await self._exchange('restore', {'checkpoint': checkpoint, 'restoreRevision': checkpoint['revision']})
+                elif last:
                     await self._exchange('load', {'site': last['site'], 'restoreRevision': last['revision']})
             result = await self._exchange(method, params or {})
-            if isinstance(result, dict) and 'site' in result and 'revision' in result:
+            if method == 'checkpoint':
+                self.cached_checkpoint = result
+            elif isinstance(result, dict) and 'site' in result and 'revision' in result:
                 self.cached_state = result
+                self.cached_checkpoint = await self._exchange('checkpoint', {})
             return result
 
     async def _stop(self):

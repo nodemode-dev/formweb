@@ -1,0 +1,13 @@
+# CMS CSV and pinned libraries
+
+GET /api/cms/[collection-id].csv exports every stored item, including drafts and archived items. Quoted commas and embedded newlines use CSV quoting. Control columns carry id, slug, status, _present, _nulls and _locales. Field columns use `field:[name]` so collection fields named id or slug cannot collide with item metadata. Presence and null lists preserve missing values, null and empty strings separately. Number, boolean and multiple-reference cells use JSON values. Localized item overrides are complete JSON in _locales.
+
+POST /api/cms/[collection-id]/import receives csv and mode, either upsert or replace. Import also accepts unprefixed field names when they do not conflict with control columns. New rows without IDs receive stable IDs; status defaults to draft. Wrong columns, types, duplicate IDs/slugs and conflicts with stored slugs fail before any document change. Item replacement and locale overrides commit as one Rust-validated batch with a revision check. The limits are 10,000 rows and 8 MiB input. Replace removes omitted items; references to removed items must remain valid or the transaction fails.
+
+GET /api/libraries lists immutable component-library versions. POST /api/libraries stores a named dotted version from the current site, an explicit Site, or a native FormWeb envelope. A library selects known components, bundles owned images and receives a digest. An existing ID/version cannot be overwritten. Nested library pins must be detached before creating another snapshot.
+
+POST /api/libraries/[id]/import imports a selected version into a parent node through the Rust library.import command. GET /api/libraries/[id]/review?version=[version] reports added, removed and changed source components against the current pin. Updating an existing pin requires update:true and reviewDigest matching the selected version. This acknowledgement and the document revision protect the reviewed operation. Rust library.update propagates the accepted source change; library.detach retains local content while removing the pin.
+
+Review compares component definitions as well as their selected nodes. A definition-only prop-default change appears as changed and materializes after an acknowledged update. Copied global tokens, breakpoints, locales and selected forms participate in the digest; changing those shared dependencies conservatively marks every selected component as changed.
+
+Local library storage is a component sharing workflow across projects in this FormWeb service. An exported native snapshot also carries its owned images. It does not imply a proprietary vendor's cloud library service.
