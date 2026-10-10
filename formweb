@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -e
+export FORMWEB_CWD="${FORMWEB_CWD:-$PWD}"
+cd "$(dirname "$0")"
+cmd="${1:-boot}"
+[ $# -eq 0 ] || shift
+case "$cmd" in
+  install) exec setup/install "$@" ;;
+  install-core) exec setup/install_core "$@" ;;
+  install-frontend) exec setup/install_frontend "$@" ;;
+  install-backend) exec setup/install_backend "$@" ;;
+  boot|dev) exec setup/boot "$@" ;;
+  backend) exec setup/boot_backend "$@" ;;
+  frontend) exec setup/boot_frontend "$@" ;;
+  build) exec setup/build "$@" ;;
+  serve) exec setup/serve "$@" ;;
+  mcp) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/mcp_stdio.py "$@" ;;
+  agents) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/agents.py "$@" ;;
+  doctor) exec setup/doctor "$@" ;;
+  help|-h|--help)
+    cat <<'HELP'
+formweb · visual website authoring
+
+Usage: ./formweb COMMAND
+  install             install Rust core, backend and frontend
+  install-core        compile the Rust document engine
+  install-backend     install Python dependencies into backend/venv
+  install-frontend    install frontend dependencies from the lockfile
+  boot                run API 8240 and Vite 5240 together
+  backend             run the development API on 127.0.0.1:8240
+  frontend            run Vite on localhost:5240
+  build               compile Rust, TypeScript/Vite and Python source
+  serve               serve the built editor on 127.0.0.1:8240
+  mcp                 proxy stdio MCP into the running API
+  agents sync         mirror .claude/skills to .agents/skills
+  agents sync --check  report drift without changing files
+  agents install      show project client wiring; no global changes
+  doctor              inspect tools, installs and service ports
+  help                this message
+
+Enable Agents in the editor before using MCP.
+HELP
+    ;;
+  *) printf '[formweb] unknown command: %s\n' "$cmd" >&2; exit 2 ;;
+esac

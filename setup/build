@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+"$FORMWEB_ROOT/setup/install_core"
+cd "$FORMWEB_ROOT/frontend"
+npm run build
+cd "$FORMWEB_ROOT/backend"
+"$FORMWEB_PYTHON" -m compileall -q app
+fw_say 'built; run ./formweb serve'

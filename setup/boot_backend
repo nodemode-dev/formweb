@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+[ -x "$FORMWEB_ROOT/backend/venv/bin/python" ] || { fw_say 'run ./formweb install-backend first' >&2; exit 1; }
+cd "$FORMWEB_ROOT/backend"
+exec "$FORMWEB_PYTHON" -m uvicorn app.main:app --reload --host 127.0.0.1 --port "${FORMWEB_PORT:-8240}"

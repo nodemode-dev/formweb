@@ -1,0 +1,9 @@
+* text=auto
+*.sh text eol=lf
+formweb text eol=lf
+*_oc_install text eol=lf
+setup/* text eol=lf
+*.bat text eol=crlf
+*.svg text eol=lf
+*.png binary
+*.woff2 binary

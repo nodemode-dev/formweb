@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "formweb": {
+      "type": "stdio",
+      "command": "${CLAUDE_PROJECT_DIR:-.}/formweb",
+      "args": ["mcp"]
+    }
+  }
+}

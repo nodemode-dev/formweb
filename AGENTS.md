@@ -1,0 +1,9 @@
+# FormWeb development contract
+
+Read CLAUDE.md, the matching planning sidecar and local HASHOUT logs before editing. Keep Rust authoritative for mutations, history, validation and exported sites. All UI and MCP commands call the same engine.
+
+Edit existing source one region at a time against current reads. Preserve stable mounted DOM nodes, focus, scroll and reserved async space. Dark theme is applied before first paint. Use inline currentColor SVG icons, named style and z-index tokens, and loopback-only local servers.
+
+Do not add self-authored test suites until the owner expressly requests tests. Run real product paths and record exact observations; TEST_PLAN.md describes independent validation. No emojis or em dash in Markdown.
+
+New commits use nodemode-ai [mackin@nodemode.ai], with separate coherent changes and the version commit last. Ship .git in formweb_vX.Y.Z.zip plus a matching planning sidecar. Never rewrite sibling history, store secrets, or claim cloud publication from a local URL.

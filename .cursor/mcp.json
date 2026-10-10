@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "formweb": {
+      "command": "${workspaceFolder}/formweb",
+      "args": ["mcp"]
+    }
+  }
+}

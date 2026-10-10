@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+cd "$FORMWEB_ROOT"
+"$FORMWEB_PYTHON" setup/doctor.py

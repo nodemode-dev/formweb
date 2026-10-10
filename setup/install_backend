@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+cd "$FORMWEB_ROOT/backend"
+fw_require python3
+[ -x venv/bin/python ] || python3 -m venv venv
+venv/bin/python -m pip install --upgrade pip
+requirements=requirements.txt
+if [ "$(uname -s)" = Darwin ] && [ -f requirements_macos.txt ]; then requirements=requirements_macos.txt; fi
+venv/bin/python -m pip install -r "$requirements"

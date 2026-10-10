@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+"$FORMWEB_ROOT/setup/install_core"
+"$FORMWEB_ROOT/setup/install_backend"
+"$FORMWEB_ROOT/setup/install_frontend"
+fw_say 'installed; run ./formweb boot'

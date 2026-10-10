@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+[ -n "$FORMWEB_CARGO" ] || { fw_say 'Rust is missing; install Rust stable from rustup.rs' >&2; exit 1; }
+cd "$FORMWEB_ROOT/native"
+if [ -f Cargo.lock ]; then
+  "$FORMWEB_CARGO" build --release --locked -p formweb-core
+else
+  "$FORMWEB_CARGO" build --release -p formweb-core
+fi

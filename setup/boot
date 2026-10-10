@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+[ -x "$FORMWEB_ROOT/native/target/release/formweb-core" ] || { fw_say 'run ./formweb install-core first' >&2; exit 1; }
+"$FORMWEB_ROOT/setup/boot_backend" &
+FORMWEB_BACKEND_PID=$!
+cleanup() { kill "$FORMWEB_BACKEND_PID" 2>/dev/null || true; }
+trap cleanup EXIT INT TERM
+fw_say 'editor http://localhost:5240 · API http://127.0.0.1:8240'
+"$FORMWEB_ROOT/setup/boot_frontend"
