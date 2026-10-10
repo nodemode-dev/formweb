@@ -23,6 +23,6 @@ Collections contain typed fields and items with id, slug, values and status. Loc
 
 ## Persistence contract
 
-The backend's `backend/app/store.py` stores projects, current-session metadata, immutable publication records and form submissions in `backend/data/formweb.sqlite3` by default. Set `FORMWEB_DATA_DIR` before launch to use a different location. Database and export output are local data and are not committed into source archives.
+The backend's `backend/app/store.py` stores projects, current-session metadata, immutable publication records and form submissions in `backend/data/formweb.sqlite3` by default. Downloaded `.fweb` files are JSON envelopes with format `com.nodemode.formweb`, version 1, the editable `site` and embedded raster `assets`. Each asset carries its SHA-256 identity, MIME type and base64 bytes. Imports validate asset identities and the Rust document before replacing the active site. Native files are limited to 64 MiB and individual images to 8 MiB. Set `FORMWEB_DATA_DIR` before launch to use a different location. Database and export output are local data and are not committed into source archives.
 
 Imported JSON is untrusted input. Validate schema, node structure, routes, references, style values and size before replacing the active document. A refused import must preserve the previous editable site and history. Do not infer editable source from an exported HTML file.

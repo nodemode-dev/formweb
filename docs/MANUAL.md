@@ -19,7 +19,7 @@ The default data folder is `backend/data`. Configure `FORMWEB_DATA_DIR` in `back
 
 Use the Pages list to select a route or add a page. Page settings edit its name, slug, title, description and indexing preference. The Layers list describes its node hierarchy. Select a layer or click an element on the canvas to edit it. Double-click text on the canvas to edit its content.
 
-Insert adds primitives such as a section, text, grid, image or form into the selected structure. Layers supports ordering and moving elements under a parent. The inspector's Design and Content surfaces change styles, attributes and text; the Page surface changes route metadata.
+Insert adds primitives such as a section, text, grid, image or form into the selected structure. Image insert opens a file picker for PNG, JPEG, WebP or GIF up to 8 MiB; Content > Upload image replaces the selected image. Uploaded raster files are validated, stored locally and bundled into website export. Layers supports ordering and moving elements under a parent. The inspector's Design and Content surfaces change styles, attributes and text; the Page surface changes route metadata.
 
 A website layout uses normal browser flow, flex and grid styles. Use meaningful element names and a clear hierarchy. A stored value becomes part of the site only after the engine acknowledges it. Invalid changes are reported; they do not replace the previous document.
 
@@ -41,11 +41,11 @@ Locales store translation maps. Add the target locale and translations, then sel
 
 ## Interactions
 
-The interaction inspector supports the implemented click, hover and scroll triggers and toggle-class, navigation and fade-in actions. Supply the action's class, destination or duration as appropriate. Check keyboard use and reduced-motion behavior in the preview and exported page.
+The interaction inspector supports the implemented click, hover and scroll triggers and toggle-class, navigation and fade-in actions. Supply the action's class, destination or duration as appropriate. Preview checks click and hover actions. Check keyboard use, scroll-triggered animations, reduced-motion behavior and live form submission in the exported or locally published page.
 
 ## Save, reopen and import
 
-Save writes the active editable project to the local project library. Projects lists saved records and opens one back into the engine. Native JSON download preserves the site's model for portable editing; import validates such a document before replacing the active site. New creates another starter document.
+Save writes the active editable project to the local project library. Projects lists saved records and opens one back into the engine. Download creates an editable `.fweb` JSON envelope containing the site's model and uploaded raster assets for portable editing. Import accepts this envelope or a bare site JSON document and validates the document before replacing the active site. Native downloads are limited to 64 MiB; individual images are limited to 8 MiB. New creates another starter document with a distinct site identity.
 
 Undo and redo operate on engine changes. An agent command batch is one atomic undo step. Save before starting a separate project if the current work must be retained.
 
