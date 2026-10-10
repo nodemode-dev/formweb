@@ -1,0 +1,827 @@
+{
+  "kind": "manual-json-lines-observations",
+  "dateUTC": "2026-10-10T21:10:45.436073+00:00",
+  "binaryVersion": "0.1.0",
+  "binarySha256": "20d07cef537a5f09814d909e831c6274b679dcb3aa3fb4b304beb77e62181678",
+  "commandCount": 40,
+  "scope": "Native authority consumers only; browser UI, provider transports and exported browser runtime are recorded by other owners. No test suite was authored.",
+  "records": [
+    {
+      "name": "referenced preset propagation and local property override",
+      "targets": [
+        "FW-012"
+      ],
+      "request": {
+        "id": 6,
+        "method": "exec",
+        "params": {
+          "command": "textpreset.set",
+          "params": {
+            "name": "body",
+            "styles": {
+              "font-size": "25px",
+              "color": "#112233"
+            }
+          }
+        }
+      },
+      "ok": true,
+      "revision": 5,
+      "error": null,
+      "observed": {
+        "description": {
+          "color": "#112233",
+          "font-size": "22px",
+          "margin": "0 0 32px",
+          "max-width": "420px"
+        },
+        "eyebrow": {
+          "color": "#112233",
+          "font-size": "25px",
+          "font-weight": "700",
+          "letter-spacing": "2px",
+          "margin": "0 0 24px"
+        }
+      }
+    },
+    {
+      "name": "typed CSS token",
+      "targets": [
+        "FW-011"
+      ],
+      "request": {
+        "id": 7,
+        "method": "exec",
+        "params": {
+          "command": "token.define",
+          "params": {
+            "name": "brand",
+            "type": "color",
+            "value": "#123456"
+          }
+        }
+      },
+      "ok": true,
+      "revision": 6,
+      "error": null,
+      "observed": {
+        "value": "#123456",
+        "metadata": {
+          "type": "color",
+          "value": "#123456"
+        }
+      }
+    },
+    {
+      "name": "breakpoint reset removes override",
+      "targets": [
+        "FW-010"
+      ],
+      "request": {
+        "id": 10,
+        "method": "exec",
+        "params": {
+          "command": "breakpoint.remove",
+          "params": {
+            "id": "wide"
+          }
+        }
+      },
+      "ok": true,
+      "revision": 9,
+      "error": null,
+      "observed": {
+        "breakpoints": {}
+      }
+    },
+    {
+      "name": "typed prop variant and category reset",
+      "targets": [
+        "FW-014",
+        "FW-015"
+      ],
+      "request": {
+        "id": 15,
+        "method": "exec",
+        "params": {
+          "command": "component.reset",
+          "params": {
+            "id": "instance-1",
+            "fields": [
+              "styles"
+            ]
+          }
+        }
+      },
+      "ok": true,
+      "revision": 14,
+      "error": null,
+      "observed": {
+        "text": "Client label",
+        "background": "var(--ink)",
+        "instanceData": {
+          "props": {
+            "label": "Client label"
+          },
+          "resetFields": [
+            "styles"
+          ],
+          "variant": "inverse"
+        }
+      }
+    },
+    {
+      "name": "source structure append propagates",
+      "targets": [
+        "FW-013"
+      ],
+      "request": {
+        "id": 16,
+        "method": "exec",
+        "params": {
+          "command": "node.add",
+          "params": {
+            "parent": "cta",
+            "node": {
+              "id": "source-child",
+              "tag": "span",
+              "text": "Added at source"
+            }
+          }
+        }
+      },
+      "ok": true,
+      "revision": 15,
+      "error": null,
+      "observed": {
+        "childID": "instance-2",
+        "sourceID": "source-child",
+        "text": "Added at source"
+      }
+    },
+    {
+      "name": "source structure removal propagates",
+      "targets": [
+        "FW-013"
+      ],
+      "request": {
+        "id": 17,
+        "method": "exec",
+        "params": {
+          "command": "node.remove",
+          "params": {
+            "id": "source-child"
+          }
+        }
+      },
+      "ok": true,
+      "revision": 16,
+      "error": null,
+      "observed": {
+        "instanceChildren": [],
+        "oldCloneExists": false
+      }
+    },
+    {
+      "name": "full linked page duplicate",
+      "targets": [
+        "FW-001"
+      ],
+      "request": {
+        "id": 18,
+        "method": "exec",
+        "params": {
+          "command": "page.duplicate",
+          "params": {
+            "id": "home",
+            "name": "Copy",
+            "slug": "/copy"
+          }
+        }
+      },
+      "ok": true,
+      "revision": 17,
+      "error": null,
+      "observed": {
+        "pages": [
+          {
+            "id": "home",
+            "name": "Home",
+            "root": "root",
+            "seo": {
+              "description": "Independent design studio creating thoughtful identities and digital experiences.",
+              "noindex": false,
+              "title": "Aster Studio | Spaces for better ideas"
+            },
+            "slug": "/"
+          },
+          {
+            "id": "page-1",
+            "name": "Copy",
+            "root": "copy-1",
+            "seo": {
+              "description": "Independent design studio creating thoughtful identities and digital experiences.",
+              "noindex": false,
+              "title": "Aster Studio | Spaces for better ideas"
+            },
+            "slug": "/copy"
+          }
+        ],
+        "linkedRoots": [
+          "copy-30",
+          "instance-1"
+        ],
+        "nodeIDsUnique": true
+      }
+    },
+    {
+      "name": "persistent complete checkpoint restore",
+      "targets": [
+        "FW-006",
+        "FW-007"
+      ],
+      "request": {
+        "method": "restore",
+        "checkpointRevision": 17
+      },
+      "ok": true,
+      "revision": 19,
+      "error": null,
+      "observed": {
+        "name": "Untitled website",
+        "canUndo": true,
+        "undoCount": 17
+      }
+    },
+    {
+      "name": "undo works after restore",
+      "targets": [
+        "FW-006",
+        "FW-007"
+      ],
+      "request": {
+        "id": 22,
+        "method": "exec",
+        "params": {
+          "command": "history.undo",
+          "params": {}
+        }
+      },
+      "ok": true,
+      "revision": 20,
+      "error": null,
+      "observed": {
+        "canRedo": true,
+        "pages": 1
+      }
+    },
+    {
+      "name": "checkpoint cross-site rejection",
+      "targets": [
+        "FW-007"
+      ],
+      "request": {
+        "method": "restore",
+        "historySiteID": "other-site"
+      },
+      "ok": false,
+      "revision": 20,
+      "error": "checkpoint history belongs to another site",
+      "observed": {
+        "failure": "checkpoint history belongs to another site"
+      }
+    },
+    {
+      "name": "typed predicate rollback",
+      "targets": [
+        "FW-022"
+      ],
+      "request": {
+        "id": 25,
+        "method": "exec",
+        "params": {
+          "command": "cms.query",
+          "params": {
+            "node": "project-card",
+            "query": {
+              "collection": "projects",
+              "filter": [
+                {
+                  "field": "title",
+                  "op": "gt",
+                  "value": 3
+                }
+              ]
+            }
+          }
+        }
+      },
+      "ok": false,
+      "revision": 20,
+      "error": "query operator/value does not match field type",
+      "observed": {
+        "stateUnchanged": true
+      }
+    },
+    {
+      "name": "typed actual single and multiple relations",
+      "targets": [
+        "FW-021"
+      ],
+      "request": {
+        "id": 30,
+        "method": "exec",
+        "params": {
+          "command": "cms.upsert",
+          "params": {
+            "collection": "projects",
+            "item": {
+              "id": "field-notes",
+              "slug": "field-notes",
+              "status": "published",
+              "values": {
+                "summary": "An editorial identity with a quieter kind of confidence.",
+                "title": "Field Notes",
+                "author": "author-a",
+                "authors": [
+                  "author-a"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ok": true,
+      "revision": 24,
+      "error": null,
+      "observed": {
+        "item": {
+          "id": "field-notes",
+          "slug": "field-notes",
+          "status": "published",
+          "values": {
+            "author": "author-a",
+            "authors": [
+              "author-a"
+            ],
+            "summary": "An editorial identity with a quieter kind of confidence.",
+            "title": "Field Notes"
+          }
+        }
+      }
+    },
+    {
+      "name": "localized typed CMS fields slug status",
+      "targets": [
+        "FW-024"
+      ],
+      "request": {
+        "id": 32,
+        "method": "exec",
+        "params": {
+          "command": "cms.localize",
+          "params": {
+            "collection": "projects",
+            "item": "field-notes",
+            "locale": "fr",
+            "values": {
+              "title": "Carnet",
+              "author": "author-a"
+            },
+            "slug": "carnet",
+            "status": "published"
+          }
+        }
+      },
+      "ok": true,
+      "revision": 26,
+      "error": null,
+      "observed": {
+        "localized": {
+          "projects": {
+            "field-notes": {
+              "fr": {
+                "slug": "carnet",
+                "status": "published",
+                "values": {
+                  "author": "author-a",
+                  "title": "Carnet"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "localized relation target rejection",
+      "targets": [
+        "FW-021",
+        "FW-024"
+      ],
+      "request": {
+        "id": 34,
+        "method": "exec",
+        "params": {
+          "command": "cms.localize",
+          "params": {
+            "collection": "projects",
+            "item": "field-notes",
+            "locale": "fr",
+            "values": {
+              "author": "missing"
+            }
+          }
+        }
+      },
+      "ok": false,
+      "revision": 26,
+      "error": "localized relation target is missing",
+      "observed": {
+        "stateUnchanged": true
+      }
+    },
+    {
+      "name": "validated relation list query",
+      "targets": [
+        "FW-022"
+      ],
+      "request": {
+        "id": 36,
+        "method": "exec",
+        "params": {
+          "command": "cms.query",
+          "params": {
+            "node": "project-card",
+            "query": {
+              "collection": "projects",
+              "filter": [
+                {
+                  "field": "author.name",
+                  "op": "eq",
+                  "value": "Ada"
+                },
+                {
+                  "field": "authors.name",
+                  "op": "contains",
+                  "value": "Ada"
+                }
+              ],
+              "sort": [
+                {
+                  "field": "title",
+                  "direction": "desc"
+                }
+              ],
+              "offset": 0,
+              "limit": 2,
+              "pageSize": 1
+            }
+          }
+        }
+      },
+      "ok": true,
+      "revision": 27,
+      "error": null,
+      "observed": {
+        "query": {
+          "collection": "projects",
+          "filter": [
+            {
+              "field": "author.name",
+              "op": "eq",
+              "value": "Ada"
+            },
+            {
+              "field": "authors.name",
+              "op": "contains",
+              "value": "Ada"
+            }
+          ],
+          "limit": 2,
+          "offset": 0,
+          "pageSize": 1,
+          "sort": [
+            {
+              "direction": "desc",
+              "field": "title"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "enabled field constraints and generated hidden tracking",
+      "targets": [
+        "FW-039",
+        "FW-040",
+        "FW-041"
+      ],
+      "request": {
+        "id": 39,
+        "method": "exec",
+        "params": {
+          "command": "extension.set",
+          "params": {
+            "group": "forms",
+            "value": {
+              "forms": {
+                "newsletter": {
+                  "tracking": {
+                    "campaign": "utm_campaign"
+                  },
+                  "constraints": {
+                    "email": {
+                      "required": true,
+                      "minLength": 3,
+                      "maxLength": 200
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ok": true,
+      "revision": 30,
+      "error": null,
+      "observed": {
+        "configuration": {
+          "forms": {
+            "newsletter": {
+              "constraints": {
+                "email": {
+                  "maxLength": 200,
+                  "minLength": 3,
+                  "required": true
+                }
+              },
+              "tracking": {
+                "campaign": "utm_campaign"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "missing form constraint field rollback",
+      "targets": [
+        "FW-039"
+      ],
+      "request": {
+        "id": 41,
+        "method": "exec",
+        "params": {
+          "command": "extension.set",
+          "params": {
+            "group": "forms",
+            "value": {
+              "forms": {
+                "newsletter": {
+                  "constraints": {
+                    "missing": {
+                      "required": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ok": false,
+      "revision": 30,
+      "error": "constraint must reference an enabled form field",
+      "observed": {
+        "stateUnchanged": true
+      }
+    },
+    {
+      "name": "pinned library dependency namespace",
+      "targets": [
+        "FW-017"
+      ],
+      "request": {
+        "method": "exec",
+        "command": "library.import",
+        "id": "shared",
+        "version": "1.0.0",
+        "sourceSiteID": "foreign-site"
+      },
+      "ok": true,
+      "revision": 31,
+      "error": null,
+      "observed": {
+        "imported": {
+          "primary-button": "library-component-1"
+        },
+        "nodes": {
+          "cta": "library-node-1"
+        },
+        "tokens": {
+          "accent": "lib-shared-accent",
+          "ink": "lib-shared-ink",
+          "paper": "lib-shared-paper"
+        },
+        "background": "var(--lib-shared-ink)"
+      }
+    },
+    {
+      "name": "reviewed pin update preserves source identity and instance override",
+      "targets": [
+        "FW-017"
+      ],
+      "request": {
+        "method": "exec",
+        "command": "library.update",
+        "id": "shared",
+        "version": "1.1.0"
+      },
+      "ok": true,
+      "revision": 34,
+      "error": null,
+      "observed": {
+        "sourceIDRetained": true,
+        "sourceText": "Upstream 1.1",
+        "instanceText": "Local instance copy"
+      }
+    },
+    {
+      "name": "library source edit conflict rollback",
+      "targets": [
+        "FW-017"
+      ],
+      "request": {
+        "method": "exec",
+        "command": "library.update",
+        "id": "shared",
+        "version": "1.2.0"
+      },
+      "ok": false,
+      "revision": 35,
+      "error": "library source conflict at library-node-1; detach or resolve local edits",
+      "observed": {
+        "stateUnchanged": true
+      }
+    },
+    {
+      "name": "local library detach",
+      "targets": [
+        "FW-017"
+      ],
+      "request": {
+        "id": 51,
+        "method": "exec",
+        "params": {
+          "command": "library.detach",
+          "params": {
+            "id": "shared"
+          }
+        }
+      },
+      "ok": true,
+      "revision": 36,
+      "error": null,
+      "observed": {
+        "componentRetained": true,
+        "pinRemoved": true
+      }
+    },
+    {
+      "name": "two independent typed named slots",
+      "targets": [
+        "FW-016"
+      ],
+      "request": {
+        "id": 62,
+        "method": "exec",
+        "params": {
+          "command": "component.slot",
+          "params": {
+            "id": "instance-3",
+            "slot": "second",
+            "nodes": [
+              "body-two"
+            ]
+          }
+        }
+      },
+      "ok": true,
+      "revision": 47,
+      "error": null,
+      "observed": {
+        "slots": {
+          "first": [
+            "body-one"
+          ],
+          "second": [
+            "body-two"
+          ]
+        }
+      }
+    },
+    {
+      "name": "slot replacement releases original content",
+      "targets": [
+        "FW-016"
+      ],
+      "request": {
+        "id": 63,
+        "method": "exec",
+        "params": {
+          "command": "component.slot",
+          "params": {
+            "id": "instance-3",
+            "slot": "first",
+            "nodes": [
+              "replacement"
+            ]
+          }
+        }
+      },
+      "ok": true,
+      "revision": 48,
+      "error": null,
+      "observed": {
+        "oldContentAtRoot": 1
+      }
+    },
+    {
+      "name": "full reset releases supplied content",
+      "targets": [
+        "FW-016"
+      ],
+      "request": {
+        "id": 64,
+        "method": "exec",
+        "params": {
+          "command": "component.reset",
+          "params": {
+            "id": "instance-3"
+          }
+        }
+      },
+      "ok": true,
+      "revision": 49,
+      "error": null,
+      "observed": {
+        "released": {
+          "replacement": true,
+          "body-two": true
+        }
+      }
+    },
+    {
+      "name": "required behavior argument rejection",
+      "targets": [
+        "FW-032"
+      ],
+      "request": {
+        "id": 65,
+        "method": "exec",
+        "params": {
+          "command": "extension.set",
+          "params": {
+            "group": "behaviors",
+            "value": {
+              "nodes": {
+                "cta": {
+                  "actions": [
+                    {
+                      "trigger": "click",
+                      "action": "timeline"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "ok": false,
+      "revision": 49,
+      "error": "timeline must be a string",
+      "observed": {
+        "failure": "timeline must be a string"
+      }
+    },
+    {
+      "name": "serialized site byte limit",
+      "targets": [
+        "FW-007"
+      ],
+      "request": {
+        "method": "validate",
+        "siteInputBytes": 8515576
+      },
+      "ok": false,
+      "revision": 49,
+      "error": "site exceeds 8 MiB",
+      "observed": {
+        "failure": "site exceeds 8 MiB"
+      }
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "kind": "manual-variant-identity-observations",
+  "dateUTC": "2026-10-10T21:16:06.607033+00:00",
+  "binaryVersion": "0.1.0",
+  "binarySha256": "91c65181e69ca6986fef3cbdd6b32eb43adb3685971d5d84cc53300622afa9ed",
+  "records": [
+    {
+      "name": "variant source fragment remap",
+      "request": {
+        "id": 4,
+        "method": "exec",
+        "params": {
+          "command": "component.variant",
+          "params": {
+            "id": "instance-1",
+            "variant": "detail"
+          }
+        }
+      },
+      "ok": true,
+      "revision": 4,
+      "observed": {
+        "root": "instance-1",
+        "href": "#detail-target-instance-1",
+        "childHTMLID": "detail-target-instance-1",
+        "matches": true
+      }
+    },
+    {
+      "name": "variant source fragment remap",
+      "request": {
+        "id": 6,
+        "method": "exec",
+        "params": {
+          "command": "component.variant",
+          "params": {
+            "id": "instance-3",
+            "variant": "detail"
+          }
+        }
+      },
+      "ok": true,
+      "revision": 6,
+      "observed": {
+        "root": "instance-3",
+        "href": "#detail-target-instance-3",
+        "childHTMLID": "detail-target-instance-3",
+        "matches": true
+      }
+    },
+    {
+      "name": "variant stable identity mutation rejection",
+      "request": {
+        "id": 8,
+        "method": "exec",
+        "params": {
+          "command": "component.configure",
+          "params": {
+            "component": "primary-button",
+            "definition": {
+              "variants": {
+                "invalid": {
+                  "nodes": {
+                    "cta": {
+                      "attrs": {
+                        "id": "duplicate"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ok": false,
+      "revision": 6,
+      "error": "unknown component variant",
+      "observed": {
+        "attribute": "id",
+        "stateUnchanged": true
+      }
+    },
+    {
+      "name": "variant stable identity mutation rejection",
+      "request": {
+        "id": 10,
+        "method": "exec",
+        "params": {
+          "command": "component.configure",
+          "params": {
+            "component": "primary-button",
+            "definition": {
+              "variants": {
+                "invalid": {
+                  "nodes": {
+                    "cta": {
+                      "attrs": {
+                        "for": "duplicate"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ok": false,
+      "revision": 6,
+      "error": "unknown component variant",
+      "observed": {
+        "attribute": "for",
+        "stateUnchanged": true
+      }
+    },
+    {
+      "name": "variant stable identity mutation rejection",
+      "request": {
+        "id": 12,
+        "method": "exec",
+        "params": {
+          "command": "component.configure",
+          "params": {
+            "component": "primary-button",
+            "definition": {
+              "variants": {
+                "invalid": {
+                  "nodes": {
+                    "cta": {
+                      "attrs": {
+                        "aria-labelledby": "duplicate"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ok": false,
+      "revision": 6,
+      "error": "unknown component variant",
+      "observed": {
+        "attribute": "aria-labelledby",
+        "stateUnchanged": true
+      }
+    },
+    {
+      "name": "variant stable identity mutation rejection",
+      "request": {
+        "id": 14,
+        "method": "exec",
+        "params": {
+          "command": "component.configure",
+          "params": {
+            "component": "primary-button",
+            "definition": {
+              "variants": {
+                "invalid": {
+                  "nodes": {
+                    "cta": {
+                      "attrs": {
+                        "aria-describedby": "duplicate"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ok": false,
+      "revision": 6,
+      "error": "unknown component variant",
+      "observed": {
+        "attribute": "aria-describedby",
+        "stateUnchanged": true
+      }
+    },
+    {
+      "name": "exported variant identities and source fragment targets",
+      "request": {
+        "id": 16,
+        "method": "export",
+        "params": {}
+      },
+      "ok": true,
+      "revision": 6,
+      "observed": {
+        "duplicateHTMLIDs": [],
+        "variantFragmentLinks": [
+          "#detail-target-instance-1",
+          "#detail-target-instance-3"
+        ],
+        "allLinksResolve": true
+      }
+    }
+  ]
+}

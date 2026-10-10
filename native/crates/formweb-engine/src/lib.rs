@@ -2,7 +2,9 @@ use formweb_model::{blank_node, component_attr_maps, identifier, instance_roots,
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo"];
+mod advanced;
+
+pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "collection.update", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo", "page.duplicate", "breakpoint.set", "breakpoint.remove", "extension.set", "extension.remove", "token.define", "textpreset.set", "textpreset.apply", "component.detach", "component.configure", "component.props", "component.reset", "component.variant", "component.slot", "library.import", "library.update", "library.detach", "cms.query", "cms.binding", "cms.localize", "cms.replace", "site.replace"];
 
 pub struct Engine {
     pub site: Site,
@@ -16,6 +18,30 @@ impl Engine {
         Ok(Self { site: fresh_site("Untitled website")?, revision: 0, undo: vec![], redo: vec![] })
     }
 
+    pub fn checkpoint(&self) -> Value {
+        json!({"schemaVersion":1,"site":self.site,"revision":self.revision,"undo":self.undo,"redo":self.redo})
+    }
+
+    pub fn restore(&mut self, checkpoint: &Value, expected: Option<u64>, restore_revision: Option<u64>) -> Result<Value, String> {
+        self.check_revision(expected)?;
+        if checkpoint.as_object().ok_or("checkpoint must be object")?.keys().any(|k|!["schemaVersion","site","revision","undo","redo"].contains(&k.as_str()))||checkpoint.get("schemaVersion").and_then(Value::as_u64)!=Some(1) || serde_json::to_vec(checkpoint).map_err(|e|e.to_string())?.len()>32*1024*1024 { return Err("invalid checkpoint schema or size".into()); }
+        let site:Site=serde_json::from_value(checkpoint.get("site").ok_or("checkpoint site missing")?.clone()).map_err(|e|e.to_string())?;
+        let undo:Vec<Site>=serde_json::from_value(checkpoint.get("undo").ok_or("checkpoint undo missing")?.clone()).map_err(|e|e.to_string())?;
+        let redo:Vec<Site>=serde_json::from_value(checkpoint.get("redo").ok_or("checkpoint redo missing")?.clone()).map_err(|e|e.to_string())?;
+        let revision=checkpoint.get("revision").and_then(Value::as_u64).ok_or("checkpoint revision missing")?;
+        if undo.len()>100||redo.len()>100||revision==u64::MAX||restore_revision==Some(u64::MAX) {return Err("checkpoint history or revision exceeds limit".into());}
+        validate(&site)?;for document in undo.iter().chain(&redo){validate(document)?;if document.id!=site.id{return Err("checkpoint history belongs to another site".into());}}
+        self.site=site;self.undo=undo;self.redo=redo;self.revision=restore_revision.unwrap_or_else(||(self.revision+1).max(revision));
+        Ok(self.state())
+    }
+
+    fn trim_history(&mut self) {
+        let mut total=serde_json::to_vec(&self.site).map(|v|v.len()).unwrap_or(0);
+        total+=self.undo.iter().chain(&self.redo).map(|site|serde_json::to_vec(site).map(|v|v.len()).unwrap_or(0)).sum::<usize>();
+        while total>31*1024*1024&&!self.undo.is_empty(){total-=serde_json::to_vec(&self.undo.remove(0)).map(|v|v.len()).unwrap_or(0);}
+        while total>31*1024*1024&&!self.redo.is_empty(){total-=serde_json::to_vec(&self.redo.remove(0)).map(|v|v.len()).unwrap_or(0);}
+    }
+
     pub fn state(&self) -> Value {
         json!({"site": self.site, "revision": self.revision, "canUndo": !self.undo.is_empty(), "canRedo": !self.redo.is_empty()})
     }
@@ -23,8 +49,9 @@ impl Engine {
     pub fn reset(&mut self, name: &str) -> Result<Value, String> {
         let candidate = fresh_site(name)?;
         validate(&candidate)?;
+        let revision=self.revision.checked_add(1).ok_or("revision exhausted")?;
         self.site = candidate;
-        self.revision += 1;
+        self.revision = revision;
         self.undo.clear();
         self.redo.clear();
         Ok(self.state())
@@ -34,14 +61,16 @@ impl Engine {
         let candidate: Site = serde_json::from_value(value).map_err(|e| format!("invalid document: {e}"))?;
         validate(&candidate)?;
         if restore_revision == Some(u64::MAX) { return Err("restoreRevision exceeds supported revision range".into()); }
+        let revision=match restore_revision{Some(revision)=>revision,None=>self.revision.checked_add(1).ok_or("revision exhausted")?};
         self.site = candidate;
-        self.revision = restore_revision.unwrap_or(self.revision + 1);
+        self.revision = revision;
         self.undo.clear();
         self.redo.clear();
         Ok(self.state())
     }
 
     fn check_revision(&self, expected: Option<u64>) -> Result<(), String> {
+        if self.revision==u64::MAX{return Err("revision exhausted".into());}
         if let Some(expected) = expected {
             if expected != self.revision { return Err(format!("revision conflict: expected {expected}, current {}", self.revision)); }
         }
@@ -77,7 +106,10 @@ impl Engine {
             let command = string(entry, "command")?;
             if command.starts_with("history.") { return Err("history commands cannot be batched".into()); }
             let params = entry.get("params").ok_or("command params are required")?;
+            advanced::before_command(&mut candidate, command, params)?;
             apply(&mut candidate, command, params)?;
+            if command=="extension.set" {formweb_model::advanced::validate_extensions(&candidate)?;}
+            advanced::synchronize(&mut candidate)?;
         }
         validate(&candidate)?;
         if candidate != self.site {
@@ -87,6 +119,7 @@ impl Engine {
             self.site = candidate;
             self.revision += 1;
         }
+        self.trim_history();
         Ok(self.state())
     }
 }
@@ -134,10 +167,6 @@ fn parent_of(site: &Site, id: &str) -> Option<String> {
 fn guard_structure(site: &Site, affected: &[&str]) -> Result<(), String> {
     for id in affected {
         if site.nodes.get(*id).and_then(|n| n.component_source_id.as_ref()).is_some() { return Err("detach is not available; linked instance structure cannot be edited".into()); }
-        for component in site.components.values() {
-            let members = descendants(site, &component.root)?;
-            if members.contains(*id) && site.nodes.values().any(|n| n.component_id.as_ref() == Some(&component.id)) { return Err("component source structure is locked while instances exist; text and appearance remain editable".into()); }
-        }
     }
     Ok(())
 }
@@ -332,7 +361,7 @@ fn apply(site: &mut Site, command: &str, params: &Value) -> Result<(), String> {
                 }
             }
         }
-        _ => return Err(format!("unknown command {command}")),
+        _ => advanced::apply(site, command, params)?,
     }
     Ok(())
 }
@@ -368,8 +397,8 @@ pub fn audit(site: &Site) -> Value {
     let mut issues = vec![];
     let mut html_ids = BTreeMap::new();
     for page in &site.pages {
-        if page.seo.title.trim().is_empty() { issues.push(json!({"severity":"warning","code":"seo.title","message":format!("{} needs a page title", page.name)})); }
-        if page.seo.description.trim().is_empty() { issues.push(json!({"severity":"warning","code":"seo.description","message":format!("{} needs a meta description", page.name)})); }
+        if page.seo.title.trim().is_empty() { issues.push(json!({"severity":"warning","code":"seo.title","page":page.id,"message":format!("{} needs a page title", page.name)})); }
+        if page.seo.description.trim().is_empty() { issues.push(json!({"severity":"warning","code":"seo.description","page":page.id,"message":format!("{} needs a meta description", page.name)})); }
         if let Ok(ids) = descendants(site, &page.root) {
             let headings = ids.iter().filter(|id| site.nodes[*id].tag == "h1").count();
             if headings != 1 { issues.push(json!({"severity":"warning","code":"a11y.h1","node":page.root,"message":format!("{} has {headings} h1 headings; prefer one", page.name)})); }

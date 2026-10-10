@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
+pub mod advanced;
+
 pub type Strings = BTreeMap<String, String>;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -24,6 +26,8 @@ pub struct Site {
     pub default_locale: String,
     #[serde(default)]
     pub settings: Strings,
+    #[serde(default)]
+    pub extensions: BTreeMap<String, Value>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -131,6 +135,8 @@ pub struct Field {
     pub kind: String,
     #[serde(default)]
     pub required: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub collection: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -187,6 +193,7 @@ pub fn void_tag(tag: &str) -> bool {
 }
 
 pub fn validate(site: &Site) -> Result<(), String> {
+    if serde_json::to_vec(site).map_err(|e|e.to_string())?.len()>8*1024*1024 { return Err("site exceeds 8 MiB".into()); }
     if site.schema_version != 1 { return Err("unsupported schemaVersion".into()); }
     if !identifier(&site.id) || site.name.len() > 1000 { return Err("invalid site identity".into()); }
     if site.nodes.len() > 10000 || site.pages.is_empty() || site.pages.len() > 200 { return Err("site must contain 1 to 200 pages and at most 10000 nodes".into()); }
@@ -236,7 +243,9 @@ pub fn validate(site: &Site) -> Result<(), String> {
                 let parent = parents.get(&node.id).and_then(|id| site.nodes.get(id)).ok_or("linked child has no parent")?;
                 if parent.component_source_id.is_none() { return Err("linked child must belong to a linked instance".into()); }
             }
-            if node.tag != source.tag || node.binding != source.binding || node.children.len() != source.children.len() || !node.children.iter().zip(&source.children).all(|(child, source_child)| site.nodes[child].component_source_id.as_ref() == Some(source_child)) { return Err("linked instance tree differs from its source".into()); }
+            let instance_root = instance_roots.get(&node.id).ok_or("linked node needs an instance root")?;
+            let valid_children = if let Some(slotted) = advanced::slot_nodes(site, instance_root, source_id) { node.children == slotted } else { node.children.len() == source.children.len() && node.children.iter().zip(&source.children).all(|(child, source_child)| site.nodes[child].component_source_id.as_ref() == Some(source_child)) };
+            if node.tag != source.tag || node.binding != source.binding || !valid_children { return Err("linked instance tree differs from its source".into()); }
             let has_override = |field: &str| node.overrides.iter().any(|value| value == field);
             let instance_root = instance_roots.get(&node.id).ok_or("linked node needs an instance root")?;
             let inherited_attrs = linked_attrs(source, &attr_maps[instance_root]);
@@ -253,6 +262,7 @@ pub fn validate(site: &Site) -> Result<(), String> {
     if let Some(base) = site.settings.get("baseUrl") {
         if !safe_url(base) || !(base.starts_with("https://") || base.starts_with("http://")) { return Err("baseUrl must be an http(s) URL".into()); }
     }
+    advanced::validate_extensions(site)?;
     Ok(())
 }
 
@@ -359,7 +369,8 @@ pub fn validate_collection(collection: &Collection) -> Result<(), String> {
     if collection.fields.len() > 100 || collection.items.len() > 10000 { return Err("collection exceeds limit".into()); }
     let mut names = BTreeSet::new();
     for field in &collection.fields {
-        if !identifier(&field.name) || !names.insert(&field.name) || !["text", "number", "boolean", "url", "image", "date"].contains(&field.kind.as_str()) { return Err("invalid collection field".into()); }
+        if !identifier(&field.name) || !names.insert(&field.name) || !["text", "number", "boolean", "url", "image", "date", "reference", "references"].contains(&field.kind.as_str()) { return Err("invalid collection field".into()); }
+        if ["reference", "references"].contains(&field.kind.as_str()) != field.collection.is_some() { return Err("reference fields require exactly one target collection".into()); }
     }
     let mut ids = BTreeSet::new();
     let mut slugs = BTreeSet::new();
@@ -373,6 +384,8 @@ pub fn validate_collection(collection: &Collection) -> Result<(), String> {
                 let valid = match field.kind.as_str() {
                     "number" => value.is_number(),
                     "boolean" => value.is_boolean(),
+                    "reference" => value.as_str().map(identifier).unwrap_or(false),
+                    "references" => value.as_array().map(|values| values.len() <= 100 && values.iter().all(|v|v.as_str().map(identifier).unwrap_or(false))).unwrap_or(false),
                     "url" | "image" => value.as_str().map(safe_url).unwrap_or(false),
                     "date" => value.as_str().map(valid_date).unwrap_or(false),
                     _ => value.as_str().map(|s| s.len() <= 100000).unwrap_or(false),
@@ -403,7 +416,7 @@ pub fn starter(name: &str) -> Site {
         pages: vec![Page { id: "home".into(), name: "Home".into(), slug: "/".into(), root: "root".into(), seo: Seo { title: "Aster Studio | Spaces for better ideas".into(), description: "Independent design studio creating thoughtful identities and digital experiences.".into(), noindex: false } }],
         nodes: BTreeMap::new(), tokens: [("accent".into(), "#d6f05d".into()), ("ink".into(), "#222820".into()), ("paper".into(), "#f4f3ed".into())].into(),
         breakpoints: vec![Breakpoint { id: "desktop".into(), name: "Desktop".into(), max_width: 100000 }, Breakpoint { id: "tablet".into(), name: "Tablet".into(), max_width: 991 }, Breakpoint { id: "mobile".into(), name: "Mobile".into(), max_width: 767 }],
-        components: BTreeMap::new(), collections: BTreeMap::new(), locales: [("en".into(), Strings::new())].into(), default_locale: "en".into(), settings: [("baseUrl".into(), "https://example.com".into())].into(),
+        components: BTreeMap::new(), collections: BTreeMap::new(), locales: [("en".into(), Strings::new())].into(), default_locale: "en".into(), settings: [("baseUrl".into(), "https://example.com".into())].into(), extensions: BTreeMap::new(),
     };
     let nodes = vec![
         blank_node("root", "main", "Page", "", &[("background", "var(--paper)"), ("color", "var(--ink)"), ("font-family", "Arial, Helvetica, sans-serif"), ("min-height", "100vh"), ("padding", "0 7%")]),
@@ -447,7 +460,7 @@ pub fn starter(name: &str) -> Site {
     site.nodes.get_mut("nav").unwrap().breakpoints.insert("mobile".into(), [("display".into(), "none".into())].into());
     for id in ["work-grid", "proof"] { site.nodes.get_mut(id).unwrap().breakpoints.insert("mobile".into(), [("grid-template-columns".into(), "1fr".into())].into()); }
     site.nodes.get_mut("contact").unwrap().breakpoints.insert("mobile".into(), [("flex-direction".into(), "column".into()), ("align-items".into(), "flex-start".into())].into());
-    site.collections.insert("projects".into(), Collection { id: "projects".into(), name: "Selected projects".into(), fields: vec![Field { name: "title".into(), kind: "text".into(), required: true }, Field { name: "summary".into(), kind: "text".into(), required: true }], items: [("field-notes", "Field Notes", "An editorial identity with a quieter kind of confidence."), ("common-ground", "Common Ground", "A digital home for ideas that bring people together."), ("open-season", "Open Season", "A growing brand for a fresh perspective on everyday life.")].iter().map(|(id, title, summary)| Item { id: id.to_string(), slug: id.to_string(), values: [("title".into(), Value::String(title.to_string())), ("summary".into(), Value::String(summary.to_string()))].into(), status: "published".into() }).collect() });
+    site.collections.insert("projects".into(), Collection { id: "projects".into(), name: "Selected projects".into(), fields: vec![Field { name: "title".into(), kind: "text".into(), required: true, collection: None }, Field { name: "summary".into(), kind: "text".into(), required: true, collection: None }], items: [("field-notes", "Field Notes", "An editorial identity with a quieter kind of confidence."), ("common-ground", "Common Ground", "A digital home for ideas that bring people together."), ("open-season", "Open Season", "A growing brand for a fresh perspective on everyday life.")].iter().map(|(id, title, summary)| Item { id: id.to_string(), slug: id.to_string(), values: [("title".into(), Value::String(title.to_string())), ("summary".into(), Value::String(summary.to_string()))].into(), status: "published".into() }).collect() });
     site.nodes.get_mut("project-card").unwrap().binding = Some(Binding { collection: "projects".into(), field: None });
     for (id, field) in [("project-title", "title"), ("project-summary", "summary")] { site.nodes.get_mut(id).unwrap().binding = Some(Binding { collection: "projects".into(), field: Some(field.into()) }); }
     site.components.insert("primary-button".into(), Component { id: "primary-button".into(), name: "Primary button".into(), root: "cta".into() });

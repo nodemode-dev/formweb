@@ -30,6 +30,16 @@ fn dispatch(engine: &mut Engine, method: &str, params: &Value) -> Result<Value, 
         }
         "export" => formweb_export::export(&engine.site, params),
         "audit" => Ok(audit(&engine.site)),
+        "checkpoint" => Ok(engine.checkpoint()),
+        "validate" => {
+            let site=serde_json::from_value(params.get("site").ok_or("site required")?.clone()).map_err(|e|format!("invalid site: {e}"))?;
+            validate(&site)?;
+            Ok(json!({"valid":true}))
+        }
+        "restore" => {
+            let revision=params.get("restoreRevision").map(|v|v.as_u64().ok_or("restoreRevision must be an integer")).transpose()?;
+            engine.restore(params.get("checkpoint").ok_or("checkpoint required")?, expected(params)?, revision)
+        }
         _ => Err(format!("unknown method {method}")),
     }
 }
@@ -53,7 +63,7 @@ fn main() {
     for line in stdin.lock().lines() {
         let line = match line { Ok(line) => line, Err(error) => { eprintln!("input error: {error}"); break; } };
         if line.trim().is_empty() { continue; }
-        let parsed = if line.len() > 16 * 1024 * 1024 { Err("request exceeds 16 MiB".to_string()) } else { serde_json::from_str::<Value>(&line).map_err(|e|format!("invalid JSON: {e}")) };
+        let parsed = if line.len() > 64 * 1024 * 1024 { Err("request exceeds 64 MiB".to_string()) } else { serde_json::from_str::<Value>(&line).map_err(|e|format!("invalid JSON: {e}")) };
         let (id, result) = match parsed {
             Ok(request) => {
                 let id = request.get("id").cloned().unwrap_or(Value::Null);

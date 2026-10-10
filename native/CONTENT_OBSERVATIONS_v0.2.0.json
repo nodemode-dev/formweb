@@ -1,0 +1,612 @@
+{
+  "observedAt": "2026-10-10T21:33:36.582316+00:00",
+  "scope": "Actual manual Rust JSON-lines product operations and compiler output; independent in-memory fixture. No browser, provider or network requests. No authored runner saved.",
+  "binarySha256": "c53d9d4761d62992c3c339c97941eba6d075ae32fd15183cbfcb374aeda85c2f",
+  "reportedVersion": "0.1.0",
+  "records": [
+    {
+      "request": {
+        "method": "exec",
+        "command": "collection.create",
+        "params": {
+          "id": "entries",
+          "name": "Independent filter evidence",
+          "fields": [
+            {
+              "name": "title",
+              "type": "text",
+              "required": true
+            },
+            {
+              "name": "score",
+              "type": "number",
+              "required": true
+            },
+            {
+              "name": "posted",
+              "type": "date",
+              "required": true
+            }
+          ]
+        }
+      },
+      "ok": true,
+      "rev": 1,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "cms.replace",
+        "params": {
+          "collection": "entries",
+          "items": [
+            {
+              "id": "b",
+              "slug": "b",
+              "status": "published",
+              "values": {
+                "title": "Note B",
+                "score": 7,
+                "posted": "2026-10-02"
+              }
+            },
+            {
+              "id": "a",
+              "slug": "a",
+              "status": "published",
+              "values": {
+                "title": "Note A",
+                "score": 7,
+                "posted": "2026-10-02"
+              }
+            },
+            {
+              "id": "text-excluded",
+              "slug": "text-excluded",
+              "status": "published",
+              "values": {
+                "title": "Research",
+                "score": 9,
+                "posted": "2026-10-01"
+              }
+            },
+            {
+              "id": "number-excluded",
+              "slug": "number-excluded",
+              "status": "published",
+              "values": {
+                "title": "Note Low",
+                "score": 1,
+                "posted": "2026-10-01"
+              }
+            },
+            {
+              "id": "date-excluded",
+              "slug": "date-excluded",
+              "status": "published",
+              "values": {
+                "title": "Note Late",
+                "score": 9,
+                "posted": "2026-10-09"
+              }
+            }
+          ]
+        }
+      },
+      "ok": true,
+      "rev": 2,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "node.add",
+        "params": {
+          "parent": "root",
+          "node": {
+            "id": "filter-row",
+            "tag": "article",
+            "binding": {
+              "collection": "entries"
+            }
+          }
+        }
+      },
+      "ok": true,
+      "rev": 3,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "node.add",
+        "params": {
+          "parent": "filter-row",
+          "node": {
+            "id": "filter-title",
+            "tag": "p",
+            "binding": {
+              "collection": "entries",
+              "field": "title"
+            }
+          }
+        }
+      },
+      "ok": true,
+      "rev": 4,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "cms.query",
+        "params": {
+          "node": "filter-row",
+          "query": {
+            "collection": "entries",
+            "filter": [
+              {
+                "field": "title",
+                "op": "contains",
+                "value": "Note"
+              },
+              {
+                "field": "score",
+                "op": "gte",
+                "value": 3
+              },
+              {
+                "field": "posted",
+                "op": "lt",
+                "value": "2026-10-05"
+              }
+            ],
+            "sort": [
+              {
+                "field": "score",
+                "direction": "desc"
+              },
+              {
+                "field": "posted",
+                "direction": "asc"
+              }
+            ]
+          }
+        }
+      },
+      "ok": true,
+      "rev": 5,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "cms.replace",
+        "params": {
+          "collection": "entries",
+          "items": [
+            {
+              "id": "date-excluded",
+              "slug": "date-excluded",
+              "status": "published",
+              "values": {
+                "title": "Note Late",
+                "score": 9,
+                "posted": "2026-10-09"
+              }
+            },
+            {
+              "id": "number-excluded",
+              "slug": "number-excluded",
+              "status": "published",
+              "values": {
+                "title": "Note Low",
+                "score": 1,
+                "posted": "2026-10-01"
+              }
+            },
+            {
+              "id": "text-excluded",
+              "slug": "text-excluded",
+              "status": "published",
+              "values": {
+                "title": "Research",
+                "score": 9,
+                "posted": "2026-10-01"
+              }
+            },
+            {
+              "id": "a",
+              "slug": "a",
+              "status": "published",
+              "values": {
+                "title": "Note A",
+                "score": 7,
+                "posted": "2026-10-02"
+              }
+            },
+            {
+              "id": "b",
+              "slug": "b",
+              "status": "published",
+              "values": {
+                "title": "Note B",
+                "score": 7,
+                "posted": "2026-10-02"
+              }
+            }
+          ]
+        }
+      },
+      "ok": true,
+      "rev": 6,
+      "error": null
+    },
+    {
+      "catalog": [
+        "FW022"
+      ],
+      "operation": "actual compiled text/number/date combined query, input order reversal",
+      "exportOk": [
+        true,
+        true
+      ],
+      "orderBefore": [
+        "filter-row-entries-a",
+        "filter-row-entries-b"
+      ],
+      "orderAfter": [
+        "filter-row-entries-a",
+        "filter-row-entries-b"
+      ],
+      "stableIdTieOrder": true,
+      "excludedTextNumberDateRowsAbsent": true
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "collection.create",
+        "params": {
+          "id": "authors",
+          "name": "Authors",
+          "fields": [
+            {
+              "name": "name",
+              "type": "text",
+              "required": true
+            }
+          ]
+        }
+      },
+      "ok": true,
+      "rev": 7,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "collection.create",
+        "params": {
+          "id": "others",
+          "name": "Other collection",
+          "fields": [
+            {
+              "name": "name",
+              "type": "text",
+              "required": true
+            }
+          ]
+        }
+      },
+      "ok": true,
+      "rev": 8,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "cms.upsert",
+        "params": {
+          "collection": "authors",
+          "item": {
+            "id": "linus",
+            "slug": "linus",
+            "status": "published",
+            "values": {
+              "name": "Linus"
+            }
+          }
+        }
+      },
+      "ok": true,
+      "rev": 9,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "cms.upsert",
+        "params": {
+          "collection": "authors",
+          "item": {
+            "id": "ada",
+            "slug": "ada",
+            "status": "published",
+            "values": {
+              "name": "Ada"
+            }
+          }
+        }
+      },
+      "ok": true,
+      "rev": 10,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "cms.upsert",
+        "params": {
+          "collection": "others",
+          "item": {
+            "id": "outsider",
+            "slug": "outsider",
+            "status": "published",
+            "values": {
+              "name": "Outside"
+            }
+          }
+        }
+      },
+      "ok": true,
+      "rev": 11,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "collection.update",
+        "params": {
+          "id": "projects",
+          "patch": {
+            "fields": [
+              {
+                "name": "title",
+                "required": true,
+                "type": "text"
+              },
+              {
+                "name": "summary",
+                "required": true,
+                "type": "text"
+              },
+              {
+                "name": "authors",
+                "type": "references",
+                "collection": "authors",
+                "required": false
+              }
+            ]
+          }
+        }
+      },
+      "ok": true,
+      "rev": 12,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "cms.upsert",
+        "params": {
+          "collection": "projects",
+          "item": {
+            "id": "field-notes",
+            "slug": "field-notes",
+            "status": "published",
+            "values": {
+              "summary": "An editorial identity with a quieter kind of confidence.",
+              "title": "Field Notes",
+              "authors": [
+                "linus",
+                "ada"
+              ]
+            }
+          }
+        }
+      },
+      "ok": true,
+      "rev": 13,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "cms.binding",
+        "params": {
+          "node": "project-title",
+          "binding": {
+            "collection": "projects",
+            "field": "authors.name",
+            "target": "text"
+          }
+        }
+      },
+      "ok": true,
+      "rev": 14,
+      "error": null
+    },
+    {
+      "catalog": [
+        "FW025"
+      ],
+      "operation": "actual compiled multiple-reference dotted binding",
+      "exportOk": true,
+      "projectTitleTexts": [
+        "Linus, Ada"
+      ],
+      "orderedResolvedNames": true
+    },
+    {
+      "catalog": [
+        "FW025"
+      ],
+      "operation": "declared-collection target mismatch",
+      "request": {
+        "command": "cms.upsert",
+        "params": {
+          "collection": "projects",
+          "item": {
+            "id": "field-notes",
+            "slug": "field-notes",
+            "status": "published",
+            "values": {
+              "summary": "An editorial identity with a quieter kind of confidence.",
+              "title": "Field Notes",
+              "authors": [
+                "outsider"
+              ]
+            }
+          }
+        }
+      },
+      "ok": false,
+      "error": "missing relation target in authors",
+      "revisionBefore": 14,
+      "revisionAfter": 14,
+      "stateUnchanged": true
+    },
+    {
+      "catalog": [
+        "FW025"
+      ],
+      "operation": "referenced target removal",
+      "request": {
+        "command": "cms.remove",
+        "params": {
+          "collection": "authors",
+          "id": "ada"
+        }
+      },
+      "ok": false,
+      "error": "missing relation target in authors",
+      "revisionBefore": 14,
+      "revisionAfter": 14,
+      "stateUnchanged": true
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "cms.upsert",
+        "params": {
+          "collection": "projects",
+          "item": {
+            "id": "field-notes",
+            "slug": "field-notes",
+            "status": "archived",
+            "values": {
+              "summary": "An editorial identity with a quieter kind of confidence.",
+              "title": "Field Notes",
+              "authors": [
+                "linus",
+                "ada"
+              ]
+            }
+          }
+        }
+      },
+      "ok": true,
+      "rev": 15,
+      "error": null
+    },
+    {
+      "catalog": [
+        "FW026"
+      ],
+      "operation": "archive retained in editable authority but omitted from public compiled HTML",
+      "storedItem": {
+        "id": "field-notes",
+        "slug": "field-notes",
+        "status": "archived",
+        "values": {
+          "authors": [
+            "linus",
+            "ada"
+          ],
+          "summary": "An editorial identity with a quieter kind of confidence.",
+          "title": "Field Notes"
+        }
+      },
+      "exportOk": true,
+      "archivedRepeatedNodeAbsent": true,
+      "otherPublishedRowsPresent": true,
+      "archivedResolvedTextAbsent": true
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "node.add",
+        "params": {
+          "parent": "root",
+          "node": {
+            "id": "missing-alt-image",
+            "tag": "img",
+            "attrs": {
+              "src": "https://example.com/sample.png"
+            }
+          }
+        }
+      },
+      "ok": true,
+      "rev": 16,
+      "error": null
+    },
+    {
+      "request": {
+        "method": "exec",
+        "command": "page.update",
+        "params": {
+          "id": "home",
+          "patch": {
+            "seo": {
+              "title": "",
+              "description": ""
+            }
+          }
+        }
+      },
+      "ok": true,
+      "rev": 17,
+      "error": null
+    },
+    {
+      "catalog": [
+        "FW046"
+      ],
+      "operation": "actual native audit diagnoses missing alt and page title/description",
+      "issues": [
+        {
+          "code": "seo.title",
+          "message": "Home needs a page title",
+          "page": "home",
+          "severity": "warning"
+        },
+        {
+          "code": "seo.description",
+          "message": "Home needs a meta description",
+          "page": "home",
+          "severity": "warning"
+        },
+        {
+          "code": "a11y.alt",
+          "message": "Image needs alt text (empty alt is valid for decoration)",
+          "node": "missing-alt-image",
+          "severity": "warning"
+        }
+      ],
+      "altExactNodeAndSeverity": true,
+      "titleExactPageAndSeverity": true
+    }
+  ]
+}

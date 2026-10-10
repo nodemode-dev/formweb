@@ -6,7 +6,7 @@ This inventory was read from the actual installed package metadata and lockfiles
 
 ## Rust engine
 
-Exact resolution and registry checksums are in `native/Cargo.lock`. Source package manifests in the inspected Cargo registry declare the following expressions. The Rust engine directly uses serde, serde_json and getrandom; the remaining rows are their resolved dependencies. getrandom supplies operating-system entropy for fresh site identifiers. r-efi is resolved for UEFI targets and is not used by the inspected Linux build.
+Exact resolution and registry checksums are in `native/Cargo.lock`. Source package manifests in the inspected Cargo registry declare the following expressions. The Rust engine directly uses serde, serde_json, getrandom and sha2; the remaining rows are their resolved dependencies. getrandom supplies operating-system entropy for fresh site identifiers. sha2 verifies source and emitted code-component digests. r-efi is resolved for UEFI targets and is not used by the inspected Linux build.
 
 | Package | Version | License expression | Upstream source |
 | --- | --- | --- | --- |
@@ -25,6 +25,14 @@ Exact resolution and registry checksums are in `native/Cargo.lock`. Source packa
 | syn | 3.0.7 | MIT OR Apache-2.0 | https://github.com/dtolnay/syn |
 | unicode-ident | 1.0.26 | (MIT OR Apache-2.0) AND Unicode-3.0 | https://github.com/dtolnay/unicode-ident |
 | zmij | 1.0.23 | MIT | https://github.com/dtolnay/zmij |
+| sha2 | 0.11.0 | MIT OR Apache-2.0 | https://github.com/RustCrypto/hashes |
+| block-buffer | 0.12.1 | MIT OR Apache-2.0 | https://github.com/RustCrypto/utils |
+| const-oid | 0.10.2 | Apache-2.0 OR MIT | https://github.com/RustCrypto/formats |
+| cpufeatures | 0.3.1 | MIT OR Apache-2.0 | https://github.com/RustCrypto/utils |
+| crypto-common | 0.2.2 | MIT OR Apache-2.0 | https://github.com/RustCrypto/traits |
+| digest | 0.11.3 | MIT OR Apache-2.0 | https://github.com/RustCrypto/traits |
+| hybrid-array | 0.4.15 | MIT OR Apache-2.0 | https://github.com/RustCrypto/hybrid-array |
+| typenum | 1.20.1 | MIT OR Apache-2.0 | https://github.com/paholg/typenum |
 
 Retained texts live under `legal/third-party/cargo/<package>-<version>/`. Dual-license files are preserved together; downstream users may choose an allowed alternative. FormWeb selects the MIT alternative for r-efi and retains its upstream AUTHORS file containing the MIT grant and copyright notices. The Unicode notice is additional to the MIT/Apache alternative and is retained. A distribution containing compiled native engine code must include the applicable notices.
 

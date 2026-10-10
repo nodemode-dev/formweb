@@ -1,6 +1,15 @@
 use formweb_model::{safe_url, validate, void_tag, Item, Node, Page, Site, Strings};
 use serde_json::{json, Value};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+
+mod advanced;
+mod cms;
+mod code;
+mod isolated;
+mod inline_module;
+mod routing;
+mod route_styles;
+mod scope;
 
 fn escape(value: &str) -> String {
     value.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&#39;")
@@ -12,6 +21,7 @@ fn translation(site: &Site, locale: &str, key: &str, fallback: &str) -> String {
 
 pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     validate(site)?;
+    if !site.extensions.is_empty() { return advanced::export(site, params); }
     let locale = params.get("locale").map(|v| v.as_str().ok_or("locale must be a string")).transpose()?.unwrap_or(&site.default_locale);
     if locale != site.default_locale && !site.locales.contains_key(locale) { return Err("unknown locale".into()); }
     let base = params.get("baseUrl").map(|v| v.as_str().ok_or("baseUrl must be a string")).transpose()?.or_else(|| site.settings.get("baseUrl").map(String::as_str)).unwrap_or("https://example.com").trim_end_matches('/');
@@ -32,7 +42,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         let prefix = "../".repeat(if route.is_empty() { 0 } else { route.split('/').count() });
         let canonical = if route.is_empty() { format!("{base}/") } else { format!("{base}/{route}/") };
         let mut interactions = vec![];
-        let mut render = Renderer { site, locale, forms, prefix: &prefix, warnings: &mut warnings, interactions: &mut interactions, budget: 100000 };
+        let mut render = Renderer { site, locale, forms, prefix: &prefix, warnings: &mut warnings, interactions: &mut interactions, budget: 100000, links: None };
         let body = render.node(&page.root, None, None)?;
         let title = translation(site, locale, &format!("{}.title", page.id), &page.seo.title);
         let description = translation(site, locale, &format!("{}.description", page.id), &page.seo.description);
@@ -98,6 +108,7 @@ struct Renderer<'a> {
     warnings: &'a mut BTreeSet<String>,
     interactions: &'a mut Vec<Value>,
     budget: usize,
+    links: Option<&'a BTreeMap<String, String>>,
 }
 
 impl Renderer<'_> {
@@ -105,12 +116,20 @@ impl Renderer<'_> {
         if self.budget == 0 { return Err("CMS expansion exceeds 100000 rendered nodes".into()); }
         self.budget -= 1;
         let node = &self.site.nodes[id];
-        if let Some(binding) = &node.binding {
-            if binding.field.is_none() && repeated != Some(id) {
-                let collection = &self.site.collections[&binding.collection];
+        if cms::is_empty_target(self.site, id) && repeated != Some("__empty") { return Ok(String::new()); }
+        if let Some(collection_id) = cms::list_collection(self.site, node) {
+            if repeated != Some(id) {
+                let collection = &self.site.collections[collection_id];
+                let items = cms::query(self.site, node, collection_id, self.locale);
+                if items.is_empty() {
+                    if let Some(empty) = cms::empty_target(self.site, id) { return self.node(empty, context, Some("__empty")); }
+                    return Ok(String::new());
+                }
                 let mut result = String::new();
+                let page_size = cms::page_size(self.site, id);
+                if let Some(size) = page_size { result.push_str(&format!("<div data-fw-list=\"{}\" data-fw-page-size=\"{}\">", escape(id), size)); }
                 let html_ids = subtree_ids(self.site, id);
-                for item in collection.items.iter().filter(|item| item.status == "published") {
+                for (index, item) in items.iter().enumerate() {
                     let segment = format!("-{}-{}", collection.id, item.id);
                     let suffix = format!("{}{segment}", context.map(|c|c.suffix).unwrap_or(""));
                     let mut ids = context.map(|c|c.ids.clone()).unwrap_or_default();
@@ -118,8 +137,11 @@ impl Renderer<'_> {
                         let base = ids.get(html_id).cloned().unwrap_or_else(||html_id.clone());
                         ids.insert(html_id.clone(), format!("{base}{segment}"));
                     }
+                    if let Some(size) = page_size { result.push_str(&format!("<div data-fw-item style=\"display:contents\"{}>", if index >= size as usize { " hidden" } else { "" })); }
                     result.push_str(&self.node(id, Some(RenderContext { collection: &collection.id, item, ids: &ids, suffix: &suffix }), Some(id))?);
+                    if page_size.is_some() { result.push_str("</div>"); }
                 }
+                if page_size.is_some() { result.push_str("<nav class=\"fw-pagination\" data-fw-pagination aria-label=\"Collection pages\"><button type=\"button\" data-fw-prev disabled>Previous</button><span class=\"fw-pagination-output\" data-fw-page-output aria-live=\"polite\">1</span><button type=\"button\" data-fw-next>Next</button></nav></div>"); }
                 return Ok(result);
             }
         }
@@ -132,14 +154,19 @@ impl Renderer<'_> {
         if let Some(binding) = &node.binding {
             if let Some(field) = &binding.field {
                 let collection = &self.site.collections[&binding.collection];
-                let item = context.filter(|c|c.collection == collection.id).map(|c|c.item).or_else(|| collection.items.iter().find(|i| i.status == "published"));
-                if let Some(value) = item.and_then(|i| i.values.get(field)) {
-                    let content = match value { Value::String(s) => s.clone(), Value::Null => String::new(), other => other.to_string() };
-                    if node.tag == "img" { attrs.insert("src".into(), content); }
+                let fallback = cms::published(self.site, &collection.id, self.locale).into_iter().next();
+                let item = context.filter(|c|c.collection == collection.id).map(|c|c.item).or(fallback.as_ref());
+                if let Some(value) = item.and_then(|i| cms::field(self.site, &collection.id, i, field, self.locale)) {
+                    let content = cms::display(&value);
+                    if node.tag == "img" { if content.is_empty() { attrs.remove("src"); } else { attrs.insert("src".into(), content); } }
                     else { text = content; }
-                } else { text.clear(); }
+                } else { if node.tag == "img" { attrs.remove("src"); } else { text.clear(); } }
             }
         }
+        if let Some((target, content)) = cms::binding(self.site, node, self.locale, context.map(|c|(c.collection,c.item))) {
+            if target == "text" { text = content; } else if content.is_empty() { attrs.remove(&target); } else { attrs.insert(target, content); }
+        }
+        advanced::attrs(self.site, node, self.locale, &mut attrs);
         let suffix = context.map(|c|c.suffix).unwrap_or("");
         let runtime_id = format!("{}{suffix}", node.id);
         if let Some(context) = context {
@@ -153,7 +180,7 @@ impl Renderer<'_> {
             }
             if let Some(href) = attrs.get_mut("href") { *href = scoped_fragment(href, context.ids); }
         }
-        if let Some(href) = attrs.get_mut("href") { *href = portable_link(self.site, href, self.prefix); }
+        if let Some(href) = attrs.get_mut("href") { *href = self.links.map(|links|routing::link(href,self.prefix,links)).unwrap_or_else(||portable_link(self.site,href,self.prefix)); }
         if attrs.get("target").map(String::as_str) == Some("_blank") { attrs.insert("rel".into(), "noopener noreferrer".into()); }
         if node.tag == "img" && !attrs.contains_key("loading") { attrs.insert("loading".into(), "lazy".into()); }
         if attrs.get("src").map(|s|s.starts_with("http://") || s.starts_with("https://")).unwrap_or(false) { self.warnings.insert("Remote media URLs are referenced and are not bundled into the archive".into()); }
@@ -167,20 +194,37 @@ impl Renderer<'_> {
             for interaction in &mut interactions {
                 if let Some(url) = &mut interaction.url {
                     if let Some(context) = context { *url = scoped_fragment(url, context.ids); }
-                    *url = portable_link(self.site, url, self.prefix);
+                    *url = self.links.map(|links|routing::link(url,self.prefix,links)).unwrap_or_else(||portable_link(self.site,url,self.prefix));
                 }
             }
-            self.interactions.push(json!({"id":runtime_id,"interactions":interactions}));
+            self.interactions.push(json!({"id":runtime_id,"scope":suffix,"interactions":interactions}));
+        }
+        if let Some(mut record) = advanced::record(self.site, node, &runtime_id, suffix) {
+            if let Some(actions) = record.get_mut("actions").and_then(Value::as_array_mut) {
+                for action in actions {
+                    if let Some(url) = action.get("url").and_then(Value::as_str) {
+                        let url = context.map(|c|scoped_fragment(url,c.ids)).unwrap_or_else(||url.into());
+                        let url = self.links.map(|links|routing::link(&url,self.prefix,links)).unwrap_or_else(||portable_link(self.site,&url,self.prefix));
+                        action["url"] = json!(url);
+                    }
+                }
+            }
+            self.interactions.push(record);
         }
         let mut result = format!("<{} data-fw-node=\"{}\" data-fw-id=\"{}\"", node.tag, node.id, runtime_id);
         for (key, value) in attrs { result.push_str(&format!(" {}=\"{}\"", key, escape(&value))); }
         result.push('>');
-        if void_tag(&node.tag) { return Ok(result); }
-        result.push_str(&escape(&text));
-        for child in &node.children { result.push_str(&self.node(child, context, None)?); }
-        if node.tag == "form" { result.push_str("<p class=\"fw-form-status\" data-fw-form-status aria-live=\"polite\"></p>"); }
+        let field_error = if ["input","textarea","select"].contains(&node.tag.as_str()) && node.attrs.get("type").map(String::as_str) != Some("hidden") {
+            node.attrs.get("name").map(|name|format!("<span class=\"fw-field-error\" data-fw-error=\"{}\" aria-live=\"polite\"></span>",escape(name))).unwrap_or_default()
+        } else { String::new() };
+        if void_tag(&node.tag) { result.push_str(&field_error); return Ok(result); }
+        if let Some(frame) = code::render(self.site, &node.id, self.prefix)? { result.push_str(&frame); }
+        else { result.push_str(&escape(&text)); for child in &node.children { result.push_str(&self.node(child, context, None)?); } }
+        result.push_str(&advanced::widget(self.site,node));
+        if node.tag == "form" { result.push_str(&advanced::form_extra(self.site,node)); result.push_str("<p class=\"fw-form-status\" data-fw-form-status aria-live=\"polite\"></p>"); }
         result.push_str(&format!("</{}>", node.tag));
-        Ok(result)
+        result.push_str(&field_error);
+        Ok(advanced::overlay(self.site,node,suffix,result))
     }
 }
 

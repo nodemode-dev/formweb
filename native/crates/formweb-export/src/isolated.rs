@@ -1,0 +1,7 @@
+use serde_json::{json, Value};
+
+pub fn document(javascript: &str, schema: &Value) -> String {
+    let inner = crate::inline_module::document(javascript);
+    let payload = json!({"schema":schema,"inner":inner}).to_string().replace('<',"\\u003c").replace('>',"\\u003e").replace('&',"\\u0026");
+    format!(r#"<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src about:; base-uri 'none'"><style>html,body{{margin:0;height:100%;overflow:hidden}}iframe{{width:100%;height:100%;min-height:240px;border:0;display:block}}</style></head><body><iframe id="isolated" title="Isolated code component" sandbox="allow-scripts"></iframe><script type="application/json" id="build">{payload}</script><script>const build=JSON.parse(document.getElementById('build').textContent);try{{const props=location.hash?JSON.parse(decodeURIComponent(location.hash.slice(1))):{{}};const payload=JSON.stringify({{schema:build.schema,props}}).replaceAll('<','\\u003c').replaceAll('>','\\u003e').replaceAll('&','\\u0026');document.getElementById('isolated').srcdoc=build.inner.replace('__FW_PAYLOAD__',()=>payload);}}catch{{document.getElementById('isolated').srcdoc='<p role="status">Component properties could not be decoded.</p>';}}</script></body></html>"#)
+}
