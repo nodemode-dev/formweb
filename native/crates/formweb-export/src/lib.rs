@@ -1,4 +1,4 @@
-use formweb_model::{safe_url, validate, void_tag, Item, Node, Page, Site};
+use formweb_model::{safe_url, validate, void_tag, Item, Node, Page, Site, Strings};
 use serde_json::{json, Value};
 use std::collections::BTreeSet;
 
@@ -82,6 +82,14 @@ fn stylesheet(site: &Site) -> String {
     css
 }
 
+#[derive(Clone, Copy)]
+struct RenderContext<'a> {
+    collection: &'a str,
+    item: &'a Item,
+    ids: &'a Strings,
+    suffix: &'a str,
+}
+
 struct Renderer<'a> {
     site: &'a Site,
     locale: &'a str,
@@ -93,7 +101,7 @@ struct Renderer<'a> {
 }
 
 impl Renderer<'_> {
-    fn node(&mut self, id: &str, context: Option<(&str, &Item)>, repeated: Option<&str>) -> Result<String, String> {
+    fn node(&mut self, id: &str, context: Option<RenderContext<'_>>, repeated: Option<&str>) -> Result<String, String> {
         if self.budget == 0 { return Err("CMS expansion exceeds 100000 rendered nodes".into()); }
         self.budget -= 1;
         let node = &self.site.nodes[id];
@@ -101,8 +109,16 @@ impl Renderer<'_> {
             if binding.field.is_none() && repeated != Some(id) {
                 let collection = &self.site.collections[&binding.collection];
                 let mut result = String::new();
+                let html_ids = subtree_ids(self.site, id);
                 for item in collection.items.iter().filter(|item| item.status == "published") {
-                    result.push_str(&self.node(id, Some((&collection.id, item)), Some(id))?);
+                    let segment = format!("-{}-{}", collection.id, item.id);
+                    let suffix = format!("{}{segment}", context.map(|c|c.suffix).unwrap_or(""));
+                    let mut ids = context.map(|c|c.ids.clone()).unwrap_or_default();
+                    for html_id in &html_ids {
+                        let base = ids.get(html_id).cloned().unwrap_or_else(||html_id.clone());
+                        ids.insert(html_id.clone(), format!("{base}{segment}"));
+                    }
+                    result.push_str(&self.node(id, Some(RenderContext { collection: &collection.id, item, ids: &ids, suffix: &suffix }), Some(id))?);
                 }
                 return Ok(result);
             }
@@ -110,13 +126,13 @@ impl Renderer<'_> {
         self.element(node, context)
     }
 
-    fn element(&mut self, node: &Node, context: Option<(&str, &Item)>) -> Result<String, String> {
+    fn element(&mut self, node: &Node, context: Option<RenderContext<'_>>) -> Result<String, String> {
         let mut attrs = node.attrs.clone();
         let mut text = translation(self.site, self.locale, &node.id, &node.text);
         if let Some(binding) = &node.binding {
             if let Some(field) = &binding.field {
                 let collection = &self.site.collections[&binding.collection];
-                let item = context.filter(|(id, _)| *id == collection.id).map(|(_, item)| item).or_else(|| collection.items.iter().find(|i| i.status == "published"));
+                let item = context.filter(|c|c.collection == collection.id).map(|c|c.item).or_else(|| collection.items.iter().find(|i| i.status == "published"));
                 if let Some(value) = item.and_then(|i| i.values.get(field)) {
                     let content = match value { Value::String(s) => s.clone(), Value::Null => String::new(), other => other.to_string() };
                     if node.tag == "img" { attrs.insert("src".into(), content); }
@@ -124,15 +140,18 @@ impl Renderer<'_> {
                 } else { text.clear(); }
             }
         }
-        let suffix = context.map(|(collection, item)|format!("-{collection}-{}", item.id)).unwrap_or_default();
+        let suffix = context.map(|c|c.suffix).unwrap_or("");
         let runtime_id = format!("{}{suffix}", node.id);
-        if !suffix.is_empty() {
+        if let Some(context) = context {
             for name in ["id", "for"] {
-                if let Some(value) = attrs.get_mut(name) { value.push_str(&suffix); }
+                if let Some(value) = attrs.get_mut(name) {
+                    if let Some(mapped) = context.ids.get(value) { *value = mapped.clone(); }
+                }
             }
             for name in ["aria-labelledby", "aria-describedby"] {
-                if let Some(value) = attrs.get_mut(name) { *value = value.split_whitespace().map(|id|format!("{id}{suffix}")).collect::<Vec<_>>().join(" "); }
+                if let Some(value) = attrs.get_mut(name) { *value = value.split_whitespace().map(|id|context.ids.get(id).cloned().unwrap_or_else(||id.into())).collect::<Vec<_>>().join(" "); }
             }
+            if let Some(href) = attrs.get_mut("href") { *href = scoped_fragment(href, context.ids); }
         }
         if let Some(href) = attrs.get_mut("href") { *href = portable_link(self.site, href, self.prefix); }
         if attrs.get("target").map(String::as_str) == Some("_blank") { attrs.insert("rel".into(), "noopener noreferrer".into()); }
@@ -146,7 +165,10 @@ impl Renderer<'_> {
         if !node.interactions.is_empty() {
             let mut interactions = node.interactions.clone();
             for interaction in &mut interactions {
-                if let Some(url) = &mut interaction.url { *url = portable_link(self.site, url, self.prefix); }
+                if let Some(url) = &mut interaction.url {
+                    if let Some(context) = context { *url = scoped_fragment(url, context.ids); }
+                    *url = portable_link(self.site, url, self.prefix);
+                }
             }
             self.interactions.push(json!({"id":runtime_id,"interactions":interactions}));
         }
@@ -160,6 +182,21 @@ impl Renderer<'_> {
         result.push_str(&format!("</{}>", node.tag));
         Ok(result)
     }
+}
+
+fn subtree_ids(site: &Site, root: &str) -> BTreeSet<String> {
+    let mut result = BTreeSet::new();
+    let mut pending = vec![root.to_string()];
+    while let Some(id) = pending.pop() {
+        let node = &site.nodes[&id];
+        if let Some(html_id) = node.attrs.get("id") { result.insert(html_id.clone()); }
+        pending.extend(node.children.iter().cloned());
+    }
+    result
+}
+
+fn scoped_fragment(url: &str, ids: &Strings) -> String {
+    url.strip_prefix('#').and_then(|id|ids.get(id)).map(|mapped|format!("#{mapped}")).unwrap_or_else(||url.into())
 }
 
 fn portable_link(site: &Site, url: &str, prefix: &str) -> String {
