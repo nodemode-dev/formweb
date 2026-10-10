@@ -6,9 +6,9 @@ From the repository root, install and build with the documented launcher before 
 
 The backend also exposes its SDK Streamable HTTP transport. Obtain the actual endpoint from project configuration and backend documentation. Agents is initially disabled; the authorized user enables it in the editor or starts the service with `FORMWEB_AGENTS=1`. Check actual connection status rather than assuming configuration means connection.
 
-Discover through `tools/list`, then call `get_site` and read resources `formweb://site` and `formweb://commands` as needed. The authoritative static catalogue is `backend/app/mcp_catalog.py`; tool descriptions and schemas own the full parameter contract. This reference supplies sequence and dependencies.
+Discover through `tools/list`, then call `get_site` and read resources `formweb://site` and `formweb://commands` as needed. The server merges `backend/app/mcp_catalog.py`, `advanced_catalog.py` and `providers/catalog.py` in `mcp_server.py`; the live descriptions and schemas own the full parameter contract. This reference supplies sequence and dependencies.
 
-Current tool names are `get_site`, `apply_commands`, `history`, `audit_site`, `save_project`, `list_projects`, `open_project`, `export_site`, `publish_site` and `list_submissions`. Check the live listing before use.
+The core tool names are `get_site`, `apply_commands`, `history`, `audit_site`, `save_project`, `list_projects`, `open_project`, `export_site`, `publish_site` and `list_submissions`. Route additional authoring, content and service work through the master map; the selected specialist loads its advanced reference directly. Check the live listing before every new capability; a delivered pack does not enable absent tools.
 
 ## Workflow 1: build and inspect a responsive page
 
@@ -60,7 +60,7 @@ Use `history` with `action` `undo` or `redo` and optional `expected_revision` fr
 
 If `apply_commands` rejects its expected revision, call `get_site`, inspect the affected objects and send only the remaining intended change with the fresh revision. Do not blindly repeat the old batch. If the batch itself was rejected, it has no committed prefix; if an earlier batch succeeded, that earlier work remains.
 
-For absent tools, inspect the connection and use `tools/list`. For disabled Agents, inspect its actual enablement state. For authentication rejection, check whether the backend sets `FORMWEB_AUTH_TOKEN` and whether the client sends its matching bearer token. Inspect presence only, without printing values. Distinguish the local endpoint from an optional proxy and follow the configured proxy's documented authentication when applicable. This release has no account-token refresh flow.
+For absent tools, inspect the connection and use `tools/list`. For disabled Agents, inspect its actual enablement state. For authentication rejection, check whether the backend sets `FORMWEB_AUTH_TOKEN` or uses an issued local identity token and whether the client sends its authorized bearer token. Inspect presence only, without printing values. For role rejection, inspect `get_access` under the authorized identity and use the actual project context; a visitor token or preview nonce cannot authorize editor calls. Follow a configured proxy's documented authentication when applicable. This release has no OAuth refresh flow.
 
 Call a failing tool directly using its live schema. If that call fails too, the server, transport or permission is the problem. Return the observed error and preserved state instead of inventing a successful response.
 

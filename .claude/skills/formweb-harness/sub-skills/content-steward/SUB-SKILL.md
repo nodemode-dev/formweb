@@ -11,7 +11,7 @@ Keep authored copy and structured content consistent with their rendered output.
 
 ## Preconditions
 
-`get_site` supplied the current revision, the affected pages and any collection or locale IDs. User-provided content and the requested locale are known. Read pack root `references/architecture.md` for CMS and localization behavior.
+`get_site` supplied the current revision, the affected pages and any collection or locale IDs. User-provided content and the requested locale are known. Read pack root `references/architecture.md` for CMS and localization behavior. For selected bindings, relations, filtered/paginated lists, empty content, item templates, CSV, localized item/asset/routes or metadata templates/JSON-LD, open pack root `references/advanced-content.md` and verify the consuming output before calling the content complete. For a configured translation request and review, load pack root `references/advanced-service.md` directly.
 
 ## Procedure
 

@@ -7,6 +7,7 @@
 **Subsystems**
 
 - [[Engine]]
+- [[Advanced-Studio]]
 - [[Agents-and-MCP]]
 - [[Project-Format]]
 - [[Publishing]]

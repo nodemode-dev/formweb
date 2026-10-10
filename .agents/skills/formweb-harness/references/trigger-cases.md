@@ -14,6 +14,11 @@
 | Audit the FormWeb site accessibility and SEO | Recovery auditor |
 | Save the editable .fweb project and export HTML CSS JS | Release operator |
 | Publish the FormWeb site as a local preview | Release operator |
+| Give this FormWeb component typed props, variants and two slots | Layout builder |
+| Build CMS detail pages and locale alternates in my FormWeb site | Content steward |
+| Review the FormWeb branch conflicts and keep the approved content | Harness director, recovery auditor |
+| Connect the FormWeb form inbox to configured signed delivery | Interaction builder |
+| Inspect the configured FormWeb commerce and analytics providers | Release operator, interaction builder |
 
 The description auditor checks keyword coverage of these positives. Model selection remains a separate manual check; lexical overlap is not proof of runtime activation.
 

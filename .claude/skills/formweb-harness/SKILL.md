@@ -1,6 +1,6 @@
 ---
 name: formweb-harness
-description: "Builds and edits websites in FormWeb through its Rust-backed MCP server. Use whenever a request asks to create, edit, inspect or deliver a FormWeb site, or make a responsive landing page, portfolio, blog, CMS site or contact form in the Form family editor. Covers page and layer trees, grid and flex layout, breakpoints, styles, reusable components, CMS collections and records, localization, interactions, forms, SEO, accessibility, editable .fweb projects and HTML/CSS/JS export. Inspects the current document, applies engine commands, checks audits and browser previews, and saves or exports requested files. Does not replace source-code development, operate Framer or Webflow accounts, or claim external hosting from a local publish operation."
+description: "Builds and edits websites in FormWeb through its Rust-backed MCP server. Use when a request asks to create, edit, inspect, review or deliver a FormWeb site, including responsive landing pages, portfolios, blogs, CMS sites and forms. Covers page trees, layout, breakpoints, tokens, component props/variants/slots, CMS records, templates and queries, localization, interactions, SEO, accessibility, editable .fweb projects and static export. Coordinates content review, local releases, branches, comments, permissions, form inbox/delivery and configured data, translation, hosting, commerce, membership or analytics providers only when actual tools expose them. Reads current state, applies validated changes, inspects compiled/browser behavior and saves requested deliverables; separates configured, fixture, local and verified external results. Excludes source-code implementation, Framer/Webflow account administration and unsupported hosting or payment claims."
 license: Apache-2.0
 compatibility: "Project skill for Claude Code and other clients with the FormWeb MCP server connected. Requires a running local FormWeb FastAPI service and explicit Agents enablement."
 metadata:
@@ -19,6 +19,9 @@ formweb-harness/
   SKILL.md
   references/
     architecture.md
+    advanced-authoring.md
+    advanced-content.md
+    advanced-service.md
     mcp-workflows.md
     evaluations.md
     trigger-cases.md
@@ -31,18 +34,18 @@ formweb-harness/
     recovery-auditor/SUB-SKILL.md
 ```
 
-A specialist-local path resolves from that specialist's folder. A sibling path resolves under `sub-skills/[name]/SUB-SKILL.md`. The four named pack-wide references resolve from the pack root. Use forward slashes and open references directly from the body that names them.
+A specialist-local path resolves from that specialist's folder. A sibling path resolves to the named specialist shown in the map. All named pack-wide references resolve from the pack root. Use forward slashes and open references directly from the body that names them.
 
 ## Routing
 
 | Request | Load |
 | --- | --- |
 | Build a site from a brief, complete several features, or continue broad work | `sub-skills/harness-director/SUB-SKILL.md` |
-| Fix mobile layout, style a page, restructure layers, or reuse a component | `sub-skills/layout-builder/SUB-SKILL.md` |
-| Add blog records, bind CMS fields, translate copy, or edit page metadata | `sub-skills/content-steward/SUB-SKILL.md` |
-| Add a click or scroll effect, navigation, or a contact form | `sub-skills/interaction-builder/SUB-SKILL.md` |
-| Save or open a project, export a website, or publish a local preview | `sub-skills/release-operator/SUB-SKILL.md` |
-| Diagnose a stale revision, tool error, failed audit, or interrupted workflow | `sub-skills/recovery-auditor/SUB-SKILL.md` |
+| Fix responsive layout, tokens, presets, page structure, reusable props/variants/slots or libraries | `sub-skills/layout-builder/SUB-SKILL.md` |
+| Add CMS records, queries, templates, CSV, localization, translation review or SEO | `sub-skills/content-steward/SUB-SKILL.md` |
+| Author interactions, forms, data widgets, commerce, membership or consent behavior | `sub-skills/interaction-builder/SUB-SKILL.md` |
+| Save/import a native project, export, review branches, deliver forms or release locally/remotely | `sub-skills/release-operator/SUB-SKILL.md` |
+| Diagnose authorization, stale revisions, merge conflicts, provider errors or interrupted work | `sub-skills/recovery-auditor/SUB-SKILL.md` |
 
 For broad work, start with the director and let it load specialists. A narrow task may load its own specialist directly after observing the current site.
 
@@ -61,7 +64,7 @@ For broad work, start with the director and let it load specialists. A narrow ta
 
 The workflow combines sequential orchestration with context-aware routing: observe, plan, apply, inspect, save. Open `references/mcp-workflows.md` for three ordered workflows and connection setup. Open `references/architecture.md` before constructing commands that touch tree ownership, responsive styling, CMS, components, or localization.
 
-If the server is absent, inspect the client's connection status and running backend. If Agents is disabled, enable it only within the user's authorized scope. If a tool name does not resolve, re-read `tools/list` instead of guessing names. If authentication is rejected, check the local `FORMWEB_AUTH_TOKEN` configuration and any configured proxy credentials without printing secrets. This local release has no account login or permission scopes to refresh.
+If the server is absent, inspect the client's connection status and running backend. If Agents is disabled, enable it only within the user's authorized scope. If a tool name does not resolve, re-read `tools/list` instead of guessing names. For authentication or permission rejection, inspect the configured local identity and `get_access` without printing credentials. Open `references/advanced-service.md` for roles, branch context, delivery and configured providers; editor identities, visitor sessions and preview tokens have distinct authority. No OAuth refresh flow is supplied.
 
 If a workflow stops after a successful command, re-read `get_site`, compare the committed changes, and resume only the missing steps. Do not replay earlier successful mutations. Call a failing tool directly without relying on this skill's sequence; if that still fails, diagnose the server through the recovery specialist.
 
@@ -69,4 +72,4 @@ If a workflow stops after a successful command, re-read `get_site`, compare the 
 
 Report the saved project ID or tool-reported output path, the final revision, the audit issues left open, and the preview widths actually inspected. Name every requested capability that remains incomplete. Never claim an external host, collaboration session, or payment service exists from local data alone.
 
-Open `references/evaluations.md` to review the three scenario specifications before changing this pack, and `references/trigger-cases.md` to check positive and adjacent negative phrasings. These are markdown evaluation plans, not executable application tests. Keep this pack's tool names synchronized with the live catalogue whenever server contracts change.
+Open `references/evaluations.md` to review the six scenario specifications before changing this pack, and `references/trigger-cases.md` to check positive and adjacent negative phrasings. These are markdown evaluation plans, not executable application tests. Keep this pack's tool names synchronized with the live catalogue whenever server contracts change.

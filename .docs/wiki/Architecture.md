@@ -14,7 +14,7 @@ The Rust engine is the single owner of site state. The editor, MCP tools and HTT
 
 The process shell is `native/target/release/formweb-core` (`.exe` on Windows). `setup/install_core` compiles it. `backend/app/engine.py` serializes access to one process and retains the latest acknowledged state for restart recovery. An unacknowledged request is not reported as successful.
 
-A change follows this sequence: the editor or agent submits commands; Python sends one JSON line to Rust; Rust validates and commits an atomic update; Python returns the new revision and notifies connected editors. The frontend patches existing controls and node representations. The canvas renders the same stored site model. Its Preview mode checks click and hover actions; exported or locally published pages run the compiled website runtime, including scroll triggers, reduced-motion behavior and form submission.
+A change follows this sequence: the editor or agent submits commands; Python sends one JSON line to Rust; Rust validates and commits an atomic update; Python persists a history checkpoint and notifies authorized connected editors. The frontend patches existing controls and node representations. The design canvas renders authored data for editing. Preview loads the actual compiler output through a token-scoped opaque iframe, retaining the preceding frame until the replacement loads. Published top-level pages are the final place to verify visitor sessions and consent.
 
 ## Contract for new capabilities
 

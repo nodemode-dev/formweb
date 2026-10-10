@@ -23,3 +23,5 @@ Website output needs real links, meaningful titles and descriptions, appropriate
 A parity row is full only when the relevant requirement works through its intended interface and exported/runtime result. Partial means a useful but limited subset. None means absent. Unknown means evidence is insufficient and must not be counted as success.
 
 Record the actual executed verification in the planning sidecar BUILD_NOTES. Windows scripts and operating-system-specific behavior remain unverified unless run on those systems. This browser build does not claim desktop bundle verification.
+
+The [v0.2.0 verification record](../../docs/VERIFICATION_v0.2.0.md) connects the advanced editor, compiler, durable services, providers and actual MCP observations. The [current parity audit](../../docs/PARITY_v0.2.0.md) preserves all 65 researched requirements and separates local acceptance from external operational completion. Earlier records remain historical.

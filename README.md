@@ -11,14 +11,14 @@ FormWeb is the Form family's visual website builder, researched against Framer &
 
 ## Highlights
 
-- **Pages & layout.** Nested semantic elements, tree editing, flex/grid styles, responsive overrides & direct text editing.
-- **Design systems.** Named CSS tokens & reusable component instances, w/ source propagation & explicit instance overrides. Structural editing of an instantiated source is guarded.
-- **Content.** Typed scalar CMS fields, published-item lists, field binding & manual locale translations. The canvas & compiler materialize published items.
-- **Output.** Portable HTML/CSS/runtime ZIPs, uploaded raster assets, metadata, sitemap, robots, reduced-motion handling & diagnostic findings. External asset URLs remain references; each export contains one locale.
-- **Projects.** SQLite autosave & project library, plus editable versioned `.fweb` files w/ embedded owned raster assets. Installed dependencies & user data are omitted from source archives.
-- **Local publishing.** Immutable version URLs served by this computer, w/ stored form submissions. Commercial domains, CDN hosting, checkout & email delivery are future work.
-- **Agents.** Actual MCP tools/resources over Streamable HTTP & a stdio proxy, gated by the Agents switch, w/ revision conflict checks.
-- **Evidence.** [65-row researched catalog](docs/FRAMER_WEBFLOW_RESEARCH.md), [implementation audit](docs/PARITY.md) & [release verification](docs/VERIFICATION.md). Gaps remain visible.
+- **Pages & layout.** Nested semantic elements, page duplication, flex/grid placement, custom breakpoints & compiled runtime preview.
+- **Design systems.** Typed tokens, linked text presets, component properties/variants/slots, override reset, detachment & reviewed pinned libraries.
+- **Content.** Typed relations, selected bindings, CMS detail routes, queries/pagination/empty states, exact CSV round trips & localized content/media/routes.
+- **Output & behavior.** Portable HTML/CSS/runtime ZIPs, owned raster assets, reciprocal language links, JSON-LD, timelines, conditions, accessible overlays & isolated code components.
+- **Projects & teams.** SQLite autosave, portable `.fweb` history/assets, isolated review branches, comments, roles, presence & attributed operations.
+- **Publishing & forms.** Immutable local releases, promotion/rollback, redirects, inbox/retention, constraints, tracking & durable signed webhook delivery.
+- **Connected services.** Configurable deployment/domain, translation, fetch & commerce adapters; separate visitor membership, consented analytics & experiments. Provider credentials stay on the server.
+- **Agents & evidence.** Real official-SDK MCP, shared role checks & revision authority. Start w/ the [harness quickstart](docs/harness/QUICKSTART.md), [65-row catalog](docs/FRAMER_WEBFLOW_RESEARCH.md), [current parity](docs/PARITY_v0.2.0.md) & [verification](docs/VERIFICATION_v0.2.0.md).
 
 ## Quick Start
 
@@ -60,7 +60,7 @@ Windows launchers are supplied but have not been run on Windows in this build. F
 
 ## Configuration
 
-Copy `backend/.env.example` to `backend/.env` when configuration is needed. Never commit credentials. See the backend example for supported defaults.
+Copy `backend/.env.example` to `backend/.env` when configuration is needed. Merge only the required provider names from `backend/.env.providers.example`; see [provider configuration](docs/PROVIDER_RESEARCH_v0.2.0.md), [signed delivery](docs/SERVICE_DELIVERY.md) & [code builds](docs/CODE_COMPONENTS.md). Restart after changing server settings. Never commit credentials.
 
 | Variable | Purpose |
 | --- | --- |
@@ -89,7 +89,7 @@ Copy `backend/.env.example` to `backend/.env` when configuration is needed. Neve
 
 ## Limits
 
-This is an initial local builder release, not full Framer/Webflow equivalence. See the audit for row-level gaps: no managed hosting, realtime team permissions, rich CMS relationships/dynamic detail templates, visual animation timeline, payments, analytics experiments or code-component pipeline. Exported forms require a reachable configured service. Preview behavior & compiler output retain the documented differences.
+The advanced Studio covers authoring, runtime, collaboration & service workflows described in the [Studio guide](frontend/ADVANCED_GUIDE.md). Provider adapters require configured server credentials; fixture observations do not establish live domain/TLS/CDN operation or completed payments. Hosted checkout delegates payment, shipping & taxes to the configured provider. Gated content requires the authorizing backend & is rejected from public static exports. Exported forms require a reachable service. Windows, native desktop bundles & automatic skill activation remain unverified. Versioned parity records distinguish implemented workflows from these operational boundaries.
 
 ## Development
 

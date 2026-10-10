@@ -1,6 +1,6 @@
 ---
 name: interaction-builder
-description: "Authors FormWeb navigation, click, hover and scroll interactions plus local forms. Returns the configured behavior, observed browser checks and the scope of any submission endpoint."
+description: "Authors FormWeb navigation, interactions, forms and configured runtime widgets for data, commerce, membership and consent. Requires observed browser outcomes and distinguishes local capture, provider fixtures and verified external services."
 ---
 
 # Interaction Builder
@@ -11,7 +11,7 @@ Create useful behavior that can be demonstrated in an exported page. Keep local 
 
 ## Preconditions
 
-`get_site` supplied the current revision, affected nodes and their attributes. The intended action and form fields are known. Read pack root `references/architecture.md` for the interaction model and form boundary.
+`get_site` supplied the current revision, affected nodes and their attributes. The intended action and form fields are known. Read pack root `references/architecture.md` for the interaction model and form boundary. For authored states, timelines, overlays and typed form settings inspect the live extension schema; for runtime data, commerce, membership or consent read pack root `references/advanced-service.md`. A configured widget is not an observed browser consumer.
 
 ## Procedure
 

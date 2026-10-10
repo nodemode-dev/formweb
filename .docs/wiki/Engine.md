@@ -11,7 +11,7 @@ The engine owns the website document independently of the browser. It accepts a 
 | `native/crates/formweb-core/` | stdin/stdout bridge |
 | `backend/app/engine.py` | Serialized subprocess client |
 
-A request is `{id, method, params}`. A reply carries `{id, ok, result, rev}` or an error. Methods are `hello`, `state`, `new`, `load`, `exec`, `batch`, `export` and `audit`. `state` contains `site`, `revision`, `canUndo` and `canRedo`; `hello` supplies the actual command list.
+A request is `{id, method, params}`. A reply carries `{id, ok, result, rev}` or an error. Methods are `hello`, `state`, `new`, `load`, `validate`, `checkpoint`, `restore`, `exec`, `batch`, `export` and `audit`. `state` contains `site`, `revision`, `canUndo` and `canRedo`; `hello` supplies the actual command list. Checkpoints preserve bounded undo/redo snapshots; restore validates every document and restores acknowledged history. `validate` checks a candidate without mutating the active site.
 
 Commands cover node and page editing, tokens, component creation/insertion, collection creation and item changes, locales, site settings and history. Obtain the live command list from `formweb://commands` or the core's `hello` response before extending clients.
 

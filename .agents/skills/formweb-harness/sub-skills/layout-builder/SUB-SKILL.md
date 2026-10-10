@@ -11,7 +11,7 @@ Make a page's hierarchy and responsive layout express the requested design. Keep
 
 ## Preconditions
 
-`get_site` supplied the current revision, page roots and target node IDs. The brief identifies the intended content and widths. Read pack root `references/architecture.md` for model and layout rules.
+`get_site` supplied the current revision, page roots and target node IDs. The brief identifies the intended content and widths. Read pack root `references/architecture.md` for model and layout rules. For page duplication, custom breakpoints, typed tokens, text presets, props/variants/slots, detach/reset or pinned-library review, open pack root `references/advanced-authoring.md` and confirm the live command contract before constructing the batch.
 
 ## Procedure
 
