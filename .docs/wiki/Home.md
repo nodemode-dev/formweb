@@ -2,7 +2,7 @@
 
 FormWeb is the form family's visual website authoring application. A Rust engine owns editable sites and exports browser-native HTML, CSS and JavaScript. A Python/FastAPI service supplies projects, local publications, forms and MCP. A vanilla TypeScript/Vite window displays and changes the same engine state.
 
-Version during scaffold: 0.0.0. Author: nodemode-ai. The release version is recorded in the repository README and changelog.
+Release version: 0.1.0. Author: nodemode-ai. The repository README and changelog record this release.
 
 | Surface | Current boundary |
 | --- | --- |
