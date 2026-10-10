@@ -7,3 +7,4 @@ setup/* text eol=lf
 *.svg text eol=lf
 *.png binary
 *.woff2 binary
+legal/third-party/** -text
