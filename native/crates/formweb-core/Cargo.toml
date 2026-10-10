@@ -1,0 +1,11 @@
+[package]
+name = "formweb-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+formweb-model.workspace = true
+formweb-engine.workspace = true
+formweb-export.workspace = true
+serde_json.workspace = true

@@ -1,0 +1,9 @@
+[package]
+name = "formweb-export"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+formweb-model.workspace = true
+serde_json.workspace = true
