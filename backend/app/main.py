@@ -152,6 +152,14 @@ async def assets():
     return {'assets': [item for item in list_assets()['assets'] if item['id'] in allowed]}
 
 
+@app.get('/api/qr')
+async def qr_code(url: str, format: str = 'svg', dark: str = '#000000', light: str = '#ffffff', scale: int = 8):
+    from .qr import qr_image
+    studio.access.authorize('read')
+    data, media, filename = qr_image(url, format, dark, light, scale)
+    return Response(data, media_type=media, headers={'Content-Disposition': f'attachment; filename="{filename}"', 'Cache-Control': 'no-store'})
+
+
 @app.get('/api/assets/{asset_id}')
 async def image_asset(asset_id: str):
     if asset_id not in visible_assets(studio):

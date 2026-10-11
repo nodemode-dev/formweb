@@ -215,7 +215,7 @@ insertPane.hidden = true;
 const insertHead = element('div', 'panel-head');
 insertHead.append(element('span', 'eyebrow', 'Elements'));
 const insertGrid = element('div', 'insert-grid');
-for (const [label, symbol, kind] of [['Section', 'box', 'section'], ['Heading', 'text', 'heading'], ['Paragraph', 'text', 'paragraph'], ['Button', 'arrow', 'button'], ['Image', 'image', 'image'], ['Grid', 'grid', 'grid'], ['Form', 'box', 'form'], ['Link', 'globe', 'link']] as [string, Icon, string][]) insertGrid.append(button(label, symbol, () => insertElement(kind), 'insert-card'));
+for (const [label, symbol, kind] of [['Section', 'box', 'section'], ['Heading', 'text', 'heading'], ['Paragraph', 'text', 'paragraph'], ['Button', 'arrow', 'button'], ['Image', 'image', 'image'], ['Grid', 'grid', 'grid'], ['Form', 'box', 'form'], ['Link', 'globe', 'link'], ['Embed', 'eye', 'embed']] as [string, Icon, string][]) insertGrid.append(button(label, symbol, () => insertElement(kind), 'insert-card'));
 const componentsHead = element('div', 'panel-head');
 componentsHead.append(element('span', 'eyebrow', 'Components'));
 const componentName = input('Component name');
@@ -502,6 +502,21 @@ hideScrollbars.addEventListener('change', () => void run(() => command('site.upd
 const hideScrollbarsLabel = element('label', 'checkbox-field');
 hideScrollbarsLabel.append(hideScrollbars, element('span', '', 'Hide scrollbars on the published site'));
 siteSection.append(hideScrollbarsLabel, element('p', 'micro', 'Visitors can still scroll with wheel, touch and keyboard. Applies to Preview, export and publish. Agents: site.update with settings.hideScrollbars "true" or "false".'));
+const faviconRow = element('div', 'fw-favicon-row');
+faviconRow.style.marginTop = 'var(--space-3)';
+const faviconPreview = element('img', 'fw-favicon-preview');
+faviconPreview.alt = '';
+faviconPreview.width = 24;
+faviconPreview.height = 24;
+faviconPreview.hidden = true;
+const faviconButton = button('Site icon', 'image', () => runCommand('site.favicon'));
+faviconButton.dataset.command = 'site.favicon';
+const faviconDarkButton = button('Dark icon', 'image', () => runCommand('site.favicon-dark'));
+faviconDarkButton.dataset.command = 'site.favicon-dark';
+const faviconClear = button('Clear', 'trash', () => runCommand('site.favicon-clear'));
+faviconClear.dataset.command = 'site.favicon-clear';
+faviconRow.append(faviconPreview, faviconButton, faviconDarkButton, faviconClear);
+siteSection.append(faviconRow, element('p', 'micro', 'Square PNG, 180px or larger. Export adds icon, apple-touch-icon and site.webmanifest. Agents: site.update with settings.favicon set to an /api/assets URL.'));
 const pageActions = section(pagePane, 'Actions');
 pageActions.append(button('Run site audit', 'check', auditSite), button('Delete page', 'trash', () => openDialog('delete-page'), 'danger'));
 pageActions.lastElementChild?.setAttribute('style', 'margin-left:var(--space-2)');
@@ -546,6 +561,54 @@ const newPageSlug = input('/about');
 const newPageGrid = element('div', 'form-grid');
 newPageGrid.append(field('Page name', newPageName), field('URL slug', newPageSlug));
 pageDialogPane.append(element('p', 'empty-note', 'Add a page with its own root container, content and metadata.'), newPageGrid);
+const bulkPane = dialogPane('bulk');
+const bulkTemplate = select([]);
+const bulkCsv = element('textarea');
+bulkCsv.rows = 8;
+bulkCsv.spellcheck = false;
+bulkCsv.dataset.field = 'bulk.csv';
+bulkTemplate.dataset.field = 'bulk.template';
+bulkCsv.placeholder = 'slug,name,title,image\n/work/alpha,Alpha,Alpha project,/api/assets/...';
+const bulkNote = element('p', 'micro', '');
+const bulkGrid = element('div', 'form-grid');
+bulkGrid.append(field('Template page', bulkTemplate, true), field('CSV rows (first row is the header)', bulkCsv, true));
+bulkPane.append(element('p', 'empty-note', 'Create one page per row by duplicating a template. Write {{column}} in template text, attributes or SEO fields and each page gets that row\'s value. A slug column is required; name is optional. Up to 300 rows, one undo step.'), bulkGrid, bulkNote);
+bulkCsv.addEventListener('input', () => { try { const rows = parseCsv(bulkCsv.value); text(bulkNote, `${rows.length} page${rows.length === 1 ? '' : 's'} ready.`); } catch (error) { text(bulkNote, error instanceof Error ? error.message : String(error)); } });
+const qrPane = dialogPane('qr');
+const qrUrl = input('https://example.com/');
+qrUrl.dataset.field = 'qr.url';
+const qrFormat = select([{ id: 'png', name: 'PNG image' }, { id: 'svg', name: 'SVG vector' }]);
+qrFormat.dataset.field = 'qr.format';
+const qrDark = element('input');
+qrDark.type = 'color';
+qrDark.value = '#000000';
+qrDark.dataset.field = 'qr.dark';
+const qrLight = element('input');
+qrLight.type = 'color';
+qrLight.value = '#ffffff';
+qrLight.dataset.field = 'qr.light';
+const qrGrid = element('div', 'form-grid');
+qrGrid.append(field('Page address', qrUrl, true), field('Format', qrFormat), field('Foreground', qrDark), field('Background', qrLight));
+qrPane.append(element('p', 'empty-note', 'Generated locally. Uses the published address when you have published in this session; otherwise the local preview address. Keep strong contrast so phones can scan it.'), qrGrid);
+const embedPane = dialogPane('embed');
+const embedUrl = input('https://www.youtube.com/watch?v=...');
+embedUrl.dataset.field = 'embed.url';
+const embedNote = element('p', 'micro', '');
+embedPane.append(element('p', 'empty-note', 'Paste a share link or a provider\'s embed HTML (FormWeb keeps only its address). Supported: YouTube (privacy-enhanced), Vimeo, Loom, Spotify, Google Maps "Embed a map" links and OpenStreetMap embed links. The player renders in Preview, export and publish.'), field('Media URL', embedUrl, true), embedNote);
+embedUrl.addEventListener('paste', () => setTimeout(() => { const src = /<iframe[^>]*\ssrc="([^"]+)"/i.exec(embedUrl.value)?.[1]; if (src) { value(embedUrl, src.replace(/&amp;/g, '&')); embedUrl.dispatchEvent(new Event('input')); } }));
+embedUrl.addEventListener('input', () => text(embedNote, embedKind(embedUrl.value) ? `${embedKind(embedUrl.value)} detected.` : embedUrl.value.trim() ? 'Not a supported provider link yet.' : ''));
+function embedKind(url: string): string {
+  const match = /^https:\/\/(?:www\.|m\.)?([^/]+)\/([^?#]*)/.exec(url.trim());
+  if (!match) return '';
+  const [, host, path] = match;
+  if (/^(youtube\.com|youtu\.be|youtube-nocookie\.com)$/.test(host)) return 'YouTube video';
+  if (/^(player\.)?vimeo\.com$/.test(host)) return 'Vimeo video';
+  if (host === 'loom.com' && /^(share|embed)\//.test(path)) return 'Loom video';
+  if (host === 'open.spotify.com') return 'Spotify player';
+  if (/^(maps\.)?google\.com$/.test(host) && path === 'maps/embed') return 'Google map';
+  if (host === 'openstreetmap.org' && path === 'export/embed.html') return 'OpenStreetMap';
+  return '';
+}
 const deletePagePane = dialogPane('delete-page');
 const deletePageNote = element('p', 'empty-note');
 deletePagePane.append(deletePageNote);
@@ -820,6 +883,10 @@ function update(next: EditorState): void {
   deleteNodeButton.disabled = node.id === page.root;
   noindex.checked = !!page.seo.noindex;
   hideScrollbars.checked = site.settings.hideScrollbars === 'true';
+  const favicon = site.settings.favicon || '';
+  faviconPreview.hidden = !favicon;
+  if (favicon && faviconPreview.dataset.src !== favicon) { faviconPreview.dataset.src = favicon; faviconPreview.src = apiBase && favicon.startsWith('/') ? apiBase + favicon : favicon; }
+  faviconClear.disabled = !favicon && !site.settings.faviconDark;
   canvas.render(site, page, selectedId, widths[breakpoint], locale, false);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
   if (dialogMode === 'cms') updateCms();
@@ -842,6 +909,54 @@ async function downloadProject(): Promise<void> {
 async function exportSite(): Promise<void> {
   await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
   status(`Static site exported for ${locale}.`);
+}
+function parseCsv(source: string): { slug: string; name?: string; values: Record<string, string> }[] {
+  const records: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let quoted = false;
+  for (let i = 0; i < source.length; i++) {
+    const ch = source[i];
+    if (quoted) {
+      if (ch === '"' && source[i + 1] === '"') { cell += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else cell += ch;
+    } else if (ch === '"' && cell === '') quoted = true;
+    else if (ch === ',') { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && source[i + 1] === '\n') i++;
+      row.push(cell); cell = '';
+      if (row.some(item => item.trim() !== '')) records.push(row);
+      row = [];
+    } else cell += ch;
+  }
+  row.push(cell);
+  if (row.some(item => item.trim() !== '')) records.push(row);
+  if (quoted) throw new Error('CSV has an unclosed quote.');
+  if (records.length < 2) throw new Error('Add a header row and at least one data row.');
+  const header = records[0].map(name => name.trim());
+  const slugIndex = header.indexOf('slug');
+  if (slugIndex < 0) throw new Error('The header needs a slug column.');
+  if (records.length - 1 > 300) throw new Error('Bulk create accepts up to 300 rows at a time.');
+  return records.slice(1).map((cells, index) => {
+    const values: Record<string, string> = {};
+    header.forEach((name, column) => { if (name) values[name] = (cells[column] ?? '').trim(); });
+    const slug = values.slug;
+    if (!slug) throw new Error(`Row ${index + 2} has no slug.`);
+    return { slug: slug.startsWith('/') ? slug : '/' + slug, name: values.name || undefined, values };
+  });
+}
+function pageAddress(): string {
+  const slug = currentPage().slug.replace(/^\/+/, '');
+  const base = publishLink.hidden ? (apiBase || window.location.origin) + '/' : publishLink.href.replace(/[^/]*$/, '');
+  return new URL(slug, base).toString();
+}
+async function downloadQr(): Promise<void> {
+  const url = qrUrl.value.trim() || pageAddress();
+  const format = qrFormat.value || 'png';
+  const name = currentPage().slug.replace(/[^a-z0-9-]+/gi, '-').replace(/^-|-$/g, '') || 'home';
+  await download(`/api/qr?format=${format}&scale=10&dark=${encodeURIComponent(qrDark.value)}&light=${encodeURIComponent(qrLight.value)}&url=${encodeURIComponent(url)}`, `qr-${name}.${format}`);
+  status(`QR code downloaded for ${url}.`);
 }
 async function moveLayer(direction: number): Promise<void> {
   const node = currentNode();
@@ -874,6 +989,9 @@ async function insertElement(kind: string, asset?: { url: string; name: string; 
     node = makeNode('div', 'Grid', '', { display: 'grid', 'grid-template-columns': 'repeat(3, minmax(0, 1fr))', gap: '24px', padding: '32px' });
     node.breakpoints.mobile = { 'grid-template-columns': '1fr' };
     for (const name of ['First idea', 'Second idea', 'Third idea']) children.push(makeNode('article', name, name, { padding: '32px', background: '#252933', 'border-radius': '12px', 'font-size': '20px' }));
+  } else if (kind === 'embed') {
+    if (!asset) { openDialog('embed'); return; }
+    node = makeNode('div', asset.name, `${asset.name}: ${asset.url}`, { display: 'flex', 'align-items': 'center', 'justify-content': 'center', width: '100%', 'min-height': '240px', padding: '24px', background: '#1d2026', color: '#8a93a3', 'border-radius': '12px', 'font-size': '14px', overflow: 'hidden' }, { 'data-fw-embed': asset.url });
   } else node = makeNode('section', 'Section', '', { display: 'flex', 'flex-direction': 'column', gap: '24px', padding: '64px', 'min-height': '240px', background: '#1d2026' });
   await commands([{ command: 'node.add', params: { parent, node } }, ...children.map(child => ({ command: 'node.add', params: { parent: node.id, node: child } }))]);
   selectedId = node.id;
@@ -886,10 +1004,10 @@ function openDialog(id: string): void {
   if (!lastState && !['settings', 'help'].includes(id)) return;
   if (scrim.hidden) lastFocus = document.activeElement as HTMLElement;
   dialogMode = id;
-  const titles: Record<string, string> = { new: 'New website', page: 'Add page', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
+  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
   text(dialogTitle, titles[id] || id);
   panes.forEach((pane, key) => { pane.hidden = key !== id; });
-  const primaryLabels: Record<string, string> = { new: 'Create site', page: 'Add page', publish: 'Publish version', cms: 'Save item', locales: 'Save translations', settings: 'Save & reconnect', 'delete-page': 'Delete page' };
+  const primaryLabels: Record<string, string> = { new: 'Create site', page: 'Add page', bulk: 'Create pages', embed: 'Insert embed', qr: 'Download', publish: 'Publish version', cms: 'Save item', locales: 'Save translations', settings: 'Save & reconnect', 'delete-page': 'Delete page' };
   dialogPrimary.hidden = !primaryLabels[id];
   dialogPrimary.disabled = false;
   text(dialogPrimary.querySelector('span')!, primaryLabels[id] || 'Apply');
@@ -901,6 +1019,8 @@ function openDialog(id: string): void {
   if (id === 'locales') { localeEditing = locale; updateLocales(); fillLocale(); }
   if (id === 'tokens') updateTokens();
   if (id === 'publish') value(publishSlug, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-'));
+  if (id === 'qr') value(qrUrl, pageAddress());
+  if (id === 'bulk') { options(bulkTemplate, state().site.pages.map(page => ({ id: page.id, name: `${page.name} (${page.slug})` }))); bulkTemplate.value = currentPage().id; text(bulkNote, ''); }
   if (id === 'delete-page') text(deletePageNote, `Delete "${currentPage().name}" and its content? You can undo this operation.`);
   dialogClose.focus();
 }
@@ -924,6 +1044,24 @@ async function performDialogAction(): Promise<void> {
     if (page) { pageId = page.id; selectedId = page.root; update(state()); }
     closeDialog();
     status('Page added.');
+  } else if (dialogMode === 'qr') {
+    await downloadQr();
+    closeDialog();
+  } else if (dialogMode === 'embed') {
+    const kind = embedKind(embedUrl.value);
+    if (!kind) throw new Error('Paste a YouTube, Vimeo, Loom, Spotify, Google Maps embed or OpenStreetMap embed link.');
+    closeDialog();
+    await insertElement('embed', { url: embedUrl.value.trim(), name: kind, width: 0, height: 0 });
+    value(embedUrl, '');
+    text(embedNote, '');
+  } else if (dialogMode === 'bulk') {
+    const rows = parseCsv(bulkCsv.value);
+    const before = new Set(state().site.pages.map(page => page.id));
+    await command('page.bulk', { template: bulkTemplate.value, rows });
+    const created = state().site.pages.filter(page => !before.has(page.id));
+    if (created[0]) { pageId = created[0].id; selectedId = created[0].root; update(state()); }
+    closeDialog();
+    status(`${created.length} pages created from CSV. One undo step removes them all.`);
   } else if (dialogMode === 'delete-page') {
     await command('page.remove', { id: currentPage().id });
     closeDialog();
@@ -1089,6 +1227,10 @@ mediaInput.addEventListener('change', () => void run(async () => {
   const asset = await upload(file);
   if (mediaInput.dataset.mode === 'insert') {
     await insertElement('image', { url: asset.url, name: file.name, width: bitmap.width, height: bitmap.height });
+  } else if (mediaInput.dataset.mode === 'favicon' || mediaInput.dataset.mode === 'faviconDark') {
+    const key = mediaInput.dataset.mode;
+    await command('site.update', { patch: { settings: { [key]: asset.url } } });
+    status(`${key === 'favicon' ? 'Site icon' : 'Dark mode icon'} set${bitmap.width !== bitmap.height ? ' (square images look best)' : ''}. Exports include icon links and site.webmanifest.`);
   } else {
     await command('node.update', { id: mediaInput.dataset.target, patch: { attrs: { src: asset.url, width: String(bitmap.width), height: String(bitmap.height) } } });
     status('Image uploaded and attached. It is bundled in site exports.');
@@ -1130,7 +1272,7 @@ const featureStudio = new FeatureStudio({
 const ready = (): boolean => !!lastState;
 const notRoot = (): boolean => !!lastState && currentNode().id !== currentPage().root;
 const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); };
-const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link']];
+const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link'], ['embed', 'Embed media']];
 setRunner(run);
 registerCommands([
   { id: 'file.new', label: 'New site...', menu: 'File', run: () => openDialog('new') },
@@ -1148,6 +1290,11 @@ registerCommands([
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
   { id: 'page.add', label: 'Add page...', menu: 'Page', run: () => openDialog('page'), enabled: ready },
   { id: 'page.settings', label: 'Page settings', menu: 'Page', run: () => { openDock('right'); setInspector('page'); }, enabled: ready },
+  { id: 'page.bulk', label: 'Bulk create from CSV...', menu: 'Page', run: () => openDialog('bulk'), enabled: ready },
+  { id: 'page.qr', label: 'QR code for this page...', menu: 'Page', group: 2, run: () => openDialog('qr'), enabled: ready },
+  { id: 'site.favicon', label: 'Set site icon...', menu: 'Page', group: 3, run: () => { mediaInput.dataset.mode = 'favicon'; mediaInput.click(); }, enabled: ready },
+  { id: 'site.favicon-dark', label: 'Set dark mode icon...', menu: 'Page', group: 3, run: () => { mediaInput.dataset.mode = 'faviconDark'; mediaInput.click(); }, enabled: ready },
+  { id: 'site.favicon-clear', label: 'Clear site icons', menu: 'Page', group: 3, run: async () => { await command('site.update', { patch: { settings: { favicon: '', faviconDark: '' } } }); status('Site icons cleared.'); }, enabled: () => !!lastState?.site.settings?.favicon || !!lastState?.site.settings?.faviconDark },
   { id: 'page.delete', label: 'Delete page...', menu: 'Page', group: 1, run: () => openDialog('delete-page'), enabled: () => !!lastState && lastState.site.pages.length > 1 },
   { id: 'page.audit', label: 'Run SEO and accessibility audit', menu: 'Page', group: 2, run: auditSite, enabled: ready },
   { id: 'arrange.up', label: 'Move layer up', menu: 'Arrange', run: () => moveLayer(-1), enabled: notRoot },

@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 mod advanced;
 
-pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "collection.update", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo", "page.duplicate", "breakpoint.set", "breakpoint.remove", "extension.set", "extension.remove", "token.define", "textpreset.set", "textpreset.apply", "component.detach", "component.configure", "component.props", "component.reset", "component.variant", "component.slot", "library.import", "library.update", "library.detach", "cms.query", "cms.binding", "cms.localize", "cms.replace", "site.replace"];
+pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "collection.update", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo", "page.duplicate", "breakpoint.set", "breakpoint.remove", "extension.set", "extension.remove", "token.define", "textpreset.set", "textpreset.apply", "component.detach", "component.configure", "component.props", "component.reset", "component.variant", "component.slot", "library.import", "library.update", "library.detach", "cms.query", "cms.binding", "cms.localize", "cms.replace", "site.replace", "page.bulk"];
 
 pub struct Engine {
     pub site: Site,

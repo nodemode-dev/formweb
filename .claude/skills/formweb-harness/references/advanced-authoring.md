@@ -18,6 +18,7 @@ Advanced state is carried by `site.extensions`. Rust validates named groups tran
 
 1. Inventory affected pages/nodes, tokens, breakpoints and design presets. Preserve unrelated page roots and content. Use a fresh observed `expected_revision` for each batch.
 2. Use `page.duplicate` with the observed page `id` and intended unique `slug`; inspect the returned page/root/descendant IDs rather than deriving them. Check cloned labels, fragments and extension consumers independently.
+   For many similar pages, write `{{column}}` tokens into a template page (text, attributes such as `src`/`href`, SEO fields), then run `page.bulk` with `template` and up to 300 `rows` of `{slug, name?, values}`. One undo step reverts the whole batch. Inspect a sample of created pages for unreplaced tokens.
 3. Use `breakpoint.set` with `id`, `name` and integer `maxWidth`, or `breakpoint.remove` with `id`. Set node overrides only against saved breakpoint IDs. Render around the actual threshold and use null property overrides to restore inheritance.
 4. Use `token.define` with `name`, `type` and `value` for a typed design token. References must consume the resulting CSS custom property. Changing a token should update every intended consumer without copying its resolved value into each node.
 5. Use `textpreset.set` with `name` and `styles`, then `textpreset.apply` with node `id` and preset `name`. Inspect subsequent preset changes on all applied nodes; do not infer live propagation from the first copied appearance. Keep semantic tags deliberate and local overrides explicit.

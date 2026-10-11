@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.6 · 2026-10-11
+
+Gap closing: four parity rows moved, 64 to 67.5 of 79.
+
+- Site icons (FW-077, Full): Page > Set site icon and Set dark mode icon, or the Whole site section of the Page inspector. Exports add icon, dark-scheme icon, apple-touch-icon and manifest links plus `site.webmanifest`.
+- Bulk create from CSV (FW-074, Full): Page > Bulk create from CSV duplicates a template page per row and fills `{{column}}` tokens in text, attributes and SEO. Engine command `page.bulk`, up to 300 rows, one undo step.
+- Embed media (FW-076, Partial): Insert > Embed takes a YouTube, Vimeo, Loom, Spotify, Google Maps or OpenStreetMap link, or pasted embed HTML, and renders an allowlisted lazy iframe in Preview and export. Social posts and click-to-load are still open.
+- QR codes (FW-079, Full): Page > QR code downloads a PNG or SVG with your colors for the page's published or local address. Also `GET /api/qr` and the new MCP tool `qr_code` (62 tools). Uses segno 1.6.6, BSD-3-Clause.
+- Fix: Preview of a brand-new site failed with "no compiled route"; plain exports now write `routes.json`.
+
 ## 0.3.5 · 2026-10-11
 
 Phase 5 of 9: inspector and canvas UX, and the zero-flash sweep.

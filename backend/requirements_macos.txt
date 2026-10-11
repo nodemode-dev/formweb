@@ -2,3 +2,4 @@ fastapi
 uvicorn[standard]
 mcp
 python-dotenv
+segno

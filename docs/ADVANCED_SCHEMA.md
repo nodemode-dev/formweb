@@ -15,6 +15,7 @@ The whole serialized site is limited to 8 MiB and its extensions to 4 MiB. The e
 | Command | Params | Consuming behavior |
 | --- | --- | --- |
 | `page.duplicate` | `{id,name?,slug}` | Fresh owned node IDs, linked component associations, instance data, node bindings, behaviors, forms, code/provider instances, preset references, localized assets and strings, and page SEO/template settings are copied. HTML references are remapped. Duplicated localized/template routes receive the new route prefix. |
+| `page.bulk` | `{template,rows:[{slug,name?,values:{column:value}}]}` | 1 to 300 rows in one undo step. Each row runs `page.duplicate` on the template, then replaces `{{column}}` tokens in node text, every attribute value, the page name (when `name` is omitted) and SEO title/description. Unknown tokens are left as written. |
 | `breakpoint.set` | `{id,name,maxWidth}` | Creates or updates a bounded positive max-width breakpoint used by node inheritance and exported CSS. |
 | `breakpoint.remove` | `{id}` | Removes the breakpoint and corresponding node overrides; the final breakpoint cannot be removed. |
 | `token.define` | `{name,type,value:string}` | Stores typed metadata and the actual CSS token together. Types: color, number, length, text. Number values use finite numeric strings. |

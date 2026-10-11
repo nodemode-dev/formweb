@@ -26,6 +26,23 @@ pub fn apply(site:&mut Site,command:&str,params:&Value)->Result<(),String>{
             let mut duplicate=page.clone();duplicate.id=id.clone();duplicate.root=root;duplicate.slug=slug;duplicate.name=params.get("name").and_then(Value::as_str).map(String::from).unwrap_or_else(||format!("{} copy",page.name));site.pages.push(duplicate);
             remap_html_ids(site,&map,&id)?;duplicate_extensions(site,&map,&page.id,&id)?;
         }
+        "page.bulk"=>{
+            let template=string(params,"template")?.to_string();
+            let rows=params.get("rows").and_then(Value::as_array).ok_or("rows must be an array")?;
+            if rows.is_empty()||rows.len()>300{return Err("bulk create takes 1 to 300 rows".into());}
+            for row in rows{
+                let slug=row.get("slug").and_then(Value::as_str).ok_or("every row needs a slug")?;
+                let values=row.get("values").and_then(Value::as_object).cloned().unwrap_or_default();
+                let fill=|text:&str|->String{let mut out=text.to_string();for(k,v)in &values{if let Some(v)=v.as_str(){out=out.replace(&format!("{{{{{k}}}}}"),v);}}out};
+                let name=row.get("name").and_then(Value::as_str).map(String::from).unwrap_or_else(||fill(&site.pages.iter().find(|p|p.id==template).map(|p|p.name.clone()).unwrap_or_default()));
+                apply(site,"page.duplicate",&json!({"id":template,"slug":slug,"name":name}))?;
+                let page=site.pages.last_mut().ok_or("bulk page missing")?;
+                page.seo.title=fill(&page.seo.title);page.seo.description=fill(&page.seo.description);
+                let root=page.root.clone();
+                let mut stack=vec![root];
+                while let Some(id)=stack.pop(){let node=site.nodes.get_mut(&id).ok_or("bulk node missing")?;node.text=fill(&node.text);for value in node.attrs.values_mut(){*value=fill(value);}stack.extend(node.children.clone());}
+            }
+        }
         "breakpoint.set"=>{let id=string(params,"id")?;let width=params.get("maxWidth").and_then(Value::as_u64).and_then(|n|u32::try_from(n).ok()).ok_or("maxWidth must be integer")?;let breakpoint=Breakpoint{id:id.into(),name:string(params,"name")?.into(),max_width:width};if let Some(old)=site.breakpoints.iter_mut().find(|bp|bp.id==id){*old=breakpoint;}else{site.breakpoints.push(breakpoint);}}
         "breakpoint.remove"=>{let id=string(params,"id")?;if !site.breakpoints.iter().any(|bp|bp.id==id){return Err("unknown breakpoint".into());}site.breakpoints.retain(|bp|bp.id!=id);for n in site.nodes.values_mut(){n.breakpoints.remove(id);}}
         "token.define"=>{let name=string(params,"name")?;let value=string(params,"value")?;site.tokens.insert(name.into(),value.into());set_path(site,"design","tokens",name,json!({"type":string(params,"type")?,"value":value}))?;}

@@ -1,5 +1,9 @@
 # Backend context
 
+## QR codes, site icons, bulk pages, embeds · v0.3.6
+
+`app/qr.py` wraps segno 1.6.6 (BSD-3-Clause, pure Python): `qr_image(url, kind, dark, light, scale)` validates an http(s) URL up to 2048 characters, `svg` or `png`, `#rrggbb` colors and scale 1 to 32, and returns bytes, media type and a download name. `GET /api/qr` (read role) and the MCP tool `qr_code` (SVG text plus the PNG route; 62 tools now) both call it, so the editor and agents get the same image. Site icons, bulk pages and embeds are engine and exporter work: `settings.favicon` and `settings.faviconDark` accept only owned `/api/assets/<sha256>.<ext>` or https URLs, both export paths emit icon, dark-scheme icon, apple-touch-icon and `site.webmanifest`, and `bundle_assets` rewrites asset URLs inside the manifest. `page.bulk` is an engine command; the `formweb://commands` resource lists it with no backend change. The plain export (sites with no extensions) now writes `routes.json`, which Preview needs; before this, Preview of a fresh site failed with "no compiled route".
+
 ## Runtime boundary
 
 `app/engine.py` supervises one Rust JSON-lines subprocess with one asyncio lock. Standard output carries protocol replies only. Core stderr is drained into the Python logger. Requests use increasing IDs and a 30-second acknowledgement timeout. Engine failures leave the last acknowledged site cached for restart recovery; an interrupted request fails visibly rather than being silently replayed. Revision conflict engine errors map to HTTP 409.

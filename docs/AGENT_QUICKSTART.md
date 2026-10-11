@@ -33,6 +33,17 @@ Advanced commands and provider operations are available only when the live serve
 
 A saved extension is configuration evidence. A browser interaction needs observed behavior. A local publication needs a returned local URL/version. A provider fixture proves transport, while actual hosting, domain/TLS/CDN or vendor sandbox checkout requires its own output and independent observations.
 
+## Site-wide recipes
+
+| Goal | MCP call | Check |
+| --- | --- | --- |
+| Site icon | Upload the square PNG (editor or `POST /api/assets`), then `apply_commands` with `site.update` `{patch:{settings:{favicon:"/api/assets/<id>"}}}`; `faviconDark` adds a dark-scheme icon | Exported `index.html` has `rel="icon"`, `apple-touch-icon` and `rel="manifest"`; the ZIP holds `site.webmanifest` and the icon |
+| Many pages from data | Put `{{column}}` tokens in a template page, then `page.bulk` `{template, rows:[{slug, name?, values}]}` (1 to 300 rows, one undo step) | Page count grew by the row count; sample pages show values, not tokens |
+| Embed media | `node.add` a `div` with attribute `data-fw-embed` set to a YouTube, Vimeo, Loom, Spotify, Google Maps embed or OpenStreetMap embed URL | Preview or export shows `iframe[data-fw-embed-frame]`; an unsupported URL renders a visible `fw-embed-error` note |
+| QR code | `qr_code` `{url, dark?, light?}` returns SVG text; `GET /api/qr?url=...&format=png` returns a PNG | Decode it, or compare the returned `url` |
+
+Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`.
+
 ## Recover a stopped workflow
 
 For missing tools, rediscover instead of guessing names. For permission rejection, inspect actual identity/role and Agents state. For a stale revision, read current state, preserve acknowledged changes and apply only the remaining change with a fresh revision. Do not replay successful steps.

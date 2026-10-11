@@ -65,7 +65,7 @@ The full TypeScript NOTICE.txt, Vite LICENSE.md and Rolldown THIRD-PARTY-LICENSE
 
 ## Python backend
 
-Direct pinned requirements are FastAPI, Uvicorn with its standard extras, the official MCP Python SDK, and python-dotenv. The table records the distributions actually installed in the backend virtual environment. Transitive versions may change during a future installation unless constrained; re-audit after dependency updates or before a frozen-binary distribution.
+Direct pinned requirements are FastAPI, Uvicorn with its standard extras, the official MCP Python SDK, python-dotenv and segno (local QR code generation, no dependencies of its own). The table records the distributions actually installed in the backend virtual environment. Transitive versions may change during a future installation unless constrained; re-audit after dependency updates or before a frozen-binary distribution.
 
 | Distribution | Observed version | Declared license |
 | --- | --- | --- |
@@ -96,6 +96,7 @@ Direct pinned requirements are FastAPI, Uvicorn with its standard extras, the of
 | PyYAML | 6.0.3 | MIT |
 | referencing | 0.37.0 | MIT |
 | rpds-py | 2026.9.1 | MIT |
+| segno | 1.6.6 | BSD-3-Clause |
 | sse-starlette | 3.5.0 | BSD-3-Clause |
 | starlette | 1.7.0 | BSD-3-Clause |
 | truststore | 0.10.4 | MIT |

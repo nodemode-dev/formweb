@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.3.5",
- "previous": "0.3.4",
+ "version": "0.3.6",
+ "previous": "0.3.5",
  "date": "2026-10-11",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Inspector and canvas UX: segmented style controls with inherited values and per-field reset, a clickable selection path, Settings reconnect without a reload. No grade moved.",
+ "release_note": "Gap closing: site icons with a web manifest, bulk pages from CSV, embedded video, audio and maps, and local QR codes. Four rows moved, 64 to 67.5 of 79.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.3.5, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.3.6, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -3459,9 +3459,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "full",
+    "v0.3.6: Page > Set site icon (and dark mode icon) uploads a square image into settings.favicon. Executed: a 192 px PNG exported with rel=icon, apple-touch-icon and rel=manifest in index.html, site.webmanifest listing the icon, and the PNG bundled under assets/.",
+    "One source image is used at every size; FormWeb does not resize. A formvis image arrives as an ordinary upload until the formvis bridge lands."
    ],
    "fr": [
     "full",
@@ -3558,9 +3558,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "full",
+    "v0.3.6: Page > QR code prefills the page's published (or local) address, with PNG or SVG and foreground/background colors; generated locally by segno through GET /api/qr and the MCP tool qr_code. Executed: the downloaded PNG with foreground #1d3557 decoded to https://example.org/launch, and an editor download decoded to the page URL.",
+    "No logo overlay inside the code."
    ],
    "fr": [
     "none",
@@ -4745,9 +4745,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "full",
+    "v0.3.6: Page > Bulk create from CSV duplicates a template page per row and replaces {{column}} tokens in text, every attribute (image src, link href) and SEO title/description; engine command page.bulk, up to 300 rows, one undo step. Executed: a 10-row CSV with quoted commas created 10 pages, tokens filled in text and SEO; an image node with src {{image}} and alt {{title}} photo received the row's uploaded asset and alt text; one undo removed all 10 pages.",
+    "Columns map by {{name}} tokens rather than by picking nodes in a mapping table; variants are pages, not size variants of one design."
    ],
    "fr": [
     "none",
@@ -4845,9 +4845,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "partial",
+    "v0.3.6: Insert > Embed media takes a share link or pasted embed HTML for YouTube (privacy-enhanced youtube-nocookie), Vimeo (dnt=1), Loom, Spotify, Google Maps embed and OpenStreetMap embed; the exporter allowlists those hosts and writes a lazy iframe with an aspect ratio. Executed: all six rendered as iframes in Preview at 16:9 or 4:3, and an injected non-allowlisted URL rendered an escaped error note.",
+    "No social post embeds (X, Instagram, TikTok need provider scripts), no click-to-load consent placeholder and no fallback link yet."
    ],
    "fr": [
     "full",
@@ -5194,26 +5194,42 @@
    "date": "2026-10-11",
    "same_as": "0.3.0",
    "note": "Family interface (theme profiles, menus and command search, one left minirail, collapsible panels and sections, workspace presets, hidden scrollbars) and this page's family format. No grade moved."
+  },
+  {
+   "version": "0.3.5",
+   "date": "2026-10-11",
+   "same_as": "0.3.0",
+   "note": "Inspector and canvas UX: segmented style controls with inherited values and per-field reset, a clickable selection path, Settings reconnect without a reload. No grade moved."
   }
  ],
  "changes": [
   [
-   "Inspector style controls (no parity row)",
-   "Inherit dropdowns for Display, Direction, Align, Justify, Wrap and Text alignment",
-   "One-click segmented groups showing the override and the inherited value; Reset on every overridden field"
+   "FW-077 Favicon and device icons: None to Full",
+   "No icon setting; exports had no icon links",
+   "Site icon and dark mode icon from an upload; export writes icon, apple-touch-icon, manifest link and site.webmanifest"
   ],
   [
-   "Canvas selection (no parity row)",
-   "Page and slug only",
-   "Clickable path from the page root to the selected element"
+   "FW-074 Bulk create from data: None to Full",
+   "One page at a time",
+   "CSV to pages from a template with {{column}} tokens in text, attributes and SEO; up to 300 rows, one undo"
   ],
   [
-   "Settings save (no parity row)",
-   "Full page reload",
-   "Reconnects in place; selection, panels and scroll are kept"
+   "FW-076 Embed third-party media: None to Partial",
+   "No embeds",
+   "YouTube (privacy-enhanced), Vimeo, Loom, Spotify, Google Maps and OpenStreetMap players from a share link; social posts and click-to-load still open"
+  ],
+  [
+   "FW-079 QR code for published URL: None to Full",
+   "No QR codes",
+   "Local PNG or SVG with colors from the Page menu, GET /api/qr and the MCP tool qr_code"
+  ],
+  [
+   "Preview of a new site (no parity row)",
+   "Failed with \"no compiled route\" until the site had an extension",
+   "Plain exports write routes.json, so Preview works on a fresh site"
   ]
  ],
- "closed_note": "v0.3.5 was an interface release; the 14 rows added in v0.3.0 are scheduled after the nine interface and agent phases.",
+ "closed_note": "v0.3.6 closed four of the 14 rows added in v0.3.0. Still open: brand kit and brand check, publish approval, prompt-to-site, AI copy and images, background removal, stock library, shared team library, page passwords; hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
@@ -5331,10 +5347,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.3.5 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.3.6 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.3.5 reworked the inspector and canvas header. No parity row changed grade, so the score is unchanged at 64 of 79; the table lists the work that has no parity row.",
+  "changes": "v0.3.6 is the first release to close rows from the Adobe Express and Canva additions: three moved from None to Full and one to Partial, taking FormWeb from 64 to 67.5 of 79. Each grade below was set from an executed check, listed in the row's observation.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5355,6 +5371,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 11 October 2026 from FormWeb 0.3.5 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 11 October 2026 from FormWeb 0.3.6 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

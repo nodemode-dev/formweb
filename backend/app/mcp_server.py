@@ -5,6 +5,7 @@ from mcp.server.lowlevel import Server
 from mcp.server.transport_security import TransportSecuritySettings
 
 from contextlib import asynccontextmanager
+from urllib.parse import quote
 from jsonschema import Draft202012Validator
 
 from .access import actor
@@ -76,6 +77,11 @@ async def call_tool(context, params):
                 result = await studio.publish(arguments.get('slug'))
             case 'list_submissions':
                 result = studio.forms.inbox()
+            case 'qr_code':
+                from .qr import qr_image
+                studio.access.authorize('read')
+                data, _, filename = qr_image(arguments['url'], 'svg', arguments.get('dark', '#000000'), arguments.get('light', '#ffffff'), 8)
+                result = {'url': arguments['url'], 'filename': filename, 'svg': data.decode('utf-8'), 'png': '/api/qr?format=png&url=' + quote(arguments['url'], safe='')}
             case _:
                 if params.name in ADVANCED_BY_NAME:
                     result = await workflow_dispatch(params.name, arguments)

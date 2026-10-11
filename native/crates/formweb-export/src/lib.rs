@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 mod advanced;
 mod cms;
 mod code;
+mod embed;
 mod isolated;
 mod inline_module;
 mod routing;
@@ -13,6 +14,30 @@ mod scope;
 
 fn escape(value: &str) -> String {
     value.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&#39;")
+}
+
+fn icon_url(site: &Site, key: &str) -> Option<String> {
+    let value = site.settings.get(key)?.trim();
+    let owned = value.strip_prefix("/api/assets/").map(|name| { let (hash, ext) = name.split_once('.').unwrap_or(("", "")); hash.len() == 64 && hash.chars().all(|c| c.is_ascii_hexdigit()) && ["png", "jpg", "gif", "webp"].contains(&ext) }).unwrap_or(false);
+    (owned || (value.starts_with("https://") && safe_url(value))).then(|| value.to_string())
+}
+
+fn icon_type(url: &str) -> &'static str {
+    if url.ends_with(".png") { "image/png" } else if url.ends_with(".webp") { "image/webp" } else if url.ends_with(".gif") { "image/gif" } else if url.ends_with(".jpg") { "image/jpeg" } else { "image/png" }
+}
+
+pub(crate) fn icons(site: &Site, prefix: &str) -> String {
+    let Some(light) = icon_url(site, "favicon") else { return String::new() };
+    let mut html = format!("<link rel=\"icon\" type=\"{}\" href=\"{}\">", icon_type(&light), escape(&light));
+    if let Some(dark) = icon_url(site, "faviconDark") { html.push_str(&format!("<link rel=\"icon\" type=\"{}\" href=\"{}\" media=\"(prefers-color-scheme: dark)\">", icon_type(&dark), escape(&dark))); }
+    html.push_str(&format!("<link rel=\"apple-touch-icon\" href=\"{}\"><link rel=\"manifest\" href=\"{}site.webmanifest\">", escape(&light), prefix));
+    html
+}
+
+pub(crate) fn web_manifest(site: &Site) -> Option<Value> {
+    let light = icon_url(site, "favicon")?;
+    let content = json!({"name": site.name, "short_name": site.name.chars().take(12).collect::<String>(), "start_url": ".", "display": "browser", "icons": [{"src": light, "sizes": "any", "type": icon_type(&light), "purpose": "any"}]});
+    Some(json!({"path": "site.webmanifest", "content": serde_json::to_string_pretty(&content).ok()?}))
 }
 
 fn translation(site: &Site, locale: &str, key: &str, fallback: &str) -> String {
@@ -36,9 +61,11 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     files.push(json!({"path":"assets/site.css", "content":css}));
     files.push(json!({"path":"assets/runtime.js", "content":RUNTIME}));
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+    let mut route_manifest = vec![];
     for page in &site.pages {
         let route = page.slug.trim_matches('/');
         let path = if route.is_empty() { "index.html".into() } else { format!("{route}/index.html") };
+        route_manifest.push(json!({"path": path, "page": page.id, "locale": locale, "item": Value::Null, "stylesheet": "assets/site.css"}));
         let prefix = "../".repeat(if route.is_empty() { 0 } else { route.split('/').count() });
         let canonical = if route.is_empty() { format!("{base}/") } else { format!("{base}/{route}/") };
         let mut interactions = vec![];
@@ -48,7 +75,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         let description = translation(site, locale, &format!("{}.description", page.id), &page.seo.description);
         let encoded_interactions = serde_json::to_string(&interactions).map_err(|e| e.to_string())?.replace('<', "\\u003c").replace('>', "\\u003e").replace('&', "\\u0026");
         let robots = if page.seo.noindex { "<meta name=\"robots\" content=\"noindex,nofollow\">" } else { "" };
-        let html = format!("<!doctype html>\n<html lang=\"{}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{}</title><meta name=\"description\" content=\"{}\"><link rel=\"canonical\" href=\"{}\"><meta property=\"og:title\" content=\"{}\"><meta property=\"og:description\" content=\"{}\"><meta property=\"og:url\" content=\"{}\"><meta property=\"og:type\" content=\"website\">{}<link rel=\"stylesheet\" href=\"{}assets/site.css\"><script src=\"{}assets/runtime.js\" defer></script></head><body><a class=\"fw-skip\" href=\"#fw-main\">Skip to content</a><div id=\"fw-main\" tabindex=\"-1\">{}</div><script type=\"application/json\" id=\"fw-interactions\">{}</script></body></html>\n", escape(locale), escape(&title), escape(&description), escape(&canonical), escape(&title), escape(&description), escape(&canonical), robots, prefix, prefix, body, encoded_interactions);
+        let html = format!("<!doctype html>\n<html lang=\"{}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{}</title><meta name=\"description\" content=\"{}\"><link rel=\"canonical\" href=\"{}\"><meta property=\"og:title\" content=\"{}\"><meta property=\"og:description\" content=\"{}\"><meta property=\"og:url\" content=\"{}\"><meta property=\"og:type\" content=\"website\">{}{}<link rel=\"stylesheet\" href=\"{}assets/site.css\"><script src=\"{}assets/runtime.js\" defer></script></head><body><a class=\"fw-skip\" href=\"#fw-main\">Skip to content</a><div id=\"fw-main\" tabindex=\"-1\">{}</div><script type=\"application/json\" id=\"fw-interactions\">{}</script></body></html>\n", escape(locale), escape(&title), escape(&description), escape(&canonical), escape(&title), escape(&description), escape(&canonical), robots, icons(site, &prefix), prefix, prefix, body, encoded_interactions);
         files.push(json!({"path":path,"content":html}));
         if !page.seo.noindex { sitemap.push_str(&format!("<url><loc>{}</loc></url>\n", escape(&canonical))); }
     }
@@ -56,6 +83,8 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     files.push(json!({"path":"sitemap.xml","content":sitemap}));
     files.push(json!({"path":"robots.txt","content":format!("User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")}));
     files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?}));
+    if let Some(manifest) = web_manifest(site) { files.push(manifest); }
+    files.push(json!({"path":"routes.json","content":serde_json::to_string(&route_manifest).map_err(|e| e.to_string())?}));
     files.push(json!({"path":"README.txt","content":format!("FormWeb static export\nLocale: {locale}\nServe this folder with any static HTTP server.\nPages use directory routes with index.html.\nThe editable source is site.formweb.json.\nRemote assets are referenced, not bundled.\nForms submit to the configured FormWeb API; keep that service running or replace the form action with your own service.\nRuntime respects prefers-reduced-motion.\n")}));
     Ok(json!({"files": files, "warnings": warnings.into_iter().collect::<Vec<_>>()}))
 }
@@ -220,6 +249,7 @@ impl Renderer<'_> {
         } else { String::new() };
         if void_tag(&node.tag) { result.push_str(&field_error); return Ok(result); }
         if let Some(frame) = code::render(self.site, &node.id, self.prefix)? { result.push_str(&frame); }
+        else if let Some(frame) = embed::render(node) { result.push_str(&frame); }
         else { result.push_str(&escape(&text)); for child in &node.children { result.push_str(&self.node(child, context, None)?); } }
         result.push_str(&advanced::widget(self.site,node));
         if node.tag == "form" { result.push_str(&advanced::form_extra(self.site,node)); result.push_str("<p class=\"fw-form-status\" data-fw-form-status aria-live=\"polite\"></p>"); }

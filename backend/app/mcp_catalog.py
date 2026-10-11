@@ -19,5 +19,6 @@ TOOLS = [
     tool('export_site', 'Write a portable HTML/CSS/JS ZIP to the local data exports directory and return its path, manifest and download URL.', {'locale': {'type': 'string', 'maxLength': 40}}),
     tool('publish_site', 'Create an immutable snapshot served by this local backend. This does not deploy to external hosting.', {'slug': {'type': 'string', 'pattern': '^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$'}}),
     tool('list_submissions', 'Read up to 500 locally stored form submissions. No email delivery is performed.', read_only=True, idempotent=True),
+    tool('qr_code', 'Return an SVG QR code that encodes a page URL (use the published URL for print). PNG downloads: GET /api/qr?url=...&format=png.', {'url': {'type': 'string', 'maxLength': 2048, 'pattern': '^https?://'}, 'dark': {'type': 'string', 'pattern': '^#[0-9a-fA-F]{6}$'}, 'light': {'type': 'string', 'pattern': '^#[0-9a-fA-F]{6}$'}}, ['url'], read_only=True, idempotent=True),
 ]
 BY_NAME = {item['name']: item for item in TOOLS}
