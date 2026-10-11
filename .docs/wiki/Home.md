@@ -12,7 +12,7 @@ Release version: 0.2.0. Author: nodemode-ai. The repository README and changelog
 | MCP | 61 official SDK tools and 13 resources over HTTP and stdio, with attributed project roles |
 | Hosting | Versioned local publication; no external hosting account provisioned |
 | Desktop | Browser application; no native desktop bundles claimed |
-| Vendor parity | Current acceptance is in `docs/PARITY_v0.2.0.md`; the original audit is retained as history |
+| Vendor parity | Retained acceptance is in `docs/PARITY_v0.2.0.md`; current family HTML and patch observations are linked from `docs/RELEASE_v0.2.1.md` |
 
 Start with [[Getting-Started]], then [[Architecture]]. Subsystem contracts are in [[Engine]], [[Advanced-Studio]], [[Agents-and-MCP]], [[Project-Format]] and [[Publishing]]. Contributor operations are in [[Development-Workflow]], [[Verification]] and [[Releasing]]. The [harness quickstart](../../docs/harness/QUICKSTART.md) connects the operating skill with real MCP; the [Studio guide](../../frontend/ADVANCED_GUIDE.md) describes the consuming editor workflows.
 
