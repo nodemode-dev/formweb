@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.2 · 2026-10-11
+
+Phase 3 of 9 plus a repository cleanup: FormWeb's tree and title bar now match formvis and formlit.
+
+- New family title bar: brand mark, File, Edit, Insert, Page, Arrange, CMS, View, Window and Help menus with keyboard navigation, then undo, redo, settings, theme and command search (Ctrl/Cmd+K).
+- Every menu action has a stable command id; agents can list and run them through `window.formweb` in the editor window, and the agent quick start documents them.
+- Planning, research, audit, verification and observation files moved to the planning sidecar. `docs/` now holds only user guides and the current comparison, and HASHOUT logs stay only in `frontend/` and `backend/`, as in the sibling apps.
+
 ## 0.3.1 · 2026-10-11
 
 Phase 2 of 9: FormWeb now uses the form family's theme system, and scrollbars are hidden everywhere in the editor.
