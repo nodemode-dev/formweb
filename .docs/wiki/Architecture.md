@@ -11,6 +11,9 @@ The Rust engine is the single owner of site state. The editor, MCP tools and HTT
 | Service | `backend/app/` | Core supervision, HTTP, project persistence, publication and MCP |
 | Editor | `frontend/src/` | Stable DOM shell, selection, inspectors and browser preview |
 | Agent skills | `.claude/skills/formweb-harness/` | Ordered website authoring workflows through MCP |
+| Agent substrate | `backend/app/substrate.py` | One command surface (catalogue, dispatch, attributed events) behind REST, MCP, `./formweb run` and the terminal; approvals; the external-substrate adapter |
+| Live terminal | `backend/app/terminal.py`, `frontend/src/features/terminal.ts` | Owner-only pseudo-terminal in the FormWeb folder over a loopback WebSocket, while Agents is on |
+| Agent Connect | `frontend/src/features/agent-connect.ts`, `backend/app/clients.py` | MCP switch, client cards, approvals, identity and the attributed activity feed |
 
 The process shell is `native/target/release/formweb-core` (`.exe` on Windows). `setup/install_core` compiles it. `backend/app/engine.py` serializes access to one process and retains the latest acknowledged state for restart recovery. An unacknowledged request is not reported as successful.
 

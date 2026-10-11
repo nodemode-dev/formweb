@@ -113,7 +113,8 @@ def render(data: dict) -> str:
     snapshots = {**data["grades"], version: current}
     for item in data["history"]:
         if item.get("same_as") in snapshots and item["version"] not in snapshots:
-            snapshots[item["version"]] = snapshots[item["same_as"]]
+            # same_as plus optional "moved" {row id: grade}: a release costs one entry listing only the rows it changed.
+            snapshots[item["version"]] = {**snapshots[item["same_as"]], **item.get("moved", {})}
     history = []
     for item in data["history"]:
         grades = snapshots.get(item["version"])

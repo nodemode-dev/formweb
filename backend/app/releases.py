@@ -50,19 +50,31 @@ class Releases:
                 return path[:-10] if path.endswith('index.html') else path
         raise EngineError('Compiled release has no available route for its default locale.', 409)
 
-    def promote(self, slug, version, operation='promote'):
+    def promote(self, slug, version, operation='promote', reviewed=False):
         release = self.release(slug, version)
-        self.studio.access.authorize('publish', release['projectId'])
+        if not reviewed:  # a reviewed promotion was requested by a publisher and approved by a reviewer
+            self.studio.access.authorize('publish', release['projectId'])
         root = DATA_DIR / 'publications' / slug / version
         self.entry_path(release['site'], root)
         row = self.store.db.execute('SELECT version FROM active_releases WHERE slug=?', (slug,)).fetchone()
         old = row['version'] if row else None
         if old == version:
             return {'slug': slug, 'version': version, 'url': f'{PUBLIC_BASE}/sites/{slug}/', 'changed': False}
+        approval_id = None
+        if operation == 'promote' and self.studio.approvals.settings(release['projectId'])['publishReview']:
+            # FW-068: with publish review on, a release goes live only after a different reviewer approves it.
+            subject = {'slug': slug, 'version': version}
+            approved = self.studio.approvals.find('release.promote', subject, 'approved', release['projectId'])
+            if not approved:
+                pending = self.studio.approvals.find('release.promote', subject, 'pending', release['projectId']) or self.studio.approvals.create('release.promote', subject, release['projectId'])
+                return {'slug': slug, 'version': version, 'changed': False, 'pendingApproval': True, 'approval': pending, 'message': 'Publish review is on. A reviewer must approve this release in Agent Connect before it goes live.'}
+            approval_id = approved['id']
         self.store.db.execute('INSERT INTO active_releases VALUES(?,?) ON CONFLICT(slug) DO UPDATE SET version=excluded.version', (slug, version))
         self.store.db.execute('INSERT INTO release_history(slug,old_version,new_version,operation,created_at) VALUES(?,?,?,?,?)', (slug, old, version, operation, now()))
         self.store.db.commit()
-        self.studio.access.record('release.' + operation, {'slug': slug, 'version': version, 'previousVersion': old}, release['projectId'])
+        if approval_id:
+            self.studio.approvals.mark(approval_id, 'applied')
+        self.studio.access.record('release.' + operation, {'slug': slug, 'version': version, 'previousVersion': old, **({'approvalId': approval_id} if approval_id else {})}, release['projectId'])
         return {'slug': slug, 'version': version, 'previousVersion': old, 'url': f'{PUBLIC_BASE}/sites/{slug}/', 'changed': True, 'bytesReused': True}
 
     def rollback(self, slug, version=None):

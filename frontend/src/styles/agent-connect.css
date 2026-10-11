@@ -1,0 +1,30 @@
+/* Agent Connect panel. Lives in the left sidebar; scrolls with hidden scrollbars like every family panel. */
+.fw-ac { display: flex; flex: 1; flex-direction: column; min-height: 0; overflow-y: auto; padding: 0 var(--space-3) var(--space-4); }
+.fw-ac[hidden] { display: none; }
+.fw-ac-section { padding: var(--space-3) 0; border-bottom: 1px solid var(--line-0); }
+.fw-ac-title { margin: 0 0 var(--space-2); color: var(--text-muted); font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.fw-ac-row { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.fw-ac-row > .icon { width: 16px; height: 16px; color: var(--accent-color); }
+.fw-ac-grow { flex: 1; }
+.fw-ac-state { color: var(--text-primary); font-weight: 600; }
+.fw-ac-note, .fw-ac-sub { margin: var(--space-2) 0 0; color: var(--text-muted); font-size: var(--fs-11); line-height: 1.5; }
+.fw-ac-switch { height: 26px; min-height: 0; padding: 0 var(--space-3); border-radius: 13px; font-size: var(--fs-11); }
+.fw-ac-switch.is-on { background: var(--accent-soft); border-color: var(--accent-color); color: var(--text-primary); }
+.fw-ac-list { display: flex; flex-direction: column; gap: var(--space-2); }
+.fw-ac-card { padding: var(--space-2) var(--space-3); border: 1px solid var(--line-0); border-radius: 10px; background: var(--surface-1); }
+.fw-ac-card.is-pending { border-color: var(--accent-color); }
+.fw-ac-name { color: var(--text-primary); font-size: var(--fs-12); font-weight: 600; white-space: nowrap; }
+.fw-ac .checkbox-field { align-items: flex-start; font-size: var(--fs-12); }
+.fw-ac .checkbox-field input { flex: none; margin-top: 2px; }
+.fw-ac-chip { padding: 1px 8px; border-radius: 9px; background: var(--surface-2); color: var(--text-secondary); font-size: var(--fs-11); white-space: nowrap; }
+.fw-ac-chip[data-status="ready"] { color: var(--success-color); }
+.fw-ac-chip[data-status="missing"] { color: var(--danger-color); }
+.fw-ac-actions { display: flex; gap: var(--space-2); margin-top: var(--space-2); }
+.fw-ac-actions button { height: 26px; min-height: 0; padding: 0 var(--space-3); font-size: var(--fs-11); }
+.fw-ac-feed { display: flex; flex-direction: column; gap: 2px; }
+.fw-ac-event { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 22px; font-size: var(--fs-11); }
+.fw-ac-chan { justify-self: start; padding: 0 6px; border-radius: 6px; background: var(--surface-2); color: var(--text-secondary); font-family: var(--font-mono); font-size: 10px; }
+.fw-ac-chan[data-channel="agent"] { background: var(--accent-soft); color: var(--accent-color); }
+.fw-ac-chan[data-channel="terminal"] { color: var(--text-primary); }
+.fw-ac-op { overflow: hidden; color: var(--text-secondary); text-overflow: ellipsis; white-space: nowrap; }
+.fw-ac-time { color: var(--text-muted); font-family: var(--font-mono); font-size: 10px; }

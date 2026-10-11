@@ -49,6 +49,10 @@ async def call_tool(context, params):
         errors = list(Draft202012Validator(BY_NAME[params.name]['inputSchema']).iter_errors(arguments))
         if errors:
             raise EngineError(errors[0].message[:400], 422)
+        removes = params.name == 'apply_commands' and any(str(item.get('command', '')).endswith(('.remove', '.delete')) for item in arguments.get('commands', []) if isinstance(item, dict))
+        if (BY_NAME[params.name]['annotations'].get('destructiveHint') or removes) and studio.approvals.settings()['agentDestructive']:
+            # Agent Connect: the owner asked to approve destructive agent calls; this waits for a person's decision.
+            await studio.approvals.wait('agent.tool', {'tool': params.name, 'arguments': json.dumps(arguments, ensure_ascii=False)[:1000]})
         match params.name:
             case 'get_site':
                 result = await studio.state()

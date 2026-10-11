@@ -38,7 +38,7 @@ Retained texts live under `legal/third-party/cargo/<package>-<version>/`. Dual-l
 
 ## Frontend build toolchain
 
-The frontend's only runtime dependencies are two font packages shared with formvis and formlit: @fontsource/inter 5.3.0 and @fontsource/jetbrains-mono 5.3.0, both SIL Open Font License 1.1 (fonts bundled unmodified, license files kept in the packages). TypeScript and Vite are development dependencies; their installed build toolchain is listed below. Exact package resolution, integrity hashes and optional platform packages are in `frontend/package-lock.json`.
+The frontend's runtime dependencies are two font packages shared with formvis and formlit, @fontsource/inter 5.3.0 and @fontsource/jetbrains-mono 5.3.0, both SIL Open Font License 1.1 (fonts bundled unmodified, license files kept in the packages), and the terminal emulator for the live terminal dock, @xterm/xterm 6.0.0 and @xterm/addon-fit 0.11.0, both MIT (texts in `legal/third-party/npm/@xterm__*`). The Windows backend adds pywinpty 3.0.5 (MIT, Spyder IDE; installed only on Windows through an environment marker; its wheel bundles native pseudo-console binaries described by the wheel's own SBOM). TypeScript and Vite are development dependencies; their installed build toolchain is listed below. Exact package resolution, integrity hashes and optional platform packages are in `frontend/package-lock.json`.
 
 | Package or platform family | Version | License | Role |
 | --- | --- | --- | --- |

@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.3.6",
- "previous": "0.3.5",
+ "version": "0.4.0",
+ "previous": "0.3.6",
  "date": "2026-10-11",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Gap closing: site icons with a web manifest, bulk pages from CSV, embedded video, audio and maps, and local QR codes. Four rows moved, 64 to 67.5 of 79.",
+ "release_note": "Agent substrate, Agent Connect and a live terminal; publish approval (FW-068) closed, 67.5 to 68.5 of 79.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.3.6, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.4.0, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -3754,9 +3754,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "full",
+    "v0.4.0: Agent Connect > Approvals > A reviewer must approve a release before it goes live (owner-only project setting). promote_release then returns pendingApproval; an identity with review rights other than the requester approves in Agent Connect or POST /api/approvals/{id}, and the approval performs the promotion. Executed with bearer identities: a publisher's promotion stayed pending, the publisher's self-approval was refused (403), a reviewer's approval made the release active, and the request was recorded as applied.",
+    "Reviewers are designated through the reviewer role rather than by naming one person per project; no email or chat notification."
    ],
    "fr": [
     "none",
@@ -5200,36 +5200,43 @@
    "date": "2026-10-11",
    "same_as": "0.3.0",
    "note": "Inspector and canvas UX: segmented style controls with inherited values and per-field reset, a clickable selection path, Settings reconnect without a reload. No grade moved."
+  },
+  {
+   "version": "0.3.6",
+   "date": "2026-10-11",
+   "same_as": "0.3.0",
+   "moved": {
+    "FW-074": "full",
+    "FW-076": "partial",
+    "FW-077": "full",
+    "FW-079": "full"
+   },
+   "note": "Gap closing: site icons with a web manifest, bulk pages from CSV, embedded video, audio and maps, and local QR codes."
   }
  ],
  "changes": [
   [
-   "FW-077 Favicon and device icons: None to Full",
-   "No icon setting; exports had no icon links",
-   "Site icon and dark mode icon from an upload; export writes icon, apple-touch-icon, manifest link and site.webmanifest"
+   "FW-068 Publish approval gate: None to Full",
+   "Any publisher could promote a release",
+   "Optional project setting: promotion waits until a different reviewer approves in Agent Connect; the approval promotes it"
   ],
   [
-   "FW-074 Bulk create from data: None to Full",
-   "One page at a time",
-   "CSV to pages from a template with {{column}} tokens in text, attributes and SEO; up to 300 rows, one undo"
+   "Agent substrate (no parity row)",
+   "Editor, MCP and CLI each called the engine their own way; no record of which surface acted",
+   "One substrate behind REST, MCP, ./formweb run and the terminal; every change is attributed human, agent or terminal; adapter for an external substrate"
   ],
   [
-   "FW-076 Embed third-party media: None to Partial",
-   "No embeds",
-   "YouTube (privacy-enhanced), Vimeo, Loom, Spotify, Google Maps and OpenStreetMap players from a share link; social posts and click-to-load still open"
+   "Agent Connect (no parity row)",
+   "An Agents on/off pill in the title bar",
+   "A panel with the switch, Claude Code, Codex and Cursor config cards, approvals for destructive agent calls, identity and a live activity feed"
   ],
   [
-   "FW-079 QR code for published URL: None to Full",
-   "No QR codes",
-   "Local PNG or SVG with colors from the Page menu, GET /api/qr and the MCP tool qr_code"
-  ],
-  [
-   "Preview of a new site (no parity row)",
-   "Failed with \"no compiled route\" until the site had an extension",
-   "Plain exports write routes.json, so Preview works on a fresh site"
+   "Live terminal (no parity row)",
+   "None",
+   "A shell in the FormWeb folder under the canvas while Agents is on; launches Claude Code, Codex or Cursor; edits show on the canvas at once"
   ]
  ],
- "closed_note": "v0.3.6 closed four of the 14 rows added in v0.3.0. Still open: brand kit and brand check, publish approval, prompt-to-site, AI copy and images, background removal, stock library, shared team library, page passwords; hosting and payments stay operationally partial.",
+ "closed_note": "v0.4.0 closed one more of the 14 rows added in v0.3.0 (five so far). Still open: brand kit and brand check, prompt-to-site, AI copy and images, background removal, stock library, shared team library, page passwords; hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
@@ -5347,10 +5354,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.3.6 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.4.0 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.3.6 is the first release to close rows from the Adobe Express and Canva additions: three moved from None to Full and one to Partial, taking FormWeb from 64 to 67.5 of 79. Each grade below was set from an executed check, listed in the row's observation.",
+  "changes": "v0.4.0 is phase 6 of 9 (agent substrate, Agent Connect, live terminal) and, by the standing rule that every release also closes a parity row, moves publish approval from None to Full: 67.5 to 68.5 of 79. The grade was set from an executed check with two bearer identities, described in the row's observation.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5371,6 +5378,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 11 October 2026 from FormWeb 0.3.6 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 11 October 2026 from FormWeb 0.4.0 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

@@ -17,6 +17,7 @@ case "$cmd" in
   mcp) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/mcp_stdio.py "$@" ;;
   agents) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/agents.py "$@" ;;
   comparisons) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/comparisons.py "$@" ;;
+  run) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/run.py "$@" ;;
   doctor) exec setup/doctor "$@" ;;
   help|-h|--help)
     cat <<'HELP'
@@ -39,6 +40,7 @@ Usage: ./formweb COMMAND
   comparisons status  is the release comparison in the FormAI matrix (--json)
   comparisons build   render the family-format page from docs/comparisons/data (--check, --json)
   comparisons embed  add the release comparison to the matrix (--check, --json)
+  run COMMAND [k=v]   apply one engine command to the open site (--list, --json)
   doctor             inspect tools, installs and service ports
   help                this message
 

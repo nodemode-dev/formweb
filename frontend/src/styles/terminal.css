@@ -1,0 +1,20 @@
+/* Live terminal dock (bottom of the stage). Nodes never mount or unmount on toggle; data-state drives layout. */
+.fw-term { display: grid; grid-template-rows: 32px auto; min-width: 0; background: var(--surface-1); border-top: 1px solid var(--line-0); }
+.fw-term-head { display: flex; align-items: center; gap: var(--space-2); min-width: 0; padding: 0 var(--space-2) 0 var(--space-3); color: var(--text-secondary); font-size: var(--fs-12); user-select: none; }
+.fw-term-head > .icon { width: 14px; height: 14px; color: var(--text-muted); }
+.fw-term-title { color: var(--text-primary); font-weight: 600; }
+.fw-term-status { overflow: hidden; color: var(--text-muted); text-overflow: ellipsis; white-space: nowrap; }
+.fw-term-spacer { flex: 1; }
+.fw-term-preset { width: auto; height: 24px; min-height: 0; padding: 0 var(--space-2); font-size: var(--fs-11); }
+.fw-term-btn { display: grid; place-items: center; width: 24px; height: 24px; min-height: 0; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); }
+.fw-term-btn:hover { background: var(--accent-soft); color: var(--text-primary); }
+.fw-term-btn .icon { width: 14px; height: 14px; }
+.fw-term[data-state="open"] .fw-term-btn[data-command="view.terminal"] .icon { transform: rotate(180deg); }
+.fw-term-body { height: var(--term-h, 240px); min-height: 0; padding: var(--space-1) 0 0 var(--space-3); background: var(--bg-primary); }
+.fw-term[data-state="collapsed"] .fw-term-body { display: none; }
+.fw-term-screen { width: 100%; height: 100%; }
+.fw-term-note { margin: var(--space-3) var(--space-3) 0 0; color: var(--text-muted); font-size: var(--fs-12); }
+/* xterm draws its own scrollbar element; family rule: scrolling works, nothing is visible. */
+.fw-term .xterm .scrollbar, .fw-term .xterm .xterm-scrollable-element > .scrollbar { display: none !important; }
+.fw-term .xterm-viewport { scrollbar-width: none; }
+.fw-term .xterm-viewport::-webkit-scrollbar { display: none; width: 0; height: 0; }

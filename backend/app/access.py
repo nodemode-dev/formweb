@@ -10,6 +10,9 @@ from .store import now
 
 LOCAL_OWNER = {'id': 'local-owner', 'name': 'Local owner', 'root': True}
 actor = ContextVar('formweb_actor', default=LOCAL_OWNER)
+# Who is driving this request: the editor window (human), an MCP client (agent) or the embedded terminal / CLI (terminal).
+CHANNELS = ('human', 'agent', 'terminal')
+channel = ContextVar('formweb_channel', default='human')
 PERMISSIONS = {
     'viewer': {'read'},
     'reviewer': {'read', 'comment', 'review'},
@@ -23,6 +26,7 @@ class AccessControl:
     def __init__(self, store):
         self.store = store
         self.sessions = {}
+        self.listeners = set()
         self.store.db.executescript('''
         CREATE TABLE IF NOT EXISTS identities (id TEXT PRIMARY KEY,name TEXT NOT NULL,token_hash TEXT NOT NULL UNIQUE,disabled INTEGER NOT NULL DEFAULT 0);
         CREATE TABLE IF NOT EXISTS members (project_id TEXT NOT NULL,identity_id TEXT NOT NULL,role TEXT NOT NULL,PRIMARY KEY(project_id,identity_id));
@@ -88,8 +92,14 @@ class AccessControl:
     def record(self, operation, details=None, project_id=None):
         import json
         identity = actor.get()
-        self.store.db.execute('INSERT INTO activity VALUES(?,?,?,?,?,?,?)', (str(uuid4()), self.project_key(project_id), identity['id'], identity['name'], operation, json.dumps(details or {}), now()))
+        row = {'id': str(uuid4()), 'projectId': self.project_key(project_id), 'identityId': identity['id'], 'identityName': identity['name'], 'operation': operation, 'details': {**(details or {}), 'channel': channel.get()}, 'createdAt': now()}
+        self.store.db.execute('INSERT INTO activity VALUES(?,?,?,?,?,?,?)', (row['id'], row['projectId'], row['identityId'], row['identityName'], operation, json.dumps(row['details']), row['createdAt']))
         self.store.db.commit()
+        for listener in tuple(self.listeners):
+            try:
+                listener(row)
+            except Exception:
+                self.listeners.discard(listener)
 
     def create_identity(self, name):
         self.authorize('manage')

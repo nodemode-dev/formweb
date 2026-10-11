@@ -19,6 +19,7 @@ from .delivery import DeliveryQueue
 from .engine import EngineError, RustEngine
 from .forms import Forms
 from .releases import Releases
+from .substrate import Approvals, Registry
 from .store import Store, now
 
 
@@ -46,6 +47,8 @@ class Studio:
         self.collaboration = Collaboration(self)
         self.forms = Forms(self)
         self.releases = Releases(self)
+        self.approvals = Approvals(self)
+        self.substrates = Registry(self)
         self.delivery = DeliveryQueue(self.store)
         await self.engine.start()
         checkpoint = self.store.get_meta('autosaveCheckpoint')

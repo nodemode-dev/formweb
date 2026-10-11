@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.responses import FileResponse, JSONResponse, Response, StreamingResponse
 
-from .access import actor
+from .access import CHANNELS, actor, channel
 from .advanced_routes import router as advanced_router, form_gate, serve_release, submission_values
 from .assets import MIME_TYPES, asset_path, ingest, list_assets, own_asset, project_envelope, visible_assets
 from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_FILE_BYTES, ORIGINS, PORT, VERSION
@@ -17,6 +17,7 @@ from .engine import EngineError
 from .mcp_server import mcp, mcp_app
 from .providers.routes import router as provider_router
 from .service import safe_export_path, studio
+from .terminal import router as terminal_router
 from .workflows import load_native
 
 
@@ -71,9 +72,12 @@ class LocalAccess:
                 if origin == 'null' and verified_preview:
                     message['headers'].extend([(b'access-control-allow-origin', b'null'), (b'vary', b'Origin')])
             await send(message)
+        requested_channel = headers.get('x-formweb-channel', '')
+        channel_token = channel.set('agent' if path == '/mcp' else requested_channel if requested_channel in CHANNELS else 'human')
         try:
             await self.app(scope, receive, guarded_send)
         finally:
+            channel.reset(channel_token)
             actor.reset(context_token)
 
 
@@ -88,10 +92,18 @@ async def lifespan(app):
 
 
 app = FastAPI(title='FormWeb', version=VERSION, lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename'], expose_headers=['Content-Disposition'], allow_credentials=True)
+app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename', 'X-FormWeb-Channel'], expose_headers=['Content-Disposition'], allow_credentials=True)
 app.add_middleware(LocalAccess)
 app.include_router(advanced_router)
 app.include_router(provider_router)
+app.include_router(terminal_router)
+
+
+@app.get('/api/terminal/status')
+async def terminal_status():
+    from .terminal import status
+    studio.access.authorize('read')
+    return {**status(), 'agentsEnabled': studio.agents_enabled}
 
 
 @app.exception_handler(EngineError)
@@ -184,7 +196,71 @@ async def agents(body: Agents):
     studio.access.authorize('manage')
     studio.access.record('agents.configure', {'enabled': body.enabled})
     studio.agents_enabled = body.enabled
+    if not body.enabled:
+        from .terminal import close_all
+        close_all()
     return await system()
+
+class SubstrateRun(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    command: str = Field(min_length=1, max_length=160)
+    params: dict[str, Any] = Field(default_factory=dict)
+    expectedRevision: int | None = Field(default=None, ge=0)
+
+
+class Decision(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    decision: str = Field(pattern='^(approve|deny)$')
+    note: str | None = Field(default=None, max_length=500)
+
+
+@app.get('/api/substrate')
+async def substrate_summary():
+    studio.access.authorize('read')
+    return await studio.substrates.summary()
+
+
+@app.post('/api/substrate/run')
+async def substrate_run(body: SubstrateRun):
+    return await studio.substrates.active.dispatch(body.command, body.params, body.expectedRevision)
+
+
+@app.get('/api/substrate/activity')
+async def substrate_activity(limit: int = 50, after: str | None = None):
+    from .substrate import activity
+    return activity(studio, limit, after)
+
+
+@app.get('/api/approvals')
+async def approvals(status: str | None = None):
+    return studio.approvals.list(status if status in ('pending', 'approved', 'denied', 'expired', 'applied') else None)
+
+
+@app.post('/api/approvals/settings')
+async def approval_settings(body: dict[str, bool]):
+    return studio.approvals.update_settings(body)
+
+
+@app.post('/api/approvals/{approval_id}')
+async def approval_decide(approval_id: str, body: Decision):
+    return studio.approvals.decide(approval_id, body.decision, body.note)
+
+
+@app.get('/api/agents/clients')
+async def agent_clients():
+    from .clients import cards
+    studio.access.authorize('read')
+    return {**cards(), 'agentsEnabled': studio.agents_enabled, 'access': studio.access.status()}
+
+
+@app.post('/api/agents/clients/{client_id}')
+async def agent_client_write(client_id: str):
+    from .clients import write
+    studio.access.authorize('manage')
+    result = write(client_id)
+    studio.access.record('agents.client', {'client': client_id, 'file': result['file']})
+    return result
+
 
 @app.post('/api/auth')
 async def authenticate(request: Request):

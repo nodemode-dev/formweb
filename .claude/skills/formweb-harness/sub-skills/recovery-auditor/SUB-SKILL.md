@@ -22,7 +22,8 @@ A call failed, a state revision is uncertain, or the user requested an audit. If
 5. Call the failing tool directly using the observed schema to isolate the problem from this skill's sequence. A direct failure is server evidence; a direct success points toward incorrect ordering or arguments.
 6. On revision conflict, call `get_site`, compare the current affected objects with the intended change, and construct only the still-needed commands with the fresh `expected_revision`. An atomic failed batch has no committed prefix; successful earlier batches do.
 7. For invalid commands or audit findings, inspect the reported issue and relevant node, collection, page or locale. Apply the smallest correction; do not replace the site to hide an error.
-8. Use `history` with `action` `undo` or `redo` only when it reverses the intended step. Inspect the undo boundary first and pass the current revision. Re-read `get_site` after history changes before using old IDs.
+8. A call that waits and then fails with "No one approved ... within 100 seconds" (status 408) or "The person denied ..." (status 403, `approvalId` in the result) came from Agent Connect approvals: the owner asked to approve destructive agent calls. Do not retry in a loop. Tell the person what you need approved and why, then retry once after they say they are watching. A promotion that returns `pendingApproval: true` is not live; a different reviewer must approve it in Agent Connect.
+9. Use `history` with `action` `undo` or `redo` only when it reverses the intended step. Inspect the undo boundary first and pass the current revision. Re-read `get_site` after history changes before using old IDs.
 
 ## Gate
 

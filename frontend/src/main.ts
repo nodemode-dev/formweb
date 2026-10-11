@@ -8,6 +8,8 @@ import { BRAND_MARK, CommandSearch, Menubar, exposeToAgents, registerCommands, r
 import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/layout';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
+import { AgentConnect } from './features/agent-connect';
+import { TerminalDock } from './features/terminal';
 import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -134,18 +136,20 @@ brand.title = 'formweb by NodeMode';
 const menubar = new Menubar(['File', 'Edit', 'Insert', 'Page', 'Arrange', 'CMS', 'View', 'Window', 'Help'], overlay);
 const titleTools = element('div', 'fw-title-tools');
 const topActions = element('div', 'top-actions');
-const agentsButton = button('Agents off', 'bolt', async () => {
+async function toggleAgents(): Promise<void> {
   const result = await request<{ enabled?: boolean; agentsEnabled?: boolean }>('/api/agents', { enabled: !agentsEnabled });
   agentsEnabled = result.agentsEnabled ?? result.enabled ?? !agentsEnabled;
   updateAgents();
-  status(agentsEnabled ? 'Agents enabled. MCP shares this site engine.' : 'Agent access disabled.');
-}, 'quiet');
+  status(agentsEnabled ? 'Agents on. MCP clients and the terminal share this site engine.' : 'Agents off. MCP clients and the terminal are blocked.');
+}
+// Not shown in the title bar since v0.4.0: Agent Connect owns the switch. Kept as the agents.toggle command target.
+const agentsButton = button('Agents off', 'bolt', toggleAgents, 'quiet');
 const previewButton = button('Preview', 'eye', () => { preview = !preview; update(state()); }, 'quiet');
 const refreshPreviewButton = iconButton('Refresh compiled runtime preview', 'redo', () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } });
 previewButton.title = 'Compiled preview';
 previewButton.setAttribute('aria-label', previewButton.title);
 const publishButton = button('Publish', 'arrow', () => openDialog('publish'), 'primary');
-topActions.append(agentsButton, previewButton, refreshPreviewButton, publishButton);
+topActions.append(previewButton, refreshPreviewButton, publishButton);
 topbar.append(brand, menubar.element, element('div'), titleTools, topActions);
 
 const toolbar = element('div', 'toolbar');
@@ -228,7 +232,15 @@ captureWrap.append(componentName, button('Capture selection', 'component', async
 captureWrap.lastElementChild?.setAttribute('style', 'width:100%;margin-top:var(--space-2)');
 const componentList = element('div', 'list');
 insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), componentsHead, captureWrap, componentList);
-sidebar.append(sidebarTabs, pagesPane, insertPane);
+const terminalDock = new TerminalDock(next => { try { localStorage.setItem('formweb_terminal', next); } catch {} rail.refresh(); });
+const agentConnect = new AgentConnect({
+  toggleAgents,
+  launch: preset => terminalDock.launch(preset),
+  notify: (message, error) => status(message, error)
+});
+const agentsPane = agentConnect.element;
+agentsPane.hidden = true;
+sidebar.append(sidebarTabs, pagesPane, insertPane, agentsPane);
 
 const stagePanel = element('section', 'stage-panel');
 const stageHead = element('div', 'stage-head');
@@ -239,7 +251,7 @@ const selectionPath = element('nav', 'fw-crumbs');
 selectionPath.setAttribute('aria-label', 'Selection path');
 stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, selectionPath, viewportReadout);
 const stage = element('div', 'stage');
-stagePanel.append(stageHead, stage);
+stagePanel.append(stageHead, stage, terminalDock.element);
 const canvas = new Canvas(stage, selectNode, (id, next) => void run(async () => {
   await command('node.update', { id, patch: { text: next } });
   status('Text updated.');
@@ -279,7 +291,8 @@ const rail = new Rail([
   { command: 'window.studio', label: 'Website studio', icon: 'wand' },
   { command: 'page.audit', label: 'SEO and accessibility', icon: 'check' },
   { command: 'file.publish', label: 'Publish', icon: 'upload' },
-  { command: 'window.agents', label: 'Agents', icon: 'bolt', active: () => agentsEnabled }
+  { command: 'window.agents', label: 'Agent Connect', icon: 'bolt', active: () => activeSidebar === 'agents' && layout.state.left === 'open' },
+  { command: 'view.terminal', label: 'Terminal', icon: 'code', active: () => terminalDock.state === 'open' }
 ], [
   { command: 'edit.settings', label: 'Settings', icon: 'gear' }
 ], { command: 'window.toggle-rail', label: 'Show or hide rail labels', icon: 'chevronsRight' });
@@ -289,6 +302,7 @@ const openDock = (side: 'left' | 'right'): void => { if (layout.state[side] !== 
 const toggleLeft = (pane: string): void => {
   if (layout.state.left === 'open' && activeSidebar === pane) layout.set({ left: 'collapsed' });
   else { openDock('left'); setSidebar(pane); }
+  agentConnect.setVisible(activeSidebar === 'agents' && layout.state.left === 'open');
   rail.refresh();
 };
 
@@ -724,7 +738,9 @@ function setSidebar(id: string): void {
   activeSidebar = id;
   pagesPane.hidden = id !== 'pages';
   insertPane.hidden = id !== 'insert';
-  text(sidebarTitle, id === 'insert' ? 'Insert' : 'Pages and layers');
+  agentsPane.hidden = id !== 'agents';
+  text(sidebarTitle, id === 'insert' ? 'Insert' : id === 'agents' ? 'Agent Connect' : 'Pages and layers');
+  agentConnect.setVisible(id === 'agents' && layout.state.left === 'open');
   rail.refresh();
 }
 function setInspector(id: string): void {
@@ -740,6 +756,9 @@ function updateAgents(): void {
   agentsButton.setAttribute('aria-pressed', String(agentsEnabled));
   agentsButton.title = agentsEnabled ? 'Agents on: MCP clients can edit this site' : 'Agents off: MCP clients are blocked';
   agentsButton.setAttribute('aria-label', agentsButton.title);
+  agentConnect.setAgents(agentsEnabled);
+  terminalDock.setAllowed(agentsEnabled);
+  rail.refresh();
   rail.refresh();
 }
 function update(next: EditorState): void {
@@ -1319,7 +1338,10 @@ registerCommands([
   { id: 'workspace.reset', label: 'Reset this workspace', menu: 'Window', group: 5, run: () => { layout.resetPreset(); rail.refresh(); } },
   { id: 'window.tokens', label: 'Design system...', menu: 'Window', group: 2, run: () => openDialog('tokens'), enabled: ready },
   { id: 'window.studio', label: 'Website studio...', menu: 'Window', group: 2, run: () => featureStudio.button.click(), enabled: ready },
-  { id: 'window.agents', label: 'Allow agents (MCP)', menu: 'Window', group: 3, run: () => agentsButton.click(), checked: () => agentsEnabled },
+  { id: 'window.agents', label: 'Agent Connect', menu: 'Window', group: 3, run: () => toggleLeft('agents'), checked: () => activeSidebar === 'agents' && layout.state.left === 'open' },
+  { id: 'agents.toggle', label: 'Allow agents (MCP and terminal)', menu: 'Window', group: 3, run: () => agentsButton.click(), checked: () => agentsEnabled },
+  { id: 'view.terminal', label: 'Terminal', menu: 'View', keys: 'Ctrl `', group: 3, run: () => terminalDock.toggle(), checked: () => terminalDock.state === 'open' },
+  { id: 'terminal.new', label: 'New terminal session', menu: 'View', group: 3, run: () => terminalDock.launch('shell') },
   { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
 ]);
 menubar.build();
@@ -1341,11 +1363,13 @@ document.addEventListener('keydown', event => {
   if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
   if (event.key === '[') { event.preventDefault(); runCommand('window.toggle-left'); }
   else if (event.key === ']') { event.preventDefault(); runCommand('window.toggle-right'); }
+  else if (event.key === '`') { event.preventDefault(); runCommand('view.terminal'); }
 });
 subscribe(update);
 workspaceSelect.value = layout.preset;
 setInspector(layout.presetInfo().inspector);
 setSidebar(layout.presetInfo().sidebar);
+try { if (localStorage.getItem('formweb_terminal') === 'open') terminalDock.set('open'); } catch {}
 void run(async () => {
   await connect(connected => {
     statusDot.classList.toggle('offline', !connected);

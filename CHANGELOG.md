@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0 · 2026-10-11
+
+Phase 6 of 9: one agent substrate, Agent Connect and a live terminal. Plus one parity row: FW-068 publish approval, None to Full (67.5 to 68.5 of 79).
+
+- Agent Connect (the Agents rail button, Window > Agent Connect) replaces the title bar's Agents pill. It has the MCP and terminal switch, cards for Claude Code, Codex and Cursor that check and rewrite the project config and open the client in the terminal, approvals, who you are and what you may do, and a live activity feed that marks every change as human, agent or terminal.
+- Approvals: "Ask me before an agent deletes..." makes destructive MCP calls wait for your Approve or Deny. "A reviewer must approve a release before it goes live" holds release promotion until a different reviewer approves; approving promotes it (FW-068).
+- Live terminal (View > Terminal, Ctrl+`): a shell in the FormWeb folder in a dock under the canvas, with presets for Claude Code, Codex, Cursor, `formweb doctor` and `formweb run`. It runs only while Agents is on, survives collapsing, and its edits appear on the canvas at once.
+- `./formweb run COMMAND key=value` applies one engine command to the open site (`--list`, `--json`, `--revision`).
+- The substrate behind all of this has a documented adapter for plugging in an external NodeMode substrate later (`FORMWEB_EXTERNAL_SUBSTRATE`).
+- New dependencies: @xterm/xterm 6.0.0 and @xterm/addon-fit 0.11.0 (MIT); pywinpty 3.0.5 (MIT, Windows only).
+
 ## 0.3.6 · 2026-10-11
 
 Gap closing: four parity rows moved, 64 to 67.5 of 79.

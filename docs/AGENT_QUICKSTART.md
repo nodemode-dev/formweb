@@ -42,6 +42,12 @@ A saved extension is configuration evidence. A browser interaction needs observe
 | Embed media | `node.add` a `div` with attribute `data-fw-embed` set to a YouTube, Vimeo, Loom, Spotify, Google Maps embed or OpenStreetMap embed URL | Preview or export shows `iframe[data-fw-embed-frame]`; an unsupported URL renders a visible `fw-embed-error` note |
 | QR code | `qr_code` `{url, dark?, light?}` returns SVG text; `GET /api/qr?url=...&format=png` returns a PNG | Decode it, or compare the returned `url` |
 
+## Terminal and CLI
+
+Inside the editor's terminal (or any shell in the FormWeb folder) `./formweb run --list` lists engine commands and `./formweb run COMMAND key=value ...` applies one, for example `./formweb run node.update id=headline 'patch={"text":"Hello"}'`. Values are parsed as JSON when they can be; add `--json` for machine output and `--revision N` to require a revision. The change appears on the open canvas at once, is one undo step, and shows as `terminal` in Agent Connect's activity feed. The terminal's preset menu starts `claude`, `codex` or `cursor-agent` in the same folder, so those clients pick up the project MCP files.
+
+If a call waits and then reports that no one approved it, the owner has turned on approvals in Agent Connect; ask them to watch the panel and retry once.
+
 Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`.
 
 ## Recover a stopped workflow
@@ -54,4 +60,4 @@ The pack's [scenario evaluations](../.claude/skills/formweb-harness/references/e
 
 ## Driving the editor window
 
-Every menu action has a stable command id (`file.save`, `edit.undo`, `insert.heading`, `view.mobile`, `window.studio` and so on). In the browser, `window.formweb.commands()` lists them with label, menu, shortcut and whether each is enabled right now, and `window.formweb.run(id)` runs one exactly as the menu would, returning false when it is disabled. Menu rows and command-search results carry the id in `data-command`. People reach the same actions from the menubar or with Ctrl/Cmd+K. Prefer MCP for site changes; use these ids when an agent has to operate the window itself (switching breakpoint, opening a panel or dialog). Layout ids: `window.toggle-left`, `window.toggle-right`, `window.toggle-rail` and the presets `workspace.design`, `workspace.content`, `workspace.build`, `workspace.focus`; rail buttons and collapsed-panel strip buttons carry the same `data-command` ids.
+Every menu action has a stable command id (`file.save`, `edit.undo`, `insert.heading`, `view.mobile`, `window.studio` and so on). In the browser, `window.formweb.commands()` lists them with label, menu, shortcut and whether each is enabled right now, and `window.formweb.run(id)` runs one exactly as the menu would, returning false when it is disabled. Menu rows and command-search results carry the id in `data-command`. People reach the same actions from the menubar or with Ctrl/Cmd+K. Prefer MCP for site changes; use these ids when an agent has to operate the window itself (switching breakpoint, opening a panel or dialog). Agent ids: `window.agents` (Agent Connect panel), `agents.toggle` (MCP and terminal on or off), `view.terminal` (Ctrl+`), `terminal.new`; panel buttons carry `agents.client.<id>`, `agents.launch.<id>`, `approvals.approve` and `approvals.deny`. Layout ids: `window.toggle-left`, `window.toggle-right`, `window.toggle-rail` and the presets `workspace.design`, `workspace.content`, `workspace.build`, `workspace.focus`; rail buttons and collapsed-panel strip buttons carry the same `data-command` ids.

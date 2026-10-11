@@ -26,4 +26,14 @@ Publishing returns a frozen versioned local URL; promotion and rollback select i
 
 Agent access defaults off. `FORMWEB_AGENTS=1` enables it for an explicitly configured local session. `FORMWEB_AUTH_TOKEN` can require a bearer token for MCP/control requests. The loopback bind and exact allowed-origin configuration remain service boundaries.
 
+## Substrate, Agent Connect and the terminal (v0.4.0)
+
+Every caller reaches the engine through one substrate (`backend/app/substrate.py`): the editor's REST calls, MCP, `./formweb run` and the embedded terminal. `GET /api/substrate` lists the active substrate and its command catalogue; `POST /api/substrate/run` applies one command. Each request carries a channel (`human`, `agent` for `/mcp`, `terminal` when the `X-FormWeb-Channel: terminal` header is sent, as `./formweb run` does), stored with every activity row and shown in Agent Connect. The channel is attribution, not permission: roles still decide what an identity may do.
+
+The external-substrate shim: set `FORMWEB_EXTERNAL_SUBSTRATE=package.module:factory`, where `factory(studio)` returns an object with `name`, `describe()`, `dispatch(command, params, expected_revision)` and `subscribe(listener)`. `FORMWEB_SUBSTRATE=<name>` makes it active. If loading fails, the editor starts on the built-in substrate and `GET /api/substrate` reports the error.
+
+Agent Connect (the Agents rail button) holds the MCP switch, client cards that check and rewrite `.mcp.json`, `.codex/config.toml` and `.cursor/mcp.json`, approvals, the current identity and a live activity feed. With "Ask me before an agent deletes..." on, destructive MCP tools and `apply_commands` batches that remove something wait up to 100 seconds for a person's decision. With "A reviewer must approve a release..." on, `promote_release` returns `pendingApproval` until a different identity with review rights approves it (FW-068); the local owner may approve their own.
+
+The terminal (View > Terminal, Ctrl+`) is a shell in the FormWeb folder over a loopback WebSocket at `/api/terminal`, owner-only and available only while Agents is on; turning Agents off ends every session. Sessions survive collapsing the dock and reconnects (the last 64 KiB is replayed). It uses the standard library `pty` on macOS and Linux and pywinpty on Windows.
+
 After changing canonical skills, run `./formweb agents sync` followed by `./formweb agents sync --check`. Canonical instructions live only under `.claude/skills`; edit there, never in the mirror.
