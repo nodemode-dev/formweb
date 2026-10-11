@@ -62,11 +62,16 @@ export function replace(path: string, body: unknown): Promise<EditorState> {
   queue = work;
   return work;
 }
+let events: EventSource | undefined;
+let connectionListener: (connected: boolean) => void = () => undefined;
+export function reconnect(): Promise<void> { return connect(connectionListener); }
 export async function connect(onConnection: (connected: boolean) => void): Promise<void> {
+  connectionListener = onConnection;
   if (authHeaders().Authorization) await request('/api/auth', {});
   accept(await request<EditorState>('/api/state'));
   onConnection(true);
-  const events = new EventSource(apiBase + '/api/events');
+  events?.close();
+  events = new EventSource(apiBase + '/api/events');
   events.addEventListener('state', event => {
     try {
       const incoming = JSON.parse((event as MessageEvent).data) as EditorState;

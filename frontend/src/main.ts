@@ -1,4 +1,4 @@
-import { apiBase, command, commands, connect, download, replace, request, state, subscribe, upload } from './api';
+import { apiBase, command, commands, connect, download, reconnect, replace, request, state, subscribe, upload } from './api';
 import type { AuditIssue, Collection, EditorState, Page, SiteNode } from './types';
 import { Canvas } from './ui/canvas';
 import { element, keyed, options, revealApp, text, value } from './ui/dom';
@@ -34,6 +34,8 @@ let lastState: EditorState | undefined;
 const widths: Record<string, number> = { desktop: 1280, tablet: 820, mobile: 390 };
 const inspectorFields = new Map<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>();
 const styleFields = new Map<string, HTMLInputElement | HTMLSelectElement>();
+const segmentFields = new Map<string, HTMLButtonElement[]>();
+const resetButtons = new Map<string, HTMLButtonElement>();
 const attrsFields = new Map<string, HTMLInputElement>();
 
 function button(label: string, symbol?: Icon, action?: () => unknown, className = ''): HTMLButtonElement {
@@ -233,7 +235,9 @@ const stageHead = element('div', 'stage-head');
 const pageName = element('span', '', 'Home');
 const pagePath = element('span', 'stage-path', '/');
 const viewportReadout = element('span', 'viewport-readout', 'Desktop / 1280 px');
-stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, viewportReadout);
+const selectionPath = element('nav', 'fw-crumbs');
+selectionPath.setAttribute('aria-label', 'Selection path');
+stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, selectionPath, viewportReadout);
 const stage = element('div', 'stage');
 stagePanel.append(stageHead, stage);
 const canvas = new Canvas(stage, selectNode, (id, next) => void run(async () => {
@@ -306,12 +310,47 @@ function addInspectorInput(container: HTMLElement, label: string, key: string, h
   container.append(field(label, control, full));
   return control;
 }
+function resetButton(label: string, key: string): HTMLButtonElement {
+  const reset = element('button', 'fw-reset', 'Reset');
+  reset.type = 'button';
+  reset.title = `Reset ${label} to the inherited value`;
+  reset.setAttribute('aria-label', reset.title);
+  reset.dataset.reset = key;
+  reset.hidden = true;
+  reset.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); void run(() => setStyle(key, '')); });
+  resetButtons.set(key, reset);
+  return reset;
+}
 function addStyle(container: HTMLElement, label: string, key: string, choices?: string[], full = false): void {
   const control = choices ? select(choices.map(id => ({ id, name: id || 'Inherit' }))) : input('Auto / inherit');
   control.setAttribute('data-style', key);
   control.addEventListener('change', () => void run(() => setStyle(key, control.value)));
   styleFields.set(key, control);
-  container.append(field(label, control, full));
+  const wrapper = field(label, control, full);
+  wrapper.querySelector('.field-label')!.append(resetButton(label, key));
+  container.append(wrapper);
+}
+function addSegments(container: HTMLElement, label: string, key: string, choices: [string, string][]): void {
+  const wrapper = element('div', 'field full');
+  const head = element('span', 'field-label', label);
+  head.append(resetButton(label, key));
+  const group = element('div', 'fw-seg');
+  group.setAttribute('role', 'group');
+  group.setAttribute('aria-label', label);
+  group.dataset.style = key;
+  const buttons = choices.map(([choice, name]) => {
+    const node = element('button', 'fw-seg-btn', name);
+    node.type = 'button';
+    node.dataset.value = choice;
+    node.title = `${label}: ${choice}`;
+    node.setAttribute('aria-pressed', 'false');
+    node.addEventListener('click', () => void run(() => setStyle(key, node.classList.contains('is-on') ? '' : choice)));
+    group.append(node);
+    return node;
+  });
+  segmentFields.set(key, buttons);
+  wrapper.append(head, group);
+  container.append(wrapper);
 }
 const elementSection = section(designPane, 'Element');
 const elementGrid = element('div', 'form-grid');
@@ -325,16 +364,16 @@ elementGrid.append(breakpointBadge);
 elementSection.append(elementGrid);
 const layoutSection = section(designPane, 'Layout', 'CSS values');
 const layoutGrid = element('div', 'form-grid');
-addStyle(layoutGrid, 'Display', 'display', ['', 'block', 'flex', 'grid', 'inline-flex', 'inline-block', 'none']);
-addStyle(layoutGrid, 'Direction', 'flex-direction', ['', 'row', 'column', 'row-reverse', 'column-reverse']);
+addSegments(layoutGrid, 'Display', 'display', [['block', 'Block'], ['flex', 'Flex'], ['grid', 'Grid'], ['inline-flex', 'Inline flex'], ['inline-block', 'Inline'], ['none', 'Hidden']]);
+addSegments(layoutGrid, 'Direction', 'flex-direction', [['row', 'Row'], ['column', 'Column'], ['row-reverse', 'Row rev.'], ['column-reverse', 'Col. rev.']]);
+addSegments(layoutGrid, 'Align', 'align-items', [['stretch', 'Stretch'], ['flex-start', 'Start'], ['center', 'Center'], ['flex-end', 'End'], ['baseline', 'Baseline']]);
+addSegments(layoutGrid, 'Justify', 'justify-content', [['flex-start', 'Start'], ['center', 'Center'], ['flex-end', 'End'], ['space-between', 'Between'], ['space-around', 'Around'], ['space-evenly', 'Evenly']]);
+addSegments(layoutGrid, 'Wrap', 'flex-wrap', [['nowrap', 'No wrap'], ['wrap', 'Wrap'], ['wrap-reverse', 'Reverse']]);
 addStyle(layoutGrid, 'Width', 'width');
 addStyle(layoutGrid, 'Height', 'height');
 addStyle(layoutGrid, 'Gap', 'gap');
 addStyle(layoutGrid, 'Padding', 'padding');
-addStyle(layoutGrid, 'Align', 'align-items', ['', 'stretch', 'center', 'flex-start', 'flex-end', 'baseline']);
-addStyle(layoutGrid, 'Justify', 'justify-content', ['', 'flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly']);
 addStyle(layoutGrid, 'Grid columns', 'grid-template-columns', undefined, true);
-addStyle(layoutGrid, 'Flex wrap', 'flex-wrap', ['', 'nowrap', 'wrap', 'wrap-reverse']);
 addStyle(layoutGrid, 'Order', 'order');
 addStyle(layoutGrid, 'Grid rows', 'grid-template-rows', undefined, true);
 addStyle(layoutGrid, 'Grid column', 'grid-column');
@@ -361,7 +400,7 @@ addStyle(typeGrid, 'Font size', 'font-size');
 addStyle(typeGrid, 'Weight', 'font-weight', ['', '400', '500', '600', '700', '800', '900']);
 addStyle(typeGrid, 'Line height', 'line-height');
 addStyle(typeGrid, 'Letter spacing', 'letter-spacing');
-addStyle(typeGrid, 'Text alignment', 'text-align', ['', 'left', 'center', 'right', 'justify']);
+addSegments(typeGrid, 'Text alignment', 'text-align', [['left', 'Left'], ['center', 'Center'], ['right', 'Right'], ['justify', 'Justify']]);
 addStyle(typeGrid, 'Family', 'font-family');
 typeSection.append(typeGrid);
 const positionSection = section(designPane, 'Position');
@@ -656,6 +695,19 @@ function update(next: EditorState): void {
   text(projectName, site.name);
   text(pageName, page.name);
   text(pagePath, page.slug || '/');
+  const trail: SiteNode[] = [];
+  for (let at: SiteNode | undefined = node; at; at = parentOf(at.id)) trail.unshift(at);
+  keyed(selectionPath, trail, item => item.id, () => {
+    const crumb = button('', undefined, undefined, 'fw-crumb');
+    crumb.addEventListener('click', () => selectNode(crumb.dataset.key!));
+    return crumb;
+  }, (crumb, item) => {
+    text(crumb, item.name);
+    crumb.title = `Select ${item.name} <${item.tag}>`;
+    const current = item.id === node.id;
+    crumb.classList.toggle('is-current', current);
+    if (current) crumb.setAttribute('aria-current', 'true'); else crumb.removeAttribute('aria-current');
+  });
   text(viewportReadout, `${breakpoint[0].toUpperCase() + breakpoint.slice(1)} / ${widths[breakpoint]} px`);
   value(viewportSize, String(widths[breakpoint]));
   undoButton.disabled = !next.canUndo;
@@ -721,11 +773,22 @@ function update(next: EditorState): void {
   };
   inspectorFields.forEach((control, key) => value(control, inspectorValues[key] || ''));
   text(scopeLabel, breakpoint === 'desktop' ? 'Desktop base' : breakpoint + ' override');
+  const override = breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {};
   styleFields.forEach((control, name) => {
-    const override = breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {};
     value(control, override[name] || '');
     if (control instanceof HTMLInputElement) control.placeholder = node.styles[name] || 'Auto / inherit';
   });
+  segmentFields.forEach((buttons, name) => {
+    const own = override[name] || '';
+    const inherited = breakpoint === 'desktop' ? '' : node.styles[name] || '';
+    for (const node of buttons) {
+      const on = node.dataset.value === own, ghost = !own && node.dataset.value === inherited;
+      if (node.classList.contains('is-on') !== on) node.classList.toggle('is-on', on);
+      if (node.classList.contains('is-inherited') !== ghost) node.classList.toggle('is-inherited', ghost);
+      node.setAttribute('aria-pressed', String(on));
+    }
+  });
+  resetButtons.forEach((reset, name) => { const hide = !override[name]; if (reset.hidden !== hide) reset.hidden = hide; });
   attrsFields.forEach((control, name) => value(control, node.attrs[name] || ''));
   resetOverrides.disabled = breakpoint === 'desktop' || !Object.keys(node.breakpoints[breakpoint] || {}).length;
   options(bindingCollection, [{ id: '', name: 'No collection' }, ...Object.values(site.collections).map(collection => ({ id: collection.id, name: collection.name }))]);
@@ -880,7 +943,11 @@ async function performDialogAction(): Promise<void> {
     status(`Translations saved for ${localeEditing}.`);
   } else if (dialogMode === 'settings') {
     sessionStorage.setItem('formweb_token', authToken.value.trim());
-    location.reload();
+    await reconnect();
+    const system = await request<{ agentsEnabled: boolean }>('/api/system');
+    agentsEnabled = system.agentsEnabled;
+    updateAgents();
+    status('Reconnected to the site engine with the new access token.');
   }
 }
 async function updateProjects(): Promise<void> {
