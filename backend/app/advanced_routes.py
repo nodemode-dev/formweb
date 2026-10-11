@@ -9,6 +9,7 @@ from starlette.responses import FileResponse, RedirectResponse, Response
 from .advanced_catalog import ADVANCED_BY_NAME
 from .config import DATA_DIR, MAX_FORM_BYTES
 from .engine import EngineError
+from .passwords import FORM_PATH as PASSWORD_FORM
 from .providers.service import providers
 from .service import safe_export_path, studio
 from .workflows import dispatch
@@ -196,10 +197,48 @@ async def serve_release(slug, version, path, request, active=False):
         return RedirectResponse(prefix + '/' + entry, status_code=302, headers={'Cache-Control': 'private, no-store'})
     target = exported_file(root, path)
     gated = visitor_gate(request, root, release['site'], path)
+    if target.suffix == '.html' and not path.startswith('assets/'):
+        # FW-078: password gates are checked here, in the serving adapter, before any page bytes leave.
+        gate = studio.passwords.gate_for(release['site']['id'], canonical_route(root, release['site'], path))
+        if gate:
+            gated = True
+            if not studio.passwords.unlocked(request, gate):
+                prefix = '/sites/' + slug if active else '/published/' + slug + '/' + version
+                page = studio.passwords.form(f'{prefix}/{PASSWORD_FORM}', '/' + path.strip('/'), release['site'].get('name', 'Protected page'))
+                return Response(page, status_code=401, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
     headers = {'Cache-Control': 'private, no-store' if gated or active else 'public, max-age=31536000, immutable'}
     if path.startswith('assets/components/') and path.endswith('.html'):
         headers['Content-Security-Policy'] = "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'"
     return FileResponse(target, headers=headers)
+
+
+async def unlock(request, slug, version, prefix):
+    release = studio.releases.release(slug, version)
+    form = parse_qs((await request.body())[:4096].decode(errors='replace'))
+    route = form.get('route', ['/'])[0]
+    password = form.get('password', [''])[0]
+    root = (DATA_DIR / 'publications' / slug / version).resolve()
+    gate = studio.passwords.gate_for(release['site']['id'], canonical_route(root, release['site'], route.lstrip('/')))
+    safe_route = '/' + '/'.join(part for part in route.split('/') if part and part not in ('.', '..'))
+    if not gate:
+        return RedirectResponse(prefix + safe_route, status_code=303)
+    client = request.client.host if request.client else 'local'
+    if not password or not studio.passwords.check(gate, password, client):
+        page = studio.passwords.form(f'{prefix}/{PASSWORD_FORM}', safe_route, release['site'].get('name', 'Protected page'), 'That password is not right.')
+        return Response(page, status_code=401, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
+    response = RedirectResponse(prefix + safe_route + ('' if safe_route.endswith('/') else '/'), status_code=303, headers={'Cache-Control': 'private, no-store'})
+    response.set_cookie(studio.passwords.cookie_name(gate), studio.passwords.token(gate), httponly=True, samesite='lax', path=prefix, max_age=7 * 86400)
+    return response
+
+
+@router.post('/sites/{slug}/' + PASSWORD_FORM)
+async def unlock_active(slug: str, request: Request):
+    return await unlock(request, slug, studio.releases.active(slug), '/sites/' + slug)
+
+
+@router.post('/published/{slug}/{version}/' + PASSWORD_FORM)
+async def unlock_published(slug: str, version: str, request: Request):
+    return await unlock(request, slug, version, '/published/' + slug + '/' + version)
 
 
 @router.get('/sites/{slug}/{path:path}')

@@ -19,6 +19,7 @@ from .delivery import DeliveryQueue
 from .engine import EngineError, RustEngine
 from .forms import Forms
 from .releases import Releases
+from .passwords import PagePasswords
 from .substrate import Approvals, Registry
 from .store import Store, now
 
@@ -48,6 +49,7 @@ class Studio:
         self.forms = Forms(self)
         self.releases = Releases(self)
         self.approvals = Approvals(self)
+        self.passwords = PagePasswords(self)
         self.substrates = Registry(self)
         self.delivery = DeliveryQueue(self.store)
         await self.engine.start()
@@ -200,6 +202,7 @@ class Studio:
         return bundle_assets(result)
 
     async def export_zip(self, locale: str | None = None):
+        self.passwords.guard_export((await self.state())['site']['id'])
         result = await self.export_files(locale)
         output = io.BytesIO()
         with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:

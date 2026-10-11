@@ -246,6 +246,22 @@ async def approval_decide(approval_id: str, body: Decision):
     return studio.approvals.decide(approval_id, body.decision, body.note)
 
 
+class PagePassword(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    route: str = Field(min_length=1, max_length=200)
+    password: str | None = Field(default=None, max_length=200)
+
+
+@app.get('/api/page-passwords')
+async def page_passwords():
+    return await studio.passwords.list()
+
+
+@app.post('/api/page-passwords')
+async def page_password_set(body: PagePassword):
+    return await studio.passwords.set(body.route, body.password)
+
+
 @app.get('/api/agents/clients')
 async def agent_clients():
     from .clients import cards

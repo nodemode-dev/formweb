@@ -52,7 +52,7 @@ For broad work, start with the director and let it load specialists. A narrow ta
 ## Standing gates
 
 - Discover actual tools before working. Use only names exposed by this FormWeb server; a skill cannot add missing tools.
-- Call `get_site` before mutation. Use returned IDs and the current `revision`, because fabricated IDs and stale state can change the wrong object.
+- Call `get_site` before mutation (detail `summary` for the outline, `full` for styles), or read `formweb://site/tree` for element IDs and `formweb://selection` for what the person has selected. Use returned IDs and the current `revision`, because fabricated IDs and stale state can change the wrong object.
 - Pass that revision as `expected_revision` to `apply_commands`. A batch is one atomic Rust undo step; a failed batch changes neither state nor revision.
 - Preserve the user's existing site. A new brief does not authorize replacing an unrelated open project. Inspect and choose the smallest change before sending commands.
 - Treat saved configuration, exported browser behavior, and hosted services as separate evidence. A stored form or interaction is not proof that its published behavior works.

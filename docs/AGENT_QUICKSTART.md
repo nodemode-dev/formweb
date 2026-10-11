@@ -42,6 +42,14 @@ A saved extension is configuration evidence. A browser interaction needs observe
 | Embed media | `node.add` a `div` with attribute `data-fw-embed` set to a YouTube, Vimeo, Loom, Spotify, Google Maps embed or OpenStreetMap embed URL | Preview or export shows `iframe[data-fw-embed-frame]`; an unsupported URL renders a visible `fw-embed-error` note |
 | QR code | `qr_code` `{url, dark?, light?}` returns SVG text; `GET /api/qr?url=...&format=png` returns a PNG | Decode it, or compare the returned `url` |
 
+## Reading and editing efficiently
+
+Read `formweb://site/tree` first: every page as an outline of element IDs, tags, names and text, a few KB instead of the whole document. `formweb://selection` is what the person has selected in the editor ("make this bigger"). `get_site` with `detail: "summary"` returns pages, components, collections and settings; `detail: "full"` (the default) returns every style. Make single changes with the `edit_*` domain tools, which list their commands' parameters, and multi-command changes with `apply_commands`. Both return a compact summary; pass `detail: "site"` only when you need the whole document. Failed calls include a `next` field saying what to do. In Claude Code, `@formweb:formweb://site/tree` attaches the outline to a prompt.
+
+| Goal | Tool | Notes |
+| --- | --- | --- |
+| Password-protect a page or folder | `set_page_password` `{route, password}`; `null` removes | Enforced when FormWeb serves the published site; export is refused while set; never echo the password |
+
 ## Terminal and CLI
 
 Inside the editor's terminal (or any shell in the FormWeb folder) `./formweb run --list` lists engine commands and `./formweb run COMMAND key=value ...` applies one, for example `./formweb run node.update id=headline 'patch={"text":"Hello"}'`. Values are parsed as JSON when they can be; add `--json` for machine output and `--revision N` to require a revision. The change appears on the open canvas at once, is one undo step, and shows as `terminal` in Agent Connect's activity feed. The terminal's preset menu starts `claude`, `codex` or `cursor-agent` in the same folder, so those clients pick up the project MCP files.

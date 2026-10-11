@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Selection for agents, page password · v0.4.1
+
+`reportSelection()` posts the selected node to `/api/presence` from `update()` when the selection changes and every 30 s, only while Agents is on, so MCP's `formweb://selection` matches the editor (presence expires after 60 s). The Page inspector gains a Password section (`page.password`, `page.password-remove`, field `page.password`): gates load once per site from `/api/page-passwords`, `gateFor()` mirrors the server's most-specific-route rule, and the home page is labelled as protecting the whole site because `/` covers every route.
+
 ## Agent Connect and the terminal dock · v0.4.0
 
 `features/agent-connect.ts` is a third left-panel pane (`activeSidebar === 'agents'`, rail button `window.agents`). It replaces the title bar's Agents pill: `toggleAgents()` in main.ts is now a named function used by the panel switch and the `agents.toggle` command (the old button object is kept, unmounted, as its command target). The panel polls `/api/agents/clients`, `/api/approvals?status=pending` and `/api/substrate/activity` every 2 s only while it is visible (`setVisible` is idempotent because `update()` calls `setSidebar` on every state change); client cards, approvals and the feed are `keyed()` rows whose text and data attributes update in place. `features/terminal.ts` (`TerminalDock`) is the stage panel's third grid row (`.stage-panel` rows `40px 1fr auto`); `data-state` open or collapsed toggles the body with CSS, the xterm instance is created on first open, and the backend session id is kept so collapse and socket drops reattach to the same shell. Its state persists under `formweb_terminal` and is restored before reveal. xterm's own scrollbar element is hidden by `styles/terminal.css`. Vite proxies `/api` with `ws: true` so the WebSocket reaches 8240 from 5240.

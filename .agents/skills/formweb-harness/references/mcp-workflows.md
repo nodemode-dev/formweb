@@ -17,7 +17,8 @@ Trigger: "Make a responsive FormWeb landing page with a hero, features and a con
 1. `get_site`: retain the returned revision, page IDs, root IDs and existing content that the brief keeps.
 2. Plan the page hierarchy, normal-flow layout, styles, breakpoint overrides and content. Route to the layout, content or interaction specialist when that part needs its own checks.
 3. `apply_commands`: pass `commands` as entries containing `command` and `params`, and `expected_revision` from step 1. Example operation: `node.update` with the observed node ID and a `patch` containing only the intended properties.
-4. Inspect the returned state or call `get_site` again. Use the new revision for any next batch; old revisions are consumed evidence, not a reusable lock.
+   For one command, the domain tools (`edit_nodes`, `edit_pages`, `edit_styles`, `edit_components`, `edit_cms`, `edit_locales`, `edit_site`) take `command`, `params` and `expected_revision` and list each command's parameters in their description.
+4. Edits return a compact summary (revision, undo state, pages with root IDs) unless you pass `detail: "site"`. For new element IDs read `formweb://site/tree`; for styles call `get_site` (detail `full`). Use the new revision for any next batch; old revisions are consumed evidence, not a reusable lock.
 5. `audit_site`: inspect each issue's severity, code, node and message. Correct relevant issues with another observed-revision batch.
 6. `export_site`: pass the requested `locale`; omitting it uses the observed site's `defaultLocale`. Inspect the returned ZIP path and manifest, then render exported pages at the planned widths.
 7. `save_project`: pass a meaningful `name` if requested. Record the returned project identity and revision.

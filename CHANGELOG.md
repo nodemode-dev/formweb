@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.1 · 2026-10-11
+
+Phase 7 of 9: MCP that reads cleanly for Claude Code, Codex and Cursor. Plus FW-078 page passwords, None to Full (68.5 to 69.5 of 79).
+
+- Seven domain tools (`edit_nodes`, `edit_pages`, `edit_styles`, `edit_components`, `edit_cms`, `edit_locales`, `edit_site`) generated from the engine catalogue, each listing its commands' parameters. Every tool has a title and a description that starts with what it does and when to use it.
+- Edits return a compact summary (about 0.6 KB instead of about 18 KB for the sample site); `detail: "site"` or `get_site` `detail: "full"` when the whole document is needed. Errors include a `next` step.
+- New resources: `formweb://site/tree`, `formweb://selection` (what you have selected in the editor), `formweb://tokens`, `formweb://audit`. Five prompts: build_page, edit_copy, responsive_review, publish_site, recover_session.
+- Server instructions rewritten to fit Claude Code's 2,048-character limit; the stdio proxy used by all three clients now forwards them and the prompts, and waits long enough for approvals. Client config formats re-checked against each client's current documentation (no change needed).
+- Page passwords: Page settings > Password protects a page and the pages under its path (the home page protects the whole site) when FormWeb serves the published site. Visitors see a password form; the password is stored as a one-way hash outside the site file; export is refused while a password is set, because a static export cannot protect pages. Agents: `set_page_password`, `list_page_passwords` (71 tools).
+
 ## 0.4.0 · 2026-10-11
 
 Phase 6 of 9: one agent substrate, Agent Connect and a live terminal. Plus one parity row: FW-068 publish approval, None to Full (67.5 to 68.5 of 79).

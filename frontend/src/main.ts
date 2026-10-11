@@ -94,6 +94,17 @@ function uuid(prefix: string): string { return `${prefix}-${crypto.randomUUID().
 function currentPage(): Page { return state().site.pages.find(page => page.id === pageId) || state().site.pages[0]; }
 function currentNode(): SiteNode { return state().site.nodes[selectedId] || state().site.nodes[currentPage().root]; }
 function parentOf(id: string): SiteNode | undefined { return Object.values(state().site.nodes).find(node => node.children.includes(id)); }
+// Agents read formweb://selection from presence: report the selection while Agents is on (changes, plus a 30 s heartbeat).
+let reportedSelection = '';
+let reportedAt = 0;
+function reportSelection(force = false): void {
+  if (!agentsEnabled || !lastState) return;
+  if (!force && reportedSelection === selectedId && Date.now() - reportedAt < 30000) return;
+  reportedSelection = selectedId;
+  reportedAt = Date.now();
+  void request('/api/presence', { nodeId: selectedId }).catch(() => undefined);
+}
+window.setInterval(() => reportSelection(true), 30000);
 function selectNode(id: string): void {
   if (!state().site.nodes[id]) return;
   selectedId = id;
@@ -509,6 +520,53 @@ noindex.addEventListener('change', () => void run(() => pagePatch({ seo: { ...cu
 const noindexLabel = element('label', 'checkbox-field');
 noindexLabel.append(noindex, element('span', '', 'Hide this page from search engines'));
 seoSection.append(seoGrid, noindexLabel, element('p', 'micro', 'Export produces metadata, sitemap.xml and robots.txt. Run Audit for accessibility and SEO issues.'));
+const passwordSection = section(pagePane, 'Password');
+const passwordInput = element('input');
+passwordInput.type = 'password';
+passwordInput.autocomplete = 'new-password';
+passwordInput.placeholder = 'At least 6 characters';
+passwordInput.dataset.field = 'page.password';
+const passwordState = element('p', 'micro', '');
+const passwordRow = element('div', 'fw-favicon-row');
+const passwordSet = button('Protect page', 'check', () => runCommand('page.password'));
+passwordSet.dataset.command = 'page.password';
+const passwordClear = button('Remove', 'trash', () => runCommand('page.password-remove'));
+passwordClear.dataset.command = 'page.password-remove';
+passwordRow.append(passwordSet, passwordClear);
+passwordSection.append(field('Visitors must enter', passwordInput, true), passwordRow, passwordState, element('p', 'micro', 'Enforced when FormWeb serves your published site (Publish, then the /sites or /published link), for this page and pages under its path. A static export cannot protect pages, so export is refused while a password is set. Agents: set_page_password.'));
+let passwordGates: string[] = [];
+let passwordGatesFor = '';
+async function loadPasswordGates(force = false): Promise<void> {
+  const siteId = state().site.id;
+  if (!force && passwordGatesFor === siteId) return;
+  passwordGatesFor = siteId;
+  const result = await request<{ gates: { route: string }[] }>('/api/page-passwords');
+  passwordGates = result.gates.map(gate => gate.route);
+  updatePasswordState();
+}
+function gateFor(slug: string): string | undefined {
+  const route = '/' + slug.replace(/^\/+|\/+$/g, '');
+  return passwordGates.filter(gate => gate === '/' || route === gate || route.startsWith(gate + '/')).sort((a, b) => b.length - a.length)[0];
+}
+function updatePasswordState(): void {
+  if (!lastState) return;
+  const page = currentPage();
+  const gate = gateFor(page.slug);
+  const own = gate === '/' + page.slug.replace(/^\/+|\/+$/g, '');
+  const home = gateFor('/') !== undefined || page.slug.replace(/^\/+|\/+$/g, '') === '';
+  const whole = page.slug.replace(/^\/+|\/+$/g, '') === '';
+  text(passwordState, gate ? (whole && own ? 'The whole site is protected (the home page covers every page).' : own ? 'This page and the pages under its path are protected.' : `Protected through ${gate}.`) : whole ? 'Protecting the home page protects the whole site.' : 'Anyone with the link can open this page.');
+  passwordClear.disabled = !own;
+  text(passwordSet.querySelector('span:last-child') || passwordSet, own ? 'Change password' : whole && home ? 'Protect whole site' : 'Protect page');
+}
+async function setPagePassword(password: string | null): Promise<void> {
+  const route = '/' + currentPage().slug.replace(/^\/+|\/+$/g, '');
+  const result = await request<{ gates: { route: string }[] }>('/api/page-passwords', { route, password });
+  passwordGates = result.gates.map(gate => gate.route);
+  passwordInput.value = '';
+  updatePasswordState();
+  status(password === null ? `Password removed from ${route}.` : `${route} now asks visitors for a password on your published site.`);
+}
 const siteSection = section(pagePane, 'Whole site');
 const hideScrollbars = element('input');
 hideScrollbars.type = 'checkbox';
@@ -906,6 +964,8 @@ function update(next: EditorState): void {
   faviconPreview.hidden = !favicon;
   if (favicon && faviconPreview.dataset.src !== favicon) { faviconPreview.dataset.src = favicon; faviconPreview.src = apiBase && favicon.startsWith('/') ? apiBase + favicon : favicon; }
   faviconClear.disabled = !favicon && !site.settings.faviconDark;
+  updatePasswordState();
+  if (passwordGatesFor !== site.id) void loadPasswordGates().catch(() => undefined);
   canvas.render(site, page, selectedId, widths[breakpoint], locale, false);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
   if (dialogMode === 'cms') updateCms();
@@ -913,6 +973,7 @@ function update(next: EditorState): void {
   if (dialogMode === 'tokens') updateTokens();
   setInspector(activeInspector);
   setSidebar(activeSidebar);
+  reportSelection();
   revealApp();
 }
 
@@ -1309,6 +1370,11 @@ registerCommands([
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
   { id: 'page.add', label: 'Add page...', menu: 'Page', run: () => openDialog('page'), enabled: ready },
   { id: 'page.settings', label: 'Page settings', menu: 'Page', run: () => { openDock('right'); setInspector('page'); }, enabled: ready },
+  { id: 'page.password', label: 'Password protect this page', menu: 'Page', group: 2, run: async () => {
+    if (passwordInput.value.length < 6) { openDock('right'); setInspector('page'); passwordInput.focus(); status('Type a password of at least 6 characters in Page settings > Password, then choose Protect page.', true); return; }
+    await setPagePassword(passwordInput.value);
+  }, enabled: ready },
+  { id: 'page.password-remove', label: 'Remove page password', menu: 'Page', group: 2, run: () => setPagePassword(null), enabled: () => !!lastState && gateFor(currentPage().slug) === '/' + currentPage().slug.replace(/^\/+|\/+$/g, '') },
   { id: 'page.bulk', label: 'Bulk create from CSV...', menu: 'Page', run: () => openDialog('bulk'), enabled: ready },
   { id: 'page.qr', label: 'QR code for this page...', menu: 'Page', group: 2, run: () => openDialog('qr'), enabled: ready },
   { id: 'site.favicon', label: 'Set site icon...', menu: 'Page', group: 3, run: () => { mediaInput.dataset.mode = 'favicon'; mediaInput.click(); }, enabled: ready },
