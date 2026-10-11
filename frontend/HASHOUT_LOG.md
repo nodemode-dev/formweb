@@ -1,5 +1,9 @@
 # Frontend context map
 
+## One left rail · v0.3.4
+
+The owner saw two minirails: a collapsed left panel turned into an icon strip beside the minirail. The left panel now collapses to nothing (`--left-w: 0px`, sidebar `display: none`), and the rail's Pages and layers and Insert buttons toggle it (`toggleLeft` in main.ts: open on that pane, close if it is already showing). The panel's tab row duplicated those two buttons and became a plain `.fw-panel-title`. The four workspace children carry explicit grid columns, because a `display: none` sidebar otherwise lets auto-placement slide the stage into its column. The right panel keeps its strip, which formvis also has.
+
 ## Minirail, collapsible docks and workspaces · v0.3.3
 
 `ui/layout.ts` adds the left minirail (`Rail`: nine modes plus Settings, each a registered command, icon-only or labelled), dock strips shown when a side panel collapses, the collapse buttons, and `WorkspaceLayout`, which keeps rail, left and right state per preset (Design, Content, Build, Focus) under `formweb_workspace` in localStorage, read before the app is revealed. Layout lives only in `.workspace` data attributes and CSS variables (`--rail-w`, `--left-w`, `--right-w`); collapsing never adds or removes panel nodes, it toggles `display` through `[data-left]` and `[data-right]` (with `!important`, because the pages pane uses an inline `display: contents`). Inspector and dialog sections built by `section()` now collapse from their title (button role, Enter or Space). The sidebar footer with CMS and Locales moved into the rail. New commands: window.toggle-left (Ctrl+[), window.toggle-right (Ctrl+]), window.toggle-rail, workspace.design, workspace.content, workspace.build, workspace.focus, workspace.reset.
