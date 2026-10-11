@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.5 · 2026-10-11
+
+Phase 5 of 9: inspector and canvas UX, and the zero-flash sweep.
+
+- Display, Direction, Align, Justify, Wrap and Text alignment are one-click button groups. The breakpoint's own value is highlighted, a value inherited from desktop shows dashed, and clicking the highlighted value removes the override.
+- Every style field shows Reset while it holds an override at the current breakpoint.
+- The canvas header shows the path from the page to the selected element; click any step to select it.
+- Saving Settings reconnects in place instead of reloading the page.
+- The parity page records v0.3.4 and v0.3.5 in its release history (still 64 of 79); README and docs link the comparisons folder, so releases need no link edits.
+
 ## 0.3.4 · 2026-10-11
 
 - One left rail: a collapsed left panel now disappears instead of becoming a second icon strip, the rail's Pages and layers and Insert buttons open and close it, and the panel's duplicate tab row became a title.
