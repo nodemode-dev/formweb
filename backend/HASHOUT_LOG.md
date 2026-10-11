@@ -1,5 +1,9 @@
 # Backend context
 
+## Renderer and desktop shell · v0.5.0
+
+No backend change. The family renderer (`native/crates/formweb-render`) and the Tauri shell (`src-tauri`) sit outside the engine workspace with their own lockfiles, so `install-core` and the service never compile a graphics stack. The shell talks to this service exactly like the browser editor: it opens `http://127.0.0.1:8240/` once `/api/health` answers, starting `formweb serve` in its own process group when nothing answers and stopping that group when the last window closes. A packaged desktop release still needs a frozen backend sidecar (as formvis bundles `formvis-engine`); until then the shell needs the FormWeb folder (`FORMWEB_ROOT` or a parent of the working directory).
+
 ## Skills and brand kit · v0.4.2
 
 No new route: the brand kit is document data, so the engine, undo, exports and `.fweb` files carry it unchanged. `mcp_domains.tokens()` adds a `brand` key (colors, fonts, logos and a one-line usage hint) to `formweb://tokens`. Skill packs: `formweb-harness` grew to fifteen specialists, `formweb-editing` (plain-language single edits, matching formvis-editing and formlit-editing) and `formweb-skillset` (source development, matching formvis-skillset) were added; `./formweb agents sync` mirrors all three.

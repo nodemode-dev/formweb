@@ -1,5 +1,7 @@
 [workspace]
 members = ["crates/formweb-model", "crates/formweb-engine", "crates/formweb-export", "crates/formweb-core"]
+# The GPU renderer has its own lockfile and workspace so the document engine builds without a graphics stack.
+exclude = ["crates/formweb-render"]
 resolver = "2"
 
 [workspace.package]

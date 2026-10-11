@@ -5,6 +5,11 @@ venv/
 __pycache__/
 *.pyc
 native/target/
+native/crates/formweb-render/target/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/binaries/*
+!src-tauri/binaries/.gitkeep
 backend/data/
 .env
 .env.*

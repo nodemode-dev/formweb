@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.4.2",
- "previous": "0.4.1",
+ "version": "0.5.0",
+ "previous": "0.4.2",
  "date": "2026-10-11",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Agent skills rebuilt (fifteen harness specialists, formweb-editing, formweb-skillset); brand kit (FW-066) closed, 69.5 to 70.5 of 79.",
+ "release_note": "Family wgpu renderer and Tauri desktop shell (phase 9 of 9). No grade moved; 70.5 of 79.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.4.2, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.5.0, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -5239,21 +5239,36 @@
     "FW-078": "full"
    },
    "note": "MCP readability for Claude Code, Codex and Cursor; page passwords closed."
+  },
+  {
+   "version": "0.4.2",
+   "date": "2026-10-11",
+   "same_as": "0.3.0",
+   "moved": {
+    "FW-074": "full",
+    "FW-076": "partial",
+    "FW-077": "full",
+    "FW-079": "full",
+    "FW-068": "full",
+    "FW-078": "full",
+    "FW-066": "full"
+   },
+   "note": "Agent skills rebuilt; brand kit closed."
   }
  ],
  "changes": [
   [
-   "FW-066 Brand kit (logos, colors, fonts): None to Full",
-   "Tokens only; no named brand colors, fonts or logos and no picker",
-   "Brand kit dialog saving brand colors and fonts as design tokens plus two logos; brand values offered in the inspector's color and font fields"
+   "GPU renderer (no parity row)",
+   "None",
+   "wgpu renderer for page thumbnails, an overview minimap and release pixel diffs, with an identical CPU path; ./formweb render"
   ],
   [
-   "Agent skills (no parity row)",
-   "One harness with six specialists; no single-edit or source-development skill",
-   "Fifteen specialists each mapping MCP, CLI and editor surfaces; formweb-editing and formweb-skillset added to match formvis and formlit"
+   "Desktop app (no parity row)",
+   "Browser only",
+   "Tauri 2 desktop window around the editor that starts and stops the local service; ./formweb desktop"
   ]
  ],
- "closed_note": "v0.4.2 closed one more of the 14 rows added in v0.3.0 (seven so far). Still open: brand check, prompt-to-site, AI copy and images, background removal, stock library, shared team library; embeds stay partial; hosting and payments stay operationally partial.",
+ "closed_note": "v0.5.0 closed no row: it finished the nine planned phases. Seven of the 14 rows added in v0.3.0 are closed. Still open: brand check, prompt-to-site, AI copy and images, background removal, stock library, shared team library; embeds stay partial; hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
@@ -5371,10 +5386,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.4.2 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.0 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.4.2 is phase 8 of 9 (agent skills) and closes the brand kit, None to Full: 69.5 to 70.5 of 79. The grade was set from an executed browser run, described in the row's observation.",
+  "changes": "v0.5.0 is phase 9 of 9 (the family GPU renderer and the desktop shell). No parity row changed grade, so the score stays at 70.5 of 79; the table lists the work that has no parity row.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5395,6 +5410,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 11 October 2026 from FormWeb 0.4.2 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 11 October 2026 from FormWeb 0.5.0 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

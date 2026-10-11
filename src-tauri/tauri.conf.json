@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "formweb",
+  "version": "0.5.0",
+  "identifier": "ai.nodemode.formweb",
+  "build": {
+    "frontendDist": "../frontend/dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "DeveloperTool",
+    "shortDescription": "Visual website builder",
+    "longDescription": "FormWeb is the form family's visual website builder: a Rust document engine, a local FastAPI service with MCP for agents, and an editor that exports plain HTML, CSS and JavaScript.",
+    "copyright": "Copyright 2026 nodemode-ai.",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.png"],
+    "fileAssociations": [
+      { "ext": ["fweb"], "name": "FormWeb Project", "description": "FormWeb editable website project", "role": "Editor", "mimeType": "application/x-formweb" }
+    ]
+  }
+}

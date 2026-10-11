@@ -17,6 +17,8 @@ FormWeb is one document engine with several faces. The Rust engine owns every si
 | Service | `backend/app/` | `main.py` routes and middleware, `service.py` studio, `substrate.py`, `terminal.py`, `passwords.py`, `releases.py` |
 | MCP | `backend/app/mcp_catalog.py`, `mcp_domains.py`, `mcp_server.py`, `advanced_catalog.py` | Tools, domain tools, resources, prompts, instructions |
 | Editor | `frontend/src/main.ts`, `ui/`, `features/`, `styles/` | Command registry, menus, rail, panels, canvas |
+| Renderer | `native/crates/formweb-render/` (own workspace) | wgpu thumbnails, minimap, release diffs, CPU fallback; `./formweb render` |
+| Desktop shell | `src-tauri/` (own workspace) | Tauri 2 window, starts and stops `formweb serve`, renderer commands; `./formweb desktop` |
 | Launcher | `formweb`, `formweb.bat`, `setup/` | install, boot, mcp, run, agents, comparisons, doctor |
 | Parity | `docs/comparisons/data/formweb-parity.json`, `setup/comparisons.py` | Per-release grades and the family-format page |
 

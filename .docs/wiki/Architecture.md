@@ -13,6 +13,8 @@ The Rust engine is the single owner of site state. The editor, MCP tools and HTT
 | Agent skills | `.claude/skills/formweb-harness/` | Ordered website authoring workflows through MCP |
 | Agent substrate | `backend/app/substrate.py` | One command surface (catalogue, dispatch, attributed events) behind REST, MCP, `./formweb run` and the terminal; approvals; the external-substrate adapter |
 | Live terminal | `backend/app/terminal.py`, `frontend/src/features/terminal.ts` | Owner-only pseudo-terminal in the FormWeb folder over a loopback WebSocket, while Agents is on |
+| GPU renderer | `native/crates/formweb-render/` | Family wgpu renderer (own workspace and lockfile): area-averaged thumbnails, minimap with a viewport outline, release pixel diffs, a CPU path with identical results, `./formweb render` |
+| Desktop shell | `src-tauri/` | Tauri 2 window around the editor on 127.0.0.1:8240; starts `./formweb serve` when nothing answers and stops it on exit; exposes the renderer as `render_probe`, `render_thumbnail` and `render_diff`; `./formweb desktop` |
 | Agent Connect | `frontend/src/features/agent-connect.ts`, `backend/app/clients.py` | MCP switch, client cards, approvals, identity and the attributed activity feed |
 
 The process shell is `native/target/release/formweb-core` (`.exe` on Windows). `setup/install_core` compiles it. `backend/app/engine.py` serializes access to one process and retains the latest acknowledged state for restart recovery. An unacknowledged request is not reported as successful.

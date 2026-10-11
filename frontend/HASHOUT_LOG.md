@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Desktop shell · v0.5.0
+
+No editor change. In the Tauri shell the same built editor runs in WebKitGTK, WebKit or WebView2; `withGlobalTauri` exposes `window.__TAURI__.core.invoke('render_probe' | 'render_thumbnail' | 'render_diff', ...)` for pages that want the GPU renderer, and `capabilities/default.json` grants it only to `http://127.0.0.1:8240/*`. The browser build ignores it.
+
 ## Brand kit · v0.4.2
 
 `features/brand-kit.ts` (dialog `brand`, command `window.brand`, rail item) reads the kit from the document itself: typed color tokens named `brand-[name]`, typed text tokens named `brand-font-[name]`, and settings `brandLogo` and `brandLogoDark`. Adding uses `token.define`; removing sends `token.set` null plus `extension.set` of the design group without that token, as one batch and one undo. Rows are `keyed()` (a removal changed one node in the mutation check). The brand picker is two body-level datalists (`fw-brand-colors`, `fw-brand-fonts`) wired to the color, background, border-color and font-family style inputs through `list`; their options are keyed and refreshed from `update()`. Logo uploads reuse `mediaInput` with modes `brandLogo` and `brandLogoDark`; Insert closes the dialog and inserts an image at its natural size. An empty logo slot keeps its grid cell with `data-empty` rather than `hidden`.

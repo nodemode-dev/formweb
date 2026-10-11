@@ -1,0 +1,8 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The editor talks HTTP to its local FormWeb service; through Tauri it asks the shell for the GPU renderer (probe, thumbnail, diff).",
+  "windows": ["main"],
+  "remote": { "urls": ["http://127.0.0.1:8240/*"] },
+  "permissions": ["core:default"]
+}

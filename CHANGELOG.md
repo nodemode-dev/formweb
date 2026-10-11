@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 · 2026-10-11
+
+Phase 9 of 9: the family GPU renderer and the desktop shell. No parity row moved this release (70.5 of 79).
+
+- `native/crates/formweb-render` (wgpu 30, own workspace): area-averaged thumbnails of page captures, a minimap with the viewport outlined, and pixel diffs between two release captures (heatmap plus changed share). A memory budget and the adapter's texture limit decide GPU or CPU; the CPU path gives the same pixels. `./formweb render probe | thumb | diff` prints JSON.
+- `src-tauri`: a Tauri 2 desktop window around the editor, matching formvis and formlit. It opens the running service or starts `./formweb serve` itself, stops it when the window closes, and exposes the renderer to the page. `./formweb desktop` runs it from the FormWeb folder.
+- Not yet: a frozen backend sidecar for packaged installers, platform icons (.icns, .ico), and editor panels that use thumbnails and release diffs.
+
 ## 0.4.2 · 2026-10-11
 
 Phase 8 of 9: agent skills. Plus FW-066 brand kit, None to Full (69.5 to 70.5 of 79).

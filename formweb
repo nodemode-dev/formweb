@@ -18,6 +18,13 @@ case "$cmd" in
   agents) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/agents.py "$@" ;;
   comparisons) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/comparisons.py "$@" ;;
   run) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/run.py "$@" ;;
+  render) source setup/lib.sh
+    bin="native/crates/formweb-render/target/release/formweb-render"
+    if [ ! -x "$bin" ]; then fw_say 'building the GPU renderer (first use)' >&2; "$FORMWEB_CARGO" build --release --manifest-path native/crates/formweb-render/Cargo.toml >&2; fi
+    exec "$bin" "$@" ;;
+  desktop) source setup/lib.sh
+    [ -f frontend/dist/index.html ] || { fw_say 'run ./formweb build first; the desktop shell serves the built editor' >&2; exit 1; }
+    FORMWEB_ROOT="$PWD" exec "$FORMWEB_CARGO" run --manifest-path src-tauri/Cargo.toml "$@" ;;
   doctor) exec setup/doctor "$@" ;;
   help|-h|--help)
     cat <<'HELP'
@@ -41,6 +48,8 @@ Usage: ./formweb COMMAND
   comparisons build   render the family-format page from docs/comparisons/data (--check, --json)
   comparisons embed  add the release comparison to the matrix (--check, --json)
   run COMMAND [k=v]   apply one engine command to the open site (--list, --json)
+  render probe        GPU renderer: adapter and budget; also thumb IN OUT, diff A B OUT (JSON)
+  desktop             open the Tauri desktop shell (starts ./formweb serve if needed)
   doctor             inspect tools, installs and service ports
   help                this message
 

@@ -111,6 +111,25 @@ Pip 25.0.1 is installer tooling under MIT, not an application runtime dependency
 
 Backend texts live under `legal/third-party/python/<distribution>-<version>/`. httptools includes vendor HTTP parser and llhttp notices, retained in their supplied nested paths. cryptography supplies Apache and BSD texts, both retained. typing_extensions supplies the PSF license text. uvloop's supplied Apache and MIT texts are both retained. The full set of native libraries embedded inside Python wheels was not separately reverse-engineered; a later frozen sidecar or binary release requires another packaging audit.
 
+## GPU renderer and desktop shell (optional native builds)
+
+`native/crates/formweb-render` and `src-tauri` are optional: neither is part of `./formweb install`, and neither ships a binary in the source archive. Each has its own `Cargo.lock`. Direct dependencies, read from `cargo metadata` on 2026-10-11:
+
+| Package | Version | License expression | Used by |
+| --- | --- | --- | --- |
+| wgpu | 30.0.1 | MIT OR Apache-2.0 | renderer |
+| pollster | 1.0.1 | Apache-2.0/MIT | renderer |
+| bytemuck | 1.25.2 | Zlib OR Apache-2.0 OR MIT | renderer |
+| sysinfo | 0.39.6 | MIT | renderer |
+| png | 0.18.1 | MIT OR Apache-2.0 | renderer |
+| tauri | 2.12.3 | Apache-2.0 OR MIT | desktop shell |
+| tauri-build | 2.7.2 | Apache-2.0 OR MIT | desktop shell (build) |
+| tauri-plugin-shell | 2.5.0 | Apache-2.0 OR MIT | desktop shell |
+| tauri-plugin-dialog | 2.8.2 | Apache-2.0 OR MIT | desktop shell |
+| serde, serde_json | 1.0.229, 1.0.154 | MIT OR Apache-2.0 | desktop shell |
+
+The shell's full resolution is 483 registry packages, overwhelmingly MIT and/or Apache-2.0 (also Zlib, Unlicense OR MIT, and Unicode-3.0 for the ICU data crates). Five are MPL-2.0 (cssparser, cssparser-macros, dtoa-short, option-ext and selectors, pulled in by Tauri's tooling); they are used unmodified. On Linux the shell links the system WebKitGTK and GTK libraries (LGPL), which are not bundled. Their license texts are not yet copied into `legal/third-party/`: that audit is required before any packaged desktop release, alongside the frozen backend sidecar audit noted above.
+
 ## License text integrity
 
 The preserved legal texts were copied byte-for-byte from installed upstream packages. The planning sidecar's dependency audit records SHA-256 hashes and source provenance for the inspected texts. Do not remove notices while shrinking archives, and do not modify upstream MPL files. Future package changes need an updated inventory and matching legal texts.

@@ -17,6 +17,8 @@ if /i "%FORMWEB_COMMAND%"=="mcp" goto mcp
 if /i "%FORMWEB_COMMAND%"=="agents" goto agents
 if /i "%FORMWEB_COMMAND%"=="comparisons" goto comparisons
 if /i "%FORMWEB_COMMAND%"=="run" goto run
+if /i "%FORMWEB_COMMAND%"=="render" goto render
+if /i "%FORMWEB_COMMAND%"=="desktop" goto desktop
 if /i "%FORMWEB_COMMAND%"=="doctor" goto doctor
 if /i "%FORMWEB_COMMAND%"=="help" goto help
 if /i "%FORMWEB_COMMAND%"=="--help" goto help
@@ -61,9 +63,18 @@ exit /b %errorlevel%
 :run
 backend\venv\Scripts\python.exe setup\run.py %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %errorlevel%
+:render
+if not exist native\crates\formweb-render\target\release\formweb-render.exe cargo build --release --manifest-path native\crates\formweb-render\Cargo.toml
+native\crates\formweb-render\target\release\formweb-render.exe %2 %3 %4 %5 %6 %7 %8 %9
+exit /b %errorlevel%
+:desktop
+if not exist frontend\dist\index.html (echo [formweb] run formweb.bat build first & exit /b 1)
+set FORMWEB_ROOT=%CD%
+cargo run --manifest-path src-tauri\Cargo.toml
+exit /b %errorlevel%
 :doctor
 call setup\doctor.bat
 exit /b %errorlevel%
 :help
-echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, comparisons status, comparisons build, comparisons embed, run, doctor
+echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, comparisons status, comparisons build, comparisons embed, run, render, desktop, doctor
 exit /b 0

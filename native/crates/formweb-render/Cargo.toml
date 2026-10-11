@@ -1,0 +1,23 @@
+[package]
+name = "formweb-render"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "FormWeb's family GPU renderer: page thumbnails, the overview minimap and release pixel diffs on wgpu, with a CPU fallback"
+publish = false
+
+# Kept out of the engine workspace (see native/Cargo.toml exclude) so the document engine builds without a GPU stack.
+[workspace]
+
+[dependencies]
+wgpu = "30"
+pollster = "1"
+bytemuck = { version = "1", features = ["derive"] }
+sysinfo = { version = "0.39", default-features = false, features = ["system"] }
+png = "0.18"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+strip = true
