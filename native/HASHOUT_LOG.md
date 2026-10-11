@@ -1,5 +1,9 @@
 # Native engine decisions
 
+## Per-site hidden scrollbars · v0.3.1
+
+`formweb-export` `stylesheet()` appends `*{scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}` when `site.settings.hideScrollbars` is the string "true". Settings already travel through `site.update` and `merge_strings`, so no engine command changed; `route_styles::base` clones the site with settings intact, so Preview, export and publish all honor it. Off by default; existing projects export byte-identical CSS.
+
 ## Authority and dependency boundary
 
 Rust owns the document, command history, validation and deterministic exports. Python owns process supervision, persistence, ZIP packaging, local publication and MCP. Both UI and agents operate on the same core. Four crates keep the process shell thin and the model independent. Direct dependencies are serde, serde_json, getrandom and sha2, with exact resolved versions and transitive dependencies retained in Cargo.lock. getrandom 0.4.3 supplies cross-platform OS entropy and is MIT OR Apache-2.0 ([official documentation](https://docs.rs/getrandom/0.4.3/getrandom/)). sha2 0.11.0 verifies actual source and compiled code digests and is MIT OR Apache-2.0 ([official crate documentation](https://docs.rs/sha2/0.11.0/sha2/)). Workspace code uses Apache-2.0.

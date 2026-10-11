@@ -64,6 +64,7 @@ fn stylesheet(site: &Site) -> String {
     let mut css = String::from("*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0}img,video{max-width:100%}button,input,select,textarea{font:inherit}a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid currentColor;outline-offset:4px}.fw-skip{position:fixed;top:8px;left:8px;transform:translateY(-160%);padding:12px;background:#fff;color:#111}.fw-skip:focus{transform:none}.fw-form-status{min-height:1.5em}\n:root{");
     for (key, value) in &site.tokens { css.push_str(&format!("--{}:{};", key.trim_start_matches("--"), value)); }
     css.push_str("}\n");
+    if site.settings.get("hideScrollbars").map(String::as_str) == Some("true") { css.push_str("*{scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}\n"); }
     for node in site.nodes.values() {
         let mut styles = node.styles.clone();
         for bp in site.breakpoints.iter().filter(|b| b.max_width == 100000) {
