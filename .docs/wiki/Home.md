@@ -12,9 +12,9 @@ Release version: 0.3.1. Author: nodemode-ai. The repository README and changelog
 | MCP | 61 official SDK tools and 13 resources over HTTP and stdio, with attributed project roles |
 | Hosting | Versioned local publication; no external hosting account provisioned |
 | Desktop | Browser application; no native desktop bundles claimed |
-| Vendor parity | Retained acceptance is in `docs/PARITY_v0.2.0.md`; current family HTML and patch observations are linked from `docs/RELEASE_v0.2.1.md` |
+| Vendor parity | `docs/comparisons/FormWeb-Parity_v0.3.0.html` (Framer, Webflow, Adobe Express, Canva) and the FormAI matrix beside it; research, audits and verification records ship in the planning sidecar |
 
-Start with [[Getting-Started]], then [[Architecture]]. Subsystem contracts are in [[Engine]], [[Advanced-Studio]], [[Agents-and-MCP]], [[Project-Format]] and [[Publishing]]. Contributor operations are in [[Development-Workflow]], [[Verification]] and [[Releasing]]. The [harness quickstart](../../docs/harness/QUICKSTART.md) connects the operating skill with real MCP; the [Studio guide](../../frontend/ADVANCED_GUIDE.md) describes the consuming editor workflows.
+Start with [[Getting-Started]], then [[Architecture]]. Subsystem contracts are in [[Engine]], [[Advanced-Studio]], [[Agents-and-MCP]], [[Project-Format]] and [[Publishing]]. Contributor operations are in [[Development-Workflow]], [[Verification]] and [[Releasing]]. The [agent quick start](../../docs/AGENT_QUICKSTART.md) connects the operating skill with real MCP; the [Studio guide](../../docs/ADVANCED_GUIDE.md) describes the consuming editor workflows.
 
 The source of truth for the wiki is `.docs/wiki/` in this code repository. Edit these files in a reviewed change. A GitHub wiki is a separate publishing target and may not exist yet. Once the owner initializes it, the manual `wiki` workflow copies the reviewed Markdown, commits as nodemode-ai and pushes the wiki repository. The local build has not published this wiki.
 

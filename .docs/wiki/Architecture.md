@@ -22,4 +22,4 @@ Document behavior belongs in Rust. Backend code owns filesystem/network service 
 
 Use stable ids, explicit revision checks for edits based on a read, and atomic batches when a group of changes must undo together. A rejected operation leaves the prior state, revision and history unchanged. Extend MCP using the same service path as the editor, and update the harness workflow if the tool contract changes.
 
-New features are modules at the existing layer seams. Read the layer's HASHOUT_LOG before editing. Planning documents are delivered separately, while subsystem logs remain beside their code.
+New features are modules at the existing layer seams. Read `frontend/HASHOUT_LOG.md` or `backend/HASHOUT_LOG.md` before editing those layers; for the Rust engine read [[Engine]] and the sidecar's native log. As in formvis and formlit, planning documents, the root log and evidence ship in the planning sidecar, and only the frontend and backend logs stay in the tree.

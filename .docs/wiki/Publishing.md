@@ -33,7 +33,7 @@ Studio's inbox, CSV, retention and signed-delivery controls consume the persiste
 
 Provider status exposes configured adapters and missing environment names. Deployment and domain workflows return actual transport and verification status. A submitted/queued response or local fixture does not establish live vendor hosting, domain/TLS/CDN readiness or completed payment processing. Commerce uses the configured catalogue/hosted-checkout/signed-order adapter; independent vendor verification remains necessary. Credentials stay outside the site and static files.
 
-The [advanced Studio map](Advanced-Studio.md), [frontend guide](../../frontend/ADVANCED_GUIDE.md) and [harness quick start](../../docs/harness/QUICKSTART.md) describe the consuming paths. [Verification](Verification.md) records observed behavior and its limits.
+The [advanced Studio map](Advanced-Studio.md), [Studio guide](../../docs/ADVANCED_GUIDE.md) and [agent quick start](../../docs/AGENT_QUICKSTART.md) describe the consuming paths. [Verification](Verification.md) records observed behavior and its limits.
 
 ## Contract
 

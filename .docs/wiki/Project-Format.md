@@ -20,7 +20,7 @@ A page names its root node and carries `seo.title`, `seo.description` and option
 
 Default breakpoints are desktop, tablet (991 px) and mobile (767 px). The responsive preview uses these same profiles. Stored overrides must be consumed by exported CSS.
 
-Collections contain typed scalar and relation fields and items with id, slug, values and status. CMS extensions hold selected bindings, list queries, templates and localized item overrides. Locales and localization extensions supply translated strings, media and routes. Behavior extensions add pointer/focus states, actions, conditions, multi-target timelines and accessible overlays. The [Studio guide](../../frontend/ADVANCED_GUIDE.md) contains the actual contracts; unsupported fields fail whole-document validation rather than silently becoming inert metadata.
+Collections contain typed scalar and relation fields and items with id, slug, values and status. CMS extensions hold selected bindings, list queries, templates and localized item overrides. Locales and localization extensions supply translated strings, media and routes. Behavior extensions add pointer/focus states, actions, conditions, multi-target timelines and accessible overlays. The [Studio guide](../../docs/ADVANCED_GUIDE.md) contains the actual contracts; unsupported fields fail whole-document validation rather than silently becoming inert metadata.
 
 ## Persistence contract
 

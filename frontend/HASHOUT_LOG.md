@@ -30,7 +30,7 @@
 | `src/features/providers.ts` | Configured adapter transport, proposals, commerce and membership |
 | `src/features/code.ts` | Explicit code compilation, digest manifest and host installation |
 | `src/features/runtime-preview.ts` | Persistent isolated compiled-runtime iframe slots |
-| `ADVANCED_GUIDE.md` | Exact advanced UI flows and schemas |
+| `../docs/ADVANCED_GUIDE.md` | Exact advanced UI flows and schemas (moved from frontend/ in v0.3.2) |
 | `src/styles/tokens.css` | Themes, spacing and sole stacking registry |
 | `src/styles/app.css` | Studio layout and reserved panels |
 | `src/styles/features.css` | Reserved advanced Studio panes and compiled preview |

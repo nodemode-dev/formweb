@@ -19,7 +19,7 @@ The default data folder is `backend/data`. Configure `FORMWEB_DATA_DIR` in `back
 
 Open **Studio** in the menu for advanced authoring and service workflows. Choose a category, review its example using the current element/locale, then run the operation. The result panel shows the actual engine revision or service response. JSON editors are parsed locally and validated by Rust or the service. Pending Studio input remains mounted during live updates.
 
-**Load current configuration** reads a persisted extension group before editing it; saving that group replaces it. Dedicated state, timeline, overlay, media, route, widget and experiment workflows merge their own entry into current configuration. Use IDs from the inspector or returned service lists. [The advanced guide](../frontend/ADVANCED_GUIDE.md) provides exact schemas and worked examples.
+**Load current configuration** reads a persisted extension group before editing it; saving that group replaces it. Dedicated state, timeline, overlay, media, route, widget and experiment workflows merge their own entry into current configuration. Use IDs from the inspector or returned service lists. [The advanced guide](ADVANCED_GUIDE.md) provides exact schemas and worked examples.
 
 ## Pages and elements
 
@@ -91,4 +91,4 @@ Agent access defaults off. `FORMWEB_AGENTS=1` is available for a deliberately co
 
 ## Current boundaries
 
-The browser application defaults to local authoring and persisted services. External adapters require server configuration and independent transport/vendor verification; a fixture response or saved binding does not prove public hosting, domain/TLS/CDN readiness or completed payment processing. Collaboration uses branches, review, roles and presence rather than simultaneous character-level co-editing. Native desktop bundles are outside this delivery. See [PARITY.md](PARITY.md) for evidence grades, [VERIFICATION.md](VERIFICATION.md) for observations and the [harness quick start](harness/QUICKSTART.md) for agent workflows.
+The browser application defaults to local authoring and persisted services. External adapters require server configuration and independent transport/vendor verification; a fixture response or saved binding does not prove public hosting, domain/TLS/CDN readiness or completed payment processing. Collaboration uses branches, review, roles and presence rather than simultaneous character-level co-editing. Native desktop bundles are outside this delivery. See the [comparison](comparisons/FormWeb-Parity_v0.3.0.html) for evidence grades and the [agent quick start](AGENT_QUICKSTART.md) for agent workflows; verification records ship in the planning sidecar.

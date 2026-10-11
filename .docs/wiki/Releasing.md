@@ -8,7 +8,7 @@ A release contains the complete source repository, actual Git history, a separat
 | `formweb_planning_docs_sidecar_vX.Y.Z.zip` | `formweb_planning_docs_sidecar/` |
 | Standalone harness when supplied | `formweb-harness/` |
 
-The planning sidecar contains DEV_PLAN, BUILD_NOTES, TEST_PLAN, root HASHOUT_LOG, dev-wise and research/comparison evidence. Subsystem HASHOUT_LOG files and `docs/PARITY.md` stay in the source repository. The full source archive excludes `venv`, `node_modules`, `target`, `dist`, `.env`, databases, cache and generated project output.
+The planning sidecar contains DEV_PLAN, BUILD_NOTES, TEST_PLAN, the root HASHOUT_LOG, dev-wise, research, parity audits, verification records and observation data. As in formvis and formlit, the source repository keeps only `frontend/HASHOUT_LOG.md` and `backend/HASHOUT_LOG.md`, user guides in `docs/`, and the current comparison in `docs/comparisons/` (refreshed with `./formweb comparisons embed`). The full source archive excludes `venv`, `node_modules`, `target`, `dist`, `.env`, databases, cache and generated project output.
 
 Before the final version commit, build all three layers, inspect actual editor behavior and run skill mirror checks. Update the release manual, README, changelog, parity and wiki status. Then change the Rust workspace version, backend version, frontend package/lockfile/version module and other explicit version references by hand. Make the version bump the last coherent commit.
 

@@ -133,4 +133,4 @@ Weighted experiments require explicit analytics consent and two to eight positiv
 
 ## Validation record
 
-Strict TypeScript checking and production bundling are executed during this build. Root owns the independent throttled browser and service verification record in `docs/VERIFICATION.md` and the planning sidecar. No authored tests or persistent test runner are included. This guide describes consuming UI paths; it does not claim every external provider or platform was verified.
+Strict TypeScript checking and production bundling are executed during this build. Root owns the independent throttled browser and service verification records in the planning sidecar. No authored tests or persistent test runner are included. This guide describes consuming UI paths; it does not claim every external provider or platform was verified.

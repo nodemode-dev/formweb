@@ -16,7 +16,7 @@ FormWeb's MCP server uses the official Python SDK. Streamable HTTP and stdio rea
 
 Run `./formweb boot` or `./formweb serve`, enable Agents in the editor, and trust this project in the client. `./formweb agents install` prints the included project configuration paths and launch commands; it does not change user-level configuration. Windows clients should use an absolute `formweb.bat` path and `mcp` argument.
 
-The server exposes 61 tools and 13 resources. The original authoring tools now share the catalog with content portability, library review, form delivery, releases, branches, comments/access, code compilation and provider workflows. `backend/app/advanced_catalog.py` and `backend/app/providers/catalog.py` define the additions. The live `tools/list` and `resources/list` are authoritative; use the [harness quickstart](../../docs/harness/QUICKSTART.md) and [advanced Studio guide](../../frontend/ADVANCED_GUIDE.md) for the actual operation loop.
+The server exposes 61 tools and 13 resources. The original authoring tools now share the catalog with content portability, library review, form delivery, releases, branches, comments/access, code compilation and provider workflows. `backend/app/advanced_catalog.py` and `backend/app/providers/catalog.py` define the additions. The live `tools/list` and `resources/list` are authoritative; use the [agent quick start](../../docs/AGENT_QUICKSTART.md) and [advanced Studio guide](../../docs/ADVANCED_GUIDE.md) for the actual operation loop.
 
 ## Authoring loop
 

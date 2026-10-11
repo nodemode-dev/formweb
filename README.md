@@ -18,7 +18,7 @@ FormWeb is the Form family's visual website builder, researched against Framer &
 - **Projects & teams.** SQLite autosave, portable `.fweb` history/assets, isolated review branches, comments, roles, presence & attributed operations.
 - **Publishing & forms.** Immutable local releases, promotion/rollback, redirects, inbox/retention, constraints, tracking & durable signed webhook delivery.
 - **Connected services.** Configurable deployment/domain, translation, fetch & commerce adapters; separate visitor membership, consented analytics & experiments. Provider credentials stay on the server.
-- **Agents & evidence.** Real official-SDK MCP, shared role checks & revision authority. Start w/ the [harness quickstart](docs/harness/QUICKSTART.md), [65-row catalog](docs/FRAMER_WEBFLOW_RESEARCH.md), [retained coverage audit](docs/PARITY_v0.2.0.md), [current four-vendor comparison](docs/comparisons/FormWeb-Parity_v0.3.0.html), [consolidated matrix](docs/comparisons/FormAI-Parity-Matrix-consolidated.html) & [patch verification](docs/RELEASE_v0.2.1.md).
+- **Agents & evidence.** Real official-SDK MCP, shared role checks & revision authority. Start w/ the [agent quick start](docs/AGENT_QUICKSTART.md), the [four-vendor comparison](docs/comparisons/FormWeb-Parity_v0.3.0.html) & the [consolidated matrix](docs/comparisons/FormAI-Parity-Matrix-consolidated.html). Research, audits & verification records ship in the release's planning sidecar.
 
 ## Quick Start
 
@@ -60,7 +60,7 @@ Windows launchers are supplied but have not been run on Windows in this build. F
 
 ## Configuration
 
-Copy `backend/.env.example` to `backend/.env` when configuration is needed. Merge only the required provider names from `backend/.env.providers.example`; see [provider configuration](docs/PROVIDER_RESEARCH_v0.2.0.md), [signed delivery](docs/SERVICE_DELIVERY.md) & [code builds](docs/CODE_COMPONENTS.md). Restart after changing server settings. Never commit credentials.
+Copy `backend/.env.example` to `backend/.env` when configuration is needed. Merge only the required provider names from `backend/.env.providers.example`; see [signed delivery](docs/SERVICE_DELIVERY.md) & [code builds](docs/CODE_COMPONENTS.md). Restart after changing server settings. Never commit credentials.
 
 | Variable | Purpose |
 | --- | --- |
@@ -89,7 +89,7 @@ Copy `backend/.env.example` to `backend/.env` when configuration is needed. Merg
 
 ## Limits
 
-The advanced Studio covers authoring, runtime, collaboration & service workflows described in the [Studio guide](frontend/ADVANCED_GUIDE.md). Provider adapters require configured server credentials; fixture observations do not establish live domain/TLS/CDN operation or completed payments. Hosted checkout delegates payment, shipping & taxes to the configured provider. Gated content requires the authorizing backend & is rejected from public static exports. Exported forms require a reachable service. Windows, native desktop bundles & automatic skill activation remain unverified. Versioned parity records distinguish implemented workflows from these operational boundaries.
+The advanced Studio covers authoring, runtime, collaboration & service workflows described in the [Studio guide](docs/ADVANCED_GUIDE.md). Provider adapters require configured server credentials; fixture observations do not establish live domain/TLS/CDN operation or completed payments. Hosted checkout delegates payment, shipping & taxes to the configured provider. Gated content requires the authorizing backend & is rejected from public static exports. Exported forms require a reachable service. Windows, native desktop bundles & automatic skill activation remain unverified. Versioned parity records distinguish implemented workflows from these operational boundaries.
 
 ## Development
 

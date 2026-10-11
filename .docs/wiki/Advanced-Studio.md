@@ -30,7 +30,7 @@ The browser renders the latest camelCase Rust state; it does not reconstruct a s
 | Runtime | behaviors nodes/states/conditions/actions/timelines/overlays; forms constraints/tracking/messages/redirect |
 | Integrations/code | Public integrations widgets/gates/experiments; digest-validated code definitions/instances |
 
-Site.extensions uses validated namespaced groups. extension.set replaces one group transactionally. **Load current configuration** preserves the existing group before editing; dedicated entry workflows merge their own entry into current state. Source targets and instance IDs are distinct. Reference fields require a target collection and valid item IDs. The authoritative [native schema](../../native/ADVANCED_SCHEMA.md) and [frontend guide](../../frontend/ADVANCED_GUIDE.md) provide exact examples.
+Site.extensions uses validated namespaced groups. extension.set replaces one group transactionally. **Load current configuration** preserves the existing group before editing; dedicated entry workflows merge their own entry into current state. Source targets and instance IDs are distinct. Reference fields require a target collection and valid item IDs. The authoritative [native schema](../../docs/ADVANCED_SCHEMA.md) and [Studio guide](../../docs/ADVANCED_GUIDE.md) provide exact examples.
 
 ## Service contracts and workflow order
 
@@ -48,4 +48,4 @@ A stored extension establishes configuration. Compiled Preview/export establishe
 
 The design canvas remains a script-free editing surface. Advanced CMS templates/queries/widgets are inspected in compiled Preview. Final visitor-cookie behavior should be exercised in a top-level local publication. Protected member content requires an authorizing backend; public gated export is rejected.
 
-See the [manual](../../docs/MANUAL.md), [harness quick start](../../docs/harness/QUICKSTART.md), [publishing contracts](Publishing.md) and [verification record](Verification.md). Workflow examples are specifications; root records actual executions and their limits separately.
+See the [manual](../../docs/MANUAL.md), [agent quick start](../../docs/AGENT_QUICKSTART.md), [publishing contracts](Publishing.md) and [verification record](Verification.md). Workflow examples are specifications; root records actual executions and their limits separately.
