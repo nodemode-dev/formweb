@@ -4,6 +4,10 @@ export function element<K extends keyof HTMLElementTagNameMap>(tag: K, className
   node.textContent = text;
   return node;
 }
+export function revealApp(): void {
+  if (document.body.classList.contains('app-ready')) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('app-ready')));
+}
 export function text(node: HTMLElement, value: string): void {
   if (node.textContent !== value) node.textContent = value;
 }

@@ -131,6 +131,4 @@ a { color: var(--accent-text); }
 .help-grid h3 { font-size: 12px; margin: 0 0 var(--space-2); }
 .help-grid p { color: var(--text-secondary); line-height: 1.7; margin: 0; }
 kbd { font: 10px 'SFMono-Regular', Consolas, monospace; color: var(--text-secondary); background: var(--bg-tertiary); border: 1px solid var(--border-color); padding: var(--space) var(--space-2); border-radius: var(--radius-small); }
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: var(--radius-small); }
 @media (max-width: 1100px) { .workspace { grid-template-columns: 216px minmax(0,1fr) 260px; } .topbar { gap: var(--space-3); } .brand-by { display: none; } .project-identity { min-width: 144px; } .toolbar-label { display: none; } .statusbar { grid-template-columns: 216px 1fr auto; } .stage { padding: var(--space-5); } }

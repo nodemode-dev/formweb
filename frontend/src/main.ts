@@ -1,8 +1,9 @@
 import { apiBase, command, commands, connect, download, replace, request, state, subscribe, upload } from './api';
 import type { AuditIssue, Collection, EditorState, Page, SiteNode } from './types';
 import { Canvas } from './ui/canvas';
-import { element, keyed, options, text, value } from './ui/dom';
+import { element, keyed, options, revealApp, text, value } from './ui/dom';
 import { icon, type Icon } from './ui/icons';
+import { THEMES, applyTheme, readChoice, setTheme } from './ui/themes';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import './styles/features.css';
@@ -421,6 +422,13 @@ noindex.addEventListener('change', () => void run(() => pagePatch({ seo: { ...cu
 const noindexLabel = element('label', 'checkbox-field');
 noindexLabel.append(noindex, element('span', '', 'Hide this page from search engines'));
 seoSection.append(seoGrid, noindexLabel, element('p', 'micro', 'Export produces metadata, sitemap.xml and robots.txt. Run Audit for accessibility and SEO issues.'));
+const siteSection = section(pagePane, 'Whole site');
+const hideScrollbars = element('input');
+hideScrollbars.type = 'checkbox';
+hideScrollbars.addEventListener('change', () => void run(() => command('site.update', { patch: { settings: { hideScrollbars: hideScrollbars.checked ? 'true' : 'false' } } })));
+const hideScrollbarsLabel = element('label', 'checkbox-field');
+hideScrollbarsLabel.append(hideScrollbars, element('span', '', 'Hide scrollbars on the published site'));
+siteSection.append(hideScrollbarsLabel, element('p', 'micro', 'Visitors can still scroll with wheel, touch and keyboard. Applies to Preview, export and publish. Agents: site.update with settings.hideScrollbars "true" or "false".'));
 const pageActions = section(pagePane, 'Actions');
 pageActions.append(button('Run site audit', 'check', auditSite), button('Delete page', 'trash', () => openDialog('delete-page'), 'danger'));
 pageActions.lastElementChild?.setAttribute('style', 'margin-left:var(--space-2)');
@@ -550,12 +558,10 @@ const tokenValue = input('#f97316');
 tokenGrid.append(field('New token name', tokenName), field('CSS value', tokenValue));
 tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS custom properties. Use var(--token-name) in element style fields.'), tokensList, tokenGrid, button('Add token', 'plus', () => command('token.set', { name: tokenName.value.trim(), value: tokenValue.value.trim() })));
 const settingsPane = dialogPane('settings');
-const themeSelect = select([{ id: 'dark', name: 'Studio Dark' }, { id: 'light', name: 'Studio Light' }]);
-themeSelect.value = document.documentElement.dataset.theme || 'dark';
-themeSelect.addEventListener('change', () => {
-  document.documentElement.dataset.theme = themeSelect.value;
-  localStorage.setItem('formweb_theme', themeSelect.value);
-});
+applyTheme();
+const themeSelect = select(Object.entries(THEMES).map(([id, profile]) => ({ id, name: profile.label })));
+themeSelect.value = readChoice().theme;
+themeSelect.addEventListener('change', () => setTheme(themeSelect.value));
 const authToken = input('Optional server token');
 authToken.type = 'password';
 authToken.autocomplete = 'off';
@@ -713,6 +719,7 @@ function update(next: EditorState): void {
   downButton.disabled = !parent || parent.children.indexOf(node.id) === parent.children.length - 1;
   deleteNodeButton.disabled = node.id === page.root;
   noindex.checked = !!page.seo.noindex;
+  hideScrollbars.checked = site.settings.hideScrollbars === 'true';
   canvas.render(site, page, selectedId, widths[breakpoint], locale, false);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
   if (dialogMode === 'cms') updateCms();
@@ -720,6 +727,7 @@ function update(next: EditorState): void {
   if (dialogMode === 'tokens') updateTokens();
   setInspector(activeInspector);
   setSidebar(activeSidebar);
+  revealApp();
 }
 
 async function saveProject(): Promise<void> {
@@ -1028,4 +1036,4 @@ void run(async () => {
   agentsEnabled = system.agentsEnabled;
   updateAgents();
   status('Ready. Select an element, or open Insert to add content.');
-});
+}).finally(revealApp);
