@@ -15,6 +15,7 @@ if /i "%FORMWEB_COMMAND%"=="frontend" goto frontend
 if /i "%FORMWEB_COMMAND%"=="serve" goto serve
 if /i "%FORMWEB_COMMAND%"=="mcp" goto mcp
 if /i "%FORMWEB_COMMAND%"=="agents" goto agents
+if /i "%FORMWEB_COMMAND%"=="comparisons" goto comparisons
 if /i "%FORMWEB_COMMAND%"=="doctor" goto doctor
 if /i "%FORMWEB_COMMAND%"=="help" goto help
 if /i "%FORMWEB_COMMAND%"=="--help" goto help
@@ -53,9 +54,12 @@ exit /b %errorlevel%
 :agents
 backend\venv\Scripts\python.exe setup\agents.py %2 %3 %4 %5
 exit /b %errorlevel%
+:comparisons
+backend\venv\Scripts\python.exe setup\comparisons.py %2 %3 %4 %5
+exit /b %errorlevel%
 :doctor
 call setup\doctor.bat
 exit /b %errorlevel%
 :help
-echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, doctor
+echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, comparisons status, comparisons embed, doctor
 exit /b 0
