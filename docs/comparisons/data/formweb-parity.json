@@ -5283,7 +5283,7 @@
    "Full: click-to-load placeholders with an Open on [site] link, site-wide or per embed, and X posts"
   ]
  ],
- "closed_note": "v0.5.1 closed two rows: FW-067 brand restrictions and brand check, and FW-076 embeds. Nine of the 14 rows added in v0.3.0 are closed. Still open: prompt-to-site, AI copy and images, background removal, stock library, shared team library; hosting and payments stay operationally partial.",
+ "closed_note": "v0.5.1 closed two rows: FW-067 brand restrictions and brand check, and FW-076 embeds. Eight of the 14 rows added in v0.3.0 are closed (the v0.5.0 page said seven; it was six). Still open: prompt-to-site, AI copy, AI images, background removal, stock library, shared team library; hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
