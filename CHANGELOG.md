@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.1 · 2026-10-11
+
+Restored the supplied Form family comparison style in both HTML deliverables: grouped color-coded capability lanes, the 65-row evidence table, warm light/dark themes and individual FormWeb, Framer and Webflow percentage tiles. Retained the original catalog, sibling comparisons and v0.2.0 acceptance; competitor documentation percentages are explicitly separate evidence measures.
+
+- Fixed consolidated theme inheritance and added a stable parent theme control.
+- Fixed capability links that navigated the embedded frame, and synchronized its height before scrolling from an empty filter.
+- Bounded malformed provider URL errors and durably marked failed translation reviews instead of leaving them loading.
+- Added comparison acceptance to the validated 14-file harness and mirrored reference.
+- Corrected the stale root VERSION marker and aligned Rust, backend, frontend, MCP and harness versions at 0.2.1.
+
+Locked builds and actual provider/SDK operations passed. All 12 security-enabled throttled Chromium comparison checks passed with zero page errors. Downloaded font glyphs, live hosting/domain/TLS/CDN, completed payments, platform launchers and automatic skill activation remain unverified. See docs/RELEASE_v0.2.1.md and the matching planning sidecar for observations and limits.
+
 ## 0.2.0 · 2026-10-10
 
 Added consuming advanced workflows to the existing Rust, TypeScript/Vite and FastAPI architecture. The immutable 65-target audit now records 63 full and two partial requirements. Real managed hosting/domain/TLS and payment/shipping/tax outcomes remain operationally unverified.
