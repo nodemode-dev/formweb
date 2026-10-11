@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(ROOT / 'backend' / '.env')
-VERSION = '0.3.3'
+VERSION = '0.3.4'
 PORT = int(os.getenv('FORMWEB_PORT', '8240'))
 CORE_BIN = Path(os.getenv('FORMWEB_CORE_BIN', str(ROOT / 'native/target/release' / ('formweb-core.exe' if os.name == 'nt' else 'formweb-core'))))
 DATA_DIR = Path(os.getenv('FORMWEB_DATA_DIR', str(ROOT / 'backend/data'))).resolve()
