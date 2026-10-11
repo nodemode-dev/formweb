@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Inspector segments, reset, selection path, reconnect · v0.3.5
+
+`addSegments()` in main.ts builds one-click groups (`.fw-seg`, `data-style`, buttons with `data-value`) for display, flex-direction, align-items, justify-content, flex-wrap and text-align; `update()` only toggles `is-on` (override at the current breakpoint), `is-inherited` (desktop base value seen from tablet or mobile) and `aria-pressed`, so a click never adds or removes inspector nodes. Clicking the active value writes an empty style, which clears the override. `resetButton()` adds a Reset control to every style field label (`data-reset`), shown only while that field has an override. The stage header gains `.fw-crumbs`, a keyed path from the page root to the selection. `api.reconnect()` replaces the old `location.reload()` after saving Settings: it re-authenticates, reloads state and reopens the SSE stream, keeping selection and layout.
+
 ## One left rail · v0.3.4
 
 The owner saw two minirails: a collapsed left panel turned into an icon strip beside the minirail. The left panel now collapses to nothing (`--left-w: 0px`, sidebar `display: none`), and the rail's Pages and layers and Insert buttons toggle it (`toggleLeft` in main.ts: open on that pane, close if it is already showing). The panel's tab row duplicated those two buttons and became a plain `.fw-panel-title`. The four workspace children carry explicit grid columns, because a `display: none` sidebar otherwise lets auto-placement slide the stage into its column. The right panel keeps its strip, which formvis also has.
