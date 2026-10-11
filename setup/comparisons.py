@@ -111,6 +111,9 @@ def render(data: dict) -> str:
     version, prev = data["version"], data["previous"]
     current = {row["id"]: row["m"][0] for row in data["rows"]}
     snapshots = {**data["grades"], version: current}
+    for item in data["history"]:
+        if item.get("same_as") in snapshots and item["version"] not in snapshots:
+            snapshots[item["version"]] = snapshots[item["same_as"]]
     history = []
     for item in data["history"]:
         grades = snapshots.get(item["version"])

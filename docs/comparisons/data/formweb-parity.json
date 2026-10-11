@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.3.4",
- "previous": "0.3.0",
+ "version": "0.3.5",
+ "previous": "0.3.4",
  "date": "2026-10-11",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Family interface: theme profiles, menus and command search, one left minirail, collapsible panels and sections, workspace presets, hidden scrollbars. This page moves to the family format. No grade moved.",
+ "release_note": "Inspector and canvas UX: segmented style controls with inherited values and per-field reset, a clickable selection path, Settings reconnect without a reload. No grade moved.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.3.4, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.3.5, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -5188,26 +5188,32 @@
    "version": "0.3.0",
    "date": "2026-10-11",
    "note": "Adobe Express and Canva joined the baseline; 14 rows added from their web features, graded None until built."
+  },
+  {
+   "version": "0.3.4",
+   "date": "2026-10-11",
+   "same_as": "0.3.0",
+   "note": "Family interface (theme profiles, menus and command search, one left minirail, collapsible panels and sections, workspace presets, hidden scrollbars) and this page's family format. No grade moved."
   }
  ],
  "changes": [
   [
-   "Interface (no parity row)",
-   "The v0.2.1 editor layout",
-   "Family theme and profiles, menubar and command search, one left minirail, collapsible panels and sections, workspace presets, hidden scrollbars (v0.3.1 to v0.3.4)"
+   "Inspector style controls (no parity row)",
+   "Inherit dropdowns for Display, Direction, Align, Justify, Wrap and Text alignment",
+   "One-click segmented groups showing the override and the inherited value; Reset on every overridden field"
   ],
   [
-   "Hide scrollbars on the published site (no parity row)",
-   "Not offered",
-   "Page inspector > Whole site; the exporter honors settings.hideScrollbars"
+   "Canvas selection (no parity row)",
+   "Page and slug only",
+   "Clickable path from the page root to the selected element"
   ],
   [
-   "This comparison",
-   "Two-lane page with no release history",
-   "Family format with release history, built from data by ./formweb comparisons build"
+   "Settings save (no parity row)",
+   "Full page reload",
+   "Reconnects in place; selection, panels and scroll are kept"
   ]
  ],
- "closed_note": "v0.3.1 to v0.3.4 were interface releases; the 14 rows added in v0.3.0 are scheduled after the nine interface and agent phases.",
+ "closed_note": "v0.3.5 was an interface release; the 14 rows added in v0.3.0 are scheduled after the nine interface and agent phases.",
  "platform": [
   [
    "What it is",
@@ -5325,10 +5331,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.3.4 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.3.5 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.3.1 to v0.3.4 rebuilt the editor around the family interface and moved this page into the family format. No parity row changed grade, so the score is unchanged at 64 of 79; the table also lists the work that has no parity row.",
+  "changes": "v0.3.5 reworked the inspector and canvas header. No parity row changed grade, so the score is unchanged at 64 of 79; the table lists the work that has no parity row.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5349,6 +5355,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 11 October 2026 from FormWeb 0.3.4 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 11 October 2026 from FormWeb 0.3.5 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }
