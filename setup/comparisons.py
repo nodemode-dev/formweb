@@ -57,8 +57,15 @@ def override(version: str, page: str, info: dict) -> str:
     return "\n".join(["  SCORES.web = " + json.dumps(scores, separators=(",", ":")) + ";", meta, "  PAGES.web = " + serialized + ";"])
 
 
+def newest_page_version() -> str | None:
+    found = [m.group(1) for p in FOLDER.glob("FormWeb-Parity_v*.html") if (m := re.fullmatch(r"FormWeb-Parity_v(\d+\.\d+\.\d+)\.html", p.name))]
+    return max(found, key=lambda v: tuple(int(n) for n in v.split("."))) if found else None
+
+
 def run(args) -> dict:
     version = args.version or release_version()
+    if not args.version and not page_path(version).is_file():
+        version = newest_page_version() or version
     source = page_path(version)
     if not source.is_file():
         return {"ok": False, "error": f"missing {source.relative_to(ROOT)}", "hint": "write the release comparison page first"}
@@ -82,7 +89,7 @@ def run(args) -> dict:
 def main() -> int:
     parser = argparse.ArgumentParser(prog="formweb comparisons", description="Release the FormWeb comparison page into the consolidated FormAI matrix.")
     parser.add_argument("command", choices=["status", "embed"], help="status reports whether the matrix carries the release page; embed appends it as the newest web override")
-    parser.add_argument("--version", help="release version to use (default: VERSION file)")
+    parser.add_argument("--version", help="comparison page version (default: the VERSION file, else the newest FormWeb-Parity_v*.html)")
     parser.add_argument("--check", action="store_true", help="with embed: change nothing, exit 1 when the matrix is stale")
     parser.add_argument("--json", action="store_true", help="print one JSON object for agents")
     args = parser.parse_args()
