@@ -8,6 +8,12 @@ The Form family's visual website builder. Rust owns site documents and export; F
 
 ## Skills
 
-`.claude/skills/formweb-harness` operates the running app through MCP. Start at `sub-skills/harness-director/SUB-SKILL.md`; its workflow specialists cover layout, content, interactions, publishing and recovery. `.agents/skills` mirrors the same pack.
+Three skills, mirrored to `.agents/skills` by `./formweb agents sync`:
 
-Route app-operation work through the harness director. For source changes, read `.docs/wiki/Architecture.md` and the release sidecar first; the harness does not authorize source edits. Keep the engine/API/tool catalogue and their documentation consistent.
+| Skill | Use for |
+| --- | --- |
+| `formweb-editing` | Plain-language site edits through MCP: change copy, add a section, fix mobile, publish. Start here for a single request. |
+| `formweb-harness` | Multi-part briefs. Start at `sub-skills/harness-director/SUB-SKILL.md`; fifteen specialists (platform map, site and pages, layout, style and tokens, components, CMS, localization, SEO and accessibility, forms, interactions, release, branch and review, Agent Connect and terminal, recovery) each map MCP tools to the CLI and editor commands. |
+| `formweb-skillset` | Changing FormWeb's source: where things live, the laws, recipes for engine commands, MCP tools and editor commands, and the release checklist. |
+
+The app skills do not authorize source edits. For source changes, load `formweb-skillset` and read `.docs/wiki/Architecture.md` and the release sidecar first. Keep the engine, API and tool catalogue and their documentation consistent.

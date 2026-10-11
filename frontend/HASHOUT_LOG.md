@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Brand kit · v0.4.2
+
+`features/brand-kit.ts` (dialog `brand`, command `window.brand`, rail item) reads the kit from the document itself: typed color tokens named `brand-[name]`, typed text tokens named `brand-font-[name]`, and settings `brandLogo` and `brandLogoDark`. Adding uses `token.define`; removing sends `token.set` null plus `extension.set` of the design group without that token, as one batch and one undo. Rows are `keyed()` (a removal changed one node in the mutation check). The brand picker is two body-level datalists (`fw-brand-colors`, `fw-brand-fonts`) wired to the color, background, border-color and font-family style inputs through `list`; their options are keyed and refreshed from `update()`. Logo uploads reuse `mediaInput` with modes `brandLogo` and `brandLogoDark`; Insert closes the dialog and inserts an image at its natural size. An empty logo slot keeps its grid cell with `data-empty` rather than `hidden`.
+
 ## Selection for agents, page password · v0.4.1
 
 `reportSelection()` posts the selected node to `/api/presence` from `update()` when the selection changes and every 30 s, only while Agents is on, so MCP's `formweb://selection` matches the editor (presence expires after 60 s). The Page inspector gains a Password section (`page.password`, `page.password-remove`, field `page.password`): gates load once per site from `/api/page-passwords`, `gateFor()` mirrors the server's most-specific-route rule, and the home page is labelled as protecting the whole site because `/` covers every route.

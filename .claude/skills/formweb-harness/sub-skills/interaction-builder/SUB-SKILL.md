@@ -1,6 +1,6 @@
 ---
 name: interaction-builder
-description: "Authors FormWeb navigation, interactions, forms and configured runtime widgets for data, commerce, membership and consent. Requires observed browser outcomes and distinguishes local capture, provider fixtures and verified external services."
+description: "Authors FormWeb navigation, interactions and configured runtime widgets for data, commerce, membership and consent (form inbox and delivery belong to forms-operator). Requires observed browser outcomes and distinguishes local capture, provider fixtures and verified external services."
 ---
 
 # Interaction Builder

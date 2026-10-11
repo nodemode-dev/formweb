@@ -1,0 +1,18 @@
+/* Brand kit dialog pane. Rows are keyed; nothing mounts or unmounts except added or removed entries. */
+.fw-brand { display: flex; flex-direction: column; gap: var(--space-2); }
+.fw-brand-title { margin: var(--space-3) 0 0; color: var(--text-muted); font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.fw-brand-list { display: flex; flex-direction: column; gap: 4px; }
+.fw-brand-row, .fw-brand-add, .fw-brand-logo-row { display: grid; align-items: center; gap: var(--space-2); }
+.fw-brand-row { grid-template-columns: 32px minmax(0, 1fr) auto auto; min-height: 32px; }
+.fw-brand-add { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+.fw-brand-logo-row { grid-template-columns: 56px minmax(0, 1fr) auto auto; min-height: 48px; }
+.fw-brand-swatch { width: 28px; height: 28px; min-height: 0; padding: 0; border: 1px solid var(--border-soft); border-radius: 6px; background: var(--surface-1); display: grid; place-items: center; color: var(--text-primary); font-size: 13px; }
+.fw-brand-name { overflow: hidden; color: var(--text-primary); font-size: var(--fs-12); text-overflow: ellipsis; white-space: nowrap; }
+.fw-brand-value { color: var(--text-muted); font-family: var(--font-mono); font-size: var(--fs-11); }
+.fw-brand-label { color: var(--text-secondary); font-size: var(--fs-12); }
+.fw-brand-logo { width: 56px; height: 40px; object-fit: contain; border: 1px solid var(--border-soft); border-radius: 6px; background: #ffffff; }
+.fw-brand-logo.is-dark { background: #111111; }
+.fw-brand-logo[data-empty="true"] { visibility: hidden; }
+.fw-brand button { height: 28px; min-height: 0; padding: 0 var(--space-3); font-size: var(--fs-11); }
+.fw-brand input[type="color"] { width: 100%; height: 28px; padding: 0; }
+.fw-brand .fw-brand-swatch[type="color"] { width: 28px; }

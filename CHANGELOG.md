@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.2 · 2026-10-11
+
+Phase 8 of 9: agent skills. Plus FW-066 brand kit, None to Full (69.5 to 70.5 of 79).
+
+- `formweb-harness` now has fifteen specialists: new platform map, site and pages, style and tokens, components, localization, SEO and accessibility auditor, forms operator, branch and review, and Agent Connect and terminal; content steward became the CMS steward. Every specialist opens with a table mapping each MCP tool to the same action through `./formweb run` or REST and in the editor menus (with command ids). Three new evaluations: acting on the editor selection, a protected members area, and a deletion waiting for approval.
+- New `formweb-editing` skill for plain-language single edits through MCP, and `formweb-skillset` for changing FormWeb's source, matching formvis and formlit. CLAUDE.md and AGENTS.md route to all three.
+- Brand kit (Window > Brand kit, rail): brand colors and fonts saved as design tokens in the site, a logo and a dark-background logo you can insert anywhere, and the Design inspector's color and font fields now suggest brand values. Agents read it from `formweb://tokens`.
+
 ## 0.4.1 · 2026-10-11
 
 Phase 7 of 9: MCP that reads cleanly for Claude Code, Codex and Cursor. Plus FW-078 page passwords, None to Full (68.5 to 69.5 of 79).

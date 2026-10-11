@@ -1,6 +1,6 @@
 # FormWeb development contract
 
-Read CLAUDE.md, the matching planning sidecar and local HASHOUT logs before editing. Keep Rust authoritative for mutations, history, validation and exported sites. All UI and MCP commands call the same engine.
+Read CLAUDE.md, the matching planning sidecar and local HASHOUT logs before editing. Skills: `formweb-skillset` for source changes, `formweb-editing` for single site edits through MCP, `formweb-harness` for multi-part site briefs (all under `.agents/skills`, mirrored from `.claude/skills`). Keep Rust authoritative for mutations, history, validation and exported sites. All UI and MCP commands call the same engine.
 
 Edit existing source one region at a time against current reads. Preserve stable mounted DOM nodes, focus, scroll and reserved async space. Dark theme is applied before first paint. Use inline currentColor SVG icons, named style and z-index tokens, and loopback-only local servers.
 

@@ -10,6 +10,7 @@ import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
 import { TerminalDock } from './features/terminal';
+import { BrandKit, readBrand, type BrandEntry } from './features/brand-kit';
 import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -297,6 +298,7 @@ const rail = new Rail([
   { command: 'window.layers', label: 'Pages and layers', icon: 'layers', active: () => activeSidebar === 'pages' && layout.state.left === 'open' },
   { command: 'window.insert', label: 'Insert', icon: 'plus', active: () => activeSidebar === 'insert' && layout.state.left === 'open' },
   { command: 'window.tokens', label: 'Design system', icon: 'palette' },
+  { command: 'window.brand', label: 'Brand kit', icon: 'image' },
   { command: 'cms.collections', label: 'CMS', icon: 'database' },
   { command: 'cms.locales', label: 'Localization', icon: 'globe' },
   { command: 'window.studio', label: 'Website studio', icon: 'wand' },
@@ -758,6 +760,38 @@ localeControls.append(localeEditingLabel, field('Translations by node ID (JSON o
 localesLayout.append(localesNav, localeControls);
 localesPane.append(localesLayout);
 
+const brandPane = dialogPane('brand');
+const brandKit = new BrandKit({
+  state,
+  commands: batch => commands(batch),
+  pickLogo: dark => { mediaInput.dataset.mode = dark ? 'brandLogoDark' : 'brandLogo'; mediaInput.click(); },
+  insertLogo: async (url, dark) => {
+    closeDialog();
+    const size = await new Promise<{ width: number; height: number }>(resolve => { const probe = new Image(); probe.onload = () => resolve({ width: probe.naturalWidth, height: probe.naturalHeight }); probe.onerror = () => resolve({ width: 0, height: 0 }); probe.src = apiBase && url.startsWith('/') ? apiBase + url : url; });
+    await insertElement('image', { url, name: dark ? 'Brand logo (dark)' : 'Brand logo', width: size.width, height: size.height });
+  },
+  notify: (message, error) => status(message, error),
+  assetUrl: url => apiBase && url.startsWith('/') ? apiBase + url : url
+});
+brandPane.append(brandKit.element);
+// Brand picker: the Design inspector's color and font fields suggest brand tokens through these datalists.
+const brandColorList = element('datalist');
+brandColorList.id = 'fw-brand-colors';
+const brandFontList = element('datalist');
+brandFontList.id = 'fw-brand-fonts';
+document.body.append(brandColorList, brandFontList);
+for (const key of ['color', 'background', 'border-color']) styleFields.get(key)?.setAttribute('list', 'fw-brand-colors');
+styleFields.get('font-family')?.setAttribute('list', 'fw-brand-fonts');
+function updateBrand(next: EditorState): void {
+  const brand = readBrand(next);
+  const fill = (list: HTMLDataListElement, entries: BrandEntry[], label: string) => keyed(list, entries, item => item.token, () => element('option'), (node, item) => {
+    (node as HTMLOptionElement).value = `var(--${item.token})`;
+    (node as HTMLOptionElement).label = `${label} ${item.name} (${item.value.split(',')[0]})`;
+  });
+  fill(brandColorList, brand.colors, 'Brand color');
+  fill(brandFontList, brand.fonts, 'Brand font');
+  if (dialogMode === 'brand') brandKit.update(next);
+}
 const tokensPane = dialogPane('tokens');
 const tokensList = element('div');
 const tokenGrid = element('div', 'form-grid');
@@ -971,6 +1005,7 @@ function update(next: EditorState): void {
   if (dialogMode === 'cms') updateCms();
   if (dialogMode === 'locales') updateLocales();
   if (dialogMode === 'tokens') updateTokens();
+  updateBrand(next);
   setInspector(activeInspector);
   setSidebar(activeSidebar);
   reportSelection();
@@ -1084,7 +1119,7 @@ function openDialog(id: string): void {
   if (!lastState && !['settings', 'help'].includes(id)) return;
   if (scrim.hidden) lastFocus = document.activeElement as HTMLElement;
   dialogMode = id;
-  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
+  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
   text(dialogTitle, titles[id] || id);
   panes.forEach((pane, key) => { pane.hidden = key !== id; });
   const primaryLabels: Record<string, string> = { new: 'Create site', page: 'Add page', bulk: 'Create pages', embed: 'Insert embed', qr: 'Download', publish: 'Publish version', cms: 'Save item', locales: 'Save translations', settings: 'Save & reconnect', 'delete-page': 'Delete page' };
@@ -1098,6 +1133,7 @@ function openDialog(id: string): void {
   if (id === 'cms') { updateCms(); fillCmsItem(); }
   if (id === 'locales') { localeEditing = locale; updateLocales(); fillLocale(); }
   if (id === 'tokens') updateTokens();
+  if (id === 'brand') brandKit.update(state());
   if (id === 'publish') value(publishSlug, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-'));
   if (id === 'qr') value(qrUrl, pageAddress());
   if (id === 'bulk') { options(bulkTemplate, state().site.pages.map(page => ({ id: page.id, name: `${page.name} (${page.slug})` }))); bulkTemplate.value = currentPage().id; text(bulkNote, ''); }
@@ -1307,6 +1343,10 @@ mediaInput.addEventListener('change', () => void run(async () => {
   const asset = await upload(file);
   if (mediaInput.dataset.mode === 'insert') {
     await insertElement('image', { url: asset.url, name: file.name, width: bitmap.width, height: bitmap.height });
+  } else if (mediaInput.dataset.mode === 'brandLogo' || mediaInput.dataset.mode === 'brandLogoDark') {
+    const key = mediaInput.dataset.mode;
+    await command('site.update', { patch: { settings: { [key]: asset.url } } });
+    status(`${key === 'brandLogo' ? 'Brand logo' : 'Dark background logo'} saved in the brand kit.`);
   } else if (mediaInput.dataset.mode === 'favicon' || mediaInput.dataset.mode === 'faviconDark') {
     const key = mediaInput.dataset.mode;
     await command('site.update', { patch: { settings: { [key]: asset.url } } });
@@ -1403,6 +1443,7 @@ registerCommands([
   ...PRESETS.map(preset => ({ id: `workspace.${preset.id}`, label: `${preset.label} workspace`, menu: 'Window', group: 5, run: () => usePreset(preset.id), checked: () => layout.preset === preset.id })),
   { id: 'workspace.reset', label: 'Reset this workspace', menu: 'Window', group: 5, run: () => { layout.resetPreset(); rail.refresh(); } },
   { id: 'window.tokens', label: 'Design system...', menu: 'Window', group: 2, run: () => openDialog('tokens'), enabled: ready },
+  { id: 'window.brand', label: 'Brand kit...', menu: 'Window', group: 2, run: () => openDialog('brand'), enabled: ready },
   { id: 'window.studio', label: 'Website studio...', menu: 'Window', group: 2, run: () => featureStudio.button.click(), enabled: ready },
   { id: 'window.agents', label: 'Agent Connect', menu: 'Window', group: 3, run: () => toggleLeft('agents'), checked: () => activeSidebar === 'agents' && layout.state.left === 'open' },
   { id: 'agents.toggle', label: 'Allow agents (MCP and terminal)', menu: 'Window', group: 3, run: () => agentsButton.click(), checked: () => agentsEnabled },

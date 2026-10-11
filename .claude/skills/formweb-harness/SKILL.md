@@ -1,6 +1,6 @@
 ---
 name: formweb-harness
-description: "Builds and edits websites in FormWeb through its Rust-backed MCP server. Use when a request asks to create, edit, inspect, review or deliver a FormWeb site, including responsive landing pages, portfolios, blogs, CMS sites and forms. Covers page trees, layout, breakpoints, tokens, component props/variants/slots, CMS records, templates and queries, localization, interactions, SEO, accessibility, editable .fweb projects and static export. Coordinates content review, local releases, branches, comments, permissions, form inbox/delivery and configured data, translation, hosting, commerce, membership or analytics providers only when actual tools expose them. Reads current state, applies validated changes, inspects compiled/browser behavior and saves requested deliverables; separates configured, fixture, local and verified external results. Excludes source-code implementation, Framer/Webflow account administration and unsupported hosting or payment claims."
+description: "Builds and edits websites in FormWeb through its Rust-backed MCP server. Use when a request asks to create, edit, inspect, review or deliver a FormWeb site, including responsive landing pages, portfolios, blogs, CMS sites and forms. Covers page trees, layout, breakpoints, tokens, component props/variants/slots, CMS records, templates and queries, localization, interactions, SEO, accessibility, editable .fweb projects, static export and local publish. Coordinates content review, local releases, branches, comments, permissions, form inbox/delivery and configured data, translation, hosting, commerce, membership or analytics providers only when actual tools expose them. Reads current state, applies validated changes, inspects compiled/browser behavior and saves requested deliverables; separates configured, fixture, local and verified external results. Excludes source-code implementation, Framer/Webflow account administration and unsupported hosting or payment claims."
 license: Apache-2.0
 compatibility: "Project skill for Claude Code and other clients with the FormWeb MCP server connected. Requires a running local FormWeb FastAPI service and explicit Agents enablement."
 metadata:
@@ -26,13 +26,24 @@ formweb-harness/
     evaluations.md
     trigger-cases.md
   sub-skills/
-    harness-director/SUB-SKILL.md
-    layout-builder/SUB-SKILL.md
-    content-steward/SUB-SKILL.md
-    interaction-builder/SUB-SKILL.md
-    release-operator/SUB-SKILL.md
-    recovery-auditor/SUB-SKILL.md
+    harness-director/SUB-SKILL.md            broad briefs, plans and routes
+    platform-map/SUB-SKILL.md                how FormWeb is assembled
+    site-and-pages/SUB-SKILL.md              pages, settings, icons, passwords, QR
+    layout-builder/SUB-SKILL.md              page trees, grid and flex, breakpoints
+    style-and-tokens/SUB-SKILL.md            tokens, text presets, breakpoint definitions
+    components/SUB-SKILL.md                  components, libraries, code components
+    cms-steward/SUB-SKILL.md                 collections, records, bindings, queries
+    localization/SUB-SKILL.md                locales, translations, locale routes
+    seo-a11y-auditor/SUB-SKILL.md            audit, metadata, alt text, headings
+    forms-operator/SUB-SKILL.md              forms, inbox, retention, delivery
+    interaction-builder/SUB-SKILL.md         interactions and runtime widgets
+    release-operator/SUB-SKILL.md            save, export, publish, providers
+    branch-and-review/SUB-SKILL.md           branches, merges, comments, release review
+    agent-connect-and-terminal/SUB-SKILL.md  approvals, activity, selection, terminal, CLI
+    recovery-auditor/SUB-SKILL.md            errors, conflicts, interrupted work
 ```
+
+Every specialist opens with a Surfaces table that maps its MCP tools to the CLI or REST call and the editor menu command (with its `data-command` id), so the same action can be done, checked or explained from any of the three.
 
 A specialist-local path resolves from that specialist's folder. A sibling path resolves to the named specialist shown in the map. All named pack-wide references resolve from the pack root. Use forward slashes and open references directly from the body that names them.
 
@@ -41,10 +52,19 @@ A specialist-local path resolves from that specialist's folder. A sibling path r
 | Request | Load |
 | --- | --- |
 | Build a site from a brief, complete several features, or continue broad work | `sub-skills/harness-director/SUB-SKILL.md` |
-| Fix responsive layout, tokens, presets, page structure, reusable props/variants/slots or libraries | `sub-skills/layout-builder/SUB-SKILL.md` |
-| Add CMS records, queries, templates, CSV, localization, translation review or SEO | `sub-skills/content-steward/SUB-SKILL.md` |
-| Author interactions, forms, data widgets, commerce, membership or consent behavior | `sub-skills/interaction-builder/SUB-SKILL.md` |
-| Save/import a native project, export, review branches, deliver forms or release locally/remotely | `sub-skills/release-operator/SUB-SKILL.md` |
+| Learn how FormWeb fits together, which port or file holds what, which transport to use | `sub-skills/platform-map/SUB-SKILL.md` |
+| Add, rename, duplicate, bulk-create or remove pages; site name, icons, hidden scrollbars, page passwords, QR codes | `sub-skills/site-and-pages/SUB-SKILL.md` |
+| Fix responsive layout, page structure, grid or flex, breakpoint overrides, embeds | `sub-skills/layout-builder/SUB-SKILL.md` |
+| Change colors, type scale, spacing tokens, text presets or breakpoint definitions | `sub-skills/style-and-tokens/SUB-SKILL.md` |
+| Reusable components, props, variants, slots, pinned libraries or code components | `sub-skills/components/SUB-SKILL.md` |
+| Add CMS collections, records, queries, templates, bindings or CSV | `sub-skills/cms-steward/SUB-SKILL.md` |
+| Add a language, translate copy or CMS items, locale routes | `sub-skills/localization/SUB-SKILL.md` |
+| Audit or fix SEO and accessibility: titles, descriptions, alt text, headings, labels | `sub-skills/seo-a11y-auditor/SUB-SKILL.md` |
+| Forms, submissions inbox, CSV, retention, signed webhook delivery | `sub-skills/forms-operator/SUB-SKILL.md` |
+| Author interactions, data widgets, commerce, membership or consent behavior | `sub-skills/interaction-builder/SUB-SKILL.md` |
+| Save/import a native project, export, publish locally or through configured providers | `sub-skills/release-operator/SUB-SKILL.md` |
+| Branches, merge review, comments, presence, release approval by a reviewer | `sub-skills/branch-and-review/SUB-SKILL.md` |
+| A person is in the editor too: approvals, activity, their selection, the terminal, `./formweb run` | `sub-skills/agent-connect-and-terminal/SUB-SKILL.md` |
 | Diagnose authorization, stale revisions, merge conflicts, provider errors or interrupted work | `sub-skills/recovery-auditor/SUB-SKILL.md` |
 
 For broad work, start with the director and let it load specialists. A narrow task may load its own specialist directly after observing the current site.

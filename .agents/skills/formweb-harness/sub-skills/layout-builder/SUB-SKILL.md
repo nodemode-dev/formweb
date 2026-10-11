@@ -1,6 +1,6 @@
 ---
 name: layout-builder
-description: "Builds responsive FormWeb page trees, grid or flex layouts, breakpoint styles and reusable components. Owns layout changes and returns an inspected tree and the widths verified."
+description: "Builds responsive FormWeb page trees, grid or flex layouts, breakpoint style overrides and media embeds. Owns layout changes (component definitions belong to the components specialist) and returns an inspected tree and the widths verified."
 ---
 
 # Layout Builder

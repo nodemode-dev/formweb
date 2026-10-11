@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.4.1",
- "previous": "0.4.0",
+ "version": "0.4.2",
+ "previous": "0.4.1",
  "date": "2026-10-11",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "MCP readability for Claude Code, Codex and Cursor; page passwords (FW-078) closed, 68.5 to 69.5 of 79.",
+ "release_note": "Agent skills rebuilt (fifteen harness specialists, formweb-editing, formweb-skillset); brand kit (FW-066) closed, 69.5 to 70.5 of 79.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.4.1, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.4.2, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -4398,9 +4398,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "full",
+    "v0.4.2: Window > Brand kit stores named brand colors and fonts as typed design tokens in the site (brand-[name], brand-font-[name], fed into the FW-011/012 token system) plus a logo and dark-background logo; the Design inspector's color, background, border and font fields suggest brand values; agents read it from formweb://tokens. Executed in Chromium: a color and a font added, a logo uploaded and inserted, the headline set to var(--brand-ink-dark) rendered rgb(29, 53, 87), the exported CSS carried --brand-ink-dark, and removing a color changed one row with one undo step.",
+    "Logos and images from formvis or formlit arrive as ordinary uploads until the family bridge lands; no import of a whole kit from another project."
    ],
    "fr": [
     "none",
@@ -5225,26 +5225,35 @@
     "FW-068": "full"
    },
    "note": "Agent substrate, Agent Connect and a live terminal; publish approval closed."
+  },
+  {
+   "version": "0.4.1",
+   "date": "2026-10-11",
+   "same_as": "0.3.0",
+   "moved": {
+    "FW-074": "full",
+    "FW-076": "partial",
+    "FW-077": "full",
+    "FW-079": "full",
+    "FW-068": "full",
+    "FW-078": "full"
+   },
+   "note": "MCP readability for Claude Code, Codex and Cursor; page passwords closed."
   }
  ],
  "changes": [
   [
-   "FW-078 Page password protection: None to Full",
-   "No password option; only account-based membership",
-   "Page, folder or whole-site password checked by FormWeb's serving adapter before any page HTML is sent; export refused while protected"
+   "FW-066 Brand kit (logos, colors, fonts): None to Full",
+   "Tokens only; no named brand colors, fonts or logos and no picker",
+   "Brand kit dialog saving brand colors and fonts as design tokens plus two logos; brand values offered in the inspector's color and font fields"
   ],
   [
-   "MCP tools (no parity row)",
-   "62 tools; editing through one generic apply_commands that returned the whole site (about 18 KB)",
-   "71 tools with titles, seven edit_* domain tools listing their parameters, compact results (about 0.6 KB) and a next step on every error"
-  ],
-  [
-   "MCP resources and prompts (no parity row)",
-   "13 resources, no prompts, no view of the editor selection",
-   "Outline with IDs, editor selection, design tokens and audit resources; five workflow prompts; instructions forwarded through the stdio proxy"
+   "Agent skills (no parity row)",
+   "One harness with six specialists; no single-edit or source-development skill",
+   "Fifteen specialists each mapping MCP, CLI and editor surfaces; formweb-editing and formweb-skillset added to match formvis and formlit"
   ]
  ],
- "closed_note": "v0.4.1 closed one more of the 14 rows added in v0.3.0 (six so far). Still open: brand kit and brand check, prompt-to-site, AI copy and images, background removal, stock library, shared team library; embeds stay partial; hosting and payments stay operationally partial.",
+ "closed_note": "v0.4.2 closed one more of the 14 rows added in v0.3.0 (seven so far). Still open: brand check, prompt-to-site, AI copy and images, background removal, stock library, shared team library; embeds stay partial; hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
@@ -5362,10 +5371,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.4.1 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.4.2 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.4.1 is phase 7 of 9 (MCP readability for Claude Code, Codex and Cursor) and closes page password protection, None to Full: 68.5 to 69.5 of 79. The grade was set from executed requests against an active release, described in the row's observation.",
+  "changes": "v0.4.2 is phase 8 of 9 (agent skills) and closes the brand kit, None to Full: 69.5 to 70.5 of 79. The grade was set from an executed browser run, described in the row's observation.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5386,6 +5395,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 11 October 2026 from FormWeb 0.4.1 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 11 October 2026 from FormWeb 0.4.2 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

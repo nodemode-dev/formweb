@@ -23,10 +23,19 @@ For advanced work: "In FormWeb, inspect the available authoring and service tool
 | Work | Harness role | Evidence required |
 | --- | --- | --- |
 | Broad brief or coordinated review | Harness director | Initial/final state, deliberate plan, completed outputs |
-| Responsive tree and components | Layout builder | Instance/layout changes consumed in compiled preview/export |
-| CMS, locales and metadata | Content steward | Rendered records, correct routes/alternates and preserved content |
-| Motion, forms and runtime widgets | Interaction builder | Actual browser/service consequences, accessible controls |
+| Orientation: engine, API, MCP, editor, files, ports | Platform map | Correct transport and endpoint before the first call |
+| Pages, site settings, icons, passwords, QR | Site and pages | Returned pages and settings, observed export or served page |
+| Responsive tree and embeds | Layout builder | Layout changes consumed in compiled preview/export |
+| Tokens, text presets, breakpoint definitions | Style and tokens | Token consumers updated without copied values |
+| Components and libraries | Components | Instance changes consumed in compiled preview/export |
+| CMS collections, records, bindings | CMS steward | Rendered records and preserved content |
+| Locales and translations | Localization | Correct routes, alternates and per-locale export |
+| SEO and accessibility | SEO and accessibility auditor | Audit before and after, fixed issues named |
+| Forms, inbox, delivery | Forms operator | Stored submission, CSV, observed delivery status |
+| Motion and runtime widgets | Interaction builder | Actual browser/service consequences, accessible controls |
 | Native/static/release/provider delivery | Release operator | Returned files/IDs/URLs, concrete scope and observed status |
+| Branches, comments, release review | Branch and review | Reviewed merge, resolved comments, approval state |
+| Working beside a person: approvals, selection, terminal | Agent Connect and terminal | Selection read, approval outcome, attributed activity |
 | Conflicts, access and interrupted calls | Recovery auditor | Preserved acknowledged state, actual error and safe resume |
 
 Advanced commands and provider operations are available only when the live server exposes them. Read its schemas before use. Rust batches use the current `expected_revision` supplied by a fresh `get_site` read. Service/provider tools may name revision arguments differently; preserve their exact discovered spelling.
@@ -48,6 +57,7 @@ Read `formweb://site/tree` first: every page as an outline of element IDs, tags,
 
 | Goal | Tool | Notes |
 | --- | --- | --- |
+| Use or extend the brand kit | `formweb://tokens` key `brand`; `edit_styles` `token.define` `brand-[name]` (color) or `brand-font-[name]` (text); logos in settings `brandLogo`, `brandLogoDark` | Style with `var(--brand-[name])` so changes follow the kit |
 | Password-protect a page or folder | `set_page_password` `{route, password}`; `null` removes | Enforced when FormWeb serves the published site; export is refused while set; never echo the password |
 
 ## Terminal and CLI

@@ -163,7 +163,16 @@ def tree(state: dict[str, Any], max_text: int = 48) -> dict[str, Any]:
 def tokens(state: dict[str, Any]) -> dict[str, Any]:
     site = state.get('site', {})
     design = (site.get('extensions') or {}).get('design') or {}
-    return {'revision': state.get('revision'), 'tokens': site.get('tokens', {}), 'typedTokens': design.get('tokens', {}), 'textPresets': design.get('textPresets', {}), 'breakpoints': site.get('breakpoints', [])}
+    typed = design.get('tokens', {})
+    settings = site.get('settings', {})
+    # Brand kit (FW-066): brand-[name] color tokens, brand-font-[name] text tokens, brandLogo and brandLogoDark settings.
+    brand = {
+        'colors': {name: item.get('value') for name, item in typed.items() if name.startswith('brand-') and not name.startswith('brand-font-') and item.get('type') == 'color'},
+        'fonts': {name: item.get('value') for name, item in typed.items() if name.startswith('brand-font-') and item.get('type') == 'text'},
+        'logo': settings.get('brandLogo'), 'logoDark': settings.get('brandLogoDark'),
+        'use': 'Style values var(--brand-[name]); add with edit_styles token.define {name: "brand-[name]", type: "color", value}.',
+    }
+    return {'revision': state.get('revision'), 'brand': brand, 'tokens': site.get('tokens', {}), 'typedTokens': typed, 'textPresets': design.get('textPresets', {}), 'breakpoints': site.get('breakpoints', [])}
 
 
 PROMPTS = {

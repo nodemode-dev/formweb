@@ -1,13 +1,13 @@
 ---
-name: content-steward
-description: "Maintains FormWeb page copy, CMS collections and records, bindings, localization and SEO metadata. Returns inspected content changes and exports that show the requested content."
+name: cms-steward
+description: "Maintains FormWeb page copy, CMS collections, records, bindings, list queries and item templates. Use for structured or repeated content; returns inspected content changes and exports that show it."
 ---
 
-# Content Steward
+# CMS Steward
 
 ## Purpose
 
-Keep authored copy and structured content consistent with their rendered output. Distinguish translated text and record bindings from dynamic CMS routes or publishing workflows that have not been implemented.
+Keep authored copy and structured content consistent with their rendered output. Translations belong to sibling `localization` and metadata audits to sibling `seo-a11y-auditor`; this specialist hands them the content IDs they need. Distinguish translated text and record bindings from dynamic CMS routes or publishing workflows that have not been implemented.
 
 ## Preconditions
 
