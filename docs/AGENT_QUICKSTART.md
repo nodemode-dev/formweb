@@ -1,6 +1,6 @@
 # FormWeb harness quick start
 
-The [FormWeb harness](../../.claude/skills/formweb-harness/SKILL.md) teaches a connected agent how to inspect the open website, apply validated changes, verify its consuming behavior and return editable/exported deliverables. The MCP server supplies actual operations; the skill supplies sequencing and recovery.
+The [FormWeb harness](../.claude/skills/formweb-harness/SKILL.md) teaches a connected agent how to inspect the open website, apply validated changes, verify its consuming behavior and return editable/exported deliverables. The MCP server supplies actual operations; the skill supplies sequencing and recovery.
 
 ## Connect the pair
 
@@ -39,4 +39,8 @@ For missing tools, rediscover instead of guessing names. For permission rejectio
 
 Call a failed tool directly using its actual schema to separate server/transport/access failures from sequencing mistakes. Keep credentials on the server and report presence or missing environment names only. Preserve unsaved work before opening a different project or branch.
 
-The pack's [scenario evaluations](../../.claude/skills/formweb-harness/references/evaluations.md) and [trigger cases](../../.claude/skills/formweb-harness/references/trigger-cases.md) are specifications. The release audit records actual executions. Their existence does not prove automatic skill activation, browser coverage or a reduction in calls.
+The pack's [scenario evaluations](../.claude/skills/formweb-harness/references/evaluations.md) and [trigger cases](../.claude/skills/formweb-harness/references/trigger-cases.md) are specifications. The release audit records actual executions. Their existence does not prove automatic skill activation, browser coverage or a reduction in calls.
+
+## Driving the editor window
+
+Every menu action has a stable command id (`file.save`, `edit.undo`, `insert.heading`, `view.mobile`, `window.studio` and so on). In the browser, `window.formweb.commands()` lists them with label, menu, shortcut and whether each is enabled right now, and `window.formweb.run(id)` runs one exactly as the menu would, returning false when it is disabled. Menu rows and command-search results carry the id in `data-command`. People reach the same actions from the menubar or with Ctrl/Cmd+K. Prefer MCP for site changes; use these ids when an agent has to operate the window itself (switching breakpoint, opening a panel or dialog).
