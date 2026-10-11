@@ -1,0 +1,190 @@
+import { element, keyed, text } from './dom';
+
+export interface CommandDef {
+  id: string;
+  label: string;
+  menu?: string;
+  keys?: string;
+  group?: number;
+  run: () => unknown;
+  enabled?: () => boolean;
+  checked?: () => boolean;
+}
+
+const registry = new Map<string, CommandDef>();
+let runner: (action: () => unknown) => unknown = action => action();
+
+export function setRunner(next: (action: () => unknown) => unknown): void { runner = next; }
+export function registerCommands(list: CommandDef[]): void { for (const item of list) registry.set(item.id, item); }
+export function commandList(): CommandDef[] { return [...registry.values()]; }
+export function runCommand(id: string): boolean {
+  const item = registry.get(id);
+  if (!item || (item.enabled && !item.enabled())) return false;
+  void runner(item.run);
+  return true;
+}
+
+export const BRAND_MARK = '<svg class="fw-mark" width="18" height="18" viewBox="0 0 128 128" fill="none" role="img" aria-label="formweb"><rect x="6" y="6" width="116" height="116" rx="28" fill="#17151b"/><path d="M31 37h66v53H31z" stroke="#f97316" stroke-width="8" stroke-linejoin="round"/><path d="M31 52h66M52 52v38" stroke="#f97316" stroke-width="8"/></svg>';
+
+interface MenuView { button: HTMLButtonElement; popup: HTMLElement; rows: { row: HTMLButtonElement; item: CommandDef }[] }
+
+export class Menubar {
+  readonly element = element('nav', 'fw-menubar');
+  private menus: MenuView[] = [];
+  private open: MenuView | null = null;
+
+  constructor(names: string[], private overlay: HTMLElement) {
+    this.element.setAttribute('aria-label', 'Application menu');
+    for (const name of names) {
+      const button = element('button', 'fw-menu-btn', name);
+      button.type = 'button';
+      button.setAttribute('aria-haspopup', 'menu');
+      button.setAttribute('aria-expanded', 'false');
+      const popup = element('div', 'fw-menu');
+      popup.setAttribute('role', 'menu');
+      popup.setAttribute('aria-label', name);
+      popup.hidden = true;
+      const view: MenuView = { button, popup, rows: [] };
+      button.addEventListener('click', () => (this.open === view ? this.close() : this.show(view)));
+      button.addEventListener('pointerenter', () => { if (this.open && this.open !== view) this.show(view); });
+      popup.addEventListener('keydown', event => this.keys(event, view));
+      this.menus.push(view);
+      this.element.append(button);
+      overlay.append(popup);
+    }
+    document.addEventListener('pointerdown', event => {
+      const target = event.target as Node;
+      if (this.open && !this.open.popup.contains(target) && !this.element.contains(target)) this.close();
+    });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && this.open) { const button = this.open.button; this.close(); button.focus(); } });
+  }
+
+  build(): void {
+    const byMenu = new Map<string, CommandDef[]>();
+    for (const item of commandList()) if (item.menu) byMenu.set(item.menu, [...(byMenu.get(item.menu) || []), item]);
+    for (const view of this.menus) {
+      const items = byMenu.get(view.button.textContent || '') || [];
+      let group = items[0]?.group ?? 0;
+      for (const item of items) {
+        if ((item.group ?? 0) !== group) { view.popup.append(element('div', 'fw-menu-sep')); group = item.group ?? 0; }
+        const row = element('button', 'fw-menu-item');
+        row.type = 'button';
+        row.setAttribute('role', 'menuitem');
+        row.dataset.command = item.id;
+        row.title = `${item.label} · ${item.id}`;
+        row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', item.label), element('span', 'fw-menu-keys', item.keys || ''));
+        row.addEventListener('click', () => { this.close(); runCommand(item.id); });
+        view.popup.append(row);
+        view.rows.push({ row, item });
+      }
+    }
+  }
+
+  private show(view: MenuView): void {
+    if (this.open && this.open !== view) this.hide(this.open);
+    for (const { row, item } of view.rows) {
+      row.disabled = !!item.enabled && !item.enabled();
+      const checked = !!item.checked?.();
+      row.classList.toggle('is-checked', checked);
+      if (item.checked) row.setAttribute('aria-checked', String(checked));
+    }
+    const rect = view.button.getBoundingClientRect();
+    view.popup.style.left = `${Math.round(rect.left)}px`;
+    view.popup.style.top = `${Math.round(rect.bottom + 4)}px`;
+    view.popup.hidden = false;
+    view.button.classList.add('is-open');
+    view.button.setAttribute('aria-expanded', 'true');
+    this.open = view;
+    view.rows.find(entry => !entry.row.disabled)?.row.focus({ preventScroll: true });
+  }
+
+  private hide(view: MenuView): void {
+    view.popup.hidden = true;
+    view.button.classList.remove('is-open');
+    view.button.setAttribute('aria-expanded', 'false');
+  }
+
+  close(): void { if (this.open) { this.hide(this.open); this.open = null; } }
+
+  private keys(event: KeyboardEvent, view: MenuView): void {
+    const rows = view.rows.map(entry => entry.row).filter(row => !row.disabled);
+    const at = rows.indexOf(document.activeElement as HTMLButtonElement);
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      rows[(at + (event.key === 'ArrowDown' ? 1 : rows.length - 1)) % rows.length]?.focus();
+    } else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      const index = this.menus.indexOf(view);
+      this.show(this.menus[(index + (event.key === 'ArrowRight' ? 1 : this.menus.length - 1)) % this.menus.length]);
+    }
+  }
+}
+
+export class CommandSearch {
+  readonly button = element('button', 'fw-tt-btn');
+  readonly popup = element('div', 'fw-search-pop');
+  private input = element('input', 'fw-search-input');
+  private results = element('div', 'fw-search-results');
+  private picked = 0;
+  private matches: CommandDef[] = [];
+
+  constructor(searchIcon: HTMLElement) {
+    this.button.type = 'button';
+    this.button.title = 'Search commands (Ctrl/Cmd+K)';
+    this.button.setAttribute('aria-label', 'Search commands');
+    this.button.append(searchIcon);
+    this.popup.hidden = true;
+    this.popup.setAttribute('role', 'dialog');
+    this.popup.setAttribute('aria-label', 'Command search');
+    this.input.type = 'search';
+    this.input.placeholder = 'Search commands';
+    this.input.setAttribute('aria-label', 'Search commands');
+    this.results.setAttribute('role', 'listbox');
+    this.popup.append(this.input, this.results);
+    this.button.addEventListener('click', () => (this.popup.hidden ? this.show() : this.hide()));
+    this.input.addEventListener('input', () => { this.picked = 0; this.refresh(); });
+    this.input.addEventListener('keydown', event => {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); this.picked = (this.picked + (event.key === 'ArrowDown' ? 1 : this.matches.length - 1)) % Math.max(1, this.matches.length); this.refresh(); }
+      else if (event.key === 'Enter') { event.preventDefault(); const item = this.matches[this.picked]; if (item) { this.hide(); runCommand(item.id); } }
+      else if (event.key === 'Escape') { event.preventDefault(); this.hide(); this.button.focus(); }
+    });
+    document.addEventListener('keydown', event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); this.popup.hidden ? this.show() : this.input.focus(); }
+    });
+    document.addEventListener('pointerdown', event => {
+      const target = event.target as Node;
+      if (!this.popup.hidden && !this.popup.contains(target) && !this.button.contains(target)) this.hide();
+    });
+  }
+
+  show(): void { this.input.value = ''; this.picked = 0; this.refresh(); this.popup.hidden = false; this.input.focus(); }
+  hide(): void { this.popup.hidden = true; }
+
+  private refresh(): void {
+    const words = this.input.value.toLowerCase().split(/\s+/).filter(Boolean);
+    this.matches = commandList().filter(item => (!item.enabled || item.enabled()) && words.every(word => `${item.menu || ''} ${item.label} ${item.id}`.toLowerCase().includes(word))).slice(0, 12);
+    keyed(this.results, this.matches, item => item.id, item => {
+      const row = element('button', 'fw-search-item');
+      row.type = 'button';
+      row.setAttribute('role', 'option');
+      row.append(element('span', 'fw-search-label'), element('span', 'fw-search-keys'));
+      row.addEventListener('click', () => { this.hide(); runCommand(item.id); });
+      return row;
+    }, (row, item) => {
+      row.dataset.command = item.id;
+      row.title = item.id;
+      text(row.children[0] as HTMLElement, item.menu ? `${item.menu} › ${item.label}` : item.label);
+      text(row.children[1] as HTMLElement, item.keys || '');
+      const picked = this.matches[this.picked] === item;
+      row.classList.toggle('is-picked', picked);
+      row.setAttribute('aria-selected', String(picked));
+    });
+  }
+}
+
+export function exposeToAgents(): void {
+  (window as unknown as { formweb?: unknown }).formweb = {
+    commands: () => commandList().map(item => ({ id: item.id, label: item.label, menu: item.menu || null, keys: item.keys || null, enabled: !item.enabled || item.enabled() })),
+    run: (id: string) => runCommand(id)
+  };
+}

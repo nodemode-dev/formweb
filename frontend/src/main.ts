@@ -4,6 +4,7 @@ import { Canvas } from './ui/canvas';
 import { element, keyed, options, revealApp, text, value } from './ui/dom';
 import { icon, type Icon } from './ui/icons';
 import { THEMES, applyTheme, readChoice, setTheme } from './ui/themes';
+import { BRAND_MARK, CommandSearch, Menubar, exposeToAgents, registerCommands, setRunner } from './ui/shell';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import './styles/features.css';
@@ -114,12 +115,11 @@ function setAttribute(name: string, content: string): Promise<EditorState> {
 
 const topbar = element('header', 'topbar');
 const brand = element('div', 'brand');
-const brandText = element('div');
-brandText.append(element('div', 'brand-name', 'FormWeb'), element('div', 'brand-by', 'NODEMODE / FORM FAMILY'));
-brand.append(element('div', 'brand-mark', 'F'), brandText);
-const menubar = element('nav', 'menubar');
-menubar.setAttribute('aria-label', 'Application menu');
-menubar.append(button('Project', undefined, () => openDialog('projects'), 'quiet'), button('Design system', undefined, () => openDialog('tokens'), 'quiet'), button('Settings', undefined, () => openDialog('settings'), 'quiet'), button('Help', undefined, () => openDialog('help'), 'quiet'));
+brand.innerHTML = BRAND_MARK;
+brand.append(element('span', 'brand-name', 'formweb'));
+brand.title = 'formweb by NodeMode';
+const menubar = new Menubar(['File', 'Edit', 'Insert', 'Page', 'Arrange', 'CMS', 'View', 'Window', 'Help'], overlay);
+const titleTools = element('div', 'fw-title-tools');
 const topActions = element('div', 'top-actions');
 const agentsButton = button('Agents off', 'bolt', async () => {
   const result = await request<{ enabled?: boolean; agentsEnabled?: boolean }>('/api/agents', { enabled: !agentsEnabled });
@@ -129,20 +129,28 @@ const agentsButton = button('Agents off', 'bolt', async () => {
 }, 'quiet');
 const previewButton = button('Preview', 'eye', () => { preview = !preview; update(state()); }, 'quiet');
 const refreshPreviewButton = iconButton('Refresh compiled runtime preview', 'redo', () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } });
+previewButton.title = 'Compiled preview';
+previewButton.setAttribute('aria-label', previewButton.title);
 const publishButton = button('Publish', 'arrow', () => openDialog('publish'), 'primary');
 topActions.append(agentsButton, previewButton, refreshPreviewButton, publishButton);
-topbar.append(brand, menubar, topActions);
+topbar.append(brand, menubar.element, element('div'), titleTools, topActions);
 
 const toolbar = element('div', 'toolbar');
 const projectIdentity = element('div', 'project-identity');
 const projectName = element('span', 'project-name', 'Connecting to site engine');
 projectIdentity.append(icon('globe'), projectName);
-const fileActions = element('div', 'toolbar-group');
-fileActions.append(iconButton('New site', 'plus', () => openDialog('new')), iconButton('Open projects', 'folder', () => openDialog('projects')), iconButton('Save project (Ctrl/Cmd+S)', 'save', saveProject), iconButton('Download editable .fweb project', 'download', downloadProject));
-const historyActions = element('div', 'toolbar-group');
 const undoButton = iconButton('Undo (Ctrl/Cmd+Z)', 'undo', () => command('history.undo'));
 const redoButton = iconButton('Redo (Ctrl/Cmd+Shift+Z)', 'redo', () => command('history.redo'));
-historyActions.append(undoButton, redoButton);
+undoButton.className = 'fw-tt-btn';
+redoButton.className = 'fw-tt-btn';
+const commandSearch = new CommandSearch(icon('search'));
+const themeButton = button('', 'sun', () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), 'fw-tt-btn');
+themeButton.title = 'Switch light or dark theme';
+themeButton.setAttribute('aria-label', themeButton.title);
+const settingsButton = button('', 'gear', () => openDialog('settings'), 'fw-tt-btn');
+settingsButton.title = 'Settings';
+settingsButton.setAttribute('aria-label', 'Settings');
+titleTools.append(undoButton, redoButton, element('span', 'fw-tt-sep'), settingsButton, themeButton, commandSearch.button, commandSearch.popup);
 const viewportActions = element('div', 'toolbar-group');
 const viewportButtons = new Map<string, HTMLButtonElement>();
 for (const [id, symbol] of [['desktop', 'desktop'], ['tablet', 'tablet'], ['mobile', 'mobile']] as [string, Icon][]) {
@@ -165,9 +173,7 @@ breakpointSelect.addEventListener('change', () => { breakpoint = breakpointSelec
 localeSelect.className = 'toolbar-select';
 localeSelect.setAttribute('aria-label', 'Canvas locale');
 localeSelect.addEventListener('change', () => { locale = localeSelect.value; update(state()); });
-toolbar.append(projectIdentity, fileActions);
-separator(toolbar);
-toolbar.append(historyActions);
+toolbar.append(projectIdentity);
 separator(toolbar);
 toolbar.append(viewportActions, breakpointSelect, viewportSize, element('span', 'toolbar-label', 'px'), element('div', 'toolbar-spacer'), localeSelect, button('Export', 'code', exportSite, 'quiet'), button('Audit', 'check', auditSite, 'quiet'));
 
@@ -602,6 +608,8 @@ function updateAgents(): void {
   text(agentsButton.querySelector('span:last-child')!, agentsEnabled ? 'Agents on' : 'Agents off');
   agentsButton.classList.toggle('active', agentsEnabled);
   agentsButton.setAttribute('aria-pressed', String(agentsEnabled));
+  agentsButton.title = agentsEnabled ? 'Agents on: MCP clients can edit this site' : 'Agents off: MCP clients are blocked';
+  agentsButton.setAttribute('aria-label', agentsButton.title);
 }
 function update(next: EditorState): void {
   lastState = next;
@@ -1023,7 +1031,52 @@ const featureStudio = new FeatureStudio({
   selectNode,
   selectPage: id => { pageId = id; selectedId = currentPage().root; update(state()); }
 }, overlay);
-menubar.append(featureStudio.button);
+const ready = (): boolean => !!lastState;
+const notRoot = (): boolean => !!lastState && currentNode().id !== currentPage().root;
+const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); };
+const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link']];
+setRunner(run);
+registerCommands([
+  { id: 'file.new', label: 'New site...', menu: 'File', run: () => openDialog('new') },
+  { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
+  { id: 'file.import', label: 'Import .fweb file...', menu: 'File', run: () => importer.click() },
+  { id: 'file.save', label: 'Save', menu: 'File', keys: 'Ctrl S', group: 1, run: saveProject, enabled: ready },
+  { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },
+  { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: ready },
+  { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
+  { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: 'Ctrl Z', run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
+  { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: 'Ctrl Shift Z', run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
+  { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: 'Del', group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: notRoot },
+  { id: 'edit.settings', label: 'Settings...', menu: 'Edit', group: 2, run: () => openDialog('settings') },
+  ...insertKinds.map(([kind, label]) => ({ id: `insert.${kind}`, label, menu: 'Insert', run: () => insertElement(kind), enabled: ready })),
+  { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
+  { id: 'page.add', label: 'Add page...', menu: 'Page', run: () => openDialog('page'), enabled: ready },
+  { id: 'page.settings', label: 'Page settings', menu: 'Page', run: () => setInspector('page'), enabled: ready },
+  { id: 'page.delete', label: 'Delete page...', menu: 'Page', group: 1, run: () => openDialog('delete-page'), enabled: () => !!lastState && lastState.site.pages.length > 1 },
+  { id: 'page.audit', label: 'Run SEO and accessibility audit', menu: 'Page', group: 2, run: auditSite, enabled: ready },
+  { id: 'arrange.up', label: 'Move layer up', menu: 'Arrange', run: () => moveLayer(-1), enabled: notRoot },
+  { id: 'arrange.down', label: 'Move layer down', menu: 'Arrange', run: () => moveLayer(1), enabled: notRoot },
+  { id: 'cms.collections', label: 'Collections...', menu: 'CMS', run: () => openDialog('cms'), enabled: ready },
+  { id: 'cms.locales', label: 'Localization...', menu: 'CMS', run: () => openDialog('locales'), enabled: ready },
+  { id: 'view.desktop', label: 'Desktop', menu: 'View', run: () => setBreakpoint('desktop'), checked: () => breakpoint === 'desktop', enabled: ready },
+  { id: 'view.tablet', label: 'Tablet', menu: 'View', run: () => setBreakpoint('tablet'), checked: () => breakpoint === 'tablet', enabled: ready },
+  { id: 'view.mobile', label: 'Mobile', menu: 'View', run: () => setBreakpoint('mobile'), checked: () => breakpoint === 'mobile', enabled: ready },
+  { id: 'view.preview', label: 'Compiled preview', menu: 'View', group: 1, run: () => { preview = !preview; update(state()); }, checked: () => preview, enabled: ready },
+  { id: 'view.refresh', label: 'Refresh compiled preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
+  { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
+  { id: 'view.search', label: 'Search commands', menu: 'View', keys: 'Ctrl K', group: 2, run: () => commandSearch.show() },
+  { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => setSidebar('pages'), checked: () => activeSidebar === 'pages' },
+  { id: 'window.insert', label: 'Insert', menu: 'Window', run: () => setSidebar('insert'), checked: () => activeSidebar === 'insert' },
+  { id: 'window.design', label: 'Design inspector', menu: 'Window', group: 1, run: () => setInspector('design'), checked: () => activeInspector === 'design' },
+  { id: 'window.content', label: 'Content inspector', menu: 'Window', group: 1, run: () => setInspector('content'), checked: () => activeInspector === 'content' },
+  { id: 'window.tokens', label: 'Design system...', menu: 'Window', group: 2, run: () => openDialog('tokens'), enabled: ready },
+  { id: 'window.studio', label: 'Website studio...', menu: 'Window', group: 2, run: () => featureStudio.button.click(), enabled: ready },
+  { id: 'window.agents', label: 'Allow agents (MCP)', menu: 'Window', group: 3, run: () => agentsButton.click(), checked: () => agentsEnabled },
+  { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
+]);
+menubar.build();
+exposeToAgents();
+document.addEventListener('nm:ui-settings-changed', () => { themeSelect.value = readChoice().theme; themeButton.classList.toggle('is-on', readChoice().theme === 'light'); });
 subscribe(update);
 setInspector('design');
 setSidebar('pages');

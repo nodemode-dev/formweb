@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Family shell · v0.3.2
+
+`ui/shell.ts` holds the command registry (`registerCommands`, `runCommand`), the `Menubar` (nine family menus whose popups are built once into the overlay root and only toggle hidden, disabled and checked state on open) and `CommandSearch` (Ctrl/Cmd+K, keyed result rows). `exposeToAgents()` publishes `window.formweb.commands()` and `run(id)`. main.ts registers 43 commands after its functions exist; the menubar replaced the Project, Design system, Settings and Help launchers and the toolbar's file and history buttons, which now live in File and Edit with undo and redo also in the title tools. `styles/shell.css` owns the title bar, menus, title tools and search; the old `.topbar`, brand and menubar rules left app.css. Below 1280 px the Agents and Preview buttons turn icon-only with titles and aria labels.
+
 ## Family theme, first paint and hidden scrollbars · v0.3.1
 
 `styles/tokens.css` now carries the form family token set (surfaces, surface and line ladders, accent derivations, fs, ctl, radius and space scales, font stacks) with formweb's older names kept as aliases until the shell phase stops using them; formweb's own z-index scale is unchanged. `ui/themes.ts` holds the fifteen family profiles under the shared `nodemode_ui_settings` key (appearance 3) and migrates the old `formweb_theme` value once. `index.html` applies the saved profile to the root before any stylesheet loads and hides `#app` until `revealApp()` (in `ui/dom.ts`) flips `body.app-ready` two frames after the first state render, or after boot settles if the engine is unreachable. Scrollbars are hidden for every element by the global rule in tokens.css and inside the canvas srcdoc; the old visible 6 px rule in app.css was removed. The Page inspector's Whole site section writes `settings.hideScrollbars` through `site.update`. Theme changes write only root custom properties and the root data-theme attribute, never #app children.
