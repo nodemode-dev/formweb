@@ -55,8 +55,14 @@ def json_environment(name):
 async def checked_url(url, allowed_hosts=None):
     if not isinstance(url, str) or len(url) > 2048:
         raise EngineError('Provider endpoint is invalid.', 503)
-    parsed = urlsplit(url)
-    host = parsed.hostname
+    try:
+        parsed = urlsplit(url)
+        host = parsed.hostname
+        port = parsed.port
+        if port is not None and not 1 <= port <= 65535:
+            raise ValueError('Invalid endpoint port.')
+    except ValueError as error:
+        raise EngineError('Provider endpoint URL or port is invalid.', 503) from error
     local = host in ('127.0.0.1', 'localhost', '::1') and os.getenv('FORMWEB_PROVIDER_ALLOW_LOOPBACK') == '1'
     if not host or parsed.username or parsed.password or parsed.fragment or parsed.scheme != 'https' and not (local and parsed.scheme == 'http'):
         raise EngineError('Provider endpoints require HTTPS without credentials or fragments.', 503)
