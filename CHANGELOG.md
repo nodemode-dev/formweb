@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.3 · 2026-10-11
+
+Phase 4 of 9: a left minirail and collapsible panels, as in formvis.
+
+- New minirail on the far left: Pages and layers, Insert, Design system, CMS, Localization, Website studio, SEO and accessibility, Publish and Agents, with Settings at the bottom. The chevron at the top shows or hides labels.
+- Both side panels collapse to a slim icon strip (chevron in the panel header, Window menu, Ctrl+[ and Ctrl+]); a strip icon reopens the panel on that tab.
+- Inspector sections collapse from their titles.
+- Workspace presets (Design, Content, Build, Focus) in the title bar and Window menu remember their own panel layout across reloads; Window > Reset this workspace restores the default.
+
 ## 0.3.2 · 2026-10-11
 
 Phase 3 of 9 plus a repository cleanup: FormWeb's tree and title bar now match formvis and formlit.
