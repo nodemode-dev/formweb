@@ -37,7 +37,8 @@ Usage: ./formweb COMMAND
   agents sync --check  report drift without changing files
   agents install      show project client wiring; no global changes
   comparisons status  is the release comparison in the FormAI matrix (--json)
-  comparisons embed   add the release comparison to the matrix (--check, --json)
+  comparisons build   render the family-format page from docs/comparisons/data (--check, --json)
+  comparisons embed  add the release comparison to the matrix (--check, --json)
   doctor             inspect tools, installs and service ports
   help                this message
 

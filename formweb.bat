@@ -61,5 +61,5 @@ exit /b %errorlevel%
 call setup\doctor.bat
 exit /b %errorlevel%
 :help
-echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, comparisons status, comparisons embed, doctor
+echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, comparisons status, comparisons build, comparisons embed, doctor
 exit /b 0
