@@ -18,7 +18,7 @@ FormWeb is the Form family's visual website builder, researched against Framer &
 - **Projects & teams.** SQLite autosave, portable `.fweb` history/assets, isolated review branches, comments, roles, presence & attributed operations.
 - **Publishing & forms.** Immutable local releases, promotion/rollback, redirects, inbox/retention, constraints, tracking & durable signed webhook delivery.
 - **Connected services.** Configurable deployment/domain, translation, fetch & commerce adapters; separate visitor membership, consented analytics & experiments. Provider credentials stay on the server.
-- **Agents & evidence.** Real official-SDK MCP, shared role checks & revision authority. Start w/ the [agent quick start](docs/AGENT_QUICKSTART.md), the [four-vendor comparison](docs/comparisons/FormWeb-Parity_v0.3.4.html) & the [consolidated matrix](docs/comparisons/FormAI-Parity-Matrix-consolidated.html). Research, audits & verification records ship in the release's planning sidecar.
+- **Agents & evidence.** Real official-SDK MCP, shared role checks & revision authority. Start w/ the [agent quick start](docs/AGENT_QUICKSTART.md), the [four-vendor comparison](docs/comparisons/) (`FormWeb-Parity_v[version].html`, with every release's score) & the [consolidated matrix](docs/comparisons/FormAI-Parity-Matrix-consolidated.html). Research, audits & verification records ship in the release's planning sidecar.
 
 ## Quick Start
 

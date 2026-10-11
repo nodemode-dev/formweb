@@ -24,4 +24,4 @@ A parity row is full only when the relevant requirement works through its intend
 
 Record the actual executed verification in the planning sidecar BUILD_NOTES. Windows scripts and operating-system-specific behavior remain unverified unless run on those systems. This browser build does not claim desktop bundle verification.
 
-Verification records (VERIFICATION_v0.2.0 and later), the parity audits and the raw observation files live in the planning sidecar for each release, not in this tree. The [current comparison](../../docs/comparisons/FormWeb-Parity_v0.3.4.html) carries the 79 researched requirements and separates local acceptance from external operational completion.
+Verification records (VERIFICATION_v0.2.0 and later), the parity audits and the raw observation files live in the planning sidecar for each release, not in this tree. The current comparison in [docs/comparisons](../../docs/comparisons/) carries the 79 researched requirements and separates local acceptance from external operational completion.

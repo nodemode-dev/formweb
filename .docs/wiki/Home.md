@@ -12,7 +12,7 @@ Release version: 0.3.4. Author: nodemode-ai. The repository README and changelog
 | MCP | 61 official SDK tools and 13 resources over HTTP and stdio, with attributed project roles |
 | Hosting | Versioned local publication; no external hosting account provisioned |
 | Desktop | Browser application; no native desktop bundles claimed |
-| Vendor parity | `docs/comparisons/FormWeb-Parity_v0.3.4.html` (Framer, Webflow, Adobe Express, Canva, with every release's score) and the FormAI matrix beside it, both built from `docs/comparisons/data/formweb-parity.json` by `./formweb comparisons build` and `embed`; research, audits and verification records ship in the planning sidecar |
+| Vendor parity | `docs/comparisons/` holds the current `FormWeb-Parity_v[version].html` (Framer, Webflow, Adobe Express, Canva, with every release's score) and the FormAI matrix beside it, both built from `docs/comparisons/data/formweb-parity.json` by `./formweb comparisons build` and `embed`; research, audits and verification records ship in the planning sidecar |
 
 Start with [[Getting-Started]], then [[Architecture]]. Subsystem contracts are in [[Engine]], [[Advanced-Studio]], [[Agents-and-MCP]], [[Project-Format]] and [[Publishing]]. Contributor operations are in [[Development-Workflow]], [[Verification]] and [[Releasing]]. The [agent quick start](../../docs/AGENT_QUICKSTART.md) connects the operating skill with real MCP; the [Studio guide](../../docs/ADVANCED_GUIDE.md) describes the consuming editor workflows.
 
