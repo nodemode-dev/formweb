@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1 · 2026-10-11
+
+Phase 2 of 9: FormWeb now uses the form family's theme system, and scrollbars are hidden everywhere in the editor.
+
+- The editor uses the family token set and the same fifteen appearance profiles as formvis and formlit (Settings > Editor theme), applied before first paint, with Inter and JetBrains Mono bundled.
+- The window stays hidden until the first render is in place, so a hard reload shows no theme, font or layout flash.
+- Every scrollbar in the editor is hidden while scrolling still works, including inside the canvas.
+- New Page inspector toggle, Whole site > Hide scrollbars on the published site, for owners who want the same on their own site. Agents set it with `site.update` and `settings.hideScrollbars`.
+- New `./formweb comparisons status|embed` release command (with `--check` and `--json`) puts the release comparison into the FormAI matrix; the matrix now carries the four-vendor v0.3.0 page.
+
 ## 0.3.0 · 2026-10-11
 
 First release of the v0.3.x sprint (phase 1 of 9). The family comparison now measures FormWeb against Framer, Webflow, Adobe Express and Canva.
@@ -8,7 +18,6 @@ First release of the v0.3.x sprint (phase 1 of 9). The family comparison now mea
 - Added 14 requirements (FW-066 to FW-079) drawn from documented Express and Canva web features; they are FormWeb integration targets, several sourced from formvis and formlit, and are graded none until built.
 - The original 65 rows, their Framer and Webflow evidence and FormWeb acceptance are unchanged; FormWeb reads 64 of 79 weighted.
 
-The consolidated FormAI matrix still embeds the v0.2.1 FormWeb page; its update is pending (see the matching planning sidecar).
 
 ## 0.2.1 · 2026-10-11
 
