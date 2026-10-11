@@ -109,6 +109,10 @@ class Studio:
 
     async def mutate(self, method: str, params: dict[str, Any]):
         identity = self.access.authorize('edit')
+        # FW-067: only someone who can manage the project may turn brand restrictions on or off.
+        batch = params.get('commands') if method == 'batch' else [params]
+        if any(isinstance(item, dict) and item.get('command') == 'site.update' and 'brandRestrict' in (((item.get('params') or {}).get('patch') or {}).get('settings') or {}) for item in batch or []):
+            self.access.authorize('manage')
         previous_role = self.access.role()
         async with self.action_lock:
             result = await self.engine.request(method, params)

@@ -10,9 +10,13 @@ import '../styles/brand-kit.css';
  * the kit through datalists, so picking a brand value writes var(--brand-[name]).
  */
 export type BrandEntry = { token: string; name: string; value: string };
-export type Brand = { colors: BrandEntry[]; fonts: BrandEntry[]; logo: string; logoDark: string };
+export type Brand = { colors: BrandEntry[]; fonts: BrandEntry[]; logo: string; logoDark: string; restricted: boolean };
+export type BrandIssue = { id: string; node: string; name: string; kind: 'color' | 'font' | 'logo'; property: string; breakpoint: string; value: string; suggestion: string | null; fix: Command | null };
+export type BrandReport = { issues: BrandIssue[]; summary: Record<string, number>; note: string };
 type Hooks = {
   state: () => EditorState;
+  check: () => Promise<BrandReport>;
+  selectNode: (id: string) => void;
   commands: (batch: Command[]) => Promise<unknown>;
   pickLogo: (dark: boolean) => void;
   insertLogo: (url: string, dark: boolean) => Promise<void>;
@@ -39,7 +43,7 @@ export function readBrand(state: EditorState): Brand {
   }
   colors.sort((a, b) => a.name.localeCompare(b.name));
   fonts.sort((a, b) => a.name.localeCompare(b.name));
-  return { colors, fonts, logo: site.settings.brandLogo || '', logoDark: site.settings.brandLogoDark || '' };
+  return { colors, fonts, logo: site.settings.brandLogo || '', logoDark: site.settings.brandLogoDark || '', restricted: site.settings.brandRestrict === 'true' };
 }
 
 export class BrandKit {
@@ -52,6 +56,11 @@ export class BrandKit {
   private colorValue = element('input');
   private fontName = element('input');
   private fontValue = element('select');
+  private restrict = element('input');
+  private issueList = element('div', 'fw-brand-list');
+  private checkNote = element('p', 'micro', 'Check lists colors, fonts and logos on this page that are not from the kit.');
+  private fixAll: HTMLButtonElement;
+  private issues: BrandIssue[] = [];
 
   constructor(private hooks: Hooks) {
     this.colorName.placeholder = 'name, e.g. primary';
@@ -71,6 +80,50 @@ export class BrandKit {
       this.heading('Fonts'), this.fontList, this.addRow(this.fontName, this.fontValue, 'Add font', 'brand.add-font', () => this.addFont()),
       this.heading('Logos'), this.logoRow(false), this.logoRow(true)
     );
+    this.restrict.type = 'checkbox';
+    this.restrict.dataset.field = 'brand.restrict';
+    this.restrict.addEventListener('change', () => {
+      const on = this.restrict.checked;
+      this.hooks.commands([{ command: 'site.update', params: { patch: { settings: { brandRestrict: on ? 'true' : 'false' } } } }])
+        .then(() => this.hooks.notify(on ? 'Brand restriction on: color and font fields accept brand values only.' : 'Brand restriction off.'))
+        .catch(error => { this.restrict.checked = !on; this.hooks.notify(error instanceof Error ? error.message : String(error), true); });
+    });
+    const restrictLabel = element('label', 'checkbox-field');
+    restrictLabel.append(this.restrict, element('span', '', 'Restrict color and font fields to the brand kit (project managers only)'));
+    this.fixAll = this.button('Fix all', 'brand.fix-all', () => this.applyFixes(this.issues), 'primary');
+    const checkRow = element('div', 'fw-brand-add');
+    checkRow.append(this.checkNote, this.button('Check page', 'brand.check', () => this.runCheck()), this.fixAll);
+    this.fixAll.hidden = true;
+    this.element.append(this.heading('Brand check'), restrictLabel, checkRow, this.issueList);
+  }
+
+  private async runCheck(): Promise<void> {
+    const report = await this.hooks.check();
+    this.issues = report.issues;
+    keyed(this.issueList, report.issues, item => item.id, () => {
+      const row = element('div', 'fw-brand-issue');
+      const name = element('button', 'fw-brand-issue-name');
+      name.type = 'button';
+      name.addEventListener('click', () => this.hooks.selectNode(row.dataset.node || ''));
+      row.append(name, element('code', 'fw-brand-value'), this.button('Fix', 'brand.fix', () => this.applyFixes(this.issues.filter(issue => issue.id === row.dataset.key))));
+      return row;
+    }, (node, item) => {
+      node.dataset.node = item.node;
+      text(node.querySelector('.fw-brand-issue-name')!, `${item.name}: ${item.property}${item.breakpoint === 'desktop' ? '' : ' (' + item.breakpoint + ')'}`);
+      text(node.querySelector('.fw-brand-value')!, `${item.value} to ${item.suggestion ?? 'no brand value'}`);
+      (node.querySelector('[data-command="brand.fix"]') as HTMLButtonElement).disabled = !item.fix;
+    });
+    this.fixAll.hidden = !report.issues.some(issue => issue.fix);
+    const s = report.summary;
+    text(this.checkNote, report.issues.length ? `${s.color || 0} colors, ${s.font || 0} fonts and ${s.logo || 0} logos are off-brand on this page.` : report.note.startsWith('The brand kit is empty') ? report.note : 'Everything on this page uses the brand kit.');
+  }
+
+  private async applyFixes(issues: BrandIssue[]): Promise<void> {
+    const fixes = issues.map(issue => issue.fix).filter((fix): fix is Command => !!fix);
+    if (!fixes.length) return;
+    await this.hooks.commands(fixes);
+    this.hooks.notify(`${fixes.length} brand fix${fixes.length === 1 ? '' : 'es'} applied as one undo step.`);
+    await this.runCheck();
   }
 
   private heading(label: string): HTMLElement { return element('h3', 'fw-brand-title', label); }
@@ -152,6 +205,7 @@ export class BrandKit {
   /** Called from the editor's update(); only text and attributes change in place. */
   update(state: EditorState): void {
     const brand = readBrand(state);
+    if (document.activeElement !== this.restrict) this.restrict.checked = brand.restricted;
     keyed(this.colorList, brand.colors, item => item.token, () => this.entryRow('color'), (node, item) => {
       const swatch = node.querySelector('input') as HTMLInputElement;
       if (document.activeElement !== swatch && swatch.value !== item.value) swatch.value = item.value;

@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.5.0",
- "previous": "0.4.2",
+ "version": "0.5.1",
+ "previous": "0.5.0",
  "date": "2026-10-11",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Family wgpu renderer and Tauri desktop shell (phase 9 of 9). No grade moved; 70.5 of 79.",
+ "release_note": "Brand restrictions and brand check closed; embeds now Full with click-to-load, fallback links and X posts. 72.0 of 79.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.5.0, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.5.1, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -4447,9 +4447,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "full",
+    "v0.5.1: Brand kit > Brand check lists off-brand colors, fonts and logos on a page (each with the nearest brand token or logo), with Fix per issue and Fix all as one undo step; Only allow brand colors and fonts makes the Design inspector accept only brand tokens or neutral values, and only someone with the manage permission can turn it on. Agents: brand_check returns the same issues with ready node.update fixes. Executed: 10 issues found, one Fix left 9, Fix all left 0, Undo restored 9; #ff0000 was refused and var(--brand-paper) accepted while restricted; an editor identity got 403 toggling the restriction by command and by batch, the owner succeeded.",
+    "Restriction is enforced in the editor's fields; agent and CLI edits are not blocked, they are caught by brand_check. No template locking per element yet."
    ],
    "fr": [
     "none",
@@ -4845,9 +4845,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "partial",
-    "v0.3.6: Insert > Embed media takes a share link or pasted embed HTML for YouTube (privacy-enhanced youtube-nocookie), Vimeo (dnt=1), Loom, Spotify, Google Maps embed and OpenStreetMap embed; the exporter allowlists those hosts and writes a lazy iframe with an aspect ratio. Executed: all six rendered as iframes in Preview at 16:9 or 4:3, and an injected non-allowlisted URL rendered an escaped error note.",
-    "No social post embeds (X, Instagram, TikTok need provider scripts), no click-to-load consent placeholder and no fallback link yet."
+    "full",
+    "v0.5.1 adds the rest of the target to the v0.3.6 embeds: X posts (x.com or twitter.com status links, rendered through X's documented blockquote.twitter-tweet plus platform.x.com/widgets.js), privacy-friendly click-to-load for every embed (site setting or per embed; X posts always), and an Open on [site] fallback link in the placeholder. Executed: with click-to-load on, the export held two placeholders and no iframe, and nothing external was requested before a click; Load swapped in the youtube-nocookie iframe, and for the X post the blockquote and widgets.js script.",
+    "Social posts cover X only; Instagram and TikTok are not offered yet."
    ],
    "fr": [
     "full",
@@ -5254,21 +5254,36 @@
     "FW-066": "full"
    },
    "note": "Agent skills rebuilt; brand kit closed."
+  },
+  {
+   "version": "0.5.0",
+   "date": "2026-10-11",
+   "same_as": "0.3.0",
+   "moved": {
+    "FW-074": "full",
+    "FW-076": "partial",
+    "FW-077": "full",
+    "FW-079": "full",
+    "FW-068": "full",
+    "FW-078": "full",
+    "FW-066": "full"
+   },
+   "note": "Family wgpu renderer and Tauri desktop shell; no row moved."
   }
  ],
  "changes": [
   [
-   "GPU renderer (no parity row)",
+   "Brand restrictions and brand check (FW-067)",
    "None",
-   "wgpu renderer for page thumbnails, an overview minimap and release pixel diffs, with an identical CPU path; ./formweb render"
+   "Full: Brand check with Fix and Fix all as one undo step; owner-only restriction of color and font fields to the brand kit; brand_check for agents"
   ],
   [
-   "Desktop app (no parity row)",
-   "Browser only",
-   "Tauri 2 desktop window around the editor that starts and stops the local service; ./formweb desktop"
+   "Embed third-party media (FW-076)",
+   "Partial",
+   "Full: click-to-load placeholders with an Open on [site] link, site-wide or per embed, and X posts"
   ]
  ],
- "closed_note": "v0.5.0 closed no row: it finished the nine planned phases. Seven of the 14 rows added in v0.3.0 are closed. Still open: brand check, prompt-to-site, AI copy and images, background removal, stock library, shared team library; embeds stay partial; hosting and payments stay operationally partial.",
+ "closed_note": "v0.5.1 closed two rows: FW-067 brand restrictions and brand check, and FW-076 embeds. Nine of the 14 rows added in v0.3.0 are closed. Still open: prompt-to-site, AI copy and images, background removal, stock library, shared team library; hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
@@ -5386,10 +5401,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.0 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.1 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.5.0 is phase 9 of 9 (the family GPU renderer and the desktop shell). No parity row changed grade, so the score stays at 70.5 of 79; the table lists the work that has no parity row.",
+  "changes": "v0.5.1 closes two rows: brand restrictions and brand check (None to Full) and third-party embeds (Partial to Full). The score moves from 70.5 to 72.0 of 79.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5410,6 +5425,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 11 October 2026 from FormWeb 0.5.0 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 11 October 2026 from FormWeb 0.5.1 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

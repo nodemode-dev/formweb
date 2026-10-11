@@ -113,6 +113,13 @@ async def call_tool(context, params):
                 result = await studio.passwords.set(arguments['route'], arguments['password'])
             case 'list_page_passwords':
                 result = await studio.passwords.list()
+            case 'brand_check':
+                from .brand import check
+                studio.access.authorize('read')
+                try:
+                    result = check(await studio.state(), arguments.get('page'))
+                except ValueError as error:
+                    raise EngineError(str(error), 404)
             case 'qr_code':
                 from .qr import qr_image
                 studio.access.authorize('read')

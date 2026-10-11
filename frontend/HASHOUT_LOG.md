@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Brand check, restriction and embed gates · v0.5.1
+
+`features/brand-kit.ts` gains a Brand check section with the restriction checkbox (`brand.restrict`), Check page (`brand.check`), Fix all (`brand.fix-all`) and a keyed issue list. Rows are reused by issue id, so a re-check after a fix does not remount the list. Each row has Fix (`brand.fix`), and clicking its name selects the element. Fixes go through `hooks.commands` as one batch, then the check re-runs. `main.ts` wires `check` to `/api/brand/check` and enforces the restriction in `setStyle` for color, background, background-color, border-color and font-family: a refused value resets the field to its current value and shows the reason. The exporter's gates live in `native/crates/formweb-export/src/embed.rs` (`gate()`, `social()`, `GATE_RUNTIME`, which is appended to both runtimes). `embedKind` accepts X post links, and Whole site has "Load embeds only when visitors click" (`site.embedClickToLoad`). On Load, the runtime focuses the new iframe with `preventScroll`, so the page does not jump.
+
 ## Desktop shell · v0.5.0
 
 No editor change. In the Tauri shell the same built editor runs in WebKitGTK, WebKit or WebView2; `withGlobalTauri` exposes `window.__TAURI__.core.invoke('render_probe' | 'render_thumbnail' | 'render_diff', ...)` for pages that want the GPU renderer, and `capabilities/default.json` grants it only to `http://127.0.0.1:8240/*`. The browser build ignores it.

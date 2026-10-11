@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.1 · 2026-10-11
+
+Gap closing: FW-067 brand restrictions and brand check, None to Full, and FW-076 embeds, Partial to Full (70.5 to 72.0 of 79).
+
+- Brand check (Window > Brand kit): Check page lists off-brand colors, fonts and logos on the current page, each with the nearest brand token or logo. Fix changes one; Fix all changes every issue as one undo step. Click an issue to select the element.
+- Only allow brand colors and fonts: color, background, border and font fields accept only brand tokens or neutral values (inherit, transparent and the like) and say why when they refuse. Only someone who can manage the project may turn it on or off. Agents: `brand_check` (72 tools) returns the same issues with ready fixes.
+- Embeds: "Load embeds only when visitors click" (Site settings) shows a placeholder with a Load button and an "Open on YouTube" (or Vimeo, Loom and so on) link, so nothing is requested from the other site until a visitor asks. One embed can opt in alone with `data-fw-embed-load="click"`.
+- X posts: paste an x.com or twitter.com post link into Insert > Embed media. It always loads on click, through X's own widget script.
+- Not yet: Instagram and TikTok posts; agent and CLI edits are checked by `brand_check` rather than blocked by the restriction.
+
 ## 0.5.0 · 2026-10-11
 
 Phase 9 of 9: the family GPU renderer and the desktop shell. No parity row moved this release (70.5 of 79).

@@ -252,6 +252,16 @@ class PagePassword(BaseModel):
     password: str | None = Field(default=None, max_length=200)
 
 
+@app.get('/api/brand/check')
+async def brand_check(page: str | None = None):
+    from .brand import check
+    studio.access.authorize('read')
+    try:
+        return check(await studio.state(), page)
+    except ValueError as error:
+        raise EngineError(str(error), 404)
+
+
 @app.get('/api/page-passwords')
 async def page_passwords():
     return await studio.passwords.list()

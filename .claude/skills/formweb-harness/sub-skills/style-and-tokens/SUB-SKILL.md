@@ -24,8 +24,10 @@ Keep visual values in one place. Tokens are exported as CSS custom properties, s
 | Read the brand kit | resource `formweb://tokens` (key `brand`) | none | Window > Brand kit (`window.brand`) |
 | Add a brand color or font | `edit_styles` `token.define` with name `brand-[name]` (type color) or `brand-font-[name]` (type text) | `./formweb run token.define '{"name":"brand-primary","type":"color","value":"#f97316"}'` | Brand kit, Add color (`brand.add-color`), Add font (`brand.add-font`) |
 | Set a brand logo | `edit_site` `site.update` with settings `brandLogo` or `brandLogoDark` set to an uploaded `/api/assets/[id]` URL | `./formweb run site.update` with that patch | Brand kit, Upload (`brand.logo`, `brand.logo-dark`), Insert (`brand.insert-logo`) |
+| Find off-brand styling | `brand_check` `{page?}`; each issue has `fix`, a `node.update` command that swaps in the nearest brand token | `curl -s 127.0.0.1:8240/api/brand/check?page=home` | Brand kit, Check page (`brand.check`), Fix or Fix all (`brand.fix`, `brand.fix-all`) |
+| Restrict editing to the brand | `edit_site` `site.update` with settings `brandRestrict` `"true"`; needs the manage permission, editors get 403 | `./formweb run site.update` with that patch | Brand kit, Only allow brand colors and fonts (`brand.restrict`) |
 
-The brand kit is not a separate store: it is the typed tokens named `brand-` plus two settings, so a brand color used as `var(--brand-[name])` updates everywhere when the token changes, and the Design inspector offers brand values in its color and font fields. When a person has a brand kit, prefer its tokens over new values.
+The brand kit is not a separate store: it is the typed tokens named `brand-` plus two settings, so a brand color used as `var(--brand-[name])` updates everywhere when the token changes, and the Design inspector offers brand values in its color and font fields. When a person has a brand kit, prefer its tokens over new values. Before handing back a styled page, run `brand_check`; apply all returned `fix` commands in one `apply_commands` batch so they undo together, then check again and report zero issues. The restriction is enforced in the editor's fields, not on agent calls, so `brand_check` is how an agent proves it stayed on brand.
 
 ## Preconditions
 

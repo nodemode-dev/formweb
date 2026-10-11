@@ -10,7 +10,7 @@ import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
 import { TerminalDock } from './features/terminal';
-import { BrandKit, readBrand, type BrandEntry } from './features/brand-kit';
+import { BrandKit, readBrand, type BrandEntry, type BrandReport } from './features/brand-kit';
 import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -132,8 +132,18 @@ async function run(action: () => unknown): Promise<void> {
 }
 function nodePatch(patch: Record<string, unknown>): Promise<EditorState> { return command('node.update', { id: currentNode().id, patch }); }
 function pagePatch(patch: Record<string, unknown>): Promise<EditorState> { return command('page.update', { id: currentPage().id, patch }); }
+const BRAND_COLOR_PROPS = new Set(['color', 'background', 'background-color', 'border-color']);
 function setStyle(name: string, content: string): Promise<EditorState> {
-  const next = { [name]: content.trim() || null };
+  const entered = content.trim();
+  // FW-067: with brand restriction on, color and font fields accept brand tokens (or clearing) only.
+  if (lastState && readBrand(lastState).restricted && entered && (BRAND_COLOR_PROPS.has(name) || name === 'font-family')
+    && !/^var\(--brand-[a-z0-9-]+\)$/.test(entered) && !['inherit', 'transparent', 'currentcolor', 'none'].includes(entered.toLowerCase())) {
+    const field = styleFields.get(name);
+    const node = currentNode();
+    if (field) field.value = (breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {})[name] || '';
+    return Promise.reject(new Error('Brand restriction is on: pick a brand value from the list (var(--brand-...)), or ask a project manager to turn it off in Window > Brand kit.'));
+  }
+  const next = { [name]: entered || null };
   return nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } });
 }
 function setAttribute(name: string, content: string): Promise<EditorState> {
@@ -576,6 +586,13 @@ hideScrollbars.addEventListener('change', () => void run(() => command('site.upd
 const hideScrollbarsLabel = element('label', 'checkbox-field');
 hideScrollbarsLabel.append(hideScrollbars, element('span', '', 'Hide scrollbars on the published site'));
 siteSection.append(hideScrollbarsLabel, element('p', 'micro', 'Visitors can still scroll with wheel, touch and keyboard. Applies to Preview, export and publish. Agents: site.update with settings.hideScrollbars "true" or "false".'));
+const embedClick = element('input');
+embedClick.type = 'checkbox';
+embedClick.dataset.field = 'site.embedClickToLoad';
+embedClick.addEventListener('change', () => void run(() => command('site.update', { patch: { settings: { embedClickToLoad: embedClick.checked ? 'true' : 'false' } } })));
+const embedClickLabel = element('label', 'checkbox-field');
+embedClickLabel.append(embedClick, element('span', '', 'Load embeds only when visitors click'));
+siteSection.append(embedClickLabel, element('p', 'micro', 'Videos, music and maps show a Load button and a link instead of contacting YouTube, Vimeo, Spotify or map servers on page load. X posts always work this way.'));
 const faviconRow = element('div', 'fw-favicon-row');
 faviconRow.style.marginTop = 'var(--space-3)';
 const faviconPreview = element('img', 'fw-favicon-preview');
@@ -668,7 +685,7 @@ const embedPane = dialogPane('embed');
 const embedUrl = input('https://www.youtube.com/watch?v=...');
 embedUrl.dataset.field = 'embed.url';
 const embedNote = element('p', 'micro', '');
-embedPane.append(element('p', 'empty-note', 'Paste a share link or a provider\'s embed HTML (FormWeb keeps only its address). Supported: YouTube (privacy-enhanced), Vimeo, Loom, Spotify, Google Maps "Embed a map" links and OpenStreetMap embed links. The player renders in Preview, export and publish.'), field('Media URL', embedUrl, true), embedNote);
+embedPane.append(element('p', 'empty-note', 'Paste a share link or a provider\'s embed HTML (FormWeb keeps only its address). Supported: YouTube (privacy-enhanced), Vimeo, Loom, Spotify, Google Maps "Embed a map" links, OpenStreetMap embed links and X posts. The player renders in Preview, export and publish; X posts, and every embed when "Load embeds only when visitors click" is on, show a Load button and a link instead until the visitor chooses.'), field('Media URL', embedUrl, true), embedNote);
 embedUrl.addEventListener('paste', () => setTimeout(() => { const src = /<iframe[^>]*\ssrc="([^"]+)"/i.exec(embedUrl.value)?.[1]; if (src) { value(embedUrl, src.replace(/&amp;/g, '&')); embedUrl.dispatchEvent(new Event('input')); } }));
 embedUrl.addEventListener('input', () => text(embedNote, embedKind(embedUrl.value) ? `${embedKind(embedUrl.value)} detected.` : embedUrl.value.trim() ? 'Not a supported provider link yet.' : ''));
 function embedKind(url: string): string {
@@ -681,6 +698,7 @@ function embedKind(url: string): string {
   if (host === 'open.spotify.com') return 'Spotify player';
   if (/^(maps\.)?google\.com$/.test(host) && path === 'maps/embed') return 'Google map';
   if (host === 'openstreetmap.org' && path === 'export/embed.html') return 'OpenStreetMap';
+  if (/^(x\.com|twitter\.com|mobile\.twitter\.com|mobile\.x\.com)$/.test(host) && /^[A-Za-z0-9_]{1,15}\/status\/\d{1,20}/.test(path)) return 'X post';
   return '';
 }
 const deletePagePane = dialogPane('delete-page');
@@ -763,6 +781,8 @@ localesPane.append(localesLayout);
 const brandPane = dialogPane('brand');
 const brandKit = new BrandKit({
   state,
+  check: () => request<BrandReport>(`/api/brand/check?page=${encodeURIComponent(currentPage().id)}`),
+  selectNode: id => { closeDialog(); selectNode(id); },
   commands: batch => commands(batch),
   pickLogo: dark => { mediaInput.dataset.mode = dark ? 'brandLogoDark' : 'brandLogo'; mediaInput.click(); },
   insertLogo: async (url, dark) => {
@@ -994,6 +1014,7 @@ function update(next: EditorState): void {
   deleteNodeButton.disabled = node.id === page.root;
   noindex.checked = !!page.seo.noindex;
   hideScrollbars.checked = site.settings.hideScrollbars === 'true';
+  embedClick.checked = site.settings.embedClickToLoad === 'true';
   const favicon = site.settings.favicon || '';
   faviconPreview.hidden = !favicon;
   if (favicon && faviconPreview.dataset.src !== favicon) { faviconPreview.dataset.src = favicon; faviconPreview.src = apiBase && favicon.startsWith('/') ? apiBase + favicon : favicon; }

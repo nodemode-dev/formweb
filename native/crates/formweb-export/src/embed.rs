@@ -50,13 +50,76 @@ pub fn provider(url: &str) -> Option<(String, &'static str, &'static str)> {
     }
 }
 
-pub fn render(node: &Node) -> Option<String> {
+/// An X (Twitter) post URL, normalised to https://x.com/[user]/status/[id]. X posts render through X's own widget
+/// script (docs.x.com, X for Websites: blockquote.twitter-tweet plus https://platform.x.com/widgets.js), so they are
+/// always click-to-load: nothing is requested from X until the visitor asks.
+pub fn social(url: &str) -> Option<String> {
+    let url = url.trim();
+    if url.len() > 512 || url.chars().any(|c| c.is_whitespace() || "<>\"'`".contains(c)) { return None; }
+    let rest = url.strip_prefix("https://")?;
+    let (host, path) = rest.split_once('/')?;
+    if !matches!(host.strip_prefix("www.").unwrap_or(host), "x.com" | "twitter.com" | "mobile.twitter.com" | "mobile.x.com") { return None; }
+    let parts: Vec<&str> = path.split(['?', '#']).next()?.split('/').filter(|p| !p.is_empty()).collect();
+    let (user, status, id) = (parts.first()?, parts.get(1)?, parts.get(2)?);
+    (*status == "status" && id_ok(user, 15) && id.len() <= 20 && id.chars().all(|c| c.is_ascii_digit())).then(|| format!("https://x.com/{user}/status/{id}"))
+}
+
+/// Visitor-facing placeholder: nothing third-party loads until the button is pressed; the link always works.
+fn gate(kind: &str, host: &str, link: &str, aspect: &str, data: &str) -> String {
+    let site = kind.split(' ').next().unwrap_or(kind);
+    format!("<div class=\"fw-embed-gate\" data-fw-embed-gate {data} style=\"{aspect}width:100%;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;box-sizing:border-box;border:1px solid rgba(127,127,127,.35);border-radius:12px;text-align:center;font:inherit\"><button type=\"button\" data-fw-embed-load style=\"font:inherit;padding:10px 18px;border-radius:8px;border:1px solid currentColor;background:transparent;color:inherit;cursor:pointer\">Load {}</button><p style=\"margin:0;font-size:13px;opacity:.75\">Loads content from {}, which may set cookies.</p><a href=\"{}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"font-size:13px;color:inherit\">Open on {}</a></div>", escape(kind), escape(host), escape(link), escape(site))
+}
+
+pub fn render(site: &formweb_model::Site, node: &Node) -> Option<String> {
     let source = node.attrs.get("data-fw-embed")?;
+    if let Some(post) = social(source) {
+        return Some(gate("X post", "x.com and platform.x.com", &post, "", &format!("data-fw-embed-kind=\"x\" data-fw-embed-src=\"{}\"", escape(&post))));
+    }
     let Some((src, ratio, kind)) = provider(source) else {
         return Some(format!("<p class=\"fw-embed-error\" role=\"note\">Unsupported embed URL: {}</p>", escape(source)));
     };
     let title = node.attrs.get("title").cloned().unwrap_or_else(|| kind.to_string());
     let height = if ratio == "auto" { "height:152px;" } else { "" };
     let aspect = if ratio == "auto" { String::new() } else { format!("aspect-ratio:{ratio};") };
+    let click = node.attrs.get("data-fw-embed-load").map(String::as_str) == Some("click") || site.settings.get("embedClickToLoad").map(String::as_str) == Some("true");
+    if click {
+        let host = src.trim_start_matches("https://").split('/').next().unwrap_or("").to_string();
+        let data = format!("data-fw-embed-kind=\"iframe\" data-fw-embed-src=\"{}\" data-fw-embed-title=\"{}\" data-fw-embed-style=\"width:100%;{aspect}{height}border:0;display:block\"", escape(&src), escape(&title));
+        return Some(gate(kind, &host, source, &aspect, &data));
+    }
     Some(format!("<iframe data-fw-embed-frame src=\"{}\" title=\"{}\" loading=\"lazy\" referrerpolicy=\"strict-origin-when-cross-origin\" allow=\"autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write\" allowfullscreen style=\"width:100%;{aspect}{height}border:0;display:block\"></iframe>", escape(&src), escape(&title)))
 }
+
+/// Appended to both exported runtimes: swaps a gate for the real player or post when the visitor presses Load.
+pub const GATE_RUNTIME: &str = r#"
+(() => {
+  document.addEventListener('click', event => {
+    const button = event.target.closest && event.target.closest('[data-fw-embed-load]');
+    const gate = button && button.closest('[data-fw-embed-gate]');
+    if (!gate) return;
+    const src = gate.dataset.fwEmbedSrc || '';
+    if (gate.dataset.fwEmbedKind === 'x') {
+      const quote = document.createElement('blockquote');
+      quote.className = 'twitter-tweet';
+      const link = document.createElement('a');
+      link.href = src;
+      link.textContent = src;
+      quote.append(link);
+      gate.replaceWith(quote);
+      if (!document.getElementById('twitter-wjs')) { const script = document.createElement('script'); script.id = 'twitter-wjs'; script.async = true; script.src = 'https://platform.x.com/widgets.js'; document.head.append(script); }
+      else if (window.twttr && window.twttr.widgets) window.twttr.widgets.load(quote.parentNode);
+      return;
+    }
+    const frame = document.createElement('iframe');
+    frame.src = src;
+    frame.title = gate.dataset.fwEmbedTitle || 'Embedded media';
+    frame.setAttribute('data-fw-embed-frame', '');
+    frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+    frame.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write');
+    frame.allowFullscreen = true;
+    frame.setAttribute('style', gate.dataset.fwEmbedStyle || 'width:100%;border:0;display:block');
+    gate.replaceWith(frame);
+    frame.focus({ preventScroll: true });
+  });
+})();
+"#;

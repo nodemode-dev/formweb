@@ -59,7 +59,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     let mut files = vec![];
     let css = stylesheet(site);
     files.push(json!({"path":"assets/site.css", "content":css}));
-    files.push(json!({"path":"assets/runtime.js", "content":RUNTIME}));
+    files.push(json!({"path":"assets/runtime.js", "content":format!("{RUNTIME}{}", embed::GATE_RUNTIME)}));
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
     let mut route_manifest = vec![];
     for page in &site.pages {
@@ -249,7 +249,7 @@ impl Renderer<'_> {
         } else { String::new() };
         if void_tag(&node.tag) { result.push_str(&field_error); return Ok(result); }
         if let Some(frame) = code::render(self.site, &node.id, self.prefix)? { result.push_str(&frame); }
-        else if let Some(frame) = embed::render(node) { result.push_str(&frame); }
+        else if let Some(frame) = embed::render(self.site, node) { result.push_str(&frame); }
         else { result.push_str(&escape(&text)); for child in &node.children { result.push_str(&self.node(child, context, None)?); } }
         result.push_str(&advanced::widget(self.site,node));
         if node.tag == "form" { result.push_str(&advanced::form_extra(self.site,node)); result.push_str("<p class=\"fw-form-status\" data-fw-form-status aria-live=\"polite\"></p>"); }

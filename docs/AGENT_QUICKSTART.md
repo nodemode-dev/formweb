@@ -48,7 +48,8 @@ A saved extension is configuration evidence. A browser interaction needs observe
 | --- | --- | --- |
 | Site icon | Upload the square PNG (editor or `POST /api/assets`), then `apply_commands` with `site.update` `{patch:{settings:{favicon:"/api/assets/<id>"}}}`; `faviconDark` adds a dark-scheme icon | Exported `index.html` has `rel="icon"`, `apple-touch-icon` and `rel="manifest"`; the ZIP holds `site.webmanifest` and the icon |
 | Many pages from data | Put `{{column}}` tokens in a template page, then `page.bulk` `{template, rows:[{slug, name?, values}]}` (1 to 300 rows, one undo step) | Page count grew by the row count; sample pages show values, not tokens |
-| Embed media | `node.add` a `div` with attribute `data-fw-embed` set to a YouTube, Vimeo, Loom, Spotify, Google Maps embed or OpenStreetMap embed URL | Preview or export shows `iframe[data-fw-embed-frame]`; an unsupported URL renders a visible `fw-embed-error` note |
+| Embed media | `node.add` a `div` with attribute `data-fw-embed` set to a YouTube, Vimeo, Loom, Spotify, Google Maps embed or OpenStreetMap embed URL, or an X post (`https://x.com/[user]/status/[id]`) | Preview or export shows `iframe[data-fw-embed-frame]`; an unsupported URL renders a visible `fw-embed-error` note |
+| Load embeds on click | Site-wide: `site.update` `{patch:{settings:{embedClickToLoad:"true"}}}`; one embed: attribute `data-fw-embed-load` set to `click`. X posts are always click-to-load | Export shows `[data-fw-embed-gate]` with a Load button and an "Open on ..." link and no iframe until the visitor presses Load |
 | QR code | `qr_code` `{url, dark?, light?}` returns SVG text; `GET /api/qr?url=...&format=png` returns a PNG | Decode it, or compare the returned `url` |
 
 ## Reading and editing efficiently
@@ -58,6 +59,8 @@ Read `formweb://site/tree` first: every page as an outline of element IDs, tags,
 | Goal | Tool | Notes |
 | --- | --- | --- |
 | Use or extend the brand kit | `formweb://tokens` key `brand`; `edit_styles` `token.define` `brand-[name]` (color) or `brand-font-[name]` (text); logos in settings `brandLogo`, `brandLogoDark` | Style with `var(--brand-[name])` so changes follow the kit |
+| Check a page against the brand | `brand_check` `{page?}` returns off-brand colors, fonts and logos, each with a ready `fix` command | Pass the `fix` values to `apply_commands` as one batch; a second `brand_check` returns no issues |
+| Restrict styling to the brand | `site.update` `{patch:{settings:{brandRestrict:"true"}}}` (needs the manage permission) | The editor then accepts only `var(--brand-...)` or neutral values in color and font fields; `brand_check` still reports agent edits |
 | Password-protect a page or folder | `set_page_password` `{route, password}`; `null` removes | Enforced when FormWeb serves the published site; export is refused while set; never echo the password |
 
 ## Terminal and CLI
@@ -66,7 +69,7 @@ Inside the editor's terminal (or any shell in the FormWeb folder) `./formweb run
 
 If a call waits and then reports that no one approved it, the owner has turned on approvals in Agent Connect; ask them to watch the panel and retry once.
 
-Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`.
+Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`, `brand.check`, `brand.fix-all`, `brand.restrict`.
 
 ## Recover a stopped workflow
 
