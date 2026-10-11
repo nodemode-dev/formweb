@@ -192,9 +192,8 @@ const workspace = element('main', 'workspace');
 const sidebar = element('aside', 'sidebar');
 sidebar.setAttribute('aria-label', 'Pages and layers');
 const sidebarTabs = element('div', 'sidebar-tabs');
-const pagesTab = button('Pages & layers', undefined, () => setSidebar('pages'), 'quiet active');
-const insertTab = button('Insert', 'plus', () => setSidebar('insert'), 'quiet');
-sidebarTabs.append(pagesTab, insertTab, collapseButton({ command: 'window.toggle-left', label: 'Collapse left panel', icon: 'chevronsLeft' }));
+const sidebarTitle = element('span', 'fw-panel-title', 'Pages and layers');
+sidebarTabs.append(sidebarTitle, collapseButton({ command: 'window.toggle-left', label: 'Collapse left panel', icon: 'chevronsLeft' }));
 const pagesPane = element('div');
 pagesPane.style.display = 'contents';
 const pagesHead = element('div', 'panel-head');
@@ -227,7 +226,7 @@ captureWrap.append(componentName, button('Capture selection', 'component', async
 captureWrap.lastElementChild?.setAttribute('style', 'width:100%;margin-top:var(--space-2)');
 const componentList = element('div', 'list');
 insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), componentsHead, captureWrap, componentList);
-sidebar.append(sidebarTabs, pagesPane, insertPane, dockStrip('left', [{ command: 'window.layers', label: 'Pages and layers', icon: 'layers' }, { command: 'window.insert', label: 'Insert', icon: 'plus' }], { command: 'window.toggle-left', label: 'Expand left panel', icon: 'chevronsRight' }));
+sidebar.append(sidebarTabs, pagesPane, insertPane);
 
 const stagePanel = element('section', 'stage-panel');
 const stageHead = element('div', 'stage-head');
@@ -283,6 +282,11 @@ const rail = new Rail([
 workspace.append(rail.element, sidebar, stagePanel, inspector);
 const layout = new WorkspaceLayout(workspace);
 const openDock = (side: 'left' | 'right'): void => { if (layout.state[side] !== 'open') layout.set({ [side]: 'open' }); };
+const toggleLeft = (pane: string): void => {
+  if (layout.state.left === 'open' && activeSidebar === pane) layout.set({ left: 'collapsed' });
+  else { openDock('left'); setSidebar(pane); }
+  rail.refresh();
+};
 
 const statusbar = element('footer', 'statusbar');
 const statusConnection = element('div', 'status-connection');
@@ -618,8 +622,7 @@ function setSidebar(id: string): void {
   activeSidebar = id;
   pagesPane.hidden = id !== 'pages';
   insertPane.hidden = id !== 'insert';
-  pagesTab.classList.toggle('active', id === 'pages');
-  insertTab.classList.toggle('active', id === 'insert');
+  text(sidebarTitle, id === 'insert' ? 'Insert' : 'Pages and layers');
   rail.refresh();
 }
 function setInspector(id: string): void {
@@ -1091,8 +1094,8 @@ registerCommands([
   { id: 'view.refresh', label: 'Refresh compiled preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: 'Ctrl K', group: 2, run: () => commandSearch.show() },
-  { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => { openDock('left'); setSidebar('pages'); }, checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
-  { id: 'window.insert', label: 'Insert', menu: 'Window', run: () => { openDock('left'); setSidebar('insert'); }, checked: () => activeSidebar === 'insert' && layout.state.left === 'open' },
+  { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => toggleLeft('pages'), checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
+  { id: 'window.insert', label: 'Insert', menu: 'Window', run: () => toggleLeft('insert'), checked: () => activeSidebar === 'insert' && layout.state.left === 'open' },
   { id: 'window.design', label: 'Design inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('design'); }, checked: () => activeInspector === 'design' && layout.state.right === 'open' },
   { id: 'window.content', label: 'Content inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('content'); }, checked: () => activeInspector === 'content' && layout.state.right === 'open' },
   { id: 'window.toggle-left', label: 'Left panel', menu: 'Window', keys: 'Ctrl [', group: 4, run: () => { layout.set({ left: layout.state.left === 'open' ? 'collapsed' : 'open' }); rail.refresh(); }, checked: () => layout.state.left === 'open' },

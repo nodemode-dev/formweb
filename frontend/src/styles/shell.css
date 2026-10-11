@@ -35,7 +35,12 @@
 .toolbar { background: var(--surface-0); border-bottom-color: var(--line-0); padding: 0 var(--space-4); }
 .statusbar { background: var(--bg-secondary); font-size: var(--fs-11); }
 .workspace[data-rail="labels"] { --rail-w: 168px; }
-.workspace[data-left="collapsed"] { --left-w: 48px; }
+.workspace[data-left="collapsed"] { --left-w: 0px; }
+.workspace[data-left="collapsed"] > .sidebar { display: none; }
+.workspace > .fw-rail { grid-column: 1; grid-row: 1; }
+.workspace > .sidebar { grid-column: 2; grid-row: 1; }
+.workspace > .stage-panel { grid-column: 3; grid-row: 1; }
+.workspace > .inspector { grid-column: 4; grid-row: 1; }
 .workspace[data-right="collapsed"] { --right-w: 48px; }
 .fw-rail { display: flex; flex-direction: column; gap: var(--space-1); min-height: 0; padding: var(--space-2) var(--space-2); overflow-y: auto; background: var(--surface-0); border-right: 1px solid var(--line-0); }
 .fw-rail-modes { display: flex; flex-direction: column; gap: 2px; }
@@ -53,9 +58,10 @@
 .fw-dock-collapse { width: 28px; height: 28px; grid-template-columns: 28px; color: var(--text-muted); }
 .fw-dock-strip { display: none; flex-direction: column; align-items: center; gap: 6px; padding: var(--space-2) 0; }
 .fw-dock-strip .fw-rail-btn { width: 34px; height: 34px; grid-template-columns: 32px; }
-.workspace[data-left="collapsed"] .sidebar > :not(.fw-dock-strip), .workspace[data-right="collapsed"] .inspector > :not(.fw-dock-strip) { display: none !important; }
-.workspace[data-left="collapsed"] .sidebar > .fw-dock-strip, .workspace[data-right="collapsed"] .inspector > .fw-dock-strip { display: flex; }
-.sidebar-tabs { grid-template-columns: 1fr 1fr auto; align-items: center; }
+.workspace[data-right="collapsed"] .inspector > :not(.fw-dock-strip) { display: none !important; }
+.workspace[data-right="collapsed"] .inspector > .fw-dock-strip { display: flex; }
+.sidebar-tabs { grid-template-columns: minmax(0, 1fr) auto; align-items: center; min-height: 40px; padding: 0 var(--space-2) 0 var(--space-3); background: var(--group-head); }
+.fw-panel-title { font-size: var(--fs-12); font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inspector-identity { grid-template-columns: 24px minmax(0, 1fr) auto; }
 .section-title[role="button"] { cursor: pointer; user-select: none; margin-bottom: 0; }
 .section-title[role="button"] .fw-section-chevron { transition: none; }
