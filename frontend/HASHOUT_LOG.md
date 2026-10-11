@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Minirail, collapsible docks and workspaces · v0.3.3
+
+`ui/layout.ts` adds the left minirail (`Rail`: nine modes plus Settings, each a registered command, icon-only or labelled), dock strips shown when a side panel collapses, the collapse buttons, and `WorkspaceLayout`, which keeps rail, left and right state per preset (Design, Content, Build, Focus) under `formweb_workspace` in localStorage, read before the app is revealed. Layout lives only in `.workspace` data attributes and CSS variables (`--rail-w`, `--left-w`, `--right-w`); collapsing never adds or removes panel nodes, it toggles `display` through `[data-left]` and `[data-right]` (with `!important`, because the pages pane uses an inline `display: contents`). Inspector and dialog sections built by `section()` now collapse from their title (button role, Enter or Space). The sidebar footer with CMS and Locales moved into the rail. New commands: window.toggle-left (Ctrl+[), window.toggle-right (Ctrl+]), window.toggle-rail, workspace.design, workspace.content, workspace.build, workspace.focus, workspace.reset.
+
 ## Family shell · v0.3.2
 
 `ui/shell.ts` holds the command registry (`registerCommands`, `runCommand`), the `Menubar` (nine family menus whose popups are built once into the overlay root and only toggle hidden, disabled and checked state on open) and `CommandSearch` (Ctrl/Cmd+K, keyed result rows). `exposeToAgents()` publishes `window.formweb.commands()` and `run(id)`. main.ts registers 43 commands after its functions exist; the menubar replaced the Project, Design system, Settings and Help launchers and the toolbar's file and history buttons, which now live in File and Edit with undo and redo also in the title tools. `styles/shell.css` owns the title bar, menus, title tools and search; the old `.topbar`, brand and menubar rules left app.css. Below 1280 px the Agents and Preview buttons turn icon-only with titles and aria labels.

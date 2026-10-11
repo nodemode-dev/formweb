@@ -4,7 +4,8 @@ import { Canvas } from './ui/canvas';
 import { element, keyed, options, revealApp, text, value } from './ui/dom';
 import { icon, type Icon } from './ui/icons';
 import { THEMES, applyTheme, readChoice, setTheme } from './ui/themes';
-import { BRAND_MARK, CommandSearch, Menubar, exposeToAgents, registerCommands, setRunner } from './ui/shell';
+import { BRAND_MARK, CommandSearch, Menubar, exposeToAgents, registerCommands, runCommand, setRunner } from './ui/shell';
+import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/layout';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import './styles/features.css';
@@ -68,8 +69,18 @@ function select(items: { id: string; name: string }[]): HTMLSelectElement {
 function section(container: HTMLElement, title: string, hint = ''): HTMLElement {
   const node = element('section', 'inspector-section');
   const head = element('div', 'section-title');
-  head.append(element('span', '', title));
+  const name = element('span');
+  const chevron = icon('chevron');
+  chevron.classList.add('fw-section-chevron');
+  name.append(chevron, document.createTextNode(title));
+  head.append(name);
   if (hint) head.append(element('span', 'hint', hint));
+  head.setAttribute('role', 'button');
+  head.tabIndex = 0;
+  head.setAttribute('aria-expanded', 'true');
+  const toggle = (): void => { const collapsed = node.classList.toggle('is-collapsed'); head.setAttribute('aria-expanded', String(!collapsed)); };
+  head.addEventListener('click', event => { if (!(event.target as Element).closest('button, input, select, a')) toggle(); });
+  head.addEventListener('keydown', event => { if (event.target === head && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); toggle(); } });
   node.append(head);
   container.append(node);
   return node;
@@ -183,7 +194,7 @@ sidebar.setAttribute('aria-label', 'Pages and layers');
 const sidebarTabs = element('div', 'sidebar-tabs');
 const pagesTab = button('Pages & layers', undefined, () => setSidebar('pages'), 'quiet active');
 const insertTab = button('Insert', 'plus', () => setSidebar('insert'), 'quiet');
-sidebarTabs.append(pagesTab, insertTab);
+sidebarTabs.append(pagesTab, insertTab, collapseButton({ command: 'window.toggle-left', label: 'Collapse left panel', icon: 'chevronsLeft' }));
 const pagesPane = element('div');
 pagesPane.style.display = 'contents';
 const pagesHead = element('div', 'panel-head');
@@ -216,9 +227,7 @@ captureWrap.append(componentName, button('Capture selection', 'component', async
 captureWrap.lastElementChild?.setAttribute('style', 'width:100%;margin-top:var(--space-2)');
 const componentList = element('div', 'list');
 insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), componentsHead, captureWrap, componentList);
-const sidebarFooter = element('div', 'sidebar-footer');
-sidebarFooter.append(button('CMS', 'database', () => openDialog('cms')), button('Locales', 'globe', () => openDialog('locales')));
-sidebar.append(sidebarTabs, pagesPane, insertPane, sidebarFooter);
+sidebar.append(sidebarTabs, pagesPane, insertPane, dockStrip('left', [{ command: 'window.layers', label: 'Pages and layers', icon: 'layers' }, { command: 'window.insert', label: 'Insert', icon: 'plus' }], { command: 'window.toggle-left', label: 'Expand left panel', icon: 'chevronsRight' }));
 
 const stagePanel = element('section', 'stage-panel');
 const stageHead = element('div', 'stage-head');
@@ -244,7 +253,7 @@ const inspectorLabel = element('div');
 const inspectorName = element('div', 'inspector-name', 'Selection');
 const inspectorTag = element('div', 'inspector-tag');
 inspectorLabel.append(inspectorName, inspectorTag);
-inspectorIdentity.append(icon('box'), inspectorLabel);
+inspectorIdentity.append(icon('box'), inspectorLabel, collapseButton({ command: 'window.toggle-right', label: 'Collapse right panel', icon: 'chevronsRight' }));
 const inspectorTabs = element('div', 'inspector-tabs');
 const inspectorTabButtons = new Map<string, HTMLButtonElement>();
 for (const id of ['design', 'content', 'page']) {
@@ -257,8 +266,23 @@ const designPane = element('div');
 const contentPane = element('div');
 const pagePane = element('div');
 inspectorScroll.append(designPane, contentPane, pagePane);
-inspector.append(inspectorIdentity, inspectorTabs, inspectorScroll);
-workspace.append(sidebar, stagePanel, inspector);
+inspector.append(inspectorIdentity, inspectorTabs, inspectorScroll, dockStrip('right', [{ command: 'window.design', label: 'Design', icon: 'sliders' }, { command: 'window.content', label: 'Content', icon: 'text' }, { command: 'page.settings', label: 'Page', icon: 'page' }], { command: 'window.toggle-right', label: 'Expand right panel', icon: 'chevronsLeft' }));
+const rail = new Rail([
+  { command: 'window.layers', label: 'Pages and layers', icon: 'layers', active: () => activeSidebar === 'pages' && layout.state.left === 'open' },
+  { command: 'window.insert', label: 'Insert', icon: 'plus', active: () => activeSidebar === 'insert' && layout.state.left === 'open' },
+  { command: 'window.tokens', label: 'Design system', icon: 'palette' },
+  { command: 'cms.collections', label: 'CMS', icon: 'database' },
+  { command: 'cms.locales', label: 'Localization', icon: 'globe' },
+  { command: 'window.studio', label: 'Website studio', icon: 'wand' },
+  { command: 'page.audit', label: 'SEO and accessibility', icon: 'check' },
+  { command: 'file.publish', label: 'Publish', icon: 'upload' },
+  { command: 'window.agents', label: 'Agents', icon: 'bolt', active: () => agentsEnabled }
+], [
+  { command: 'edit.settings', label: 'Settings', icon: 'gear' }
+], { command: 'window.toggle-rail', label: 'Show or hide rail labels', icon: 'chevronsRight' });
+workspace.append(rail.element, sidebar, stagePanel, inspector);
+const layout = new WorkspaceLayout(workspace);
+const openDock = (side: 'left' | 'right'): void => { if (layout.state[side] !== 'open') layout.set({ [side]: 'open' }); };
 
 const statusbar = element('footer', 'statusbar');
 const statusConnection = element('div', 'status-connection');
@@ -596,6 +620,7 @@ function setSidebar(id: string): void {
   insertPane.hidden = id !== 'insert';
   pagesTab.classList.toggle('active', id === 'pages');
   insertTab.classList.toggle('active', id === 'insert');
+  rail.refresh();
 }
 function setInspector(id: string): void {
   activeInspector = id;
@@ -610,6 +635,7 @@ function updateAgents(): void {
   agentsButton.setAttribute('aria-pressed', String(agentsEnabled));
   agentsButton.title = agentsEnabled ? 'Agents on: MCP clients can edit this site' : 'Agents off: MCP clients are blocked';
   agentsButton.setAttribute('aria-label', agentsButton.title);
+  rail.refresh();
 }
 function update(next: EditorState): void {
   lastState = next;
@@ -1051,7 +1077,7 @@ registerCommands([
   ...insertKinds.map(([kind, label]) => ({ id: `insert.${kind}`, label, menu: 'Insert', run: () => insertElement(kind), enabled: ready })),
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
   { id: 'page.add', label: 'Add page...', menu: 'Page', run: () => openDialog('page'), enabled: ready },
-  { id: 'page.settings', label: 'Page settings', menu: 'Page', run: () => setInspector('page'), enabled: ready },
+  { id: 'page.settings', label: 'Page settings', menu: 'Page', run: () => { openDock('right'); setInspector('page'); }, enabled: ready },
   { id: 'page.delete', label: 'Delete page...', menu: 'Page', group: 1, run: () => openDialog('delete-page'), enabled: () => !!lastState && lastState.site.pages.length > 1 },
   { id: 'page.audit', label: 'Run SEO and accessibility audit', menu: 'Page', group: 2, run: auditSite, enabled: ready },
   { id: 'arrange.up', label: 'Move layer up', menu: 'Arrange', run: () => moveLayer(-1), enabled: notRoot },
@@ -1065,10 +1091,15 @@ registerCommands([
   { id: 'view.refresh', label: 'Refresh compiled preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: 'Ctrl K', group: 2, run: () => commandSearch.show() },
-  { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => setSidebar('pages'), checked: () => activeSidebar === 'pages' },
-  { id: 'window.insert', label: 'Insert', menu: 'Window', run: () => setSidebar('insert'), checked: () => activeSidebar === 'insert' },
-  { id: 'window.design', label: 'Design inspector', menu: 'Window', group: 1, run: () => setInspector('design'), checked: () => activeInspector === 'design' },
-  { id: 'window.content', label: 'Content inspector', menu: 'Window', group: 1, run: () => setInspector('content'), checked: () => activeInspector === 'content' },
+  { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => { openDock('left'); setSidebar('pages'); }, checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
+  { id: 'window.insert', label: 'Insert', menu: 'Window', run: () => { openDock('left'); setSidebar('insert'); }, checked: () => activeSidebar === 'insert' && layout.state.left === 'open' },
+  { id: 'window.design', label: 'Design inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('design'); }, checked: () => activeInspector === 'design' && layout.state.right === 'open' },
+  { id: 'window.content', label: 'Content inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('content'); }, checked: () => activeInspector === 'content' && layout.state.right === 'open' },
+  { id: 'window.toggle-left', label: 'Left panel', menu: 'Window', keys: 'Ctrl [', group: 4, run: () => { layout.set({ left: layout.state.left === 'open' ? 'collapsed' : 'open' }); rail.refresh(); }, checked: () => layout.state.left === 'open' },
+  { id: 'window.toggle-right', label: 'Right panel', menu: 'Window', keys: 'Ctrl ]', group: 4, run: () => layout.set({ right: layout.state.right === 'open' ? 'collapsed' : 'open' }), checked: () => layout.state.right === 'open' },
+  { id: 'window.toggle-rail', label: 'Rail labels', menu: 'Window', group: 4, run: () => layout.set({ rail: layout.state.rail === 'labels' ? 'icons' : 'labels' }), checked: () => layout.state.rail === 'labels' },
+  ...PRESETS.map(preset => ({ id: `workspace.${preset.id}`, label: `${preset.label} workspace`, menu: 'Window', group: 5, run: () => usePreset(preset.id), checked: () => layout.preset === preset.id })),
+  { id: 'workspace.reset', label: 'Reset this workspace', menu: 'Window', group: 5, run: () => { layout.resetPreset(); rail.refresh(); } },
   { id: 'window.tokens', label: 'Design system...', menu: 'Window', group: 2, run: () => openDialog('tokens'), enabled: ready },
   { id: 'window.studio', label: 'Website studio...', menu: 'Window', group: 2, run: () => featureStudio.button.click(), enabled: ready },
   { id: 'window.agents', label: 'Allow agents (MCP)', menu: 'Window', group: 3, run: () => agentsButton.click(), checked: () => agentsEnabled },
@@ -1077,9 +1108,27 @@ registerCommands([
 menubar.build();
 exposeToAgents();
 document.addEventListener('nm:ui-settings-changed', () => { themeSelect.value = readChoice().theme; themeButton.classList.toggle('is-on', readChoice().theme === 'light'); });
+const workspaceSelect = select(PRESETS.map(preset => ({ id: preset.id, name: preset.label })));
+workspaceSelect.className = 'fw-tt-select';
+workspaceSelect.title = 'Workspace layout';
+workspaceSelect.setAttribute('aria-label', 'Workspace layout');
+workspaceSelect.addEventListener('change', () => usePreset(workspaceSelect.value));
+titleTools.insertBefore(workspaceSelect, commandSearch.popup);
+function usePreset(id: string): void {
+  const preset = layout.usePreset(id);
+  workspaceSelect.value = preset.id;
+  setInspector(preset.inspector);
+  setSidebar(preset.sidebar);
+}
+document.addEventListener('keydown', event => {
+  if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+  if (event.key === '[') { event.preventDefault(); runCommand('window.toggle-left'); }
+  else if (event.key === ']') { event.preventDefault(); runCommand('window.toggle-right'); }
+});
 subscribe(update);
-setInspector('design');
-setSidebar('pages');
+workspaceSelect.value = layout.preset;
+setInspector(layout.presetInfo().inspector);
+setSidebar(layout.presetInfo().sidebar);
 void run(async () => {
   await connect(connected => {
     statusDot.classList.toggle('offline', !connected);
