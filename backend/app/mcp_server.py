@@ -120,6 +120,19 @@ async def call_tool(context, params):
                     result = check(await studio.state(), arguments.get('page'))
                 except ValueError as error:
                     raise EngineError(str(error), 404)
+            case 'list_team_libraries':
+                result = await (studio.team_libraries.get(arguments['id']) if arguments.get('id') else studio.team_libraries.list())
+            case 'save_team_library':
+                data = {kind: arguments[kind] for kind in ('colors', 'fonts', 'graphics') if kind in arguments}
+                if arguments.get('id'):
+                    result = await studio.team_libraries.save(arguments['id'], arguments.get('name'), data, arguments.get('expected_revision'))
+                else:
+                    result = await studio.team_libraries.create(arguments.get('name', ''), arguments.get('from_brand', False), data)
+            case 'share_team_library':
+                result = await studio.team_libraries.share(arguments['id'], arguments['identity_id'], arguments['role'])
+            case 'use_team_library':
+                result = await studio.team_libraries.use(arguments['id'], arguments.get('action', 'link'))
+                result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
             case 'qr_code':
                 from .qr import qr_image
                 studio.access.authorize('read')
@@ -144,6 +157,8 @@ async def call_tool(context, params):
 def next_step(message, status):
     """One actionable sentence an agent can follow after an error."""
     text = message.lower()
+    if 'library' in text and ('changed' in text or 'not found' in text or 'not edit' in text or 'not share' in text):
+        return 'Call list_team_libraries (with id for one library) to see current revisions and your role, then retry with that revision as expected_revision; ask the library owner named in the error for more access.'
     if status == 409 or 'revision' in text:
         return 'Call get_site with detail "summary", then retry only the changes that did not land, with the new revision as expected_revision.'
     if 'unknown' in text and any(word in text for word in ('node', 'parent', 'page', 'id')):

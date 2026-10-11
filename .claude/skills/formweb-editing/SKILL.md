@@ -41,6 +41,7 @@ Work in small checked steps. The person may be watching and editing too, so read
 - Many pages from data: `edit_pages` `page.bulk` with a template page containing `{{column}}` tokens and up to 300 rows.
 - Video, music or a map: `node.add` a `div` with attribute `data-fw-embed` set to a YouTube, Vimeo, Loom, Spotify, Google Maps embed or OpenStreetMap embed link, or an X post link. Site setting `embedClickToLoad` `"true"` makes every embed wait for a visitor's click.
 - On brand: `brand_check` lists off-brand colors, fonts and logos with ready fixes; apply them in one `apply_commands` batch.
+- Team brand across sites: `list_team_libraries`, then `use_team_library` `{id}` to link; style with `var(--lib-...)`; `"sync"` when it shows an update.
 - Site icon: upload an image, then `edit_site` `site.update` `{patch:{settings:{favicon:"/api/assets/[id].png"}}}`.
 - Password: `set_page_password` `{route, password}`; never repeat the password back.
 - QR code: `qr_code` `{url}` with the published address.

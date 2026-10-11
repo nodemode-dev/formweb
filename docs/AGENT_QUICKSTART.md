@@ -60,7 +60,9 @@ Read `formweb://site/tree` first: every page as an outline of element IDs, tags,
 | --- | --- | --- |
 | Use or extend the brand kit | `formweb://tokens` key `brand`; `edit_styles` `token.define` `brand-[name]` (color) or `brand-font-[name]` (text); logos in settings `brandLogo`, `brandLogoDark` | Style with `var(--brand-[name])` so changes follow the kit |
 | Check a page against the brand | `brand_check` `{page?}` returns off-brand colors, fonts and logos, each with a ready `fix` command | Pass the `fix` values to `apply_commands` as one batch; a second `brand_check` returns no issues |
-| Restrict styling to the brand | `site.update` `{patch:{settings:{brandRestrict:"true"}}}` (needs the manage permission) | The editor then accepts only `var(--brand-...)` or neutral values in color and font fields; `brand_check` still reports agent edits |
+| Restrict styling to the brand | `site.update` `{patch:{settings:{brandRestrict:"true"}}}` (needs the manage permission) | The editor then accepts only `var(--brand-...)`, `var(--lib-...)` or neutral values in color and font fields; `brand_check` still reports agent edits |
+| Use the team's shared library | `list_team_libraries`, then `use_team_library` `{id, action:"link"}`; `"sync"` when `updateAvailable` is true | The site gains `lib-[library]-[name]` tokens; style with `var(--lib-...)` |
+| Change or share a team library | `save_team_library` (no `id` creates; `from_brand: true` copies this site's kit; pass `expected_revision` when changing), `share_team_library` `{id, identity_id, role}` | `list_team_libraries` `{id}` shows the new revision and members |
 | Password-protect a page or folder | `set_page_password` `{route, password}`; `null` removes | Enforced when FormWeb serves the published site; export is refused while set; never echo the password |
 
 ## Terminal and CLI

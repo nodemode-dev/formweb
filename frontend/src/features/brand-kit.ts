@@ -10,7 +10,7 @@ import '../styles/brand-kit.css';
  * the kit through datalists, so picking a brand value writes var(--brand-[name]).
  */
 export type BrandEntry = { token: string; name: string; value: string };
-export type Brand = { colors: BrandEntry[]; fonts: BrandEntry[]; logo: string; logoDark: string; restricted: boolean };
+export type Brand = { colors: BrandEntry[]; fonts: BrandEntry[]; teamColors: BrandEntry[]; teamFonts: BrandEntry[]; logo: string; logoDark: string; restricted: boolean };
 export type BrandIssue = { id: string; node: string; name: string; kind: 'color' | 'font' | 'logo'; property: string; breakpoint: string; value: string; suggestion: string | null; fix: Command | null };
 export type BrandReport = { issues: BrandIssue[]; summary: Record<string, number>; note: string };
 type Hooks = {
@@ -37,13 +37,16 @@ export function readBrand(state: EditorState): Brand {
   const typed = site.extensions?.design?.tokens || {};
   const colors: BrandEntry[] = [];
   const fonts: BrandEntry[] = [];
+  const teamColors: BrandEntry[] = [];  // FW-075: tokens from linked team libraries, lib-[library]-[name]
+  const teamFonts: BrandEntry[] = [];
   for (const [token, item] of Object.entries(typed)) {
     if (token.startsWith('brand-font-') && item.type === 'text') fonts.push({ token, name: token.slice(11), value: item.value });
     else if (token.startsWith('brand-') && item.type === 'color') colors.push({ token, name: token.slice(6), value: item.value });
+    else if (token.startsWith('lib-') && item.type === 'color') teamColors.push({ token, name: token.slice(4), value: item.value });
+    else if (token.startsWith('lib-') && item.type === 'text') teamFonts.push({ token, name: token.slice(4).replace('-font-', ' '), value: item.value });
   }
-  colors.sort((a, b) => a.name.localeCompare(b.name));
-  fonts.sort((a, b) => a.name.localeCompare(b.name));
-  return { colors, fonts, logo: site.settings.brandLogo || '', logoDark: site.settings.brandLogoDark || '', restricted: site.settings.brandRestrict === 'true' };
+  for (const list of [colors, fonts, teamColors, teamFonts]) list.sort((a, b) => a.name.localeCompare(b.name));
+  return { colors, fonts, teamColors, teamFonts, logo:site.settings.brandLogo || '', logoDark: site.settings.brandLogoDark || '', restricted: site.settings.brandRestrict === 'true' };
 }
 
 export class BrandKit {

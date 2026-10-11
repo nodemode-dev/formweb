@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.2 · 2026-10-11
+
+Gap closing: FW-075 shared team asset library, None to Full (72.0 to 73.0 of 79).
+
+- Window > Team libraries (rail folder icon): named libraries of colors, fonts and graphics kept by the FormWeb service, outside any one site, so all your projects can share them. Start one from this site's brand kit or empty; add, change or remove colors, fonts and graphics.
+- Link a library to a site to add its colors and fonts as `var(--lib-[library]-[name])` tokens in one undo step. When the library changes, the site shows "Update available"; Sync brings the new values in and every element using them follows. Unlink and delete never remove tokens from a site, so nothing that uses them changes. Graphics insert as images.
+- Sharing: whoever creates a library owns it and can share it with people who have a project role, as "Can use" (link and sync) or "Can edit" (change it). Only the owner shares or deletes. Shared graphics become visible to the people they are shared with.
+- Brand check and the brand restriction count team library tokens as on-brand, and the Design inspector's color and font suggestions list them as Team color and Team font.
+- Agents: `list_team_libraries`, `save_team_library`, `share_team_library`, `use_team_library` (76 tools); a stale library revision returns a `next` step to re-read it. REST: `/api/team-libraries`.
+- Not yet: filling a library from a formlit export, and deleting a library item does not remove its token from linked sites.
+
 ## 0.5.1 · 2026-10-11
 
 Gap closing: FW-067 brand restrictions and brand check, None to Full, and FW-076 embeds, Partial to Full (70.5 to 72.0 of 79).

@@ -62,6 +62,12 @@ export function replace(path: string, body: unknown): Promise<EditorState> {
   queue = work;
   return work;
 }
+/** For service routes that change the site and return `{ state, ... }` (team library link and sync). */
+export function mutateVia<T extends { state: EditorState }>(path: string, body: unknown): Promise<T> {
+  const work = queue.catch(() => undefined).then(async () => { const result = await request<T>(path, body); accept(result.state); return result; });
+  queue = work;
+  return work;
+}
 let events: EventSource | undefined;
 let connectionListener: (connected: boolean) => void = () => undefined;
 export function reconnect(): Promise<void> { return connect(connectionListener); }

@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.5.1",
- "previous": "0.5.0",
+ "version": "0.5.2",
+ "previous": "0.5.1",
  "date": "2026-10-11",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Brand restrictions and brand check closed; embeds now Full with click-to-load, fallback links and X posts. 72.0 of 79.",
+ "release_note": "Shared team asset library closed (FW-075, None to Full). 73.0 of 79.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.5.1, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.5.2, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -4793,9 +4793,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "full",
+    "v0.5.2: Window > Team libraries holds named libraries of colors, fonts and graphics in the FormWeb service, outside any one site. The creator owns a library and shares it as Can use (link and sync) or Can edit; only the owner shares or deletes. Linking adds the colors and fonts to a site as var(--lib-[library]-[name]) tokens in one undo step; when the library changes, the site shows Update available and Sync updates every element using them. Agents: list_team_libraries, save_team_library, share_team_library, use_team_library. Executed: one library linked in two saved projects (usedBy 2); an edit made through the API showed Update available, Sync changed the token and Undo reverted it; a graphic inserted as an image; with two bearer identities, an unshared library was invisible (404), a viewer could link but not edit (403), an editor could not share or delete, and removing access hid it again.",
+    "Not yet: filling a library from a formlit export; removing a library item keeps its token in linked sites."
    ],
    "fr": [
     "none",
@@ -5269,21 +5269,32 @@
     "FW-066": "full"
    },
    "note": "Family wgpu renderer and Tauri desktop shell; no row moved."
+  },
+  {
+   "version": "0.5.1",
+   "date": "2026-10-11",
+   "same_as": "0.3.0",
+   "moved": {
+    "FW-074": "full",
+    "FW-076": "full",
+    "FW-077": "full",
+    "FW-079": "full",
+    "FW-068": "full",
+    "FW-078": "full",
+    "FW-066": "full",
+    "FW-067": "full"
+   },
+   "note": "Brand check and restriction; click-to-load embeds and X posts."
   }
  ],
  "changes": [
   [
-   "Brand restrictions and brand check (FW-067)",
+   "Shared team asset library (FW-075)",
    "None",
-   "Full: Brand check with Fix and Fix all as one undo step; owner-only restriction of color and font fields to the brand kit; brand_check for agents"
-  ],
-  [
-   "Embed third-party media (FW-076)",
-   "Partial",
-   "Full: click-to-load placeholders with an Open on [site] link, site-wide or per embed, and X posts"
+   "Full: team libraries of colors, fonts and graphics shared across projects with use or edit access; link adds var(--lib-...) tokens, Sync applies later changes; four MCP tools"
   ]
  ],
- "closed_note": "v0.5.1 closed two rows: FW-067 brand restrictions and brand check, and FW-076 embeds. Eight of the 14 rows added in v0.3.0 are closed (the v0.5.0 page said seven; it was six). Still open: prompt-to-site, AI copy, AI images, background removal, stock library, shared team library; hosting and payments stay operationally partial.",
+ "closed_note": "v0.5.2 closed FW-075 shared team asset library. Nine of the 14 rows added in v0.3.0 are closed. Still open: prompt-to-site, AI copy, AI images, background removal, stock library; hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
@@ -5401,10 +5412,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.1 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.2 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.5.1 closes two rows: brand restrictions and brand check (None to Full) and third-party embeds (Partial to Full). The score moves from 70.5 to 72.0 of 79.",
+  "changes": "v0.5.2 closes one row: the shared team asset library (None to Full). The score moves from 72.0 to 73.0 of 79.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5425,6 +5436,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 11 October 2026 from FormWeb 0.5.1 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 11 October 2026 from FormWeb 0.5.2 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

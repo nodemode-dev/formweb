@@ -1,4 +1,4 @@
-import { apiBase, command, commands, connect, download, reconnect, replace, request, state, subscribe, upload } from './api';
+import { apiBase, command, commands, connect, download, mutateVia, reconnect, replace, request, state, subscribe, upload } from './api';
 import type { AuditIssue, Collection, EditorState, Page, SiteNode } from './types';
 import { Canvas } from './ui/canvas';
 import { element, keyed, options, revealApp, text, value } from './ui/dom';
@@ -11,6 +11,7 @@ import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
 import { TerminalDock } from './features/terminal';
 import { BrandKit, readBrand, type BrandEntry, type BrandReport } from './features/brand-kit';
+import { TeamLibraries, type TeamLibrary, type TeamLibrarySummary } from './features/team-library';
 import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -137,11 +138,11 @@ function setStyle(name: string, content: string): Promise<EditorState> {
   const entered = content.trim();
   // FW-067: with brand restriction on, color and font fields accept brand tokens (or clearing) only.
   if (lastState && readBrand(lastState).restricted && entered && (BRAND_COLOR_PROPS.has(name) || name === 'font-family')
-    && !/^var\(--brand-[a-z0-9-]+\)$/.test(entered) && !['inherit', 'transparent', 'currentcolor', 'none'].includes(entered.toLowerCase())) {
+    && !/^var\(--(?:brand|lib)-[a-z0-9-]+\)$/.test(entered) && !['inherit', 'transparent', 'currentcolor', 'none'].includes(entered.toLowerCase())) {
     const field = styleFields.get(name);
     const node = currentNode();
     if (field) field.value = (breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {})[name] || '';
-    return Promise.reject(new Error('Brand restriction is on: pick a brand value from the list (var(--brand-...)), or ask a project manager to turn it off in Window > Brand kit.'));
+    return Promise.reject(new Error('Brand restriction is on: pick a brand or team library value from the list (var(--brand-...) or var(--lib-...)), or ask a project manager to turn it off in Window > Brand kit.'));
   }
   const next = { [name]: entered || null };
   return nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } });
@@ -309,6 +310,7 @@ const rail = new Rail([
   { command: 'window.insert', label: 'Insert', icon: 'plus', active: () => activeSidebar === 'insert' && layout.state.left === 'open' },
   { command: 'window.tokens', label: 'Design system', icon: 'palette' },
   { command: 'window.brand', label: 'Brand kit', icon: 'image' },
+  { command: 'window.team', label: 'Team libraries', icon: 'folder' },
   { command: 'cms.collections', label: 'CMS', icon: 'database' },
   { command: 'cms.locales', label: 'Localization', icon: 'globe' },
   { command: 'window.studio', label: 'Website studio', icon: 'wand' },
@@ -785,15 +787,35 @@ const brandKit = new BrandKit({
   selectNode: id => { closeDialog(); selectNode(id); },
   commands: batch => commands(batch),
   pickLogo: dark => { mediaInput.dataset.mode = dark ? 'brandLogoDark' : 'brandLogo'; mediaInput.click(); },
-  insertLogo: async (url, dark) => {
-    closeDialog();
-    const size = await new Promise<{ width: number; height: number }>(resolve => { const probe = new Image(); probe.onload = () => resolve({ width: probe.naturalWidth, height: probe.naturalHeight }); probe.onerror = () => resolve({ width: 0, height: 0 }); probe.src = apiBase && url.startsWith('/') ? apiBase + url : url; });
-    await insertElement('image', { url, name: dark ? 'Brand logo (dark)' : 'Brand logo', width: size.width, height: size.height });
-  },
+  insertLogo: (url, dark) => insertImageAsset(url, dark ? 'Brand logo (dark)' : 'Brand logo'),
   notify: (message, error) => status(message, error),
   assetUrl: url => apiBase && url.startsWith('/') ? apiBase + url : url
 });
 brandPane.append(brandKit.element);
+/** Closes the dialog and inserts an uploaded image at its natural size (brand logos, team library graphics). */
+async function insertImageAsset(url: string, name: string): Promise<void> {
+  closeDialog();
+  const size = await new Promise<{ width: number; height: number }>(resolve => { const probe = new Image(); probe.onload = () => resolve({ width: probe.naturalWidth, height: probe.naturalHeight }); probe.onerror = () => resolve({ width: 0, height: 0 }); probe.src = apiBase && url.startsWith('/') ? apiBase + url : url; });
+  await insertElement('image', { url, name, width: size.width, height: size.height });
+}
+const teamPane = dialogPane('team');
+const teamPath = (id: string, tail = ''): string => `/api/team-libraries/${encodeURIComponent(id)}${tail}`;
+const teamLibraries = new TeamLibraries({
+  state,
+  list: () => request<{ libraries: TeamLibrarySummary[] }>('/api/team-libraries'),
+  get: id => request<TeamLibrary>(teamPath(id)),
+  create: (name, fromBrand) => request<TeamLibrary>('/api/team-libraries', { name, fromBrand }),
+  save: (id, body) => request<TeamLibrary>(teamPath(id), body),
+  share: (id, identityId, role) => request<TeamLibrary>(teamPath(id, '/share'), { identityId, role }),
+  remove: id => request(teamPath(id), undefined, 'DELETE'),
+  use: (id, action) => mutateVia<{ message: string; state: EditorState }>(teamPath(id, '/use'), { action }),
+  assets: () => request<{ assets: { id: string; name: string }[] }>('/api/assets'),
+  people: () => request<{ members: { identityId: string; name: string }[] }>('/api/access'),
+  insertGraphic: (url, name) => insertImageAsset(url, name),
+  notify: (message, error) => status(message, error),
+  assetUrl: url => apiBase && url.startsWith('/') ? apiBase + url : url
+});
+teamPane.append(teamLibraries.element);
 // Brand picker: the Design inspector's color and font fields suggest brand tokens through these datalists.
 const brandColorList = element('datalist');
 brandColorList.id = 'fw-brand-colors';
@@ -806,10 +828,11 @@ function updateBrand(next: EditorState): void {
   const brand = readBrand(next);
   const fill = (list: HTMLDataListElement, entries: BrandEntry[], label: string) => keyed(list, entries, item => item.token, () => element('option'), (node, item) => {
     (node as HTMLOptionElement).value = `var(--${item.token})`;
-    (node as HTMLOptionElement).label = `${label} ${item.name} (${item.value.split(',')[0]})`;
+    (node as HTMLOptionElement).label = `${label}${item.name} (${item.value.split(',')[0]})`;
   });
-  fill(brandColorList, brand.colors, 'Brand color');
-  fill(brandFontList, brand.fonts, 'Brand font');
+  // Brand kit values first, then linked team library values; labels say which.
+  fill(brandColorList, [...brand.colors.map(item => ({ ...item, name: `Brand color ${item.name}` })), ...brand.teamColors.map(item => ({ ...item, name: `Team color ${item.name}` }))], '');
+  fill(brandFontList, [...brand.fonts.map(item => ({ ...item, name: `Brand font ${item.name}` })), ...brand.teamFonts.map(item => ({ ...item, name: `Team font ${item.name}` }))], '');
   if (dialogMode === 'brand') brandKit.update(next);
 }
 const tokensPane = dialogPane('tokens');
@@ -1140,7 +1163,7 @@ function openDialog(id: string): void {
   if (!lastState && !['settings', 'help'].includes(id)) return;
   if (scrim.hidden) lastFocus = document.activeElement as HTMLElement;
   dialogMode = id;
-  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
+  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', team: 'Team libraries', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
   text(dialogTitle, titles[id] || id);
   panes.forEach((pane, key) => { pane.hidden = key !== id; });
   const primaryLabels: Record<string, string> = { new: 'Create site', page: 'Add page', bulk: 'Create pages', embed: 'Insert embed', qr: 'Download', publish: 'Publish version', cms: 'Save item', locales: 'Save translations', settings: 'Save & reconnect', 'delete-page': 'Delete page' };
@@ -1155,6 +1178,7 @@ function openDialog(id: string): void {
   if (id === 'locales') { localeEditing = locale; updateLocales(); fillLocale(); }
   if (id === 'tokens') updateTokens();
   if (id === 'brand') brandKit.update(state());
+  if (id === 'team') void teamLibraries.refresh().catch(error => status(error instanceof Error ? error.message : String(error), true));
   if (id === 'publish') value(publishSlug, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-'));
   if (id === 'qr') value(qrUrl, pageAddress());
   if (id === 'bulk') { options(bulkTemplate, state().site.pages.map(page => ({ id: page.id, name: `${page.name} (${page.slug})` }))); bulkTemplate.value = currentPage().id; text(bulkNote, ''); }
@@ -1465,6 +1489,7 @@ registerCommands([
   { id: 'workspace.reset', label: 'Reset this workspace', menu: 'Window', group: 5, run: () => { layout.resetPreset(); rail.refresh(); } },
   { id: 'window.tokens', label: 'Design system...', menu: 'Window', group: 2, run: () => openDialog('tokens'), enabled: ready },
   { id: 'window.brand', label: 'Brand kit...', menu: 'Window', group: 2, run: () => openDialog('brand'), enabled: ready },
+  { id: 'window.team', label: 'Team libraries...', menu: 'Window', group: 2, run: () => openDialog('team'), enabled: ready },
   { id: 'window.studio', label: 'Website studio...', menu: 'Window', group: 2, run: () => featureStudio.button.click(), enabled: ready },
   { id: 'window.agents', label: 'Agent Connect', menu: 'Window', group: 3, run: () => toggleLeft('agents'), checked: () => activeSidebar === 'agents' && layout.state.left === 'open' },
   { id: 'agents.toggle', label: 'Allow agents (MCP and terminal)', menu: 'Window', group: 3, run: () => agentsButton.click(), checked: () => agentsEnabled },

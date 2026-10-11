@@ -23,7 +23,10 @@ def kit(site: dict[str, Any]) -> dict[str, Any]:
     colors = {name: item['value'] for name, item in typed.items() if name.startswith('brand-') and not name.startswith('brand-font-') and item.get('type') == 'color'}
     fonts = {name: item['value'] for name, item in typed.items() if name.startswith('brand-font-') and item.get('type') == 'text'}
     logos = [url for url in (settings.get('brandLogo'), settings.get('brandLogoDark')) if url]
-    return {'colors': colors, 'fonts': fonts, 'logos': logos, 'restricted': settings.get('brandRestrict') == 'true'}
+    # FW-075: tokens from linked team libraries (lib-[library]-[name], fonts typed text) are on-brand too.
+    team = {'colors': {name: item['value'] for name, item in typed.items() if name.startswith('lib-') and item.get('type') == 'color'},
+            'fonts': {name: item['value'] for name, item in typed.items() if name.startswith('lib-') and item.get('type') == 'text'}}
+    return {'colors': colors, 'fonts': fonts, 'logos': logos, 'team': team, 'restricted': settings.get('brandRestrict') == 'true'}
 
 
 def rgb(value: str):
@@ -69,7 +72,8 @@ def nearest_font(value: str, fonts: dict[str, str]):
 
 def on_brand(value: str) -> bool:
     text = (value or '').strip().lower()
-    return text in NEUTRAL or text.startswith('var(--brand-') or 'var(--brand-' in text and not HEX.search(text) and not RGB.search(text)
+    branded = 'var(--brand-' in text or 'var(--lib-' in text
+    return text in NEUTRAL or text.startswith(('var(--brand-', 'var(--lib-')) or branded and not HEX.search(text) and not RGB.search(text)
 
 
 def descendants(nodes: dict[str, Any], root: str) -> list[str]:
@@ -87,7 +91,9 @@ def descendants(nodes: dict[str, Any], root: str) -> list[str]:
 def check(state: dict[str, Any], page_id: str | None = None) -> dict[str, Any]:
     site = state['site']
     brand = kit(site)
-    pages = [page for page in site['pages'] if page_id in (None, page['id'], page['slug'])]
+    colors = {**brand['colors'], **brand['team']['colors']}  # suggestions may come from the kit or a linked library
+    fonts = {**brand['fonts'], **brand['team']['fonts']}
+    pages =[page for page in site['pages'] if page_id in (None, page['id'], page['slug'])]
     if page_id and not pages:
         raise ValueError('Unknown page. Pass a page ID or slug from formweb://site/tree.')
     issues = []
@@ -103,10 +109,10 @@ def check(state: dict[str, Any], page_id: str | None = None) -> dict[str, Any]:
                         # A non-brand token is compared by the color it holds (var(--paper) -> its #hex).
                         token = re.fullmatch(r'\s*var\(--([\w-]+)\)\s*', str(value))
                         resolved = (site.get('tokens') or {}).get(token.group(1), str(value)) if token else str(value)
-                        suggestion = nearest_color(resolved, brand['colors'])
+                        suggestion = nearest_color(resolved, colors)
                         kind = 'color'
                     elif prop in FONT_PROPS:
-                        suggestion = nearest_font(str(value), brand['fonts'])
+                        suggestion = nearest_font(str(value), fonts)
                         kind = 'font'
                     else:
                         continue
@@ -128,7 +134,7 @@ def check(state: dict[str, Any], page_id: str | None = None) -> dict[str, Any]:
                     'property': 'src', 'breakpoint': 'desktop', 'value': src, 'suggestion': brand['logos'][0],
                     'fix': {'command': 'node.update', 'params': {'id': node_id, 'patch': {'attrs': {'src': brand['logos'][0]}}}},
                 })
-    empty = not brand['colors'] and not brand['fonts'] and not brand['logos']
+    empty = not colors and not fonts and not brand['logos']
     return {
         'revision': state.get('revision'), 'pages': [page['id'] for page in pages], 'brand': brand, 'issues': issues,
         'summary': {kind: sum(1 for issue in issues if issue['kind'] == kind) for kind in ('color', 'font', 'logo')},

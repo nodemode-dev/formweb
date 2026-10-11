@@ -156,4 +156,6 @@ def visible_assets(studio):
     for row in studio.store.db.execute('SELECT asset_id,project_id FROM asset_owners'):
         if studio.access.role(row['project_id']):
             names.add(row['asset_id'])
+    if getattr(studio, 'team_libraries', None):  # FW-075: graphics in a team library shared with this identity
+        names |= studio.team_libraries.visible_asset_ids()
     return names

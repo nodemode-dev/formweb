@@ -20,6 +20,7 @@ from .engine import EngineError, RustEngine
 from .forms import Forms
 from .releases import Releases
 from .passwords import PagePasswords
+from .team_library import TeamLibraries
 from .substrate import Approvals, Registry
 from .store import Store, now
 
@@ -50,6 +51,7 @@ class Studio:
         self.releases = Releases(self)
         self.approvals = Approvals(self)
         self.passwords = PagePasswords(self)
+        self.team_libraries = TeamLibraries(self)
         self.substrates = Registry(self)
         self.delivery = DeliveryQueue(self.store)
         await self.engine.start()

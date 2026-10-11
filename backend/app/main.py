@@ -252,6 +252,65 @@ class PagePassword(BaseModel):
     password: str | None = Field(default=None, max_length=200)
 
 
+class TeamLibraryBody(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    name: str | None = Field(default=None, max_length=80)
+    fromBrand: bool = False
+    colors: list[dict[str, Any]] | None = Field(default=None, max_length=200)
+    fonts: list[dict[str, Any]] | None = Field(default=None, max_length=200)
+    graphics: list[dict[str, Any]] | None = Field(default=None, max_length=200)
+    expectedRevision: int | None = Field(default=None, ge=0)
+
+    def data(self):
+        return {kind: value for kind in ('colors', 'fonts', 'graphics') if (value := getattr(self, kind)) is not None}
+
+
+class TeamLibraryShare(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    identityId: str = Field(min_length=1, max_length=64)
+    role: str | None = Field(default=None, max_length=8)
+
+
+class TeamLibraryUse(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    action: str = Field(default='link', max_length=8)
+
+
+@app.get('/api/team-libraries')
+async def team_libraries():
+    return await studio.team_libraries.list()
+
+
+@app.post('/api/team-libraries')
+async def team_library_create(body: TeamLibraryBody):
+    return await studio.team_libraries.create(body.name, body.fromBrand, body.data())
+
+
+@app.get('/api/team-libraries/{library_id}')
+async def team_library(library_id: str):
+    return await studio.team_libraries.get(library_id)
+
+
+@app.post('/api/team-libraries/{library_id}')
+async def team_library_save(library_id: str, body: TeamLibraryBody):
+    return await studio.team_libraries.save(library_id, body.name, body.data(), body.expectedRevision)
+
+
+@app.post('/api/team-libraries/{library_id}/share')
+async def team_library_share(library_id: str, body: TeamLibraryShare):
+    return await studio.team_libraries.share(library_id, body.identityId, body.role)
+
+
+@app.post('/api/team-libraries/{library_id}/use')
+async def team_library_use(library_id: str, body: TeamLibraryUse):
+    return await studio.team_libraries.use(library_id, body.action)
+
+
+@app.delete('/api/team-libraries/{library_id}')
+async def team_library_delete(library_id: str):
+    return await studio.team_libraries.delete(library_id)
+
+
 @app.get('/api/brand/check')
 async def brand_check(page: str | None = None):
     from .brand import check
