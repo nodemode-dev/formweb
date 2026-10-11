@@ -45,6 +45,7 @@ Work in small checked steps. The person may be watching and editing too, so read
 - Site icon: upload an image, then `edit_site` `site.update` `{patch:{settings:{favicon:"/api/assets/[id].png"}}}`.
 - Password: `set_page_password` `{route, password}`; never repeat the password back.
 - QR code: `qr_code` `{url}` with the published address.
+- Cut out a photo's background: `remove_background` `{node}` on an uploaded `img` (needs formvis running on their computer; `action: "restore"` undoes it). For brush touch-ups, point them to Edit > Remove background.
 - Undo your own last step with `history` `{action:"undo"}`; check `formweb://activity` first if the person is also editing.
 
 ## When something fails

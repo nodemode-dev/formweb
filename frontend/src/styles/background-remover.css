@@ -1,0 +1,24 @@
+/* Remove background dialog (FW-072). The stage keeps its size while the picture loads, so nothing shifts. */
+.fw-bg { display: flex; flex-direction: column; gap: var(--space-3); }
+.fw-bg-note { margin: 0; }
+.fw-bg-note[data-state="off"] { color: var(--danger-color); }
+.fw-bg-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fw-bg-tools select { width: auto; height: 30px; min-height: 0; padding: 0 var(--space-2); }
+.fw-bg-tools button { height: 30px; min-height: 0; font-size: var(--fs-12); }
+.fw-bg-modes { flex: 0 0 auto; }
+.fw-bg-modes .fw-seg-btn { height: 24px; }
+.fw-bg-range { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-secondary); font-size: var(--fs-11); }
+.fw-bg-range input { width: 96px; min-height: 0; padding: 0; border: 0; background: transparent; accent-color: var(--accent-color); }
+.fw-bg-out { min-width: 38px; color: var(--text-muted); font-family: var(--font-mono); font-size: var(--fs-11); }
+.fw-bg-stage {
+  position: relative; display: grid; place-items: center; height: min(52vh, 460px); overflow: hidden; border: 1px solid var(--line-1); border-radius: var(--radius);
+  background-color: #d9d9d9;
+  background-image: linear-gradient(45deg, #bdbdbd 25%, transparent 25%), linear-gradient(-45deg, #bdbdbd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #bdbdbd 75%), linear-gradient(-45deg, transparent 75%, #bdbdbd 75%);
+  background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+.fw-bg-view { max-width: 100%; max-height: 100%; touch-action: none; cursor: crosshair; }
+.fw-bg-view[data-ready="false"] { cursor: default; }
+.fw-bg-view:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+.fw-bg-busy { position: absolute; inset: auto var(--space-3) var(--space-3) var(--space-3); margin: 0; padding: 6px 10px; border-radius: var(--radius); background: rgba(17, 17, 17, 0.78); color: #ffffff; font-size: var(--fs-12); text-align: center; }
+.fw-bg-actions { display: flex; align-items: center; gap: var(--space-2); }
+.fw-bg-actions .micro { flex: 1 1 auto; margin: 0; }

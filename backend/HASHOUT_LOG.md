@@ -1,5 +1,17 @@
 # Backend context
 
+## Background removal through formvis · v0.5.3
+
+`app/background.py` is FW-072.
+- **Status:** `status()` reads formvis `GET /api/capabilities` (2 s timeout) and never raises. The editor shows its `note`.
+- **Mask:** `mask()` posts the asset to `POST /api/ops/remove-background`. It uses a hand-built multipart body over urllib, so no new HTTP dependency, with a 180 s timeout because the U2-Net model downloads on first use. formvis's `X-Method` header is passed on as `X-FormWeb-Method`; it is CORS-exposed so the Vite origin can read it.
+- **Cut-out:** `cutout()` uses Pillow and multiplies the mask into any existing alpha, so it can only remove pixels. It resizes the mask to the picture (the editor works at a 2048 px long side) and applies an optional Gaussian soft edge.
+- **Apply:** `apply()` takes either an edited mask from the editor (base64 PNG, at most 12 MB) or asks formvis for one. It ingests the PNG as a new owned asset and runs one `node.update` setting `src`. `data-fw-original-src` is written only on the first cut, so later cuts and the editor always start from the original.
+- **Restore:** `restore()` sets `src` back and removes that attribute.
+- **Export:** the exporter drops `data-fw-original-src` from visitor HTML, both the element (`formweb-export/src/lib.rs`) and the runtime node map (`scope.rs` `portable_attrs`). The editable `site.formweb.json` in the ZIP keeps it, so the original picture ships with the editable source and Restore original works after re-import.
+- **Errors:** 503 when formvis is unreachable, 501 when it has no engine, 422 for unreadable pictures. `next_step` maps the formvis errors to a sentence telling the person to start it.
+- **Dependency:** Pillow 12.3.0 is pinned to match formvis.
+
 ## Team libraries · v0.5.2
 
 `app/team_library.py` is FW-075. `team_libraries` stores the id, an immutable slug (from the first name, unique, so token names never change), name, owner, a revision and a JSON data column ({colors, fonts, graphics}). `team_library_members` stores (library, identity, view|edit). Role: root or creator is owner; otherwise the member row; otherwise the library is invisible (404, not 403, so its existence does not leak). `use()` builds one engine batch: `token.define` for each color (type color) and font (type text), plus `site.update` of `settings.teamLibraries` (JSON {id: {revision, slug, name}}). It goes through `studio.mutate`, so the project's edit permission, undo and activity apply. Sync reports tokens it kept because the library dropped them. `save()` takes an optional expected revision and replaces only the lists passed. `clean()` validates names (slugified, unique), colors (hex, rgb, hsl, oklch) and fonts (a plain stack), and allows graphics only if the asset is one the caller can already see. `assets.visible_assets` adds graphics from libraries shared with the caller. `brand.kit()` gains `team` (typed `lib-` tokens): `on_brand` accepts `var(--lib-...)`, and suggestions draw from both. `mcp_server.next_step` sends library errors to `list_team_libraries`. MCP instructions gained one Brand line (1,341 characters). Checked with two identities on a scratch service: invisible until shared, view links but cannot edit, edit cannot share or delete, removal hides it again.

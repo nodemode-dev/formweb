@@ -9,7 +9,7 @@ Release version: 0.5.2. Author: nodemode-ai. The repository README and changelog
 | Visual editor | 93 Studio workflows, stable design canvas and isolated compiled Preview |
 | Rust engine | Validated advanced groups, 40 atomic commands, persistent history, compiler and audit |
 | Python service | Scoped projects/branches, releases/forms/delivery, visitor services and configured adapters |
-| MCP | 76 official SDK tools, 17 resources and 5 prompts over HTTP and stdio, with attributed project roles |
+| MCP | 77 official SDK tools, 17 resources and 5 prompts over HTTP and stdio, with attributed project roles |
 | Hosting | Versioned local publication; no external hosting account provisioned |
 | Desktop | Browser application; no native desktop bundles claimed |
 | Vendor parity | `docs/comparisons/` holds the current `FormWeb-Parity_v[version].html` (Framer, Webflow, Adobe Express, Canva, with every release's score) and the FormAI matrix beside it, both built from `docs/comparisons/data/formweb-parity.json` by `./formweb comparisons build` and `embed`; research, audits and verification records ship in the planning sidecar |

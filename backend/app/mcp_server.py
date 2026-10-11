@@ -133,6 +133,20 @@ async def call_tool(context, params):
             case 'use_team_library':
                 result = await studio.team_libraries.use(arguments['id'], arguments.get('action', 'link'))
                 result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
+            case 'remove_background':
+                from . import background
+                action = arguments.get('action', 'remove')
+                if action == 'status':
+                    studio.access.authorize('read')
+                    result = background.status()
+                elif not arguments.get('node'):
+                    raise EngineError('Pass node, the ID of an img element (formweb://site/tree).', 422)
+                elif action == 'restore':
+                    result = await background.restore(studio, arguments['node'])
+                else:
+                    result = await background.apply(studio, arguments['node'], None, arguments.get('method', 'auto'), arguments.get('feather', 0))
+                if 'state' in result:
+                    result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
             case 'qr_code':
                 from .qr import qr_image
                 studio.access.authorize('read')
@@ -157,6 +171,8 @@ async def call_tool(context, params):
 def next_step(message, status):
     """One actionable sentence an agent can follow after an error."""
     text = message.lower()
+    if 'formvis' in text and ('not reachable' in text or 'no background engine' in text):
+        return 'Tell the person background removal runs in formvis on their computer: start it (./formvis backend in the formvis folder), then retry; remove_background with action status checks it.'
     if 'library' in text and ('changed' in text or 'not found' in text or 'not edit' in text or 'not share' in text):
         return 'Call list_team_libraries (with id for one library) to see current revisions and your role, then retry with that revision as expected_revision; ask the library owner named in the error for more access.'
     if status == 409 or 'revision' in text:

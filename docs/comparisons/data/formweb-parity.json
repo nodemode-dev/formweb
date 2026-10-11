@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.5.2",
- "previous": "0.5.1",
+ "version": "0.5.3",
+ "previous": "0.5.2",
  "date": "2026-10-11",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Shared team asset library closed (FW-075, None to Full). 73.0 of 79.",
+ "release_note": "Background removal through formvis closed (FW-072, None to Full). 74.0 of 79.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.5.2, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.5.3, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -4646,9 +4646,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "full",
+    "v0.5.3: Edit > Remove background hands the image's uploaded picture to formvis on the same computer. formvis finds the subject with U2-Net, or GrabCut with the lightweight engine, and returns a soft mask. The dialog shows the cut-out with Erase and Restore brushes and a soft edge. Apply saves a new transparent PNG and repoints the image in one undo step; the original is kept for Undo and Restore original, and exported pages show only the cut-out (the original travels with the editable site file). Agents: remove_background (remove, restore, status). Executed against formvis 1.66.1: U2-Net and GrabCut masks; a cut-out with transparent corners and an opaque subject; a brush-erased hole present in the saved PNG; Undo returned the original src and Restore original did the same later; with formvis stopped, the dialog and the tool reported how to start it.",
+    "Brush refinement is in the editor only. Removal needs formvis running on the same computer, as planned for this row."
    ],
    "fr": [
     "none",
@@ -5285,16 +5285,33 @@
     "FW-067": "full"
    },
    "note": "Brand check and restriction; click-to-load embeds and X posts."
+  },
+  {
+   "version": "0.5.2",
+   "date": "2026-10-11",
+   "same_as": "0.3.0",
+   "moved": {
+    "FW-074": "full",
+    "FW-076": "full",
+    "FW-077": "full",
+    "FW-079": "full",
+    "FW-068": "full",
+    "FW-078": "full",
+    "FW-066": "full",
+    "FW-067": "full",
+    "FW-075": "full"
+   },
+   "note": "Shared team asset library."
   }
  ],
  "changes": [
   [
-   "Shared team asset library (FW-075)",
+   "Background removal and image cleanup (FW-072)",
    "None",
-   "Full: team libraries of colors, fonts and graphics shared across projects with use or edit access; link adds var(--lib-...) tokens, Sync applies later changes; four MCP tools"
+   "Full: formvis finds the subject (U2-Net or GrabCut); Erase and Restore brushes and a soft edge; the cut-out is a new transparent PNG in one undo step with the original kept; remove_background for agents"
   ]
  ],
- "closed_note": "v0.5.2 closed FW-075 shared team asset library. Nine of the 14 rows added in v0.3.0 are closed. Still open: prompt-to-site, AI copy, AI images, background removal, stock library; hosting and payments stay operationally partial.",
+ "closed_note": "v0.5.3 closed FW-072 background removal. Ten of the 14 rows added in v0.3.0 are closed. Still open: prompt-to-site, AI copy, AI images, stock library; hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
@@ -5412,10 +5429,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.2 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.3 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.5.2 closes one row: the shared team asset library (None to Full). The score moves from 72.0 to 73.0 of 79.",
+  "changes": "v0.5.3 closes one row: background removal and image cleanup (None to Full), handed to formvis. The score moves from 73.0 to 74.0 of 79.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5436,6 +5453,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 11 October 2026 from FormWeb 0.5.2 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 11 October 2026 from FormWeb 0.5.3 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

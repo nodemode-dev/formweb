@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.3 · 2026-10-11
+
+Gap closing: FW-072 background removal and image cleanup, None to Full (73.0 to 74.0 of 79).
+
+- Edit > Remove background (also a button under the image's HTML attributes): formvis, the family's image editor running on your computer, finds the subject. U2-Net is used when installed, otherwise GrabCut. You see the cut-out over a checkerboard with the removed part faintly visible.
+- Erase and Restore brushes touch up the result (E and R switch modes, [ and ] change the brush size). Soft edge feathers the outline.
+- Apply cut-out saves a new transparent PNG and points the image at it as one undo step. The original picture is kept, so Undo or Restore original brings it back at any time. Exported pages show only the cut-out; the original travels only with the editable site file in the export.
+- When formvis is not running, the dialog says how to start it and the rest of the editor is unaffected. Its address can be changed with `FORMWEB_FORMVIS_URL`.
+- Agents: `remove_background` `{node, method?, feather?}`, with `action: "restore"` or `"status"` (77 tools).
+- New dependency: Pillow 12.3.0 (MIT-CMU), the same version formvis uses, for compositing.
+- Not yet: the brushes are in the editor only, not available to agents. Removal needs formvis on the same computer, and FormWeb has no engine of its own.
+
 ## 0.5.2 · 2026-10-11
 
 Gap closing: FW-075 shared team asset library, None to Full (72.0 to 73.0 of 79).

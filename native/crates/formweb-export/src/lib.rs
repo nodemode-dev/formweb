@@ -213,6 +213,8 @@ impl Renderer<'_> {
         if let Some(href) = attrs.get_mut("href") { *href = self.links.map(|links|routing::link(href,self.prefix,links)).unwrap_or_else(||portable_link(self.site,href,self.prefix)); }
         if attrs.get("target").map(String::as_str) == Some("_blank") { attrs.insert("rel".into(), "noopener noreferrer".into()); }
         if node.tag == "img" && !attrs.contains_key("loading") { attrs.insert("loading".into(), "lazy".into()); }
+        // FW-072: the pre-cut-out picture is editor history; it must not reach visitors or the export bundle.
+        attrs.remove("data-fw-original-src");
         if attrs.get("src").map(|s|s.starts_with("http://") || s.starts_with("https://")).unwrap_or(false) { self.warnings.insert("Remote media URLs are referenced and are not bundled into the archive".into()); }
         if node.tag == "form" && !attrs.get("action").map(|action| !action.is_empty()).unwrap_or(false) {
             attrs.insert("action".into(), format!("{}/api/forms/{}/{}", self.forms, self.site.id, node.id));

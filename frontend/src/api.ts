@@ -62,6 +62,21 @@ export function replace(path: string, body: unknown): Promise<EditorState> {
   queue = work;
   return work;
 }
+/** Binary responses (an asset's bytes, a background mask) with the same auth and error handling as request(). */
+export async function requestBlob(path: string, body?: unknown): Promise<{ blob: Blob; headers: Headers }> {
+  const response = await fetch(apiBase + path, {
+    method: body === undefined ? 'GET' : 'POST',
+    headers: { ...authHeaders(), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+    credentials: 'same-origin',
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  if (!response.ok) {
+    let detail = `${response.status} ${response.statusText}`;
+    try { const error = await response.json(); if (typeof error.detail === 'string') detail = error.detail; } catch {}
+    throw new Error(detail);
+  }
+  return { blob: await response.blob(), headers: response.headers };
+}
 /** For service routes that change the site and return `{ state, ... }` (team library link and sync). */
 export function mutateVia<T extends { state: EditorState }>(path: string, body: unknown): Promise<T> {
   const work = queue.catch(() => undefined).then(async () => { const result = await request<T>(path, body); accept(result.state); return result; });

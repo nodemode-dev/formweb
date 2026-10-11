@@ -92,7 +92,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title='FormWeb', version=VERSION, lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename', 'X-FormWeb-Channel'], expose_headers=['Content-Disposition'], allow_credentials=True)
+app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename', 'X-FormWeb-Channel'], expose_headers=['Content-Disposition', 'X-FormWeb-Method', 'X-FormWeb-Asset'], allow_credentials=True)
 app.add_middleware(LocalAccess)
 app.include_router(advanced_router)
 app.include_router(provider_router)
@@ -309,6 +309,48 @@ async def team_library_use(library_id: str, body: TeamLibraryUse):
 @app.delete('/api/team-libraries/{library_id}')
 async def team_library_delete(library_id: str):
     return await studio.team_libraries.delete(library_id)
+
+
+class BackgroundMask(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    node: str = Field(min_length=1, max_length=160)
+    method: str = Field(default='auto', max_length=8)
+
+
+class BackgroundApply(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    node: str = Field(min_length=1, max_length=160)
+    mask: str | None = Field(default=None, max_length=17_000_000)
+    method: str = Field(default='auto', max_length=8)
+    feather: float = Field(default=0, ge=0, le=40)
+
+
+@app.get('/api/background/status')
+async def background_status():
+    from . import background
+    studio.access.authorize('read')
+    return background.status()
+
+
+@app.post('/api/background/mask')
+async def background_mask(body: BackgroundMask):
+    """The subject mask from formvis for an image node's original picture (greyscale PNG; white keeps)."""
+    from . import background
+    _, asset = background.node_asset(studio, await studio.state(), body.node)
+    data, used = background.mask(studio, asset, body.method)
+    return Response(data, media_type='image/png', headers={'X-FormWeb-Method': used, 'X-FormWeb-Asset': asset, 'Cache-Control': 'no-store'})
+
+
+@app.post('/api/background/apply')
+async def background_apply(body: BackgroundApply):
+    from . import background
+    return await background.apply(studio, body.node, body.mask, body.method, body.feather)
+
+
+@app.post('/api/background/restore')
+async def background_restore(body: BackgroundMask):
+    from . import background
+    return await background.restore(studio, body.node)
 
 
 @app.get('/api/brand/check')

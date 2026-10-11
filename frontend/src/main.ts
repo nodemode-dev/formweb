@@ -1,4 +1,4 @@
-import { apiBase, command, commands, connect, download, mutateVia, reconnect, replace, request, state, subscribe, upload } from './api';
+import { apiBase, command, commands, connect, download, mutateVia, reconnect, replace, request, requestBlob, state, subscribe, upload } from './api';
 import type { AuditIssue, Collection, EditorState, Page, SiteNode } from './types';
 import { Canvas } from './ui/canvas';
 import { element, keyed, options, revealApp, text, value } from './ui/dom';
@@ -12,6 +12,7 @@ import { AgentConnect } from './features/agent-connect';
 import { TerminalDock } from './features/terminal';
 import { BrandKit, readBrand, type BrandEntry, type BrandReport } from './features/brand-kit';
 import { TeamLibraries, type TeamLibrary, type TeamLibrarySummary } from './features/team-library';
+import { BackgroundRemover, type BackgroundStatus } from './features/background-remover';
 import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -468,11 +469,14 @@ for (const [name, label] of [['href', 'Link URL'], ['src', 'Image / media URL'],
   attrsFields.set(name, control);
   attributesGrid.append(field(label, control, true));
 }
+// FW-072: shown for image elements only (toggled where the attribute fields refresh).
+const removeBackgroundButton = button('Remove background...', 'wand', () => runCommand('image.remove-background'));
+removeBackgroundButton.dataset.command = 'image.remove-background';
 attributesSection.append(attributesGrid, button('Upload image', 'image', () => {
   mediaInput.dataset.mode = 'replace';
   mediaInput.dataset.target = currentNode().id;
   mediaInput.click();
-}));
+}), removeBackgroundButton);
 const bindingSection = section(contentPane, 'CMS binding');
 const bindingGrid = element('div', 'form-grid');
 const bindingCollection = select([{ id: '', name: 'No collection' }]);
@@ -816,6 +820,17 @@ const teamLibraries = new TeamLibraries({
   assetUrl: url => apiBase && url.startsWith('/') ? apiBase + url : url
 });
 teamPane.append(teamLibraries.element);
+const backgroundPane = dialogPane('background');
+const backgroundRemover = new BackgroundRemover({
+  status: () => request<BackgroundStatus>('/api/background/status'),
+  mask: async (node, method) => { const { blob, headers } = await requestBlob('/api/background/mask', { node, method }); return { blob, method: headers.get('X-FormWeb-Method') || method }; },
+  image: async url => (await requestBlob(url)).blob,
+  apply: (node, mask, feather) => mutateVia<{ message: string; state: EditorState }>('/api/background/apply', { node, mask, feather }),
+  restore: node => mutateVia<{ message: string; state: EditorState }>('/api/background/restore', { node }),
+  close: () => closeDialog(),
+  notify: (message, error) => status(message, error)
+});
+backgroundPane.append(backgroundRemover.element);
 // Brand picker: the Design inspector's color and font fields suggest brand tokens through these datalists.
 const brandColorList = element('datalist');
 brandColorList.id = 'fw-brand-colors';
@@ -1007,6 +1022,7 @@ function update(next: EditorState): void {
   });
   resetButtons.forEach((reset, name) => { const hide = !override[name]; if (reset.hidden !== hide) reset.hidden = hide; });
   attrsFields.forEach((control, name) => value(control, node.attrs[name] || ''));
+  removeBackgroundButton.hidden = node.tag !== 'img';
   resetOverrides.disabled = breakpoint === 'desktop' || !Object.keys(node.breakpoints[breakpoint] || {}).length;
   options(bindingCollection, [{ id: '', name: 'No collection' }, ...Object.values(site.collections).map(collection => ({ id: collection.id, name: collection.name }))]);
   const cmsGroup = site.extensions?.cms as { bindings?: Record<string, { collection: string; field?: string }>; lists?: Record<string, { collection: string }> } | undefined;
@@ -1163,7 +1179,7 @@ function openDialog(id: string): void {
   if (!lastState && !['settings', 'help'].includes(id)) return;
   if (scrim.hidden) lastFocus = document.activeElement as HTMLElement;
   dialogMode = id;
-  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', team: 'Team libraries', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
+  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', team: 'Team libraries', background: 'Remove background', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
   text(dialogTitle, titles[id] || id);
   panes.forEach((pane, key) => { pane.hidden = key !== id; });
   const primaryLabels: Record<string, string> = { new: 'Create site', page: 'Add page', bulk: 'Create pages', embed: 'Insert embed', qr: 'Download', publish: 'Publish version', cms: 'Save item', locales: 'Save translations', settings: 'Save & reconnect', 'delete-page': 'Delete page' };
@@ -1179,6 +1195,11 @@ function openDialog(id: string): void {
   if (id === 'tokens') updateTokens();
   if (id === 'brand') brandKit.update(state());
   if (id === 'team') void teamLibraries.refresh().catch(error => status(error instanceof Error ? error.message : String(error), true));
+  if (id === 'background') {
+    const node = currentNode();
+    void backgroundRemover.open({ id: node.id, name: node.name, src: node.attrs.src || '', original: node.attrs['data-fw-original-src'] || '' })
+      .catch(error => status(error instanceof Error ? error.message : String(error), true));
+  }
   if (id === 'publish') value(publishSlug, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-'));
   if (id === 'qr') value(qrUrl, pageAddress());
   if (id === 'bulk') { options(bulkTemplate, state().site.pages.map(page => ({ id: page.id, name: `${page.name} (${page.slug})` }))); bulkTemplate.value = currentPage().id; text(bulkNote, ''); }
@@ -1450,6 +1471,7 @@ registerCommands([
   { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: 'Ctrl Z', run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
   { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: 'Ctrl Shift Z', run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
   { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: 'Del', group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: notRoot },
+  { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
   { id: 'edit.settings', label: 'Settings...', menu: 'Edit', group: 2, run: () => openDialog('settings') },
   ...insertKinds.map(([kind, label]) => ({ id: `insert.${kind}`, label, menu: 'Insert', run: () => insertElement(kind), enabled: ready })),
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },

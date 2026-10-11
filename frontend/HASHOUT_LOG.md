@@ -1,5 +1,14 @@
 # Frontend context map
 
+## Remove background · v0.5.3
+
+`features/background-remover.ts` (with `styles/background-remover.css`) is the `background` dialog, opened by `image.remove-background` from the Edit menu or the inspector button (shown for `img` only).
+- **Canvases:** four, created once: the original, the matte (alpha means keep), a scratch canvas and the visible view. They are sized at the picture's resolution capped at 2048 px.
+- **Opening:** `open()` loads the status and the original picture (`data-fw-original-src` first) through `api.requestBlob`, so there is no tainted canvas across origins. It then asks for the mask; a token discards a late answer after reopening.
+- **Brushes:** erase is `destination-out`, restore is `source-over`. Width is in screen pixels, converted to canvas pixels. A single requestAnimationFrame redraw shows the original at 15% (so the removed part can be restored), the cut-out, and the brush ring (red for erase, green for restore).
+- **Apply:** the matte goes back to the service as a greyscale PNG through `mutateVia`, so the state lands in the same queue as other edits.
+- **Command ids:** `background.find`, `background.erase`, `background.restore` (brush mode), `background.restore-original`, `background.apply`. The brush and the button first shared one id, which test selectors caught; they are now distinct.
+
 ## Team libraries · v0.5.2
 
 `features/team-library.ts` is the Team libraries dialog (`window.team`, rail folder icon), built like the brand kit: keyed rows, so Link, Sync and Unlink change text and button visibility without remounting (checked: the same row nodes before and after Link). The detail view shows colors, fonts and graphic tiles. Edit rows are shown only for edit and owner roles, and the sharing section only for the owner. The share picker lists people with a role in this project (`/api/access`); with none, it explains how to add them. Changes call `/api/team-libraries/...`. Link and sync go through `api.mutateVia`, which queues like `commands()` and accepts the returned state, so the canvas updates and Undo reverts a sync in one step. `insertImageAsset()` in `main.ts` is shared by brand logos and library graphics. `readBrand` returns `teamColors` and `teamFonts` (`lib-` tokens). The inspector datalists list them after the brand kit as Team color and Team font, and the restriction regex accepts `var(--lib-...)`. Styles are in `brand-kit.css` (`.fw-team-*`).

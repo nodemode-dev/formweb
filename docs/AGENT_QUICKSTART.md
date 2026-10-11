@@ -51,6 +51,7 @@ A saved extension is configuration evidence. A browser interaction needs observe
 | Embed media | `node.add` a `div` with attribute `data-fw-embed` set to a YouTube, Vimeo, Loom, Spotify, Google Maps embed or OpenStreetMap embed URL, or an X post (`https://x.com/[user]/status/[id]`) | Preview or export shows `iframe[data-fw-embed-frame]`; an unsupported URL renders a visible `fw-embed-error` note |
 | Load embeds on click | Site-wide: `site.update` `{patch:{settings:{embedClickToLoad:"true"}}}`; one embed: attribute `data-fw-embed-load` set to `click`. X posts are always click-to-load | Export shows `[data-fw-embed-gate]` with a Load button and an "Open on ..." link and no iframe until the visitor presses Load |
 | QR code | `qr_code` `{url, dark?, light?}` returns SVG text; `GET /api/qr?url=...&format=png` returns a PNG | Decode it, or compare the returned `url` |
+| Remove a photo's background | `remove_background` `{node, method?, feather?}` on an `img` with an uploaded picture; `action: "status"` checks formvis, `"restore"` returns the original | The image `src` is a new PNG and `data-fw-original-src` holds the original; the export shows only the cut-out |
 
 ## Reading and editing efficiently
 
@@ -71,7 +72,7 @@ Inside the editor's terminal (or any shell in the FormWeb folder) `./formweb run
 
 If a call waits and then reports that no one approved it, the owner has turned on approvals in Agent Connect; ask them to watch the panel and retry once.
 
-Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`, `brand.check`, `brand.fix-all`, `brand.restrict`.
+Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`, `brand.check`, `brand.fix-all`, `brand.restrict`, `window.team`, `image.remove-background`.
 
 ## Recover a stopped workflow
 

@@ -28,3 +28,7 @@ Document behavior belongs in Rust. Backend code owns filesystem/network service 
 Use stable ids, explicit revision checks for edits based on a read, and atomic batches when a group of changes must undo together. A rejected operation leaves the prior state, revision and history unchanged. Extend MCP using the same service path as the editor, and update the harness workflow if the tool contract changes.
 
 New features are modules at the existing layer seams. Read `frontend/HASHOUT_LOG.md` or `backend/HASHOUT_LOG.md` before editing those layers; for the Rust engine read [[Engine]] and the sidecar's native log. As in formvis and formlit, planning documents, the root log and evidence ship in the planning sidecar, and only the frontend and backend logs stay in the tree.
+
+## Family services
+
+Some capabilities belong to a sibling app, and FormWeb calls it rather than copying it. Background removal (`backend/app/background.py`) sends an uploaded picture to formvis's engine (`FORMWEB_FORMVIS_URL`, default `http://127.0.0.1:8190`, `POST /api/ops/remove-background`) and gets a soft mask back. Everything else stays in FormWeb: the editor's brush refinement, compositing with Pillow, the new asset and the one-step `node.update`. When formvis is not running, the feature reports how to start it and nothing else is affected.
