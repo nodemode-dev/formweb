@@ -1,0 +1,20 @@
+/* AI copy review (FW-070) and the prompt-to-site dialog (FW-069). */
+.fw-ai { display: flex; flex-direction: column; gap: var(--space-2); }
+.fw-ai-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.fw-ai-row select { width: auto; height: 30px; min-height: 0; padding: 0 var(--space-2); }
+.fw-ai-row input { flex: 1 1 140px; height: 30px; min-height: 0; }
+.fw-ai-row button { height: 30px; min-height: 0; }
+.fw-ai-review { display: flex; flex-direction: column; gap: 6px; padding: var(--space-2); border: 1px solid var(--border-soft); border-radius: var(--radius); background: var(--surface-2); }
+.fw-ai-label { color: var(--text-muted); font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.fw-ai-current { margin: 0; color: var(--text-secondary); font-size: var(--fs-12); line-height: 1.5; text-decoration: line-through; text-decoration-color: var(--text-muted); }
+.fw-ai-suggestion { min-height: 72px; resize: vertical; font-size: var(--fs-12); line-height: 1.5; }
+.fw-ai-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
+.fw-ai-actions button { height: 28px; min-height: 0; font-size: var(--fs-11); }
+.fw-ai-note[data-state="off"] { color: var(--danger-color); }
+.fw-ai-prompt { min-height: 110px; resize: vertical; line-height: 1.5; }
+.fw-ai-outline { display: flex; max-height: min(40vh, 360px); flex-direction: column; gap: var(--space-2); overflow-y: auto; }
+.fw-ai-outline:empty { display: none; }
+.fw-ai-site-name { margin: 0; color: var(--text-primary); font-weight: 600; }
+.fw-ai-page { padding: var(--space-2) var(--space-3); border: 1px solid var(--border-soft); border-radius: var(--radius); }
+.fw-ai-page strong { color: var(--text-primary); font-size: var(--fs-12); }
+.fw-ai-page ol { margin: 6px 0 0; padding-left: 18px; color: var(--text-secondary); font-size: var(--fs-12); line-height: 1.6; }

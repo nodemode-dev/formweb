@@ -21,6 +21,7 @@ INSTRUCTIONS = (
     'or apply_commands for a multi-command batch. Pass expected_revision from your last read; on a revision conflict, '
     're-read and apply only what is still needed. Edits return a compact summary; pass detail "site" only when you need the whole document.\n'
     'Brand: style with var(--brand-...) or a linked team library\'s var(--lib-...) tokens (list_team_libraries, use_team_library); run brand_check before delivery.\n'
+    'AI (the person\'s models, set in formvis): generate_site plan, show the outline, then build; write_copy returns a suggestion to show before applying.\n'
     'Check: audit_site, then compile_preview or export_site. Deliver: save_project, export_site, publish_site (local only, not hosting).\n'
     'formweb://selection is what the person has selected in the editor. A call may wait for the person to approve it in '
     'Agent Connect; if it is denied or times out, ask before retrying.\n'
@@ -34,7 +35,7 @@ COMMAND_DOCS = {
     'node.update': '{id, patch:{tag?, text?, attrs?, styles?, breakpoints?, interactions?, binding?}} merges keys; null removes one',
     'node.remove': '{id} removes the element and its subtree',
     'node.move': '{id, parent, index?} reparents or reorders',
-    'page.add': '{name, slug} creates a page with its own root',
+    'page.add': '{name, slug, id?, root?} creates a page with its own root; pass new ids to fill the root in the same batch',
     'page.update': '{id, patch:{name?, slug?, seo?}}',
     'page.remove': '{id}',
     'page.duplicate': '{id, name?, slug} copies the whole page tree with fresh IDs',

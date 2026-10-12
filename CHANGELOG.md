@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.6 · 2026-10-12
+
+Gap work: FW-069 prompt-to-site and FW-070 AI copy, both None to Partial (75.5 to 76.5 of 79). Both rows are Partial, not Full, because no real language model could be run from the build machine: see "Not yet".
+
+- One model setting for the family: FormWeb writes with the language model set in formvis (any OpenAI-compatible service: Ollama or LM Studio on your computer, or a hosted one with your key). FormWeb never sees the key.
+- Content > Write with AI, under an element's text: rewrite, shorten, lengthen, change tone (friendly, professional, confident, playful, calm) or write new text from a short brief. The suggestion appears beside the current text and can be edited; nothing changes until Accept, which is one undo step. Changing the selection drops the suggestion.
+- Page > Generate pages from a description: describe the site and choose 1 to 4 pages. FormWeb drafts an outline (pages, sections, items) for you to review, then builds it in one undo step: a header with navigation, hero, features, about, testimonials, FAQ, call to action and contact form sections, one `h1` per page, mobile layouts, SEO titles and descriptions, and button colours taken from your brand kit or team library when they are readable. Existing pages are never changed and slugs never collide.
+- Engine: `page.add` accepts an optional `id` and `root`, so one batch can create a page and fill it.
+- Agents: `write_copy` (returns a suggestion and the command to apply it) and `generate_site` (`plan`, then `build`) (83 tools).
+- Model output is never trusted: outlines are clamped to the limits above, unknown section kinds become text, links other than `/`, `#` or http(s) become `#`, and text stays text in the export.
+- Not yet: no real model ran on the build machine, which cannot reach model downloads or hosted APIs. formvis's real chat endpoint and the whole FormWeb side ran, with a stand-in model answering. Reference images or PDFs as input and chat-based edits of a generated site are not done. One run with a real model on your computer is what moves these rows to Full.
+
 ## 0.5.5 · 2026-10-12
 
 Gap work: FW-071 AI image generation, None to Partial (75.0 to 75.5 of 79). The row is Partial, not Full, because no real image model or provider could be run from the build machine: see "Not yet".

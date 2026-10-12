@@ -373,6 +373,49 @@ class NodeRef(BaseModel):
     node: str = Field(min_length=1, max_length=160)
 
 
+class CopyBody(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    node: str = Field(min_length=1, max_length=160)
+    action: str = Field(max_length=12)
+    tone: str | None = Field(default=None, max_length=16)
+    brief: str | None = Field(default=None, max_length=1500)
+
+
+class SitePlanBody(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    prompt: str = Field(min_length=1, max_length=4000)
+    pages: int = Field(default=3, ge=1, le=4)
+
+
+class SiteBuildBody(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    plan: dict[str, Any]
+
+
+@app.get('/api/ai/status')
+async def ai_status():
+    from . import writer
+    return writer.status(studio)
+
+
+@app.post('/api/ai/copy')
+async def ai_copy(body: CopyBody):
+    from . import writer
+    return await writer.copy(studio, body.node, body.action, body.tone, body.brief)
+
+
+@app.post('/api/ai/site/plan')
+async def ai_site_plan(body: SitePlanBody):
+    from . import writer
+    return await writer.plan(studio, body.prompt, body.pages)
+
+
+@app.post('/api/ai/site/build')
+async def ai_site_build(body: SiteBuildBody):
+    from . import writer
+    return await writer.build(studio, body.plan)
+
+
 @app.get('/api/generate/generators')
 async def generate_generators():
     from . import imagegen

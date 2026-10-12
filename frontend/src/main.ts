@@ -14,6 +14,7 @@ import { BrandKit, readBrand, type BrandEntry, type BrandReport } from './featur
 import { TeamLibraries, type TeamLibrary, type TeamLibrarySummary } from './features/team-library';
 import { BackgroundRemover, type BackgroundStatus } from './features/background-remover';
 import { StockLibrary } from './features/stock-library';
+import { AiWriter, SiteGenerator } from './features/ai-writer';
 import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -462,6 +463,13 @@ const textSection = section(contentPane, 'Content');
 const textGrid = element('div', 'form-grid');
 addInspectorInput(textGrid, 'Text', 'text', next => nodePatch({ text: next }), undefined, true, true);
 textSection.append(textGrid, element('p', 'micro', 'Double-click text on the canvas to edit the default locale. CMS and translations override base text in preview.'));
+// FW-070: suggestions from the language model set in formvis, reviewed before they replace anything.
+const aiWriter = new AiWriter({
+  suggest: (node, action, tone, brief) => request('/api/ai/copy', { node, action, tone, brief }),
+  apply: async (node, text) => { await commands([{ command: 'node.update', params: { id: node, patch: { text } } }]); },
+  notify: (message, error) => status(message, error)
+});
+textSection.append(aiWriter.element);
 const attributesSection = section(contentPane, 'HTML attributes');
 const attributesGrid = element('div', 'form-grid');
 for (const [name, label] of [['href', 'Link URL'], ['src', 'Image / media URL'], ['alt', 'Alternative text'], ['class', 'CSS classes'], ['id', 'HTML ID'], ['name', 'Form field name'], ['placeholder', 'Placeholder'], ['aria-label', 'Accessible label']]) {
@@ -859,6 +867,16 @@ const stockLibrary = new StockLibrary({
   notify: (message, error) => status(message, error)
 });
 stockPane.append(stockLibrary.element);
+// FW-069: a site outline from a description, reviewed, then built as new editable pages in one undo step.
+const sitePane = dialogPane('generate-site');
+const siteGenerator = new SiteGenerator({
+  status: () => request('/api/ai/status'),
+  plan: (prompt, pages) => request('/api/ai/site/plan', { prompt, pages }),
+  build: plan => mutateVia<{ state: EditorState; message: string; pages: { page: string; name: string }[] }>('/api/ai/site/build', { plan }),
+  opened: id => { const page = state().site.pages.find(entry => entry.id === id); closeDialog(); if (page) { pageId = page.id; selectedId = page.root; update(state()); } },
+  notify: (message, error) => status(message, error)
+});
+sitePane.append(siteGenerator.element);
 // Brand picker: the Design inspector's color and font fields suggest brand tokens through these datalists.
 const brandColorList = element('datalist');
 brandColorList.id = 'fw-brand-colors';
@@ -1050,6 +1068,7 @@ function update(next: EditorState): void {
   });
   resetButtons.forEach((reset, name) => { const hide = !override[name]; if (reset.hidden !== hide) reset.hidden = hide; });
   attrsFields.forEach((control, name) => value(control, node.attrs[name] || ''));
+  aiWriter.update(node.id);
   removeBackgroundButton.hidden = node.tag !== 'img';
   editInFormvisButton.hidden = updateFromFormvisButton.hidden = node.tag !== 'img';
   resetOverrides.disabled = breakpoint === 'desktop' || !Object.keys(node.breakpoints[breakpoint] || {}).length;
@@ -1208,7 +1227,7 @@ function openDialog(id: string): void {
   if (!lastState && !['settings', 'help'].includes(id)) return;
   if (scrim.hidden) lastFocus = document.activeElement as HTMLElement;
   dialogMode = id;
-  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', team: 'Team libraries', background: 'Remove background', stock: 'Stock library', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
+  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', team: 'Team libraries', background: 'Remove background', stock: 'Stock library', 'generate-site': 'Generate pages from a description', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
   text(dialogTitle, titles[id] || id);
   panes.forEach((pane, key) => { pane.hidden = key !== id; });
   const primaryLabels: Record<string, string> = { new: 'Create site', page: 'Add page', bulk: 'Create pages', embed: 'Insert embed', qr: 'Download', publish: 'Publish version', cms: 'Save item', locales: 'Save translations', settings: 'Save & reconnect', 'delete-page': 'Delete page' };
@@ -1225,6 +1244,7 @@ function openDialog(id: string): void {
   if (id === 'brand') brandKit.update(state());
   if (id === 'team') void teamLibraries.refresh().catch(error => status(error instanceof Error ? error.message : String(error), true));
   if (id === 'stock') void stockLibrary.open().catch(error => status(error instanceof Error ? error.message : String(error), true));
+  if (id === 'generate-site') void siteGenerator.open().catch(error => status(error instanceof Error ? error.message : String(error), true));
   if (id === 'background') {
     const node = currentNode();
     void backgroundRemover.open({ id: node.id, name: node.name, src: node.attrs.src || '', original: node.attrs['data-fw-original-src'] || '' })
@@ -1509,6 +1529,7 @@ registerCommands([
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
   { id: 'insert.stock', label: 'Stock icons and photos...', menu: 'Insert', group: 1, run: () => openDialog('stock'), enabled: ready },
   { id: 'page.add', label: 'Add page...', menu: 'Page', run: () => openDialog('page'), enabled: ready },
+  { id: 'page.generate', label: 'Generate pages from a description...', menu: 'Page', run: () => openDialog('generate-site'), enabled: ready },
   { id: 'page.settings', label: 'Page settings', menu: 'Page', run: () => { openDock('right'); setInspector('page'); }, enabled: ready },
   { id: 'page.password', label: 'Password protect this page', menu: 'Page', group: 2, run: async () => {
     if (passwordInput.value.length < 6) { openDock('right'); setInspector('page'); passwordInput.focus(); status('Type a password of at least 6 characters in Page settings > Password, then choose Protect page.', true); return; }

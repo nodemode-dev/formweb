@@ -1,5 +1,14 @@
 # Backend context
 
+## Writing with the family language model · v0.5.6
+
+`app/writer.py` is FW-069 and FW-070 and reuses `imagegen._json` against formvis.
+- **Model:** `_chat()` posts `{messages, tools: false}` to formvis `POST /api/llm/chat` (200 s timeout); 428 when no model is set. `status()` reads `/api/llm/status` and never raises.
+- **Copy:** `copy()` builds a prompt from the element's role, its text and the page context, caps length by role, strips quotes and fences in `_clean()`, and returns `{original, suggestion, apply}` where `apply` is a ready `node.update`. It never writes.
+- **Plan:** `plan()` asks for a JSON outline; `_parse()` extracts the object and `validate()` clamps it (pages to the request and at most 4, 6 sections, 4 items, fixed kinds, safe hrefs, capped text). `source='caller'` gives 422 "This outline is not usable", model failures 502. Slugs are resolved against existing pages (`_slug()`, a taken `/` becomes `/home`).
+- **Build:** `build_commands()` uses ids `gen-<hex>-<kind>-<n>` with `page.add` `{id, root}`, then `page.update` SEO and a header nav for multi-page plans. `_styles()` picks the most saturated brand or library colour with 3:1 contrast on the dark section, else orange, and dark or light button text by luminance. `build()` sends one `batch` (at most 500 commands) through `studio.mutate`, so permissions, undo and activity apply.
+- **Routes:** `GET /api/ai/status`, `POST /api/ai/copy`, `/api/ai/site/plan`, `/api/ai/site/build`. MCP `write_copy` (read-only) and `generate_site`; `next_step` covers no model, unusable outline and model failures.
+
 ## Image generation and the formvis round trip · v0.5.5
 
 `app/imagegen.py` is FW-071 and reuses `background._call` (`FORMWEB_FORMVIS_URL`).

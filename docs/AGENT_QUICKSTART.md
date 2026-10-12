@@ -55,6 +55,8 @@ A saved extension is configuration evidence. A browser interaction needs observe
 | Add an icon or a stock photo | `search_stock` `{source: "icons"\|"formlit", query}`, then `insert_stock` `{source, id, parent?}`; icons take `color`, `stroke`, `size` | A new `img` under `parent`; the asset's credit is listed in the export's `CREDITS.txt`; respect any `usage` terms returned for a photo |
 | Generate a picture | `generate_image` `{action: "generators"}` to see what formvis has set up, then `{prompt, generator?, size?, count?, insert?, alt?, parent?}`; waits up to 90 s, else returns `job` to pass back | Assets carry `prompt`, `generator`, licence and time in their credit; give `alt` that describes the picture, not the prompt |
 | Edit a picture in formvis | `edit_in_formvis` `{node, action: "send"}`, the person (or formvis's own tools) edits, then `{node, action: "update"}` | The element's `src` changes to the edited PNG in one undo step; the credit gains `editedIn` |
+| Rewrite an element's text | `write_copy` `{node, action: rewrite\|shorten\|lengthen\|tone\|generate, tone?, brief?}` returns `suggestion` and `apply` | Nothing changes until you run `apply` (one `node.update`); show the suggestion first |
+| Draft pages from a description | `generate_site` `{action: "plan", prompt, pages?}`, show the outline, then `{action: "build", plan}` | New pages with headers, sections, cards, buttons and contact forms in one undo step; slugs never collide; existing pages are untouched |
 
 ## Reading and editing efficiently
 
@@ -75,7 +77,7 @@ Inside the editor's terminal (or any shell in the FormWeb folder) `./formweb run
 
 If a call waits and then reports that no one approved it, the owner has turned on approvals in Agent Connect; ask them to watch the panel and retry once.
 
-Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`, `brand.check`, `brand.fix-all`, `brand.restrict`, `window.team`, `image.remove-background`, `insert.stock`, `image.edit-in-formvis`, `image.update-from-formvis`.
+Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`, `brand.check`, `brand.fix-all`, `brand.restrict`, `window.team`, `image.remove-background`, `insert.stock`, `image.edit-in-formvis`, `image.update-from-formvis`, `page.generate`, `ai.suggest`, `ai.accept`.
 
 ## Recover a stopped workflow
 

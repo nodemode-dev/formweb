@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.5.5",
- "previous": "0.5.4",
+ "version": "0.5.6",
+ "previous": "0.5.5",
  "date": "2026-10-12",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "AI image generation through formvis, None to Partial (FW-071): built and run end to end, but only with a stand-in provider. 75.5 of 79.",
+ "release_note": "Prompt-to-site and AI copy, both None to Partial (FW-069, FW-070), through the family language model set in formvis: built and run end to end, but only with a stand-in model. 76.5 of 79.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.5.5, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.5.6, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -4497,9 +4497,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "partial",
+    "v0.5.6: Page > Generate pages from a description drafts an outline (1 to 4 pages, up to 6 sections each) for review, then builds it into the normal editable tree in one undo step: header navigation, hero, features, about, testimonials, FAQ, call to action and contact form sections, one h1 per page, mobile layouts, SEO fields and readable brand or library accent colours. The model is the person's own, set once in formvis (any OpenAI-compatible service: Ollama, LM Studio or a hosted one with their key). Model output is clamped and escaped; existing pages are never changed. Agents: generate_site (plan, build). Executed against formvis 1.66.1's real /api/llm/chat with a stand-in model behind it.",
+    "Partial because no real model ran (the build machine cannot reach model downloads or hosted APIs), and reference images or PDFs and chat-based edits are not built. A real model run moves the core to Full."
    ],
    "fr": [
     "full",
@@ -4549,9 +4549,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "partial",
+    "v0.5.6: Content > Write with AI under the text field offers rewrite, shorten, lengthen, tone (friendly, professional, confident, playful, calm) and generate from a brief. The suggestion is shown beside the current text, can be edited, and replaces it only on Accept, as one undo step. It uses the family model set in formvis (local or hosted with the person's key). Agents: write_copy returns a suggestion and the node.update to apply it. Executed against formvis 1.66.1's real /api/llm/chat with a stand-in model behind it.",
+    "Partial because no real model ran: the build machine cannot reach model downloads or hosted APIs. One rewrite with a real model moves this row to Full."
    ],
    "fr": [
     "none",
@@ -5339,16 +5339,40 @@
     "FW-073": "full"
    },
    "note": "Built-in stock library."
+  },
+  {
+   "version": "0.5.5",
+   "date": "2026-10-12",
+   "same_as": "0.3.0",
+   "moved": {
+    "FW-074": "full",
+    "FW-076": "full",
+    "FW-077": "full",
+    "FW-079": "full",
+    "FW-068": "full",
+    "FW-078": "full",
+    "FW-066": "full",
+    "FW-067": "full",
+    "FW-075": "full",
+    "FW-072": "full",
+    "FW-073": "full"
+   },
+   "note": "AI image generation through formvis (Partial)."
   }
  ],
  "changes": [
   [
-   "AI image generation (FW-071)",
+   "Prompt-to-site generation (FW-069)",
    "None",
-   "Partial: Generate with formvis in the asset picker, results saved with provenance, Edit in formvis round trip; generate_image and edit_in_formvis for agents. Full once a real generator run is observed"
+   "Partial: Generate pages from a description, outline review, then one-step build into editable pages; generate_site for agents. Full once a real model run is observed; reference images and chat edits not built"
+  ],
+  [
+   "AI copy generation and rewrite (FW-070)",
+   "None",
+   "Partial: Write with AI in the Content section, editable suggestion, Accept as one undo step; write_copy for agents. Full once a real model run is observed"
   ]
  ],
- "closed_note": "v0.5.5 moved FW-071 AI image generation to Partial; no row reached Full because the build machine cannot run a real image model. Eleven of the 14 rows added in v0.3.0 are closed. Still open: prompt-to-site and AI copy (waiting on the owner's choice of text model), AI images to Full; hosting and payments stay operationally partial.",
+ "closed_note": "v0.5.6 moved FW-069 prompt-to-site and FW-070 AI copy to Partial; no row reached Full because the build machine cannot run a real model. Eleven of the 14 rows added in v0.3.0 are closed. Still open: prompt-to-site, AI copy and AI images to Full (each needs one real model run); hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
@@ -5466,10 +5490,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.5 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.6 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.5.5 moves one row: AI image generation (None to Partial), handed to formvis. It stays Partial until a real image generator is observed. The score moves from 75.0 to 75.5 of 79.",
+  "changes": "v0.5.6 moves two rows: prompt-to-site generation and AI copy (None to Partial), both using the language model the person sets in formvis. They stay Partial until a real model is observed. The score moves from 75.5 to 76.5 of 79.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5490,6 +5514,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 12 October 2026 from FormWeb 0.5.5 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 12 October 2026 from FormWeb 0.5.6 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

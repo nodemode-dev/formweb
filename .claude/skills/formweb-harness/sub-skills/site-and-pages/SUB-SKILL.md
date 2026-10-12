@@ -22,6 +22,8 @@ Change the page list and whole-site settings safely. Pages own their root node a
 | Replace an extension group | `edit_site` `extension.set` | `./formweb run extension.set` with group and value | none |
 | Protect a route | `set_page_password`, then `list_page_passwords` | `GET` and `POST /api/page-passwords` | Page > Password protect this page (`page.password`), Remove page password (`page.password-remove`) |
 | QR code for a URL | `qr_code` | `GET /api/qr?url=[url]&format=png` | Page > QR code for this page (`page.qr`) |
+| Draft pages from a description | `generate_site` `plan`, then `build` with the (reviewed) plan | `POST /api/ai/site/plan`, `POST /api/ai/site/build` | Page > Generate pages from a description (`page.generate`) |
+| Suggest new text for an element | `write_copy` (suggestion only), then `edit_nodes` `node.update` | `POST /api/ai/copy` | Content inspector, Write with AI (`ai.suggest`, `ai.accept`) |
 
 ## Preconditions
 
@@ -36,7 +38,12 @@ Change the page list and whole-site settings safely. Pages own their root node a
 5. For site settings use `site.update` with `patch.settings`. Icons take an uploaded asset URL (`/api/assets/[id]`), so upload first. Use `extension.set` only for a group whose shape you read in `docs/ADVANCED_SCHEMA.md`; it replaces the whole group, so carry over unrelated entries.
 6. For a password, call `set_page_password` with a route (a page, a folder such as `/members`, or `/` for the site) and a password of at least 6 characters; `null` removes it. It needs publish permission, applies when FormWeb serves a published or active release, and `export_site` refuses a protected site. Never echo the password in a reply.
 7. For a QR code, use the published local URL when printing. `qr_code` returns SVG text; the PNG comes from `GET /api/qr`. Decode it or compare the returned `url` before reporting it.
-8. Run `audit_site`, then confirm the page count and slugs with a fresh `get_site`.
+8. To draft a whole site or new pages from a description, check `generate_site` `{action: "status"}`. If no language model is set, tell the person to add one in formvis (Preferences > Plugins): a local one such as Ollama or LM Studio, or a hosted service with their key.
+   - Call `plan` with what the site is for, who it is for and which pages it needs. Show the person the outline (page names, slugs, section kinds and headings).
+   - Edit text fields in the returned plan if they ask, then call `build` with it. The build adds new pages in one undo step and never changes existing ones.
+   - Afterwards, replace placeholders, especially testimonials, which are marked as placeholders. The model is told not to invent prices, statistics or reviews; check anyway.
+9. To rewrite one element's text, call `write_copy` with `rewrite`, `shorten`, `lengthen`, `tone` (friendly, professional, confident, playful, calm) or `generate` with a brief. Show the suggestion, and apply it with its returned `apply` command only when the person agrees.
+10. Run `audit_site`, then confirm the page count and slugs with a fresh `get_site`.
 
 ## Gate
 

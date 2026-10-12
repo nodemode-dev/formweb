@@ -1,5 +1,11 @@
 # Frontend context map
 
+## Write with AI and Generate pages · v0.5.6
+
+`features/ai-writer.ts`, styles in `styles/ai-writer.css`.
+- **AiWriter:** lives in the Content section under the text field. Action, tone (only for tone) and brief (only for generate) controls, then Suggest (`ai.suggest`). The review shows the current text struck through and an editable suggestion with Discard, Try again and Accept (`ai.discard`, `ai.again`, `ai.accept`). `update(nodeId)` is called where attribute fields refresh; a pending ticket drops late answers and the review when the selection changes.
+- **SiteGenerator:** the `generate-site` dialog pane (Page > Generate pages, `page.generate`). Prompt (`ai.site-prompt`), page count, Draft outline (`ai.site-draft`) rendering the outline as a keyed list, Build pages (`ai.site-build`) through `mutateVia` so Undo removes every new page; the first new page opens.
+
 ## Generate tab and formvis round trip · v0.5.5
 
 The stock library gained a third tab, Generate with formvis.

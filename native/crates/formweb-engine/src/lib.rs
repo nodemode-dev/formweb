@@ -257,8 +257,18 @@ fn apply(site: &mut Site, command: &str, params: &Value) -> Result<(), String> {
         "page.add" => {
             let name = string(params, "name")?;
             let slug = string(params, "slug")?;
-            let id = fresh_id(site, "page");
-            let root = fresh_id(site, "page-root");
+            // Optional caller-chosen ids let one batch add a page and then fill its root (generated sites, one undo step).
+            let taken = |site: &Site, v: &str| site.nodes.contains_key(v) || site.components.contains_key(v) || site.collections.contains_key(v) || site.pages.iter().any(|p| p.id == v);
+            let id = match params.get("id").and_then(Value::as_str) {
+                Some(v) if identifier(v) && !taken(site, v) => v.to_string(),
+                Some(_) => return Err("page id must be a new identifier".into()),
+                None => fresh_id(site, "page"),
+            };
+            let root = match params.get("root").and_then(Value::as_str) {
+                Some(v) if identifier(v) && v != id && !taken(site, v) => v.to_string(),
+                Some(_) => return Err("page root id must be a new identifier".into()),
+                None => fresh_id(site, "page-root"),
+            };
             site.nodes.insert(root.clone(), blank_node(&root, "main", name, "", &[("min-height", "100vh"), ("padding", "64px"), ("font-family", "Arial, Helvetica, sans-serif")]));
             site.pages.push(Page { id, name: name.into(), slug: slug.into(), root, seo: Seo { title: name.into(), description: String::new(), noindex: false } });
         }

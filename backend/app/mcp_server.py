@@ -133,6 +133,22 @@ async def call_tool(context, params):
             case 'use_team_library':
                 result = await studio.team_libraries.use(arguments['id'], arguments.get('action', 'link'))
                 result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
+            case 'write_copy':
+                from . import writer
+                result = await writer.copy(studio, arguments['node'], arguments['action'], arguments.get('tone'), arguments.get('brief'))
+            case 'generate_site':
+                from . import writer
+                if arguments['action'] == 'status':
+                    result = writer.status(studio)
+                elif arguments['action'] == 'plan':
+                    if not arguments.get('prompt'):
+                        raise EngineError('Pass prompt: what the site is for, who it is for and what pages it needs.', 422)
+                    result = await writer.plan(studio, arguments['prompt'], arguments.get('pages', 3))
+                else:
+                    if not isinstance(arguments.get('plan'), dict):
+                        raise EngineError('Pass plan, the outline returned by action plan (edited if needed).', 422)
+                    result = await writer.build(studio, arguments['plan'])
+                    result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
             case 'generate_image':
                 from . import imagegen
                 if arguments.get('action') == 'generators':
@@ -207,6 +223,12 @@ async def call_tool(context, params):
 def next_step(message, status):
     """One actionable sentence an agent can follow after an error."""
     text = message.lower()
+    if 'language model' in text and ('no language model' in text or 'has no language model' in text):
+        return 'Tell the person to set a language model in formvis (Preferences > Plugins): a local one such as Ollama or LM Studio, or a hosted service with their key. Then retry.'
+    if 'outline is not usable' in text:
+        return 'Pass the plan object exactly as generate_site action plan returned it (pages, each with sections), editing only text fields.'
+    if 'outline' in text and ('cut short' in text or 'usable' in text or 'no json' in text):
+        return 'Retry once with fewer pages or a shorter description; if it fails again, tell the person their model may need to be a stronger one.'
     if 'formvis' in text and ('not open' in text or 'outside agent' in text or 'not allowed' in text or 'no image generator' in text):
         return 'Ask the person to open the formvis window (and allow outside agents when it asks) or set up a generator there, then retry once.'
     if 'formlit' in text and 'not reachable' in text:

@@ -48,6 +48,7 @@ Work in small checked steps. The person may be watching and editing too, so read
 - Cut out a photo's background: `remove_background` `{node}` on an uploaded `img` (needs formvis running on their computer; `action: "restore"` undoes it). For brush touch-ups, point them to Edit > Remove background.
 - An icon or one of their own photos: `search_stock` `{source: "icons"}` (about 1,900 Lucide icons) or `{source: "formlit"}` (their formlit photo library), then `insert_stock` `{source, id}`. Credits are kept automatically; if a photo comes back with usage terms or no alt text, tell them.
 - A new picture from a description: `generate_image` `{prompt, insert: true, alt}` (formvis runs whatever generator they set up; `action: "generators"` lists them). To retouch any picture: `edit_in_formvis` `{node, action: "send"}`, then `"update"` when they are done in formvis.
+- Rewrite, shorten or change the tone of text: `write_copy` `{node, action}` returns a suggestion; show it, then apply its `apply` command if they like it. A new site or pages from a description: `generate_site` `plan`, show the outline, then `build`.
 - Undo your own last step with `history` `{action:"undo"}`; check `formweb://activity` first if the person is also editing.
 
 ## When something fails
