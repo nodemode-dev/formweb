@@ -9,6 +9,8 @@
 .fw-stock-option input[type="color"] { width: 36px; height: 26px; min-height: 0; padding: 0; }
 .fw-stock-option input[type="range"] { width: 96px; min-height: 0; padding: 0; border: 0; background: transparent; accent-color: var(--accent-color); }
 .fw-stock-option input[type="number"] { width: 72px; height: 26px; min-height: 0; padding: 0 var(--space-2); }
+.fw-stock-options select { width: auto; max-width: 320px; height: 30px; min-height: 0; padding: 0 var(--space-2); }
+.fw-stock-options button { height: 30px; min-height: 0; }
 .fw-stock-icons, .fw-stock-photos { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 2px; align-content: start; }
 .fw-stock-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; color: #111111; }
 .fw-stock-icon { display: flex; height: 76px; min-height: 0; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 6px; border: 1px solid transparent; border-radius: var(--radius); background: #f4f4f2; color: inherit; }

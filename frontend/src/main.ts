@@ -473,11 +473,16 @@ for (const [name, label] of [['href', 'Link URL'], ['src', 'Image / media URL'],
 // FW-072: shown for image elements only (toggled where the attribute fields refresh).
 const removeBackgroundButton = button('Remove background...', 'wand', () => runCommand('image.remove-background'));
 removeBackgroundButton.dataset.command = 'image.remove-background';
+// FW-071: the round trip to formvis for editing; also image-only.
+const editInFormvisButton = button('Edit in formvis', 'image', () => runCommand('image.edit-in-formvis'));
+editInFormvisButton.dataset.command = 'image.edit-in-formvis';
+const updateFromFormvisButton = button('Update from formvis', 'download', () => runCommand('image.update-from-formvis'));
+updateFromFormvisButton.dataset.command = 'image.update-from-formvis';
 attributesSection.append(attributesGrid, button('Upload image', 'image', () => {
   mediaInput.dataset.mode = 'replace';
   mediaInput.dataset.target = currentNode().id;
   mediaInput.click();
-}), removeBackgroundButton);
+}), removeBackgroundButton, editInFormvisButton, updateFromFormvisButton);
 const bindingSection = section(contentPane, 'CMS binding');
 const bindingGrid = element('div', 'form-grid');
 const bindingCollection = select([{ id: '', name: 'No collection' }]);
@@ -838,8 +843,15 @@ const stockLibrary = new StockLibrary({
   photos: query => request(`/api/stock/formlit?limit=60&q=${encodeURIComponent(query)}`),
   iconAsset: (name, color, stroke, size) => request(`/api/stock/icons/${encodeURIComponent(name)}`, { color, stroke, size }),
   photoAsset: id => request(`/api/stock/formlit/${id}`, {}),
+  generators: () => request('/api/generate/generators'),
+  generate: (prompt, generator, size, count) => request('/api/generate', { prompt, generator, size, count }),
+  poll: job => request(`/api/generate/${encodeURIComponent(job)}`),
   insert: async (made, kind) => {
     closeDialog();
+    if (!made.width || !made.height) {  // generated pictures: measure before inserting so width and height are real
+      const size = await new Promise<{ width: number; height: number }>(resolve => { const probe = new Image(); probe.onload = () => resolve({ width: probe.naturalWidth, height: probe.naturalHeight }); probe.onerror = () => resolve({ width: 1024, height: 1024 }); probe.src = apiBase + made.asset.url; });
+      made = { ...made, ...size };
+    }
     await insertElement('image', { url: made.asset.url, name: made.name, width: made.width, height: made.height, alt: made.alt,
       styles: kind === 'icon' ? { width: `${made.width}px`, height: `${made.height}px`, display: 'block' } : undefined });
   },
@@ -1039,6 +1051,7 @@ function update(next: EditorState): void {
   resetButtons.forEach((reset, name) => { const hide = !override[name]; if (reset.hidden !== hide) reset.hidden = hide; });
   attrsFields.forEach((control, name) => value(control, node.attrs[name] || ''));
   removeBackgroundButton.hidden = node.tag !== 'img';
+  editInFormvisButton.hidden = updateFromFormvisButton.hidden = node.tag !== 'img';
   resetOverrides.disabled = breakpoint === 'desktop' || !Object.keys(node.breakpoints[breakpoint] || {}).length;
   options(bindingCollection, [{ id: '', name: 'No collection' }, ...Object.values(site.collections).map(collection => ({ id: collection.id, name: collection.name }))]);
   const cmsGroup = site.extensions?.cms as { bindings?: Record<string, { collection: string; field?: string }>; lists?: Record<string, { collection: string }> } | undefined;
@@ -1489,6 +1502,8 @@ registerCommands([
   { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: 'Ctrl Shift Z', run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
   { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: 'Del', group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: notRoot },
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
+  { id: 'image.edit-in-formvis', label: 'Edit in formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await request<{ message: string }>('/api/formvis/send', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\/[0-9a-f]{64}\.(png|jpg|gif|webp)/.test(currentNode().attrs.src || '') },
+  { id: 'image.update-from-formvis', label: 'Update from formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await mutateVia<{ message: string; state: EditorState }>('/api/formvis/update', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' },
   { id: 'edit.settings', label: 'Settings...', menu: 'Edit', group: 2, run: () => openDialog('settings') },
   ...insertKinds.map(([kind, label]) => ({ id: `insert.${kind}`, label, menu: 'Insert', run: () => insertElement(kind), enabled: ready })),
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },

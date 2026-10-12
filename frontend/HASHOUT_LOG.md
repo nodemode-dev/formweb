@@ -1,5 +1,15 @@
 # Frontend context map
 
+## Generate tab and formvis round trip · v0.5.5
+
+The stock library gained a third tab, Generate with formvis.
+- **Prompt:** the search box becomes the prompt (its own per-tab text, Enter generates), so all three tabs share one layout and the dialog does not move (measured: the same top and height on each tab).
+- **Options:** generators are listed as options, with not-ready ones disabled and their reason as the title. Sizes follow the chosen generator, and the count is 1 to 4. The list is re-read each time the dialog opens.
+- **Progress:** generation polls once a second, showing progress and formvis's message. Results go into a keyed grid of at most 24 per session, newest first.
+- **Insert:** measures the picture before inserting (the generator gives no size), and uses the prompt as starting alt text.
+- **Command ids:** the Generate button's id is `stock.run-generate`, because `stock.generate` is the tab; a click test caught the clash.
+- **Image commands:** `image.edit-in-formvis` and `image.update-from-formvis` are in the Edit menu, with buttons under the image's HTML attributes (images only). Update goes through `mutateVia`, so Undo restores the earlier picture.
+
 ## Stock library · v0.5.4
 
 `features/stock-library.ts` (with `styles/stock-library.css`) is the `stock` dialog, opened by `insert.stock`.

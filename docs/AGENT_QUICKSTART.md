@@ -53,6 +53,8 @@ A saved extension is configuration evidence. A browser interaction needs observe
 | QR code | `qr_code` `{url, dark?, light?}` returns SVG text; `GET /api/qr?url=...&format=png` returns a PNG | Decode it, or compare the returned `url` |
 | Remove a photo's background | `remove_background` `{node, method?, feather?}` on an `img` with an uploaded picture; `action: "status"` checks formvis, `"restore"` returns the original | The image `src` is a new PNG and `data-fw-original-src` holds the original; the export shows only the cut-out |
 | Add an icon or a stock photo | `search_stock` `{source: "icons"\|"formlit", query}`, then `insert_stock` `{source, id, parent?}`; icons take `color`, `stroke`, `size` | A new `img` under `parent`; the asset's credit is listed in the export's `CREDITS.txt`; respect any `usage` terms returned for a photo |
+| Generate a picture | `generate_image` `{action: "generators"}` to see what formvis has set up, then `{prompt, generator?, size?, count?, insert?, alt?, parent?}`; waits up to 90 s, else returns `job` to pass back | Assets carry `prompt`, `generator`, licence and time in their credit; give `alt` that describes the picture, not the prompt |
+| Edit a picture in formvis | `edit_in_formvis` `{node, action: "send"}`, the person (or formvis's own tools) edits, then `{node, action: "update"}` | The element's `src` changes to the edited PNG in one undo step; the credit gains `editedIn` |
 
 ## Reading and editing efficiently
 
@@ -73,7 +75,7 @@ Inside the editor's terminal (or any shell in the FormWeb folder) `./formweb run
 
 If a call waits and then reports that no one approved it, the owner has turned on approvals in Agent Connect; ask them to watch the panel and retry once.
 
-Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`, `brand.check`, `brand.fix-all`, `brand.restrict`, `window.team`, `image.remove-background`, `insert.stock`.
+Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`, `brand.check`, `brand.fix-all`, `brand.restrict`, `window.team`, `image.remove-background`, `insert.stock`, `image.edit-in-formvis`, `image.update-from-formvis`.
 
 ## Recover a stopped workflow
 

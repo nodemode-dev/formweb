@@ -360,6 +360,49 @@ async def stock_photo_asset(photo_id: int):
     return stock.photo_asset(studio, photo_id)
 
 
+class GenerateBody(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    prompt: str = Field(min_length=1, max_length=2000)
+    generator: str | None = Field(default=None, max_length=120)
+    size: str | None = Field(default=None, max_length=16)
+    count: int = Field(default=1, ge=1, le=4)
+
+
+class NodeRef(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    node: str = Field(min_length=1, max_length=160)
+
+
+@app.get('/api/generate/generators')
+async def generate_generators():
+    from . import imagegen
+    return imagegen.generators(studio)
+
+
+@app.post('/api/generate')
+async def generate_start(body: GenerateBody):
+    from . import imagegen
+    return imagegen.start(studio, body.prompt, body.generator, body.size, body.count)
+
+
+@app.get('/api/generate/{job}')
+async def generate_poll(job: str):
+    from . import imagegen
+    return imagegen.poll(studio, job)
+
+
+@app.post('/api/formvis/send')
+async def formvis_send(body: NodeRef):
+    from . import imagegen
+    return await imagegen.send_to_formvis(studio, body.node)
+
+
+@app.post('/api/formvis/update')
+async def formvis_update(body: NodeRef):
+    from . import imagegen
+    return await imagegen.update_from_formvis(studio, body.node)
+
+
 class BackgroundMask(BaseModel):
     model_config = ConfigDict(extra='forbid')
     node: str = Field(min_length=1, max_length=160)

@@ -1,5 +1,16 @@
 # Backend context
 
+## Image generation and the formvis round trip · v0.5.5
+
+`app/imagegen.py` is FW-071 and reuses `background._call` (`FORMWEB_FORMVIS_URL`).
+- **Generators:** `generators()` maps formvis `GET /api/generate` to image generators with `ready`, `reason`, `local`, `sizes` and `licence`. It never raises; the note explains what is missing.
+- **Start:** `start()` checks prompt length (3 to 2,000), defaults to a ready local generator, then any ready one, and checks the size against the generator's list. It posts `{generator, prompt, size, count}` and returns formvis's `job_id`.
+- **Poll:** `poll()` reads `GET /api/jobs/{id}` (queued, running, done, error). When done, it fetches each `/api/generate/pictures/{id}` and ingests it with `provenance()`; `LICENSE_KEYS` gained prompt, generator, created and editedIn. It then sends DELETE for formvis's copy, and stores the result in meta `generated:{job}` so a second poll never duplicates assets.
+- **Wait:** `wait()` is async and polls on the service loop, because the SQLite store is not shared across threads, which `to_thread` would do.
+- **Edit in formvis:** `send_to_formvis()` copies the asset to `DATA_DIR/handoff` and calls formvis MCP `tools/call open_file` with the absolute path. Formvis's `_local_origin` accepts requests without an Origin header. `update_from_formvis()` calls `export_image` into the handoff folder, ingests the file with the old credit plus `editedIn`, and runs one `node.update`. Icons (SVG) are refused for sending.
+- **Agent hints:** `next_step` points formvis "not open" and "no generator" errors at the person.
+- **Tested against formvis 1.66.1:** its real job queue, ingest and picture routes, with a stand-in fal server set through its documented `FORMVIS_FAL_BASE`. Separately, its real window: consent, `open_file`, an `add_text` or `flip_canvas` edit, then `export_image`.
+
 ## Stock library and credited assets · v0.5.4
 
 `app/stock.py` is FW-073.

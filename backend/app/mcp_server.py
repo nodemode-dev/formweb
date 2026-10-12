@@ -133,6 +133,29 @@ async def call_tool(context, params):
             case 'use_team_library':
                 result = await studio.team_libraries.use(arguments['id'], arguments.get('action', 'link'))
                 result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
+            case 'generate_image':
+                from . import imagegen
+                if arguments.get('action') == 'generators':
+                    result = imagegen.generators(studio)
+                else:
+                    job = arguments.get('job')
+                    if not job:
+                        if not arguments.get('prompt'):
+                            raise EngineError('Pass prompt, a description of the picture (or job to follow an earlier one).', 422)
+                        job = imagegen.start(studio, arguments['prompt'], arguments.get('generator'), arguments.get('size'), arguments.get('count', 1))['job']
+                    result = await imagegen.wait(studio, job, 90.0)
+                    if result['status'] == 'done' and arguments.get('insert') and result['assets']:
+                        placed = await imagegen.insert_asset(studio, result['assets'][0], arguments.get('alt') or '', arguments.get('parent'))
+                        result = {**result, 'node': placed['node'], 'site': compact(placed['state'])}
+                    elif result['status'] != 'done':
+                        result = {**result, 'next': 'Call generate_image again with this job to collect the pictures when formvis finishes.'}
+            case 'edit_in_formvis':
+                from . import imagegen
+                if arguments['action'] == 'send':
+                    result = await imagegen.send_to_formvis(studio, arguments['node'])
+                else:
+                    result = await imagegen.update_from_formvis(studio, arguments['node'])
+                    result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
             case 'search_stock':
                 from . import stock
                 limit = arguments.get('limit', 24)
@@ -184,6 +207,8 @@ async def call_tool(context, params):
 def next_step(message, status):
     """One actionable sentence an agent can follow after an error."""
     text = message.lower()
+    if 'formvis' in text and ('not open' in text or 'outside agent' in text or 'not allowed' in text or 'no image generator' in text):
+        return 'Ask the person to open the formvis window (and allow outside agents when it asks) or set up a generator there, then retry once.'
     if 'formlit' in text and 'not reachable' in text:
         return 'Tell the person stock photos come from formlit on their computer: start it (./formlit backend in the formlit folder), then retry; icons work without it.'
     if 'formvis' in text and ('not reachable' in text or 'no background engine' in text):

@@ -76,7 +76,8 @@ def write_metadata(name: str, mime: str, size: int, filename: str | None, licens
     return metadata
 
 
-LICENSE_KEYS = ('source', 'title', 'creator', 'copyright', 'license', 'licenseUrl', 'usage', 'sourceUrl', 'attribution')
+LICENSE_KEYS = ('source', 'title', 'creator', 'copyright', 'license', 'licenseUrl', 'usage', 'sourceUrl', 'attribution',
+                'prompt', 'generator', 'created', 'editedIn')  # FW-071 provenance for generated and formvis-edited pictures
 
 
 def ingest_svg(data: bytes, filename: str | None, license: dict | None = None) -> dict:

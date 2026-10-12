@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.5 · 2026-10-12
+
+Gap work: FW-071 AI image generation, None to Partial (75.0 to 75.5 of 79). The row is Partial, not Full, because no real image model or provider could be run from the build machine: see "Not yet".
+
+- Insert > Stock icons and photos > Generate with formvis. Describe the picture, then choose the generator, size and number of pictures (1 to 4). formvis runs whatever generator you have set up there: its local models (Krea 2, FLUX.2 [klein], ONNX diffusion; no key) or a cloud provider with your own key (fal, OpenAI, Google, Black Forest Labs, Ideogram). FormWeb never sees the key.
+- Results are saved to the project with their provenance: prompt, generator, licence note and time. They appear in the export's `CREDITS.txt`. Inserting uses the prompt as starting alt text and the picture's real size.
+- Edit > Edit in formvis opens an image in the formvis window (formvis asks once to allow outside agents). Edit > Update from formvis brings the edited picture back as one undo step and keeps its credit, stamped "edited in formvis".
+- Agents: `generate_image` (waits up to 90 s, else returns a job to collect later) and `edit_in_formvis` (81 tools).
+- Fixed while testing: the Generate tab and the Generate button shared one command id, so clicking the button was routed to the tab.
+- Not yet: no real model ran on the build machine, which cannot reach model downloads or provider APIs. formvis's job pipeline, the FormWeb side and the formvis round trip all ran for real, with a stand-in provider drawing the pictures. One generation with a real generator on your computer is what moves this row to Full.
+
 ## 0.5.4 · 2026-10-12
 
 Gap closing: FW-073 built-in stock library, None to Full (74.0 to 75.0 of 79).
