@@ -1,5 +1,13 @@
 # Backend context
 
+## Stock library and credited assets · v0.5.4
+
+`app/stock.py` is FW-073.
+- **Icons:** `bundle()` caches `stock/lucide.json`, which `setup/stock_icons.py` generates from lucide-static: drawing nodes, tags and a per-icon ISC or MIT flag read from the package's Feather list. `search_icons()` ranks an exact name first, then whole-word name matches, then substring matches, then tag matches, shorter names first. `icon_svg()` draws with the chosen hex colour, stroke (0.5 to 4) and size (8 to 1024), and `icon_asset()` stores it through `ingest_svg` with an ISC or MIT credit.
+- **formlit:** `_formlit()` uses urllib against `FORMWEB_FORMLIT_URL` and turns errors into 503 (unreachable) or 502. `search_photos()` calls `library.query` (`filter.text` matches name, keyword and creator; videos are skipped) and `photo.get` for each result's `meta`. `photo_asset()` saves `/api/photos/{id}/preview?wait=20`, refusing anything that is not image/jpeg (409 while the preview is still building), and records `credit(meta)`. `insert()` is the agent path: it makes the asset and runs one `node.add`; icons get pixel sizes and photos `max-width:100%`.
+- **Assets:** `ASSET_NAME`, `ASSET_REF` and `MIME_TYPES` accept `.svg`. `clean_svg()` refuses `<!`, any processing instruction except the XML declaration, unknown elements, text content, unknown attributes and any value containing a colon or `url`, then serializes from its own walk. `write_metadata()` stores `license` (whitelisted keys, each at most 500 characters) and keeps an existing credit when the same bytes arrive without one. `project_envelope` and `restore_project_assets` carry `license` and route `.svg` through `ingest_svg`. `bundle_assets` writes `CREDITS.txt`. `GET /api/assets/{id}.svg` adds `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox`.
+- **Verified:** hostile SVGs (script, onload, use with an href, foreignObject, entities, url() fills, a javascript: value, style, text, a stylesheet processing instruction) are all refused, and all 1,877 bundled icons pass.
+
 ## Background removal through formvis · v0.5.3
 
 `app/background.py` is FW-072.

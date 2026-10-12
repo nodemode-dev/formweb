@@ -46,6 +46,7 @@ Work in small checked steps. The person may be watching and editing too, so read
 - Password: `set_page_password` `{route, password}`; never repeat the password back.
 - QR code: `qr_code` `{url}` with the published address.
 - Cut out a photo's background: `remove_background` `{node}` on an uploaded `img` (needs formvis running on their computer; `action: "restore"` undoes it). For brush touch-ups, point them to Edit > Remove background.
+- An icon or one of their own photos: `search_stock` `{source: "icons"}` (about 1,900 Lucide icons) or `{source: "formlit"}` (their formlit photo library), then `insert_stock` `{source, id}`. Credits are kept automatically; if a photo comes back with usage terms or no alt text, tell them.
 - Undo your own last step with `history` `{action:"undo"}`; check `formweb://activity` first if the person is also editing.
 
 ## When something fails

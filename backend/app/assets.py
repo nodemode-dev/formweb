@@ -2,14 +2,20 @@ import base64
 import hashlib
 import json
 import re
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 from .config import DATA_DIR
 from .engine import EngineError
 
-ASSET_NAME = re.compile(r'^[0-9a-f]{64}\.(png|jpg|gif|webp)$')
-ASSET_REF = re.compile(r'/api/assets/([0-9a-f]{64}\.(?:png|jpg|gif|webp))')
-MIME_TYPES = {'png': 'image/png', 'jpg': 'image/jpeg', 'gif': 'image/gif', 'webp': 'image/webp'}
+ASSET_NAME = re.compile(r'^[0-9a-f]{64}\.(png|jpg|gif|webp|svg)$')
+ASSET_REF = re.compile(r'/api/assets/([0-9a-f]{64}\.(?:png|jpg|gif|webp|svg))')
+MIME_TYPES = {'png': 'image/png', 'jpg': 'image/jpeg', 'gif': 'image/gif', 'webp': 'image/webp', 'svg': 'image/svg+xml'}
+# FW-073: SVG assets come only from the bundled icon set (and .fweb files carrying them), never from uploads, and are
+# rebuilt from this allowlist so no script, link, style sheet or external reference can survive.
+SVG_TAGS = {'svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse'}
+SVG_ATTRS = {'xmlns', 'width', 'height', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'd', 'cx', 'cy', 'r', 'rx', 'ry',
+             'x', 'y', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'opacity', 'fill-opacity', 'stroke-opacity'}
+SVG_VALUE = re.compile(r'^[A-Za-z0-9 .,#%()+\-/]*$')  # no colon: no scheme (javascript:, data:) can appear in any value
 
 
 def asset_path(name: str):
@@ -21,7 +27,70 @@ def asset_path(name: str):
     return target
 
 
-def ingest(data: bytes, declared_type: str, filename: str | None):
+def clean_svg(data: bytes) -> bytes:
+    """Rebuild an SVG from the allowlist; anything else is refused rather than stripped."""
+    import xml.etree.ElementTree as ET
+
+    if len(data) > 256 * 1024:
+        raise EngineError('SVG is too large.', 413)
+    text = data.decode('utf-8', 'strict').strip()
+    if '<!' in text or re.search(r'<\?(?!xml\s)', text):
+        raise EngineError('SVG may not contain a DOCTYPE, entities, comments or processing instructions.', 415)
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError as error:
+        raise EngineError('SVG is not well formed.', 415) from error
+    from html import escape as quote
+
+    def build(node) -> str:
+        tag = node.tag.split('}', 1)[-1]
+        if tag not in SVG_TAGS:
+            raise EngineError(f'SVG element <{tag}> is not allowed.', 415)
+        if (node.text or '').strip() or (node.tail or '').strip():
+            raise EngineError('SVG text content is not allowed.', 415)
+        attrs = []
+        for key, value in node.attrib.items():
+            name = key.split('}', 1)[-1]
+            if name not in SVG_ATTRS or 'url' in value.lower() or not SVG_VALUE.fullmatch(value):
+                raise EngineError(f'SVG attribute {name} is not allowed.', 415)
+            if name != 'xmlns':
+                attrs.append(f' {name}="{quote(value, quote=True)}"')
+        if tag == 'svg':
+            attrs.insert(0, ' xmlns="http://www.w3.org/2000/svg"')
+        children = ''.join(build(child) for child in node)
+        return f'<{tag}{"".join(attrs)}>{children}</{tag}>' if children else f'<{tag}{"".join(attrs)}/>'
+
+    if root.tag.split('}', 1)[-1] != 'svg':
+        raise EngineError('Not an SVG document.', 415)
+    return build(root).encode('utf-8')
+
+
+def write_metadata(name: str, mime: str, size: int, filename: str | None, license: dict | None = None) -> dict:
+    metadata = {'id': name, 'url': '/api/assets/' + name, 'mime': mime, 'size': size, 'name': (filename or name).replace('\x00', '')[:160]}
+    existing = DATA_DIR / 'assets' / (name + '.json')
+    if not license and existing.is_file():  # the same bytes uploaded again keep the credit they arrived with
+        license = json.loads(existing.read_text(encoding='utf-8')).get('license')
+    if license:
+        metadata['license'] = {key: str(value)[:500] for key, value in license.items() if value not in (None, '') and key in LICENSE_KEYS}
+    (DATA_DIR / 'assets' / (name + '.json')).write_text(json.dumps(metadata), encoding='utf-8')
+    return metadata
+
+
+LICENSE_KEYS = ('source', 'title', 'creator', 'copyright', 'license', 'licenseUrl', 'usage', 'sourceUrl', 'attribution')
+
+
+def ingest_svg(data: bytes, filename: str | None, license: dict | None = None) -> dict:
+    clean = clean_svg(data)
+    name = hashlib.sha256(clean).hexdigest() + '.svg'
+    folder = DATA_DIR / 'assets'
+    folder.mkdir(parents=True, exist_ok=True)
+    target = folder / name
+    if not target.exists():
+        target.write_bytes(clean)
+    return write_metadata(name, 'image/svg+xml', len(clean), filename, license)
+
+
+def ingest(data: bytes, declared_type: str, filename: str | None, license: dict | None = None):
     if data.startswith(b'\x89PNG\r\n\x1a\n'):
         extension = 'png'
     elif data.startswith(b'\xff\xd8\xff') and data.endswith(b'\xff\xd9'):
@@ -43,9 +112,7 @@ def ingest(data: bytes, declared_type: str, filename: str | None):
     target = folder / name
     if not target.exists():
         target.write_bytes(data)
-    metadata = {'id': name, 'url': '/api/assets/' + name, 'mime': mime, 'size': len(data), 'name': (filename or name).replace('\x00', '')[:160]}
-    (folder / (name + '.json')).write_text(json.dumps(metadata), encoding='utf-8')
-    return metadata
+    return write_metadata(name, mime, len(data), filename, license)
 
 
 def list_assets():
@@ -84,9 +151,24 @@ def bundle_assets(result: dict):
             ownership[path] = sorted(owners)
             file['content'] = file['content'].replace('/api/assets/' + name, prefix + path)
         files.append(file)
+    credits = []
     for name in sorted(names):
         path = asset_path(name)
         files.append({'path': 'assets/' + name, 'content': base64.b64encode(path.read_bytes()).decode(), 'encoding': 'base64'})
+        metadata_path = path.with_name(name + '.json')
+        licence = (json.loads(metadata_path.read_text(encoding='utf-8')) if metadata_path.is_file() else {}).get('license')
+        if licence:
+            credits.append((name, licence))
+    if credits:  # FW-073: every bundled stock asset is credited, and bundled icons carry their licence text
+        lines = ['Credits for images in this site', '']
+        for name, licence in credits:
+            lines.append(f'assets/{name}')
+            lines.extend(f'  {key}: {licence[key]}' for key in LICENSE_KEYS if licence.get(key))
+            lines.append('')
+        if any(licence.get('source') == 'Lucide' for _, licence in credits):
+            notice = Path(__file__).resolve().parent / 'stock' / 'LICENSE-lucide.txt'
+            lines.extend(['Lucide icons licence', '', notice.read_text(encoding='utf-8')])
+        files.append({'path': 'CREDITS.txt', 'content': '\n'.join(lines)})
     files.append({'path': 'asset-access.json', 'content': json.dumps(access, sort_keys=True)})
     return {**result, 'files': files}
 
@@ -102,7 +184,10 @@ def project_envelope(site: dict, checkpoint: dict | None = None):
         path = asset_path(name)
         metadata_path = path.with_name(name + '.json')
         metadata = json.loads(metadata_path.read_text()) if metadata_path.is_file() else {}
-        assets.append({'id': name, 'mime': MIME_TYPES[path.suffix[1:]], 'name': metadata.get('name', name), 'encoding': 'base64', 'content': base64.b64encode(path.read_bytes()).decode()})
+        entry = {'id': name, 'mime': MIME_TYPES[path.suffix[1:]], 'name': metadata.get('name', name), 'encoding': 'base64', 'content': base64.b64encode(path.read_bytes()).decode()}
+        if metadata.get('license'):
+            entry['license'] = metadata['license']
+        assets.append(entry)
     envelope = {'format': 'com.nodemode.formweb', 'version': 1, 'site': site, 'assets': assets}
     if checkpoint is not None:
         envelope['checkpoint'] = checkpoint
@@ -131,7 +216,8 @@ def restore_project_assets(envelope: dict):
             raise EngineError('Native project image type is invalid.')
         pending.append((item, data))
     for item, data in pending:
-        stored = ingest(data, item['mime'], item.get('name'))
+        licence = item.get('license') if isinstance(item.get('license'), dict) else None
+        stored = ingest_svg(data, item.get('name'), licence) if item['id'].endswith('.svg') else ingest(data, item['mime'], item.get('name'), licence)
         if stored['id'] != item['id']:
             raise EngineError('Native project image extension does not match its content.')
 

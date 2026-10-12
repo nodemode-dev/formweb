@@ -133,6 +133,19 @@ async def call_tool(context, params):
             case 'use_team_library':
                 result = await studio.team_libraries.use(arguments['id'], arguments.get('action', 'link'))
                 result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
+            case 'search_stock':
+                from . import stock
+                limit = arguments.get('limit', 24)
+                if arguments['source'] == 'icons':
+                    studio.access.authorize('read')
+                    found = stock.search_icons(arguments.get('query', ''), limit)
+                    result = {'total': found['total'], 'source': found['source'], 'icons': [{'name': item['name'], 'tags': item['tags'], 'license': item['license']} for item in found['icons']]}
+                else:
+                    result = stock.search_photos(studio, arguments.get('query', ''), limit)
+            case 'insert_stock':
+                from . import stock
+                result = await stock.insert(studio, arguments['source'], arguments['id'], arguments.get('parent'), {key: arguments[key] for key in ('color', 'stroke', 'size') if key in arguments})
+                result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
             case 'remove_background':
                 from . import background
                 action = arguments.get('action', 'remove')
@@ -171,6 +184,8 @@ async def call_tool(context, params):
 def next_step(message, status):
     """One actionable sentence an agent can follow after an error."""
     text = message.lower()
+    if 'formlit' in text and 'not reachable' in text:
+        return 'Tell the person stock photos come from formlit on their computer: start it (./formlit backend in the formlit folder), then retry; icons work without it.'
     if 'formvis' in text and ('not reachable' in text or 'no background engine' in text):
         return 'Tell the person background removal runs in formvis on their computer: start it (./formvis backend in the formvis folder), then retry; remove_background with action status checks it.'
     if 'library' in text and ('changed' in text or 'not found' in text or 'not edit' in text or 'not share' in text):

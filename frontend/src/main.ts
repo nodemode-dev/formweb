@@ -13,6 +13,7 @@ import { TerminalDock } from './features/terminal';
 import { BrandKit, readBrand, type BrandEntry, type BrandReport } from './features/brand-kit';
 import { TeamLibraries, type TeamLibrary, type TeamLibrarySummary } from './features/team-library';
 import { BackgroundRemover, type BackgroundStatus } from './features/background-remover';
+import { StockLibrary } from './features/stock-library';
 import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -831,6 +832,21 @@ const backgroundRemover = new BackgroundRemover({
   notify: (message, error) => status(message, error)
 });
 backgroundPane.append(backgroundRemover.element);
+const stockPane = dialogPane('stock');
+const stockLibrary = new StockLibrary({
+  icons: query => request(`/api/stock/icons?limit=240&q=${encodeURIComponent(query)}`),
+  photos: query => request(`/api/stock/formlit?limit=60&q=${encodeURIComponent(query)}`),
+  iconAsset: (name, color, stroke, size) => request(`/api/stock/icons/${encodeURIComponent(name)}`, { color, stroke, size }),
+  photoAsset: id => request(`/api/stock/formlit/${id}`, {}),
+  insert: async (made, kind) => {
+    closeDialog();
+    await insertElement('image', { url: made.asset.url, name: made.name, width: made.width, height: made.height, alt: made.alt,
+      styles: kind === 'icon' ? { width: `${made.width}px`, height: `${made.height}px`, display: 'block' } : undefined });
+  },
+  url: path => apiBase + path,
+  notify: (message, error) => status(message, error)
+});
+stockPane.append(stockLibrary.element);
 // Brand picker: the Design inspector's color and font fields suggest brand tokens through these datalists.
 const brandColorList = element('datalist');
 brandColorList.id = 'fw-brand-colors';
@@ -1141,7 +1157,7 @@ async function moveLayer(direction: number): Promise<void> {
 function makeNode(tag: string, name: string, content = '', styles: Record<string, string> = {}, attrs: Record<string, string> = {}): SiteNode {
   return { id: uuid(tag), tag, name, text: content, children: [], attrs, styles, breakpoints: {} };
 }
-async function insertElement(kind: string, asset?: { url: string; name: string; width: number; height: number }): Promise<void> {
+async function insertElement(kind: string, asset?: { url: string; name: string; width: number; height: number; alt?: string; styles?: Record<string, string> }): Promise<void> {
   if (kind === 'image' && !asset) {
     mediaInput.dataset.mode = 'insert';
     mediaInput.dataset.parent = insertionParent();
@@ -1156,7 +1172,7 @@ async function insertElement(kind: string, asset?: { url: string; name: string; 
   else if (kind === 'button') node = makeNode('a', 'Button', 'Get started', { display: 'inline-flex', padding: '14px 24px', background: 'var(--accent)', color: '#111', 'border-radius': '8px', 'text-decoration': 'none', 'font-weight': '600', 'align-self': 'flex-start' }, { href: '#' });
   else if (kind === 'link') node = makeNode('a', 'Link', 'Explore more', { color: 'var(--accent)', 'font-size': '16px' }, { href: '#' });
   else if (kind === 'image') {
-    node = makeNode('img', asset!.name, '', { width: '100%', height: '320px', 'object-fit': 'cover', 'border-radius': '12px' }, { src: asset!.url, alt: '', width: String(asset!.width), height: String(asset!.height) });
+    node = makeNode('img', asset!.name, '', asset!.styles || { width: '100%', height: '320px', 'object-fit': 'cover', 'border-radius': '12px' }, { src: asset!.url, alt: asset!.alt || '', width: String(asset!.width), height: String(asset!.height) });
   } else if (kind === 'form') {
     node = makeNode('form', 'Contact form', '', { display: 'flex', 'flex-direction': 'column', gap: '16px', 'max-width': '480px', padding: '24px', border: '1px solid #3b3f48', 'border-radius': '12px' }, { name: 'contact' });
     children.push(makeNode('label', 'Email label', 'Email address', { 'font-size': '14px' }), makeNode('input', 'Email input', '', { padding: '14px', background: '#1d2026', border: '1px solid #444a55', color: '#fff', 'border-radius': '6px' }, { type: 'email', name: 'email', placeholder: 'you@example.com', required: '', 'aria-label': 'Email address' }), makeNode('button', 'Submit button', 'Send message', { padding: '14px', background: 'var(--accent)', border: '0', 'border-radius': '6px', color: '#111', 'font-weight': '600' }, { type: 'submit' }));
@@ -1179,7 +1195,7 @@ function openDialog(id: string): void {
   if (!lastState && !['settings', 'help'].includes(id)) return;
   if (scrim.hidden) lastFocus = document.activeElement as HTMLElement;
   dialogMode = id;
-  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', team: 'Team libraries', background: 'Remove background', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
+  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', team: 'Team libraries', background: 'Remove background', stock: 'Stock library', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
   text(dialogTitle, titles[id] || id);
   panes.forEach((pane, key) => { pane.hidden = key !== id; });
   const primaryLabels: Record<string, string> = { new: 'Create site', page: 'Add page', bulk: 'Create pages', embed: 'Insert embed', qr: 'Download', publish: 'Publish version', cms: 'Save item', locales: 'Save translations', settings: 'Save & reconnect', 'delete-page': 'Delete page' };
@@ -1195,6 +1211,7 @@ function openDialog(id: string): void {
   if (id === 'tokens') updateTokens();
   if (id === 'brand') brandKit.update(state());
   if (id === 'team') void teamLibraries.refresh().catch(error => status(error instanceof Error ? error.message : String(error), true));
+  if (id === 'stock') void stockLibrary.open().catch(error => status(error instanceof Error ? error.message : String(error), true));
   if (id === 'background') {
     const node = currentNode();
     void backgroundRemover.open({ id: node.id, name: node.name, src: node.attrs.src || '', original: node.attrs['data-fw-original-src'] || '' })
@@ -1475,6 +1492,7 @@ registerCommands([
   { id: 'edit.settings', label: 'Settings...', menu: 'Edit', group: 2, run: () => openDialog('settings') },
   ...insertKinds.map(([kind, label]) => ({ id: `insert.${kind}`, label, menu: 'Insert', run: () => insertElement(kind), enabled: ready })),
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
+  { id: 'insert.stock', label: 'Stock icons and photos...', menu: 'Insert', group: 1, run: () => openDialog('stock'), enabled: ready },
   { id: 'page.add', label: 'Add page...', menu: 'Page', run: () => openDialog('page'), enabled: ready },
   { id: 'page.settings', label: 'Page settings', menu: 'Page', run: () => { openDock('right'); setInspector('page'); }, enabled: ready },
   { id: 'page.password', label: 'Password protect this page', menu: 'Page', group: 2, run: async () => {

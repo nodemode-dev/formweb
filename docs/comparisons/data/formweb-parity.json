@@ -1,17 +1,17 @@
 {
  "product": "FormWeb",
- "version": "0.5.3",
- "previous": "0.5.2",
- "date": "2026-10-11",
+ "version": "0.5.4",
+ "previous": "0.5.3",
+ "date": "2026-10-12",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Background removal through formvis closed (FW-072, None to Full). 74.0 of 79.",
+ "release_note": "Built-in stock library closed (FW-073, None to Full): bundled icons and formlit photos with per-asset credits. 75.0 of 79.",
  "lanes": [
   [
    "m",
    "FormWeb",
    "",
    "fw",
-   "0.5.3, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
+   "0.5.4, Apache-2.0: Rust engine, FastAPI service and TypeScript editor, graded on executed local acceptance"
   ],
   [
    "fr",
@@ -4696,9 +4696,9 @@
    "conf": "vendor",
    "added": "0.3.0",
    "m": [
-    "none",
-    "Planned integration added to the v0.3.0 baseline; not yet implemented in FormWeb.",
-    "Implement per target; scheduled in DEV_PLAN_SPRINT_v0.3.0."
+    "full",
+    "v0.5.4: Insert > Stock icons and photos. Icons: 1,877 bundled Lucide icons (ISC; 88 Feather-derived MIT, checked against the package licence and lucide.dev/license), searchable by name and tag and inserted as sanitized SVG in the chosen colour, stroke and size. Photos: the configurable formlit provider (FORMWEB_FORMLIT_URL) searches the person's formlit library and inserts the developed preview. Licence metadata is stored per asset (source, creator, copyright, status, usage terms, links), travels in .fweb files and is listed in the export's CREDITS.txt. Agents: search_stock, insert_stock. Executed against formlit 0.5.0 with three imported photos: search by creator; IPTC rights including usage terms carried into the asset and CREDITS.txt; icon and photo inserted in the editor and over MCP; .fweb restored into a fresh data folder with SVGs and credits intact; hostile SVGs refused.",
+    "No internet stock service is configured; photos come from the person's own formlit library."
    ],
    "fr": [
     "full",
@@ -5302,16 +5302,34 @@
     "FW-075": "full"
    },
    "note": "Shared team asset library."
+  },
+  {
+   "version": "0.5.3",
+   "date": "2026-10-11",
+   "same_as": "0.3.0",
+   "moved": {
+    "FW-074": "full",
+    "FW-076": "full",
+    "FW-077": "full",
+    "FW-079": "full",
+    "FW-068": "full",
+    "FW-078": "full",
+    "FW-066": "full",
+    "FW-067": "full",
+    "FW-075": "full",
+    "FW-072": "full"
+   },
+   "note": "Background removal through formvis."
   }
  ],
  "changes": [
   [
-   "Background removal and image cleanup (FW-072)",
+   "Built-in stock photo, graphic and icon library (FW-073)",
    "None",
-   "Full: formvis finds the subject (U2-Net or GrabCut); Erase and Restore brushes and a soft edge; the cut-out is a new transparent PNG in one undo step with the original kept; remove_background for agents"
+   "Full: 1,877 bundled Lucide icons; photos from the person's formlit library; credits stored per asset, carried in .fweb and listed in CREDITS.txt on export; search_stock and insert_stock for agents"
   ]
  ],
- "closed_note": "v0.5.3 closed FW-072 background removal. Ten of the 14 rows added in v0.3.0 are closed. Still open: prompt-to-site, AI copy, AI images, stock library; hosting and payments stay operationally partial.",
+ "closed_note": "v0.5.4 closed FW-073 stock library. Eleven of the 14 rows added in v0.3.0 are closed. Still open: prompt-to-site, AI copy, AI images; hosting and payments stay operationally partial.",
  "platform": [
   [
    "What it is",
@@ -5429,10 +5447,10 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.3 · Apache-2.0",
+  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.5.4 · Apache-2.0",
   "dek": "79 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0) plus 14 from Adobe Express and Canva (v0.3.0)",
-  "changes": "v0.5.3 closes one row: background removal and image cleanup (None to Full), handed to formvis. The score moves from 73.0 to 74.0 of 79.",
+  "changes": "v0.5.4 closes one row: the built-in stock library (None to Full), with bundled icons and photos from formlit. The score moves from 74.0 to 75.0 of 79.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
@@ -5453,6 +5471,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 11 October 2026 from FormWeb 0.5.3 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 12 October 2026 from FormWeb 0.5.4 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.4 · 2026-10-12
+
+Gap closing: FW-073 built-in stock library, None to Full (74.0 to 75.0 of 79).
+
+- Insert > Stock icons and photos opens the stock library.
+- Icons: 1,877 Lucide icons are bundled, searchable by name and tag. Pick a colour, stroke and size, and the icon is inserted as a crisp SVG image. Icons are ISC licensed (88 derived from Feather are MIT). Double-click inserts.
+- Photos from formlit: search your own formlit library on this computer by name, keyword or creator. Each photo shows its creator and copyright status, plus usage terms when you select it. Inserting saves formlit's developed preview with that credit and uses formlit's alt text.
+- Credits: every stock asset keeps its credit (source, creator, copyright, licence, usage terms, links). `.fweb` files carry the credits, and each export now includes `CREDITS.txt` (with the Lucide licence text when icons are used). Uploading the same picture again keeps its credit.
+- SVG safety: SVG images can only come from the bundled icons or `.fweb` files. Each one is rebuilt from an allowlist (no scripts, styles, links, external references or schemes) and served with a sandboxing policy. Uploads remain raster only.
+- Agents: `search_stock`, `insert_stock` (79 tools). `FORMWEB_FORMLIT_URL` points at formlit if it is not on its default port.
+- Not yet: an internet stock photo service (none is configured; only formlit photos are available today).
+
 ## 0.5.3 · 2026-10-11
 
 Gap closing: FW-072 background removal and image cleanup, None to Full (73.0 to 74.0 of 79).

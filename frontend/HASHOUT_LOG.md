@@ -1,5 +1,15 @@
 # Frontend context map
 
+## Stock library · v0.5.4
+
+`features/stock-library.ts` (with `styles/stock-library.css`) is the `stock` dialog, opened by `insert.stock`.
+- **Tabs:** Icons and Photos from formlit are a `fw-seg` pair, and each tab keeps its own query; a shared query was the first bug found.
+- **Icons:** tiles are drawn from the bundled path data with `createElementNS`, so there is no request per icon. The colour and stroke controls restyle the grid in place.
+- **Photos:** thumbnails come through the service's proxy.
+- **Grids:** both are keyed. Typing "hear" after "heart" kept the same heart tile and added only the six new matches. A search is debounced 160 ms, and a token drops late answers.
+- **Stable size:** both panes have the same fixed height, so the dialog keeps its position when switching tabs or when a search returns nothing (measured: same top and height in all three states). Before this fix it moved by 17 px.
+- **Insert:** goes through `insertElement('image', {..., alt, styles})`, which now accepts alt text and styles. Icons insert at their pixel size; photos keep the default image styles and use formlit's alt text.
+
 ## Remove background · v0.5.3
 
 `features/background-remover.ts` (with `styles/background-remover.css`) is the `background` dialog, opened by `image.remove-background` from the Edit menu or the inspector button (shown for `img` only).

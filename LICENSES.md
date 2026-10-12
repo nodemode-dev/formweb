@@ -131,6 +131,10 @@ Backend texts live under `legal/third-party/python/<distribution>-<version>/`. h
 
 The shell's full resolution is 483 registry packages, overwhelmingly MIT and/or Apache-2.0 (also Zlib, Unlicense OR MIT, and Unicode-3.0 for the ICU data crates). Five are MPL-2.0 (cssparser, cssparser-macros, dtoa-short, option-ext and selectors, pulled in by Tauri's tooling); they are used unmodified. On Linux the shell links the system WebKitGTK and GTK libraries (LGPL), which are not bundled. Their license texts are not yet copied into `legal/third-party/`: that audit is required before any packaged desktop release, alongside the frozen backend sidecar audit noted above.
 
+## Bundled content: stock icons
+
+`backend/app/stock/lucide.json` holds the drawing data and tags of 1,877 icons from lucide-static 1.55.0 (npm). Licence: ISC (Copyright (c) 2026 Lucide Icons and Contributors). The 88 icons listed as derived from the Feather project are MIT (Copyright (c) 2013-present Cole Bemis). This was checked against the package's own LICENSE file and https://lucide.dev/license on 12 October 2026. The full text is kept beside the data as `backend/app/stock/LICENSE-lucide.txt`, copied byte-for-byte. Every exported site that uses an icon includes that text in its `CREDITS.txt`. `setup/stock_icons.py` regenerates both files from the npm package. Photos inserted from formlit carry whatever rights their owner recorded there; FormWeb stores them with the asset and does not grant any licence of its own.
+
 ## License text integrity
 
 The preserved legal texts were copied byte-for-byte from installed upstream packages. The planning sidecar's dependency audit records SHA-256 hashes and source provenance for the inspected texts. Do not remove notices while shrinking archives, and do not modify upstream MPL files. Future package changes need an updated inventory and matching legal texts.

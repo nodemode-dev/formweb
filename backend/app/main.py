@@ -177,7 +177,10 @@ async def image_asset(asset_id: str):
     if asset_id not in visible_assets(studio):
         raise EngineError('Asset not found for this identity.', 404)
     target = asset_path(asset_id)
-    return FileResponse(target, media_type=MIME_TYPES[target.suffix[1:]], headers={'Cache-Control': 'private, max-age=31536000, immutable'})
+    headers = {'Cache-Control': 'private, max-age=31536000, immutable', 'X-Content-Type-Options': 'nosniff'}
+    if target.suffix == '.svg':  # sanitized on the way in; opened directly it still may not run or load anything
+        headers['Content-Security-Policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
+    return FileResponse(target, media_type=MIME_TYPES[target.suffix[1:]], headers=headers)
 
 
 @app.get('/api/health')
@@ -309,6 +312,52 @@ async def team_library_use(library_id: str, body: TeamLibraryUse):
 @app.delete('/api/team-libraries/{library_id}')
 async def team_library_delete(library_id: str):
     return await studio.team_libraries.delete(library_id)
+
+
+class StockIcon(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    color: str = Field(default='#111111', max_length=7)
+    stroke: float = Field(default=2, ge=0.5, le=4)
+    size: int = Field(default=96, ge=8, le=1024)
+
+
+@app.get('/api/stock/status')
+async def stock_status():
+    from . import stock
+    studio.access.authorize('read')
+    data = stock.bundle()
+    return {'icons': {'count': len(data['icons']), 'source': 'Lucide', 'version': data['version'], 'license': 'ISC (Feather-derived icons MIT)'}, 'formlit': stock.formlit_status()}
+
+
+@app.get('/api/stock/icons')
+async def stock_icons(q: str = '', limit: int = 120):
+    from . import stock
+    studio.access.authorize('read')
+    return stock.search_icons(q[:120], limit)
+
+
+@app.post('/api/stock/icons/{name}')
+async def stock_icon_asset(name: str, body: StockIcon):
+    from . import stock
+    return stock.icon_asset(studio, name, body.color, body.stroke, body.size)
+
+
+@app.get('/api/stock/formlit')
+async def stock_photos(q: str = '', limit: int = 48):
+    from . import stock
+    return stock.search_photos(studio, q, limit)
+
+
+@app.get('/api/stock/formlit/{photo_id}/thumb')
+async def stock_photo_thumb(photo_id: int):
+    from . import stock
+    return Response(stock.photo_thumb(studio, photo_id), media_type='image/jpeg', headers={'Cache-Control': 'private, max-age=300'})
+
+
+@app.post('/api/stock/formlit/{photo_id}')
+async def stock_photo_asset(photo_id: int):
+    from . import stock
+    return stock.photo_asset(studio, photo_id)
 
 
 class BackgroundMask(BaseModel):
