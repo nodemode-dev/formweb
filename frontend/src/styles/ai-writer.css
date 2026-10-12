@@ -17,4 +17,14 @@
 .fw-ai-site-name { margin: 0; color: var(--text-primary); font-weight: 600; }
 .fw-ai-page { padding: var(--space-2) var(--space-3); border: 1px solid var(--border-soft); border-radius: var(--radius); }
 .fw-ai-page strong { color: var(--text-primary); font-size: var(--fs-12); }
+.fw-ai-refs { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.fw-ai-refs:empty { display: none; }
+.fw-ai-ref { display: flex; align-items: center; gap: var(--space-2); min-height: 28px; padding: 0 0 0 var(--space-2); border: 1px solid var(--border-soft); border-radius: var(--radius); font-size: var(--fs-12); }
+.fw-ai-ref-name { overflow: hidden; flex: 1 1 auto; min-width: 0; color: var(--text-secondary); text-overflow: ellipsis; white-space: nowrap; }
+.fw-ai-ref button { height: 26px; min-height: 0; font-size: var(--fs-11); }
+.fw-ai-swatches { display: inline-flex; gap: 3px; vertical-align: middle; }
+.fw-ai-swatch { width: 14px; height: 14px; border: 1px solid var(--border-soft); border-radius: 3px; }
+.fw-ai-palette { margin: 0; }
+.fw-ai-outline-note { margin: 0; }
+.fw-ai-outline-note[data-mode="guided"] { color: var(--warn); }
 .fw-ai-page ol { margin: 6px 0 0; padding-left: 18px; color: var(--text-secondary); font-size: var(--fs-12); line-height: 1.6; }

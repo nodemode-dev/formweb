@@ -1,4 +1,4 @@
-import { apiBase, command, commands, connect, download, mutateVia, reconnect, replace, request, requestBlob, state, subscribe, upload } from './api';
+import { apiBase, command, commands, connect, download, mutateVia, readReference, reconnect, replace, request, requestBlob, state, subscribe, upload } from './api';
 import type { AuditIssue, Collection, EditorState, Page, SiteNode } from './types';
 import { Canvas } from './ui/canvas';
 import { element, keyed, options, revealApp, text, value } from './ui/dom';
@@ -871,7 +871,8 @@ stockPane.append(stockLibrary.element);
 const sitePane = dialogPane('generate-site');
 const siteGenerator = new SiteGenerator({
   status: () => request('/api/ai/status'),
-  plan: (prompt, pages) => request('/api/ai/site/plan', { prompt, pages }),
+  plan: (prompt, pages, references, previous, instruction) => request('/api/ai/site/plan', { prompt, pages, references, previous, instruction }),
+  read: file => readReference(file),
   build: plan => mutateVia<{ state: EditorState; message: string; pages: { page: string; name: string }[] }>('/api/ai/site/build', { plan }),
   opened: id => { const page = state().site.pages.find(entry => entry.id === id); closeDialog(); if (page) { pageId = page.id; selectedId = page.root; update(state()); } },
   notify: (message, error) => status(message, error)

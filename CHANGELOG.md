@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.7 · 2026-10-12
+
+Gap closing: FW-069 prompt-to-site and FW-070 AI copy, both Partial to Full (76.5 to 77.5 of 79). A real local model ran through formvis's language-model setting: SmolLM2-135M-Instruct, served by llama.cpp's OpenAI-compatible server on the build machine. It is the smallest instruct model there is, so its writing is weak; the point is that the whole path works with a real model, and FormWeb now copes with small ones.
+
+- Works with small local models: when a model cannot write a whole outline, Generate pages switches to guided drafting. FormWeb lays out the pages and asks the model one short question per text, and says so above the outline, with a reminder to check names, prices and facts.
+- Write with AI tells you when the model gave the text (or the request) back unchanged, keeps headings and labels to one line, drops preambles such as "Here is a version:", and stops paragraphs near the length asked for.
+- References: Add reference in Generate pages takes a PDF (its text is given to the model as facts) or an image (its main colours are offered for the buttons, after any brand kit). Files are read, not stored.
+- Revise: after drafting, ask for a change in words ("add a pricing section"). If the model cannot do it, the outline stays as it was.
+- Buttons in a generated outline follow a page whose address had to change, and never point at a page that does not exist.
+- Faster editor while a model writes: model calls no longer hold up other requests (measured at about 80 ms for a site read during a guided draft).
+- Agents: `generate_site` gains `reference` (an image asset, or a PDF or image as base64) and revising through `plan` with `plan` and `instruction`. `write_copy` returns `unchanged`.
+- Fixed before release, from an independent review: odd colour values from agents no longer cause a server error, very large images are refused before reading, `/contact#form` style links follow a moved page, removing a reference image also removes its colours from a revision, and adding the same file twice no longer leaves a Remove button that does nothing.
+- Dependencies: pypdf 6.20.0 (BSD-3-Clause, no dependencies) for reading PDFs. The macOS requirements now include Pillow, which background removal has needed since 0.5.3, and pypdf.
+- Not yet: AI image generation (FW-071) still needs a real image generator run. Hosting and payments (FW-050, FW-063) still need live accounts.
+
 ## 0.5.6 · 2026-10-12
 
 Gap work: FW-069 prompt-to-site and FW-070 AI copy, both None to Partial (75.5 to 76.5 of 79). Both rows are Partial, not Full, because no real language model could be run from the build machine: see "Not yet".

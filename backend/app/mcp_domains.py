@@ -21,7 +21,7 @@ INSTRUCTIONS = (
     'or apply_commands for a multi-command batch. Pass expected_revision from your last read; on a revision conflict, '
     're-read and apply only what is still needed. Edits return a compact summary; pass detail "site" only when you need the whole document.\n'
     'Brand: style with var(--brand-...) or a linked team library\'s var(--lib-...) tokens (list_team_libraries, use_team_library); run brand_check before delivery.\n'
-    'AI (the person\'s models, set in formvis): generate_site plan, show the outline, then build; write_copy returns a suggestion to show before applying.\n'
+    'AI (the person\'s models, set in formvis): generate_site plan (with references, or plan+instruction to revise), show it, then build; write_copy returns a suggestion to show before applying.\n'
     'Check: audit_site, then compile_preview or export_site. Deliver: save_project, export_site, publish_site (local only, not hosting).\n'
     'formweb://selection is what the person has selected in the editor. A call may wait for the person to approve it in '
     'Agent Connect; if it is denied or times out, ask before retrying.\n'

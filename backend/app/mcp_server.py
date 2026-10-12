@@ -139,11 +139,16 @@ async def call_tool(context, params):
             case 'generate_site':
                 from . import writer
                 if arguments['action'] == 'status':
-                    result = writer.status(studio)
+                    result = await writer.status(studio)
+                elif arguments['action'] == 'reference':
+                    result = await writer.reference_from(studio, arguments.get('asset'), arguments.get('name'), arguments.get('data'))
                 elif arguments['action'] == 'plan':
                     if not arguments.get('prompt'):
                         raise EngineError('Pass prompt: what the site is for, who it is for and what pages it needs.', 422)
-                    result = await writer.plan(studio, arguments['prompt'], arguments.get('pages', 3))
+                    if arguments.get('instruction') and not isinstance(arguments.get('plan'), dict):
+                        raise EngineError('To revise, pass plan (the outline to change) with instruction.', 422)
+                    result = await writer.plan(studio, arguments['prompt'], arguments.get('pages', 3), arguments.get('references'),
+                                               arguments.get('plan') if arguments.get('instruction') else None, arguments.get('instruction'))
                 else:
                     if not isinstance(arguments.get('plan'), dict):
                         raise EngineError('Pass plan, the outline returned by action plan (edited if needed).', 422)
@@ -227,6 +232,10 @@ def next_step(message, status):
         return 'Tell the person to set a language model in formvis (Preferences > Plugins): a local one such as Ollama or LM Studio, or a hosted service with their key. Then retry.'
     if 'outline is not usable' in text:
         return 'Pass the plan object exactly as generate_site action plan returned it (pages, each with sections), editing only text fields.'
+    if 'could not revise the outline' in text:
+        return 'Keep the outline you have: edit its text fields yourself and build it, or build it and change the pages with edit_nodes.'
+    if 'reference' in text or 'pdf' in text:
+        return 'Pass a PDF with a text layer or a PNG, JPEG, WebP or GIF image (at most 15 MB), or type the facts into prompt instead.'
     if 'outline' in text and ('cut short' in text or 'usable' in text or 'no json' in text):
         return 'Retry once with fewer pages or a shorter description; if it fails again, tell the person their model may need to be a stronger one.'
     if 'formvis' in text and ('not open' in text or 'outside agent' in text or 'not allowed' in text or 'no image generator' in text):

@@ -385,6 +385,9 @@ class SitePlanBody(BaseModel):
     model_config = ConfigDict(extra='forbid')
     prompt: str = Field(min_length=1, max_length=4000)
     pages: int = Field(default=3, ge=1, le=4)
+    references: list[dict[str, Any]] | None = Field(default=None, max_length=6)
+    previous: dict[str, Any] | None = None
+    instruction: str | None = Field(default=None, max_length=1000)
 
 
 class SiteBuildBody(BaseModel):
@@ -395,7 +398,16 @@ class SiteBuildBody(BaseModel):
 @app.get('/api/ai/status')
 async def ai_status():
     from . import writer
-    return writer.status(studio)
+    return await writer.status(studio)
+
+
+@app.post('/api/ai/site/reference')
+async def ai_site_reference(request: Request):
+    from . import writer
+    studio.access.authorize('edit')
+    body = await limited_body(request, writer.REFERENCE_LIMIT)
+    from urllib.parse import unquote
+    return await asyncio.to_thread(writer.reference, unquote(request.headers.get('x-filename') or 'reference'), body)
 
 
 @app.post('/api/ai/copy')
@@ -407,7 +419,7 @@ async def ai_copy(body: CopyBody):
 @app.post('/api/ai/site/plan')
 async def ai_site_plan(body: SitePlanBody):
     from . import writer
-    return await writer.plan(studio, body.prompt, body.pages)
+    return await writer.plan(studio, body.prompt, body.pages, body.references, body.previous, body.instruction)
 
 
 @app.post('/api/ai/site/build')

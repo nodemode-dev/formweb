@@ -1,5 +1,17 @@
 # Backend context
 
+## Small models, references and revision · v0.5.7
+
+`app/writer.py`, continued.
+- **Threads:** `_chat()`, `status()` and `reference_from()` are async. The formvis call and file parsing run in `asyncio.to_thread`, but `authorize()` and `visible_assets()` stay on the loop, because the access store's SQLite connection belongs to the loop thread (a worker raised "SQLite objects created in a thread").
+- **Guided mode:** `plan()` catches the model's 502 (no JSON, unusable outline) and calls `_guided()`. `GUIDED` maps 1 to 4 pages to fixed page and section layouts. `_ask()` sends "About the website: {context}\n\nTask: {question}" (description first, task last: SmolLM2 echoed the description in the other order). `_line()` takes the first real line, drops markdown, list markers, labels, `[template]` lines and lines ending in a colon, and cuts at a word. `_echo()` rejects answers that repeat the description. `_names()` splits list replies, or one sentence after "including" or "such as".
+- **Copy:** "Write a {role} for this website: {brief}" for generate. Headings and labels (limit 80 or less) go through `_line()`; paragraphs through `_trim()` (about three times the current length, ending on a sentence). A reply that starts with the original, or opens with "...:" lines, is reduced to the new text. `unchanged` is true when the suggestion squashes to the original, the brief or the instruction.
+- **References:** `reference()` reads PDFs with pypdf (encrypted refused, at most 20 pages, 6,000 characters, a scan without text refused) and images with Pillow (thumbnail, median-cut to 8 colours, near-duplicates within 32 RGB dropped, at most 6). `_references()` accepts only those shapes; text goes into the prompt without file names (the model used "bakery-facts" as the site name), colours into `outline['palette']`. `_styles()` uses `_readable()` on brand and library tokens first, then the palette.
+- **Revise:** `plan(previous, instruction)` validates the current outline as a caller's, sends it without slugs, and on failure raises a 502 that keeps the outline.
+- **Links:** `_relink()` moves buttons to resolved slugs, and with `existing` sends a button whose page exists nowhere to the outline's contact page, else `#`. It runs at plan time and again at build time.
+- **Routes:** `POST /api/ai/site/reference` (raw body, `X-Filename` URL-encoded, 15 MB). `SitePlanBody` gains `references`, `previous`, `instruction`.
+- **Fixed in an independent review before release:** `_hexes()` ignores a palette or colours value that is not a list (it raised a 500); `reference_from()` refuses non-string arguments and oversized base64 before decoding; images over 40 megapixels are refused before decoding; `_relink()` keeps `#fragment` when a page moves; revising takes colours from the current references (a removed image no longer keeps its colours), and a caller passing none keeps the outline's; `_names()` splits on "and" only before the last item; `_line()` strips markdown only at the edges.
+
 ## Writing with the family language model · v0.5.6
 
 `app/writer.py` is FW-069 and FW-070 and reuses `imagegen._json` against formvis.

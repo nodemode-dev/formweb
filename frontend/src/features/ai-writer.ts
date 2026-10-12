@@ -1,4 +1,5 @@
-import { element, options, text } from '../ui/dom';
+import { element, keyed, options, text } from '../ui/dom';
+import type { SiteReference } from '../api';
 import '../styles/ai-writer.css';
 
 /**
@@ -7,8 +8,8 @@ import '../styles/ai-writer.css';
  * side (the suggestion is editable) and changes the element only on Accept; a site shows its outline first and is
  * built only on Build pages. Both apply as one undo step.
  */
-type Suggestion = { node: string; original: string; suggestion: string; action: string };
-type Plan = { site: string; pages: { name: string; slug: string; description: string; sections: { kind: string; heading: string; body: string; items: { title: string; text: string }[] }[] }[] };
+type Suggestion = { node: string; original: string; suggestion: string; action: string; unchanged?: boolean; note?: string };
+type Plan = { site: string; palette?: string[]; pages: { name: string; slug: string; description: string; sections: { kind: string; heading: string; body: string; items: { title: string; text: string }[] }[] }[] };
 type WriterHooks = {
   suggest: (node: string, action: string, tone?: string, brief?: string) => Promise<Suggestion>;
   apply: (node: string, value: string) => Promise<void>;
@@ -78,6 +79,7 @@ export class AiWriter {
       this.suggestion.value = result.suggestion;
       this.review.hidden = false;
       this.suggestion.focus();
+      if (result.unchanged && result.note) this.hooks.notify(result.note);  // small models often hand the text back
     } finally {
       this.suggestButton.disabled = false;
       text(this.suggestButton, 'Suggest');
@@ -103,9 +105,11 @@ export class AiWriter {
   }
 }
 
+type PlanResult = { plan: Plan; note: string; mode: 'outline' | 'guided' | 'revised' };
 type SiteHooks = {
   status: () => Promise<{ available: boolean; note: string }>;
-  plan: (prompt: string, pages: number) => Promise<{ plan: Plan }>;
+  plan: (prompt: string, pages: number, references: SiteReference[], previous?: Plan, instruction?: string) => Promise<PlanResult>;
+  read: (file: File) => Promise<SiteReference>;
   build: (plan: Plan) => Promise<{ message: string; pages: { page: string; name: string }[] }>;
   opened: (pageId: string) => void;
   notify: (message: string, error?: boolean) => void;
@@ -119,9 +123,33 @@ export class SiteGenerator {
   private draftButton: HTMLButtonElement;
   private buildButton: HTMLButtonElement;
   private outline = element('div', 'fw-ai-outline');
+  private outlineNote = element('p', 'micro fw-ai-outline-note');
   private plan: Plan | null = null;
+  private references: SiteReference[] = [];
+  private referenceIds = new WeakMap<SiteReference, number>();  // the same file added twice is two rows, each removable
+  private nextReference = 0;
+  private referenceList = element('ul', 'fw-ai-refs');
+  private file = element('input');
+  private reviseRow = element('div', 'fw-ai-row fw-ai-revise');
+  private instruction = element('input');
+  private reviseButton: HTMLButtonElement;
 
   constructor(private hooks: SiteHooks) {
+    this.file.type = 'file';
+    this.file.accept = 'application/pdf,image/png,image/jpeg,image/webp,image/gif';
+    this.file.hidden = true;
+    this.file.addEventListener('change', () => { void this.addReference().catch(error => this.hooks.notify(error instanceof Error ? error.message : String(error), true)); });
+    const addReference = this.button('Add reference', 'ai.site-reference', () => this.file.click());
+    addReference.title = 'A PDF with facts to use, or an image whose colours the buttons should follow';
+    const refsRow = element('div', 'fw-ai-row fw-ai-refs-row');
+    refsRow.append(addReference, element('span', 'micro', 'Optional: a PDF with facts, or an image for colours.'), this.file);
+    this.instruction.dataset.field = 'ai.site-instruction';
+    this.instruction.placeholder = 'Ask for a change, for example: add a pricing section';
+    this.instruction.setAttribute('aria-label', 'Change to the outline');
+    this.instruction.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); this.reviseButton.click(); } });
+    this.reviseButton = this.button('Revise', 'ai.site-revise', () => this.revise());
+    this.reviseRow.append(this.instruction, this.reviseButton);
+    this.reviseRow.hidden = true;
     this.prompt.dataset.field = 'ai.site-prompt';
     this.prompt.placeholder = 'What the site is for, who it is for, and what pages it needs. For example: a ceramics studio in Lisbon that sells handmade bowls and runs weekend workshops; home, workshops, about and contact.';
     this.prompt.setAttribute('aria-label', 'Describe the site');
@@ -134,7 +162,33 @@ export class SiteGenerator {
     this.buildButton.hidden = true;
     const row = element('div', 'fw-ai-row');
     row.append(this.pages, this.draftButton, this.buildButton);
-    this.element.append(this.note, this.prompt, row, this.outline);
+    this.outlineNote.hidden = true;
+    this.element.append(this.note, this.prompt, refsRow, this.referenceList, row, this.outlineNote, this.outline, this.reviseRow);
+  }
+
+  private async addReference(): Promise<void> {
+    const file = this.file.files?.[0];
+    this.file.value = '';
+    if (!file) return;
+    if (this.references.length >= 6) throw new Error('Six references at most; remove one first.');
+    const read = await this.hooks.read(file);
+    this.referenceIds.set(read, ++this.nextReference);
+    this.references.push(read);
+    this.renderReferences();
+    this.hooks.notify(read.kind === 'pdf' ? `${read.name}: ${read.text?.length ?? 0} characters of text will be used as facts${read.truncated ? ' (the first part only)' : ''}.` : `${read.name}: its colours will be offered for the buttons.`);
+  }
+
+  private renderReferences(): void {
+    keyed(this.referenceList, this.references, item => String(this.referenceIds.get(item)), item => {
+      const row = element('li', 'fw-ai-ref');
+      const label = element('span', 'fw-ai-ref-name', item.kind === 'pdf' ? `${item.name} (PDF, ${item.pages} page${item.pages === 1 ? '' : 's'})` : item.name);
+      const swatches = element('span', 'fw-ai-swatches');
+      for (const color of item.colors ?? []) { const swatch = element('span', 'fw-ai-swatch'); swatch.style.background = color; swatch.title = color; swatches.append(swatch); }
+      const remove = this.button('Remove', 'ai.site-reference-remove', () => { this.references = this.references.filter(entry => entry !== item); this.renderReferences(); });
+      remove.setAttribute('aria-label', `Remove ${item.name}`);
+      row.append(label, swatches, remove);
+      return row;
+    }, () => undefined);
   }
 
   async open(): Promise<void> {
@@ -150,10 +204,7 @@ export class SiteGenerator {
     this.draftButton.disabled = true;
     text(this.draftButton, 'Drafting...');
     try {
-      const { plan } = await this.hooks.plan(this.prompt.value.trim(), Number(this.pages.value));
-      this.plan = plan;
-      this.render(plan);
-      this.buildButton.hidden = false;
+      this.show(await this.hooks.plan(this.prompt.value.trim(), Number(this.pages.value), this.references));
       text(this.draftButton, 'Draft again');
     } catch (error) {
       text(this.draftButton, this.plan ? 'Draft again' : 'Draft outline');
@@ -161,10 +212,43 @@ export class SiteGenerator {
     } finally { this.draftButton.disabled = false; }
   }
 
+  private show(result: PlanResult): void {
+    this.plan = result.plan;
+    this.render(result.plan);
+    text(this.outlineNote, result.note);
+    this.outlineNote.hidden = false;
+    this.outlineNote.dataset.mode = result.mode;
+    this.buildButton.hidden = false;
+    this.reviseRow.hidden = false;
+  }
+
+  /** A chat edit: the model gets the current outline and the person's instruction. A failed revision keeps the outline. */
+  private async revise(): Promise<void> {
+    if (!this.plan) throw new Error('Draft an outline first.');
+    const instruction = this.instruction.value.trim();
+    if (instruction.length < 3) throw new Error('Say what to change first.');
+    this.reviseButton.disabled = true;
+    text(this.reviseButton, 'Revising...');
+    try {
+      this.show(await this.hooks.plan(this.prompt.value.trim(), Number(this.pages.value), this.references, this.plan, instruction));
+      this.instruction.value = '';
+    } finally {
+      this.reviseButton.disabled = false;
+      text(this.reviseButton, 'Revise');
+    }
+  }
+
   private render(plan: Plan): void {
     this.outline.replaceChildren();  // a new outline replaces the old one wholesale: it is a different document, not an update
     const title = element('p', 'fw-ai-site-name', plan.site || 'Outline');
     this.outline.append(title);
+    if (plan.palette?.length) {
+      const colours = element('p', 'micro fw-ai-palette', 'Reference colours (the most readable one becomes the button colour unless the site has a brand kit): ');
+      const swatches = element('span', 'fw-ai-swatches');
+      for (const color of plan.palette) { const swatch = element('span', 'fw-ai-swatch'); swatch.style.background = color; swatch.title = color; swatches.append(swatch); }
+      colours.append(swatches);
+      this.outline.append(colours);
+    }
     for (const page of plan.pages) {
       const block = element('div', 'fw-ai-page');
       block.append(element('strong', '', `${page.name}  ${page.slug || ''}`));
@@ -184,6 +268,10 @@ export class SiteGenerator {
       this.plan = null;
       this.outline.replaceChildren();
       this.buildButton.hidden = true;
+      this.reviseRow.hidden = true;
+      this.outlineNote.hidden = true;
+      this.references = [];
+      this.renderReferences();
       text(this.draftButton, 'Draft outline');
       if (result.pages[0]) this.hooks.opened(result.pages[0].page);
     } finally { this.buildButton.disabled = false; }

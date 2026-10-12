@@ -128,3 +128,17 @@ export async function upload(file: File): Promise<{ id: string; url: string; mim
   }
   return response.json();
 }
+export type SiteReference = { kind: 'pdf' | 'image'; name: string; text?: string; pages?: number; truncated?: boolean; colors?: string[] };
+/** Reads a reference PDF's text or an image's colours for page generation; the server keeps no copy. */
+export async function readReference(file: File): Promise<SiteReference> {
+  if (file.size > 15 * 1024 * 1024) throw new Error('A reference must be 15 MB or smaller.');
+  const response = await fetch(apiBase + '/api/ai/site/reference', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { ...authHeaders(), 'Content-Type': 'application/octet-stream', 'X-Filename': encodeURIComponent(file.name) },
+    body: await file.arrayBuffer()
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(typeof body.detail === 'string' ? body.detail : 'The reference could not be read.');
+  return body as SiteReference;
+}

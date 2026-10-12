@@ -1,5 +1,13 @@
 # Frontend context map
 
+## References and Revise in Generate pages · v0.5.7
+
+`features/ai-writer.ts`.
+- **References:** Add reference (`ai.site-reference`) opens a hidden file input (PDF and the four raster types). `api.readReference()` posts the bytes to `/api/ai/site/reference`; the result is kept in the dialog only and listed with `keyed()` keyed by a per-reference id from a WeakMap, so the same file added twice gives two removable rows (name, page count or colour swatches, Remove as `ai.site-reference-remove`). At most six. Building clears them.
+- **Outline:** `show()` renders the outline, the server's note (`data-mode` guided is shown in `--warn`) and the reference colours, and reveals the Revise row.
+- **Revise:** the instruction field (`ai.site-instruction`, Enter submits) and Revise (`ai.site-revise`) call the same plan hook with the current plan and the instruction. A failure keeps the outline on screen.
+- **Write with AI:** a suggestion flagged `unchanged` shows the server's note in the status bar.
+
 ## Write with AI and Generate pages · v0.5.6
 
 `features/ai-writer.ts`, styles in `styles/ai-writer.css`.
