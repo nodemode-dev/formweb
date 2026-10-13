@@ -1,6 +1,6 @@
 [package]
 name = "formweb"
-version = "0.5.7"
+version = "0.5.8"
 description = "FormWeb desktop shell"
 authors = ["nodemode-ai"]
 license = "Apache-2.0"

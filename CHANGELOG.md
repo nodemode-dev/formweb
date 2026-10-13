@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.8 · 2026-10-13
+
+- `./formweb desktop build` packages the desktop shell from the repo root (`setup/desktop_build`: `./formweb build`, then the Tauri build). The packaged app still runs the FormWeb folder it finds, so the folder stays on the machine.
+
 ## 0.5.7 · 2026-10-12
 
 Gap closing: FW-069 prompt-to-site and FW-070 AI copy, both Partial to Full (76.5 to 77.5 of 79). A real local model ran through formvis's language-model setting: SmolLM2-135M-Instruct, served by llama.cpp's OpenAI-compatible server on the build machine. It is the smallest instruct model there is, so its writing is weak; the point is that the whole path works with a real model, and FormWeb now copes with small ones.
