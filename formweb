@@ -23,6 +23,7 @@ case "$cmd" in
     if [ ! -x "$bin" ]; then fw_say 'building the GPU renderer (first use)' >&2; "$FORMWEB_CARGO" build --release --manifest-path native/crates/formweb-render/Cargo.toml >&2; fi
     exec "$bin" "$@" ;;
   desktop) source setup/lib.sh
+    [ "${1:-}" = build ] && { shift; exec setup/desktop_build "$@"; }
     [ -f frontend/dist/index.html ] || { fw_say 'run ./formweb build first; the desktop shell serves the built editor' >&2; exit 1; }
     FORMWEB_ROOT="$PWD" exec "$FORMWEB_CARGO" run --manifest-path src-tauri/Cargo.toml "$@" ;;
   doctor) exec setup/doctor "$@" ;;

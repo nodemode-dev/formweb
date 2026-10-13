@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+"$FORMWEB_ROOT/setup/build"
+cd "$FORMWEB_ROOT/src-tauri"
+npx --yes @tauri-apps/cli@2 build "$@"
+fw_say 'bundles are in src-tauri/target/release/bundle; the app runs the FormWeb folder it finds (FORMWEB_ROOT)'
