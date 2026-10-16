@@ -9,6 +9,7 @@ import { editGradient, setPaintKind, withAngle, type Gradient, type Target } fro
 import type { Host } from './host';
 import type { PathfinderOp } from './boolean';
 import { blendAttrs, compoundAttrs, effectAttrs, expandCommands, liveContainer, liveOf, readBlend, readRepeat, releaseCommands, removeEffectCommands, repeatAttrs, type BlendMode, type CompoundOp, type LiveKind } from './live';
+import { rememberEach, rememberTransform } from './select';
 import { pathIds, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
 import { breakCommands, defineCommands, placeCommands } from './symbols';
 import { presetCommands, readWidth, widthCommands } from './stroke';
@@ -77,11 +78,13 @@ export class Ops {
 
   async transform(p: TransformParams): Promise<void> {
     const r = transformSelection(this.h, p);
+    if (r.cmds.length) rememberTransform(p);
     await this.run(r.cmds, r.created.length ? r.created : undefined);
   }
 
   async each(p: EachParams): Promise<void> {
     const r = transformEach(this.h, p);
+    if (r.cmds.length) rememberEach(p);
     await this.run(r.cmds, r.created.length ? r.created : undefined);
   }
 

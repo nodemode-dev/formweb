@@ -6,6 +6,7 @@ import { openAverage } from './averagedialog';
 import { spineCommands } from './brushcmd';
 import { Editor, type ToolId, type VectorContext } from './editor';
 import { PATHFINDERS, TOOLS, VectorPanel } from './panel';
+import { selectCommands } from './select';
 import { runTrace } from './tracepanel';
 
 export type { VectorContext, ToolId } from './editor';
@@ -30,7 +31,8 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     select: 'vector.select', direct: 'vector.direct', pen: 'vector.pen', curvature: 'vector.curvature', add: 'vector.add-anchor', delete: 'vector.delete-anchor',
     convert: 'vector.convert-anchor', scissors: 'vector.scissors', rect: 'vector.rect', ellipse: 'vector.ellipse', polygon: 'vector.polygon', star: 'vector.star',
     line: 'vector.line', arc: 'vector.arc', spiral: 'vector.spiral', knife: 'vector.knife', eraser: 'vector.eraser', shapebuilder: 'vector.shape-builder',
-    width: 'vector.width', gradient: 'vector.gradient', transform: 'vector.free-transform', paintbrush: 'vector.paintbrush'
+    width: 'vector.width', gradient: 'vector.gradient', transform: 'vector.free-transform', paintbrush: 'vector.paintbrush',
+    lasso: 'vector.lasso', wand: 'vector.wand', eyedropper: 'vector.eyedropper'
   };
   const tools: CommandDef[] = TOOLS.map((tool, index) => ({
     id: commandId[tool.id],
@@ -64,6 +66,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.corner.cycle', label: 'Cycle corner type', menu: MENU, group: 3, run: () => editor.cycleCorners(), enabled: () => editor.anchors.size > 0 },
     { id: 'vector.corner.expand', label: 'Expand corners', menu: MENU, group: 3, run: () => editor.bakeCorners(), enabled: hasShape },
     ...pathfinders,
+    ...selectCommands(editor),
     { id: 'vector.path.join', label: 'Join end anchors', menu: MENU, keys: 'Mod+Alt+Shift+J', group: 4, run: () => editor.runPathOp('join'), enabled: () => editor.anchors.size === 2 },
     { id: 'vector.path.average', label: 'Average anchors', menu: MENU, keys: 'Mod+Alt+Shift+A', group: 4, run: () => openAverage(editor), enabled: () => editor.anchors.size > 1 },
     { id: 'vector.path.join-average', label: 'Join and average end anchors', menu: MENU, keys: 'Mod+Alt+Shift+K', group: 4, run: () => editor.runPathOp('join-average'), enabled: () => editor.anchors.size === 2 },

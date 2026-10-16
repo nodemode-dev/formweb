@@ -19,6 +19,7 @@ import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variab
 import { WidthDialog } from './widthdialog';
 import { bracketParam, offsetFromParam, readType, typeCommands, typeHolder, type TypeConfig } from './typepath';
 import { matrixCommands, applyMat, unionBox } from './arrange';
+import { forgetTransform, rememberMatrix } from './select';
 import { distortShape, dragQuad, isCorner, isSide, shearMatrix, type Quad, type TfMode } from './freetransform';
 
 export const EXTRA_TOOLS = new Set(['knife', 'eraser', 'shapebuilder', 'width', 'gradient', 'transform']);
@@ -538,6 +539,7 @@ export class Extras {
 
   private async finishTransform(g: Extract<Gesture, { kind: 'tf' }>): Promise<void> {
     if (g.out?.size) {
+      forgetTransform();
       this.h.clearDrafts();
       await this.h.commit([...g.out].map(([id, subs]) => updateGeometry(id, subs)));
       return;
@@ -545,6 +547,8 @@ export class Extras {
     if (!g.per.size) return;
     this.h.clearDrafts();
     const r = matrixCommands(this.h, g.per, false, false);
+    const first = g.per.values().next().value;
+    if (first) rememberMatrix(first, [g.box.x + g.box.w / 2, g.box.y + g.box.h / 2]);
     await this.h.commit(r.cmds);
   }
 

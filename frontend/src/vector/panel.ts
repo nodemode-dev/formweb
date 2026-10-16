@@ -9,6 +9,7 @@ import type { Cap, Join, Paint } from './store';
 import { safePaint } from './svg';
 import type { Editor, ToolId } from './editor';
 import { ExtraSections } from './panel2';
+import { selectSection } from './select';
 
 interface ToolDef { id: ToolId; label: string; icon: VectorIcon; keys: string }
 
@@ -34,7 +35,10 @@ export const TOOLS: ToolDef[] = [
   { id: 'shapebuilder', label: 'Shape Builder', icon: 'shapebuilder', keys: 'Shift+M' },
   { id: 'width', label: 'Width', icon: 'width', keys: 'Shift+W' },
   { id: 'gradient', label: 'Gradient', icon: 'gradient', keys: 'G' },
-  { id: 'transform', label: 'Free Transform', icon: 'transform', keys: 'E' }
+  { id: 'transform', label: 'Free Transform', icon: 'transform', keys: 'E' },
+  { id: 'lasso', label: 'Lasso', icon: 'lasso', keys: 'Q' },
+  { id: 'wand', label: 'Magic Wand', icon: 'wand', keys: 'Y' },
+  { id: 'eyedropper', label: 'Eyedropper', icon: 'eyedropper', keys: 'I' }
 ];
 
 export const PATHFINDERS: { op: PathfinderOp; label: string; icon: VectorIcon }[] = [
@@ -250,9 +254,11 @@ export class VectorPanel {
     );
 
     const extra = new ExtraSections(editor);
-    this.root.append(appearance.root, ...extra.sections.slice(0, 3), corners.root, shapes.root, pathfinder.root, path.root, ...extra.sections.slice(3), svg.root);
+    const pick = selectSection(editor);
+    this.root.append(appearance.root, ...extra.sections.slice(0, 3), corners.root, shapes.root, pathfinder.root, path.root, ...extra.sections.slice(3), pick.root, svg.root);
     editor.listeners.add(() => extra.update());
     extra.update();
+    editor.listeners.add(() => pick.update());
     const close = button('', 'Close vector panel', () => { this.manual = false; this.setOpen(false); editor.setTool(null); }, 'close');
     close.classList.add('fw-v-close');
     this.root.prepend(close);

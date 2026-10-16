@@ -14,6 +14,7 @@ import { fitCurve, simplifyPolyline } from './fit';
 import { EXTRA_TOOLS, Extras } from './extras';
 import type { Frame as HostFrame, Host } from './host';
 import { Ops } from './ops';
+import { PICK_TOOLS, Picker, rememberMove } from './select';
 import { Overlay, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
 import { alignFixes, widthFixes } from './stroke';
 import { typeFixes } from './typepath';
@@ -26,7 +27,8 @@ import {
 } from './store';
 
 export type ToolId = 'select' | 'direct' | 'pen' | 'curvature' | 'add' | 'delete' | 'convert' | 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arc' | 'spiral' | 'scissors'
-  | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush';
+  | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush'
+  | 'lasso' | 'wand' | 'eyedropper';
 
 export interface VectorContext {
   canvas: Canvas;
@@ -58,13 +60,14 @@ const HIT = 7;
 const TYPES: CornerType[] = ['round', 'inverted', 'chamfer'];
 const NUDGE_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
-export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete', k: 'knife', e: 'transform', g: 'gradient', b: 'paintbrush' };
+export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete', k: 'knife', e: 'transform', g: 'gradient', b: 'paintbrush', q: 'lasso', y: 'wand', i: 'eyedropper' };
 const SHIFT_KEYS: Record<string, ToolId> = { c: 'convert', m: 'shapebuilder', e: 'eraser', w: 'width' };
 
 export class Editor {
   readonly overlay: Overlay;
   readonly extras: Extras;
   readonly ops: Ops;
+  readonly picker: Picker;
   tool: ToolId | null = null;
   selection: string[] = [];
   anchors = new Set<string>();
@@ -95,6 +98,7 @@ export class Editor {
     this.overlay = new Overlay(ctx.canvas.shell);
     this.extras = new Extras(this.host());
     this.ops = new Ops(this.host(), () => this.extras.exit());
+    this.picker = new Picker(this.host());
     const root = this.overlay.root;
     root.addEventListener('pointerdown', event => this.down(event));
     root.addEventListener('dblclick', event => this.double(event));
@@ -148,6 +152,7 @@ export class Editor {
 
   setTool(tool: ToolId | null): void {
     if (this.pen) this.finishPen(false);
+    this.picker.onTool(this.tool, tool);
     this.tool = tool;
     this.gesture = null;
     if (tool === null) { this.anchors.clear(); }
@@ -281,7 +286,7 @@ export class Editor {
     if (tool === null) { this.overlay.render(scene); return; }
     if (!this.gesture) this.sync();
     this.refs = []; this.handleRefs = []; this.widgetRefs = [];
-    const showPoints = tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && tool !== 'paintbrush' && !EXTRA_TOOLS.has(tool);
+    const showPoints = this.picker.showsPoints(tool) ?? (tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && tool !== 'paintbrush' && !EXTRA_TOOLS.has(tool));
     const s = this.px();
     const margin = 16 * s;
     for (const shape of this.selectedShapes()) {
@@ -338,6 +343,7 @@ export class Editor {
     if (g?.kind === 'paint' && g.pts.length > 1) scene.draft = formatPath([polyPath(g.pts, false)]);
     if (g?.kind === 'marquee') scene.marquee = { x: g.start[0], y: g.start[1], w: g.current[0] - g.start[0], h: g.current[1] - g.start[1] };
     this.extras.decorate(scene);
+    this.picker.decorate(scene);
     this.overlay.render(scene);
   }
 
@@ -433,6 +439,7 @@ export class Editor {
     event.preventDefault();
     this.frames.clear();
     const tool = this.tool;
+    if (PICK_TOOLS.has(tool)) { this.picker.down(tool, p, event); this.render(); return; }
     if (role.startsWith('x-') || EXTRA_TOOLS.has(tool)) { if (this.extras.down(tool, role, index, p, event)) { this.render(); return; } }
     if (role === 'widget') { this.startCorner(index, event); return; }
     if (role === 'handle') { this.startHandle(index); return; }
@@ -720,6 +727,7 @@ export class Editor {
     const p = this.pt(event);
     this.pointer = p;
     if (this.extras.move(p, event)) return;
+    if (this.picker.move(p)) return;
     const g = this.gesture;
     if (!g) {
       if (this.pen) {
@@ -907,6 +915,7 @@ export class Editor {
 
   private up(event: PointerEvent): void {
     if (this.tool !== null && this.extras.up(this.pt(event), event)) return;
+    if (this.tool !== null && this.picker.up(this.pt(event))) return;
     this.extras.clearGuides();
     const g = this.gesture;
     if (!g || this.tool === null) return;
@@ -937,6 +946,8 @@ export class Editor {
         if (before?.[0]?.nodes[0] && draft[0]?.nodes[0]) deltas.set(id, [draft[0].nodes[0].x - before[0].nodes[0].x, draft[0].nodes[0].y - before[0].nodes[0].y]);
       }
       this.endDrafts();
+      const moved = [...deltas.values()][0];
+      if (moved) rememberMove(moved);
       void this.commit(moveCommands(this.host(), deltas));
       return;
     }
@@ -1071,7 +1082,7 @@ export class Editor {
       return;
     }
     if (event.key === 'Escape') {
-      if (this.extras.key(event)) { event.preventDefault(); return; }
+      if (this.extras.key(event) || this.picker.cancel()) { event.preventDefault(); return; }
       if (this.symbolEdit) { this.leaveSymbol(); event.preventDefault(); return; }
       if (this.clipEdit) { this.leaveClip(); event.preventDefault(); return; }
       if (this.pen) { this.finishPen(false); event.preventDefault(); return; }
