@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.8.1",
- "previous": "0.8.0",
+ "version": "0.8.2",
+ "previous": "0.8.1",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Creative tools driven in the real editor and published output (FW-140 to FW-149, nine Full), live blends and repeats and Free Transform shear and perspective (FW-092, FW-093 Full), Claude Code and Chat driven end to end and the desktop app launched on Linux (FW-152, FW-153 still Partial for Windows and macOS), Symbols added (FW-156 Partial).",
+ "release_note": "Image Trace (FW-157) and Brushes (FW-158) added as Partial; symbol instances scale and rotate on canvas; blends take up to 16 sources and a spine; CMS dialog saves no longer overwrite; editable step titles.",
  "lanes": [
   [
    "m",
@@ -5502,6 +5502,23 @@
    "date": "2026-10-16",
    "same_as": "0.7.1",
    "note": "Illustrator behaviors verified against Adobe sources and driven in the browser; no grade moved. 99 of 112."
+  },
+  {
+   "version": "0.8.1",
+   "date": "2026-10-16",
+   "same_as": "0.8.0",
+   "moved": {
+    "FW-092": "full",
+    "FW-093": "full",
+    "FW-140": "full",
+    "FW-141": "full",
+    "FW-144": "full",
+    "FW-146": "full",
+    "FW-147": "full",
+    "FW-149": "full",
+    "FW-156": "partial"
+   },
+   "note": "Creative tools driven in the real editor and published output, live blends and repeats, Free Transform shear and perspective, Symbols added. 103.5 of 113."
   }
  ],
  "changes": [

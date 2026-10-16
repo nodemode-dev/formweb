@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.8.2 · 2026-10-16
+
+- Image Trace: turn an uploaded picture into vector shapes, in black and white, grayscale or color, with controls for detail, corners and noise (Mod+Alt+Shift+T).
+- Brushes: calligraphic, scatter, art and pattern brushes made from your own shapes, applied to a path and kept live as you edit it; remove or expand them at any time.
+- Symbols can be scaled and rotated on the canvas or by number, and blends take up to 16 shapes and can follow a path.
+- CMS: a New item button, and saving no longer overwrites the previous item.
+- Multi-step forms: each step can have its own title.
+- The vector messages from 0.8.1 are now translated in every language.
+
 ## 0.8.1 · 2026-10-16
 
 - Claude Code and Chat were driven end to end against a real Claude Code install: Chat streamed answers, called formweb's tools, changed the page and remembered the conversation; the Claude button started Claude Code with formweb's tools and made an edit.
