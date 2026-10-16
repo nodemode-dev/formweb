@@ -108,6 +108,8 @@ Blob Brush (v0.9.4): `vector.blob-brush` (Shift+B) selects the tool. Each drag p
 
 Live Paint Bucket (v0.9.5): `vector.live-paint-bucket` selects the tool (no default key; K is the Knife). Select two or more overlapping paths first; the face under the pointer is highlighted, a click adds it as a fill-only path in the current fill color under the selected paths (or recolors a face painted before), and Shift-click sets the stroke of the clicked path. One undo step per click; the faces do not follow later edits of the paths.
 
+OpenType features (v0.9.6): node styles accept `font-variant-ligatures` (for example `discretionary-ligatures`, `no-common-ligatures`), `font-variant-caps` (`small-caps`, `all-small-caps`, `petite-caps`, `unicase`, `titling-caps`), `font-variant-numeric` (combine `lining-nums` or `oldstyle-nums`, `proportional-nums` or `tabular-nums`, `diagonal-fractions` or `stacked-fractions`, `ordinal`, `slashed-zero`) and `font-kerning` (`auto`, `normal`, `none`), set with `node.update` styles like any other property and exported as CSS. The Typography section shows them as Capitals, Kerning, Ligatures and Numbers.
+
 Path commands and drawing tools (v0.9.1), run with `window.formweb.run(id)`: `vector.path.add-anchors` (midpoint of every segment of the selected paths), `vector.path.remove-anchors` (selected anchors), `vector.path.divide-below` (selected path cuts the filled shapes beneath it), `vector.path.split-grid` and `vector.path.clean-up` (dialogs), and the tools `vector.pencil` (N), `vector.arc`, `vector.rect-grid` and `vector.polar-grid` (the last three have no default shortcut).
 
 ## Editor window commands (v0.7)
