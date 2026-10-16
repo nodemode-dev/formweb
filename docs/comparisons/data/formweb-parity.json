@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.9.6",
- "previous": "0.9.5",
+ "version": "0.9.7",
+ "previous": "0.9.6",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Pattern swatches and Pattern Options (FW-174) added as Partial: Make pattern with grid and brick tiles fills a shape with an svg pattern; no pattern editing mode or swatches panel.",
@@ -7677,6 +7677,15 @@
     "FW-172": "partial"
    },
    "note": "Live Paint Bucket added. 113.5 of 129."
+  },
+  {
+   "version": "0.9.6",
+   "date": "2026-10-16",
+   "same_as": "0.9.5",
+   "moved": {
+    "FW-173": "partial"
+   },
+   "note": "OpenType features added to Typography. 114 of 130."
   }
  ],
  "changes": [

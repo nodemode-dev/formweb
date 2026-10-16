@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.7 · 2026-10-16
+
+- Make pattern (Vector > Make pattern...): select the artwork for one tile, then the shape to fill, and pick Grid, Brick by Row or Brick by Column, the brick offset, and either Size Tile to Art with spacing or an exact tile size. The shape fills with the repeating pattern in the canvas and in exported sites; the original artwork stays.
+- All new labels are translated into the 26 interface languages.
+
 ## 0.9.6 · 2026-10-16
 
 - Typography gains OpenType features: Capitals (small caps, petite caps, titling caps), Kerning, Ligatures and Numbers (old-style or lining, tabular or proportional, fractions, ordinals, slashed zero). They show in the canvas and in exported sites, per breakpoint like any other style.
