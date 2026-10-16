@@ -1,36 +1,97 @@
 use crate::{Node, Site};
 use serde_json::Value;
+use std::collections::BTreeSet;
 
 const SHARED: &[&str] = &[
     "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset",
     "fill-rule", "fill-opacity", "stroke-opacity", "transform", "vector-effect", "opacity", "data-fw-vector",
+    "clip-path", "mask", "paint-order", "clip-rule", "data-fw-align", "data-fw-weight", "data-fw-width",
 ];
 const DATA_LIMIT: usize = 262_144;
 
 pub fn is_tag(tag: &str) -> bool {
-    matches!(tag, "svg" | "g" | "path")
+    matches!(tag, "svg" | "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "stop" | "clipPath" | "mask" | "text" | "textPath")
 }
 
 pub fn attr_allowed(tag: &str, name: &str) -> bool {
     if !is_tag(tag) {
         return false;
     }
-    SHARED.contains(&name) || (tag == "path" && name == "d") || (tag == "svg" && matches!(name, "viewBox" | "preserveAspectRatio"))
+    let drawn = matches!(tag, "svg" | "g" | "path" | "text" | "textPath");
+    (drawn && SHARED.contains(&name))
+        || (tag == "path" && name == "d")
+        || (tag == "svg" && matches!(name, "viewBox" | "preserveAspectRatio"))
+        || (tag == "linearGradient" && matches!(name, "x1" | "y1" | "x2" | "y2" | "gradientUnits" | "gradientTransform" | "spreadMethod"))
+        || (tag == "radialGradient" && matches!(name, "cx" | "cy" | "r" | "fx" | "fy" | "gradientUnits" | "gradientTransform" | "spreadMethod"))
+        || (tag == "stop" && matches!(name, "offset" | "stop-color" | "stop-opacity"))
+        || (tag == "clipPath" && name == "clipPathUnits")
+        || (tag == "mask" && matches!(name, "maskUnits" | "maskContentUnits" | "x" | "y"))
+        || (tag == "text" && matches!(name, "x" | "y" | "font-size" | "font-family" | "font-weight" | "letter-spacing" | "text-anchor"))
+        || (tag == "textPath" && name == "startOffset")
 }
 
 pub fn max_len(tag: &str, name: &str) -> usize {
-    if is_tag(tag) && matches!(name, "d" | "data-fw-vector") { DATA_LIMIT } else { 10000 }
+    if is_tag(tag) && matches!(name, "d" | "data-fw-vector" | "data-fw-width") { DATA_LIMIT } else { 10000 }
+}
+
+fn child_ok(parent: &str, child: &str) -> bool {
+    match parent {
+        "svg" | "g" => matches!(child, "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "clipPath" | "mask" | "text"),
+        "defs" => matches!(child, "linearGradient" | "radialGradient" | "clipPath" | "mask"),
+        "linearGradient" | "radialGradient" => child == "stop",
+        "clipPath" => child == "path",
+        "mask" => matches!(child, "g" | "path"),
+        "text" => child == "textPath",
+        _ => false,
+    }
+}
+
+#[derive(Default)]
+struct Refs {
+    defined: BTreeSet<String>,
+    paths: BTreeSet<String>,
+    used: Vec<String>,
+    hrefs: Vec<String>,
+}
+
+fn url_target(value: &str) -> Option<&str> {
+    value.strip_prefix("url(#").and_then(|rest| rest.strip_suffix(')'))
+}
+
+fn scan(site: &Site, node: &Node, depth: usize, refs: &mut Refs) -> Result<(), String> {
+    if depth > 64 { return Err("vector nesting exceeds 64".into()); }
+    if let Some(id) = node.attrs.get("id") {
+        if matches!(node.tag.as_str(), "linearGradient" | "radialGradient" | "clipPath" | "mask") { refs.defined.insert(id.clone()); }
+        if node.tag == "path" { refs.paths.insert(id.clone()); }
+    }
+    for name in ["fill", "stroke", "clip-path", "mask"] {
+        if let Some(target) = node.attrs.get(name).and_then(|value| url_target(value)) { refs.used.push(target.to_string()); }
+    }
+    if node.tag == "textPath" {
+        if let Some(target) = node.attrs.get("href") { refs.hrefs.push(target.trim_start_matches('#').to_string()); }
+    }
+    for child in &node.children {
+        if let Some(child) = site.nodes.get(child) { scan(site, child, depth + 1, refs)?; }
+    }
+    Ok(())
 }
 
 pub fn check_node(node: &Node, site: &Site) -> Result<(), String> {
     let vector_parent = is_tag(&node.tag);
-    if vector_parent && !node.text.is_empty() { return Err("vector elements cannot contain text".into()); }
+    if vector_parent && !node.text.is_empty() && node.tag != "textPath" { return Err("vector elements cannot contain text".into()); }
+    if node.tag == "textPath" && (node.text.chars().count() > 500 || node.text.contains(['<', '>'])) { return Err("path text is too long or has markup".into()); }
     if node.tag == "path" && !node.children.is_empty() { return Err("path cannot have children".into()); }
     for child in &node.children {
         let Some(child) = site.nodes.get(child) else { continue };
         let vector_child = is_tag(&child.tag);
-        if vector_parent && !matches!(child.tag.as_str(), "g" | "path") { return Err("svg and g may only contain g and path".into()); }
-        if !vector_parent && vector_child && child.tag != "svg" { return Err("path and g must live inside an svg element".into()); }
+        if vector_parent && !child_ok(&node.tag, &child.tag) { return Err(format!("{} cannot contain {}", node.tag, child.tag)); }
+        if !vector_parent && vector_child && child.tag != "svg" { return Err("vector elements must live inside an svg element".into()); }
+    }
+    if node.tag == "svg" {
+        let mut refs = Refs::default();
+        scan(site, node, 0, &mut refs)?;
+        if refs.used.iter().any(|id| !refs.defined.contains(id)) { return Err("paint, clip and mask references must point at definitions inside the same svg".into()); }
+        if refs.hrefs.iter().any(|id| !refs.paths.contains(id)) { return Err("text on a path must reference a path inside the same svg".into()); }
     }
     Ok(())
 }
@@ -40,7 +101,28 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
     let ok = match name {
         "d" => return path_data(value),
         "data-fw-vector" => value.len() <= DATA_LIMIT && serde_json::from_str::<Value>(value).map(|v| v.get("v").and_then(Value::as_u64) == Some(1) && v.get("subs").map(Value::is_array).unwrap_or(false)).unwrap_or(false),
-        "fill" | "stroke" => paint(value),
+        "fill" | "stroke" => paint(value) || paint_ref(value),
+        "clip-path" | "mask" => value == "none" || paint_ref(value),
+        "paint-order" => matches!(value, "normal" | "stroke"),
+        "clip-rule" => matches!(value, "nonzero" | "evenodd"),
+        "data-fw-align" => matches!(value, "inside" | "outside" | "center"),
+        "data-fw-weight" => number_in(value, 0.0, 10000.0),
+        "data-fw-width" => value.len() <= DATA_LIMIT && serde_json::from_str::<Value>(value).map(|v| v.is_array()).unwrap_or(false),
+        "x1" | "y1" | "x2" | "y2" | "cx" | "cy" | "r" | "fx" | "fy" | "x" | "y" if tag != "svg" => coordinate(value),
+        "width" | "height" if tag == "mask" => coordinate(value),
+        "gradientUnits" | "clipPathUnits" | "maskUnits" | "maskContentUnits" => matches!(value, "userSpaceOnUse" | "objectBoundingBox"),
+        "gradientTransform" => transform(value),
+        "spreadMethod" => matches!(value, "pad" | "reflect" | "repeat"),
+        "offset" => coordinate(value) && value.trim_end_matches('%').parse::<f64>().map(|n| n >= 0.0 && n <= if value.ends_with('%') { 100.0 } else { 1.0 }).unwrap_or(false),
+        "stop-color" => paint(value),
+        "stop-opacity" => number_in(value, 0.0, 1.0),
+        "font-size" => number_in(value, 1.0, 2000.0),
+        "letter-spacing" => number_in(value, -100.0, 100.0),
+        "font-weight" => matches!(value, "normal" | "bold" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900"),
+        "font-family" => !value.is_empty() && value.len() <= 80 && value.bytes().all(|c| c.is_ascii_alphanumeric() || b" ,'-".contains(&c)),
+        "text-anchor" => matches!(value, "start" | "middle" | "end"),
+        "startOffset" => coordinate(value),
+        "href" if tag == "textPath" => value.strip_prefix('#').map(ref_id).unwrap_or(false),
         "stroke-width" => number_in(value, 0.0, 10000.0),
         "stroke-miterlimit" => number_in(value, 1.0, 100.0),
         "stroke-dashoffset" => number_in(value, -100000.0, 100000.0),
@@ -61,6 +143,18 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
 
 fn number_in(value: &str, min: f64, max: f64) -> bool {
     value.trim() == value && value.parse::<f64>().map(|n| n.is_finite() && n >= min && n <= max).unwrap_or(false) && !value.is_empty()
+}
+
+fn coordinate(value: &str) -> bool {
+    number_in(value.strip_suffix('%').unwrap_or(value), -1e6, 1e6)
+}
+
+fn ref_id(value: &str) -> bool {
+    !value.is_empty() && value.len() <= 64 && value.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'-' || c == b'_')
+}
+
+fn paint_ref(value: &str) -> bool {
+    value.len() <= 80 && url_target(value).map(ref_id).unwrap_or(false)
 }
 
 fn length(value: &str) -> bool {

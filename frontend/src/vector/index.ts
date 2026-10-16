@@ -26,7 +26,8 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
   const commandId: Record<ToolId, string> = {
     select: 'vector.select', direct: 'vector.direct', pen: 'vector.pen', curvature: 'vector.curvature', add: 'vector.add-anchor', delete: 'vector.delete-anchor',
     convert: 'vector.convert-anchor', scissors: 'vector.scissors', rect: 'vector.rect', ellipse: 'vector.ellipse', polygon: 'vector.polygon', star: 'vector.star',
-    line: 'vector.line', arc: 'vector.arc', spiral: 'vector.spiral'
+    line: 'vector.line', arc: 'vector.arc', spiral: 'vector.spiral', knife: 'vector.knife', eraser: 'vector.eraser', shapebuilder: 'vector.shape-builder',
+    width: 'vector.width', gradient: 'vector.gradient', transform: 'vector.free-transform'
   };
   const tools: CommandDef[] = TOOLS.map((tool, index) => ({
     id: commandId[tool.id],
@@ -51,23 +52,39 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
 
   const commands: CommandDef[] = [
     ...tools,
-    { id: 'vector.exit', label: 'Leave vector editing', menu: MENU, keys: 'Esc', group: 0, run: () => editor.setTool(null), enabled: () => editor.tool !== null },
+    { id: 'vector.exit', label: 'Leave vector editing', menu: MENU, keys: 'Escape', group: 0, run: () => editor.setTool(null), enabled: () => editor.tool !== null },
     { id: 'vector.panel', label: 'Vector panel', menu: MENU, group: 0, run: () => panel.toggle() },
-    { id: 'vector.round-corner', label: 'Round corners', menu: MENU, keys: 'Shift R', group: 3, run: () => editor.applyCorner({ type: 'round', radius: Math.max(10, typeof editor.cornerState().radius === 'number' ? editor.cornerState().radius as number : 0) }), enabled: () => editor.cornerRefs().length > 0 },
+    { id: 'vector.round-corner', label: 'Round corners', menu: MENU, keys: 'Shift+R', group: 3, run: () => editor.applyCorner({ type: 'round', radius: Math.max(10, typeof editor.cornerState().radius === 'number' ? editor.cornerState().radius as number : 0) }), enabled: () => editor.cornerRefs().length > 0 },
     { id: 'vector.corner.round', label: 'Corner type: Round', menu: MENU, group: 3, run: () => editor.applyCorner({ type: 'round' }), enabled: () => editor.cornerRefs().length > 0 },
     { id: 'vector.corner.inverted', label: 'Corner type: Inverted round', menu: MENU, group: 3, run: () => editor.applyCorner({ type: 'inverted' }), enabled: () => editor.cornerRefs().length > 0 },
     { id: 'vector.corner.chamfer', label: 'Corner type: Chamfer', menu: MENU, group: 3, run: () => editor.applyCorner({ type: 'chamfer' }), enabled: () => editor.cornerRefs().length > 0 },
     { id: 'vector.corner.cycle', label: 'Cycle corner type', menu: MENU, group: 3, run: () => editor.cycleCorners(), enabled: () => editor.anchors.size > 0 },
     { id: 'vector.corner.expand', label: 'Expand corners', menu: MENU, group: 3, run: () => editor.bakeCorners(), enabled: hasShape },
     ...pathfinders,
-    { id: 'vector.path.join', label: 'Join end anchors', menu: MENU, keys: 'Ctrl J', group: 4, run: () => editor.runPathOp('join'), enabled: () => editor.anchors.size === 2 },
+    { id: 'vector.path.join', label: 'Join end anchors', menu: MENU, keys: 'Mod+Alt+Shift+J', group: 4, run: () => editor.runPathOp('join'), enabled: () => editor.anchors.size === 2 },
     { id: 'vector.path.average', label: 'Average anchors', menu: MENU, group: 4, run: () => editor.runPathOp('average'), enabled: () => editor.anchors.size > 1 },
     { id: 'vector.path.simplify', label: 'Simplify path', menu: MENU, group: 4, run: () => editor.runPathOp('simplify', 1), enabled: hasShape },
     { id: 'vector.path.offset', label: 'Offset path', menu: MENU, group: 4, run: () => editor.runPathOp('offset', 8), enabled: hasShape },
-    { id: 'vector.path.outline-stroke', label: 'Outline stroke', menu: MENU, group: 4, run: () => editor.runPathOp('outline'), enabled: hasShape },
+    { id: 'vector.path.outline-stroke', label: 'Outline stroke', menu: MENU, keys: 'Mod+Shift+O', group: 4, run: () => editor.runPathOp('outline'), enabled: hasShape },
     { id: 'vector.path.reverse', label: 'Reverse path direction', menu: MENU, group: 4, run: () => editor.runPathOp('reverse'), enabled: hasShape },
-    { id: 'vector.compound.make', label: 'Make compound path', menu: MENU, keys: 'Ctrl 8', group: 4, run: () => editor.makeCompound(), enabled: hasPair },
-    { id: 'vector.compound.release', label: 'Release compound path', menu: MENU, keys: 'Ctrl Alt 8', group: 4, run: () => editor.releaseCompound(), enabled: hasShape },
+    { id: 'vector.compound.make', label: 'Make compound path', menu: MENU, keys: 'Mod+8', group: 4, run: () => editor.makeCompound(), enabled: hasPair },
+    { id: 'vector.compound.release', label: 'Release compound path', menu: MENU, keys: 'Mod+Alt+8', group: 4, run: () => editor.releaseCompound(), enabled: hasShape },
+    { id: 'vector.group', label: 'Group', menu: MENU, keys: 'Mod+G', group: 6, run: () => { void editor.ops.group(); }, enabled: hasPair },
+    { id: 'vector.ungroup', label: 'Ungroup', menu: MENU, keys: 'Mod+Shift+G', group: 6, run: () => { void editor.ops.ungroup(); }, enabled: hasShape },
+    { id: 'vector.clip.make', label: 'Make clipping mask', menu: MENU, keys: 'Mod+7', group: 6, run: () => { void editor.ops.makeMask('clip'); }, enabled: hasPair },
+    { id: 'vector.clip.release', label: 'Release clipping or opacity mask', menu: MENU, keys: 'Mod+Alt+7', group: 6, run: () => { void editor.ops.releaseMask(); }, enabled: hasShape },
+    { id: 'vector.mask.make', label: 'Make opacity mask', menu: MENU, keys: 'Mod+Alt+M', group: 6, run: () => { void editor.ops.makeMask('mask'); }, enabled: hasPair },
+    { id: 'vector.isolate.exit', label: 'Exit isolation mode', menu: MENU, group: 6, run: () => editor.extras.exit(), enabled: () => editor.extras.iso !== null },
+    { id: 'vector.blend', label: 'Blend selected paths', menu: MENU, keys: 'Mod+Alt+B', group: 7, run: () => { void editor.ops.blend(5); }, enabled: hasPair },
+    { id: 'vector.stroke.inside', label: 'Align stroke inside', menu: MENU, group: 7, run: () => editor.applyPaint({ align: 'inside' }), enabled: hasShape },
+    { id: 'vector.stroke.center', label: 'Align stroke to center', menu: MENU, group: 7, run: () => editor.applyPaint({ align: 'center' }), enabled: hasShape },
+    { id: 'vector.stroke.outside', label: 'Align stroke outside', menu: MENU, group: 7, run: () => editor.applyPaint({ align: 'outside' }), enabled: hasShape },
+    ...(['left', 'hcenter', 'right', 'top', 'vmiddle', 'bottom'] as const).map(mode => ({
+      id: `vector.align.${mode}`, label: `Align ${mode === 'hcenter' ? 'horizontal centers' : mode === 'vmiddle' ? 'vertical centers' : mode}`, menu: MENU, group: 8, run: () => { void editor.ops.align(mode, 'selection'); }, enabled: hasPair
+    })),
+    { id: 'vector.distribute.hspace', label: 'Distribute horizontal spacing', menu: MENU, group: 8, run: () => { void editor.ops.distribute('hspace', null); }, enabled: () => editor.selection.length >= 3 },
+    { id: 'vector.distribute.vspace', label: 'Distribute vertical spacing', menu: MENU, group: 8, run: () => { void editor.ops.distribute('vspace', null); }, enabled: () => editor.selection.length >= 3 },
+    { id: 'vector.snap.toggle', label: 'Smart guides and snapping', menu: MENU, keys: 'Mod+Shift+;', group: 8, run: () => { editor.extras.snapping = !editor.extras.snapping; editor.emit(); }, checked: () => editor.extras.snapping },
     { id: 'vector.svg.import', label: 'Import SVG...', menu: MENU, group: 5, run: () => panel.pickFile() },
     { id: 'vector.svg.export', label: 'Export selection as SVG', menu: MENU, group: 5, run: () => panel.download(), enabled: () => !!ctx.getSelected() }
   ];

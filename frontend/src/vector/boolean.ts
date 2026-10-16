@@ -333,3 +333,15 @@ export function pathfinder(op: PathfinderOp, inputs: PathfinderInput[]): Pathfin
   return out.sort((a, b) => a.source - b.source);
 }
 
+export function fragmentPieces(inputs: SubPath[][]): Piece[] {
+  if (inputs.length < 1 || inputs.length > 30) return [];
+  const smooth = new Set<string>();
+  return mergeRegions(inputs.map(subs => regionOf(subs, smooth)), 'fragment', smooth);
+}
+
+export function unionSubs(inputs: SubPath[][]): SubPath[] {
+  const smooth = new Set<string>();
+  if (inputs.length === 1) return inputs[0];
+  return toSubs(mergeRegions(inputs.map(subs => regionOf(subs, smooth)), 'union', smooth));
+}
+

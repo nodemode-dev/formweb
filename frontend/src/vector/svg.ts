@@ -172,6 +172,7 @@ export function importSvg(text: string): ImportedSvg {
     const dash = (style['stroke-dasharray'] || '').split(/[\s,]+/).map(Number).filter(Number.isFinite).map(v => Math.max(0, v * k));
     const fillOpacity = parseFloat(style['fill-opacity'] ?? '1');
     const paint: Paint = {
+      align: 'center',
       fill: cleanPaint(style.fill, '#000000'),
       stroke: cleanPaint(style.stroke, 'none'),
       strokeWidth: Math.max(0, Math.min(10000, (Number.isFinite(rawWidth) ? rawWidth : 1) * k)),

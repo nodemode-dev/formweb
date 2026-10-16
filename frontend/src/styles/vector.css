@@ -40,3 +40,28 @@
 .fw-v-none { height: var(--ctl-sm); border: 1px solid var(--line-1); }
 .fw-v-note { margin: 0; min-height: 2.6em; color: var(--text-muted); font-size: var(--fs-10); line-height: 1.3; }
 .fw-v-check { justify-self: start; }
+.fw-v-checkrow { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-secondary); font-size: var(--fs-11); }
+.fw-v-stack { display: flex; flex-direction: column; gap: var(--space-1); }
+.fw-v-gradbar { height: var(--ctl-sm); border: 1px solid var(--line-1); border-radius: var(--radius-sm); background-color: var(--surface-field); }
+.fw-v-gradbar[hidden], .fw-v-stop[hidden] { display: none; }
+.fw-v-stop { display: grid; grid-template-columns: var(--ctl-lg) minmax(0, 1fr) minmax(0, 1fr) var(--ctl-sm); gap: var(--space-1); align-items: center; padding: 2px; border: 1px solid transparent; border-radius: var(--radius-sm); }
+.fw-v-stop[data-on="true"] { border-color: var(--accent-line); background: var(--accent-soft); }
+.fw-v-stop .fw-v-btn { width: var(--ctl-sm); height: var(--ctl-sm); }
+.fw-v-btn[hidden] { display: none; }
+.fw-vo[data-tool="knife"] .fw-vo-capture, .fw-vo[data-tool="eraser"] .fw-vo-capture, .fw-vo[data-tool="shapebuilder"] .fw-vo-capture, .fw-vo[data-tool="width"] .fw-vo-capture, .fw-vo[data-tool="gradient"] .fw-vo-capture { cursor: crosshair; }
+.fw-vo-x { fill: none; stroke: var(--accent-color); stroke-width: calc(1.25px * var(--fw-vo-px)); pointer-events: none; }
+.fw-vo-x[data-role^="x-"] { pointer-events: all; cursor: pointer; }
+.fw-vo-x[data-c="trail"] { stroke-dasharray: calc(4px * var(--fw-vo-px)) calc(3px * var(--fw-vo-px)); }
+.fw-vo-x[data-c="eraser"] { stroke: var(--danger); opacity: .35; stroke-linecap: round; stroke-linejoin: round; }
+.fw-vo-x[data-c="region-hover"] { fill: var(--accent-wash); }
+.fw-vo-x[data-c="region-pick"] { fill: var(--accent-soft); stroke-width: calc(2px * var(--fw-vo-px)); }
+.fw-vo-x[data-c="region-cut"] { fill: var(--danger); fill-opacity: .25; stroke: var(--danger); }
+.fw-vo-x[data-c="iso"] { stroke-dasharray: calc(6px * var(--fw-vo-px)) calc(4px * var(--fw-vo-px)); opacity: .7; }
+.fw-vo-x[data-c="guide-x"], .fw-vo-x[data-c="guide-y"], .fw-vo-x[data-c="guide-angle"] { stroke: var(--ok); stroke-width: calc(1px * var(--fw-vo-px)); }
+.fw-vo-x[data-c="guide-angle"] { stroke-dasharray: calc(3px * var(--fw-vo-px)) calc(3px * var(--fw-vo-px)); }
+.fw-vo-x[data-c="snap"] { stroke: var(--ok); }
+.fw-vo-x[data-c="gline"], .fw-vo-x[data-c="gring"], .fw-vo-x[data-c="tbox"] { stroke: var(--accent-color); }
+.fw-vo-x[data-c="gstop"], .fw-vo-x[data-c="gstop-on"] { fill: var(--bg-primary); stroke: var(--text-primary); stroke-width: calc(1.5px * var(--fw-vo-px)); cursor: ew-resize; }
+.fw-vo-x[data-c="gstop-on"] { stroke: var(--accent-color); stroke-width: calc(2.5px * var(--fw-vo-px)); }
+.fw-vo-x[data-c="gend"], .fw-vo-x[data-c="thandle"], .fw-vo-x[data-c="wpt"], .fw-vo-x[data-c="wpt-on"] { fill: var(--bg-primary); stroke: var(--accent-color); }
+.fw-vo-x[data-c="wpt-on"] { fill: var(--accent-color); }

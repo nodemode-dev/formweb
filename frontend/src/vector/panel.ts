@@ -5,6 +5,7 @@ import { vectorIcon, type VectorIcon } from './icons';
 import type { Cap, Join, Paint } from './store';
 import { safePaint } from './svg';
 import type { Editor, ToolId } from './editor';
+import { ExtraSections } from './panel2';
 
 interface ToolDef { id: ToolId; label: string; icon: VectorIcon; keys: string }
 
@@ -15,7 +16,7 @@ export const TOOLS: ToolDef[] = [
   { id: 'curvature', label: 'Curvature', icon: 'curvature', keys: '' },
   { id: 'add', label: 'Add Anchor Point', icon: 'add', keys: '+' },
   { id: 'delete', label: 'Delete Anchor Point', icon: 'remove', keys: '-' },
-  { id: 'convert', label: 'Anchor Point', icon: 'convert', keys: 'Shift C' },
+  { id: 'convert', label: 'Anchor Point', icon: 'convert', keys: 'Shift+C' },
   { id: 'scissors', label: 'Scissors', icon: 'scissors', keys: 'C' },
   { id: 'rect', label: 'Rectangle', icon: 'rect', keys: 'M' },
   { id: 'ellipse', label: 'Ellipse', icon: 'ellipse', keys: 'L' },
@@ -23,7 +24,13 @@ export const TOOLS: ToolDef[] = [
   { id: 'star', label: 'Star', icon: 'star', keys: '' },
   { id: 'line', label: 'Line Segment', icon: 'line', keys: '\\' },
   { id: 'arc', label: 'Arc', icon: 'arc', keys: '' },
-  { id: 'spiral', label: 'Spiral', icon: 'spiral', keys: '' }
+  { id: 'spiral', label: 'Spiral', icon: 'spiral', keys: '' },
+  { id: 'knife', label: 'Knife', icon: 'knife', keys: 'K' },
+  { id: 'eraser', label: 'Eraser', icon: 'eraser', keys: 'Shift+E' },
+  { id: 'shapebuilder', label: 'Shape Builder', icon: 'shapebuilder', keys: 'Shift+M' },
+  { id: 'width', label: 'Width', icon: 'width', keys: 'Shift+W' },
+  { id: 'gradient', label: 'Gradient', icon: 'gradient', keys: 'G' },
+  { id: 'transform', label: 'Free Transform', icon: 'transform', keys: 'E' }
 ];
 
 export const PATHFINDERS: { op: PathfinderOp; label: string; icon: VectorIcon }[] = [
@@ -223,7 +230,10 @@ export class VectorPanel {
       this.fileInput
     );
 
-    this.root.append(appearance.root, corners.root, shapes.root, pathfinder.root, path.root, svg.root);
+    const extra = new ExtraSections(editor);
+    this.root.append(appearance.root, ...extra.sections.slice(0, 2), corners.root, shapes.root, pathfinder.root, path.root, ...extra.sections.slice(2), svg.root);
+    editor.listeners.add(() => extra.update());
+    extra.update();
     const close = button('', 'Close vector panel', () => { this.manual = false; this.setOpen(false); editor.setTool(null); }, 'close');
     close.classList.add('fw-v-close');
     this.root.prepend(close);
@@ -320,3 +330,5 @@ export class VectorPanel {
     }
   }
 }
+
+export { button, field, numberInput, section, segment };

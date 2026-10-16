@@ -4,8 +4,10 @@ import { renderPath } from './corners';
 
 export type Cap = 'butt' | 'round' | 'square';
 export type Join = 'miter' | 'round' | 'bevel';
+export type StrokeAlign = 'center' | 'inside' | 'outside';
 
 export interface Paint {
+  align: StrokeAlign;
   fill: string;
   stroke: string;
   strokeWidth: number;
@@ -20,9 +22,15 @@ export interface Paint {
 
 export interface Shape { id: string; svg: string; subs: SubPath[]; paint: Paint }
 
-export const defaultPaint: Paint = { fill: '#f97316', stroke: 'none', strokeWidth: 2, cap: 'butt', join: 'miter', miter: 4, dash: '', dashOffset: 0, fillRule: 'nonzero', opacity: 1 };
+export const defaultPaint: Paint = { align: 'center', fill: '#f97316', stroke: 'none', strokeWidth: 2, cap: 'butt', join: 'miter', miter: 4, dash: '', dashOffset: 0, fillRule: 'nonzero', opacity: 1 };
 
-export const VECTOR_TAGS = new Set(['svg', 'g', 'path']);
+export const VECTOR_TAGS = new Set(['svg', 'g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath']);
+export const DEF_TAGS = new Set(['defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask']);
+export const REF_PATTERN = /^url\(#([A-Za-z0-9_-]{1,64})\)$/;
+
+export function refOf(paint: string | undefined): string | undefined {
+  return paint ? REF_PATTERN.exec(paint)?.[1] : undefined;
+}
 export const CONTAINER_TAGS = new Set(['div', 'main', 'section', 'article', 'header', 'footer', 'nav', 'aside', 'figure', 'li', 'ul', 'ol', 'a', 'button', 'span', 'form', 'fieldset', 'details', 'blockquote']);
 
 export function parentOf(site: Site, id: string): string | undefined {
@@ -46,7 +54,7 @@ export function pathIds(site: Site, root: string): string[] {
   const out: string[] = [];
   const visit = (id: string): void => {
     const node = site.nodes[id];
-    if (!node) return;
+    if (!node || DEF_TAGS.has(node.tag)) return;
     if (node.tag === 'path') out.push(id);
     node.children.forEach(visit);
   };
@@ -69,10 +77,12 @@ const number = (value: string | undefined, fallback: number): number => {
 export function paintOf(node: SiteNode): Paint {
   const a = node.attrs;
   const cap = a['stroke-linecap'], join = a['stroke-linejoin'];
+  const align: StrokeAlign = a['data-fw-align'] === 'inside' || a['data-fw-align'] === 'outside' ? a['data-fw-align'] : 'center';
   return {
+    align,
     fill: a.fill ?? '#000000',
     stroke: a.stroke ?? 'none',
-    strokeWidth: number(a['stroke-width'], 1),
+    strokeWidth: align === 'center' ? number(a['stroke-width'], 1) : number(a['data-fw-weight'], number(a['stroke-width'], 2) / 2),
     cap: cap === 'round' || cap === 'square' ? cap : 'butt',
     join: join === 'round' || join === 'bevel' ? join : 'miter',
     miter: number(a['stroke-miterlimit'], 4),
@@ -89,8 +99,13 @@ export function paintAttrs(paint: Paint): Record<string, string> {
     stroke: paint.stroke,
     'fill-rule': paint.fillRule
   };
+  if (paint.stroke !== 'none' && paint.align !== 'center') {
+    out['data-fw-align'] = paint.align;
+    out['data-fw-weight'] = String(paint.strokeWidth);
+    if (paint.align === 'outside' && paint.fill !== 'none') out['paint-order'] = 'stroke';
+  }
   if (paint.stroke !== 'none') {
-    out['stroke-width'] = String(paint.strokeWidth);
+    out['stroke-width'] = String(paint.align === 'center' ? paint.strokeWidth : paint.strokeWidth * 2);
     out['stroke-linecap'] = paint.cap;
     out['stroke-linejoin'] = paint.join;
     out['stroke-miterlimit'] = String(paint.miter);
@@ -132,7 +147,7 @@ export function updateAttrs(id: string, attrs: Record<string, string | null>): C
 }
 
 export function addPath(parent: string, id: string, subs: SubPath[], paint: Paint, name = 'Path'): Command {
-  return { command: 'node.add', params: { parent, node: { id, tag: 'path', name, attrs: { ...geometryAttrs(subs), ...paintAttrs(paint) } } } };
+  return { command: 'node.add', params: { parent, node: { id, tag: 'path', name, attrs: { ...geometryAttrs(subs), ...paintAttrs({ ...paint, align: 'center' }) } } } };
 }
 
 export function addSvg(parent: string, id: string, box: { left: number; top: number; width: number; height: number }, name = 'Vector'): Command {

@@ -3,7 +3,13 @@ const NS = 'http://www.w3.org/2000/svg';
 export interface SceneAnchor { x: number; y: number; selected: boolean; kind: string; start: boolean }
 export interface SceneHandle { ax: number; ay: number; x: number; y: number; selected: boolean }
 export interface SceneWidget { x: number; y: number; limit: boolean; type: string }
+export type ExtraItem =
+  | { kind: 'path'; d: string; cls: string; w?: number }
+  | { kind: 'line'; x1: number; y1: number; x2: number; y2: number; cls: string }
+  | { kind: 'circle'; x: number; y: number; r: number; cls: string; role?: string; i?: number; fill?: string };
+
 export interface Scene {
+  extras?: ExtraItem[];
   visible: boolean;
   capture: boolean;
   tool: string;
@@ -51,6 +57,9 @@ export class Overlay {
   private handles: Pool;
   private anchors: Pool;
   private widgets: Pool;
+  private xPaths: Pool;
+  private xLines: Pool;
+  private xCircles: Pool;
   private marquee: SVGRectElement;
 
   constructor(host: HTMLElement) {
@@ -79,6 +88,9 @@ export class Overlay {
     this.anchors = new Pool(group('anchors'), 'rect', 'fw-vo-anchor');
     this.handles = new Pool(group('handles'), 'circle', 'fw-vo-handle');
     this.widgets = new Pool(group('widgets'), 'circle', 'fw-vo-widget');
+    this.xPaths = new Pool(group('xpaths'), 'path', 'fw-vo-x');
+    this.xLines = new Pool(group('xlines'), 'line', 'fw-vo-x');
+    this.xCircles = new Pool(group('xcircles'), 'circle', 'fw-vo-x');
     this.marquee = document.createElementNS(NS, 'rect');
     this.marquee.setAttribute('class', 'fw-vo-marquee');
     this.marquee.setAttribute('data-off', '');
@@ -122,6 +134,17 @@ export class Overlay {
       set(el, 'data-role', 'widget'); set(el, 'data-i', String(i));
       set(el, 'data-limit', w.limit ? 'true' : 'false');
       set(el, 'data-type', w.type);
+    });
+    const extras = scene.extras ?? [];
+    this.xPaths.update(extras.filter((e): e is Extract<ExtraItem, { kind: 'path' }> => e.kind === 'path'), (el, item) => {
+      set(el, 'd', item.d); set(el, 'data-c', item.cls); set(el, 'style', item.w ? `stroke-width:${item.w}px` : '');
+    });
+    this.xLines.update(extras.filter((e): e is Extract<ExtraItem, { kind: 'line' }> => e.kind === 'line'), (el, item) => {
+      set(el, 'x1', String(item.x1)); set(el, 'y1', String(item.y1)); set(el, 'x2', String(item.x2)); set(el, 'y2', String(item.y2)); set(el, 'data-c', item.cls);
+    });
+    this.xCircles.update(extras.filter((e): e is Extract<ExtraItem, { kind: 'circle' }> => e.kind === 'circle'), (el, item) => {
+      set(el, 'cx', String(item.x)); set(el, 'cy', String(item.y)); set(el, 'r', String(item.r * s)); set(el, 'data-c', item.cls);
+      set(el, 'data-role', item.role ?? ''); set(el, 'data-i', String(item.i ?? -1)); set(el, 'style', item.fill ? `fill:${item.fill}` : '');
     });
     if (scene.marquee) {
       const m = scene.marquee;

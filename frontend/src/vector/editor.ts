@@ -8,14 +8,20 @@ import {
   arcPath, autoSmooth, clonePath, dist, ellipsePath, formatPath, linePath, mapPath, moveAnchor, moveHandle, nearestOnPath, pathBounds, polygonPath, rectPath, spiralPath, starPath, translate,
   type Anchor, type AnchorKind, type Corner, type CornerType, type Pt, type SubPath
 } from './geometry';
+import { moveCommands, outerGroup } from './arrange';
+import { EXTRA_TOOLS, Extras } from './extras';
+import type { Frame as HostFrame, Host } from './host';
+import { Ops } from './ops';
 import { Overlay, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
+import { alignFixes, widthFixes } from './stroke';
 import { exportSvg, importSvg } from './svg';
 import {
   CONTAINER_TAGS, VECTOR_TAGS, addPath, addSvg, defaultPaint, freshId, geometryAttrs, moveNode, paintAttrs, pathIds, readShape, removeNode, svgOf, updateAttrs, updateGeometry, viewBoxOf,
   type Paint, type Shape
 } from './store';
 
-export type ToolId = 'select' | 'direct' | 'pen' | 'curvature' | 'add' | 'delete' | 'convert' | 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arc' | 'spiral' | 'scissors';
+export type ToolId = 'select' | 'direct' | 'pen' | 'curvature' | 'add' | 'delete' | 'convert' | 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arc' | 'spiral' | 'scissors'
+  | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform';
 
 export interface VectorContext {
   canvas: Canvas;
@@ -45,10 +51,13 @@ const HIT = 7;
 const TYPES: CornerType[] = ['round', 'inverted', 'chamfer'];
 const NUDGE_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
-export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete' };
+export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete', k: 'knife', e: 'transform', g: 'gradient' };
+const SHIFT_KEYS: Record<string, ToolId> = { c: 'convert', m: 'shapebuilder', e: 'eraser', w: 'width' };
 
 export class Editor {
   readonly overlay: Overlay;
+  readonly extras: Extras;
+  readonly ops: Ops;
   tool: ToolId | null = null;
   selection: string[] = [];
   anchors = new Set<string>();
@@ -71,6 +80,8 @@ export class Editor {
 
   constructor(readonly ctx: VectorContext) {
     this.overlay = new Overlay(ctx.canvas.shell);
+    this.extras = new Extras(this.host());
+    this.ops = new Ops(this.host(), () => this.extras.exit());
     const root = this.overlay.root;
     root.addEventListener('pointerdown', event => this.down(event));
     root.addEventListener('dblclick', event => this.double(event));
@@ -83,6 +94,39 @@ export class Editor {
   }
 
   site(): Site { return state().site; }
+
+  host(): Host {
+    return {
+      site: () => this.site(),
+      selection: () => this.selection,
+      primary: () => this.ctx.getSelected(),
+      setSelection: ids => {
+        this.selection = ids;
+        this.anchors.clear();
+        if (ids.length) this.ctx.select(ids[ids.length - 1]);
+        this.render();
+        this.emit();
+      },
+      anchors: () => this.anchors,
+      shape: id => this.shapeOf(id),
+      frame: svg => this.frame(svg) as HostFrame | undefined,
+      toShell: (f, p) => this.toShell(f, p),
+      toLocal: (f, p) => this.toLocal(f, p),
+      px: () => this.px(),
+      commit: (cmds, select) => this.commit(cmds, select),
+      notify: message => this.notify(message),
+      render: () => this.render(),
+      emit: () => this.emit(),
+      activeSvg: () => this.activeSvg(),
+      parentOf: id => this.parentIdOf(id),
+      paint: () => this.paint,
+      element: id => this.element(id),
+      draft: (id, subs) => { this.drafts.set(id, subs); this.preview(id); },
+      isolated: () => this.extras.iso,
+      tool: () => this.tool,
+      pick: p => this.pickPath(p)
+    };
+  }
 
   notify(message: string): void { this.ctx.notify?.(message); }
 
@@ -148,7 +192,7 @@ export class Editor {
   private toShell(f: Frame, p: Pt): Pt { return [f.left + (p[0] - f.vx) * f.sx, f.top + (p[1] - f.vy) * f.sy]; }
   private toLocal(f: Frame, p: Pt): Pt { return [(p[0] - f.left) / f.sx + f.vx, (p[1] - f.top) / f.sy + f.vy]; }
 
-  private pt(event: PointerEvent): Pt {
+  private pt(event: MouseEvent): Pt {
     const rect = this.ctx.canvas.shell.getBoundingClientRect();
     const scale = this.shellScale();
     return [(event.clientX - rect.left) / scale, (event.clientY - rect.top) / scale];
@@ -160,7 +204,7 @@ export class Editor {
     const site = this.site();
     const node = site.nodes[id];
     if (!node) return undefined;
-    const key = `${node.attrs.d ?? ''}|${node.attrs['data-fw-vector'] ?? ''}|${node.attrs.fill ?? ''}|${node.attrs.stroke ?? ''}|${node.attrs['stroke-width'] ?? ''}|${node.attrs['stroke-linecap'] ?? ''}|${node.attrs['stroke-linejoin'] ?? ''}|${node.attrs['stroke-miterlimit'] ?? ''}|${node.attrs['stroke-dasharray'] ?? ''}|${node.attrs['fill-rule'] ?? ''}|${node.attrs.opacity ?? ''}`;
+    const key = `${node.attrs.d ?? ''}|${node.attrs['data-fw-vector'] ?? ''}|${node.attrs.fill ?? ''}|${node.attrs.stroke ?? ''}|${node.attrs['stroke-width'] ?? ''}|${node.attrs['stroke-linecap'] ?? ''}|${node.attrs['stroke-linejoin'] ?? ''}|${node.attrs['stroke-miterlimit'] ?? ''}|${node.attrs['stroke-dasharray'] ?? ''}|${node.attrs['fill-rule'] ?? ''}|${node.attrs.opacity ?? ''}|${node.attrs['data-fw-align'] ?? ''}|${node.attrs['data-fw-weight'] ?? ''}`;
     let entry = this.cache.get(id);
     if (!entry || entry.key !== key) {
       const shape = readShape(site, id);
@@ -197,7 +241,7 @@ export class Editor {
     if (tool === null) { this.overlay.render(scene); return; }
     if (!this.gesture) this.sync();
     this.refs = []; this.handleRefs = []; this.widgetRefs = [];
-    const showPoints = tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral';
+    const showPoints = tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && !EXTRA_TOOLS.has(tool);
     const s = this.px();
     const margin = 16 * s;
     for (const shape of this.selectedShapes()) {
@@ -252,6 +296,7 @@ export class Editor {
     const g = this.gesture;
     if (g?.kind === 'shape') scene.draft = formatPath(applyCorners(this.shapeSubs(g.start, g.current, g.alt, g.shift)));
     if (g?.kind === 'marquee') scene.marquee = { x: g.start[0], y: g.start[1], w: g.current[0] - g.start[0], h: g.current[1] - g.start[1] };
+    this.extras.decorate(scene);
     this.overlay.render(scene);
   }
 
@@ -275,6 +320,8 @@ export class Editor {
 
   async commit(cmds: Command[], afterSelect?: string[]): Promise<boolean> {
     if (!cmds.length) { this.endDrafts(); return false; }
+    const before = this.site();
+    cmds = [...cmds, ...alignFixes(before, cmds), ...widthFixes(before, cmds)];
     this.busy = true;
     const touched = [...this.drafts.keys()];
     try {
@@ -300,10 +347,12 @@ export class Editor {
   private pickPath(p: Pt): { id: string; kind: 'path' | 'svg' | 'other' } | undefined {
     const doc = this.ctx.canvas.frame.contentDocument;
     if (!doc) return undefined;
+    const iso = this.extras.iso;
     for (const el of doc.elementsFromPoint(p[0], p[1])) {
       const id = (el as HTMLElement).dataset?.fwId;
       if (!id || !this.site().nodes[id]) continue;
       const tag = this.site().nodes[id].tag;
+      if (iso && tag === 'path' && !pathIds(this.site(), iso).includes(id)) continue;
       return { id, kind: tag === 'path' ? 'path' : tag === 'svg' ? 'svg' : 'other' };
     }
     return undefined;
@@ -339,6 +388,7 @@ export class Editor {
     event.preventDefault();
     this.frames.clear();
     const tool = this.tool;
+    if (role.startsWith('x-') || EXTRA_TOOLS.has(tool)) { if (this.extras.down(tool, role, index, p, event)) { this.render(); return; } }
     if (role === 'widget') { this.startCorner(index, event); return; }
     if (role === 'handle') { this.startHandle(index); return; }
     if (role === 'anchor') { this.downAnchor(index, event, p); return; }
@@ -358,7 +408,19 @@ export class Editor {
     if (hit?.kind === 'other' && (tool === 'select' || tool === 'direct')) { this.gesture = { kind: 'marquee', start: p, current: p, shift: false, click: hit.id }; return; }
     if (tool === 'select') {
       if (hit?.kind === 'path') {
-        if (!this.selection.includes(hit.id) || event.shiftKey) this.select(hit.id, event.shiftKey);
+        const outer = outerGroup(this.site(), hit.id, this.extras.iso);
+        const unit = outer ? pathIds(this.site(), outer) : [hit.id];
+        if (unit.length > 1 || outer) {
+          const already = unit.every(id => this.selection.includes(id));
+          if (!already || event.shiftKey) {
+            const others = event.shiftKey ? this.selection.filter(id => !unit.includes(id)) : [];
+            this.selection = already && event.shiftKey ? others : [...others, ...unit];
+            this.anchors.clear();
+            if (this.selection.length) this.ctx.select(this.selection[this.selection.length - 1]);
+            this.render();
+            this.emit();
+          }
+        } else if (!this.selection.includes(hit.id) || event.shiftKey) this.select(hit.id, event.shiftKey);
         this.gesture = { kind: 'pathmove', start: p, base: this.baseOf(this.selection), moved: false };
         return;
       }
@@ -457,6 +519,13 @@ export class Editor {
   private double(event: MouseEvent): void {
     const target = (event.target as Element).closest('[data-role]');
     if (target?.getAttribute('data-role') === 'widget') { this.cornerRequests.forEach(fn => fn()); return; }
+    if (this.tool === 'select' && !this.pen) {
+      const hit = this.pickPath(this.pt(event));
+      const group = hit?.kind === 'path' ? outerGroup(this.site(), hit.id, this.extras.iso) : undefined;
+      if (hit && group) { this.selection = [hit.id]; this.ctx.select(hit.id); this.extras.enter(group); return; }
+      if (!hit || hit.kind !== 'path') this.extras.exit();
+      return;
+    }
     if (this.pen && this.pen.nodes.length >= 2) {
       this.pen.nodes.pop();
       this.finishPen(false);
@@ -466,7 +535,7 @@ export class Editor {
   private downPen(p: Pt, event: PointerEvent): void {
     if (!this.pen) this.pen = { closed: false, nodes: [] };
     const last = this.pen.nodes[this.pen.nodes.length - 1];
-    let at = p;
+    let at = event.shiftKey ? p : this.extras.snapPoint(p, new Set(), last ? [last.x, last.y] : undefined, true);
     if (event.shiftKey && last) {
       const dx = p[0] - last.x, dy = p[1] - last.y;
       const angle = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) * (Math.PI / 4);
@@ -493,8 +562,16 @@ export class Editor {
     if (this.tool === null) return;
     const p = this.pt(event);
     this.pointer = p;
+    if (this.extras.move(p, event)) return;
     const g = this.gesture;
-    if (!g) { if (this.pen) this.render(); return; }
+    if (!g) {
+      if (this.pen) {
+        const last = this.pen.nodes[this.pen.nodes.length - 1];
+        this.pointer = this.extras.snapPoint(p, new Set(), last ? [last.x, last.y] : undefined, true);
+        this.render();
+      }
+      return;
+    }
     if (g.kind === 'pen') {
       const node = g.node;
       if (dist(p, [node.x, node.y]) > 3 * this.px()) {
@@ -505,7 +582,7 @@ export class Editor {
       this.render();
       return;
     }
-    if (g.kind === 'shape') { g.current = p; g.alt = event.altKey; g.shift = event.shiftKey; this.render(); return; }
+    if (g.kind === 'shape') { g.current = event.shiftKey ? p : this.extras.snapPoint(p, new Set(), g.start, true); g.alt = event.altKey; g.shift = event.shiftKey; this.render(); return; }
     if (g.kind === 'marquee') { g.current = p; this.render(); return; }
     if (g.kind === 'move') { this.dragAnchors(g, p, event.shiftKey); return; }
     if (g.kind === 'pathmove') { this.dragPaths(g, p, event.shiftKey); return; }
@@ -523,11 +600,12 @@ export class Editor {
   private dragAnchors(g: Extract<Gesture, { kind: 'move' }>, p: Pt, constrain: boolean): void {
     if (!g.moved && dist(p, g.start) < 2 * this.px()) return;
     g.moved = true;
+    const aim = constrain ? p : this.snapDrag(g.base, g.start, p);
     for (const [id, base] of g.base) {
       const shape = this.shapeOf(id);
       const f = shape && this.frame(shape.svg);
       if (!shape || !f) continue;
-      const [dx, dy] = this.delta(f, g.start, p, constrain);
+      const [dx, dy] = this.delta(f, g.start, aim, constrain);
       const next = clonePath(base);
       next.forEach((sub, si) => sub.nodes.forEach((n, idx) => {
         if (this.anchors.has(`${id}|${si}|${idx}`)) moveAnchor(n, base[si].nodes[idx].x + dx, base[si].nodes[idx].y + dy);
@@ -536,6 +614,43 @@ export class Editor {
       this.preview(id);
     }
     this.render();
+  }
+
+  private snapDrag(base: Map<string, SubPath[]>, start: Pt, p: Pt): Pt {
+    const key = [...this.anchors][0];
+    const [id, sub, idx] = key ? key.split('|') : [];
+    const source = id ? base.get(id) : undefined;
+    const shape = id ? this.shapeOf(id) : undefined;
+    const f = shape && this.frame(shape.svg);
+    const node = source?.[Number(sub)]?.nodes[Number(idx)];
+    if (!node || !f) return p;
+    const now: Pt = [...this.toShell(f, [node.x, node.y])] as Pt;
+    now[0] += p[0] - start[0];
+    now[1] += p[1] - start[1];
+    const snapped = this.extras.snapPoint(now, new Set(base.keys()));
+    return [p[0] + snapped[0] - now[0], p[1] + snapped[1] - now[1]];
+  }
+
+  private snapObject(base: Map<string, SubPath[]>, start: Pt, p: Pt): Pt {
+    const first = [...base.keys()][0];
+    const shape = first ? this.shapeOf(first) : undefined;
+    const f = shape && this.frame(shape.svg);
+    const box = pathBounds(applyCorners([...base.values()].flat()));
+    if (!f || !box) return p;
+    const cx = p[0] - start[0], cy = p[1] - start[1];
+    const keys: Pt[] = [[box.x + box.w / 2, box.y + box.h / 2], [box.x, box.y], [box.x + box.w, box.y], [box.x, box.y + box.h], [box.x + box.w, box.y + box.h]].map(q => {
+      const s = this.toShell(f, q as Pt);
+      return [s[0] + cx, s[1] + cy] as Pt;
+    });
+    let best: Pt | null = null, bestD = Infinity, from: Pt = keys[0];
+    for (const q of keys) {
+      const r = this.extras.snapPoint(q, new Set(base.keys()));
+      const d = Math.hypot(r[0] - q[0], r[1] - q[1]);
+      if (d > 1e-6 && d < bestD) { best = r; bestD = d; from = q; }
+    }
+    if (!best) { this.extras.clearGuides(); return p; }
+    this.extras.snapPoint(from, new Set(base.keys()));
+    return [p[0] + best[0] - from[0], p[1] + best[1] - from[1]];
   }
 
   private dragPaths(g: Extract<Gesture, { kind: 'pathmove' }>, p: Pt, constrain: boolean): void {
@@ -555,7 +670,7 @@ export class Editor {
       const shape = this.shapeOf(id);
       const f = shape && this.frame(shape.svg);
       if (!shape || !f) continue;
-      const [dx, dy] = this.delta(f, g.start, p, constrain);
+      const [dx, dy] = this.delta(f, g.start, constrain ? p : this.snapObject(g.base, g.start, p), constrain);
       this.drafts.set(id, translate(base, dx, dy));
       this.preview(id);
     }
@@ -627,6 +742,8 @@ export class Editor {
   }
 
   private up(event: PointerEvent): void {
+    if (this.tool !== null && this.extras.up(this.pt(event), event)) return;
+    this.extras.clearGuides();
     const g = this.gesture;
     if (!g || this.tool === null) return;
     const p = this.pt(event);
@@ -635,7 +752,7 @@ export class Editor {
     if (g.kind === 'shape') {
       if (dist(g.start, p) > 3 * this.px()) {
         const open = this.tool === 'line' || this.tool === 'spiral' || (this.tool === 'arc' && !this.options.closedArc);
-        void this.commitNew(this.shapeSubs(g.start, p, event.altKey, event.shiftKey), open);
+        void this.commitNew(this.shapeSubs(g.start, event.shiftKey ? p : g.current, event.altKey, event.shiftKey), open);
       } else this.render();
       return;
     }
@@ -643,7 +760,13 @@ export class Editor {
     if (g.kind === 'pathmove') {
       if (!g.moved) { this.render(); return; }
       if (g.svg) { void this.commitSvgMove(g.svg, p, g.start, event.shiftKey); return; }
-      void this.commit([...this.drafts.keys()].map(id => updateGeometry(id, this.drafts.get(id)!)));
+      const deltas = new Map<string, Pt>();
+      for (const [id, draft] of this.drafts) {
+        const before = g.base.get(id);
+        if (before?.[0]?.nodes[0] && draft[0]?.nodes[0]) deltas.set(id, [draft[0].nodes[0].x - before[0].nodes[0].x, draft[0].nodes[0].y - before[0].nodes[0].y]);
+      }
+      this.endDrafts();
+      void this.commit(moveCommands(this.host(), deltas));
       return;
     }
     if (g.kind === 'convert' && !g.moved) {
@@ -772,6 +895,7 @@ export class Editor {
       return;
     }
     if (event.key === 'Escape') {
+      if (this.extras.key(event)) { event.preventDefault(); return; }
       if (this.pen) { this.finishPen(false); event.preventDefault(); return; }
       if (this.anchors.size) { this.anchors.clear(); this.render(); this.emit(); event.preventDefault(); return; }
       this.setTool(null);
@@ -803,7 +927,7 @@ export class Editor {
 
   private toolForKey(event: KeyboardEvent): ToolId | undefined {
     if (!this.shortcuts || event.altKey) return undefined;
-    if (event.shiftKey && event.key.toLowerCase() === 'c') return 'convert';
+    if (event.shiftKey && SHIFT_KEYS[event.key.toLowerCase()]) return SHIFT_KEYS[event.key.toLowerCase()];
     const tool = TOOL_KEYS[event.key.toLowerCase()];
     if (!tool) return undefined;
     if (this.tool !== null || ['pen', 'rect', 'ellipse', 'line'].includes(tool)) return tool;
@@ -964,7 +1088,7 @@ export class Editor {
       const cmds = shapes.map(shape => {
         const next = { ...shape.paint, ...patch };
         const attrs: Record<string, string | null> = { ...paintAttrs(next) };
-        for (const name of ['stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'opacity']) if (attrs[name] === undefined) attrs[name] = null;
+        for (const name of ['stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'opacity', 'data-fw-align', 'data-fw-weight', 'paint-order']) if (attrs[name] === undefined) attrs[name] = null;
         return updateAttrs(shape.id, attrs);
       });
       void this.commit(cmds);

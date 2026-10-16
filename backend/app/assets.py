@@ -12,10 +12,16 @@ ASSET_REF = re.compile(r'/api/assets/([0-9a-f]{64}\.(?:png|jpg|gif|webp|svg))')
 MIME_TYPES = {'png': 'image/png', 'jpg': 'image/jpeg', 'gif': 'image/gif', 'webp': 'image/webp', 'svg': 'image/svg+xml'}
 # FW-073: SVG assets come only from the bundled icon set (and .fweb files carrying them), never from uploads, and are
 # rebuilt from this allowlist so no script, link, style sheet or external reference can survive.
-SVG_TAGS = {'svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse'}
+SVG_TAGS = {'svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse',
+            'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask'}
 SVG_ATTRS = {'xmlns', 'width', 'height', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'd', 'cx', 'cy', 'r', 'rx', 'ry',
              'x', 'y', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'opacity', 'fill-opacity', 'stroke-opacity',
-             'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'fill-rule', 'clip-rule', 'vector-effect', 'preserveAspectRatio'}
+             'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'fill-rule', 'clip-rule', 'vector-effect', 'preserveAspectRatio',
+             'id', 'fx', 'fy', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'spreadMethod',
+             'clipPathUnits', 'maskUnits', 'maskContentUnits', 'clip-path', 'mask', 'paint-order'}
+SVG_DEFINITIONS = {'linearGradient', 'radialGradient', 'clipPath', 'mask'}
+SVG_REFERENCES = {'fill', 'stroke', 'clip-path', 'mask'}
+SVG_REF = re.compile(r'^url\(#([A-Za-z0-9_-]{1,64})\)$')  # only a fragment inside the same document, never a link
 VECTOR_MODEL = 'data-fw-vector'  # editable anchor model written by the vector editor; JSON only, checked structurally below
 VECTOR_MODEL_LIMIT = 262144
 SVG_VALUE = re.compile(r'^[A-Za-z0-9 .,#%()+\-/]*$')  # no colon: no scheme (javascript:, data:) can appear in any value
@@ -28,6 +34,20 @@ def asset_path(name: str):
     if not target.is_file():
         raise EngineError('Asset not found.', 404)
     return target
+
+
+def svg_value_ok(name: str, value: str, defined: set) -> bool:
+    if not SVG_VALUE.fullmatch(value):
+        return False
+    if 'url' not in value.lower():
+        return True
+    match = SVG_REF.fullmatch(value)
+    return bool(match) and name in SVG_REFERENCES and match.group(1) in defined
+
+
+def svg_definitions(root) -> set:
+    return {node.attrib['id'] for node in root.iter()
+            if isinstance(node.tag, str) and node.tag.split('}', 1)[-1] in SVG_DEFINITIONS and re.fullmatch(r'[A-Za-z0-9_-]{1,64}', node.attrib.get('id', ''))}
 
 
 def vector_model_ok(value: str) -> bool:
@@ -55,6 +75,8 @@ def sanitize_svg(data: bytes) -> bytes:
         raise EngineError('SVG is not well formed.', 415) from error
     from html import escape as quote
 
+    defined = svg_definitions(root)
+
     def declarations(node) -> dict:
         found = {}
         for part in node.attrib.get('style', '').split(';'):
@@ -76,7 +98,7 @@ def sanitize_svg(data: bytes) -> bytes:
                 if vector_model_ok(value):
                     attrs.append(f' {name}="{quote(value, quote=True)}"')
                 continue
-            if name in SVG_ATTRS and name != 'xmlns' and 'url' not in value.lower() and SVG_VALUE.fullmatch(value):
+            if name in SVG_ATTRS and name != 'xmlns' and svg_value_ok(name, value, defined):
                 attrs.append(f' {name}="{quote(value, quote=True)}"')
         children = ''.join(build(child) for child in node)
         return f'<{tag}{"".join(attrs)}>{children}</{tag}>'
@@ -106,6 +128,8 @@ def clean_svg(data: bytes) -> bytes:
         raise EngineError('SVG is not well formed.', 415) from error
     from html import escape as quote
 
+    defined = svg_definitions(root)
+
     def build(node) -> str:
         tag = node.tag.split('}', 1)[-1]
         if tag not in SVG_TAGS:
@@ -120,7 +144,7 @@ def clean_svg(data: bytes) -> bytes:
                     raise EngineError('SVG vector model is not valid.', 415)
                 attrs.append(f' {name}="{quote(value, quote=True)}"')
                 continue
-            if name not in SVG_ATTRS or 'url' in value.lower() or not SVG_VALUE.fullmatch(value):
+            if name not in SVG_ATTRS or not svg_value_ok(name, value, defined):
                 raise EngineError(f'SVG attribute {name} is not allowed.', 415)
             if name != 'xmlns':
                 attrs.append(f' {name}="{quote(value, quote=True)}"')
