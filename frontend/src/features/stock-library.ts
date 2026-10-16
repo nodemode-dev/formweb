@@ -1,4 +1,5 @@
 import { element, keyed, text } from '../ui/dom';
+import { t, tn } from '../i18n';
 import '../styles/stock-library.css';
 
 /**
@@ -93,7 +94,7 @@ export class StockLibrary {
     this.generator.dataset.field = 'stock.generator'; this.generator.setAttribute('aria-label', 'Generator');
     this.genSize.dataset.field = 'stock.gen-size'; this.genSize.setAttribute('aria-label', 'Picture size');
     this.genCount.dataset.field = 'stock.gen-count'; this.genCount.setAttribute('aria-label', 'How many pictures');
-    for (const n of [1, 2, 3, 4]) { const option = element('option', '', `${n} picture${n === 1 ? '' : 's'}`); option.value = String(n); this.genCount.append(option); }
+    for (const n of [1, 2, 3, 4]) { const option = element('option', '', tn(n, '{0} picture', '{0} pictures')); option.value = String(n); this.genCount.append(option); }
     this.generator.addEventListener('change', () => this.fillSizes());
     this.generateButton = element('button', 'primary', 'Generate');
     this.generateButton.type = 'button';
@@ -145,7 +146,7 @@ export class StockLibrary {
       const result = await this.hooks.icons(query);
       if (token !== this.token) return;
       this.icons = result.icons;
-      text(this.iconCount, `${result.total === result.icons.length ? result.total : `Showing ${result.icons.length} of ${result.total}`} icons from Lucide ${result.source.version} (ISC; Feather-derived icons MIT).`);
+      text(this.iconCount, result.total === result.icons.length ? t('{0} icons from Lucide {1} (ISC; Feather-derived icons MIT).', [result.total, result.source.version]) : t('Showing {0} of {1} icons from Lucide {2} (ISC; Feather-derived icons MIT).', [result.icons.length, result.total, result.source.version]));
       keyed(this.iconGrid, result.icons, item => item.name, item => this.iconTile(item), (node, item) => {
         node.dataset.selected = String(item.name === this.selectedIcon);
         node.title = [item.name, ...item.tags.slice(0, 5)].join(', ');
@@ -159,7 +160,8 @@ export class StockLibrary {
           const option = node as HTMLOptionElement;
           option.value = item.id;
           option.disabled = !item.ready;
-          text(option, `${item.label}${item.local ? '' : ` (${item.provider}, your key)`}${item.ready ? '' : ': not set up'}`);
+          const base = item.local ? item.label : t('{0} ({1}, your key)', [item.label, item.provider]);
+          text(option, item.ready ? base : t('{0}: not set up', [base]));
           option.title = item.reason || item.licence;
         });
         const first = listing.generators.find(item => item.ready && item.local) || listing.generators.find(item => item.ready);
@@ -176,7 +178,7 @@ export class StockLibrary {
         if (token !== this.token) return;
         this.photos = result.photos;
         this.photoNote.dataset.state = 'ok';
-        text(this.photoNote, result.photos.length ? `${result.source.note} ${result.total} photo${result.total === 1 ? '' : 's'}${query ? ' match' : ''}.` : query ? `No formlit photos match "${query}".` : 'Your formlit library has no photos yet.');
+        text(this.photoNote, result.photos.length ? `${result.source.note} ${query ? tn(result.total, '{0} photo matches.', '{0} photos match.') : tn(result.total, '{0} photo.', '{0} photos.')}` : query ? t('No formlit photos match "{0}".', [query]) : t('Your formlit library has no photos yet.'));
       } catch (error) {
         if (token !== this.token) return;
         this.photos = [];
@@ -195,7 +197,7 @@ export class StockLibrary {
   private iconTile(item: Icon): HTMLElement {
     const tile = element('button', 'fw-stock-icon');
     tile.type = 'button';
-    tile.setAttribute('aria-label', `${item.name} icon`);
+    tile.setAttribute('aria-label', t('{0} icon', [item.name]));
     const svg = document.createElementNS(SVG, 'svg');
     for (const [key, value] of Object.entries({ viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) svg.setAttribute(key, value);
     svg.setAttribute('stroke-width', this.stroke.value);
@@ -241,7 +243,7 @@ export class StockLibrary {
     keyed(this.genSize, sizes.map(size => ({ size })), item => item.size, () => element('option'), (node, item) => {
       (node as HTMLOptionElement).value = item.size;
       const [w, h] = item.size.split('x').map(Number);
-      text(node, `${item.size} ${w === h ? 'square' : w > h ? 'landscape' : 'portrait'}`);
+      text(node, w === h ? t('{0} square', [item.size]) : w > h ? t('{0} landscape', [item.size]) : t('{0} portrait', [item.size]));
     });
   }
 
@@ -259,10 +261,10 @@ export class StockLibrary {
         if (state.status === 'done') {
           this.generated = [...(state.assets || []), ...this.generated].slice(0, 24);
           this.selectedGenerated = state.assets?.[0]?.id || '';
-          text(this.genNote, `${state.assets?.length || 0} picture${state.assets?.length === 1 ? '' : 's'} saved to this project with the prompt, generator and licence. Check the model or provider terms before publishing.`);
+          text(this.genNote, tn(state.assets?.length || 0, '{0} picture saved to this project with the prompt, generator and licence. Check the model or provider terms before publishing.', '{0} pictures saved to this project with the prompt, generator and licence. Check the model or provider terms before publishing.'));
           break;
         }
-        text(this.genNote, `formvis is generating... ${Math.round((state.progress || 0) * 100)}%${state.message ? ` · ${state.message}` : ''}`);
+        text(this.genNote, t('formvis is generating... {0}%', [Math.round((state.progress || 0) * 100)]) + (state.message ? ` · ${state.message}` : ''));
         await new Promise(resolve => window.setTimeout(resolve, 1000));
       }
       if (this.tab === 'generate') this.renderGenerated();
@@ -290,18 +292,18 @@ export class StockLibrary {
   private describe(): void {
     if (this.tab === 'generate') {
       const item = this.generated.find(entry => entry.id === this.selectedGenerated);
-      text(this.detail, item ? `Generated with ${item.license?.generator || 'formvis'} from "${item.license?.prompt || ''}". Provenance is saved with the image; check the model or provider terms before publishing.` : 'Describe a picture and press Generate (or Enter). Results stay here for this session.');
+      text(this.detail, item ? t('Generated with {0} from "{1}". Provenance is saved with the image; check the model or provider terms before publishing.', [item.license?.generator || 'formvis', item.license?.prompt || '']) : t('Describe a picture and press Generate (or Enter). Results stay here for this session.'));
       this.insertButton.disabled = !item || this.busy;
       return;
     }
     if (this.tab === 'icons') {
       const icon = this.icons.find(item => item.name === this.selectedIcon);
-      text(this.detail, icon ? `${icon.name}: ${icon.license} licence (Lucide). Credited in CREDITS.txt when you export.` : 'Pick an icon; double-click inserts it.');
+      text(this.detail, icon ? t('{0}: {1} licence (Lucide). Credited in CREDITS.txt when you export.', [icon.name, icon.license]) : t('Pick an icon; double-click inserts it.'));
       this.insertButton.disabled = !icon;
     } else {
       const photo = this.photos.find(item => item.id === this.selectedPhoto);
       const credit = photo?.credit;
-      text(this.detail, photo ? [credit?.copyright || credit?.creator, credit?.usage ? `Usage: ${credit.usage}` : '', 'Credit saved with the image.'].filter(Boolean).join(' · ') : 'Pick a photo; double-click inserts it.');
+      text(this.detail, photo ? [credit?.copyright || credit?.creator, credit?.usage ? t('Usage: {0}', [credit.usage]) : '', t('Credit saved with the image.')].filter(Boolean).join(' · ') : t('Pick a photo; double-click inserts it.'));
       this.insertButton.disabled = !photo;
     }
   }
@@ -319,12 +321,12 @@ export class StockLibrary {
         if (!this.selectedIcon) throw new Error('Pick an icon first.');
         const made = await this.hooks.iconAsset(this.selectedIcon, this.color.value, Number(this.stroke.value), Math.max(8, Math.min(1024, Number(this.size.value) || 96)));
         await this.hooks.insert(made, 'icon');
-        this.hooks.notify(`Inserted the ${this.selectedIcon} icon (${made.asset.license?.license || 'ISC'} licence, credited on export). ${made.note}`);
+        this.hooks.notify(`${t('Inserted the {0} icon ({1} licence, credited on export).', [this.selectedIcon, made.asset.license?.license || 'ISC'])} ${made.note}`);
       } else {
         if (!this.selectedPhoto) throw new Error('Pick a photo first.');
         const made = await this.hooks.photoAsset(this.selectedPhoto);
         await this.hooks.insert(made, 'photo');
-        this.hooks.notify(`Inserted "${made.name}". ${made.note}`);
+        this.hooks.notify(`${t('Inserted "{0}".', [made.name])} ${made.note}`);
       }
     } finally { this.describe(); }
   }

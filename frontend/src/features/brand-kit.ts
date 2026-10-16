@@ -1,5 +1,6 @@
 import type { Command, EditorState } from '../types';
 import { element, keyed, text } from '../ui/dom';
+import { t, tn } from '../i18n';
 import '../styles/brand-kit.css';
 
 /**
@@ -113,19 +114,19 @@ export class BrandKit {
     }, (node, item) => {
       node.dataset.node = item.node;
       text(node.querySelector('.fw-brand-issue-name')!, `${item.name}: ${item.property}${item.breakpoint === 'desktop' ? '' : ' (' + item.breakpoint + ')'}`);
-      text(node.querySelector('.fw-brand-value')!, `${item.value} to ${item.suggestion ?? 'no brand value'}`);
+      text(node.querySelector('.fw-brand-value')!, t('{0} to {1}', [item.value, item.suggestion ?? { t: 'no brand value' }]));
       (node.querySelector('[data-command="brand.fix"]') as HTMLButtonElement).disabled = !item.fix;
     });
     this.fixAll.hidden = !report.issues.some(issue => issue.fix);
     const s = report.summary;
-    text(this.checkNote, report.issues.length ? `${s.color || 0} colors, ${s.font || 0} fonts and ${s.logo || 0} logos are off-brand on this page.` : report.note.startsWith('The brand kit is empty') ? report.note : 'Everything on this page uses the brand kit.');
+    text(this.checkNote, report.issues.length ? t('{0} colors, {1} fonts and {2} logos are off-brand on this page.', [s.color || 0, s.font || 0, s.logo || 0]) : report.note.startsWith('The brand kit is empty') ? t(report.note) : t('Everything on this page uses the brand kit.'));
   }
 
   private async applyFixes(issues: BrandIssue[]): Promise<void> {
     const fixes = issues.map(issue => issue.fix).filter((fix): fix is Command => !!fix);
     if (!fixes.length) return;
     await this.hooks.commands(fixes);
-    this.hooks.notify(`${fixes.length} brand fix${fixes.length === 1 ? '' : 'es'} applied as one undo step.`);
+    this.hooks.notify(tn(fixes.length, '{0} brand fix applied as one undo step.', '{0} brand fixes applied as one undo step.'));
     await this.runCheck();
   }
 
@@ -170,14 +171,14 @@ export class BrandKit {
     const name = this.slug(this.colorName.value);
     await this.hooks.commands([{ command: 'token.define', params: { name: `brand-${name}`, type: 'color', value: this.colorValue.value } }]);
     this.colorName.value = '';
-    this.hooks.notify(`Brand color ${name} saved as var(--brand-${name}).`);
+    this.hooks.notify(t('Brand color {0} saved as var(--brand-{0}).', [name]));
   }
 
   private async addFont(): Promise<void> {
     const name = this.slug(this.fontName.value);
     await this.hooks.commands([{ command: 'token.define', params: { name: `brand-font-${name}`, type: 'text', value: this.fontValue.value } }]);
     this.fontName.value = '';
-    this.hooks.notify(`Brand font ${name} saved as var(--brand-font-${name}).`);
+    this.hooks.notify(t('Brand font {0} saved as var(--brand-font-{0}).', [name]));
   }
 
   private async remove(token: string): Promise<void> {
@@ -187,7 +188,7 @@ export class BrandKit {
     delete tokens[token];
     design.tokens = tokens;
     await this.hooks.commands([{ command: 'token.set', params: { name: token, value: null } }, { command: 'extension.set', params: { group: 'design', value: design } }]);
-    this.hooks.notify(`${token} removed from the brand kit. Elements still using var(--${token}) fall back to their inherited value.`);
+    this.hooks.notify(t('{0} removed from the brand kit. Elements still using var(--{0}) fall back to their inherited value.', [token]));
   }
 
   private entryRow(kind: 'color' | 'font'): HTMLElement {

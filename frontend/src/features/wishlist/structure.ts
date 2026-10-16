@@ -1,6 +1,7 @@
 import type { EditorState } from '../../types';
 import { text as setText } from '../../ui/dom';
 import { element } from '../../ui/dom';
+import { t } from '../../i18n';
 import { ancestorWhere, btn, check, containerFor, field, note, number, parentOf, row, section, select, setChecked, setValue, text, type Tab, type WishlistContext } from './kit';
 
 type Cell = { table: string; row: number; col: number; rows: number; cols: number };
@@ -110,7 +111,7 @@ export function buildStructure(ctx: WishlistContext): Tab[] {
     refresh() {
       const node = ctx.state().site.nodes[ctx.selected()];
       const ok = !!node && inline.includes(node.tag) && !node.componentSourceId;
-      setText(scriptNote, ok ? `Selected: ${node.name || node.tag} (${node.tag}).` : 'Select an inline text element (a span, sup or sub) to set superscript or subscript, or mark words in a text element above.');
+      setText(scriptNote, ok ? t('Selected: {0} ({1}).', [node.name || node.tag, node.tag]) : 'Select an inline text element (a span, sup or sub) to set superscript or subscript, or mark words in a text element above.');
       const markable = !!node && !!node.text && !node.children.length && !node.componentSourceId && ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'span', 'sup', 'sub', 'a', 'blockquote', 'figcaption', 'div'].includes(node.tag);
       markSuper.disabled = !markable;
       markSub.disabled = !markable;
@@ -148,7 +149,7 @@ export function buildStructure(ctx: WishlistContext): Tab[] {
       setValue(padding, state.site.settings.layoutPadding || '16px');
       setValue(columns, state.site.settings.layoutColumns || '3');
       const ok = !!node && !['img', 'input', 'br', 'hr', 'source', 'wbr'].includes(node.tag) && !node.componentSourceId;
-      setText(layoutNote, ok ? `Selected: ${node.name || node.tag}. Gap ${state.site.settings.layoutGap || '16px'}, padding only when the element has none.` : 'Select a container element.');
+      setText(layoutNote, ok ? t('Selected: {0}. Gap {1}, padding only when the element has none.', [node.name || node.tag, state.site.settings.layoutGap || '16px']) : 'Select a container element.');
       for (const button of [rowFlex, columnFlex, grid]) button.disabled = !ok;
     }
   };

@@ -1,4 +1,5 @@
 import type { SiteNode } from '../../types';
+import { t, tn } from '../../i18n';
 import { element, keyed, text as setText } from '../../ui/dom';
 import { ancestorWhere, btn, check, field, note, number, pageOf, row, section, select, setChecked, setValue, text, type AuditRow, type Tab, type WishlistContext } from './kit';
 
@@ -90,10 +91,10 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
       const form = formOf(ctx);
       const direct = form ? form.children.map(id => nodes[id]).filter(node => node && !node.attrs['data-fw-step']) : [];
       const stepped = form ? form.children.filter(id => nodes[id]?.attrs['data-fw-step']).length : 0;
-      setText(stepNote, form ? (stepped ? `${form.name || 'Form'} has ${stepped} steps. Remove them to regroup.` : `${form.name || 'Form'}: ${direct.length} elements.`) : 'Select a form, or an element inside one.');
+      setText(stepNote, form ? (stepped ? t('{0} has {1} steps. Remove them to regroup.', [form.name || { t: 'Form' }, stepped]) : tn(direct.length, '{0}: {1} element.', '{0}: {1} elements.', [form.name || { t: 'Form' }, direct.length])) : 'Select a form, or an element inside one.');
       keyed(stepRows, direct, node => node.id, () => {
         const node = element('div', 'wl-item');
-        node.append(element('span', 'wl-item-name'), select(Array.from({ length: 12 }, (_, i) => [String(i + 1), `Step ${i + 1}`] as [string, string])));
+        node.append(element('span', 'wl-item-name'), select(Array.from({ length: 12 }, (_, i) => [String(i + 1), t('Step {0}', [i + 1])] as [string, string])));
         return node;
       }, (node, item) => {
         setText(node.firstElementChild as HTMLElement, item.name || item.tag);
@@ -114,7 +115,7 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
         node.append(element('span', 'wl-item-name'), input);
         return node;
       }, (node, item) => {
-        const label = `Step ${item.attrs['data-fw-step']}`;
+        const label = t('Step {0}', [item.attrs['data-fw-step']]);
         setText(node.firstElementChild as HTMLElement, label);
         const input = node.lastElementChild as HTMLInputElement;
         input.placeholder = label;

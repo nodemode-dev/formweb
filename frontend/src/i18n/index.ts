@@ -213,7 +213,7 @@ function translateText(node: Text): void {
     if (next !== raw) node.data = next;
     return;
   }
-  if (!trimmed || trimmed.length > 240 || !known(trimmed) || skipped(node)) { if (rec) textEn.delete(node); return; }
+  if (!trimmed || trimmed.length > 400 || !known(trimmed) || skipped(node)) { if (rec) textEn.delete(node); return; }
   const next = raw.replace(trimmed, t(trimmed));
   textEn.set(node, { en: raw, shown: next });
   node.data = next;

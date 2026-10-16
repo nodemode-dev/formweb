@@ -1,5 +1,6 @@
 import type { EditorState } from '../types';
 import { element, keyed, options, text } from '../ui/dom';
+import { t, tn } from '../i18n';
 import '../styles/brand-kit.css';
 
 /**
@@ -30,7 +31,6 @@ type Hooks = {
   assetUrl: (url: string) => string;
 };
 
-const plural = (count: number, word: string): string => `${count} ${word}${count === 1 ? '' : 's'}`;
 
 export class TeamLibraries {
   readonly element = element('div', 'fw-brand fw-team');
@@ -98,8 +98,8 @@ export class TeamLibraries {
     keyed(this.list, libraries, item => item.id, () => this.libraryRow(), (node, item) => {
       node.dataset.selected = String(this.selected?.id === item.id);
       text(node.querySelector('.fw-team-name')!, item.name);
-      const counts = `${plural(item.counts.colors, 'color')}, ${plural(item.counts.fonts, 'font')}, ${plural(item.counts.graphics, 'graphic')}`;
-      text(node.querySelector('.fw-team-meta')!, `${item.role === 'owner' ? 'Yours' : `${item.owner}'s, you can ${item.role === 'edit' ? 'edit' : 'use'}`} · ${counts}`);
+      const counts = `${tn(item.counts.colors, '{0} color', '{0} colors')}, ${tn(item.counts.fonts, '{0} font', '{0} fonts')}, ${tn(item.counts.graphics, '{0} graphic', '{0} graphics')}`;
+      text(node.querySelector('.fw-team-meta')!, `${item.role === 'owner' ? t('Yours') : item.role === 'edit' ? t("{0}'s, you can edit", [item.owner]) : t("{0}'s, you can use", [item.owner])} · ${counts}`);
       const badge = node.querySelector('.fw-team-badge') as HTMLElement;
       badge.dataset.state = item.updateAvailable ? 'update' : item.linked ? 'linked' : 'off';
       text(badge, item.updateAvailable ? 'Update available' : item.linked ? 'Linked' : '');
@@ -134,7 +134,7 @@ export class TeamLibraries {
     for (const node of Array.from(this.list.children) as HTMLElement[]) node.dataset.selected = String(node.dataset.key === id);
     const canEdit = library.role !== 'view';
     text(this.detailTitle, library.name);
-    text(this.detailMeta, `Revision ${library.revision} · used by ${plural(library.usedBy, 'site')}${library.linked ? ` · linked here at revision ${library.linkedRevision}` : ''}. Tokens are named var(--lib-${library.slug}-...).`);
+    text(this.detailMeta, `${t('Revision {0}', [library.revision])} · ${tn(library.usedBy, 'used by {0} site', 'used by {0} sites')}${library.linked ? ` · ${t('linked here at revision {0}', [library.linkedRevision ?? 0])}` : ''}. ${t('Tokens are named var(--lib-{0}-...).', [library.slug])}`);
     keyed(this.colors, library.colors, item => item.name, () => this.itemRow('colors', canEdit), (node, item) => {
       (node.querySelector('.fw-brand-swatch') as HTMLElement).style.background = item.value;
       text(node.querySelector('.fw-brand-name')!, item.name);
@@ -195,11 +195,11 @@ export class TeamLibraries {
   }
 
   private async create(fromBrand: boolean): Promise<void> {
-    const name = this.createName.value.trim() || (fromBrand ? `${this.hooks.state().site.name} brand` : '');
+    const name = this.createName.value.trim() || (fromBrand ? t('{0} brand', [this.hooks.state().site.name]) : '');
     if (!name) throw new Error('Name the library first.');
     const library = await this.hooks.create(name, fromBrand);
     this.createName.value = '';
-    this.hooks.notify(`Team library "${library.name}" created${fromBrand ? ' from this site\'s brand kit' : ''}. Link it here or in any project to use it.`);
+    this.hooks.notify(fromBrand ? t('Team library "{0}" created from this site\'s brand kit. Link it here or in any project to use it.', [library.name]) : t('Team library "{0}" created. Link it here or in any project to use it.', [library.name]));
     this.selected = library;
     await this.refresh();
   }
@@ -217,11 +217,11 @@ export class TeamLibraries {
   private async addItem(kind: 'colors' | 'fonts', nameField: HTMLInputElement, value: string): Promise<void> {
     const library = this.need();
     const name = nameField.value.trim();
-    if (!name) throw new Error(`Name the ${kind === 'colors' ? 'color' : 'font'} first.`);
+    if (!name) throw new Error(kind === 'colors' ? t('Name the color first.') : t('Name the font first.'));
     const items = library[kind].filter(item => item.name !== name).map(({ name, value }) => ({ name, value }));
     await this.hooks.save(library.id, this.payload(kind, [...items, { name, value }]));
     nameField.value = '';
-    this.hooks.notify(`Saved to "${library.name}". Sites that link it get the change when they sync.`);
+    this.hooks.notify(t('Saved to "{0}". Sites that link it get the change when they sync.', [library.name]));
     await this.refresh();
   }
 
@@ -240,7 +240,7 @@ export class TeamLibraries {
     const library = this.need();
     const items = kind === 'graphics' ? library.graphics.filter(item => item.name !== name).map(({ name, asset }) => ({ name, asset })) : library[kind].filter(item => item.name !== name).map(({ name, value }) => ({ name, value }));
     await this.hooks.save(library.id, this.payload(kind, items));
-    this.hooks.notify(`Removed ${name} from "${library.name}". Linked sites keep the token so nothing they use changes.`);
+    this.hooks.notify(t('Removed {0} from "{1}". Linked sites keep the token so nothing they use changes.', [name, library.name]));
     await this.refresh();
   }
 
@@ -253,7 +253,7 @@ export class TeamLibraries {
     const graphics = [['logo', site.settings.brandLogo], ['logo-dark', site.settings.brandLogoDark]].filter(([, url]) => url).map(([name, url]) => ({ name, asset: (url as string).split('/').pop() }));
     if (!colors.length && !fonts.length && !graphics.length) throw new Error('This site has no brand kit yet (Window > Brand kit).');
     await this.hooks.save(library.id, { colors, fonts, graphics, expectedRevision: library.revision });
-    this.hooks.notify(`"${library.name}" now matches this site's brand kit.`);
+    this.hooks.notify(t('"{0}" now matches this site\'s brand kit.', [library.name]));
     await this.refresh();
   }
 
@@ -262,17 +262,17 @@ export class TeamLibraries {
     const id = this.shareId.value;
     if (!id) throw new Error('Choose a person to share with.');
     await this.hooks.share(library.id, id, this.shareRole.value);
-    this.hooks.notify(this.shareRole.value === 'none' ? 'Access removed.' : `Shared "${library.name}".`);
+    this.hooks.notify(this.shareRole.value === 'none' ? t('Access removed.') : t('Shared "{0}".', [library.name]));
     await this.open(library.id);
   }
 
   private async remove(): Promise<void> {
     const library = this.need();
-    if (!window.confirm(`Delete the team library "${library.name}"? Sites that linked it keep its tokens.`)) return;
+    if (!window.confirm(t('Delete the team library "{0}"? Sites that linked it keep its tokens.', [library.name]))) return;
     await this.hooks.remove(library.id);
     this.selected = null;
     this.detail.hidden = true;
-    this.hooks.notify(`Deleted "${library.name}".`);
+    this.hooks.notify(t('Deleted "{0}".', [library.name]));
     await this.refresh();
   }
 

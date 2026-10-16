@@ -1,5 +1,6 @@
 import { element, keyed, options, text } from '../ui/dom';
 import type { SiteReference } from '../api';
+import { t, tn } from '../i18n';
 import '../styles/ai-writer.css';
 
 /**
@@ -155,7 +156,7 @@ export class SiteGenerator {
     this.prompt.setAttribute('aria-label', 'Describe the site');
     this.pages.dataset.field = 'ai.site-pages';
     this.pages.setAttribute('aria-label', 'How many pages');
-    options(this.pages, [1, 2, 3, 4].map(n => ({ id: String(n), name: `Up to ${n} page${n === 1 ? '' : 's'}` })));
+    options(this.pages, [1, 2, 3, 4].map(n => ({ id: String(n), name: tn(n, 'Up to {0} page', 'Up to {0} pages') })));
     this.pages.value = '3';
     this.draftButton = this.button('Draft outline', 'ai.site-draft', () => this.draft(), 'primary');
     this.buildButton = this.button('Build pages', 'ai.site-build', () => this.build(), 'primary');
@@ -175,17 +176,17 @@ export class SiteGenerator {
     this.referenceIds.set(read, ++this.nextReference);
     this.references.push(read);
     this.renderReferences();
-    this.hooks.notify(read.kind === 'pdf' ? `${read.name}: ${read.text?.length ?? 0} characters of text will be used as facts${read.truncated ? ' (the first part only)' : ''}.` : `${read.name}: its colours will be offered for the buttons.`);
+    this.hooks.notify(read.kind === 'pdf' ? (read.truncated ? t('{0}: {1} characters of text will be used as facts (the first part only).', [read.name, read.text?.length ?? 0]) : t('{0}: {1} characters of text will be used as facts.', [read.name, read.text?.length ?? 0])) : t('{0}: its colours will be offered for the buttons.', [read.name]));
   }
 
   private renderReferences(): void {
     keyed(this.referenceList, this.references, item => String(this.referenceIds.get(item)), item => {
       const row = element('li', 'fw-ai-ref');
-      const label = element('span', 'fw-ai-ref-name', item.kind === 'pdf' ? `${item.name} (PDF, ${item.pages} page${item.pages === 1 ? '' : 's'})` : item.name);
+      const label = element('span', 'fw-ai-ref-name', item.kind === 'pdf' ? tn(item.pages ?? 0, '{0} (PDF, {1} page)', '{0} (PDF, {1} pages)', [item.name, item.pages ?? 0]) : item.name);
       const swatches = element('span', 'fw-ai-swatches');
       for (const color of item.colors ?? []) { const swatch = element('span', 'fw-ai-swatch'); swatch.style.background = color; swatch.title = color; swatches.append(swatch); }
       const remove = this.button('Remove', 'ai.site-reference-remove', () => { this.references = this.references.filter(entry => entry !== item); this.renderReferences(); });
-      remove.setAttribute('aria-label', `Remove ${item.name}`);
+      remove.setAttribute('aria-label', t('Remove {0}', [item.name]));
       row.append(label, swatches, remove);
       return row;
     }, () => undefined);
@@ -194,7 +195,7 @@ export class SiteGenerator {
   async open(): Promise<void> {
     const status = await this.hooks.status();
     this.note.dataset.state = status.available ? 'ok' : 'off';
-    text(this.note, `${status.note} You review an outline first; building adds new editable pages in one undo step and changes nothing that exists.`);
+    text(this.note, `${status.note} ${t('You review an outline first; building adds new editable pages in one undo step and changes nothing that exists.')}`);
     this.draftButton.disabled = !status.available;
     this.prompt.focus();
   }
@@ -253,7 +254,7 @@ export class SiteGenerator {
       const block = element('div', 'fw-ai-page');
       block.append(element('strong', '', `${page.name}  ${page.slug || ''}`));
       const list = element('ol');
-      for (const section of page.sections) list.append(element('li', '', `${section.kind}: ${section.heading || '(no heading)'}${section.items.length ? ` (${section.items.length} item${section.items.length === 1 ? '' : 's'})` : ''}`));
+      for (const section of page.sections) list.append(element('li', '', `${section.kind}: ${section.heading || t('(no heading)')}${section.items.length ? ` (${tn(section.items.length, '{0} item', '{0} items')})` : ''}`));
       block.append(list);
       this.outline.append(block);
     }

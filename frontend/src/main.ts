@@ -20,7 +20,7 @@ import { StockLibrary } from './features/stock-library';
 import { AiWriter, SiteGenerator } from './features/ai-writer';
 import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
-import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator } from './i18n';
+import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 
 await startLanguage();
@@ -303,7 +303,7 @@ const canvas = new Canvas(stage, selectNode, (id, next) => void run(async () => 
 }), href => {
   const target = state().site.pages.find(page => page.slug === href || `/${page.slug}`.replace(/\/+/g, '/') === href);
   if (target) { pageId = target.id; selectedId = target.root; update(state()); }
-  else status(`Preview link: ${href}. Exported sites can follow external links.`);
+  else status(t('Preview link: {0}. Exported sites can follow external links.', [href]));
 });
 
 const inspector = element('aside', 'inspector');
@@ -374,7 +374,7 @@ function addInspectorInput(container: HTMLElement, label: string, key: string, h
 function resetButton(label: string, key: string): HTMLButtonElement {
   const reset = element('button', 'fw-reset', 'Reset');
   reset.type = 'button';
-  reset.title = `Reset ${label} to the inherited value`;
+  reset.title = t('Reset {0} to the inherited value', [{ t: label }]);
   reset.setAttribute('aria-label', reset.title);
   reset.dataset.reset = key;
   reset.hidden = true;
@@ -403,7 +403,7 @@ function addSegments(container: HTMLElement, label: string, key: string, choices
     const node = element('button', 'fw-seg-btn', name);
     node.type = 'button';
     node.dataset.value = choice;
-    node.title = `${label}: ${choice}`;
+    node.title = t('{0}: {1}', [{ t: label }, choice]);
     node.setAttribute('aria-pressed', 'false');
     node.addEventListener('click', () => void run(() => setStyle(key, node.classList.contains('is-on') ? '' : choice)));
     group.append(node);
@@ -1471,7 +1471,7 @@ function updateLocales(): void {
     text(row.children[2] as HTMLElement, locale === state().site.defaultLocale ? 'Default' : '');
     row.classList.toggle('active', locale === localeEditing);
   });
-  text(localeEditingLabel, `Translations · ${localeEditing.toUpperCase()}`);
+  text(localeEditingLabel, t('Translations · {0}', [localeEditing.toUpperCase()]));
   localeDefault.disabled = localeEditing === state().site.defaultLocale;
   dialogPrimary.disabled = false;
 }

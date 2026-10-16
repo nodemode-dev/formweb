@@ -2,6 +2,7 @@ import { accept, command, download, request, state, subscribe } from '../api';
 import type { EditorState } from '../types';
 import { element, keyed, options, text } from '../ui/dom';
 import { icon } from '../ui/icons';
+import { t } from '../i18n';
 import { authoringActions } from './authoring';
 import { serviceActions } from './services';
 import { providerActions } from './providers';
@@ -123,7 +124,7 @@ export class FeatureStudio {
     pane.hidden = true;
     const heading = element('h2', '', spec.title);
     const explanation = element('p', 'feature-description', spec.description);
-    const address = element('span', 'feature-operation', spec.command || (spec.group ? `Site configuration: ${spec.group}` : spec.execute ? 'Validated authoring workflow' : `${spec.method || 'GET'} service workflow`));
+    const address = element('span', 'feature-operation', spec.command || (spec.group ? t('Site configuration: {0}', [spec.group]) : spec.execute ? t('Validated authoring workflow') : t('{0} service workflow', [spec.method || 'GET'])));
     const controls = new Map<string, HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>();
     const form = element('div', 'feature-fields');
     const output = element('pre', 'feature-result', 'No operation has been run.');
@@ -180,19 +181,19 @@ export class FeatureStudio {
       if (control instanceof HTMLInputElement && control.type === 'file') {
         const file = control.files?.[0];
         if (!file && parameter.optional) continue;
-        if (!file) throw new Error(`${parameter.label} is required.`);
+        if (!file) throw new Error(t('{0} is required.', [parameter.label]));
         if (file.size > 8 * 1024 * 1024) throw new Error('CSV files must be 8 MiB or smaller.');
         parameters[parameter.name] = await file.text();
         continue;
       }
       const raw = control.value.trim();
       if (!raw && parameter.optional) continue;
-      if (!raw) throw new Error(`${parameter.label} is required.`);
+      if (!raw) throw new Error(t('{0} is required.', [parameter.label]));
       if (parameter.type === 'json') {
         try { parameters[parameter.name] = JSON.parse(raw); }
-        catch { throw new Error(`${parameter.label} must contain valid JSON.`); }
+        catch { throw new Error(t('{0} must contain valid JSON.', [parameter.label])); }
       } else if (parameter.type === 'number') {
-        if (!Number.isFinite(Number(raw))) throw new Error(`${parameter.label} must be a finite number.`);
+        if (!Number.isFinite(Number(raw))) throw new Error(t('{0} must be a finite number.', [parameter.label]));
         parameters[parameter.name] = Number(raw);
       } else parameters[parameter.name] = raw;
     }
@@ -229,8 +230,8 @@ export class FeatureStudio {
       view.output.classList.remove('error');
       view.dirty = false;
       const saved = !!view.spec.command || !!view.spec.group;
-      text(this.footerStatus, saved ? `Validated change saved at revision ${state().revision}.` : 'Service response received. Inspect its status and output.');
-      this.context.notify(saved ? `${view.spec.title} saved.` : `${view.spec.title}: response received.`);
+      text(this.footerStatus, saved ? t('Validated change saved at revision {0}.', [state().revision]) : t('Service response received. Inspect its status and output.'));
+      this.context.notify(saved ? t('{0} saved.', [view.spec.title]) : t('{0}: response received.', [view.spec.title]));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       text(view.output, message);
@@ -242,6 +243,6 @@ export class FeatureStudio {
   private update(next: EditorState): void {
     if (this.scrim.hidden) return;
     const selected = this.context.selection();
-    text(this.summary, `${next.site.name} · ${next.site.nodes[selected.node]?.name || selected.node} · ${selected.locale} · rev ${next.revision}`);
+    text(this.summary, `${next.site.name} · ${next.site.nodes[selected.node]?.name || selected.node} · ${selected.locale} · ${t('rev {0}', [next.revision])}`);
   }
 }
