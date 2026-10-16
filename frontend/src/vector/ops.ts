@@ -11,6 +11,8 @@ import { blendAttrs, expandCommands, liveContainer, liveOf, readBlend, readRepea
 import { pathIds, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
 import { breakCommands, defineCommands, placeCommands } from './symbols';
 import { presetCommands, readWidth, widthCommands } from './stroke';
+import { strokeCommands, strokeModelOf } from './strokecmd';
+import type { StrokeModel } from './strokefx';
 import { typeCommands, type TypeOptions } from './typepath';
 import { flipProfile, profileFromSaved, profileToSaved, type SavedProfile, type WidthPoint, type WidthPreset } from './widthprofile';
 
@@ -87,7 +89,7 @@ export class Ops {
     return this.shapes().sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }
 
-  liveSelected(kind: 'blend' | 'repeat' | 'brush'): string | undefined {
+  liveSelected(kind: 'blend' | 'repeat' | 'brush' | 'stroke'): string | undefined {
     try {
       const site = this.h.site();
       for (const id of this.h.selection()) { const found = liveOf(site, id); if (found && found.kind === kind) return found.group; }
@@ -131,13 +133,13 @@ export class Ops {
   }
 
   async expandLive(): Promise<void> {
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     await this.run(expandCommands(this.h.site(), group), this.h.selection().slice());
   }
 
   async releaseLive(): Promise<void> {
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     const made = releaseCommands(this.h.site(), group);
     this.leave();
@@ -216,6 +218,24 @@ export class Ops {
     const shape = this.shapes()[0];
     const info = shape && readWidth(this.h.site().nodes[shape.id]);
     return shape && info ? profileToSaved(info.points, Math.max(1, shape.paint.strokeWidth)) : null;
+  }
+
+  private strokeQueue: Promise<void> = Promise.resolve();
+
+  strokeFx(change: Partial<StrokeModel>): Promise<void> {
+    const next = this.strokeQueue.then(async () => {
+      const made = strokeCommands(this.h, change);
+      if (made) await this.run(made.cmds, made.select);
+    });
+    this.strokeQueue = next.catch(() => undefined);
+    return next;
+  }
+
+  strokeModel(): StrokeModel | null {
+    try {
+      const shape = this.shapes()[0];
+      return shape ? strokeModelOf(this.h, shape.id) : null;
+    } catch { return null; }
   }
 
   async widthFlip(): Promise<void> {

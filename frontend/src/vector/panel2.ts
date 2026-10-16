@@ -13,6 +13,7 @@ import type { StrokeAlign } from './store';
 import { readWidth } from './stroke';
 import { loadProfiles, storeProfiles, type SavedProfile, type WidthPreset } from './widthprofile';
 import { TYPE_ALIGNS, TYPE_EFFECTS, readType, typeHolder, type TypeAlign, type TypeEffect, type TypeOptions } from './typepath';
+import { StrokeSection } from './strokepanel';
 import { TraceSection } from './tracepanel';
 
 const STOP_ROWS = 8;
@@ -341,7 +342,7 @@ export class ExtraSections {
     guides.body.append(this.snap.root, field('Eraser size', this.eraser), this.guideNote);
 
     this.brushes = new BrushSections(editor);
-    this.sections.push(gradient.root, stroke.root, arrange.root, align.root, transform.root, free.root, each.root, effects.root, symbols.root, ...this.brushes.sections, warp.root, type.root, builder.root, guides.root, new TraceSection(editor).root);
+    this.sections.push(gradient.root, stroke.root, new StrokeSection(editor).root, arrange.root, align.root, transform.root, free.root, each.root, effects.root, symbols.root, ...this.brushes.sections, warp.root, type.root, builder.root, guides.root, new TraceSection(editor).root);
   }
 
   private renderProfiles(): void {

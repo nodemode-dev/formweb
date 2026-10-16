@@ -1,4 +1,5 @@
 import { element, value } from '../ui/dom';
+import { openAverage } from './averagedialog';
 import type { PathfinderOp } from './boolean';
 import type { CornerType } from './geometry';
 import { vectorIcon, type VectorIcon } from './icons';
@@ -167,7 +168,7 @@ export class VectorPanel {
       if (ok) editor.applyPaint({ dash: text.replace(/,/g, ' ') });
       else this.dash.value = editor.paint.dash;
     });
-    this.caps = segment<Cap>([{ id: 'butt', label: 'Butt' }, { id: 'round', label: 'Round' }, { id: 'square', label: 'Square' }], id => editor.applyPaint({ cap: id }));
+    this.caps = segment<Cap>([{ id: 'butt', label: 'Butt' }, { id: 'round', label: 'Round' }, { id: 'square', label: 'Projecting' }], id => editor.applyPaint({ cap: id }));
     this.joins = segment<Join>([{ id: 'miter', label: 'Miter' }, { id: 'round', label: 'Round' }, { id: 'bevel', label: 'Bevel' }], id => editor.applyPaint({ join: id }));
     const numbers = element('div', 'fw-v-row');
     numbers.append(field('Weight', this.weight), field('Miter limit', this.miter), field('Opacity %', this.opacity));
@@ -205,7 +206,7 @@ export class VectorPanel {
     const ops = element('div', 'fw-v-grid');
     ops.append(
       button('Join', 'Join the two selected end anchors', () => editor.runPathOp('join'), 'join'),
-      button('Average', 'Average the selected anchors on both axes', () => editor.runPathOp('average'), 'average'),
+      button('Average', 'Average the selected anchors on both axes', () => openAverage(editor), 'average'),
       button('Simplify', 'Reduce anchors within the tolerance', () => editor.runPathOp('simplify', parseFloat(this.simplifyTolerance.value) || 1), 'simplify'),
       button('Offset', 'Offset path by the distance', () => editor.runPathOp('offset', parseFloat(this.offsetDistance.value) || 8), 'offset'),
       button('Outline stroke', 'Convert the stroke to a filled shape', () => editor.runPathOp('outline'), 'outline'),
@@ -233,7 +234,7 @@ export class VectorPanel {
     );
 
     const extra = new ExtraSections(editor);
-    this.root.append(appearance.root, ...extra.sections.slice(0, 2), corners.root, shapes.root, pathfinder.root, path.root, ...extra.sections.slice(2), svg.root);
+    this.root.append(appearance.root, ...extra.sections.slice(0, 3), corners.root, shapes.root, pathfinder.root, path.root, ...extra.sections.slice(3), svg.root);
     editor.listeners.add(() => extra.update());
     extra.update();
     const close = button('', 'Close vector panel', () => { this.manual = false; this.setOpen(false); editor.setTool(null); }, 'close');

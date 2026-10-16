@@ -2,6 +2,7 @@ import '../styles/vector.css';
 import { subscribe } from '../api';
 import type { CommandDef } from '../ui/shell';
 import type { PathfinderOp } from './boolean';
+import { openAverage } from './averagedialog';
 import { spineCommands } from './brushcmd';
 import { Editor, type ToolId, type VectorContext } from './editor';
 import { PATHFINDERS, TOOLS, VectorPanel } from './panel';
@@ -64,7 +65,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.corner.expand', label: 'Expand corners', menu: MENU, group: 3, run: () => editor.bakeCorners(), enabled: hasShape },
     ...pathfinders,
     { id: 'vector.path.join', label: 'Join end anchors', menu: MENU, keys: 'Mod+Alt+Shift+J', group: 4, run: () => editor.runPathOp('join'), enabled: () => editor.anchors.size === 2 },
-    { id: 'vector.path.average', label: 'Average anchors', menu: MENU, keys: 'Mod+Alt+Shift+A', group: 4, run: () => editor.runPathOp('average'), enabled: () => editor.anchors.size > 1 },
+    { id: 'vector.path.average', label: 'Average anchors', menu: MENU, keys: 'Mod+Alt+Shift+A', group: 4, run: () => openAverage(editor), enabled: () => editor.anchors.size > 1 },
     { id: 'vector.path.join-average', label: 'Join and average end anchors', menu: MENU, keys: 'Mod+Alt+Shift+K', group: 4, run: () => editor.runPathOp('join-average'), enabled: () => editor.anchors.size === 2 },
     { id: 'vector.path.simplify', label: 'Simplify path', menu: MENU, group: 4, run: () => editor.runPathOp('simplify', 1), enabled: hasShape },
     { id: 'vector.path.offset', label: 'Offset path', menu: MENU, group: 4, run: () => editor.runPathOp('offset', 8), enabled: hasShape },

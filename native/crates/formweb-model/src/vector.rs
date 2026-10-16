@@ -6,7 +6,7 @@ const SHARED: &[&str] = &[
     "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset",
     "fill-rule", "fill-opacity", "stroke-opacity", "transform", "vector-effect", "opacity", "data-fw-vector",
     "clip-path", "mask", "paint-order", "clip-rule", "data-fw-align", "data-fw-weight", "data-fw-width", "data-fw-mask", "data-fw-type",
-    "data-fw-blend", "data-fw-repeat", "data-fw-live", "data-fw-brush", "data-fw-brushdef",
+    "data-fw-blend", "data-fw-repeat", "data-fw-live", "data-fw-brush", "data-fw-brushdef", "data-fw-stroke",
 ];
 const DATA_LIMIT: usize = 262_144;
 
@@ -127,14 +127,15 @@ fn check_live(node: &Node, site: &Site) -> Result<(), String> {
     let blend = node.attrs.get("data-fw-blend");
     let repeat = node.attrs.get("data-fw-repeat");
     let brush = node.attrs.get("data-fw-brush");
-    if (blend.is_some() || repeat.is_some() || brush.is_some()) && node.tag != "g" { return Err("live blends, repeats and brushes live on a group".into()); }
-    if [blend, repeat, brush].iter().filter(|v| v.is_some()).count() > 1 { return Err("a group can be only one of a blend, a repeat or a brush".into()); }
+    let stroke = node.attrs.get("data-fw-stroke");
+    if (blend.is_some() || repeat.is_some() || brush.is_some() || stroke.is_some()) && node.tag != "g" { return Err("live blends, repeats, brushes and stroke options live on a group".into()); }
+    if [blend, repeat, brush, stroke].iter().filter(|v| v.is_some()).count() > 1 { return Err("a group can be only one of a blend, a repeat, a brush or stroke options".into()); }
     let kids: Vec<&Node> = node.children.iter().filter_map(|id| site.nodes.get(id)).collect();
     let mut live = 0;
     for child in &kids {
         let Some(kind) = child.attrs.get("data-fw-live") else { continue };
         live += 1;
-        let owned = match kind.as_str() { "blend" => blend.is_some(), "repeat" => repeat.is_some(), "brush" => brush.is_some(), _ => false };
+        let owned = match kind.as_str() { "blend" => blend.is_some(), "repeat" => repeat.is_some(), "brush" => brush.is_some(), "stroke" => stroke.is_some(), _ => false };
         let paths_only = child.children.iter().filter_map(|id| site.nodes.get(id)).all(|n| n.tag == "path");
         if !owned || child.tag != "g" || !paths_only { return Err("live copies must sit in a locked group inside their blend or repeat".into()); }
     }
@@ -151,6 +152,10 @@ fn check_live(node: &Node, site: &Site) -> Result<(), String> {
     if let Some(raw) = brush {
         let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-brush".to_string())?;
         if !value.get("src").and_then(Value::as_str).map(|id| source(id)).unwrap_or(false) { return Err("a brush must name its source path inside its group".into()); }
+    }
+    if let Some(raw) = stroke {
+        let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-stroke".to_string())?;
+        if !value.get("src").and_then(Value::as_str).map(|id| source(id)).unwrap_or(false) { return Err("stroke options must name their source path inside their group".into()); }
     }
     if let Some(raw) = repeat {
         let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-repeat".to_string())?;
@@ -176,7 +181,8 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-type" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| type_config(&v)).unwrap_or(false),
         "data-fw-blend" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| blend_config(&v)).unwrap_or(false),
         "data-fw-repeat" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| repeat_config(&v)).unwrap_or(false),
-        "data-fw-live" => matches!(value, "blend" | "repeat" | "brush"),
+        "data-fw-live" => matches!(value, "blend" | "repeat" | "brush" | "stroke"),
+        "data-fw-stroke" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| stroke_config(&v)).unwrap_or(false),
         "data-fw-brush" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| brush_config(&v, true)).unwrap_or(false),
         "data-fw-brushdef" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| brush_config(&v, false)).unwrap_or(false),
         "id" if tag == "symbol" => ref_id(value),
@@ -289,6 +295,23 @@ fn brush_config(value: &Value, group: bool) -> bool {
         && number("spacing", 0.0, 1000.0) && number("scatter", 0.0, 500.0) && number("rotation", -180.0, 180.0)
         && int("seed", 1, 99999) && int("stretch", 0, 1) && int("flip", 0, 1) && int("flipv", 0, 1)
         && word("rotmode", &["fixed", "random"]) && word("rotrel", &["page", "path"]) && word("fit", &["stretch", "space"])
+}
+
+fn stroke_config(value: &Value) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    let word = |key: &str, allowed: &[&str]| map.get(key).and_then(Value::as_str).map(|s| allowed.contains(&s)).unwrap_or(false);
+    let number = |key: &str, lo: f64, hi: f64| map.get(key).and_then(Value::as_f64).map(|n| n.is_finite() && n >= lo && n <= hi).unwrap_or(false);
+    let arrows = ["none", "simple", "filled", "open", "circle", "square", "bar"];
+    let dash = map.get("dash").and_then(Value::as_array).map(|list| list.len() <= 6 && list.len() % 2 == 0 && list.iter().all(|v| v.as_f64().map(|n| n.is_finite() && (0.0..=10000.0).contains(&n)).unwrap_or(false))).unwrap_or(false);
+    map.len() == 10
+        && map.get("v").and_then(Value::as_u64) == Some(1)
+        && map.get("src").and_then(Value::as_str).map(ref_id).unwrap_or(false)
+        && dash
+        && word("mode", &["preserve", "align"])
+        && word("a0", &arrows) && word("a1", &arrows)
+        && number("s0", 1.0, 1000.0) && number("s1", 1.0, 1000.0)
+        && word("tip", &["extend", "end"])
+        && sig_ok(map)
 }
 
 fn repeat_config(value: &Value) -> bool {

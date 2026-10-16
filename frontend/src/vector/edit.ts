@@ -99,6 +99,7 @@ export function joinEndpoints(subs: SubPath[], picks: Map<number, Set<number>>):
     const sub = subs[a.si];
     const first = sub.nodes[0], last = sub.nodes[sub.nodes.length - 1];
     if (sub.nodes.length > 2 && dist([first.x, first.y], [last.x, last.y]) < 1e-3) { first.in = last.in; sub.nodes.pop(); }
+    else { last.out = null; first.in = null; }
     sub.closed = true;
     return subs;
   }
@@ -111,7 +112,7 @@ export function joinEndpoints(subs: SubPath[], picks: Map<number, Set<number>>):
   let nodes: Anchor[];
   if (dist([tail.x, tail.y], [head.x, head.y]) < 1e-3) {
     nodes = [...left.slice(0, -1), { x: tail.x, y: tail.y, in: tail.in, out: head.out, kind: 'corner' }, ...right.slice(1)];
-  } else nodes = [...left, ...right];
+  } else nodes = [...left.slice(0, -1), { ...tail, out: null }, { ...head, in: null }, ...right.slice(1)];
   const merged: SubPath = { closed: false, nodes };
   const keep = subs.filter((_, i) => i !== a.si && i !== b.si);
   return [...keep, merged];
