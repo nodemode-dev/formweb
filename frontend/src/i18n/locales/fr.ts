@@ -1836,4 +1836,8 @@ export default [
   "Pot de peinture dynamique",
   "Sélectionnez au moins deux tracés qui se chevauchent, puis utilisez le Pot de peinture dynamique.",
   "Choisissez d’abord une couleur de fond.",
+  "Capitales",
+  "Crénage",
+  "Ligatures",
+  "Chiffres",
 ] as readonly string[];

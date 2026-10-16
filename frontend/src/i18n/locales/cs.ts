@@ -1836,4 +1836,8 @@ export default [
   "Živá barva",
   "Vyberte dvě nebo více překrývajících se cest a pak použijte nástroj Živá barva.",
   "Nejprve zvolte barvu výplně.",
+  "Verzálky",
+  "Vyrovnání párů",
+  "Ligatury",
+  "Číslice",
 ] as readonly string[];

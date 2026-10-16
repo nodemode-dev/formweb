@@ -1836,4 +1836,8 @@ export default [
   "Wiadro aktywnego malowania",
   "Zaznacz co najmniej dwie nakładające się ścieżki, a potem użyj wiadra aktywnego malowania.",
   "Najpierw wybierz kolor wypełnienia.",
+  "Wersaliki",
+  "Kerning",
+  "Ligatury",
+  "Cyfry",
 ] as readonly string[];

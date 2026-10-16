@@ -1836,4 +1836,8 @@ export default [
   "Live Paint-spand",
   "Markér to eller flere overlappende stier, og brug derefter Live Paint-spanden.",
   "Vælg først en fyldfarve.",
+  "Versaler",
+  "Knibning",
+  "Ligaturer",
+  "Tal",
 ] as readonly string[];

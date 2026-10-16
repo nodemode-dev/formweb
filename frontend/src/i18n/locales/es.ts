@@ -1836,4 +1836,8 @@ export default [
   "Bote de pintura interactiva",
   "Selecciona dos o más trazados superpuestos y luego usa el Bote de pintura interactiva.",
   "Elige primero un color de relleno.",
+  "Mayúsculas",
+  "Kerning",
+  "Ligaduras",
+  "Cifras",
 ] as readonly string[];

@@ -1836,4 +1836,8 @@ export default [
   "Live Paint-bøtte",
   "Velg to eller flere overlappende baner, og bruk deretter Live Paint-bøtten.",
   "Velg en fyllfarge først.",
+  "Versaler",
+  "Kerning",
+  "Ligaturer",
+  "Tall",
 ] as readonly string[];

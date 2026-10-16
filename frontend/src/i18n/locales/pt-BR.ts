@@ -1836,4 +1836,8 @@ export default [
   "Balde de pintura dinâmica",
   "Selecione dois ou mais demarcadores sobrepostos e use o Balde de pintura dinâmica.",
   "Escolha primeiro uma cor de preenchimento.",
+  "Maiúsculas",
+  "Kerning",
+  "Ligaturas",
+  "Algarismos",
 ] as readonly string[];

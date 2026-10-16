@@ -1836,4 +1836,8 @@ export default [
   "Interaktiv-malen-Werkzeug",
   "Wähle zwei oder mehr überlappende Pfade aus und verwende dann das Interaktiv-malen-Werkzeug.",
   "Wähle zuerst eine Füllfarbe.",
+  "Großbuchstaben",
+  "Unterschneidung",
+  "Ligaturen",
+  "Ziffern",
 ] as readonly string[];

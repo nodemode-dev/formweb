@@ -1836,4 +1836,8 @@ export const KEYS: readonly string[] = [
   "Live Paint Bucket",
   "Select two or more overlapping paths, then use the Live Paint Bucket.",
   "Choose a fill color first.",
+  "Capitals",
+  "Kerning",
+  "Ligatures",
+  "Numbers",
 ];

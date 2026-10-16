@@ -1836,4 +1836,8 @@ export default [
   "Secchiello pittura dinamica",
   "Seleziona due o più tracciati sovrapposti, poi usa il Secchiello pittura dinamica.",
   "Scegli prima un colore di riempimento.",
+  "Maiuscole",
+  "Crenatura",
+  "Legature",
+  "Cifre",
 ] as readonly string[];

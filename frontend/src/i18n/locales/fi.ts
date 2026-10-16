@@ -1836,4 +1836,8 @@ export default [
   "Live Paint -sanko",
   "Valitse kaksi tai useampi päällekkäistä polkua ja käytä sitten Live Paint -sankoa.",
   "Valitse ensin täyttöväri.",
+  "Versaalit",
+  "Parivälistys",
+  "Ligatuurit",
+  "Numerot",
 ] as readonly string[];

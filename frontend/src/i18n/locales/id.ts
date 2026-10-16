@@ -1836,4 +1836,8 @@ export default [
   "Ember Cat Langsung",
   "Pilih dua jalur atau lebih yang bertumpuk, lalu gunakan Ember Cat Langsung.",
   "Pilih warna isian terlebih dahulu.",
+  "Huruf kapital",
+  "Kerning",
+  "Ligatur",
+  "Angka",
 ] as readonly string[];

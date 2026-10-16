@@ -1,5 +1,15 @@
 # Frontend context map
 
+## OpenType features in Typography · v0.9.6 (2026-10-16)
+
+Edits in `native/crates/formweb-model/src/lib.rs` (`safe_style` PROPERTIES gains `font-variant-ligatures`, `font-variant-caps`, `font-variant-numeric`, `font-kerning`), `main.ts` (four `addStyle` fields after Family in the Typography section), `i18n/keys.ts` and the 23 locale files (4 strings, 1841 keys).
+
+- **Source basis:** MDN pages for `font-variant-ligatures`, `font-variant-caps` and `font-variant-numeric` (values and the OpenType feature each maps to, Baseline widely available since January 2020). One source per property; the W3C CSS Fonts 4 text did not return its property sections. Adobe's Illustrator OpenType panel page rendered navigation only, so this is the web platform's feature set, not a copy of that panel; FormWeb applies it to site text, not to vector `text` elements.
+- **Why only the model changed on the engine side:** `safe_style` is the one style gate (node styles, breakpoint styles, extension styles, text preset overrides and prop targets all call it); the canvas `safeStyle` and the exporter pass any allowed property through, and values still go through `safe_css_value`. No keyword check per property, same as every other style.
+- **Controls:** Capitals (`normal`, `small-caps`, `all-small-caps`, `petite-caps`, `all-petite-caps`, `unicase`, `titling-caps`) and Kerning (`auto`, `normal`, `none`) are selects; Ligatures and Numbers are full-width text fields because their keywords combine (for example `oldstyle-nums tabular-nums`). Keywords are CSS values and are not translated. Empty inherits, and breakpoint overrides work as for every other style.
+- **Driven (CPU 4x, 400 ms latency, slow network, cache off):** Headline selected from Layers; Capitals small-caps, Kerning none, Ligatures `discretionary-ligatures`, Numbers `oldstyle-nums tabular-nums` all landed in `GET /api/state`, the canvas computed style matched each value, and `GET /api/export` CSS carried all four declarations. A batch setting `font-variant-numeric` to `x}body{color:red` was refused with 400 "unsafe style". Mod+Z cleared the last value. No layout shifts, no page errors (the fields' screen position changed only because the inspector scrolled 1861 px to reach them).
+- **Not done:** no feature preview showing which features the chosen font supports; `font-feature-settings` (raw tags such as `ss01`, swashes) is not allowed; vector `text` elements keep their own attribute list in `vector.rs`.
+
 ## Live Paint Bucket · v0.9.5 (2026-10-16)
 
 Edits in `vector/extras.ts` (`livepaint` in `EXTRA_TOOLS`, a branch in `down()`, hover in `move()` and `decorate()` shared with Shape Builder, new `paintFace`), `vector/editor.ts` (ToolId), `vector/panel.ts` (tool appended last), `vector/icons.ts` (`bucket`), `vector/index.ts`, `commands/catalogue.ts`, `i18n/keys.ts` and the 23 locale files (3 strings, 1837 keys).

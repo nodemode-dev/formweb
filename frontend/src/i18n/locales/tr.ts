@@ -1836,4 +1836,8 @@ export default [
   "Canlı Boya Kovası",
   "Çakışan iki veya daha fazla yol seçin, ardından Canlı Boya Kovası'nı kullanın.",
   "Önce bir dolgu rengi seçin.",
+  "Büyük harfler",
+  "Karakter aralığı (kerning)",
+  "Bitişik harfler",
+  "Rakamlar",
 ] as readonly string[];

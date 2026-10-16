@@ -1836,4 +1836,8 @@ export default [
   "Emmer voor actief schilderen",
   "Selecteer twee of meer overlappende paden en gebruik dan de emmer voor actief schilderen.",
   "Kies eerst een vulkleur.",
+  "Hoofdletters",
+  "Kerning",
+  "Ligaturen",
+  "Cijfers",
 ] as readonly string[];

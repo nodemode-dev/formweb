@@ -1836,4 +1836,8 @@ export default [
   "Live Paint-hink",
   "Markera två eller fler överlappande banor och använd sedan Live Paint-hinken.",
   "Välj en fyllningsfärg först.",
+  "Versaler",
+  "Kerning",
+  "Ligaturer",
+  "Siffror",
 ] as readonly string[];

@@ -1836,4 +1836,8 @@ export default [
   "Élő festékesvödör",
   "Jelölj ki két vagy több átfedő útvonalat, majd használd az Élő festékesvödröt.",
   "Előbb válassz kitöltőszínt.",
+  "Nagybetűk",
+  "Alávágás",
+  "Ligatúrák",
+  "Számjegyek",
 ] as readonly string[];

@@ -1836,4 +1836,8 @@ export default [
   "Thùng sơn trực tiếp",
   "Chọn hai đường dẫn chồng nhau trở lên, sau đó dùng Thùng sơn trực tiếp.",
   "Hãy chọn màu tô trước.",
+  "Chữ hoa",
+  "Kerning",
+  "Chữ ghép",
+  "Chữ số",
 ] as readonly string[];
