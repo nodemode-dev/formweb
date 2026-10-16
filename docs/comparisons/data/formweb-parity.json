@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.9.7",
- "previous": "0.9.6",
+ "version": "0.9.8",
+ "previous": "0.9.7",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Pattern swatches and Pattern Options (FW-174) added as Partial: Make pattern with grid and brick tiles fills a shape with an svg pattern; no pattern editing mode or swatches panel.",
+ "release_note": "Security fix, no grade change: inside an svg only use and textPath may carry an href, so gradients, patterns and paths can no longer point at outside files.",
  "lanes": [
   [
    "m",
@@ -7686,6 +7686,15 @@
     "FW-173": "partial"
    },
    "note": "OpenType features added to Typography. 114 of 130."
+  },
+  {
+   "version": "0.9.7",
+   "date": "2026-10-16",
+   "same_as": "0.9.6",
+   "moved": {
+    "FW-174": "partial"
+   },
+   "note": "Make pattern with Pattern Options added. 114.5 of 131."
   }
  ],
  "changes": [

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.8 · 2026-10-16
+
+- Security: inside a vector drawing, only symbol instances and text on a path may link to another element. Gradients, patterns, paths and drawings can no longer carry a link to an outside file, even when added by an agent through the API.
+
 ## 0.9.7 · 2026-10-16
 
 - Make pattern (Vector > Make pattern...): select the artwork for one tile, then the shape to fill, and pick Grid, Brick by Row or Brick by Column, the brick offset, and either Size Tile to Art with spacing or an exact tile size. The shape fills with the repeating pattern in the canvas and in exported sites; the original artwork stays.
