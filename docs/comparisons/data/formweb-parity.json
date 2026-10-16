@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.9.3",
- "previous": "0.9.2",
+ "version": "0.9.4",
+ "previous": "0.9.3",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Blob Brush (FW-171) added as Partial: round tip only, merging with overlapping unstroked paths of the same fill.",
@@ -7529,6 +7529,16 @@
     "FW-168": "partial"
    },
    "note": "Saved guides, Export for Screens, Recolor Artwork, Graphic Styles, Puppet Warp, Reshape and Global Edit added. 111.5 of 125."
+  },
+  {
+   "version": "0.9.3",
+   "date": "2026-10-16",
+   "same_as": "0.9.2",
+   "moved": {
+    "FW-169": "partial",
+    "FW-170": "partial"
+   },
+   "note": "Tweak effect and Objects on Path added. 112.5 of 127."
   }
  ],
  "changes": [

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.4 · 2026-10-16
+
+- Blob Brush (Shift+B): paint filled shapes that merge into overlapping shapes of the same color with no outline. Double-click the canvas for Size, Fidelity, Keep Selected and Merge Only with Selection; [ and ] change the size.
+- All new labels are translated into the 26 interface languages.
+
 ## 0.9.3 · 2026-10-16
 
 - Tweak (Vector > Tweak...): randomly push anchor points and their control points inward and outward, by a relative or absolute amount, with a seed and a live preview.
