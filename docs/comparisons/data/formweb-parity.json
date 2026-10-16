@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.8.7",
- "previous": "0.8.6",
+ "version": "0.8.8",
+ "previous": "0.8.7",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Pathfinder Options and live compound shapes, 15 warp styles with live envelopes, clipping Edit Contents and Edit Clipping Path (FW-081 and FW-094 stay Partial: sources unverified; v0.8.8 adds Make with Mesh for FW-094, live Divide and Outline and Pathfinder effects, the last two unverified against Adobe); the desktop shell now builds for Windows and macOS targets.",
+ "release_note": "Make with Mesh envelopes (FW-094 stays Partial), live Divide and Outline and Pathfinder effects (unverified against Adobe), hidden operands no longer shown in the canvas, and a translation sweep of the vector panels.",
  "lanes": [
   [
    "m",
@@ -5557,6 +5557,12 @@
    "date": "2026-10-16",
    "same_as": "0.8.5",
    "note": "Stroke align on dashes and arrowheads, dashed variable widths, continuous corner dashes; Brush Options freeze fixed; no grade moved. 105 of 116."
+  },
+  {
+   "version": "0.8.7",
+   "date": "2026-10-16",
+   "same_as": "0.8.6",
+   "note": "Pathfinder Options, live compound shapes, 15 warp styles with live envelopes, clip edit modes, Windows and macOS icons; no grade moved. 105 of 116."
   }
  ],
  "changes": [

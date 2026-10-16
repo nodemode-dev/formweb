@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.8 · 2026-10-16
+
+- Make with Mesh: an envelope with a grid of points you drag to bend the shapes inside; a warp envelope can be turned into a mesh.
+- Alt-click Divide or Outline to keep them live, and apply any Pathfinder operation to a group as a live effect that you can remove or expand.
+- Fixed: the hidden source shapes of live compound shapes were still visible in the editor.
+- More of the vector panels are translated: tool tooltips with shortcuts, Pathfinder tooltips, width notes and several missed labels.
+
 ## 0.8.7 · 2026-10-16
 
 - Pathfinder Options: precision, removing redundant points, and dropping unpainted pieces after Divide and Outline. Alt-click a shape mode to keep a live compound shape you can still edit, then Expand or Release it.
