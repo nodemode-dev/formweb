@@ -27,6 +27,10 @@
 .wl-item[data-severity="error"] { border-color: var(--danger-color); }
 .wl-item[data-severity="warning"] { border-color: var(--accent-line); }
 .wl-item select, .wl-item input { flex: 0 1 132px; min-width: 0; }
+.wl-field-row { flex-wrap: wrap; padding-block: var(--space-2); }
+.wl-field-row .wl-item-name { flex: 1 1 100%; }
+.wl-field-row input[type="text"] { flex: 1 1 140px; }
+.wl-item .wl-check input { flex: 0 0 auto; width: auto; height: auto; }
 .wl-drag { cursor: grab; }
 .wl-btn { min-height: 30px; padding: 0 var(--space-3); border: 1px solid var(--border-light); border-radius: var(--radius); background: var(--bg-tertiary); color: var(--text-primary); font-size: var(--fs-11); }
 .wl-btn:hover:not(:disabled) { border-color: var(--accent-line); background: var(--bg-hover); }

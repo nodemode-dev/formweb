@@ -75,8 +75,29 @@ export function buildStructure(ctx: WishlistContext): Tab[] {
   const glyphs = element('input');
   const inline = ['span', 'sup', 'sub'];
   const modes: [string, string, HTMLButtonElement][] = [['super', 'Superscript', btn('Superscript', () => undefined)], ['sub', 'Subscript', btn('Subscript', () => undefined)], ['none', 'Normal', btn('Normal', () => undefined)]];
+  const markWords = text('Words inside the selected text');
+  const mark = (mode: string) => {
+    const state = ctx.state();
+    const id = ctx.selected();
+    const node = state.site.nodes[id];
+    const word = markWords.value;
+    if (!node || !word || node.children.length || !node.text.includes(word)) { ctx.notify('Select a text element that contains those words and has no nested elements.', true); return; }
+    const at = node.text.indexOf(word);
+    const stamp = Date.now().toString(36);
+    const piece = (suffix: string, value: string) => ({ command: 'node.add', params: { parent: id, node: { id: `${id}-${suffix}-${stamp}`, tag: 'span', name: node.name || node.tag, text: value, attrs: {}, styles: {}, breakpoints: {}, children: [] } } });
+    const batch: { command: string; params: Record<string, unknown> }[] = [{ command: 'node.update', params: { id, patch: { text: '' } } }];
+    if (at > 0) batch.push(piece('a', node.text.slice(0, at)));
+    batch.push(piece('mark', word));
+    if (at + word.length < node.text.length) batch.push(piece('b', node.text.slice(at + word.length)));
+    batch.push({ command: 'text.script', params: { id: `${id}-mark-${stamp}`, mode, trueGlyphs: glyphs.checked } });
+    markWords.value = '';
+    void ctx.commands(batch).then(() => ctx.select(`${id}-mark-${stamp}`));
+  };
+  const markSuper = btn('Mark superscript', () => mark('super'));
+  const markSub = btn('Mark subscript', () => mark('sub'));
   const typePane = element('div', 'wl-pane');
   typePane.append(
+    section('Mark words in a text element', field('Words to mark', markWords), row(markSuper, markSub)),
     section('Superscript and subscript', scriptNote, row(...modes.map(([, , button]) => button)), check('Use the font’s own superscript glyphs when it has them', glyphs)),
     section('Baseline shift', field('Shift (positive raises, negative lowers)', shift), row(btn('Apply shift', () => {
       const value = shift.value.trim();
@@ -89,9 +110,14 @@ export function buildStructure(ctx: WishlistContext): Tab[] {
     refresh() {
       const node = ctx.state().site.nodes[ctx.selected()];
       const ok = !!node && inline.includes(node.tag) && !node.componentSourceId;
-      setText(scriptNote, ok ? `Selected: ${node.name || node.tag} (${node.tag}).` : 'Select an inline text element (a span, sup or sub) to set superscript or subscript. Wrap words in a span first.');
-      for (const [mode, , button] of modes) { button.disabled = !ok; button.onclick = () => run('text.script', { id: ctx.selected(), mode, trueGlyphs: glyphs.checked }); }
-      setValue(shift, shift.value || (node?.styles['vertical-align'] && !['super', 'sub', 'baseline'].includes(node.styles['vertical-align']) ? node.styles['vertical-align'] : ''));
+      setText(scriptNote, ok ? `Selected: ${node.name || node.tag} (${node.tag}).` : 'Select an inline text element (a span, sup or sub) to set superscript or subscript, or mark words in a text element above.');
+      const markable = !!node && !!node.text && !node.children.length && !node.componentSourceId && ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li', 'span', 'sup', 'sub', 'a', 'blockquote', 'figcaption', 'div'].includes(node.tag);
+      markSuper.disabled = !markable;
+      markSub.disabled = !markable;
+      markWords.disabled = !markable;
+      const kept = node?.styles['vertical-align'] && !['super', 'sub', 'baseline'].includes(node.styles['vertical-align']) ? node.styles['vertical-align'] : '';
+      for (const [mode, , button] of modes) { button.disabled = !ok; button.onclick = () => run('text.script', mode === 'none' || !kept ? { id: ctx.selected(), mode, trueGlyphs: glyphs.checked } : { id: ctx.selected(), mode, shift: kept, trueGlyphs: glyphs.checked }); }
+      setValue(shift, shift.value || kept);
     }
   };
 

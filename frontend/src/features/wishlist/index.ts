@@ -78,8 +78,25 @@ export function installWishlist(ctx: WishlistContext): Wishlist {
   panel.addEventListener('keydown', event => { if (event.key === 'Escape') closePanel(); });
   close.addEventListener('click', closePanel);
 
+  let watcher = 0;
+  let seenSelection = '';
+  let seenState: unknown = null;
+  function watch(): void {
+    window.clearInterval(watcher);
+    watcher = window.setInterval(() => {
+      let current: unknown = null;
+      try { current = ctx.state(); } catch { return; }
+      const selection = ctx.selected();
+      if (selection === seenSelection && current === seenState) return;
+      seenSelection = selection;
+      seenState = current;
+      tabs.find(tab => tab.id === active)?.refresh();
+    }, 150);
+  }
+
   function closePanel(): void {
     if (panel.hidden) return;
+    window.clearInterval(watcher);
     panel.hidden = true;
     returnFocus?.focus();
     returnFocus = null;
@@ -89,6 +106,9 @@ export function installWishlist(ctx: WishlistContext): Wishlist {
     if (panel.hidden) returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     panel.hidden = false;
     show(tabs.some(tab => tab.id === id) ? id : tabs[0].id);
+    seenSelection = ctx.selected();
+    try { seenState = ctx.state(); } catch { seenState = null; }
+    watch();
     buttons.get(active)?.focus();
   }
 

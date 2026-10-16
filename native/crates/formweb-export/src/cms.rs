@@ -72,11 +72,17 @@ fn matches(actual: Option<Value>, predicate: &Value) -> bool {
         _ => false,
     }
 }
-pub fn query(site: &Site, node: &Node, collection: &str, locale: &str) -> Vec<Item> {
+fn with_parent(site: &Site, filter: &Value, parent: Option<(&str, &Item)>, locale: &str) -> Value {
+    let Some(path) = filter.get("value").and_then(Value::as_str).and_then(|text| text.strip_prefix("{parent.")).and_then(|text| text.strip_suffix('}')) else { return filter.clone(); };
+    let mut resolved = filter.clone();
+    resolved["value"] = parent.and_then(|(owner, item)| field(site, owner, item, path, locale)).unwrap_or(Value::Null);
+    resolved
+}
+pub fn query(site: &Site, node: &Node, collection: &str, locale: &str, parent: Option<(&str, &Item)>) -> Vec<Item> {
     let mut items = published(site, collection, locale);
     if let Some(config) = list(site, &node.id) {
         if let Some(filters) = config.get("filter").and_then(Value::as_array) {
-            items.retain(|item| filters.iter().all(|filter| matches(field(site, collection, item, filter.get("field").and_then(Value::as_str).unwrap_or(""), locale), filter)));
+            items.retain(|item| filters.iter().all(|filter| matches(field(site, collection, item, filter.get("field").and_then(Value::as_str).unwrap_or(""), locale), &with_parent(site, filter, parent, locale))));
         }
         if let Some(sort) = config.get("sort").and_then(Value::as_array) {
             items.sort_by(|a, b| {

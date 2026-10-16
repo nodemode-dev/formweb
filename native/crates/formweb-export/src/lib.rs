@@ -151,7 +151,7 @@ impl Renderer<'_> {
         if let Some(collection_id) = cms::list_collection(self.site, node) {
             if repeated != Some(id) {
                 let collection = &self.site.collections[collection_id];
-                let items = cms::query(self.site, node, collection_id, self.locale);
+                let items = cms::query(self.site, node, collection_id, self.locale, context.map(|c| (c.collection, c.item)));
                 if items.is_empty() {
                     if let Some(empty) = cms::empty_target(self.site, id) { return self.node(empty, context, Some("__empty")); }
                     return Ok(String::new());

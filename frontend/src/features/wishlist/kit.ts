@@ -35,6 +35,18 @@ export function parentOf(state: EditorState, id: string): string | null {
   return null;
 }
 
+export function pageOf(state: EditorState, id: string): string | null {
+  for (const page of state.site.pages) {
+    const pending = [page.root];
+    for (let hops = 0; pending.length && hops < 100000; hops += 1) {
+      const current = pending.pop() as string;
+      if (current === id) return page.id;
+      pending.push(...(state.site.nodes[current]?.children || []));
+    }
+  }
+  return null;
+}
+
 export function ancestorWhere(state: EditorState, id: string, test: (node: SiteNode) => boolean): SiteNode | null {
   let current: string | null = id;
   for (let hops = 0; current && hops < 120; hops += 1) {
@@ -117,8 +129,11 @@ export function slug(value: string): string {
 }
 
 export function containerFor(state: EditorState, id: string): string {
-  const node = state.site.nodes[id];
-  const voidTags = ['img', 'input', 'br', 'hr', 'source', 'wbr'];
-  if (node && !voidTags.includes(node.tag) && !['table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td'].includes(node.tag)) return id;
-  return parentOf(state, id) || id;
+  const flow = ['main', 'section', 'div', 'article', 'aside', 'header', 'footer', 'nav', 'form', 'li', 'figure', 'blockquote', 'details', 'fieldset'];
+  let current: string | null = id;
+  for (let hops = 0; current && hops < 120; hops += 1) {
+    if (flow.includes(state.site.nodes[current]?.tag || '')) return current;
+    current = parentOf(state, current);
+  }
+  return state.site.pages[0]?.root || id;
 }

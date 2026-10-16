@@ -1,8 +1,8 @@
 import type { SiteNode } from '../../types';
 import { element, keyed, text as setText } from '../../ui/dom';
-import { ancestorWhere, btn, field, note, number, row, section, select, setValue, text, type AuditRow, type Tab, type WishlistContext } from './kit';
+import { ancestorWhere, btn, check, field, note, number, pageOf, row, section, select, setChecked, setValue, text, type AuditRow, type Tab, type WishlistContext } from './kit';
 
-type Constraint = { preset?: string; accept?: string; maxSize?: number; [key: string]: unknown };
+type Constraint = { preset?: string; accept?: string; maxSize?: number | null; pattern?: string; required?: boolean | null; [key: string]: unknown };
 type FormGroup = { forms?: Record<string, { constraints?: Record<string, Constraint> }> };
 
 function formOf(ctx: WishlistContext): SiteNode | null {
@@ -106,7 +106,13 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
         preset.setAttribute('aria-label', 'Validation preset');
         const accept = text('.pdf,.png or image/*');
         accept.setAttribute('aria-label', 'Accepted file types');
-        node.append(element('span', 'wl-item-name'), preset, accept);
+        const size = number(1, 2048);
+        size.placeholder = 'Max KB';
+        size.setAttribute('aria-label', 'Maximum file size in KB');
+        const pattern = text('Pattern, for example [A-Z]{3}[0-9]{4}');
+        pattern.setAttribute('aria-label', 'Custom pattern');
+        const required = element('input');
+        node.append(element('span', 'wl-item-name'), preset, accept, size, pattern, check('Required', required));
         return node;
       }, (node, item) => {
         const name = item.attrs.name;
@@ -117,8 +123,19 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
         const accept = node.children[2] as HTMLInputElement;
         preset.hidden = file;
         accept.hidden = !file;
+        const size = node.children[3] as HTMLInputElement;
+        size.hidden = !file;
         setValue(preset, rule.preset || '');
         setValue(accept, rule.accept || item.attrs.accept || '');
+        setValue(size, rule.maxSize ? String(Math.ceil(rule.maxSize / 1024)) : '');
+        size.onchange = () => { const kb = Math.round(Number(size.value)); if (!size.value) save(name, { maxSize: null }); else if (kb >= 1 && kb <= 2048) save(name, { maxSize: kb * 1024 }); else ctx.notify('Use a size from 1 to 2048 KB.', true); };
+        const pattern = node.children[4] as HTMLInputElement;
+        const required = (node.children[5] as HTMLElement).firstElementChild as HTMLInputElement;
+        pattern.hidden = file;
+        setValue(pattern, rule.pattern || '');
+        setChecked(required, !!rule.required);
+        pattern.onchange = () => { const value = pattern.value.trim(); if (value.length <= 256 && !/[()|]|\\[1-9]/.test(value)) save(name, { pattern: value }); else { pattern.value = rule.pattern || ''; ctx.notify('Patterns cannot use groups or alternation and stay under 256 characters.', true); } };
+        required.onchange = () => save(name, { required: required.checked ? true : null });
         preset.onchange = () => save(name, { preset: preset.value });
         accept.onchange = () => { if (/^[A-Za-z0-9./*,+\- ]{0,200}$/.test(accept.value)) save(name, { accept: accept.value.trim() }); else ctx.notify('Use extensions or types separated by commas.', true); };
       });
@@ -138,7 +155,13 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
     setText(node.firstElementChild as HTMLElement, `${labels[item.code] || item.code}: ${item.message}`);
     node.dataset.severity = item.severity;
     const select = node.lastElementChild as HTMLButtonElement;
-    select.onclick = () => { if (item.node) ctx.select(item.node); };
+    select.onclick = () => {
+      if (!item.node) return;
+      const state = ctx.state();
+      const target = pageOf(state, item.node);
+      if (target && target !== pageOf(state, ctx.selected())) document.querySelector<HTMLElement>(`.list-row[data-key="${target}"]`)?.click();
+      ctx.select(item.node);
+    };
     select.disabled = !item.node;
   });
   const run = async () => {
