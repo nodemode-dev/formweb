@@ -1826,4 +1826,11 @@ export default [
   "Markera objekten och sedan banan de ska placeras på.",
   "{0} objekt placerat på banan.",
   "{0} objekt placerade på banan.",
+  "Klumppensel",
+  "Alternativ för Klumppensel",
+  "Behåll markerad",
+  "Sammanfoga endast med markering",
+  "Storlek",
+  "Låg exakthet följer pekaren noga, hög ger mjukare former. [ och ] ändrar storleken.",
+  "Klumppenselns storlek: {0}",
 ] as readonly string[];

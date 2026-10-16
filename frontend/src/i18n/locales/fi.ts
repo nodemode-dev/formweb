@@ -1826,4 +1826,11 @@ export default [
   "Valitse objektit ja sitten polku, jolle ne sijoitetaan.",
   "{0} objekti sijoitettu polulle.",
   "{0} objektia sijoitettu polulle.",
+  "Läiskäsivellin",
+  "Läiskäsiveltimen asetukset",
+  "Pidä valittuna",
+  "Yhdistä vain valintaan",
+  "Koko",
+  "Pieni tarkkuus seuraa osoitinta tiiviisti, suuri antaa pehmeämpiä muotoja. [ ja ] muuttavat kokoa.",
+  "Läiskäsiveltimen koko: {0}",
 ] as readonly string[];

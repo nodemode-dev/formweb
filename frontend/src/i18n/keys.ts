@@ -1826,4 +1826,11 @@ export const KEYS: readonly string[] = [
   "Select the objects, then the path to place them on.",
   "Placed {0} object on the path.",
   "Placed {0} objects on the path.",
+  "Blob Brush",
+  "Blob Brush Tool Options",
+  "Keep Selected",
+  "Merge Only with Selection",
+  "Size",
+  "Lower fidelity follows the pointer closely; higher gives smoother shapes. [ and ] change the size.",
+  "Blob Brush size: {0}",
 ];

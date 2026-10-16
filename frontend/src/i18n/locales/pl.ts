@@ -1826,4 +1826,11 @@ export default [
   "Zaznacz obiekty, a potem ścieżkę, na której mają się znaleźć.",
   "Umieszczono {0} obiekt na ścieżce.",
   "Umieszczono obiekty na ścieżce: {0}.",
+  "Pędzel plamowy",
+  "Opcje pędzla plamowego",
+  "Pozostaw zaznaczone",
+  "Scalaj tylko z zaznaczeniem",
+  "Rozmiar",
+  "Niska dokładność wiernie podąża za wskaźnikiem, wysoka daje gładsze kształty. [ i ] zmieniają rozmiar.",
+  "Rozmiar pędzla plamowego: {0}",
 ] as readonly string[];

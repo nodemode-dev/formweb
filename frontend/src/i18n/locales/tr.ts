@@ -1826,4 +1826,11 @@ export default [
   "Nesneleri, ardından yerleştirilecekleri yolu seçin.",
   "Yola {0} nesne yerleştirildi.",
   "Yola {0} nesne yerleştirildi.",
+  "Damla Fırçası",
+  "Damla Fırçası Aracı Seçenekleri",
+  "Seçili Tut",
+  "Yalnızca Seçimle Birleştir",
+  "Boyut",
+  "Düşük doğruluk imleci yakından izler, yüksek doğruluk daha yumuşak şekiller verir. [ ve ] boyutu değiştirir.",
+  "Damla Fırçası boyutu: {0}",
 ] as readonly string[];

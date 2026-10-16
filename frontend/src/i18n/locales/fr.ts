@@ -1826,4 +1826,11 @@ export default [
   "Sélectionnez les objets, puis le tracé sur lequel les placer.",
   "{0} objet placé sur le tracé.",
   "{0} objets placés sur le tracé.",
+  "Forme de tache",
+  "Options de l’outil Forme de tache",
+  "Conserver la sélection",
+  "Fusionner uniquement avec la sélection",
+  "Taille",
+  "Une faible fidélité suit le pointeur de près ; une fidélité élevée donne des formes plus lisses. [ et ] changent la taille.",
+  "Taille de la Forme de tache : {0}",
 ] as readonly string[];

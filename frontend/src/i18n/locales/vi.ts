@@ -1826,4 +1826,11 @@ export default [
   "Chọn các đối tượng, sau đó chọn đường dẫn để đặt chúng lên.",
   "Đã đặt {0} đối tượng lên đường dẫn.",
   "Đã đặt {0} đối tượng lên đường dẫn.",
+  "Cọ vết loang",
+  "Tùy chọn công cụ Cọ vết loang",
+  "Giữ lựa chọn",
+  "Chỉ hợp nhất với vùng chọn",
+  "Kích thước",
+  "Độ trung thực thấp bám sát con trỏ; cao cho hình mượt hơn. [ và ] thay đổi kích thước.",
+  "Kích thước Cọ vết loang: {0}",
 ] as readonly string[];

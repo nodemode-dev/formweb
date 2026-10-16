@@ -1826,4 +1826,11 @@ export default [
   "Selecteer de objecten en daarna het pad waarop ze komen.",
   "{0} object op het pad geplaatst.",
   "{0} objecten op het pad geplaatst.",
+  "Penseel voor vloeiende vormen",
+  "Opties voor Penseel voor vloeiende vormen",
+  "Geselecteerd houden",
+  "Alleen samenvoegen met selectie",
+  "Grootte",
+  "Lage getrouwheid volgt de aanwijzer nauwkeurig; hoge geeft vloeiendere vormen. [ en ] wijzigen de grootte.",
+  "Grootte van penseel voor vloeiende vormen: {0}",
 ] as readonly string[];

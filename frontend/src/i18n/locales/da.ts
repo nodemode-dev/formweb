@@ -1826,4 +1826,11 @@ export default [
   "Markér objekterne og derefter stien, de skal placeres på.",
   "{0} objekt placeret på stien.",
   "{0} objekter placeret på stien.",
+  "Klatpensel",
+  "Indstillinger for Klatpensel",
+  "Bevar markering",
+  "Flet kun med markering",
+  "Størrelse",
+  "Lav nøjagtighed følger markøren tæt, høj giver blødere former. [ og ] ændrer størrelsen.",
+  "Klatpenslens størrelse: {0}",
 ] as readonly string[];

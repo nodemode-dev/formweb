@@ -1826,4 +1826,11 @@ export default [
   "Wähle die Objekte und dann den Pfad, auf dem sie platziert werden sollen.",
   "{0} Objekt auf dem Pfad platziert.",
   "{0} Objekte auf dem Pfad platziert.",
+  "Tropfenpinsel",
+  "Tropfenpinsel-Optionen",
+  "Ausgewählt lassen",
+  "Nur mit Auswahl zusammenfügen",
+  "Größe",
+  "Niedrige Genauigkeit folgt dem Zeiger genau, hohe ergibt glattere Formen. [ und ] ändern die Größe.",
+  "Tropfenpinsel-Größe: {0}",
 ] as readonly string[];

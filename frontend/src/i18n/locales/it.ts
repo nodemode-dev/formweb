@@ -1826,4 +1826,11 @@ export default [
   "Seleziona gli oggetti, poi il tracciato su cui disporli.",
   "{0} oggetto disposto sul tracciato.",
   "{0} oggetti disposti sul tracciato.",
+  "Pennello tracciato chiuso",
+  "Opzioni Pennello tracciato chiuso",
+  "Mantieni selezione",
+  "Unisci solo con la selezione",
+  "Dimensione",
+  "Una fedeltà bassa segue da vicino il puntatore; una alta dà forme più morbide. [ e ] cambiano la dimensione.",
+  "Dimensione del Pennello tracciato chiuso: {0}",
 ] as readonly string[];

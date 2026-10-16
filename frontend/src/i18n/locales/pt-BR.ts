@@ -1826,4 +1826,11 @@ export default [
   "Selecione os objetos e depois o demarcador onde colocá-los.",
   "{0} objeto colocado no demarcador.",
   "{0} objetos colocados no demarcador.",
+  "Pincel de bolhas",
+  "Opções do Pincel de bolhas",
+  "Manter selecionado",
+  "Mesclar somente com a seleção",
+  "Tamanho",
+  "Fidelidade baixa segue o ponteiro de perto; alta gera formas mais suaves. [ e ] mudam o tamanho.",
+  "Tamanho do Pincel de bolhas: {0}",
 ] as readonly string[];

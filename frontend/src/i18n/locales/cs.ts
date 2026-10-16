@@ -1826,4 +1826,11 @@ export default [
   "Vyberte objekty a potom cestu, na kterou je umístit.",
   "Na cestu byl umístěn {0} objekt.",
   "Počet objektů umístěných na cestu: {0}.",
+  "Štětec tvarů",
+  "Volby štětce tvarů",
+  "Ponechat vybrané",
+  "Slučovat jen s výběrem",
+  "Velikost",
+  "Nízká věrnost těsně sleduje ukazatel, vysoká dává hladší tvary. [ a ] mění velikost.",
+  "Velikost štětce tvarů: {0}",
 ] as readonly string[];

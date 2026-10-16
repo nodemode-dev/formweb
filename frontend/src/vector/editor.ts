@@ -1,4 +1,5 @@
 import { commands as send, state } from '../api';
+import { t } from '../i18n';
 import type { Command, Site } from '../types';
 import type { Canvas } from '../ui/canvas';
 import { pathfinder, type PathfinderInput, type PathfinderOp } from './boolean';
@@ -12,7 +13,8 @@ import { clipHolder, moveCommands, outerGroup } from './arrange';
 import { brushedPathCommands } from './brushcmd';
 import { fitCurve, simplifyPolyline } from './fit';
 import { DRAW_TOOLS, GRID_TOOLS, dragBox, gridGroupCommands, gridParts, gridPreview, pencilFinish, pencilJoin, type PencilJoin } from './drawtools';
-import { openGridOptions } from './pathdialogs';
+import { openBlobOptions, openGridOptions } from './pathdialogs';
+import { blobMerge, blobOptions, blobOutline, stepBlobSize } from './blob';
 import { EXTRA_TOOLS, Extras } from './extras';
 import type { Frame as HostFrame, Host } from './host';
 import { Ops } from './ops';
@@ -33,7 +35,7 @@ import {
 
 export type ToolId = 'select' | 'direct' | 'pen' | 'curvature' | 'add' | 'delete' | 'convert' | 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arc' | 'spiral' | 'scissors'
   | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush' | 'pencil' | 'rgrid' | 'pgrid'
-  | 'lasso' | 'wand' | 'eyedropper' | 'puppet' | 'reshape';
+  | 'lasso' | 'wand' | 'eyedropper' | 'puppet' | 'reshape' | 'blob';
 
 export interface VectorContext {
   canvas: Canvas;
@@ -66,7 +68,7 @@ const TYPES: CornerType[] = ['round', 'inverted', 'chamfer'];
 const NUDGE_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
 export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete', k: 'knife', e: 'transform', g: 'gradient', b: 'paintbrush', q: 'lasso', y: 'wand', i: 'eyedropper', n: 'pencil' };
-const SHIFT_KEYS: Record<string, ToolId> = { c: 'convert', m: 'shapebuilder', e: 'eraser', w: 'width' };
+const SHIFT_KEYS: Record<string, ToolId> = { c: 'convert', m: 'shapebuilder', e: 'eraser', w: 'width', b: 'blob' };
 
 export class Editor {
   readonly overlay: Overlay;
@@ -303,7 +305,7 @@ export class Editor {
     if (tool === null) { this.overlay.render(scene); return; }
     if (!this.gesture) this.sync();
     this.refs = []; this.handleRefs = []; this.widgetRefs = [];
-    const showPoints = this.picker.showsPoints(tool) ?? (tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && tool !== 'paintbrush' && tool !== 'puppet' && !DRAW_TOOLS.has(tool) && !EXTRA_TOOLS.has(tool));
+    const showPoints = this.picker.showsPoints(tool) ?? (tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && tool !== 'paintbrush' && tool !== 'blob' && tool !== 'puppet' && !DRAW_TOOLS.has(tool) && !EXTRA_TOOLS.has(tool));
     const s = this.px();
     const margin = 16 * s;
     for (const shape of this.selectedShapes()) {
@@ -357,7 +359,7 @@ export class Editor {
     }
     const g = this.gesture;
     if (g?.kind === 'shape') scene.draft = formatPath(applyCorners(this.shapeSubs(g.start, g.current, g.alt, g.shift)));
-    if (g?.kind === 'paint' && g.pts.length > 1) scene.draft = formatPath([polyPath(g.pts, false)]);
+    if (g?.kind === 'paint' && g.pts.length > 1) scene.draft = formatPath(tool === 'blob' ? blobOutline(polyPath(g.pts, false), this.blobScreenSize()) : [polyPath(g.pts, false)]);
     if (g?.kind === 'marquee') scene.marquee = { x: g.start[0], y: g.start[1], w: g.current[0] - g.start[0], h: g.current[1] - g.start[1] };
     this.extras.decorate(scene);
     this.picker.decorate(scene);
@@ -468,7 +470,7 @@ export class Editor {
     if (role === 'handle') { this.startHandle(index); return; }
     if (role === 'anchor') { this.downAnchor(index, event, p); return; }
     if (tool === 'pen' || tool === 'curvature') { this.downPen(p, event); return; }
-    if (tool === 'paintbrush' || tool === 'pencil') { this.gesture = { kind: 'paint', pts: [p], join: tool === 'pencil' ? pencilJoin(this.host(), p, HIT * this.px()) : undefined }; this.render(); return; }
+    if (tool === 'paintbrush' || tool === 'pencil' || tool === 'blob') { this.gesture = { kind: 'paint', pts: [p], join: tool === 'pencil' ? pencilJoin(this.host(), p, HIT * this.px()) : undefined }; this.render(); return; }
     if (GRID_TOOLS.has(tool) || tool === 'rect' || tool === 'ellipse' || tool === 'polygon' || tool === 'star' || tool === 'line' || tool === 'arc' || tool === 'spiral') {
       const origin = event.shiftKey ? p : this.extras.snapPoint(p, new Set());
       this.gesture = { kind: 'shape', start: origin, current: origin, alt: event.altKey, shift: event.shiftKey };
@@ -685,6 +687,7 @@ export class Editor {
     const target = (event.target as Element).closest('[data-role]');
     if (target?.getAttribute('data-role') === 'widget') { this.cornerRequests.forEach(fn => fn()); return; }
     if (this.tool && GRID_TOOLS.has(this.tool)) { openGridOptions(this.tool); return; }
+    if (this.tool === 'blob') { openBlobOptions(); return; }
     if (target?.getAttribute('data-role') === 'x-wpt') { this.extras.openWidthDialog(Number(target.getAttribute('data-i') ?? '-1')); return; }
     if (this.tool === 'select' && !this.pen) {
       const hit = this.pickPath(this.pt(event));
@@ -951,10 +954,11 @@ export class Editor {
     this.gesture = null;
     if (g.kind === 'paint') {
       const pts = [...g.pts, p];
-      const err = Math.max(0.1, this.fidelity) * this.px();
+      const err = Math.max(0.1, this.tool === 'blob' ? blobOptions.fidelity : this.fidelity) * this.px();
       if (dist(pts[0], p) > 3 * this.px() || pts.length > 4) {
         const fit = fitCurve(simplifyPolyline(pts, err * 0.3), err);
-        if (this.tool === 'pencil') { const next = pencilFinish(this.host(), fit, g.join, event.altKey); if (next) void this.commitNew([next], !next.closed); }
+        if (this.tool === 'blob') void this.commitBlob(fit);
+        else if (this.tool === 'pencil') { const next = pencilFinish(this.host(), fit, g.join, event.altKey); if (next) void this.commitNew([next], !next.closed); }
         else void this.commitNew([fit], true, this.activeBrush);
       } else this.render();
       return;
@@ -1124,6 +1128,7 @@ export class Editor {
       return;
     }
     if (event.key === 'Enter' && this.pen) { this.finishPen(false); event.preventDefault(); return; }
+    if (this.tool === 'blob' && (event.key === '[' || event.key === ']')) { const size = stepBlobSize(event.key === ']'); this.notify(t('Blob Brush size: {0}', [String(size)])); event.preventDefault(); return; }
     if ((event.key === 'Backspace' || event.key === 'Delete')) {
       if (this.pen) { this.pen.nodes.pop(); if (!this.pen.nodes.length) this.pen = null; this.render(); event.preventDefault(); event.stopPropagation(); return; }
       const refs = this.selectedRefs();
@@ -1210,9 +1215,28 @@ export class Editor {
     return undefined;
   }
 
-  async commitNew(shellSubs: SubPath[], open: boolean, brush = ''): Promise<void> {
+  private blobScreenSize(): number {
+    const svg = this.activeSvg();
+    const f = svg ? this.frame(svg) : undefined;
+    return blobOptions.size * (f ? (f.sx + f.sy) / 2 : 1);
+  }
+
+  private async commitBlob(line: SubPath): Promise<void> {
+    const color = this.paintFor(true).stroke;
+    const paint: Paint = { ...this.paint, fill: color, stroke: 'none', fillRule: 'nonzero' };
+    const svg = this.activeSvg();
+    const f = svg ? this.frame(svg) : undefined;
+    if (!svg || !f) { await this.commitNew(blobOutline(line, blobOptions.size), false, '', paint); return; }
+    const local = blobOutline(mapPath([line], p => this.toLocal(f, p))[0], blobOptions.size);
+    const merged = blobMerge(this.host(), svg, local, color);
+    if (!merged) { await this.commitNew(mapPath(local, p => this.toShell(f, p)), false, '', paint); if (!blobOptions.keepSelected) { this.selection = []; this.render(); this.emit(); } return; }
+    this.render();
+    await this.commit(merged.cmds, blobOptions.keepSelected ? [merged.id] : undefined);
+  }
+
+  async commitNew(shellSubs: SubPath[], open: boolean, brush = '', override?: Paint): Promise<void> {
     const site = this.site();
-    const paint = this.paintFor(open);
+    const paint = override ?? this.paintFor(open);
     const taken = new Set<string>();
     const cmds: Command[] = [];
     const pathId = freshId(site, taken, 'path');

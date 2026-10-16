@@ -7,6 +7,7 @@ import { applyCorners } from './corners';
 import type { SubPath } from './geometry';
 import { updateGeometry } from './store';
 import { defaultTweak, tweakSubs, type TweakOptions } from './tweak';
+import { BLOB_MAX_SIZE, blobOptions, setBlobOptions } from './blob';
 
 interface Shell { root: HTMLElement; open(focus?: HTMLElement): void; close(): void }
 
@@ -306,3 +307,35 @@ class TweakDialog {
 
 let tweak: TweakDialog | undefined;
 export const openTweak = (host: Host): void => { (tweak ??= new TweakDialog()).open(host); };
+
+/* Blob Brush Tool Options */
+
+class BlobDialog {
+  private dialog: Shell | null = null;
+  private keep = checkRow(t('Keep Selected'));
+  private merge = checkRow(t('Merge Only with Selection'));
+  private fidelity = numberField(t('Fidelity'), 0.5, 20, 0.5);
+  private size = numberField(t('Size'), 1, BLOB_MAX_SIZE);
+
+  private build(): Shell {
+    return shell(t('Blob Brush Tool Options'), [this.keep.row, this.merge.row, this.fidelity.field, this.size.field, element('p', 'fw-v-note', t('Lower fidelity follows the pointer closely; higher gives smoother shapes. [ and ] change the size.'))], () => this.apply());
+  }
+
+  open(): void {
+    this.keep.input.checked = blobOptions.keepSelected;
+    this.merge.input.checked = blobOptions.mergeSelection;
+    this.fidelity.input.value = String(blobOptions.fidelity);
+    this.size.input.value = String(blobOptions.size);
+    this.dialog = this.dialog ?? this.build();
+    this.dialog.open(this.size.input);
+  }
+
+  private apply(): void {
+    const num = (input: HTMLInputElement, fallback: number): number => { const v = parseFloat(input.value); return Number.isFinite(v) ? v : fallback; };
+    setBlobOptions({ keepSelected: this.keep.input.checked, mergeSelection: this.merge.input.checked, fidelity: num(this.fidelity.input, blobOptions.fidelity), size: num(this.size.input, blobOptions.size) });
+    this.dialog?.close();
+  }
+}
+
+let blobDialog: BlobDialog | undefined;
+export const openBlobOptions = (): void => { (blobDialog ??= new BlobDialog()).open(); };

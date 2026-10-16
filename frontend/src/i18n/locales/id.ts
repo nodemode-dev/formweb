@@ -1826,4 +1826,11 @@ export default [
   "Pilih objek, lalu jalur tempat objek akan diletakkan.",
   "{0} objek diletakkan pada jalur.",
   "{0} objek diletakkan pada jalur.",
+  "Kuas Blob",
+  "Opsi Alat Kuas Blob",
+  "Tetap Terpilih",
+  "Gabung Hanya dengan Pilihan",
+  "Ukuran",
+  "Fidelitas rendah mengikuti penunjuk dengan rapat; tinggi menghasilkan bentuk lebih halus. [ dan ] mengubah ukuran.",
+  "Ukuran Kuas Blob: {0}",
 ] as readonly string[];

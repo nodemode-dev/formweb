@@ -1826,4 +1826,11 @@ export default [
   "Selecciona los objetos y después el trazado donde colocarlos.",
   "{0} objeto colocado en el trazado.",
   "{0} objetos colocados en el trazado.",
+  "Pincel de manchas",
+  "Opciones de Pincel de manchas",
+  "Mantener seleccionado",
+  "Combinar solo con la selección",
+  "Tamaño",
+  "Una fidelidad baja sigue el puntero de cerca; una alta da formas más suaves. [ y ] cambian el tamaño.",
+  "Tamaño del Pincel de manchas: {0}",
 ] as readonly string[];

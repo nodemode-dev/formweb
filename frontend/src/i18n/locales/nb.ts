@@ -1826,4 +1826,11 @@ export default [
   "Velg objektene og deretter banen de skal plasseres på.",
   "{0} objekt plassert på banen.",
   "{0} objekter plassert på banen.",
+  "Klattpensel",
+  "Alternativer for Klattpensel",
+  "Behold merket",
+  "Slå sammen bare med utvalget",
+  "Størrelse",
+  "Lav nøyaktighet følger pekeren tett, høy gir jevnere former. [ og ] endrer størrelsen.",
+  "Klattpenselstørrelse: {0}",
 ] as readonly string[];

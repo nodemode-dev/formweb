@@ -1826,4 +1826,11 @@ export default [
   "Jelöld ki az objektumokat, majd az útvonalat, amelyre kerülnek.",
   "{0} objektum az útvonalra helyezve.",
   "{0} objektum az útvonalra helyezve.",
+  "Paca ecset",
+  "Paca ecset beállításai",
+  "Kijelölés megtartása",
+  "Egyesítés csak a kijelöléssel",
+  "Méret",
+  "Alacsony pontosság szorosan követi a mutatót, magas simább formákat ad. A [ és ] módosítja a méretet.",
+  "Paca ecset mérete: {0}",
 ] as readonly string[];
