@@ -1,7 +1,7 @@
 <p align="center"><img src="assets/formweb_icon.svg" width="96" alt="FormWeb"></p>
 <h1 align="center">formweb</h1>
 <p align="center"><b>Visual website authoring for people & their agents.</b></p>
-<p align="center"><img src="https://img.shields.io/badge/version-0.7.1-f97316" alt="version 0.7.1"> <img src="https://img.shields.io/badge/TypeScript-7-3178c6" alt="TypeScript 7"> <img src="https://img.shields.io/badge/Python-3.12-3776ab" alt="Python 3.12"> <img src="https://img.shields.io/badge/Rust-stable-b7410e" alt="Rust stable"> <img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="Apache 2.0"></p>
+<p align="center"><img src="https://img.shields.io/badge/version-0.8.0-f97316" alt="version 0.8.0"> <img src="https://img.shields.io/badge/TypeScript-7-3178c6" alt="TypeScript 7"> <img src="https://img.shields.io/badge/Python-3.12-3776ab" alt="Python 3.12"> <img src="https://img.shields.io/badge/Rust-stable-b7410e" alt="Rust stable"> <img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="Apache 2.0"></p>
 
 ## What it is
 

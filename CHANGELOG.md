@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.0 · 2026-10-16
+
+Illustrator behaviors checked against Adobe sources, then built and driven in the editor. Parity: 99 of 112 (rows regraded from browser verification at 0.7.1; four rows added for the agent dock, desktop build, command registry and languages).
+
+- Corners: Relative rounding now follows the corner angle (the value is the radius a right angle gets), and Alt-click on a corner widget cycles Round, Inverted Round and Chamfer.
+- Pathfinder: the tenth operation, Outline, and every result now takes Illustrator's paint (front object for Unite, Intersect and Exclude, rear for Minus Front; Trim, Merge and Crop drop strokes; Merge joins same-fill pieces).
+- Shape Builder: the merged shape takes the style of the object where you start dragging, Alt-drag subtracts every region it crosses, gap detection (3, 6, 12 pt or custom) treats nearly closed open paths as closed, and Click stroke splits the path. Shift+M picks the tool.
+- Width tool: each width point has two sides (Alt-drag changes one), double-click opens Side 1, Side 2 and Total, and profiles can be saved, reused and flipped.
+- Type on a path: Rainbow, Skew, 3D Ribbon, Stair Step and Gravity, align to ascender, descender, center or baseline, spacing, and flip by dragging the bracket across the path.
+- Opacity masks: Clip and Invert Mask, switchable after the mask is made.
+- Join and average in one step with Mod+Alt+Shift+K; Average works across paths; the Pen snaps handles to 45 degrees with Shift and Alt-click retracts an anchor's handles.
+
 ## 0.7.1 · 2026-10-16
 
 - Gradients, clipping and opacity masks, inside strokes and type on a path now show in the editor canvas (their SVG tags were being rendered as plain boxes).

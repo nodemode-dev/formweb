@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.7.1",
- "previous": "0.7.0",
+ "version": "0.8.0",
+ "previous": "0.7.1",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Vector and creative rows reviewed against the recorded browser verification: eleven Partial to Full (FW-080, 083, 084, 085, 086, 089, 091, 096, 142, 143, 148) and four rows added (FW-152 to FW-155). 99 of 112.",
+ "release_note": "Illustrator behaviors verified against Adobe sources and driven in the browser: relative corners by angle, Pathfinder Outline and result paints, Shape Builder gap detection and stroke split, width tool per side with profiles, five type on a path effects, opacity mask Clip and Invert. No grade moved: each row keeps a named gap. 99 of 112.",
  "lanes": [
   [
    "m",
@@ -4897,7 +4897,7 @@
   {"n": 151, "id": "FW-151", "cat": 8, "f": "Print PDF export with bleed", "p": "P3", "kn": "Export a page as a print-ready PDF with bleed and crop marks.", "src": [], "conf": "vendor", "added": "0.7.0", "m": ["none", "Not built: no PDF writer or print engine exists offline in the toolchain and none was added. Reviewed at v0.7.1: no change; BUILD_NOTES records no print PDF with bleed.", "Would need a headless browser or a PDF library."], "fr": ["none", "Not assessed in this release.", [], "not verified"], "wf": ["none", "Not assessed in this release.", [], "not verified"], "ae": ["none", "Not found in the sources read.", [], "not verified"], "cv": ["none", "Not found in the sources read.", [], "not verified"]},
   {"n": 80, "id": "FW-080", "cat": 0, "f": "Vector gradients (linear and radial, fill and stroke)", "p": "P1", "kn": "Linear and radial gradients with stops (color, offset, opacity), angle and an editable gradient line on the canvas, stored safely and exported.", "src": [], "conf": "vendor", "added": "0.7.0", "m": ["full", "Gradients are same-svg defs referenced by fill or stroke url(#id); Rust, canvas.ts and assets.py each reject any other reference. Panel and Gradient tool edit stops and angle. v0.7.0 driven in Chromium against the engine: create, export carries linearGradient, url(#nope) rejected. v0.7.1 QA drove gradient create, stop drag, click to add a stop, Alt-click to remove and the end handle drag, checked in /api/state and a screenshot; after the v0.7.1 canvas tag-case fix a gradient with stop edits renders in the real editor. Regraded at v0.7.1 from Partial to Full.", "Dragging the first or last stop moves the end handle that sits on it (use a middle stop for offsets); no mesh or freeform gradients; radial and stroke gradients are not recorded as separately driven."], "fr": ["none", "Not assessed in this release.", [], "not verified"], "wf": ["none", "Not assessed in this release.", [], "not verified"], "ae": ["none", "Not assessed in this release.", [], "not verified"], "cv": ["none", "Not assessed in this release.", [], "not verified"]},
   {"n": 81, "id": "FW-081", "cat": 0, "f": "Clipping masks", "p": "P1", "kn": "Make and release a clipping mask from the top shape over the selection.", "src": [], "conf": "vendor", "added": "0.7.0", "m": ["partial", "Mod+7 turns the top path into a clipPath and wraps the rest in a g with clip-path; release restores the shape. v0.7.0 and v0.7.1 driven in Chromium: make and release round trip, and the clip renders in the real editor after the canvas tag-case fix. Reviewed at v0.7.1: stays Partial because release does not restore the paint.", "Release returns the shape as a grey outline because the clip stores no paint; clip contents cannot be edited in isolation; export of a clipped group is not separately recorded."], "fr": ["none", "Not assessed in this release.", [], "not verified"], "wf": ["none", "Not assessed in this release.", [], "not verified"], "ae": ["none", "Not assessed in this release.", [], "not verified"], "cv": ["none", "Not assessed in this release.", [], "not verified"]},
-  {"n": 82, "id": "FW-082", "cat": 0, "f": "Opacity masks", "p": "P2", "kn": "Make an opacity mask from the top shape, with release, invert and link options.", "src": [], "conf": "vendor", "added": "0.7.0", "m": ["partial", "Mod+Alt+M builds a luminosity mask def and release restores the shape. v0.7.1 QA drove it in Chromium against the real engine: a half grey mask gave half red. Reviewed at v0.7.1: works, stays Partial for the missing options.", "No invert or link toggles; luminosity only (Clip and Invert are planned in Phase 9)."], "fr": ["none", "Not assessed in this release.", [], "not verified"], "wf": ["none", "Not assessed in this release.", [], "not verified"], "ae": ["none", "Not assessed in this release.", [], "not verified"], "cv": ["none", "Not assessed in this release.", [], "not verified"]},
+  {"n": 82, "id": "FW-082", "cat": 0, "f": "Opacity masks", "p": "P2", "kn": "Make an opacity mask from the top shape, with release, invert and link options.", "src": [], "conf": "vendor", "added": "0.7.0", "m": ["partial", "Mod+Alt+M builds a luminosity mask def and release restores the shape. v0.7.1 QA drove it in Chromium against the real engine: a half grey mask gave half red. v0.8.0 adds Clip (default on) and Invert Mask, toggleable after creation, driven in Chromium: clip on hides outside, off shows it, invert flips 20 to about 80 percent opacity.", "No link toggle; Invert refuses gradient mask shapes."], "fr": ["none", "Not assessed in this release.", [], "not verified"], "wf": ["none", "Not assessed in this release.", [], "not verified"], "ae": ["none", "Not assessed in this release.", [], "not verified"], "cv": ["none", "Not assessed in this release.", [], "not verified"]},
   {"n": 83, "id": "FW-083", "cat": 0, "f": "Stroke align inside, center, outside", "p": "P1", "kn": "Align a stroke to the inside or outside of a closed path.", "src": [], "conf": "vendor", "added": "0.7.0", "m": ["full", "Inside uses an owned clipPath with a doubled stroke width; outside uses paint-order or an inverse clip; alignFixes keeps the clip in step on edits. v0.7.1 QA drove inside, center and outside on filled and unfilled paths in Chromium against the real engine, confirmed in /api/state and screenshots; inside strokes render in the real editor after the canvas tag-case fix. Regraded at v0.7.1 from Partial to Full.", "Open paths and text are not aligned (the target is closed paths); the rendered stroke was not compared pixel for pixel."], "fr": ["none", "Not assessed in this release.", [], "not verified"], "wf": ["none", "Not assessed in this release.", [], "not verified"], "ae": ["none", "Not assessed in this release.", [], "not verified"], "cv": ["none", "Not assessed in this release.", [], "not verified"]},
   {"n": 84, "id": "FW-084", "cat": 0, "f": "Knife tool", "p": "P2", "kn": "Cut filled shapes along a freehand path into separate pieces.", "src": [], "conf": "vendor", "added": "0.7.0", "m": ["full", "Knife (K) cuts through fragmentPieces boolean fragments. v0.7.1 QA drove it in Chromium against the real engine: a freehand drag and an Alt straight line cut shapes into pieces, confirmed in /api/state. Regraded at v0.7.1 from Partial to Full.", "Cuts filled shapes only (the target); tool letters forwarded from the canvas iframe were reasoned about, not driven."], "fr": ["none", "Not assessed in this release.", [], "not verified"], "wf": ["none", "Not assessed in this release.", [], "not verified"], "ae": ["none", "Not assessed in this release.", [], "not verified"], "cv": ["none", "Not assessed in this release.", [], "not verified"]},
   {"n": 85, "id": "FW-085", "cat": 0, "f": "Eraser tool", "p": "P2", "kn": "Erase parts of paths by dragging.", "src": [], "conf": "vendor", "added": "0.7.0", "m": ["full", "Eraser (Shift+E) removes a stadium region from filled shapes and splits open paths. v0.7.1 QA drove it in Chromium against the real engine on filled and open paths, confirmed in /api/state. Regraded at v0.7.1 from Partial to Full.", "Results are expanded outlines, not live; tool letters forwarded from the canvas iframe were reasoned about, not driven."], "fr": ["none", "Not assessed in this release.", [], "not verified"], "wf": ["none", "Not assessed in this release.", [], "not verified"], "ae": ["none", "Not assessed in this release.", [], "not verified"], "cv": ["none", "Not assessed in this release.", [], "not verified"]},
@@ -5470,6 +5470,29 @@
     "FW-151": "none"
    },
    "note": "Command registry, 26 interface languages, 17 vector rows and 12 creative rows added; all graded before browser verification."
+  },
+  {
+   "version": "0.7.1",
+   "date": "2026-10-16",
+   "same_as": "0.7.0",
+   "moved": {
+    "FW-080": "full",
+    "FW-083": "full",
+    "FW-084": "full",
+    "FW-085": "full",
+    "FW-086": "full",
+    "FW-089": "full",
+    "FW-091": "full",
+    "FW-096": "full",
+    "FW-142": "full",
+    "FW-143": "full",
+    "FW-148": "full",
+    "FW-152": "partial",
+    "FW-153": "partial",
+    "FW-154": "full",
+    "FW-155": "partial"
+   },
+   "note": "Vector and creative rows reviewed against the recorded browser verification: eleven Partial to Full and four rows added (FW-152 to FW-155). 99 of 112."
   }
  ],
  "changes": [
