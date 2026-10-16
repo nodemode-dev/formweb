@@ -35,6 +35,11 @@
 .fw-v-grid .fw-v-btn { flex-direction: column; height: auto; min-height: var(--ctl-lg); padding: var(--space-1); gap: 2px; border-color: var(--line-1); }
 .fw-v-input { width: 100%; height: var(--ctl-sm); padding: 0 var(--space-2); border: 1px solid var(--line-1); border-radius: var(--radius-sm); background: var(--surface-field); color: var(--text-primary); font-size: var(--fs-11); font-variant-numeric: tabular-nums; }
 .fw-v-input:disabled { opacity: .5; }
+.fw-v-progress { display: block; width: 100%; height: 4px; border: 0; border-radius: 2px; appearance: none; background: var(--line-1); accent-color: var(--accent-color); }
+.fw-v-progress::-webkit-progress-bar { border-radius: 2px; background: var(--line-1); }
+.fw-v-progress::-webkit-progress-value { border-radius: 2px; background: var(--accent-color); }
+.fw-v-progress::-moz-progress-bar { border-radius: 2px; background: var(--accent-color); }
+.fw-v-trace-status { min-height: 1.3em; }
 .fw-v-color { width: 100%; height: var(--ctl-sm); padding: 0; border: 1px solid var(--line-1); border-radius: var(--radius-sm); background: var(--surface-field); }
 .fw-v-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-1); }
 .fw-v-none { height: var(--ctl-sm); border: 1px solid var(--line-1); }
@@ -76,3 +81,4 @@
 .fw-v-symbol { display: grid; grid-template-columns: minmax(0, 1fr) var(--ctl-sm) var(--ctl-sm) var(--ctl-sm);align-items: center; gap: var(--space-1); }
 .fw-v-symbol[hidden] { display: none; }
 .fw-v-symbol-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-11); color: var(--text-primary); }
+.fw-v-body .field[hidden], .fw-v-body .fw-v-checkrow[hidden], .fw-v-body .fw-seg[hidden] { display: none; }

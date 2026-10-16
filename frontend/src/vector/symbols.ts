@@ -1,11 +1,11 @@
 import type { Command, Site, SiteNode } from '../types';
-import { applyMat, cloneCommands } from './arrange';
+import { applyMat, applyPt, cloneCommands } from './arrange';
 import { applyCorners, renderPath } from './corners';
 import { compose, rotation, scaling, shearing, translation, type Mat } from './distort';
-import { decodeModel, parsePath, pathBounds, type Box } from './geometry';
+import { decodeModel, parsePath, pathBounds, type Box, type Pt } from './geometry';
 import type { Host } from './host';
 import { liveOf } from './live';
-import { freshId, moveNode, parentOf, pathIds, removeNode, svgOf } from './store';
+import { freshId, moveNode, parentOf, pathIds, removeNode, svgOf, updateAttrs } from './store';
 
 export interface SymbolInfo { id: string; name: string }
 
@@ -24,7 +24,7 @@ function symbolNodes(site: Site, root: string): SiteNode[] {
 }
 
 export function symbolsIn(site: Site, svg: string | undefined): SymbolInfo[] {
-  return svg ? symbolNodes(site, svg).map(node => ({ id: node.id, name: node.name || node.id })) : [];
+  return svg ? symbolNodes(site, svg).filter(node => !node.attrs['data-fw-brushdef']).map(node => ({ id: node.id, name: node.name || node.id })) : [];
 }
 
 export function usesOf(site: Site, svg: string, symbol: string): string[] {
@@ -158,4 +158,36 @@ export function breakCommands(h: Host, useId: string): { cmds: Command[]; create
   if (!created.length) { h.notify('This symbol has no paths to release.'); return null; }
   cmds.push(removeNode(useId), moveNode(group, parent, at));
   return { cmds, created };
+}
+
+export const matrixText = (m: Mat): string => `matrix(${m.map(n => String(Math.round(n * 10000) / 10000)).join(' ')})`;
+
+export interface UseFrame { matrix: Mat; corners: Pt[]; centre: Pt; box: Box; x: number; y: number }
+
+export function useFrame(site: Site, id: string): UseFrame | null {
+  const use = site.nodes[id];
+  const symbol = symbolOfUse(site, id);
+  const box = symbol && symbolBox(site, symbol.id);
+  if (!use || !box) return null;
+  const x = parseFloat(use.attrs.x ?? '0') || 0, y = parseFloat(use.attrs.y ?? '0') || 0;
+  const matrix = compose(parseTransform(use.attrs.transform), translation(x, y));
+  const corners = ([[box.x, box.y], [box.x + box.w, box.y], [box.x + box.w, box.y + box.h], [box.x, box.y + box.h]] as Pt[]).map(p => applyPt(matrix, p));
+  return { matrix, corners, centre: applyPt(matrix, [box.x + box.w / 2, box.y + box.h / 2]), box, x, y };
+}
+
+export function useScaleRotation(site: Site, id: string): { scale: number; rotate: number } | null {
+  const use = site.nodes[id];
+  if (!use || use.tag !== 'use') return null;
+  const m = parseTransform(use.attrs.transform);
+  return { scale: Math.hypot(m[0], m[1]), rotate: (Math.atan2(m[1], m[0]) * 180) / Math.PI };
+}
+
+export function useTransformCommand(site: Site, id: string, scalePercent: number, rotateDegrees: number): Command | null {
+  const frame = useFrame(site, id);
+  if (!frame) return null;
+  const k = Math.max(0.01, Math.min(100, scalePercent / 100)), a = (rotateDegrees * Math.PI) / 180;
+  const l0 = Math.cos(a) * k, l1 = Math.sin(a) * k, l2 = -l1, l3 = l0;
+  const cx = frame.box.x + frame.box.w / 2 + frame.x, cy = frame.box.y + frame.box.h / 2 + frame.y;
+  const m: Mat = [l0, l1, l2, l3, frame.centre[0] - (l0 * cx + l2 * cy), frame.centre[1] - (l1 * cx + l3 * cy)];
+  return updateAttrs(id, { transform: matrixText(m) });
 }

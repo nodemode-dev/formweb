@@ -1,7 +1,7 @@
 import type { Piece } from './boolean';
 import { applyCorners } from './corners';
 import { eraseFilled, eraseOpen, gapInputs, hitPiece, knifeCut, mergePieces, regionPieces, strokeSplit } from './cut';
-import { rotation, scaling, type Mat } from './distort';
+import { compose, rotation, scaling, type Mat } from './distort';
 import { dist, formatPath, mapPath, pathBounds, type Box, type Pt, type SubPath } from './geometry';
 import {
   boxOf, createGradient, defaultGradient, gradientAttrs, offsetAt, readFor, stopAttrs, stopColorAt, stopPoint, syncGradient,
@@ -11,7 +11,7 @@ import type { Frame, Host } from './host';
 import type { ExtraItem, Scene } from './overlay';
 import { snapLocal, type Guide } from './snap';
 import { addPath, freshId, moveNode, pathIds, removeNode, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
-import { symbolBox, symbolOfUse } from './symbols';
+import { matrixText, parseTransform, useFrame } from './symbols';
 import { readWidth, widthCommands } from './stroke';
 import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variableOutline, type WidthPoint } from './widthprofile';
 import { WidthDialog } from './widthdialog';
@@ -28,7 +28,8 @@ type Gesture =
   | { kind: 'width'; id: string; idx: number; t: number; points: WidthPoint[]; alt: boolean; moved: boolean; start: [number, number] }
   | { kind: 'tbracket'; id: string; flip: 0 | 1; offset: number; moved: boolean }
   | { kind: 'grad'; mode: 'p0' | 'p1' | 'stop' | 'draw'; id: string; idx: number; next: Gradient | null; start: Pt }
-  | { kind: 'tf'; i: number; base: Map<string, SubPath[]>; box: Box; per: Map<string, Mat>; svg: string; quad?: Quad; out?: Map<string, SubPath[]> };
+  | { kind: 'tf'; i: number; base: Map<string, SubPath[]>; box: Box; per: Map<string, Mat>; svg: string; quad?: Quad; out?: Map<string, SubPath[]> }
+  | { kind: 'use'; id: string; i: number; svg: string; t: Mat; corners: Pt[]; centre: Pt; next?: Mat };
 
 const HANDLE_FRACTIONS: Pt[] = [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]];
 
@@ -100,6 +101,7 @@ export class Extras {
     if (role === 'x-wpt') return this.startWidthPoint(index, event.altKey);
     if (role === 'x-tbracket') return this.startTypeBracket();
     if (role === 'x-tf') return this.startTransform(index);
+    if (role === 'x-use') return this.startUse(index);
     if (tool === 'knife') { this.gesture = { kind: 'knife', pts: [p], alt: event.altKey }; return true; }
     if (tool === 'eraser') { this.gesture = { kind: 'eraser', pts: [p] }; return true; }
     if (tool === 'shapebuilder') return this.startBuilder(p, event.altKey);
@@ -129,6 +131,7 @@ export class Extras {
     else if (g.kind === 'tbracket') this.dragBracket(g, p);
     else if (g.kind === 'grad') this.dragGradient(g, p, event.shiftKey);
     else if (g.kind === 'tf') this.dragTransform(g, p, event);
+    else if (g.kind === 'use') this.dragUseHandle(g, p, event);
     this.h.render();
     return true;
   }
@@ -144,6 +147,7 @@ export class Extras {
     else if (g.kind === 'tbracket') void this.finishBracket(g);
     else if (g.kind === 'grad') void this.finishGradient(g, p, event.shiftKey);
     else if (g.kind === 'tf') void this.finishTransform(g);
+    else if (g.kind === 'use') void this.finishUse(g);
     this.h.render();
     return true;
   }
@@ -552,7 +556,7 @@ export class Extras {
       });
     }
     if (tool === 'width') this.decorateWidth(items, g);
-    if (tool === 'select' || tool === 'direct') { this.decorateType(items, g); this.decorateUse(items); }
+    if (tool === 'select' || tool === 'direct') { this.decorateType(items, g); this.decorateUse(items, g); }
     if (tool === 'gradient') this.decorateGradient(items, g);
     if (tool === 'transform') this.decorateTransform(items);
     if (this.iso && f) {
@@ -610,19 +614,58 @@ export class Extras {
     await this.h.commit(typeCommands(this.h.site(), c.path, { text: c.text, size: c.size, offset: g.offset, effect: c.effect, flip: g.flip === 1, align: c.align, spacing: c.spacing }, message => this.h.notify(message)));
   }
 
-  private decorateUse(items: ExtraItem[]): void {
+  private currentUse(): { id: string; svg: string } | null {
     const site = this.h.site();
-    for (const id of this.h.selection()) {
-      const use = site.nodes[id];
-      const svg = use && use.tag === 'use' ? svgOf(site, id) : undefined;
-      const f = svg ? this.h.frame(svg) : undefined;
-      const symbol = symbolOfUse(site, id);
-      const box = symbol && symbolBox(site, symbol.id);
-      if (!f || !box) continue;
-      const x = parseFloat(use.attrs.x ?? '0') || 0, y = parseFloat(use.attrs.y ?? '0') || 0;
-      const a = this.h.toShell(f, [box.x + x, box.y + y]), b = this.h.toShell(f, [box.x + box.w + x, box.y + box.h + y]);
-      items.push({ kind: 'path', d: `M${a[0]} ${a[1]}H${b[0]}V${b[1]}H${a[0]}Z`, cls: 'iso' });
+    const id = this.h.selection().find(item => site.nodes[item]?.tag === 'use');
+    const svg = id ? svgOf(site, id) : undefined;
+    return id && svg ? { id, svg } : null;
+  }
+
+  private startUse(i: number): boolean {
+    const found = this.currentUse();
+    const frame = found && useFrame(this.h.site(), found.id);
+    if (!found || !frame) return true;
+    this.gesture = { kind: 'use', id: found.id, i, svg: found.svg, t: parseTransform(this.h.site().nodes[found.id].attrs.transform), corners: frame.corners, centre: frame.centre };
+    return true;
+  }
+
+  private dragUseHandle(g: Extract<Gesture, { kind: 'use' }>, p: Pt, event: PointerEvent): void {
+    const f = this.h.frame(g.svg);
+    if (!f) return;
+    const lp = this.local(f, p), c = g.centre;
+    let w: Mat;
+    if (g.i === 8) {
+      const top: Pt = [(g.corners[0][0] + g.corners[1][0]) / 2, (g.corners[0][1] + g.corners[1][1]) / 2];
+      let delta = ((Math.atan2(lp[1] - c[1], lp[0] - c[0]) - Math.atan2(top[1] - c[1], top[0] - c[0])) * 180) / Math.PI;
+      if (event.shiftKey) delta = Math.round(delta / 15) * 15;
+      w = rotation(delta, c[0], c[1]);
+    } else {
+      const pivot = event.altKey ? c : g.corners[(g.i + 2) % 4], held = g.corners[g.i];
+      const k = Math.max(0.01, Math.min(100, dist(lp, pivot) / Math.max(1e-6, dist(held, pivot))));
+      w = scaling(k, k, pivot[0], pivot[1]);
     }
+    g.next = compose(w, g.t);
+    this.h.element(g.id)?.setAttribute('transform', matrixText(g.next));
+  }
+
+  private async finishUse(g: Extract<Gesture, { kind: 'use' }>): Promise<void> {
+    if (!g.next) return;
+    await this.h.commit([updateAttrs(g.id, { transform: matrixText(g.next) })]);
+  }
+
+  private decorateUse(items: ExtraItem[], g: Gesture | null): void {
+    const found = this.currentUse();
+    const frame = found && useFrame(this.h.site(), found.id);
+    const f = found ? this.h.frame(found.svg) : undefined;
+    if (!found || !frame || !f) return;
+    const corners = frame.corners.map(p => this.h.toShell(f, p));
+    items.push({ kind: 'path', d: `M${corners.map(p => `${p[0]} ${p[1]}`).join('L')}Z`, cls: 'iso' });
+    if (this.h.tool() !== 'select' || (g && g.kind !== 'use')) return;
+    corners.forEach((p, i) => items.push({ kind: 'circle', x: p[0], y: p[1], r: 4.5, cls: 'thandle', role: 'x-use', i }));
+    const top: Pt = [(corners[0][0] + corners[1][0]) / 2, (corners[0][1] + corners[1][1]) / 2], mid = this.h.toShell(f, frame.centre);
+    const len = Math.hypot(top[0] - mid[0], top[1] - mid[1]) || 1, reach = 18 * this.h.px();
+    const knob: Pt = [top[0] + ((top[0] - mid[0]) / len) * reach, top[1] + ((top[1] - mid[1]) / len) * reach];
+    items.push({ kind: 'line', x1: top[0], y1: top[1], x2: knob[0], y2: knob[1], cls: 'gline' }, { kind: 'circle', x: knob[0], y: knob[1], r: 5, cls: 'thandle', role: 'x-use', i: 8 });
   }
 
   private decorateType(items: ExtraItem[], g: Gesture | null): void {

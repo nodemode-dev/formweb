@@ -1,6 +1,7 @@
 import { element, text, value } from '../ui/dom';
 import type { AlignMode, AlignTo, DistributeMode, RepeatParams } from './arrange';
 import { readBlend, readRepeat, type BlendMode } from './live';
+import { BrushSections } from './brushpanel';
 import type { TfMode } from './freetransform';
 import { symbolsIn } from './symbols';
 import type { DistortKind, WarpPreset } from './distort';
@@ -12,6 +13,7 @@ import type { StrokeAlign } from './store';
 import { readWidth } from './stroke';
 import { loadProfiles, storeProfiles, type SavedProfile, type WidthPreset } from './widthprofile';
 import { TYPE_ALIGNS, TYPE_EFFECTS, readType, typeHolder, type TypeAlign, type TypeEffect, type TypeOptions } from './typepath';
+import { TraceSection } from './tracepanel';
 
 const STOP_ROWS = 8;
 const PROFILE_ROWS = 12;
@@ -90,6 +92,7 @@ export class ExtraSections {
   private symbolDone: HTMLButtonElement;
   private symbolNote = element('p', 'fw-v-note');
   private syncLive: () => void = () => undefined;
+  private brushes: BrushSections;
 
   constructor(private editor: Editor) {
     const ops = editor.ops, extras = editor.extras;
@@ -337,7 +340,8 @@ export class ExtraSections {
     this.eraser = numberInput(1, 400, 1, n => { extras.eraserSize = n; });
     guides.body.append(this.snap.root, field('Eraser size', this.eraser), this.guideNote);
 
-    this.sections.push(gradient.root, stroke.root, arrange.root, align.root, transform.root, free.root, each.root, effects.root, symbols.root, warp.root, type.root, builder.root, guides.root);
+    this.brushes = new BrushSections(editor);
+    this.sections.push(gradient.root, stroke.root, arrange.root, align.root, transform.root, free.root, each.root, effects.root, symbols.root, ...this.brushes.sections, warp.root, type.root, builder.root, guides.root, new TraceSection(editor).root);
   }
 
   private renderProfiles(): void {
@@ -428,6 +432,7 @@ export class ExtraSections {
       if (r.root.hidden !== !item) r.root.hidden = !item;
       if (item) text(r.label, item.name);
     });
+    try { this.brushes.update(); } catch { text(this.liveNote, ''); }
     this.symbolDone.hidden = !e.symbolEdit;
     text(this.symbolNote, e.symbolEdit ? 'Editing a symbol: drag anchors with the Direct Selection tool. Escape or Done editing leaves.' : listed.length ? '' : 'No symbols in this svg yet.');
   }

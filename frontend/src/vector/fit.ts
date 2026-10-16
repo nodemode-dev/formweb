@@ -88,7 +88,7 @@ function fitPart(pts: Pt[], t1: Pt, t2: Pt, err: number, depth: number): Bez[] {
   return [...fitPart(pts.slice(0, split + 1), t1, tc, err, depth + 1), ...fitPart(pts.slice(split), mul2(tc, -1), t2, err, depth + 1)];
 }
 
-export function fitCurve(raw: Pt[], err: number): SubPath {
+export function fitCurve(raw: Pt[], err: number, ends?: [Pt, Pt]): SubPath {
   const pts: Pt[] = [];
   for (const p of raw) {
     const l = pts[pts.length - 1];
@@ -96,7 +96,7 @@ export function fitCurve(raw: Pt[], err: number): SubPath {
   }
   if (pts.length < 2) return polyPath(pts, false);
   if (pts.length === 2) return polyPath(pts, false);
-  const t1 = norm2(sub2(pts[1], pts[0])), t2 = norm2(sub2(pts[pts.length - 2], pts[pts.length - 1]));
+  const t1 = ends ? norm2(ends[0]) : norm2(sub2(pts[1], pts[0])), t2 = ends ? norm2(ends[1]) : norm2(sub2(pts[pts.length - 2], pts[pts.length - 1]));
   const bez = fitPart(pts, t1, t2, err, 0);
   const nodes: Anchor[] = [{ x: bez[0][0][0], y: bez[0][0][1], in: null, out: bez[0][1], kind: 'corner' }];
   bez.forEach((b, i) => {

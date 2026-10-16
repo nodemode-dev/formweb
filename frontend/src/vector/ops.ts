@@ -87,7 +87,7 @@ export class Ops {
     return this.shapes().sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }
 
-  liveSelected(kind: 'blend' | 'repeat'): string | undefined {
+  liveSelected(kind: 'blend' | 'repeat' | 'brush'): string | undefined {
     try {
       const site = this.h.site();
       for (const id of this.h.selection()) { const found = liveOf(site, id); if (found && found.kind === kind) return found.group; }
@@ -101,14 +101,14 @@ export class Ops {
     const group = this.liveSelected('blend');
     const spec = group ? readBlend(site.nodes[group].attrs['data-fw-blend']) : null;
     if (group && spec) { await this.run([updateAttrs(group, { 'data-fw-blend': JSON.stringify({ ...spec, ...next }) })]); return; }
-    const shapes = this.ordered();
-    if (shapes.length !== 2) { this.h.notify('Select exactly two paths to blend.'); return; }
-    const [a, b] = shapes;
-    if (liveOf(site, a.id) || liveOf(site, b.id)) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
-    if (!this.h.parentOf(a.id) || this.h.parentOf(a.id) !== this.h.parentOf(b.id)) { this.h.notify('Blend needs two paths that sit in the same group.'); return; }
-    const made = blendAttrs(site, a.id, b.id, next);
-    const grouped = made && groupCommands(this.h, [a.id, b.id], 'Blend', { 'data-fw-blend': made.attr });
-    if (made && grouped) await this.run([...grouped.cmds, ...liveContainer(site, new Set([grouped.group]), grouped.group, 'blend', made.outputs, 1)], [a.id, b.id]);
+    const shapes = this.ordered().slice(0, 16);
+    if (shapes.length < 2) { this.h.notify('Select two or more paths to blend.'); return; }
+    const ids = shapes.map(s => s.id);
+    if (ids.some(id => liveOf(site, id))) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
+    if (new Set(ids.map(id => this.h.parentOf(id))).size !== 1 || !this.h.parentOf(ids[0])) { this.h.notify('Blend needs paths that sit in the same group.'); return; }
+    const made = blendAttrs(site, ids, next);
+    const grouped = made && groupCommands(this.h, ids, 'Blend', { 'data-fw-blend': made.attr });
+    if (made && grouped) await this.run([...grouped.cmds, ...liveContainer(site, new Set([grouped.group]), grouped.group, 'blend', made.outputs, 1)], ids);
   }
 
   async repeat(p: RepeatParams): Promise<void> {
@@ -131,13 +131,13 @@ export class Ops {
   }
 
   async expandLive(): Promise<void> {
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     await this.run(expandCommands(this.h.site(), group), this.h.selection().slice());
   }
 
   async releaseLive(): Promise<void> {
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     const made = releaseCommands(this.h.site(), group);
     this.leave();

@@ -6,7 +6,7 @@ const SHARED: &[&str] = &[
     "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset",
     "fill-rule", "fill-opacity", "stroke-opacity", "transform", "vector-effect", "opacity", "data-fw-vector",
     "clip-path", "mask", "paint-order", "clip-rule", "data-fw-align", "data-fw-weight", "data-fw-width", "data-fw-mask", "data-fw-type",
-    "data-fw-blend", "data-fw-repeat", "data-fw-live",
+    "data-fw-blend", "data-fw-repeat", "data-fw-live", "data-fw-brush", "data-fw-brushdef",
 ];
 const DATA_LIMIT: usize = 262_144;
 
@@ -57,6 +57,12 @@ struct Refs {
     hrefs: Vec<String>,
     symbols: BTreeSet<String>,
     uses: Vec<String>,
+    arts: Vec<String>,
+}
+
+fn art_of(node: &Node, name: &str) -> Option<String> {
+    let value: Value = serde_json::from_str(node.attrs.get(name)?).ok()?;
+    value.get("art").and_then(Value::as_str).filter(|id| !id.is_empty()).map(str::to_string)
 }
 
 fn holds_use(site: &Site, node: &Node, depth: usize) -> bool {
@@ -79,7 +85,9 @@ fn scan(site: &Site, node: &Node, depth: usize, refs: &mut Refs) -> Result<(), S
     if node.tag == "textPath" {
         if let Some(target) = node.attrs.get("href") { refs.hrefs.push(target.trim_start_matches('#').to_string()); }
     }
+    if node.tag == "g" { if let Some(id) = art_of(node, "data-fw-brush") { refs.arts.push(id); } }
     if node.tag == "symbol" {
+        if let Some(id) = art_of(node, "data-fw-brushdef") { refs.arts.push(id); }
         if holds_use(site, node, 0) { return Err("a symbol cannot contain use elements".into()); }
         if let Some(id) = node.attrs.get("id") { refs.symbols.insert(id.clone()); }
     }
@@ -109,6 +117,7 @@ pub fn check_node(node: &Node, site: &Site) -> Result<(), String> {
         if refs.used.iter().any(|id| !refs.defined.contains(id)) { return Err("paint, clip and mask references must point at definitions inside the same svg".into()); }
         if refs.hrefs.iter().any(|id| !refs.paths.contains(id)) { return Err("text on a path must reference a path inside the same svg".into()); }
         if refs.uses.iter().any(|id| !refs.symbols.contains(id)) { return Err("a use element must point at a symbol inside the same svg".into()); }
+        if refs.arts.iter().any(|id| !refs.symbols.contains(id)) { return Err("a brush must use artwork from a symbol inside the same svg".into()); }
     }
     if vector_parent { check_live(node, site)?; }
     Ok(())
@@ -117,14 +126,15 @@ pub fn check_node(node: &Node, site: &Site) -> Result<(), String> {
 fn check_live(node: &Node, site: &Site) -> Result<(), String> {
     let blend = node.attrs.get("data-fw-blend");
     let repeat = node.attrs.get("data-fw-repeat");
-    if (blend.is_some() || repeat.is_some()) && node.tag != "g" { return Err("live blends and repeats live on a group".into()); }
-    if blend.is_some() && repeat.is_some() { return Err("a group cannot be both a blend and a repeat".into()); }
+    let brush = node.attrs.get("data-fw-brush");
+    if (blend.is_some() || repeat.is_some() || brush.is_some()) && node.tag != "g" { return Err("live blends, repeats and brushes live on a group".into()); }
+    if [blend, repeat, brush].iter().filter(|v| v.is_some()).count() > 1 { return Err("a group can be only one of a blend, a repeat or a brush".into()); }
     let kids: Vec<&Node> = node.children.iter().filter_map(|id| site.nodes.get(id)).collect();
     let mut live = 0;
     for child in &kids {
         let Some(kind) = child.attrs.get("data-fw-live") else { continue };
         live += 1;
-        let owned = match kind.as_str() { "blend" => blend.is_some(), "repeat" => repeat.is_some(), _ => false };
+        let owned = match kind.as_str() { "blend" => blend.is_some(), "repeat" => repeat.is_some(), "brush" => brush.is_some(), _ => false };
         let paths_only = child.children.iter().filter_map(|id| site.nodes.get(id)).all(|n| n.tag == "path");
         if !owned || child.tag != "g" || !paths_only { return Err("live copies must sit in a locked group inside their blend or repeat".into()); }
     }
@@ -132,8 +142,15 @@ fn check_live(node: &Node, site: &Site) -> Result<(), String> {
     let source = |id: &str| kids.iter().any(|k| k.id == id && k.tag == "path" && !k.attrs.contains_key("data-fw-live"));
     if let Some(raw) = blend {
         let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-blend".to_string())?;
-        let ids: Vec<&str> = ["a", "b"].iter().filter_map(|key| value.get(key).and_then(Value::as_str)).collect();
-        if ids.len() != 2 || !ids.iter().all(|id| source(id)) { return Err("a blend must name two paths inside its group".into()); }
+        let mut ids: Vec<&str> = ["a", "b"].iter().filter_map(|key| value.get(key).and_then(Value::as_str)).collect();
+        if let Some(list) = value.get("mid").and_then(Value::as_array) { ids.extend(list.iter().filter_map(Value::as_str)); }
+        let spine = value.get("spine").and_then(Value::as_str).unwrap_or("");
+        if ids.len() < 2 || !ids.iter().all(|id| source(id)) { return Err("a blend must name its paths inside its group".into()); }
+        if !spine.is_empty() && !source(spine) { return Err("a blend spine must be a path inside its group".into()); }
+    }
+    if let Some(raw) = brush {
+        let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-brush".to_string())?;
+        if !value.get("src").and_then(Value::as_str).map(|id| source(id)).unwrap_or(false) { return Err("a brush must name its source path inside its group".into()); }
     }
     if let Some(raw) = repeat {
         let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-repeat".to_string())?;
@@ -159,7 +176,9 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-type" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| type_config(&v)).unwrap_or(false),
         "data-fw-blend" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| blend_config(&v)).unwrap_or(false),
         "data-fw-repeat" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| repeat_config(&v)).unwrap_or(false),
-        "data-fw-live" => matches!(value, "blend" | "repeat"),
+        "data-fw-live" => matches!(value, "blend" | "repeat" | "brush"),
+        "data-fw-brush" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| brush_config(&v, true)).unwrap_or(false),
+        "data-fw-brushdef" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| brush_config(&v, false)).unwrap_or(false),
         "id" if tag == "symbol" => ref_id(value),
         "href" if tag == "use" => value.strip_prefix('#').map(ref_id).unwrap_or(false),
         "dy" => number_in(value, -2000.0, 2000.0),
@@ -225,14 +244,45 @@ fn blend_config(value: &Value) -> bool {
     let id = |key: &str| map.get(key).and_then(Value::as_str).map(ref_id).unwrap_or(false);
     let int = |key: &str, lo: u64, hi: u64| map.get(key).and_then(Value::as_u64).map(|n| n >= lo && n <= hi).unwrap_or(false);
     let word = |key: &str, allowed: &[&str]| map.get(key).and_then(Value::as_str).map(|s| allowed.contains(&s)).unwrap_or(false);
-    map.len() == 8
+    let extended = map.len() == 10;
+    let mut named: Vec<&str> = ["a", "b"].iter().filter_map(|key| map.get(*key).and_then(Value::as_str)).collect();
+    let mid_ok = !extended || map.get("mid").and_then(Value::as_array).map(|list| list.len() <= 14 && list.iter().all(|v| v.as_str().map(ref_id).unwrap_or(false))).unwrap_or(false);
+    if extended {
+        if let Some(list) = map.get("mid").and_then(Value::as_array) { named.extend(list.iter().filter_map(Value::as_str)); }
+        if let Some(spine) = map.get("spine").and_then(Value::as_str) { if !spine.is_empty() { named.push(spine); } }
+    }
+    let spine_ok = !extended || map.get("spine").and_then(Value::as_str).map(|s| s.is_empty() || ref_id(s)).unwrap_or(false);
+    let distinct = named.iter().collect::<BTreeSet<_>>().len() == named.len();
+    (map.len() == 8 || extended)
+        && mid_ok && spine_ok && distinct
         && map.get("v").and_then(Value::as_u64) == Some(1)
-        && id("a") && id("b") && map.get("a") != map.get("b")
+        && id("a") && id("b")
         && word("mode", &["color", "steps", "distance"])
         && int("steps", 1, 100)
         && map.get("distance").and_then(Value::as_f64).map(|n| n.is_finite() && (0.5..=10000.0).contains(&n)).unwrap_or(false)
-        && word("orient", &["page"])
+        && word("orient", &["page", "path"])
         && sig_ok(map)
+}
+
+fn brush_config(value: &Value, group: bool) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    let number = |key: &str, lo: f64, hi: f64| map.get(key).and_then(Value::as_f64).map(|n| n.is_finite() && n >= lo && n <= hi).unwrap_or(false);
+    let int = |key: &str, lo: u64, hi: u64| map.get(key).and_then(Value::as_u64).map(|n| n >= lo && n <= hi).unwrap_or(false);
+    let word = |key: &str, allowed: &[&str]| map.get(key).and_then(Value::as_str).map(|s| allowed.contains(&s)).unwrap_or(false);
+    let kind = map.get("kind").and_then(Value::as_str).unwrap_or("");
+    let art = map.get("art").and_then(Value::as_str);
+    let art_ok = art.map(|a| (a.is_empty() && (!group || kind == "calligraphic")) || (!a.is_empty() && ref_id(a))).unwrap_or(false);
+    let own = !group || (map.get("src").and_then(Value::as_str).map(ref_id).unwrap_or(false)
+        && map.get("color").and_then(Value::as_str).map(|c| c.len() == 7 && c.starts_with('#') && c[1..].bytes().all(|b| b.is_ascii_hexdigit())).unwrap_or(false)
+        && number("weight", 0.0, 10000.0) && sig_ok(map));
+    map.len() == if group { 21 } else { 17 }
+        && map.get("v").and_then(Value::as_u64) == Some(1)
+        && word("kind", &["calligraphic", "scatter", "art", "pattern"])
+        && art_ok && own
+        && number("angle", -180.0, 180.0) && number("roundness", 1.0, 100.0) && number("size", 0.1, 2000.0) && number("scale", 1.0, 1000.0)
+        && number("spacing", 0.0, 1000.0) && number("scatter", 0.0, 500.0) && number("rotation", -180.0, 180.0)
+        && int("seed", 1, 99999) && int("stretch", 0, 1) && int("flip", 0, 1) && int("flipv", 0, 1)
+        && word("rotmode", &["fixed", "random"]) && word("rotrel", &["page", "path"]) && word("fit", &["stretch", "space"])
 }
 
 fn repeat_config(value: &Value) -> bool {

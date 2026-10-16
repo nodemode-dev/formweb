@@ -2,8 +2,10 @@ import '../styles/vector.css';
 import { subscribe } from '../api';
 import type { CommandDef } from '../ui/shell';
 import type { PathfinderOp } from './boolean';
+import { spineCommands } from './brushcmd';
 import { Editor, type ToolId, type VectorContext } from './editor';
 import { PATHFINDERS, TOOLS, VectorPanel } from './panel';
+import { runTrace } from './tracepanel';
 
 export type { VectorContext, ToolId } from './editor';
 
@@ -79,6 +81,9 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.blend', label: 'Blend selected paths', menu: MENU, keys: 'Mod+Alt+B', group: 7, run: () => { void editor.ops.blend({ mode: 'steps', steps: 5, distance: 20 }); }, enabled: () => hasPair() || !!editor.ops.liveSelected('blend') },
     { id: 'vector.blend.expand', label: 'Expand blend or repeat', menu: MENU, group: 7, run: () => { void editor.ops.expandLive(); }, enabled: () => !!(editor.ops.liveSelected('blend') ?? editor.ops.liveSelected('repeat')) },
     { id: 'vector.blend.release', label: 'Release blend or repeat', menu: MENU, group: 7, run: () => { void editor.ops.releaseLive(); }, enabled: () => !!(editor.ops.liveSelected('blend') ?? editor.ops.liveSelected('repeat')) },
+    { id: 'vector.brush.remove', label: 'Remove brush', menu: MENU, group: 7, run: () => { void editor.ops.releaseLive(); }, enabled: () => !!editor.ops.liveSelected('brush') },
+    { id: 'vector.brush.expand', label: 'Expand brush appearance', menu: MENU, group: 7, run: () => { void editor.ops.expandLive(); }, enabled: () => !!editor.ops.liveSelected('brush') },
+    { id: 'vector.blend.spine', label: 'Replace blend spine', menu: MENU, group: 7, run: () => { const cmds = spineCommands(editor.host()); if (cmds.length) void editor.host().commit(cmds); } },
     { id: 'vector.repeat.radial', label: 'Repeat radial', menu: MENU, group: 7, run: () => { void editor.ops.repeat({ kind: 'radial', count: 6, radius: 80, cols: 3, rows: 2, gapX: 10, gapY: 10, angle: 90, brick: 'none', offset: 0 }); }, enabled: hasShape },
     { id: 'vector.symbol.define', label: 'Define symbol', menu: MENU, group: 7, run: () => { void editor.ops.defineSymbol(''); }, enabled: hasShape },
     { id: 'vector.symbol.break', label: 'Break link to symbol', menu: MENU, group: 7, run: () => { void editor.ops.breakLink(); }, enabled: () => { try { return editor.selection.some(id => editor.site().nodes[id]?.tag === 'use'); } catch { return false; } } },
@@ -92,7 +97,8 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.distribute.vspace', label: 'Distribute vertical spacing', menu: MENU, group: 8, run: () => { void editor.ops.distribute('vspace', null); }, enabled: () => editor.selection.length >= 3 },
     { id: 'vector.snap.toggle', label: 'Smart guides and snapping', menu: MENU, keys: 'Mod+Shift+;', group: 8, run: () => { editor.extras.snapping = !editor.extras.snapping; editor.emit(); }, checked: () => editor.extras.snapping },
     { id: 'vector.svg.import', label: 'Import SVG...', menu: MENU, group: 5, run: () => panel.pickFile() },
-    { id: 'vector.svg.export', label: 'Export selection as SVG', menu: MENU, group: 5, run: () => panel.download(), enabled: () => !!ctx.getSelected() }
+    { id: 'vector.trace', label: 'Image Trace', menu: MENU, keys: 'Mod+Alt+Shift+T', group: 5, run: () => runTrace() },
+    { id: 'vector.svg.export',label: 'Export selection as SVG', menu: MENU, group: 5, run: () => panel.download(), enabled: () => !!ctx.getSelected() }
   ];
 
   return {

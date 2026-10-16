@@ -16,7 +16,7 @@ import { Overlay, type Scene, type SceneAnchor, type SceneHandle, type SceneWidg
 import { alignFixes, widthFixes } from './stroke';
 import { typeFixes } from './typepath';
 import { liveCopyOwner, liveFixes, liveSources } from './live';
-import { symbolPaths, usesOf } from './symbols';
+import { parseTransform, symbolPaths, usesOf } from './symbols';
 import { exportSvg, importSvg } from './svg';
 import {
   CONTAINER_TAGS, VECTOR_TAGS, addPath, addSvg, defaultPaint, freshId, geometryAttrs, moveNode, paintAttrs, pathIds, readShape, removeNode, svgOf, updateAttrs, updateGeometry, viewBoxOf,
@@ -499,8 +499,10 @@ export class Editor {
     const f = svg ? this.frame(svg) : undefined;
     if (!f || (!g.moved && dist(p, g.start) < 2 * this.px())) return;
     g.moved = true;
-    g.nx = Math.round((g.x + (p[0] - g.start[0]) / f.sx) * 100) / 100;
-    g.ny = Math.round((g.y + (p[1] - g.start[1]) / f.sy) * 100) / 100;
+    const m = parseTransform(this.site().nodes[g.id]?.attrs.transform), det = m[0] * m[3] - m[1] * m[2] || 1;
+    const wx = (p[0] - g.start[0]) / f.sx, wy = (p[1] - g.start[1]) / f.sy;
+    g.nx = Math.round((g.x + (m[3] * wx - m[2] * wy) / det) * 100) / 100;
+    g.ny = Math.round((g.y + (m[0] * wy - m[1] * wx) / det) * 100) / 100;
     const el = this.element(g.id);
     el?.setAttribute('x', String(g.nx));
     el?.setAttribute('y', String(g.ny));
