@@ -2,7 +2,9 @@ import type { Collection, Page, Site } from '../types';
 
 type ItemContext = { collection: string; item: Collection['items'][number]; ids: Record<string, string>; suffix: string };
 
-const allowedTags = new Set(['div', 'main', 'section', 'article', 'header', 'footer', 'nav', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'a', 'button', 'img', 'figure', 'figcaption', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'blockquote', 'strong', 'em', 'small', 'b', 'i', 'br', 'hr', 'form', 'label', 'input', 'textarea', 'select', 'option', 'fieldset', 'legend', 'details', 'summary', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'time', 'code', 'pre', 'video', 'audio', 'source', 'wbr']);
+const allowedTags = new Set(['div', 'main', 'section', 'article', 'header', 'footer', 'nav', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'a', 'button', 'img', 'figure', 'figcaption', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'blockquote', 'strong', 'em', 'small', 'b', 'i', 'br', 'hr', 'form', 'label', 'input', 'textarea', 'select', 'option', 'fieldset', 'legend', 'details', 'summary', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'time', 'code', 'pre', 'video', 'audio', 'source', 'wbr', 'svg', 'g', 'path']);
+const vectorTags = new Set(['svg', 'g', 'path']);
+const vectorAttributes = new Set(['d', 'viewBox', 'preserveAspectRatio', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'fill-rule', 'fill-opacity', 'stroke-opacity', 'transform', 'vector-effect', 'opacity']);
 const voidTags = new Set(['img', 'input', 'source', 'hr', 'br', 'wbr']);
 const allowedAttributes = new Set(['id', 'class', 'title', 'role', 'href', 'src', 'alt', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'required', 'checked', 'disabled', 'multiple', 'selected', 'min', 'max', 'step', 'pattern', 'minlength', 'maxlength', 'autocomplete', 'for', 'loading', 'width', 'height', 'tabindex', 'open', 'datetime', 'colspan', 'rowspan', 'scope', 'controls', 'muted', 'loop', 'poster', 'preload']);
 function safeUrl(url: string): boolean {
@@ -141,7 +143,7 @@ export class Canvas {
     const tag = allowedTags.has(data.tag.toLowerCase()) ? data.tag.toLowerCase() : 'div';
     let node = this.nodes.get(key);
     if (!node || node.tagName.toLowerCase() !== tag) {
-      const replacement = this.doc.createElement(tag);
+      const replacement = (vectorTags.has(tag) ? this.doc.createElementNS('http://www.w3.org/2000/svg', tag) : this.doc.createElement(tag)) as HTMLElement;
       replacement.dataset.fwId = id;
       replacement.dataset.fwKey = key;
       if (node) { while (node.firstChild) replacement.append(node.firstChild); node.replaceWith(replacement); }
@@ -162,7 +164,8 @@ export class Canvas {
     }
     const nextAttrs = new Set<string>();
     for (const [name, content] of Object.entries(attributes)) {
-      if ((!allowedAttributes.has(name) && !/^aria-[a-z-]+$/.test(name) && !/^data-[a-z-]+$/.test(name)) || /^data-fw-/.test(name)) continue;
+      const vectorAttribute = vectorTags.has(tag) && vectorAttributes.has(name) && !/url\(|javascript:|[<>]/i.test(content);
+      if ((!allowedAttributes.has(name) && !vectorAttribute && !/^aria-[a-z-]+$/.test(name) && !/^data-[a-z-]+$/.test(name)) || /^data-fw-/.test(name)) continue;
       if (['href', 'src', 'poster'].includes(name) && !safeUrl(content)) continue;
       let actual = content;
       if (context) {

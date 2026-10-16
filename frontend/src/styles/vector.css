@@ -1,0 +1,42 @@
+.fw-vo { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: var(--z-raised); --fw-vo-px: 1; }
+.fw-vo [data-off], .fw-vo[data-off] { display: none; }
+.fw-vo-capture { x: 0; y: 0; width: 100%; height: 100%; fill: transparent; pointer-events: none; }
+.fw-vo[data-capture="true"] .fw-vo-capture { pointer-events: all; }
+.fw-vo[data-tool="pen"] .fw-vo-capture, .fw-vo[data-tool="curvature"] .fw-vo-capture, .fw-vo[data-tool="rect"] .fw-vo-capture, .fw-vo[data-tool="ellipse"] .fw-vo-capture, .fw-vo[data-tool="polygon"] .fw-vo-capture, .fw-vo[data-tool="star"] .fw-vo-capture, .fw-vo[data-tool="line"] .fw-vo-capture, .fw-vo[data-tool="arc"] .fw-vo-capture, .fw-vo[data-tool="spiral"] .fw-vo-capture { cursor: crosshair; }
+.fw-vo[data-tool="scissors"] .fw-vo-capture, .fw-vo[data-tool="add"] .fw-vo-capture, .fw-vo[data-tool="delete"] .fw-vo-capture, .fw-vo[data-tool="convert"] .fw-vo-capture { cursor: copy; }
+.fw-vo-outline { fill: none; stroke: var(--accent-color); stroke-width: calc(1.25px * var(--fw-vo-px)); vector-effect: none; pointer-events: none; }
+.fw-vo-draft { fill: var(--accent-wash); stroke: var(--accent-color); stroke-width: calc(1.25px * var(--fw-vo-px)); stroke-dasharray: calc(4px * var(--fw-vo-px)) calc(3px * var(--fw-vo-px)); pointer-events: none; }
+.fw-vo-rubber { fill: none; stroke: var(--accent-color); stroke-width: calc(1px * var(--fw-vo-px)); opacity: .6; pointer-events: none; }
+.fw-vo-hline { stroke: var(--accent-color); stroke-width: calc(1px * var(--fw-vo-px)); pointer-events: none; }
+.fw-vo-anchor { fill: var(--bg-primary); stroke: var(--accent-color); stroke-width: calc(1.25px * var(--fw-vo-px)); pointer-events: all; cursor: pointer; }
+.fw-vo-anchor[data-selected="true"] { fill: var(--accent-color); }
+.fw-vo-anchor[data-start="true"] { stroke: var(--ok); }
+.fw-vo-handle { fill: var(--bg-primary); stroke: var(--accent-color); stroke-width: calc(1.25px * var(--fw-vo-px)); pointer-events: all; cursor: pointer; }
+.fw-vo-widget { fill: var(--text-primary); stroke: var(--accent-color); stroke-width: calc(1.5px * var(--fw-vo-px)); pointer-events: all; cursor: ew-resize; }
+.fw-vo-widget[data-limit="true"] { fill: var(--danger); stroke: var(--danger); }
+.fw-vo-marquee { fill: var(--accent-wash); stroke: var(--accent-color); stroke-width: calc(1px * var(--fw-vo-px)); stroke-dasharray: calc(3px * var(--fw-vo-px)); pointer-events: none; }
+
+.fw-vtools { position: fixed; left: var(--fw-v-left, 12px); top: var(--fw-v-top, 96px); z-index: var(--z-sticky); display: grid; grid-template-columns: repeat(2, var(--ctl-md)); gap: 2px; padding: var(--space-1); border: 1px solid var(--line-2); border-radius: var(--radius-md); background: var(--surface-2); box-shadow: var(--shadow-md); }
+.fw-vtools[data-open="false"], .fw-vpanel[data-open="false"] { visibility: hidden; pointer-events: none; }
+.fw-v-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); min-height: 0; height: var(--ctl-md); padding: 0; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); font-size: var(--fs-11); }
+.fw-v-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.fw-v-btn.is-on { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-color); }
+.fw-v-btn .icon { display: inline-flex; width: 16px; height: 16px; }
+.fw-v-btn .icon svg { width: 16px; height: 16px; }
+.fw-v-btn-label { white-space: nowrap; }
+
+.fw-vpanel { position: fixed; right: var(--fw-v-right, 12px); top: var(--fw-v-top, 96px); z-index: var(--z-sticky); width: 264px; max-height: var(--fw-v-max, 70vh); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--line-2); border-radius: var(--radius-md); background: var(--surface-2); box-shadow: var(--shadow-md); color: var(--text-primary); font-size: var(--fs-11); }
+.fw-v-close { position: absolute; right: var(--space-1); top: var(--space-1); width: var(--ctl-sm); height: var(--ctl-sm); }
+.fw-v-section { border-bottom: 1px solid var(--line-1); }
+.fw-v-summary { padding: var(--space-2) var(--space-3); color: var(--text-secondary); font-size: var(--fs-11); font-weight: 600; cursor: pointer; user-select: none; }
+.fw-v-body { display: flex; flex-direction: column; gap: var(--space-2); padding: 0 var(--space-3) var(--space-3); }
+.fw-v-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.fw-v-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-1); }
+.fw-v-grid .fw-v-btn { flex-direction: column; height: auto; min-height: var(--ctl-lg); padding: var(--space-1); gap: 2px; border-color: var(--line-1); }
+.fw-v-input { width: 100%; height: var(--ctl-sm); padding: 0 var(--space-2); border: 1px solid var(--line-1); border-radius: var(--radius-sm); background: var(--surface-field); color: var(--text-primary); font-size: var(--fs-11); font-variant-numeric: tabular-nums; }
+.fw-v-input:disabled { opacity: .5; }
+.fw-v-color { width: 100%; height: var(--ctl-sm); padding: 0; border: 1px solid var(--line-1); border-radius: var(--radius-sm); background: var(--surface-field); }
+.fw-v-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-1); }
+.fw-v-none { height: var(--ctl-sm); border: 1px solid var(--line-1); }
+.fw-v-note { margin: 0; min-height: 2.6em; color: var(--text-muted); font-size: var(--fs-10); line-height: 1.3; }
+.fw-v-check { justify-self: start; }

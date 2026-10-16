@@ -3,6 +3,7 @@ use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub mod advanced;
+pub mod vector;
 
 pub type Strings = BTreeMap<String, String>;
 
@@ -321,14 +322,16 @@ fn walk(site: &Site, id: &str, path: &mut BTreeSet<String>, visited: &mut BTreeS
 }
 
 fn validate_node(node: &Node, site: &Site) -> Result<(), String> {
-    const TAGS: &[&str] = &["div", "main", "section", "article", "header", "footer", "nav", "aside", "h1", "h2", "h3", "h4", "h5", "h6", "p", "span", "a", "button", "img", "figure", "figcaption", "ul", "ol", "li", "dl", "dt", "dd", "blockquote", "strong", "em", "small", "b", "i", "br", "hr", "form", "label", "input", "textarea", "select", "option", "fieldset", "legend", "details", "summary", "table", "thead", "tbody", "tr", "th", "td", "caption", "time", "code", "pre", "video", "audio", "source", "wbr"];
+    const TAGS: &[&str] = &["div", "main", "section", "article", "header", "footer", "nav", "aside", "h1", "h2", "h3", "h4", "h5", "h6", "p", "span", "a", "button", "img", "figure", "figcaption", "ul", "ol", "li", "dl", "dt", "dd", "blockquote", "strong", "em", "small", "b", "i", "br", "hr", "form", "label", "input", "textarea", "select", "option", "fieldset", "legend", "details", "summary", "table", "thead", "tbody", "tr", "th", "td", "caption", "time", "code", "pre", "video", "audio", "source", "wbr", "svg", "g", "path"];
     if !TAGS.contains(&node.tag.as_str()) { return Err(format!("unsupported tag {}", node.tag)); }
+    vector::check_node(node, site)?;
     if node.text.len() > 100000 || node.name.len() > 1000 || node.attrs.len() > 100 || node.interactions.len() > 20 { return Err("node content exceeds limit".into()); }
     if void_tag(&node.tag) && (!node.children.is_empty() || !node.text.is_empty()) { return Err("void elements cannot contain text or children".into()); }
     for (name, value) in &node.attrs {
         let allowed = ["id", "class", "title", "role", "href", "src", "alt", "target", "rel", "type", "name", "value", "placeholder", "required", "checked", "disabled", "multiple", "selected", "min", "max", "step", "pattern", "minlength", "maxlength", "autocomplete", "for", "method", "action", "enctype", "loading", "width", "height", "tabindex", "open", "datetime", "colspan", "rowspan", "scope", "controls", "muted", "loop", "poster", "preload"].contains(&name.as_str())
-            || (name.starts_with("aria-") && identifier(&name[5..])) || (name.starts_with("data-") && identifier(&name[5..]));
-        if !allowed || value.len() > 10000 || name.starts_with("on") { return Err(format!("unsupported attribute {name}")); }
+            || (name.starts_with("aria-") && identifier(&name[5..])) || (name.starts_with("data-") && identifier(&name[5..])) || vector::attr_allowed(&node.tag, name);
+        if !allowed || value.len() > vector::max_len(&node.tag, name) || name.starts_with("on") { return Err(format!("unsupported attribute {name}")); }
+        if vector::is_tag(&node.tag) { vector::check_attr(&node.tag, name, value)?; }
         if ["href", "src", "action", "poster"].contains(&name.as_str()) && !safe_url(value) { return Err(format!("unsafe URL on {}", node.id)); }
         if name == "target" && !["_blank", "_self", "_parent", "_top"].contains(&value.as_str()) { return Err("unsupported link target".into()); }
         if name == "method" && !["post", "get"].contains(&value.as_str()) { return Err("form method must be post or get".into()); }

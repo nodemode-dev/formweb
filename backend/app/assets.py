@@ -14,7 +14,10 @@ MIME_TYPES = {'png': 'image/png', 'jpg': 'image/jpeg', 'gif': 'image/gif', 'webp
 # rebuilt from this allowlist so no script, link, style sheet or external reference can survive.
 SVG_TAGS = {'svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse'}
 SVG_ATTRS = {'xmlns', 'width', 'height', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'd', 'cx', 'cy', 'r', 'rx', 'ry',
-             'x', 'y', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'opacity', 'fill-opacity', 'stroke-opacity'}
+             'x', 'y', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'opacity', 'fill-opacity', 'stroke-opacity',
+             'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'fill-rule', 'clip-rule', 'vector-effect', 'preserveAspectRatio'}
+VECTOR_MODEL = 'data-fw-vector'  # editable anchor model written by the vector editor; JSON only, checked structurally below
+VECTOR_MODEL_LIMIT = 262144
 SVG_VALUE = re.compile(r'^[A-Za-z0-9 .,#%()+\-/]*$')  # no colon: no scheme (javascript:, data:) can appear in any value
 
 
@@ -25,6 +28,67 @@ def asset_path(name: str):
     if not target.is_file():
         raise EngineError('Asset not found.', 404)
     return target
+
+
+def vector_model_ok(value: str) -> bool:
+    if len(value) > VECTOR_MODEL_LIMIT:
+        return False
+    try:
+        model = json.loads(value)
+    except ValueError:
+        return False
+    return isinstance(model, dict) and model.get('v') == 1 and isinstance(model.get('subs'), list)
+
+
+def sanitize_svg(data: bytes) -> bytes:
+    """Lenient import path for user SVG: drop what the vector element cannot hold, then run the strict cleaner over the result."""
+    import xml.etree.ElementTree as ET
+
+    if len(data) > 1024 * 1024:
+        raise EngineError('SVG is too large.', 413)
+    text = data.decode('utf-8', 'strict').strip()
+    if re.search(r'<!(?!--)', text) or re.search(r'<\?(?!xml\s)', text):
+        raise EngineError('SVG may not contain a DOCTYPE or entities.', 415)
+    try:
+        root = ET.fromstring(re.sub(r'<!--.*?-->', '', text, flags=re.S))
+    except ET.ParseError as error:
+        raise EngineError('SVG is not well formed.', 415) from error
+    from html import escape as quote
+
+    def declarations(node) -> dict:
+        found = {}
+        for part in node.attrib.get('style', '').split(';'):
+            if ':' in part:
+                name, value = part.split(':', 1)
+                found[name.strip()] = value.strip()
+        return found
+
+    def build(node) -> str:
+        tag = node.tag.split('}', 1)[-1] if isinstance(node.tag, str) else ''
+        if tag not in SVG_TAGS:
+            return ''
+        merged = {key.split('}', 1)[-1]: value for key, value in node.attrib.items()}
+        for name, value in declarations(node).items():
+            merged.setdefault(name, value)
+        attrs = []
+        for name, value in merged.items():
+            if name == VECTOR_MODEL:
+                if vector_model_ok(value):
+                    attrs.append(f' {name}="{quote(value, quote=True)}"')
+                continue
+            if name in SVG_ATTRS and name != 'xmlns' and 'url' not in value.lower() and SVG_VALUE.fullmatch(value):
+                attrs.append(f' {name}="{quote(value, quote=True)}"')
+        children = ''.join(build(child) for child in node)
+        return f'<{tag}{"".join(attrs)}>{children}</{tag}>'
+
+    if root.tag.split('}', 1)[-1] != 'svg':
+        raise EngineError('Not an SVG document.', 415)
+    return build(root).encode('utf-8')
+
+
+def import_vector_svg(data: bytes) -> str:
+    """User SVG for the vector editor: sanitized, then accepted only if the strict cleaner agrees."""
+    return clean_svg(sanitize_svg(data)).decode('utf-8')
 
 
 def clean_svg(data: bytes) -> bytes:
@@ -51,6 +115,11 @@ def clean_svg(data: bytes) -> bytes:
         attrs = []
         for key, value in node.attrib.items():
             name = key.split('}', 1)[-1]
+            if name == VECTOR_MODEL:
+                if not vector_model_ok(value):
+                    raise EngineError('SVG vector model is not valid.', 415)
+                attrs.append(f' {name}="{quote(value, quote=True)}"')
+                continue
             if name not in SVG_ATTRS or 'url' in value.lower() or not SVG_VALUE.fullmatch(value):
                 raise EngineError(f'SVG attribute {name} is not allowed.', 415)
             if name != 'xmlns':
