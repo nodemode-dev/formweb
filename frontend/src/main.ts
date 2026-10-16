@@ -1649,6 +1649,7 @@ void run(async () => {
   const system = await request<{ version: string; engine: string; agentsEnabled: boolean }>('/api/system');
   agentsEnabled = system.agentsEnabled;
   updateAgents();
+  void agentConnect.refresh().catch(() => undefined);
   void terminalDock.remount();
   status('Ready. Select an element, or open Insert to add content.');
 }).finally(revealApp);

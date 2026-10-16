@@ -10,6 +10,7 @@
 .fw-ai-suggestion { min-height: 72px; resize: vertical; font-size: var(--fs-12); line-height: 1.5; }
 .fw-ai-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
 .fw-ai-actions button { height: 28px; min-height: 0; font-size: var(--fs-11); }
+.fw-ai-note { min-height: 6.4em; }
 .fw-ai-note[data-state="off"] { color: var(--danger-color); }
 .fw-ai-prompt { min-height: 110px; resize: vertical; line-height: 1.5; }
 .fw-ai-outline { display: flex; max-height: min(40vh, 360px); flex-direction: column; gap: var(--space-2); overflow-y: auto; }

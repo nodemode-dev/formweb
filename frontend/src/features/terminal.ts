@@ -77,7 +77,8 @@ export class TerminalDock {
     const chat = this.iconButton('Chat with Claude (Alt+Ctrl/Cmd+J)', glyph('chat'), () => void this.guard(() => this.chat()), 'chat.open');
     this.toggleButton = this.iconButton('Collapse terminal', icon('chevron'), () => this.toggle(), 'view.terminal');
     const spacer = element('span', 'fw-term-spacer');
-    this.head.append(icon('code'), this.tabs, this.stateLabel, spacer, this.preset, create, claude, chat, this.toggleButton);
+    this.head.append(icon('code'), this.tabs, spacer, this.stateLabel, this.preset, create, claude, chat, this.toggleButton);
+    void document.fonts.load('12px "JetBrains Mono"').catch(() => undefined);
     this.head.addEventListener('dblclick', event => { if ((event.target as HTMLElement).closest('button,select,[role="tab"]')) return; this.toggle(); });
     this.body.append(this.note, this.screen);
     this.note.hidden = true;

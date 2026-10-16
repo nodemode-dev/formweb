@@ -23,5 +23,7 @@
 .runtime-preview .canvas-frame { background: #15171b; }
 .runtime-preview { position: relative; }
 .runtime-preview .frame-shell iframe { position: absolute; inset: 0; }
+.runtime-preview[hidden] { display: block !important; position: absolute; top: 0; left: 0; visibility: hidden; pointer-events: none; }
+.runtime-preview .frame-shell iframe[hidden] { display: block !important; visibility: hidden; }
 .runtime-preview-note { position: fixed; left: var(--space-4); bottom: var(--space-8); z-index: var(--z-toast); pointer-events: none; background: var(--bg-secondary); border: 1px solid var(--border-color); padding: var(--space-2) var(--space-3); border-radius: var(--radius); color: var(--text-secondary); font-size: 11px; }
 @media (max-width: 1050px) { .feature-workspace { grid-template-columns: 160px 184px minmax(0,1fr); } .feature-content { padding: var(--space-4); } }
