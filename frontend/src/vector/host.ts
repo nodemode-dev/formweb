@@ -24,6 +24,7 @@ export interface Host {
   paint(): Paint;
   element(id: string): Element | null;
   draft(id: string, subs: SubPath[]): void;
+  clearDrafts(): void;
   isolated(): string | null;
   tool(): string | null;
   pick(p: Pt): { id: string; kind: 'path' | 'svg' | 'other' } | undefined;

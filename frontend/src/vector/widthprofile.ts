@@ -58,10 +58,25 @@ function arc(center: Pt, from: Pt, count: number): Pt[] {
   return out;
 }
 
+function densify(pts: Pt[], closed: boolean): Pt[] {
+  const list = closed ? [...pts, pts[0]] : pts;
+  let total = 0;
+  for (let i = 1; i < list.length; i++) total += Math.hypot(list[i][0] - list[i - 1][0], list[i][1] - list[i - 1][1]);
+  const step = Math.max(0.5, total / 120);
+  const out: Pt[] = [];
+  for (let i = 1; i < list.length; i++) {
+    const a = list[i - 1], b = list[i];
+    const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
+    for (let k = 0; k < n; k++) out.push([a[0] + ((b[0] - a[0]) * k) / n, a[1] + ((b[1] - a[1]) * k) / n]);
+  }
+  if (!closed && list.length) out.push(list[list.length - 1]);
+  return out;
+}
+
 export function variableOutline(subs: SubPath[], points: WidthPoint[], base: number, cap: 'butt' | 'round' | 'square'): SubPath[] {
   const out: SubPath[] = [];
   for (const sub of subs) {
-    const raw = thin(flattenSub(sub, 0.25), 360);
+    const raw = thin(densify(flattenSub(sub, 0.25), sub.closed), 360);
     const pts = sub.closed ? [...raw, raw[0]] : raw;
     if (pts.length < 2) continue;
     const lens = [0];

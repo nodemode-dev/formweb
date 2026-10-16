@@ -91,7 +91,7 @@ export function widthFixes(site: Site, cmds: Command[]): Command[] {
   for (const [id, patch] of patchesOf(cmds, site)) {
     const node = site.nodes[id];
     const info = readWidth(node);
-    if (!info || !site.nodes[info.outline]) continue;
+    if (!info || !site.nodes[info.outline] || 'data-fw-width' in patch) continue;
     const attrs = merged(node, patch);
     const color = attrs.stroke && attrs.stroke !== 'none' ? attrs.stroke : info.color;
     const geometry = 'd' in patch || 'data-fw-vector' in patch || 'stroke' in patch || 'stroke-linecap' in patch || 'stroke-width' in patch;

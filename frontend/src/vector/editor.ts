@@ -122,6 +122,7 @@ export class Editor {
       paint: () => this.paint,
       element: id => this.element(id),
       draft: (id, subs) => { this.drafts.set(id, subs); this.preview(id); },
+      clearDrafts: () => this.endDrafts(),
       isolated: () => this.extras.iso,
       tool: () => this.tool,
       pick: p => this.pickPath(p)
@@ -1136,9 +1137,24 @@ export class Editor {
     const taken = new Set<string>();
     const site = this.site();
     let select: string[] | undefined;
+    if (name === 'join') {
+      const refs = this.selectedRefs();
+      const ids = [...new Set(refs.map(ref => ref.id))];
+      const pair = ids.length === 2 ? ids.map(id => this.shapeOf(id)) : [];
+      if (pair[0] && pair[1] && pair[0].svg === pair[1].svg) {
+        const offset = pair[0].subs.length;
+        const joinPicks = new Map<number, Set<number>>();
+        for (const ref of refs) { const at = ref.sub + (ref.id === ids[1] ? offset : 0); joinPicks.set(at, (joinPicks.get(at) ?? new Set()).add(ref.idx)); }
+        const merged = joinEndpoints([...clonePath(pair[0].subs), ...clonePath(pair[1].subs)], joinPicks);
+        if (!merged) { this.notify('Select two end anchors to join.'); return; }
+        void this.commit([updateGeometry(ids[0], merged), removeNode(ids[1])], [ids[0]]);
+        return;
+      }
+    }
     for (const shape of this.selectedShapes()) {
       const picks = new Map<number, Set<number>>();
       for (const ref of this.selectedRefs()) if (ref.id === shape.id) picks.set(ref.sub, (picks.get(ref.sub) ?? new Set()).add(ref.idx));
+      if (name === 'join' && !picks.size) continue;
       let subs = clonePath(shape.subs);
       if (name === 'join') { const joined = joinEndpoints(subs, picks); if (!joined) { this.notify('Select two end anchors to join.'); return; } subs = joined; }
       else if (name === 'average' || name === 'average-x' || name === 'average-y') averageAnchors(subs, picks, name === 'average' ? 'both' : name === 'average-x' ? 'x' : 'y');

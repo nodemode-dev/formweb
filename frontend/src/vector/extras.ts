@@ -438,6 +438,7 @@ export class Extras {
 
   private async finishTransform(g: Extract<Gesture, { kind: 'tf' }>): Promise<void> {
     if (!g.per.size) return;
+    this.h.clearDrafts();
     const r = matrixCommands(this.h, g.per, false, false);
     await this.h.commit(r.cmds);
   }
