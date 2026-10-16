@@ -22,7 +22,7 @@ import { matrixCommands, applyMat, unionBox } from './arrange';
 import { forgetTransform, rememberMatrix } from './select';
 import { distortShape, dragQuad, isCorner, isSide, shearMatrix, type Quad, type TfMode } from './freetransform';
 
-export const EXTRA_TOOLS = new Set(['knife', 'eraser', 'shapebuilder', 'width', 'gradient', 'transform']);
+export const EXTRA_TOOLS = new Set(['knife', 'eraser', 'shapebuilder', 'width', 'gradient', 'transform', 'livepaint']);
 
 type Gesture =
   | { kind: 'knife'; pts: Pt[]; alt: boolean }
@@ -123,6 +123,7 @@ export class Extras {
     if (tool === 'knife') { this.gesture = { kind: 'knife', pts: [p], alt: event.altKey }; return true; }
     if (tool === 'eraser') { this.gesture = { kind: 'eraser', pts: [p] }; return true; }
     if (tool === 'shapebuilder') return this.startBuilder(p, event.altKey);
+    if (tool === 'livepaint') { void this.paintFace(p, event.shiftKey); return true; }
     if (tool === 'width') return this.startWidth(p, event.altKey);
     if (tool === 'gradient') return this.downGradient(p);
     if (tool === 'transform') return this.downTransform(p);
@@ -134,7 +135,7 @@ export class Extras {
     const g = this.gesture;
     const tool = this.h.tool();
     if (!g) {
-      if (tool === 'shapebuilder') this.hoverBuilder(p);
+      if (tool === 'shapebuilder' || tool === 'livepaint') this.hoverBuilder(p);
       return false;
     }
     if (g.kind === 'knife') {
@@ -560,6 +561,39 @@ export class Extras {
     await this.h.commit(r.cmds);
   }
 
+  private async paintFace(p: Pt, edge: boolean): Promise<void> {
+    const paint = this.h.paint();
+    const sources = this.shapes();
+    if (edge) {
+      const hit = this.h.pick(p);
+      const color = paint.stroke !== 'none' ? paint.stroke : paint.fill;
+      if (!hit || hit.kind !== 'path' || color === 'none') return;
+      const shape = this.h.shape(hit.id);
+      await this.h.commit([updateAttrs(hit.id, { stroke: color, 'stroke-width': String(Math.max(1, shape?.paint.strokeWidth ?? 1)) })], sources.map(s => s.id));
+      return;
+    }
+    const ready = this.ensurePieces();
+    if (!ready) { this.h.notify('Select two or more overlapping paths, then use the Live Paint Bucket.'); return; }
+    if (paint.fill === 'none') { this.h.notify('Choose a fill color first.'); return; }
+    const i = hitPiece(this.pieces, this.local(ready.f, p));
+    if (i < 0) return;
+    const piece = this.pieces[i].subs;
+    const site = this.h.site();
+    const svg = ready.shapes[0].svg;
+    const order = pathIds(site, svg);
+    const own = new Set(ready.shapes.map(s => s.id));
+    const box = pathBounds(piece);
+    const same = (b: Box | null): boolean => !!box && !!b && Math.abs(b.x - box.x) < 0.5 && Math.abs(b.y - box.y) < 0.5 && Math.abs(b.w - box.w) < 0.5 && Math.abs(b.h - box.h) < 0.5;
+    const face = order.find(id => { if (own.has(id)) return false; const s = this.h.shape(id); return !!s && s.paint.stroke === 'none' && same(pathBounds(s.subs)); });
+    const keep = ready.shapes.map(s => s.id);
+    if (face) { await this.h.commit([updateAttrs(face, { fill: paint.fill })], keep); return; }
+    const lowest = ready.shapes.slice().sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id))[0];
+    const parent = this.h.parentOf(lowest.id) ?? svg;
+    const index = site.nodes[parent].children.indexOf(lowest.id);
+    const id = freshId(site, new Set<string>(), 'path');
+    await this.h.commit([addPath(parent, id, piece, { ...paint, stroke: 'none', align: 'center', fillRule: 'nonzero' }, 'Live Paint face'), moveNode(id, parent, Math.max(0, index))], keep);
+  }
+
   decorate(scene: Scene): void {
     const items: ExtraItem[] = [];
     const px = this.h.px();
@@ -570,7 +604,7 @@ export class Extras {
     const toShell = (subs: SubPath[], frame: Frame): string => formatPath(mapPath(subs, p => this.h.toShell(frame, p)));
     if (g?.kind === 'knife') items.push({ kind: 'path', d: poly(g.pts), cls: 'trail' });
     if (g?.kind === 'eraser') items.push({ kind: 'path', d: poly(g.pts), cls: 'eraser', w: this.eraserSize });
-    if (tool === 'shapebuilder' && f && this.ensurePieces()) {
+    if ((tool === 'shapebuilder' || tool === 'livepaint') && f && this.ensurePieces()) {
       const picks = g?.kind === 'builder' ? g.picks : new Set<number>();
       const alt = g?.kind === 'builder' && g.alt;
       this.pieces.forEach((piece, i) => {

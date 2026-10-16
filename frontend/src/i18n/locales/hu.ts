@@ -1833,4 +1833,7 @@ export default [
   "Méret",
   "Alacsony pontosság szorosan követi a mutatót, magas simább formákat ad. A [ és ] módosítja a méretet.",
   "Paca ecset mérete: {0}",
+  "Élő festékesvödör",
+  "Jelölj ki két vagy több átfedő útvonalat, majd használd az Élő festékesvödröt.",
+  "Előbb válassz kitöltőszínt.",
 ] as readonly string[];

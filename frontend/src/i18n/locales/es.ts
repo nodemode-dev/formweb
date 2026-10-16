@@ -1833,4 +1833,7 @@ export default [
   "Tamaño",
   "Una fidelidad baja sigue el puntero de cerca; una alta da formas más suaves. [ y ] cambian el tamaño.",
   "Tamaño del Pincel de manchas: {0}",
+  "Bote de pintura interactiva",
+  "Selecciona dos o más trazados superpuestos y luego usa el Bote de pintura interactiva.",
+  "Elige primero un color de relleno.",
 ] as readonly string[];

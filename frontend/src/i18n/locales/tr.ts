@@ -1833,4 +1833,7 @@ export default [
   "Boyut",
   "Düşük doğruluk imleci yakından izler, yüksek doğruluk daha yumuşak şekiller verir. [ ve ] boyutu değiştirir.",
   "Damla Fırçası boyutu: {0}",
+  "Canlı Boya Kovası",
+  "Çakışan iki veya daha fazla yol seçin, ardından Canlı Boya Kovası'nı kullanın.",
+  "Önce bir dolgu rengi seçin.",
 ] as readonly string[];

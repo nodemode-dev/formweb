@@ -1833,4 +1833,7 @@ export default [
   "Größe",
   "Niedrige Genauigkeit folgt dem Zeiger genau, hohe ergibt glattere Formen. [ und ] ändern die Größe.",
   "Tropfenpinsel-Größe: {0}",
+  "Interaktiv-malen-Werkzeug",
+  "Wähle zwei oder mehr überlappende Pfade aus und verwende dann das Interaktiv-malen-Werkzeug.",
+  "Wähle zuerst eine Füllfarbe.",
 ] as readonly string[];

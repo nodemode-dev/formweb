@@ -1833,4 +1833,7 @@ export default [
   "Kích thước",
   "Độ trung thực thấp bám sát con trỏ; cao cho hình mượt hơn. [ và ] thay đổi kích thước.",
   "Kích thước Cọ vết loang: {0}",
+  "Thùng sơn trực tiếp",
+  "Chọn hai đường dẫn chồng nhau trở lên, sau đó dùng Thùng sơn trực tiếp.",
+  "Hãy chọn màu tô trước.",
 ] as readonly string[];

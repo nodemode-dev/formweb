@@ -1833,4 +1833,7 @@ export default [
   "Grootte",
   "Lage getrouwheid volgt de aanwijzer nauwkeurig; hoge geeft vloeiendere vormen. [ en ] wijzigen de grootte.",
   "Grootte van penseel voor vloeiende vormen: {0}",
+  "Emmer voor actief schilderen",
+  "Selecteer twee of meer overlappende paden en gebruik dan de emmer voor actief schilderen.",
+  "Kies eerst een vulkleur.",
 ] as readonly string[];

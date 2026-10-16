@@ -42,6 +42,7 @@ const paths = {
   pgrid: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 4v16M4 12h16M6.300 6.300l11.400 11.400M17.700 6.300 6.300 17.700" opacity="0.6"/>',
   eraser: '<path d="m4 15 8-9 8 7-5 6H8l-4-4Z"/><path d="M9 11l7 7"/>',
   blob: '<path d="M20 3c-4 1-7 4-8 7l2 2c3-1 6-4 6-9Z"/><path d="M4 15c2-2 5-2 6 0s-1 5-3 5-5-3-3-5Z"/>',
+  bucket: '<path d="m5 11 7-7 8 8-7 7a2 2 0 0 1-3 0l-5-5a2 2 0 0 1 0-3Z"/><path d="M5 12h14"/><path d="M20 15c1 2 2 3 2 4a2 2 0 0 1-4 0c0-1 1-2 2-4Z"/>',
   shapebuilder: '<circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/><path d="M12 8.2v7.6" opacity="0.6"/>',
   width: '<path d="M3 12c4-4 6-4 9 0s5 4 9 0"/><path d="M3 12c4 4 6 4 9 0s5-4 9 0" opacity="0.6"/>',
   gradient: '<rect x="4" y="6" width="16" height="12" rx="1.5"/><path d="M8 6v12M12 6v12M16 6v12" opacity="0.5"/>',

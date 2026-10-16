@@ -1833,4 +1833,7 @@ export default [
   "Størrelse",
   "Lav nøyaktighet følger pekeren tett, høy gir jevnere former. [ og ] endrer størrelsen.",
   "Klattpenselstørrelse: {0}",
+  "Live Paint-bøtte",
+  "Velg to eller flere overlappende baner, og bruk deretter Live Paint-bøtten.",
+  "Velg en fyllfarge først.",
 ] as readonly string[];

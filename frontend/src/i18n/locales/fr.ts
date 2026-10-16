@@ -1833,4 +1833,7 @@ export default [
   "Taille",
   "Une faible fidélité suit le pointeur de près ; une fidélité élevée donne des formes plus lisses. [ et ] changent la taille.",
   "Taille de la Forme de tache : {0}",
+  "Pot de peinture dynamique",
+  "Sélectionnez au moins deux tracés qui se chevauchent, puis utilisez le Pot de peinture dynamique.",
+  "Choisissez d’abord une couleur de fond.",
 ] as readonly string[];

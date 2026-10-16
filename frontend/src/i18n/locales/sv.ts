@@ -1833,4 +1833,7 @@ export default [
   "Storlek",
   "Låg exakthet följer pekaren noga, hög ger mjukare former. [ och ] ändrar storleken.",
   "Klumppenselns storlek: {0}",
+  "Live Paint-hink",
+  "Markera två eller fler överlappande banor och använd sedan Live Paint-hinken.",
+  "Välj en fyllningsfärg först.",
 ] as readonly string[];

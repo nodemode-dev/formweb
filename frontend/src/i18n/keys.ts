@@ -1833,4 +1833,7 @@ export const KEYS: readonly string[] = [
   "Size",
   "Lower fidelity follows the pointer closely; higher gives smoother shapes. [ and ] change the size.",
   "Blob Brush size: {0}",
+  "Live Paint Bucket",
+  "Select two or more overlapping paths, then use the Live Paint Bucket.",
+  "Choose a fill color first.",
 ];

@@ -1833,4 +1833,7 @@ export default [
   "Rozmiar",
   "Niska dokładność wiernie podąża za wskaźnikiem, wysoka daje gładsze kształty. [ i ] zmieniają rozmiar.",
   "Rozmiar pędzla plamowego: {0}",
+  "Wiadro aktywnego malowania",
+  "Zaznacz co najmniej dwie nakładające się ścieżki, a potem użyj wiadra aktywnego malowania.",
+  "Najpierw wybierz kolor wypełnienia.",
 ] as readonly string[];

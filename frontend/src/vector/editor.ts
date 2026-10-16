@@ -35,7 +35,7 @@ import {
 
 export type ToolId = 'select' | 'direct' | 'pen' | 'curvature' | 'add' | 'delete' | 'convert' | 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arc' | 'spiral' | 'scissors'
   | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush' | 'pencil' | 'rgrid' | 'pgrid'
-  | 'lasso' | 'wand' | 'eyedropper' | 'puppet' | 'reshape' | 'blob';
+  | 'lasso' | 'wand' | 'eyedropper' | 'puppet' | 'reshape' | 'blob' | 'livepaint';
 
 export interface VectorContext {
   canvas: Canvas;

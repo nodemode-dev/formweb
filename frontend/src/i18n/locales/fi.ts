@@ -1833,4 +1833,7 @@ export default [
   "Koko",
   "Pieni tarkkuus seuraa osoitinta tiiviisti, suuri antaa pehmeämpiä muotoja. [ ja ] muuttavat kokoa.",
   "Läiskäsiveltimen koko: {0}",
+  "Live Paint -sanko",
+  "Valitse kaksi tai useampi päällekkäistä polkua ja käytä sitten Live Paint -sankoa.",
+  "Valitse ensin täyttöväri.",
 ] as readonly string[];

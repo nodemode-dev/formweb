@@ -1833,4 +1833,7 @@ export default [
   "Ukuran",
   "Fidelitas rendah mengikuti penunjuk dengan rapat; tinggi menghasilkan bentuk lebih halus. [ dan ] mengubah ukuran.",
   "Ukuran Kuas Blob: {0}",
+  "Ember Cat Langsung",
+  "Pilih dua jalur atau lebih yang bertumpuk, lalu gunakan Ember Cat Langsung.",
+  "Pilih warna isian terlebih dahulu.",
 ] as readonly string[];

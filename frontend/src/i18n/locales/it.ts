@@ -1833,4 +1833,7 @@ export default [
   "Dimensione",
   "Una fedeltà bassa segue da vicino il puntatore; una alta dà forme più morbide. [ e ] cambiano la dimensione.",
   "Dimensione del Pennello tracciato chiuso: {0}",
+  "Secchiello pittura dinamica",
+  "Seleziona due o più tracciati sovrapposti, poi usa il Secchiello pittura dinamica.",
+  "Scegli prima un colore di riempimento.",
 ] as readonly string[];

@@ -1833,4 +1833,7 @@ export default [
   "Størrelse",
   "Lav nøjagtighed følger markøren tæt, høj giver blødere former. [ og ] ændrer størrelsen.",
   "Klatpenslens størrelse: {0}",
+  "Live Paint-spand",
+  "Markér to eller flere overlappende stier, og brug derefter Live Paint-spanden.",
+  "Vælg først en fyldfarve.",
 ] as readonly string[];

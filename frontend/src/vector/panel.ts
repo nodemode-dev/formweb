@@ -44,7 +44,8 @@ export const TOOLS: ToolDef[] = [
   { id: 'eyedropper', label: 'Eyedropper', icon: 'eyedropper', keys: 'I' },
   { id: 'puppet', label: 'Puppet Warp', icon: 'puppet', keys: '' },
   { id: 'reshape', label: 'Reshape', icon: 'reshape', keys: '' },
-  { id: 'blob', label: 'Blob Brush', icon: 'blob', keys: 'Shift+B' }
+  { id: 'blob', label: 'Blob Brush', icon: 'blob', keys: 'Shift+B' },
+  { id: 'livepaint', label: 'Live Paint Bucket', icon: 'bucket', keys: '' }
 ];
 
 export const PATHFINDERS: { op: PathfinderOp; label: string; icon: VectorIcon }[] = [

@@ -1833,4 +1833,7 @@ export default [
   "Velikost",
   "Nízká věrnost těsně sleduje ukazatel, vysoká dává hladší tvary. [ a ] mění velikost.",
   "Velikost štětce tvarů: {0}",
+  "Živá barva",
+  "Vyberte dvě nebo více překrývajících se cest a pak použijte nástroj Živá barva.",
+  "Nejprve zvolte barvu výplně.",
 ] as readonly string[];

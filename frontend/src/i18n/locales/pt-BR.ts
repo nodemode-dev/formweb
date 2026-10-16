@@ -1833,4 +1833,7 @@ export default [
   "Tamanho",
   "Fidelidade baixa segue o ponteiro de perto; alta gera formas mais suaves. [ e ] mudam o tamanho.",
   "Tamanho do Pincel de bolhas: {0}",
+  "Balde de pintura dinâmica",
+  "Selecione dois ou mais demarcadores sobrepostos e use o Balde de pintura dinâmica.",
+  "Escolha primeiro uma cor de preenchimento.",
 ] as readonly string[];
