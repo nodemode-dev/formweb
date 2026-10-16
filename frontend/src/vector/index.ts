@@ -38,7 +38,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     convert: 'vector.convert-anchor', scissors: 'vector.scissors', rect: 'vector.rect', ellipse: 'vector.ellipse', polygon: 'vector.polygon', star: 'vector.star',
     line: 'vector.line', arc: 'vector.arc', spiral: 'vector.spiral', knife: 'vector.knife', eraser: 'vector.eraser', shapebuilder: 'vector.shape-builder',
     width: 'vector.width', gradient: 'vector.gradient', transform: 'vector.free-transform', paintbrush: 'vector.paintbrush', pencil: 'vector.pencil', rgrid: 'vector.rect-grid', pgrid: 'vector.polar-grid',
-    lasso: 'vector.lasso', wand: 'vector.wand', eyedropper: 'vector.eyedropper'
+    lasso: 'vector.lasso', wand: 'vector.wand', eyedropper: 'vector.eyedropper', puppet: 'vector.puppet', reshape: 'vector.reshape'
   };
   const tools: CommandDef[] = TOOLS.map((tool, index) => ({
     id: commandId[tool.id],
@@ -73,6 +73,12 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.corner.expand', label: 'Expand corners', menu: MENU, group: 3, run: () => editor.bakeCorners(), enabled: hasShape },
     ...pathfinders,
     ...selectCommands(editor),
+    {
+      id: 'vector.global-edit', label: () => (editor.globalEdit.active ? 'Stop Global Edit' : 'Start Global Edit'), menu: MENU, group: 9, mutates: true,
+      run: () => { if (!editor.globalEdit.active && editor.tool === null) editor.setTool('select'); editor.globalEdit.toggle(); },
+      enabled: () => { try { return editor.globalEdit.active || hasShape() || !!editor.shapeOf(ctx.getSelected()); } catch { return false; } },
+      checked: () => editor.globalEdit.active
+    },
     { id: 'vector.path.join', label: 'Join end anchors', menu: MENU, keys: 'Mod+Alt+Shift+J', group: 4, run: () => editor.runPathOp('join'), enabled: () => editor.anchors.size === 2 },
     { id: 'vector.path.average', label: 'Average anchors', menu: MENU, keys: 'Mod+Alt+Shift+A', group: 4, run: () => openAverage(editor), enabled: () => editor.anchors.size > 1 },
     { id: 'vector.path.join-average', label: 'Join and average end anchors', menu: MENU, keys: 'Mod+Alt+Shift+K', group: 4, run: () => editor.runPathOp('join-average'), enabled: () => editor.anchors.size === 2 },

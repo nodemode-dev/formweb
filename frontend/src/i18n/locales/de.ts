@@ -1812,4 +1812,9 @@ export default [
   "Wähle eine Form aus, um ihren Stil zu speichern.",
   "Grafik neu einfärben",
   "Grafikstile",
+  "Formgitter",
+  "Umformen",
+  "Globale Bearbeitung starten",
+  "Globale Bearbeitung beenden",
+  "Wähle eine Form aus, um die globale Bearbeitung zu starten.",
 ] as readonly string[];

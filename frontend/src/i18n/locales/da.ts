@@ -1812,4 +1812,9 @@ export default [
   "Markér en form for at gemme dens stilart.",
   "Omfarv grafik",
   "Grafiske stilarter",
+  "Marionetforvridning",
+  "Omform",
+  "Start global redigering",
+  "Stop global redigering",
+  "Markér en form for at starte global redigering.",
 ] as readonly string[];

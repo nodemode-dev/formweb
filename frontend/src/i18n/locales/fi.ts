@@ -1812,4 +1812,9 @@ export default [
   "Valitse muoto tallentaaksesi sen tyylin.",
   "Väritä grafiikka uudelleen",
   "Grafiikkatyylit",
+  "Nukkevääristys",
+  "Muotoile uudelleen",
+  "Aloita yleismuokkaus",
+  "Lopeta yleismuokkaus",
+  "Valitse muoto aloittaaksesi yleismuokkauksen.",
 ] as readonly string[];

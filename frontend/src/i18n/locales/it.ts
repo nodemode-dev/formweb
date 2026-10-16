@@ -1812,4 +1812,9 @@ export default [
   "Seleziona una forma per salvarne lo stile.",
   "Ricolora illustrazione",
   "Stili grafici",
+  "Deformazione marionetta",
+  "Rimodella",
+  "Avvia modifica globale",
+  "Termina modifica globale",
+  "Seleziona una forma per avviare la modifica globale.",
 ] as readonly string[];

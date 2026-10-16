@@ -1812,4 +1812,9 @@ export default [
   "Selecciona una forma para guardar su estilo.",
   "Recolorear ilustración",
   "Estilos gráficos",
+  "Deformación de marioneta",
+  "Remodelar",
+  "Iniciar edición global",
+  "Detener edición global",
+  "Selecciona una forma para iniciar la edición global.",
 ] as readonly string[];

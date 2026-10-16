@@ -1812,4 +1812,9 @@ export default [
   "Jelölj ki egy alakzatot a stílusának mentéséhez.",
   "Grafika átszínezése",
   "Grafikai stílusok",
+  "Bábutorzítás",
+  "Átformálás",
+  "Globális szerkesztés indítása",
+  "Globális szerkesztés leállítása",
+  "Jelölj ki egy alakzatot a globális szerkesztés indításához.",
 ] as readonly string[];

@@ -1812,4 +1812,9 @@ export default [
   "Velg en form for å lagre stilen.",
   "Omfarg illustrasjon",
   "Grafiske stiler",
+  "Marionettforvrengning",
+  "Omform",
+  "Start global redigering",
+  "Stopp global redigering",
+  "Velg en form for å starte global redigering.",
 ] as readonly string[];

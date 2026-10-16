@@ -1812,4 +1812,9 @@ export default [
   "Markera en form för att spara dess stil.",
   "Färga om grafik",
   "Grafiska stilar",
+  "Dockvridning",
+  "Omforma",
+  "Starta global redigering",
+  "Avsluta global redigering",
+  "Markera en form för att starta global redigering.",
 ] as readonly string[];

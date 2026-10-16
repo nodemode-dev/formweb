@@ -70,6 +70,10 @@
 .fw-vo-x[data-c="gstop-on"] { stroke: var(--accent-color); stroke-width: calc(2.5px * var(--fw-vo-px)); }
 .fw-vo-x[data-c="gend"], .fw-vo-x[data-c="thandle"], .fw-vo-x[data-c="wpt"], .fw-vo-x[data-c="wpt-on"] { fill: var(--bg-primary); stroke: var(--accent-color); }
 .fw-vo-x[data-c="wpt-on"] { fill: var(--accent-color); }
+.fw-vo-x[data-c="pin"], .fw-vo-x[data-c="pin-on"] { fill: var(--bg-primary); stroke: var(--text-primary); stroke-width: calc(2px * var(--fw-vo-px)); cursor: grab; }
+.fw-vo-x[data-c="pin-on"] { fill: var(--accent-color); stroke: var(--bg-primary); }
+.fw-vo-x[data-c="ge"] { stroke: var(--ok); stroke-width: calc(2px * var(--fw-vo-px)); stroke-dasharray: calc(6px * var(--fw-vo-px)) calc(3px * var(--fw-vo-px)); }
+.fw-vo[data-tool="puppet"] .fw-vo-capture, .fw-vo[data-tool="reshape"] .fw-vo-capture { cursor: crosshair; }
 .fw-vo-x[data-c="tbracket"] { fill: var(--accent-soft); stroke: var(--accent-color); stroke-width: calc(2px * var(--fw-vo-px)); cursor: grab; }
 .fw-v-dialog { position: fixed; left: 50%; top: 22%; z-index: var(--z-popover); display: flex; flex-direction: column; gap: var(--space-2); width: 240px; padding: var(--space-3); transform: translateX(-50%); border: 1px solid var(--line-2); border-radius: var(--radius-md); background: var(--surface-2); box-shadow: var(--shadow-md); color: var(--text-primary); font-size: var(--fs-11); }
 .fw-v-dialog[hidden] { display: none; }

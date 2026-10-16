@@ -1812,4 +1812,9 @@ export default [
   "Selecteer een vorm om de stijl op te slaan.",
   "Illustratie opnieuw inkleuren",
   "Grafische stijlen",
+  "Marionetvervorming",
+  "Hervormen",
+  "Globaal bewerken starten",
+  "Globaal bewerken stoppen",
+  "Selecteer een vorm om globaal bewerken te starten.",
 ] as readonly string[];

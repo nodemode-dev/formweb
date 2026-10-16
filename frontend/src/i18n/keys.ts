@@ -1812,4 +1812,9 @@ export const KEYS: readonly string[] = [
   "Select a shape to save its style.",
   "Recolor artwork",
   "Graphic styles",
+  "Puppet Warp",
+  "Reshape",
+  "Start Global Edit",
+  "Stop Global Edit",
+  "Select a shape to start Global Edit.",
 ];

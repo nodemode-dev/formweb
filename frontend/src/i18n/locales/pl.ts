@@ -1812,4 +1812,9 @@ export default [
   "Zaznacz kształt, aby zapisać jego styl.",
   "Zmień kolory grafiki",
   "Style graficzne",
+  "Wypaczenie marionetkowe",
+  "Przekształć",
+  "Rozpocznij edycję globalną",
+  "Zatrzymaj edycję globalną",
+  "Zaznacz kształt, aby rozpocząć edycję globalną.",
 ] as readonly string[];

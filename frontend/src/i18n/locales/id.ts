@@ -1812,4 +1812,9 @@ export default [
   "Pilih bentuk untuk menyimpan gayanya.",
   "Warnai ulang karya seni",
   "Gaya grafis",
+  "Puppet Warp",
+  "Bentuk ulang",
+  "Mulai Edit Global",
+  "Hentikan Edit Global",
+  "Pilih bentuk untuk memulai Edit Global.",
 ] as readonly string[];

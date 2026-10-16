@@ -1812,4 +1812,9 @@ export default [
   "Vyberte tvar, jehož styl chcete uložit.",
   "Přebarvit grafiku",
   "Grafické styly",
+  "Deformace loutky",
+  "Přetvořit",
+  "Zahájit globální úpravu",
+  "Ukončit globální úpravu",
+  "Vyberte tvar, abyste zahájili globální úpravu.",
 ] as readonly string[];

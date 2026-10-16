@@ -1812,4 +1812,9 @@ export default [
   "Stilini kaydetmek için bir şekil seçin.",
   "Çizimi yeniden renklendir",
   "Grafik stilleri",
+  "Kukla Bükme",
+  "Yeniden Biçimlendir",
+  "Genel Düzenlemeyi Başlat",
+  "Genel Düzenlemeyi Durdur",
+  "Genel düzenlemeyi başlatmak için bir şekil seçin.",
 ] as readonly string[];
