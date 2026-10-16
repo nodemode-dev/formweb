@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.3 · 2026-10-16
+
+- Paintbrush (B): draw freehand with your brush; a Fidelity setting controls how smooth the line is. Without a brush it draws a plain stroke.
+- Blends that follow a path now put their first and last shapes on the path's ends, and removing the path puts them back.
+- Dense brushes and long blends are no longer cut off at 150 shapes.
+- The brush, symbol and blend messages from 0.8.2 are now translated in every language.
+
 ## 0.8.2 · 2026-10-16
 
 - Image Trace: turn an uploaded picture into vector shapes, in black and white, grayscale or color, with controls for detail, corners and noise (Mod+Alt+Shift+T).

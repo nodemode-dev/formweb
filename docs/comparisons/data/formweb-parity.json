@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.8.2",
- "previous": "0.8.1",
+ "version": "0.8.3",
+ "previous": "0.8.2",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Image Trace (FW-157) and Brushes (FW-158) added as Partial; symbol instances scale and rotate on canvas; blends take up to 16 sources and a spine; CMS dialog saves no longer overwrite; editable step titles.",
+ "release_note": "Paintbrush tool with live brushes, blend sources placed on the spine ends, dense brushes and blends no longer truncated. No grade moved: FW-093 and FW-158 gaps updated.",
  "lanes": [
   [
    "m",
@@ -5519,6 +5519,16 @@
     "FW-156": "partial"
    },
    "note": "Creative tools driven in the real editor and published output, live blends and repeats, Free Transform shear and perspective, Symbols added. 103.5 of 113."
+  },
+  {
+   "version": "0.8.2",
+   "date": "2026-10-16",
+   "same_as": "0.8.1",
+   "moved": {
+    "FW-157": "partial",
+    "FW-158": "partial"
+   },
+   "note": "Image Trace and Brushes added as Partial. 104.5 of 115."
   }
  ],
  "changes": [
