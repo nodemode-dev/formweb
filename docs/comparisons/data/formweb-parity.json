@@ -4,7 +4,7 @@
  "previous": "0.9.3",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Blob Brush (FW-171) added as Partial: round tip only, merging with overlapping unstroked paths of the same fill.",
+ "release_note": "Live Paint (FW-172) added as Partial: the Live Paint Bucket fills faces of overlapping selected paths as plain paths, without a live group.",
  "lanes": [
   [
    "m",
@@ -6817,6 +6817,46 @@
     "partial",
     "v0.9.4: driven in Chromium under CPU 4x and slow network. A stroke across a rectangle's edge merged into it as one path and one undo restored it; ] raised the size; the options dialog opened on double-click; a stroke with nothing to merge made a new filled, unstroked path of the set size.",
     "Round tip only (no Angle or Roundness, no pressure); a click without a drag paints nothing; the svg box does not grow to fit; Merge Only with Selection not separately driven."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 172,
+   "id": "FW-172",
+   "cat": 0,
+   "f": "Live Paint",
+   "p": "P2",
+   "kn": "Live Paint groups and the Live Paint Bucket (K): paint the faces and edges formed by paths with the current fill and stroke; Shift paints strokes; double-click floods through unstroked edges; triple-click paints all faces of the same color. Source basis: Adobe help page \"Paint with the Live Paint Bucket tool\", read this release; Object > Live Paint > Make from Illustrator How.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.5",
+   "m": [
+    "partial",
+    "v0.9.5: Live Paint Bucket driven in Chromium under CPU 4x and slow network. With a rectangle and an overlapping ellipse selected, hovering highlighted the overlap face, a click added it as a fill-only path under both sources, a second click with the same color changed nothing, Shift-click stroked the rectangle, and each undo reverted one action.",
+    "No Live Paint group: faces are plain paths and do not reflow when the source paths change; faces come from overlapping closed shapes only, not crossing open lines; no double-click flood, triple-click, per-edge strokes or gap options; no default key (K is the Knife)."
    ],
    "fr": [
     "none",
