@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.8.4",
- "previous": "0.8.3",
+ "version": "0.8.5",
+ "previous": "0.8.4",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Bristle brush and Brush Options dialog (FW-158 stays Partial); editor verified under CPU and network throttling with seven layout shifts fixed. No grade moved.",
+ "release_note": "Stroke dashes aligned to corners and arrowheads added (FW-159 Partial, from secondary sources); Average dialog with axis choice.",
  "lanes": [
   [
    "m",
@@ -5536,6 +5536,12 @@
    "date": "2026-10-16",
    "same_as": "0.8.2",
    "note": "Paintbrush tool, blend sources on the spine ends, no truncation of dense output; no grade moved. 104.5 of 115."
+  },
+  {
+   "version": "0.8.4",
+   "date": "2026-10-16",
+   "same_as": "0.8.3",
+   "note": "Bristle brush, Brush Options dialog and throttled DOM-stability fixes; no grade moved. 104.5 of 115."
   }
  ],
  "changes": [

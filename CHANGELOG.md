@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.5 · 2026-10-16
+
+- Stroke options: dashed lines with up to three dash and gap pairs, either at exact lengths or adjusted so a dash sits on every corner and path end; arrowheads at either end (arrow, triangles, circle, square, bar) with scale and a choice of tip beyond or at the end of the path. They follow the path as you edit it and can be removed or expanded.
+- Average: choose Horizontal, Vertical or Both; Join always draws a straight segment between two end points.
+- Quick changes in the stroke options no longer cancel each other out.
+- The repository download is smaller (the git history is packed).
+
 ## 0.8.4 · 2026-10-16
 
 - Bristle brush: painterly strokes made of many soft bristles, with shape, size, length, density, thickness, opacity and stiffness.
