@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.9.4",
- "previous": "0.9.3",
+ "version": "0.9.5",
+ "previous": "0.9.4",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Live Paint (FW-172) added as Partial: the Live Paint Bucket fills faces of overlapping selected paths as plain paths, without a live group.",
@@ -7579,6 +7579,15 @@
     "FW-170": "partial"
    },
    "note": "Tweak effect and Objects on Path added. 112.5 of 127."
+  },
+  {
+   "version": "0.9.4",
+   "date": "2026-10-16",
+   "same_as": "0.9.3",
+   "moved": {
+    "FW-171": "partial"
+   },
+   "note": "Blob Brush added. 113 of 128."
   }
  ],
  "changes": [

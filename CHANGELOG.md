@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.5 · 2026-10-16
+
+- Live Paint Bucket: select two or more overlapping shapes, then click any area where they overlap (or any part of one) to fill just that area with the current fill color; Shift-click colors a shape's outline. Painted areas are separate shapes placed under the originals and do not follow later edits to them.
+- All new labels are translated into the 26 interface languages.
+
 ## 0.9.4 · 2026-10-16
 
 - Blob Brush (Shift+B): paint filled shapes that merge into overlapping shapes of the same color with no outline. Double-click the canvas for Size, Fidelity, Keep Selected and Merge Only with Selection; [ and ] change the size.
