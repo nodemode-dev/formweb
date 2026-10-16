@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.2 · 2026-10-16
+
+- Export for Screens can export every artboard on the page in one go: each one is saved under its own name, with an optional prefix, in every format and scale you picked.
+- All new labels are translated into the 26 interface languages.
+
 ## 0.10.1 · 2026-10-16
 
 - Artboards (Window > Artboards): every vector drawing on every page is listed as an artboard. Rename it, select it, duplicate it with everything inside, fit it to its artwork, resize it to a preset or your own size, delete it, or add a new one.
