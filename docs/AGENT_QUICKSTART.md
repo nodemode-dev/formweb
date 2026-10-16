@@ -114,6 +114,8 @@ Patterns (v0.9.7): `vector.pattern.make` opens Pattern Options for the current s
 
 Area type (v0.9.9): `vector.type.area` opens Area Type for the selected closed shape (text, font size, leading, family, weight, color, alignment, inset spacing, columns, gutter) and flows the words inside it as one `text` with a `tspan` per line, placed after the shape; leftover words are reported as overflow. Laid out once; run it again after reshaping. Agents can write the same structure directly: a `text` with `tspan` children (attributes x, y, dx, dy; plain text up to 500 characters each; no children).
 
+Artboards (v0.10.1): every `svg` on a page is an artboard. `vector.artboards` toggles the Artboards panel in the open window (rename, select, duplicate, fit to artwork, resize, delete, new artboard from a preset). Agents do the same with engine commands: a new artboard is a `node.add` of an `svg` with `viewBox`, `width`, `height` and absolute `left`/`top` styles; fitting changes `viewBox`, `width`, `height` and `left`/`top` together so the art keeps its place.
+
 Path commands and drawing tools (v0.9.1), run with `window.formweb.run(id)`: `vector.path.add-anchors` (midpoint of every segment of the selected paths), `vector.path.remove-anchors` (selected anchors), `vector.path.divide-below` (selected path cuts the filled shapes beneath it), `vector.path.split-grid` and `vector.path.clean-up` (dialogs), and the tools `vector.pencil` (N), `vector.arc`, `vector.rect-grid` and `vector.polar-grid` (the last three have no default shortcut).
 
 ## Editor window commands (v0.7)

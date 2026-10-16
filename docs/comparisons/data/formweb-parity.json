@@ -4,7 +4,7 @@
  "previous": "0.9.9",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Stability fix, no grade change: the Layers list shows area type lines, pattern tiles and gradient stops under one parent row, so commands that add many of them no longer shift the rows in view.",
+ "release_note": "Multiple artboards (FW-176) added as Partial: an Artboards panel to rename, duplicate, fit, resize, delete and add the vector drawings on every page.",
  "lanes": [
   [
    "m",
@@ -6977,6 +6977,46 @@
     "partial",
     "v0.9.9: driven in Chromium under CPU 4x and slow network. Two centered paragraphs in an ellipse produced 8 lines whose ends lie inside the ellipse; long text reported 66 overflow words; two columns split 33 and 24 lines at the gutter; the export carried the lines and one undo removed them.",
     "Laid out once: no live reflow when the shape or text changes, no in-place editing, no threaded text, no rows or first baseline choices, no hyphenation or justification."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 176,
+   "id": "FW-176",
+   "cat": 0,
+   "f": "Multiple artboards",
+   "p": "P2",
+   "kn": "Several artboards per document with an Artboards panel: name, add, duplicate, delete, set width and height or a preset size, Fit to Artwork Bounds, and export artboards. Source basis: Adobe Learn \"Artboards basics\" and Dummies \"How to Deploy Artboards in Illustrator CC\".",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.10.1",
+   "m": [
+    "partial",
+    "v0.10.1: driven in Chromium under CPU 4x and slow network. The Artboards panel listed the page's drawings; rename, duplicate (with its gradient copied and re-pointed), Fit to artwork (art stayed at the same screen pixels), new 800 by 600, resize to 500 by 400 and delete all landed in one undo step each.",
+    "No Artboard tool or on-canvas resizing, no reordering or Rearrange All, no multi-artboard options, Export for Screens exports one artboard at a time, Fit measures paths only."
    ],
    "fr": [
     "none",
