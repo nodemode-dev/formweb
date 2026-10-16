@@ -11,6 +11,8 @@ import {
 import { clipHolder, moveCommands, outerGroup } from './arrange';
 import { brushedPathCommands } from './brushcmd';
 import { fitCurve, simplifyPolyline } from './fit';
+import { DRAW_TOOLS, GRID_TOOLS, dragBox, gridGroupCommands, gridParts, gridPreview, pencilFinish, pencilJoin, type PencilJoin } from './drawtools';
+import { openGridOptions } from './pathdialogs';
 import { EXTRA_TOOLS, Extras } from './extras';
 import type { Frame as HostFrame, Host } from './host';
 import { Ops } from './ops';
@@ -27,7 +29,7 @@ import {
 } from './store';
 
 export type ToolId = 'select' | 'direct' | 'pen' | 'curvature' | 'add' | 'delete' | 'convert' | 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arc' | 'spiral' | 'scissors'
-  | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush'
+  | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush' | 'pencil' | 'rgrid' | 'pgrid'
   | 'lasso' | 'wand' | 'eyedropper';
 
 export interface VectorContext {
@@ -50,7 +52,7 @@ type Gesture =
   | { kind: 'corner'; ref: Ref; base: Map<string, SubPath[]>; moved: boolean }
   | { kind: 'convert'; ref: Ref; base: SubPath[]; start: Pt; moved: boolean; retract?: boolean }
   | { kind: 'pen'; node: Anchor }
-  | { kind: 'paint'; pts: Pt[] }
+  | { kind: 'paint'; pts: Pt[]; join?: PencilJoin }
   | { kind: 'shape'; start: Pt; current: Pt; alt: boolean; shift: boolean }
   | { kind: 'marquee'; start: Pt; current: Pt; shift: boolean; click?: string }
   | { kind: 'pathmove'; start: Pt; base: Map<string, SubPath[]>; svg?: string; moved: boolean }
@@ -60,7 +62,8 @@ const HIT = 7;
 const TYPES: CornerType[] = ['round', 'inverted', 'chamfer'];
 const NUDGE_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
-export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete', k: 'knife', e: 'transform', g: 'gradient', b: 'paintbrush', q: 'lasso', y: 'wand', i: 'eyedropper' };
+  | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush' | 'pencil' | 'rgrid' | 'pgrid'
+  | 'lasso' | 'wand' | 'eyedropper';
 const SHIFT_KEYS: Record<string, ToolId> = { c: 'convert', m: 'shapebuilder', e: 'eraser', w: 'width' };
 
 export class Editor {
@@ -286,7 +289,7 @@ export class Editor {
     if (tool === null) { this.overlay.render(scene); return; }
     if (!this.gesture) this.sync();
     this.refs = []; this.handleRefs = []; this.widgetRefs = [];
-    const showPoints = this.picker.showsPoints(tool) ?? (tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && tool !== 'paintbrush' && !EXTRA_TOOLS.has(tool));
+    const showPoints = this.picker.showsPoints(tool) ?? (tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && tool !== 'paintbrush' && !DRAW_TOOLS.has(tool) && !EXTRA_TOOLS.has(tool));
     const s = this.px();
     const margin = 16 * s;
     for (const shape of this.selectedShapes()) {
@@ -445,8 +448,8 @@ export class Editor {
     if (role === 'handle') { this.startHandle(index); return; }
     if (role === 'anchor') { this.downAnchor(index, event, p); return; }
     if (tool === 'pen' || tool === 'curvature') { this.downPen(p, event); return; }
-    if (tool === 'paintbrush') { this.gesture = { kind: 'paint', pts: [p] }; this.render(); return; }
-    if (tool === 'rect' || tool === 'ellipse' || tool === 'polygon' || tool === 'star' || tool === 'line' || tool === 'arc' || tool === 'spiral') {
+    if (tool === 'paintbrush' || tool === 'pencil') { this.gesture = { kind: 'paint', pts: [p], join: tool === 'pencil' ? pencilJoin(this.host(), p, HIT * this.px()) : undefined }; this.render(); return; }
+    if (GRID_TOOLS.has(tool) || tool === 'rect' || tool === 'ellipse' || tool === 'polygon' || tool === 'star' || tool === 'line' || tool === 'arc' || tool === 'spiral') {
       this.gesture = { kind: 'shape', start: p, current: p, alt: event.altKey, shift: event.shiftKey };
       this.render();
       return;
@@ -660,6 +663,7 @@ export class Editor {
   private double(event: MouseEvent): void {
     const target = (event.target as Element).closest('[data-role]');
     if (target?.getAttribute('data-role') === 'widget') { this.cornerRequests.forEach(fn => fn()); return; }
+    if (this.tool && GRID_TOOLS.has(this.tool)) { openGridOptions(this.tool); return; }
     if (target?.getAttribute('data-role') === 'x-wpt') { this.extras.openWidthDialog(Number(target.getAttribute('data-i') ?? '-1')); return; }
     if (this.tool === 'select' && !this.pen) {
       const hit = this.pickPath(this.pt(event));
@@ -925,11 +929,15 @@ export class Editor {
     if (g.kind === 'paint') {
       const pts = [...g.pts, p];
       const err = Math.max(0.1, this.fidelity) * this.px();
-      if (dist(pts[0], p) > 3 * this.px() || pts.length > 4) void this.commitNew([fitCurve(simplifyPolyline(pts, err * 0.3), err)], true, this.activeBrush);
-      else this.render();
+      if (dist(pts[0], p) > 3 * this.px() || pts.length > 4) {
+        const fit = fitCurve(simplifyPolyline(pts, err * 0.3), err);
+        if (this.tool === 'pencil') { const next = pencilFinish(this.host(), fit, g.join, event.altKey); if (next) void this.commitNew([next], !next.closed); }
+        else void this.commitNew([fit], true, this.activeBrush);
+      } else this.render();
       return;
     }
     if (g.kind === 'shape') {
+      if (dist(g.start, p) > 3 * this.px() && GRID_TOOLS.has(this.tool)) { void this.commitGrid(this.tool, g.start, event.shiftKey ? p : g.current, event.altKey, event.shiftKey); return; }
       if (dist(g.start, p) > 3 * this.px()) {
         const open = this.tool === 'line' || this.tool === 'spiral' || (this.tool === 'arc' && !this.options.closedArc);
         void this.commitNew(this.shapeSubs(g.start, event.shiftKey ? p : g.current, event.altKey, event.shiftKey), open);
@@ -1119,7 +1127,7 @@ export class Editor {
     if (event.shiftKey && SHIFT_KEYS[event.key.toLowerCase()]) return SHIFT_KEYS[event.key.toLowerCase()];
     const tool = TOOL_KEYS[event.key.toLowerCase()];
     if (!tool) return undefined;
-    if (this.tool !== null || ['pen', 'rect', 'ellipse', 'line', 'paintbrush'].includes(tool)) return tool;
+    if (this.tool !== null || ['pen', 'rect', 'ellipse', 'line', 'paintbrush', 'pencil'].includes(tool)) return tool;
     const selected = this.site().nodes[this.ctx.getSelected()];
     return selected && VECTOR_TAGS.has(selected.tag) ? tool : undefined;
   }
@@ -1127,6 +1135,7 @@ export class Editor {
   shapeSubs(a: Pt, b: Pt, alt: boolean, shift: boolean): SubPath[] {
     let dx = b[0] - a[0], dy = b[1] - a[1];
     const tool = this.tool;
+    if (tool && GRID_TOOLS.has(tool)) return gridPreview(tool, a, b, alt, shift);
     if (tool === 'line') {
       if (shift) { const angle = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) * (Math.PI / 4), l = Math.hypot(dx, dy); dx = Math.cos(angle) * l; dy = Math.sin(angle) * l; }
       return [linePath(a, [a[0] + dx, a[1] + dy])];
@@ -1140,7 +1149,7 @@ export class Editor {
       const cos = Math.cos(angle), sin = Math.sin(angle);
       return mapPath([sub], p => [a[0] + (p[0] - a[0]) * cos - (p[1] - a[1]) * sin, a[1] + (p[0] - a[0]) * sin + (p[1] - a[1]) * cos]);
     }
-    if (shift && tool !== 'arc') { const m = Math.max(Math.abs(dx), Math.abs(dy)); dx = Math.sign(dx || 1) * m; dy = Math.sign(dy || 1) * m; }
+    if (shift) { const m = Math.max(Math.abs(dx), Math.abs(dy)); dx = Math.sign(dx || 1) * m; dy = Math.sign(dy || 1) * m; }
     let x = a[0], y = a[1];
     if (alt) { x -= dx; y -= dy; dx *= 2; dy *= 2; }
     const left = Math.min(x, x + dx), top = Math.min(y, y + dy), w = Math.abs(dx), h = Math.abs(dy);
@@ -1202,6 +1211,33 @@ export class Editor {
     this.anchors.clear();
     this.render();
     await this.commit(cmds, [pathId]);
+  }
+
+  async commitGrid(tool: string, a: Pt, b: Pt, alt: boolean, shift: boolean): Promise<void> {
+    const parts = gridParts(tool, dragBox(a, b, alt, shift));
+    const paint = this.paintFor(true);
+    const site = this.site();
+    const svg = this.activeSvg();
+    const f = svg ? this.frame(svg) : undefined;
+    const cmds: Command[] = [];
+    let made: { cmds: Command[]; group: string; ids: string[] };
+    if (svg && f) made = gridGroupCommands(this.host(), svg, parts, paint, p => this.toLocal(f, p));
+    else {
+      const taken = new Set<string>();
+      const box = pathBounds(parts.flatMap(part => part.subs)) ?? { x: 0, y: 0, w: 1, h: 1 };
+      const pad = Math.ceil(paint.strokeWidth / 2 + 2);
+      const origin: Pt = [box.x - pad, box.y - pad];
+      const holder = this.container();
+      const rect = holder.el?.getBoundingClientRect();
+      const svgId = freshId(site, taken, 'vector');
+      if (holder.el && getComputedStyle(holder.el).position === 'static') cmds.push({ command: 'node.update', params: { id: holder.id, patch: { styles: { position: 'relative' } } } });
+      cmds.push(addSvg(holder.id, svgId, { left: origin[0] - (rect?.left ?? 0), top: origin[1] - (rect?.top ?? 0), width: box.w + pad * 2, height: box.h + pad * 2 }));
+      made = gridGroupCommands(this.host(), svgId, parts, paint, p => [p[0] - origin[0], p[1] - origin[1]]);
+    }
+    cmds.push(...made.cmds);
+    this.anchors.clear();
+    this.render();
+    await this.commit(cmds, made.ids);
   }
 
   cornerRefs(): Ref[] {

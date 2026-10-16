@@ -83,6 +83,14 @@ const META: Record<string, Meta> = {
   'terminal.toggle': { description: 'Show or hide the agent dock.' },
   'claude.open': { description: 'Open Claude Code in the agent dock.' },
   'chat.open': { description: 'Open the Claude chat tab in the agent dock.' },
+  'vector.pencil': { description: 'Pencil tool: drag to draw a freehand stroked path smoothed by the Fidelity setting; start on an end of the selected open path to continue it, hold Alt on release to close.', flags: 'm' },
+  'vector.rect-grid': { description: 'Rectangular Grid tool: drag a box to draw a group with the frame and the horizontal and vertical dividers; double-click on the canvas for the divider counts.', flags: 'm' },
+  'vector.polar-grid': { description: 'Polar Grid tool: drag a box to draw a group of concentric ellipses and radial dividers; double-click on the canvas for the counts.', flags: 'm' },
+  'vector.path.add-anchors': { description: 'Add an anchor point at the midpoint of every segment of the selected paths, keeping the shape identical.', flags: 'm', when: 'Use with one or more selected paths.' },
+  'vector.path.remove-anchors': { description: 'Delete the selected anchor points, refitting the neighbouring handles and keeping the path open or closed.', flags: 'm', when: 'Use after selecting anchors with the Direct Selection tool.' },
+  'vector.path.divide-below': { description: 'Use the selected path as a cutter: split every filled shape beneath it that it overlaps into separate pieces, then remove the cutter.', flags: 'mr', when: 'Use with a cutter path selected above the shapes to divide.' },
+  'vector.path.split-grid': { description: 'Open the Split Into Grid dialog (rows, columns, heights, widths, gutters) to replace each selected rectangle with a group of rectangles.', flags: 'm', when: 'Use with one or more rectangles selected.' },
+  'vector.path.clean-up': { description: 'Open the Clean Up dialog to delete stray points, unpainted objects and empty text paths from the current vector and report the count.', flags: 'mr', when: 'Use when the current vector has leftover empty objects.' },
   'help.guide': { description: 'Open the Using formweb guide.' }
 };
 

@@ -8,6 +8,8 @@ import { Editor, type ToolId, type VectorContext } from './editor';
 import { PATHFINDERS, TOOLS, VectorPanel } from './panel';
 import { selectCommands } from './select';
 import { runTrace } from './tracepanel';
+import { addAnchorCommands, divideBelowCommands, removeAnchorCommands } from './pathcmds';
+import { openCleanUp, openSplitGrid } from './pathdialogs';
 
 export type { VectorContext, ToolId } from './editor';
 
@@ -31,7 +33,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     select: 'vector.select', direct: 'vector.direct', pen: 'vector.pen', curvature: 'vector.curvature', add: 'vector.add-anchor', delete: 'vector.delete-anchor',
     convert: 'vector.convert-anchor', scissors: 'vector.scissors', rect: 'vector.rect', ellipse: 'vector.ellipse', polygon: 'vector.polygon', star: 'vector.star',
     line: 'vector.line', arc: 'vector.arc', spiral: 'vector.spiral', knife: 'vector.knife', eraser: 'vector.eraser', shapebuilder: 'vector.shape-builder',
-    width: 'vector.width', gradient: 'vector.gradient', transform: 'vector.free-transform', paintbrush: 'vector.paintbrush',
+    width: 'vector.width', gradient: 'vector.gradient', transform: 'vector.free-transform', paintbrush: 'vector.paintbrush', pencil: 'vector.pencil', rgrid: 'vector.rect-grid', pgrid: 'vector.polar-grid',
     lasso: 'vector.lasso', wand: 'vector.wand', eyedropper: 'vector.eyedropper'
   };
   const tools: CommandDef[] = TOOLS.map((tool, index) => ({
@@ -70,6 +72,11 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.path.join', label: 'Join end anchors', menu: MENU, keys: 'Mod+Alt+Shift+J', group: 4, run: () => editor.runPathOp('join'), enabled: () => editor.anchors.size === 2 },
     { id: 'vector.path.average', label: 'Average anchors', menu: MENU, keys: 'Mod+Alt+Shift+A', group: 4, run: () => openAverage(editor), enabled: () => editor.anchors.size > 1 },
     { id: 'vector.path.join-average', label: 'Join and average end anchors', menu: MENU, keys: 'Mod+Alt+Shift+K', group: 4, run: () => editor.runPathOp('join-average'), enabled: () => editor.anchors.size === 2 },
+    { id: 'vector.path.add-anchors', label: 'Add anchor points', menu: MENU, group: 4, run: () => { const cmds = addAnchorCommands(editor.host()); if (cmds.length) void editor.commit(cmds); }, enabled: hasShape },
+    { id: 'vector.path.remove-anchors', label: 'Remove anchor points', menu: MENU, group: 4, run: () => { const cmds = removeAnchorCommands(editor.host()); if (cmds.length) void editor.commit(cmds); }, enabled: () => editor.anchors.size > 0 },
+    { id: 'vector.path.divide-below', label: 'Divide objects below', menu: MENU, group: 4, run: () => { const made = divideBelowCommands(editor.host()); if (made) void editor.commit(made.cmds, made.select); }, enabled: hasShape },
+    { id: 'vector.path.split-grid', label: 'Split into grid...', menu: MENU, group: 4, run: () => openSplitGrid(editor.host()), enabled: hasShape },
+    { id: 'vector.path.clean-up', label: 'Clean up...', menu: MENU, group: 4, run: () => openCleanUp(editor.host()), enabled: () => { try { return !!editor.activeSvg(); } catch { return false; } } },
     { id: 'vector.path.simplify', label: 'Simplify path', menu: MENU, group: 4, run: () => editor.runPathOp('simplify', 1), enabled: hasShape },
     { id: 'vector.path.offset', label: 'Offset path', menu: MENU, group: 4, run: () => editor.runPathOp('offset', 8), enabled: hasShape },
     { id: 'vector.path.outline-stroke', label: 'Outline stroke', menu: MENU, keys: 'Mod+Shift+O', group: 4, run: () => editor.runPathOp('outline'), enabled: hasShape },
