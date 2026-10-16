@@ -218,6 +218,7 @@ impl Renderer<'_> {
         // FW-072: the pre-cut-out picture is editor history; it must not reach visitors or the export bundle.
         attrs.remove("data-fw-original-src");
         attrs.remove("data-fw-vector");
+        attrs.remove("data-fw-guides");
         if node.tag == "svg" && !attrs.contains_key("role") && !attrs.contains_key("aria-label") { attrs.insert("aria-hidden".into(), "true".into()); }
         if attrs.get("src").map(|s|s.starts_with("http://") || s.starts_with("https://")).unwrap_or(false) { self.warnings.insert("Remote media URLs are referenced and are not bundled into the archive".into()); }
         if node.tag == "form" && !attrs.get("action").map(|action| !action.is_empty()).unwrap_or(false) {

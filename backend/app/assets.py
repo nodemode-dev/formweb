@@ -24,6 +24,7 @@ SVG_REFERENCES = {'fill', 'stroke', 'clip-path', 'mask'}
 SVG_REF = re.compile(r'^url\(#([A-Za-z0-9_-]{1,64})\)$')  # only a fragment inside the same document, never a link
 VECTOR_MODEL = 'data-fw-vector'  # editable anchor model written by the vector editor; JSON only, checked structurally below
 VECTOR_MODEL_LIMIT = 262144
+VECTOR_GUIDES = 'data-fw-guides'  # ruler guides kept on the svg element by the vector editor; numbers only, at most 200
 SVG_VALUE = re.compile(r'^[A-Za-z0-9 .,#%()+\-/]*$')  # no colon: no scheme (javascript:, data:) can appear in any value
 
 
@@ -62,6 +63,27 @@ def vector_model_ok(value: str) -> bool:
     return isinstance(model, dict) and model.get('v') == 1 and isinstance(model.get('subs'), list)
 
 
+def vector_guides_ok(value: str) -> bool:
+    if len(value) > VECTOR_MODEL_LIMIT:
+        return False
+    try:
+        guides = json.loads(value)
+    except ValueError:
+        return False
+
+    def number(v) -> bool:
+        return isinstance(v, (int, float)) and not isinstance(v, bool) and abs(v) <= 1e6
+
+    def path(p) -> bool:
+        return (isinstance(p, dict) and set(p) == {'c', 'n'} and p['c'] in (0, 1) and isinstance(p['n'], list) and 0 < len(p['n']) <= 500
+                and all(isinstance(n, list) and len(n) == 6 and all(number(v) for v in n) for n in p['n']))
+
+    return (isinstance(guides, dict) and set(guides) == {'v', 'locked', 'x', 'y', 'paths'} and guides['v'] == 1 and guides['locked'] in (0, 1)
+            and isinstance(guides['x'], list) and isinstance(guides['y'], list) and isinstance(guides['paths'], list)
+            and all(number(v) for v in guides['x'] + guides['y'])
+            and len(guides['x']) + len(guides['y']) + len(guides['paths']) <= 200 and all(path(p) for p in guides['paths']))
+
+
 def sanitize_svg(data: bytes) -> bytes:
     """Lenient import path for user SVG: drop what the vector element cannot hold, then run the strict cleaner over the result."""
     import xml.etree.ElementTree as ET
@@ -98,6 +120,10 @@ def sanitize_svg(data: bytes) -> bytes:
         for name, value in merged.items():
             if name == VECTOR_MODEL:
                 if vector_model_ok(value):
+                    attrs.append(f' {name}="{quote(value, quote=True)}"')
+                continue
+            if name == VECTOR_GUIDES:
+                if tag == 'svg' and vector_guides_ok(value):
                     attrs.append(f' {name}="{quote(value, quote=True)}"')
                 continue
             if name in SVG_ATTRS and name != 'xmlns' and svg_value_ok(name, value, defined):
@@ -144,6 +170,11 @@ def clean_svg(data: bytes) -> bytes:
             if name == VECTOR_MODEL:
                 if not vector_model_ok(value):
                     raise EngineError('SVG vector model is not valid.', 415)
+                attrs.append(f' {name}="{quote(value, quote=True)}"')
+                continue
+            if name == VECTOR_GUIDES:
+                if tag != 'svg' or not vector_guides_ok(value):
+                    raise EngineError('SVG guides are not valid.', 415)
                 attrs.append(f' {name}="{quote(value, quote=True)}"')
                 continue
             if name not in SVG_ATTRS or not svg_value_ok(name, value, defined):

@@ -3,10 +3,12 @@ import { commands as registry } from '../commands/registry';
 import { element } from '../ui/dom';
 import type { CommandDef } from '../ui/shell';
 import { applyCorners } from './corners';
+import type { Command } from '../types';
 import { dist, formatPath, mapPath, nearestOnPath, translate, type Pt, type SubPath } from './geometry';
 import type { Host } from './host';
 import type { AidSource } from './snap';
-import { addPath, defaultPaint, freshId, removeNode, viewBoxOf } from './store';
+import { GUIDE_ATTR, GUIDE_LIMIT, decodeGuides, encodeGuides } from './guides';
+import { addPath, defaultPaint, freshId, removeNode, updateAttrs, viewBoxOf } from './store';
 
 const NS = 'http://www.w3.org/2000/svg';
 const RULER = 18;
@@ -41,13 +43,12 @@ function clean(v: number): number { return Math.round(v * 1000) / 1000; }
 export class ViewAids {
   rulers = false;
   guidesVisible = true;
-  locked = false;
   grid = false;
   snapGrid = false;
   outline = false;
   spacing = 72;
   subdivisions = 8;
-  readonly store = new Map<string, GuideItem[]>();
+  private readonly cache = new Map<string, { raw: string; list: GuideItem[]; locked: boolean }>();
   readonly picked = new Set<string>();
   private svgId = '';
   private pointer: Pt | null = null;
@@ -94,10 +95,10 @@ export class ViewAids {
     window.addEventListener('pointermove', event => this.onMove(event));
     window.addEventListener('pointerup', event => this.onUp(event));
     this.source = {
-      lines: svg => (this.guidesVisible ? (this.store.get(svg) ?? []).filter((g): g is Extract<GuideItem, { kind: 'line' }> => g.kind === 'line').map(g => ({ axis: g.axis, pos: g.pos })) : []),
-      paths: svg => (this.guidesVisible ? (this.store.get(svg) ?? []).filter((g): g is Extract<GuideItem, { kind: 'path' }> => g.kind === 'path').map(g => g.subs) : []),
+      lines: svg => (this.guidesVisible ? this.guides(svg).filter((g): g is Extract<GuideItem, { kind: 'line' }> => g.kind === 'line').map(g => ({ axis: g.axis, pos: g.pos })) : []),
+      paths: svg => (this.guidesVisible ? this.guides(svg).filter((g): g is Extract<GuideItem, { kind: 'path' }> => g.kind === 'path').map(g => g.subs) : []),
       gridStep: () => (this.snapGrid ? this.gridUnit() : 0),
-      active: svg => this.active && (this.snapGrid || (this.guidesVisible && (this.store.get(svg)?.length ?? 0) > 0))
+      active: svg => this.active && (this.snapGrid || (this.guidesVisible && this.guides(svg).length > 0))
     };
   }
 
@@ -119,10 +120,33 @@ export class ViewAids {
     return this.svgId;
   }
 
-  guides(svg = this.svg()): GuideItem[] {
-    let list = this.store.get(svg);
-    if (!list) { list = []; if (svg) this.store.set(svg, list); }
-    return list;
+  /** Guides of an svg, read from its data-fw-guides attribute (re-read whenever the stored value changes, for example on undo). */
+  private entry(svg: string): { raw: string; list: GuideItem[]; locked: boolean } {
+    let raw = '';
+    try { raw = svg ? this.h.site().nodes[svg]?.attrs[GUIDE_ATTR] ?? '' : ''; } catch { raw = ''; }
+    let e = this.cache.get(svg);
+    if (!e || e.raw !== raw) {
+      const decoded = raw ? decodeGuides(raw, () => `g${++this.uid}`) : null;
+      e = { raw, list: decoded?.list ?? [], locked: decoded?.locked ?? false };
+      if (svg) this.cache.set(svg, e);
+      this.picked.clear();
+    }
+    return e;
+  }
+
+  guides(svg = this.svg()): GuideItem[] { return this.entry(svg).list; }
+
+  get locked(): boolean { return this.entry(this.svgId).locked; }
+
+  /** Write the guide set onto the svg through the normal commit path: one undo step, with any companion commands. */
+  private async save(svg: string, list: GuideItem[], locked: boolean, extra: Command[] = [], afterSelect?: string[]): Promise<boolean> {
+    const raw = list.length || locked ? encodeGuides(list, locked) : '';
+    const ok = await this.h.commit([...extra, updateAttrs(svg, { [GUIDE_ATTR]: raw || null })], afterSelect);
+    const e = this.cache.get(svg);
+    if (e) { if (ok) { e.raw = raw; e.list = list; e.locked = locked; } else e.raw = '\u0000'; }
+    this.h.render();
+    this.h.emit();
+    return ok;
   }
 
   private shellPt(event: MouseEvent): Pt {
@@ -146,6 +170,7 @@ export class ViewAids {
     event.preventDefault();
     event.stopPropagation();
     this.guidesVisible = true;
+    if (this.guides(svg).length >= GUIDE_LIMIT) { this.h.notify(t('A drawing holds up to {0} guides.', [GUIDE_LIMIT])); return; }
     const guide: GuideItem = { id: `g${++this.uid}`, kind: 'line', axis: kind === 'h' ? 'y' : 'x', pos: 0 };
     const p = this.shellPt(event);
     const local = this.h.toLocal(f, p);
@@ -219,15 +244,17 @@ export class ViewAids {
     const p = this.shellPt(event);
     const list = this.guides(d.svg);
     const dropped = this.overRuler(p);
+    let changed = false;
     if (d.fresh) {
-      if (!dropped) { list.push(d.guide); this.picked.clear(); this.picked.add(d.guide.id); }
+      if (!dropped && list.length < GUIDE_LIMIT) { list.push(d.guide); this.picked.clear(); this.picked.add(d.guide.id); changed = true; }
     } else if (dropped) {
       const i = list.indexOf(d.guide);
       if (i >= 0) list.splice(i, 1);
       this.picked.delete(d.guide.id);
-    }
-    this.h.render();
-    this.h.emit();
+      changed = true;
+    } else changed = d.moved;
+    if (changed) void this.save(d.svg, list, this.entry(d.svg).locked);
+    else { this.h.render(); this.h.emit(); }
   }
 
   /* ---------- guide commands ---------- */
@@ -235,30 +262,34 @@ export class ViewAids {
   clearGuides(): void {
     const svg = this.svg();
     if (!svg) return;
-    this.store.set(svg, []);
+    if (!this.guides(svg).length) return;
     this.picked.clear();
-    this.h.render();
-    this.h.emit();
+    void this.save(svg, [], this.entry(svg).locked);
+  }
+
+  async toggleLock(): Promise<void> {
+    const svg = this.svg();
+    if (!svg) return;
+    const e = this.entry(svg);
+    await this.save(svg, e.list, !e.locked);
   }
 
   hasSelection(): boolean { return this.h.selection().some(id => !!this.h.shape(id)); }
 
-  hasGuides(): boolean { const svg = this.svgId; return !!svg && (this.store.get(svg)?.length ?? 0) > 0; }
+  hasGuides(): boolean { const svg = this.svgId; return !!svg && this.guides(svg).length > 0; }
 
   async makeGuides(): Promise<void> {
     const svg = this.svg();
     if (!svg) return;
     const shapes = this.h.selection().map(id => this.h.shape(id)).filter((s): s is NonNullable<typeof s> => !!s && s.svg === svg);
     if (!shapes.length) { this.h.notify(t('Select a shape to turn into guides.')); return; }
-    const ok = await this.h.commit(shapes.map(s => removeNode(s.id)));
+    const list = [...this.guides(svg)];
+    if (list.length + shapes.length > GUIDE_LIMIT) { this.h.notify(t('A drawing holds up to {0} guides.', [GUIDE_LIMIT])); return; }
+    const made: GuideItem[] = shapes.map(s => ({ id: `g${++this.uid}`, kind: 'path', subs: applyCorners(s.subs) }));
+    const ok = await this.save(svg, [...list, ...made], this.entry(svg).locked, shapes.map(s => removeNode(s.id)));
     if (!ok) return;
-    const list = this.guides(svg);
     this.picked.clear();
-    for (const s of shapes) {
-      const g: GuideItem = { id: `g${++this.uid}`, kind: 'path', subs: applyCorners(s.subs) };
-      list.push(g);
-      this.picked.add(g.id);
-    }
+    for (const g of made) this.picked.add(g.id);
     this.guidesVisible = true;
     this.h.render();
     this.h.emit();
@@ -284,9 +315,8 @@ export class ViewAids {
         ? [[g.pos, vb[1]], [g.pos, vb[1] + vb[3]]] : [[vb[0], g.pos], [vb[0] + vb[2], g.pos]]).map(([x, y]) => ({ x, y, in: null, out: null, kind: 'corner' as const })) }];
       return addPath(svg, id, subs, paint, t('Released guide'));
     });
-    const ok = await this.h.commit(cmds, ids);
+    const ok = await this.save(svg, list.filter(g => !chosen.includes(g)), this.entry(svg).locked, cmds, ids);
     if (!ok) return;
-    this.store.set(svg, list.filter(g => !chosen.includes(g)));
     this.picked.clear();
     this.h.render();
     this.h.emit();
@@ -559,7 +589,7 @@ export function viewCommands(view: ViewAids, editing: () => boolean, redraw: () 
     { id: 'vector.rulers', label: () => (view.rulers ? t('Hide Rulers') : t('Show Rulers')), menu: MENU, keys: 'Mod+R', group: 20, checked: () => view.rulers,
       run: () => { if (!on()) { location.reload(); return; } flip(() => { view.rulers = !view.rulers; })(); } },
     { id: 'vector.guides.toggle', label: () => (view.guidesVisible ? t('Hide Guides') : t('Show Guides')), menu: MENU, keys: 'Mod+;', group: 20, checked: () => view.guidesVisible, enabled: on, run: flip(() => { view.guidesVisible = !view.guidesVisible; }) },
-    { id: 'vector.guides.lock', label: t('Lock Guides'), menu: MENU, keys: 'Mod+Alt+;', group: 20, checked: () => view.locked, enabled: on, run: flip(() => { view.locked = !view.locked; }) },
+    { id: 'vector.guides.lock', label: t('Lock Guides'), menu: MENU, keys: 'Mod+Alt+;', group: 20, checked: () => view.locked, enabled: on, run: () => { void view.toggleLock().then(redraw); } },
     { id: 'vector.guides.make', label: t('Make Guides'), menu: MENU, keys: 'Mod+5', group: 20, enabled: () => on() && view.hasSelection(), run: () => { void view.makeGuides(); } },
     { id: 'vector.guides.release', label: t('Release Guides'), menu: MENU, keys: 'Mod+Alt+5', group: 20, enabled: on, run: () => { void view.releaseGuides(); } },
     { id: 'vector.guides.clear', label: t('Clear Guides'), menu: MENU, group: 20, enabled: () => on() && view.hasGuides(), run: () => view.clearGuides() },

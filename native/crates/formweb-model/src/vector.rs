@@ -21,7 +21,7 @@ pub fn attr_allowed(tag: &str, name: &str) -> bool {
     let drawn = matches!(tag, "svg" | "g" | "path" | "text" | "textPath" | "symbol" | "use");
     (drawn && SHARED.contains(&name))
         || (tag == "path" && name == "d")
-        || (tag == "svg" && matches!(name, "viewBox" | "preserveAspectRatio"))
+        || (tag == "svg" && matches!(name, "viewBox" | "preserveAspectRatio" | "data-fw-guides"))
         || (tag == "linearGradient" && matches!(name, "x1" | "y1" | "x2" | "y2" | "gradientUnits" | "gradientTransform" | "spreadMethod"))
         || (tag == "radialGradient" && matches!(name, "cx" | "cy" | "r" | "fx" | "fy" | "gradientUnits" | "gradientTransform" | "spreadMethod"))
         || (tag == "stop" && matches!(name, "offset" | "stop-color" | "stop-opacity"))
@@ -33,7 +33,7 @@ pub fn attr_allowed(tag: &str, name: &str) -> bool {
 }
 
 pub fn max_len(tag: &str, name: &str) -> usize {
-    if is_tag(tag) && matches!(name, "d" | "data-fw-vector" | "data-fw-width" | "data-fw-warp") { DATA_LIMIT } else { 10000 }
+    if is_tag(tag) && matches!(name, "d" | "data-fw-vector" | "data-fw-width" | "data-fw-warp" | "data-fw-guides") { DATA_LIMIT } else { 10000 }
 }
 
 fn child_ok(parent: &str, child: &str) -> bool {
@@ -202,6 +202,7 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-warp" => value.len() <= 120_000 && serde_json::from_str::<Value>(value).map(|v| warp_config(&v)).unwrap_or(false),
         "data-fw-compound" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| compound_config(&v)).unwrap_or(false),
         "visibility" => matches!(value, "hidden" | "visible"),
+        "data-fw-guides" => tag == "svg" && value.len() <= DATA_LIMIT && serde_json::from_str::<Value>(value).map(|v| guides_config(&v)).unwrap_or(false),
         "data-fw-stroke" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| stroke_config(&v)).unwrap_or(false),
         "data-fw-brush" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| brush_config(&v, true)).unwrap_or(false),
         "data-fw-brushdef" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| brush_config(&v, false)).unwrap_or(false),
@@ -315,6 +316,26 @@ fn brush_config(value: &Value, group: bool) -> bool {
         && number("spacing", 0.0, 1000.0) && number("scatter", 0.0, 500.0) && number("rotation", -180.0, 180.0)
         && int("seed", 1, 99999) && int("stretch", 0, 1) && int("flip", 0, 1) && int("flipv", 0, 1)
         && word("rotmode", &["fixed", "random"]) && word("rotrel", &["page", "path"]) && word("fit", &["stretch", "space"])
+}
+
+/// Ruler guides kept on the svg: {"v":1,"locked":0|1,"x":[n],"y":[n],"paths":[{"c":0|1,"n":[[x,y,inX,inY,outX,outY]]}]}, numbers only, at most 200 guides.
+fn guides_config(value: &Value) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    let finite = |v: &Value| v.as_f64().map(|n| n.is_finite() && n.abs() <= 1.0e6).unwrap_or(false);
+    let lines = |key: &str| map.get(key).and_then(Value::as_array).filter(|list| list.iter().all(finite)).map(Vec::len);
+    let Some(paths) = map.get("paths").and_then(Value::as_array) else { return false };
+    let path_ok = |p: &Value| {
+        let Some(p) = p.as_object() else { return false };
+        p.len() == 2
+            && matches!(p.get("c").and_then(Value::as_u64), Some(0) | Some(1))
+            && p.get("n").and_then(Value::as_array).map(|nodes| !nodes.is_empty() && nodes.len() <= 500 && nodes.iter().all(|n| n.as_array().map(|a| a.len() == 6 && a.iter().all(finite)).unwrap_or(false))).unwrap_or(false)
+    };
+    let (Some(x), Some(y)) = (lines("x"), lines("y")) else { return false };
+    map.len() == 5
+        && map.get("v").and_then(Value::as_u64) == Some(1)
+        && matches!(map.get("locked").and_then(Value::as_u64), Some(0) | Some(1))
+        && x + y + paths.len() <= 200
+        && paths.iter().all(path_ok)
 }
 
 fn stroke_config(value: &Value) -> bool {
@@ -529,4 +550,39 @@ pub fn path_data(d: &str) -> Result<(), String> {
         if groups == 0 { return bad(); }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const GOOD: &str = r#"{"v":1,"locked":1,"x":[10,20.5],"y":[-4],"paths":[{"c":1,"n":[[0,0,0,0,5,5],[10,0,10,0,10,0]]}]}"#;
+
+    #[test]
+    fn guides_attribute_is_allowed_on_svg_only_and_validated() {
+        assert!(attr_allowed("svg", "data-fw-guides"));
+        assert!(!attr_allowed("path", "data-fw-guides"));
+        assert!(check_attr("svg", "data-fw-guides", GOOD).is_ok());
+        assert!(check_attr("svg", "data-fw-guides", r#"{"v":1,"locked":0,"x":[],"y":[],"paths":[]}"#).is_ok());
+        assert!(check_attr("g", "data-fw-guides", GOOD).is_err());
+        for bad in [
+            "not json",
+            r#"{"v":2,"locked":0,"x":[],"y":[],"paths":[]}"#,
+            r#"{"v":1,"locked":2,"x":[],"y":[],"paths":[]}"#,
+            r#"{"v":1,"locked":0,"x":["a"],"y":[],"paths":[]}"#,
+            r#"{"v":1,"locked":0,"x":[1e9],"y":[],"paths":[]}"#,
+            r#"{"v":1,"locked":0,"x":[],"y":[],"paths":[{"c":0,"n":[[1,2,3]]}]}"#,
+            r#"{"v":1,"locked":0,"x":[],"y":[],"paths":[],"extra":1}"#,
+            r#"{"v":1,"locked":0,"x":[]}"#,
+        ] {
+            assert!(check_attr("svg", "data-fw-guides", bad).is_err(), "{bad}");
+        }
+    }
+
+    #[test]
+    fn guides_are_capped_at_two_hundred() {
+        let many = |n: usize| format!(r#"{{"v":1,"locked":0,"x":[{}],"y":[],"paths":[]}}"#, vec!["1"; n].join(","));
+        assert!(check_attr("svg", "data-fw-guides", &many(200)).is_ok());
+        assert!(check_attr("svg", "data-fw-guides", &many(201)).is_err());
+    }
 }
