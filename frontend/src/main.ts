@@ -20,7 +20,10 @@ import { StockLibrary } from './features/stock-library';
 import { AiWriter, SiteGenerator } from './features/ai-writer';
 import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
+import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator } from './i18n';
 import './styles/features.css';
+
+await startLanguage();
 
 const app = document.querySelector<HTMLElement>('#app')!;
 const overlay = document.querySelector<HTMLElement>('#overlay-root')!;
@@ -286,6 +289,7 @@ sidebar.append(sidebarTabs, pagesPane, insertPane, agentsPane);
 const stagePanel = element('section', 'stage-panel');
 const stageHead = element('div', 'stage-head');
 const pageName = element('span', '', 'Home');
+pageName.dataset.noI18n = '';
 const pagePath = element('span', 'stage-path', '/');
 const viewportReadout = element('span', 'viewport-readout', 'Desktop / 1280 px');
 const selectionPath = element('nav', 'fw-crumbs');
@@ -930,7 +934,11 @@ const authToken = input('Optional server token');
 authToken.type = 'password';
 authToken.autocomplete = 'off';
 try { authToken.value = sessionStorage.getItem('formweb_token') || ''; } catch {}
-settingsPane.append(field('Editor theme', themeSelect), element('p', 'empty-note', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.'), field('Server access token', authToken), element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`));
+const languageSelect = select(languages().map(([id, name]) => ({ id, name })));
+languageSelect.dataset.noI18n = '';
+languageSelect.value = language();
+languageSelect.addEventListener('change', () => { if (isLang(languageSelect.value)) void setLanguage(languageSelect.value); });
+settingsPane.append(field('Editor theme', themeSelect), field('Editor language', languageSelect), element('p', 'empty-note', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.'), field('Server access token', authToken), element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`));
 const helpPane = dialogPane('help');
 const helpGrid = element('div', 'help-grid');
 for (const [heading, paragraph] of [
@@ -1598,6 +1606,7 @@ const wishlist = installWishlist({ state, commands: batch => commands(batch), se
 registerCommands(wishlist.commands);
 subscribe(() => wishlist.refresh());
 menubar.build();
+startPageTranslator();
 exposeToAgents();
 installKeymap(commandRegistry, () => !!lastState && !featureStudio.opened);
 document.addEventListener('click', event => {

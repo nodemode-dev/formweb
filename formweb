@@ -18,6 +18,7 @@ case "$cmd" in
   agents) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/agents.py "$@" ;;
   comparisons) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/comparisons.py "$@" ;;
   run) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/run.py "$@" ;;
+  i18n) source setup/lib.sh; [ "${1:-check}" = check ] && { [ $# -eq 0 ] || shift; exec "$FORMWEB_PYTHON" setup/i18n_check.py "$@"; }; fw_say 'usage: ./formweb i18n check [--json]' >&2; exit 2 ;;
   render) source setup/lib.sh
     bin="native/crates/formweb-render/target/release/formweb-render"
     if [ ! -x "$bin" ]; then fw_say 'building the GPU renderer (first use)' >&2; "$FORMWEB_CARGO" build --release --manifest-path native/crates/formweb-render/Cargo.toml >&2; fi
@@ -47,6 +48,7 @@ Usage: ./formweb COMMAND
   agents sync         mirror .claude/skills to .agents/skills
   agents sync --check  report drift without changing files
   agents install      show project client wiring; no global changes
+  i18n check          every interface language has one entry per English key (--json)
   comparisons status  is the release comparison in the FormAI matrix (--json)
   comparisons build   render the family-format page from docs/comparisons/data (--check, --json)
   comparisons embed  add the release comparison to the matrix (--check, --json)
