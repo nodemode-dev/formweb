@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.9 · 2026-10-16
+
+- Area type (Vector > Area type...): pour text into any closed shape. Lines follow the shape's outline, paragraphs follow your line breaks, text can run in several columns, and you are told how many words did not fit. The text is laid out once; run it again after changing the shape.
+- All new labels are translated into the 26 interface languages.
+
 ## 0.9.8 · 2026-10-16
 
 - Security: inside a vector drawing, only symbol instances and text on a path may link to another element. Gradients, patterns, paths and drawings can no longer carry a link to an outside file, even when added by an agent through the API.

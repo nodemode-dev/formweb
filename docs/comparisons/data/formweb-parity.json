@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.9.8",
- "previous": "0.9.7",
+ "version": "0.9.9",
+ "previous": "0.9.8",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Area type (FW-175) added as Partial: text flows inside a closed shape in one or more columns with overflow reported, laid out once rather than live.",
@@ -7735,6 +7735,13 @@
     "FW-174": "partial"
    },
    "note": "Make pattern with Pattern Options added. 114.5 of 131."
+  },
+  {
+   "version": "0.9.8",
+   "date": "2026-10-16",
+   "same_as": "0.9.7",
+   "moved": {},
+   "note": "Security fix: only use and textPath carry an href inside an svg. No grade change, 114.5 of 131."
   }
  ],
  "changes": [
