@@ -63,6 +63,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     ...pathfinders,
     { id: 'vector.path.join', label: 'Join end anchors', menu: MENU, keys: 'Mod+Alt+Shift+J', group: 4, run: () => editor.runPathOp('join'), enabled: () => editor.anchors.size === 2 },
     { id: 'vector.path.average', label: 'Average anchors', menu: MENU, keys: 'Mod+Alt+Shift+A', group: 4, run: () => editor.runPathOp('average'), enabled: () => editor.anchors.size > 1 },
+    { id: 'vector.path.join-average', label: 'Join and average end anchors', menu: MENU, keys: 'Mod+Alt+Shift+K', group: 4, run: () => editor.runPathOp('join-average'), enabled: () => editor.anchors.size === 2 },
     { id: 'vector.path.simplify', label: 'Simplify path', menu: MENU, group: 4, run: () => editor.runPathOp('simplify', 1), enabled: hasShape },
     { id: 'vector.path.offset', label: 'Offset path', menu: MENU, group: 4, run: () => editor.runPathOp('offset', 8), enabled: hasShape },
     { id: 'vector.path.outline-stroke', label: 'Outline stroke', menu: MENU, keys: 'Mod+Shift+O', group: 4, run: () => editor.runPathOp('outline'), enabled: hasShape },

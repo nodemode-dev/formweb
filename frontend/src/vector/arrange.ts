@@ -94,7 +94,69 @@ function defFor(site: Site, svg: string, ref: string): SiteNode | undefined {
   return visit(svg, 0);
 }
 
-export function makeMaskCommands(h: Host, kind: 'clip' | 'mask'): Command[] {
+export interface MaskOptions { clip: boolean; invert: boolean }
+
+const MASK_BACKDROP = 'M-50000 -50000H50000V50000H-50000Z';
+const BACKDROP_NAME = 'Mask background';
+
+const maskToken = (o: MaskOptions): string => (o.clip ? (o.invert ? 'clip-invert' : 'clip') : o.invert ? 'invert' : 'plain');
+
+function maskOptionsOf(token: string | undefined): MaskOptions {
+  return { clip: token === undefined || token === 'clip' || token === 'clip-invert', invert: token === 'invert' || token === 'clip-invert' };
+}
+
+const backdropFill = (o: MaskOptions): string => (o.clip === o.invert ? '#ffffff' : '#000000');
+
+function complement(value: string | undefined): string | null | undefined {
+  if (value === undefined || value === 'none') return value;
+  const hex = colorToHex(value, '');
+  if (!hex) return null;
+  return `#${[1, 3, 5].map(i => (255 - parseInt(hex.slice(i, i + 2), 16)).toString(16).padStart(2, '0')).join('')}`;
+}
+
+export function maskHolder(site: Site, ids: string[]): { group: string; def: SiteNode; options: MaskOptions } | undefined {
+  for (const id of ids) {
+    let g = nearestGroup(site, id);
+    while (g && !site.nodes[g].attrs.mask) g = nearestGroup(site, g);
+    const node = g && site.nodes[g];
+    const svg = g && svgOf(site, g);
+    const ref = node && refOf(node.attrs.mask);
+    const def = ref && svg ? defFor(site, svg, ref) : undefined;
+    if (g && node && def && def.tag === 'mask') return { group: g, def, options: maskOptionsOf(node.attrs['data-fw-mask']) };
+  }
+  return undefined;
+}
+
+export function maskOptionCommands(h: Host, next: MaskOptions): Command[] {
+  const site = h.site();
+  const holder = maskHolder(site, h.selection());
+  if (!holder) return [];
+  const cmds: Command[] = [];
+  const kids = holder.def.children.map(id => site.nodes[id]).filter(Boolean);
+  const shape = kids.filter(n => n.tag === 'path' && n.name !== BACKDROP_NAME);
+  const back = kids.find(n => n.name === BACKDROP_NAME);
+  if (holder.options.invert !== next.invert) {
+    for (const node of shape) {
+      const patch: Record<string, string | null> = {};
+      for (const name of ['fill', 'stroke'] as const) {
+        const flipped = complement(node.attrs[name]);
+        if (flipped === null) { h.notify('Invert Mask needs solid colors in the mask shape.'); return []; }
+        if (flipped !== undefined) patch[name] = flipped;
+      }
+      cmds.push(updateAttrs(node.id, patch));
+    }
+  }
+  const fill = backdropFill(next);
+  if (back) { if (back.attrs.fill !== fill) cmds.push(updateAttrs(back.id, { fill })); }
+  else {
+    const id = freshId(site, new Set(), 'maskbg');
+    cmds.push({ command: 'node.add', params: { parent: holder.def.id, node: { id, tag: 'path', name: BACKDROP_NAME, attrs: { d: MASK_BACKDROP, fill } } } }, moveNode(id, holder.def.id, 0));
+  }
+  cmds.push(updateAttrs(holder.group, { 'data-fw-mask': maskToken(next) }));
+  return cmds;
+}
+
+export function makeMaskCommands(h: Host, kind: 'clip' | 'mask', options: MaskOptions = { clip: true, invert: false }): Command[] {
   const site = h.site();
   const svg = h.activeSvg();
   const ids = h.selection().filter(id => site.nodes[id]?.tag === 'path');
@@ -111,11 +173,21 @@ export function makeMaskCommands(h: Host, kind: 'clip' | 'mask'): Command[] {
   if (source.attrs['data-fw-vector']) childAttrs['data-fw-vector'] = source.attrs['data-fw-vector'];
   if (kind === 'clip') childAttrs['clip-rule'] = source.attrs['fill-rule'] === 'evenodd' ? 'evenodd' : 'nonzero';
   else for (const name of ['fill', 'stroke', 'stroke-width', 'fill-rule', 'opacity']) if (source.attrs[name] !== undefined) childAttrs[name] = source.attrs[name];
+  if (kind === 'mask' && options.invert) {
+    for (const name of ['fill', 'stroke'] as const) {
+      const flipped = complement(childAttrs[name]);
+      if (flipped === null) { h.notify('Invert Mask needs solid colors in the mask shape.'); return []; }
+      if (flipped !== undefined) childAttrs[name] = flipped;
+    }
+  }
   const cmds: Command[] = [
-    { command: 'node.add', params: { parent: svg, node: { id: defId, tag: kind === 'clip' ? 'clipPath' : 'mask', name: kind === 'clip' ? 'Clipping mask' : 'Opacity mask', attrs: defAttrs } } },
-    { command: 'node.add', params: { parent: defId, node: { id: childId, tag: 'path', name: 'Mask shape', attrs: childAttrs } } }
+    { command: 'node.add', params: { parent: svg, node: { id: defId, tag: kind === 'clip' ? 'clipPath' : 'mask', name: kind === 'clip' ? 'Clipping mask' : 'Opacity mask', attrs: defAttrs } } }
   ];
-  const grouped = groupCommands(h, contents, kind === 'clip' ? 'Clipped group' : 'Masked group', { [kind === 'clip' ? 'clip-path' : 'mask']: `url(#${defId})` });
+  if (kind === 'mask') cmds.push({ command: 'node.add', params: { parent: defId, node: { id: freshId(site, new Set([defId, childId]), 'maskbg'), tag: 'path', name: BACKDROP_NAME, attrs: { d: MASK_BACKDROP, fill: backdropFill(options) } } } });
+  cmds.push({ command: 'node.add', params: { parent: defId, node: { id: childId, tag: 'path', name: 'Mask shape', attrs: childAttrs } } });
+  const groupAttrs: Record<string, string> = { [kind === 'clip' ? 'clip-path' : 'mask']: `url(#${defId})` };
+  if (kind === 'mask') groupAttrs['data-fw-mask'] = maskToken(options);
+  const grouped = groupCommands(h, contents, kind === 'clip' ? 'Clipped group' : 'Masked group', groupAttrs);
   if (!grouped) return [];
   cmds.push(...grouped.cmds, removeNode(top));
   return cmds;
@@ -140,11 +212,14 @@ export function releaseMaskCommands(h: Host): Command[] {
     const index = site.nodes[parent].children.indexOf(g);
     node.children.forEach((child, k) => cmds.push(moveNode(child, parent, index + k)));
     cmds.push(removeNode(g));
-    const shape = def && site.nodes[def.children[0]];
+    const shape = def && def.children.map(child => site.nodes[child]).find(n => n && n.name !== BACKDROP_NAME);
     if (def && shape) {
       const restored = freshId(site, new Set(), 'path');
       const attrs = { ...shape.attrs };
       delete attrs['clip-rule'];
+      if (def.tag === 'mask' && maskOptionsOf(node.attrs['data-fw-mask']).invert) {
+        for (const name of ['fill', 'stroke'] as const) { const flipped = complement(attrs[name]); if (flipped) attrs[name] = flipped; }
+      }
       if (def.tag === 'clipPath') Object.assign(attrs, { fill: 'none', stroke: '#808080', 'stroke-width': '1' });
       cmds.push({ command: 'node.add', params: { parent, node: { id: restored, tag: 'path', name: 'Mask shape', attrs } } });
       cmds.push(moveNode(restored, parent, index + node.children.length));
@@ -484,24 +559,3 @@ export function repeatCommands(h: Host, p: RepeatParams): { cmds: Command[]; gro
   return { cmds, group: wrap.id };
 }
 
-export function textOnPathCommands(h: Host, pathId: string, text: string, size: number, offset: number): Command[] {
-  const site = h.site();
-  const path = site.nodes[pathId];
-  const svg = svgOf(site, pathId);
-  if (!path || path.tag !== 'path' || !svg) { h.notify('Select a path to set type on.'); return []; }
-  const label = text.replace(/[<>]/g, '').slice(0, 500);
-  const existing = Object.values(site.nodes).find(n => n.tag === 'textPath' && n.attrs.href === `#${pathId}`);
-  if (existing) {
-    const holder = parentOf(site, existing.id);
-    return [{ command: 'node.update', params: { id: existing.id, patch: { text: label, attrs: { startOffset: `${Math.round(offset)}%` } } } }, ...(holder ? [updateAttrs(holder, { 'font-size': String(size) })] : [])];
-  }
-  if (!label) return [];
-  const textId = freshId(site, new Set(), 'type');
-  const pathRef = freshId(site, new Set([textId]), 'typepath');
-  const color = path.attrs.stroke && path.attrs.stroke !== 'none' ? path.attrs.stroke : path.attrs.fill && path.attrs.fill !== 'none' ? path.attrs.fill : '#ffffff';
-  return [
-    updateAttrs(pathId, { id: pathId }),
-    { command: 'node.add', params: { parent: svg, node: { id: textId, tag: 'text', name: 'Type on a path', attrs: { fill: colorToHex(color, '#ffffff'), 'font-size': String(size), 'font-family': 'Inter, sans-serif' } } } },
-    { command: 'node.add', params: { parent: textId, node: { id: pathRef, tag: 'textPath', name: 'Path text', text: label, attrs: { href: `#${pathId}`, startOffset: `${Math.round(offset)}%` } } } }
-  ];
-}

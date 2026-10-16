@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 const SHARED: &[&str] = &[
     "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset",
     "fill-rule", "fill-opacity", "stroke-opacity", "transform", "vector-effect", "opacity", "data-fw-vector",
-    "clip-path", "mask", "paint-order", "clip-rule", "data-fw-align", "data-fw-weight", "data-fw-width",
+    "clip-path", "mask", "paint-order", "clip-rule", "data-fw-align", "data-fw-weight", "data-fw-width", "data-fw-mask", "data-fw-type",
 ];
 const DATA_LIMIT: usize = 262_144;
 
@@ -26,8 +26,8 @@ pub fn attr_allowed(tag: &str, name: &str) -> bool {
         || (tag == "stop" && matches!(name, "offset" | "stop-color" | "stop-opacity"))
         || (tag == "clipPath" && name == "clipPathUnits")
         || (tag == "mask" && matches!(name, "maskUnits" | "maskContentUnits" | "x" | "y"))
-        || (tag == "text" && matches!(name, "x" | "y" | "font-size" | "font-family" | "font-weight" | "letter-spacing" | "text-anchor"))
-        || (tag == "textPath" && name == "startOffset")
+        || (tag == "text" && matches!(name, "x" | "y" | "dy" | "font-size" | "font-family" | "font-weight" | "letter-spacing" | "text-anchor"))
+        || (tag == "textPath" && matches!(name, "startOffset" | "dy"))
 }
 
 pub fn max_len(tag: &str, name: &str) -> usize {
@@ -107,7 +107,10 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "clip-rule" => matches!(value, "nonzero" | "evenodd"),
         "data-fw-align" => matches!(value, "inside" | "outside" | "center"),
         "data-fw-weight" => number_in(value, 0.0, 10000.0),
-        "data-fw-width" => value.len() <= DATA_LIMIT && serde_json::from_str::<Value>(value).map(|v| v.is_array()).unwrap_or(false),
+        "data-fw-width" => value.len() <= DATA_LIMIT && serde_json::from_str::<Value>(value).map(|v| width_profile(&v)).unwrap_or(false),
+        "data-fw-mask" => matches!(value, "clip" | "clip-invert" | "invert" | "plain"),
+        "data-fw-type" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| type_config(&v)).unwrap_or(false),
+        "dy" => number_in(value, -2000.0, 2000.0),
         "x1" | "y1" | "x2" | "y2" | "cx" | "cy" | "r" | "fx" | "fy" | "x" | "y" if tag != "svg" => coordinate(value),
         "width" | "height" if tag == "mask" => coordinate(value),
         "gradientUnits" | "clipPathUnits" | "maskUnits" | "maskContentUnits" => matches!(value, "userSpaceOnUse" | "objectBoundingBox"),
@@ -139,6 +142,26 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         _ => true,
     };
     if ok { Ok(()) } else { fail() }
+}
+
+fn width_profile(value: &Value) -> bool {
+    let Some(list) = value.as_array() else { return false };
+    list.len() >= 2 && list.len() <= 402 && list[0].is_string() && list[1].is_string()
+        && list[2..].iter().all(|point| point.as_array().map(|p| (p.len() == 2 || p.len() == 3) && p.iter().all(|n| n.as_f64().map(|n| n.is_finite() && n.abs() <= 1e6).unwrap_or(false))).unwrap_or(false))
+}
+
+fn type_config(value: &Value) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    let number = |key: &str, lo: f64, hi: f64| map.get(key).and_then(Value::as_f64).map(|n| n.is_finite() && n >= lo && n <= hi).unwrap_or(false);
+    let word = |key: &str, allowed: &[&str]| map.get(key).and_then(Value::as_str).map(|s| allowed.contains(&s)).unwrap_or(false);
+    map.get("v").and_then(Value::as_u64) == Some(1)
+        && map.get("path").and_then(Value::as_str).map(ref_id).unwrap_or(false)
+        && map.get("text").and_then(Value::as_str).map(|t| t.chars().count() <= 500 && !t.contains(['<', '>'])).unwrap_or(false)
+        && number("size", 1.0, 500.0) && number("offset", 0.0, 100.0) && number("spacing", -100.0, 100.0)
+        && matches!(map.get("flip").and_then(Value::as_u64), Some(0) | Some(1))
+        && word("effect", &["rainbow", "skew", "ribbon", "stair", "gravity"])
+        && word("align", &["baseline", "ascender", "descender", "center"])
+        && map.len() == 9
 }
 
 fn number_in(value: &str, min: f64, max: f64) -> bool {

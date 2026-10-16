@@ -2,7 +2,7 @@ import type { Command, Site, SiteNode } from '../types';
 import { applyCorners } from './corners';
 import { decodeModel, formatPath, parsePath } from './geometry';
 import { freshId, moveNode, refOf, removeNode, svgOf, updateAttrs, type Shape } from './store';
-import { variableOutline, widthPreset, type WidthPoint, type WidthPreset } from './widthprofile';
+import { normalizePoint, variableOutline, widthPreset, type WidthPoint, type WidthPreset } from './widthprofile';
 
 const BIG = 'M-50000 -50000H50000V50000H-50000Z';
 
@@ -69,7 +69,7 @@ export function readWidth(node: SiteNode): { outline: string; color: string; poi
   try {
     const list = JSON.parse(text) as unknown[];
     if (!Array.isArray(list) || typeof list[0] !== 'string' || typeof list[1] !== 'string') return undefined;
-    return { outline: list[0], color: list[1], points: list.slice(2).filter((p): p is WidthPoint => Array.isArray(p) && p.length === 2) };
+    return { outline: list[0], color: list[1], points: list.slice(2).map(normalizePoint).filter((p): p is WidthPoint => !!p) };
   } catch { return undefined; }
 }
 

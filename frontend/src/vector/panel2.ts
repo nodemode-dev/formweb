@@ -7,9 +7,11 @@ import { vectorIcon, type VectorIcon } from './icons';
 import { button, field, numberInput, section, segment } from './panel';
 import type { StrokeAlign } from './store';
 import { readWidth } from './stroke';
-import type { WidthPreset } from './widthprofile';
+import { loadProfiles, storeProfiles, type SavedProfile, type WidthPreset } from './widthprofile';
+import { TYPE_ALIGNS, TYPE_EFFECTS, readType, typeHolder, type TypeAlign, type TypeEffect, type TypeOptions } from './typepath';
 
 const STOP_ROWS = 8;
+const PROFILE_ROWS = 12;
 
 function num(init: number, min: number, max: number, step: number): HTMLInputElement {
   const input = numberInput(min, max, step, () => undefined);
@@ -56,6 +58,21 @@ export class ExtraSections {
   private gradientBody = element('div', 'fw-v-stack');
   private align: ReturnType<typeof segment<StrokeAlign>>;
   private widthNote = element('p', 'fw-v-note');
+  private profileName = element('input', 'fw-v-input');
+  private profiles: SavedProfile[] = loadProfiles();
+  private profileRows: { root: HTMLElement; apply: HTMLButtonElement }[] = [];
+  private maskClip = check('Clip', true);
+  private maskInvert = check('Invert Mask');
+  private typeLabel = element('input', 'fw-v-input');
+  private typeSize = num(24, 1, 500, 1);
+  private typeOffset = num(0, 0, 100, 1);
+  private typeSpacing = num(0, -100, 100, 0.5);
+  private typeFlip = check('Flip');
+  private typeEffect: TypeEffect = 'rainbow';
+  private typeAlign: TypeAlign = 'baseline';
+  private typeKey = '';
+  private effectSeg!: ReturnType<typeof segment<TypeEffect>>;
+  private alignSeg!: ReturnType<typeof segment<TypeAlign>>;
   private alignTo: AlignTo = 'selection';
   private alignToSeg: ReturnType<typeof segment<AlignTo>>;
   private isoNote = element('p', 'fw-v-note');
@@ -106,14 +123,39 @@ export class ExtraSections {
     const presets: { id: WidthPreset; label: string }[] = [{ id: 'uniform', label: 'Uniform' }, { id: 'taper-end', label: 'Taper end' }, { id: 'taper-both', label: 'Taper both' }, { id: 'bulge', label: 'Bulge' }, { id: 'ends', label: 'Wide ends' }];
     stroke.body.append(field('Stroke align', this.align.root, true), grid(...presets.map(p => button(p.label, `Width profile: ${p.label}`, () => { void ops.widthPreset(p.id); }))),
       grid(button('Flip profile', 'Reverse the width profile along the path', () => { void ops.widthFlip(); }, 'convert')), this.widthNote,
-      element('p', 'fw-v-note', 'Width tool (Shift+W): drag from a point on the path to set the width there, drag a point to change it, Alt-click a point to remove it.'));
+      element('p', 'fw-v-note', 'Width tool (Shift+W): drag from a point on the path to set the width there, drag a point to change it, Alt-drag changes one side, double-click a point for exact widths, Alt-click a point to remove it.'));
+    this.profileName.type = 'text';
+    this.profileName.maxLength = 40;
+    this.profileName.placeholder = 'Profile name';
+    const profileList = element('div', 'fw-v-profiles');
+    for (let i = 0; i < PROFILE_ROWS; i++) {
+      const apply = element('button', 'fw-v-btn');
+      apply.type = 'button';
+      apply.title = 'Apply this saved width profile';
+      apply.setAttribute('aria-label', 'Apply this saved width profile');
+      apply.addEventListener('click', () => { const saved = this.profiles[i]; if (saved) void ops.widthSaved(saved); });
+      const remove = button('', 'Delete this saved profile', () => this.dropProfile(i), 'close');
+      const rowEl = element('div', 'fw-v-profile');
+      rowEl.hidden = true;
+      rowEl.append(apply, remove);
+      this.profileRows.push({ root: rowEl, apply });
+      profileList.append(rowEl);
+    }
+    stroke.body.append(field('Saved profiles', profileList, true), field('Profile name', this.profileName, true),
+      grid(button('Save profile', 'Save the width profile of the selected path under this name', () => this.saveProfile(), 'add')));
+    this.renderProfiles();
 
     const arrange = section('Group, clip and mask', false);
     this.isoExit = button('Exit isolation', 'Leave isolation mode', () => extras.exit());
     arrange.body.append(
       grid(button('Group', 'Group the selected paths', () => { void ops.group(); }, 'group'), button('Ungroup', 'Ungroup the selected group', () => { void ops.ungroup(); }, 'ungroup'), this.isoExit),
       grid(button('Make clip', 'Use the top path as a clipping mask', () => { void ops.makeMask('clip'); }, 'clip'), button('Make mask', 'Use the top path as an opacity mask (luminosity)', () => { void ops.makeMask('mask'); }, 'mask'), button('Release', 'Release the clipping or opacity mask', () => { void ops.releaseMask(); }, 'divide')),
+      row(this.maskClip.root, this.maskInvert.root),
       this.isoNote);
+    this.maskClip.input.title = 'Add a black background so the artwork is cropped to the mask shape';
+    this.maskInvert.input.title = 'Reverse the luminosity of the mask shape';
+    this.maskClip.input.addEventListener('change', () => { void ops.maskOption({ clip: this.maskClip.input.checked }); });
+    this.maskInvert.input.addEventListener('change', () => { void ops.maskOption({ invert: this.maskInvert.input.checked }); });
 
     const align = section('Align and distribute', false);
     this.alignToSeg = segment<AlignTo>([{ id: 'selection', label: 'Selection' }, { id: 'key', label: 'Key object' }, { id: 'artboard', label: 'Artboard' }], id => { this.alignTo = id; this.update(); });
@@ -183,20 +225,68 @@ export class ExtraSections {
       button('Apply distort', 'Distort the selected paths', () => { void ops.distort({ kind: kindState.value, amount: kindState.value === 'twist' ? read(amount, 0) : read(amount, 0) / 100, size: read(size, 6), detail: read(detail, 4), smooth: smooth.input.checked, seed: read(seed, 7) }); }, 'warp'));
 
     const type = section('Type on a path', false);
-    const label = element('input', 'fw-v-input');
+    const label = this.typeLabel;
     label.type = 'text';
     label.maxLength = 200;
     label.placeholder = 'Text';
-    const typeSize = num(24, 1, 500, 1), typeOffset = num(0, 0, 100, 1);
-    type.body.append(field('Text', label, true), row(field('Size', typeSize), field('Start offset %', typeOffset)),
-      button('Set type on path', 'Place text along the selected path', () => { void ops.textOnPath(label.value, read(typeSize, 24), read(typeOffset, 0)); }, 'type'));
+    const typeSize = this.typeSize, typeOffset = this.typeOffset, typeSpacing = this.typeSpacing, typeFlip = this.typeFlip;
+    const collect = (): TypeOptions => ({ text: label.value, size: read(typeSize, 24), offset: read(typeOffset, 0), effect: this.typeEffect, flip: typeFlip.input.checked, align: this.typeAlign, spacing: read(typeSpacing, 0) });
+    const live = (): void => { if (typeHolder(editor.site(), editor.ctx.getSelected())) void ops.textOnPath(collect()); };
+    this.effectSeg = segment<TypeEffect>(TYPE_EFFECTS, id => { this.typeEffect = id; this.effectSeg.set(id); live(); });
+    this.alignSeg = segment<TypeAlign>(TYPE_ALIGNS, id => { this.typeAlign = id; this.alignSeg.set(id); live(); });
+    this.effectSeg.set('rainbow');
+    this.alignSeg.set('baseline');
+    for (const control of [label, typeSize, typeOffset, typeSpacing, typeFlip.input]) control.addEventListener('change', live);
+    type.body.append(field('Text', label, true), row(field('Size', typeSize), field('Start offset %', typeOffset)), field('Effect', this.effectSeg.root, true), field('Align to path', this.alignSeg.root, true),
+      row(field('Spacing', typeSpacing), field('', typeFlip.root)),
+      button('Set type on path', 'Place text along the selected path', () => { void ops.textOnPath(collect()); }, 'type'),
+      element('p', 'fw-v-note', 'Drag the round bracket at the middle of the text along the path to move it, or across the path to flip it.'));
+
+    const builder = section('Shape Builder', false);
+    const gapPick = { value: 'off' };
+    const gapCustom = num(5, 0.1, 500, 0.5);
+    const gapSeg = segment<string>([{ id: 'off', label: 'Off' }, { id: '3', label: '3' }, { id: '6', label: '6' }, { id: '12', label: '12' }, { id: 'custom', label: 'Custom' }], id => {
+      gapPick.value = id;
+      gapSeg.set(id);
+      extras.gap = id === 'off' ? 0 : id === 'custom' ? read(gapCustom, 5) : Number(id);
+    });
+    gapSeg.set('off');
+    gapCustom.addEventListener('change', () => { if (gapPick.value === 'custom') extras.gap = read(gapCustom, 5); });
+    const splitOpt = check('Click stroke splits the path');
+    splitOpt.input.addEventListener('change', () => { extras.splitStroke = splitOpt.input.checked; });
+    builder.body.append(field('Gap detection (pt)', gapSeg.root, true), field('Custom', gapCustom), splitOpt.root);
 
     const guides = section('Snapping and eraser', false);
     this.snap.input.addEventListener('change', () => { extras.snapping = this.snap.input.checked; if (!extras.snapping) extras.clearGuides(); });
     this.eraser = numberInput(1, 400, 1, n => { extras.eraserSize = n; });
     guides.body.append(this.snap.root, field('Eraser size', this.eraser), this.guideNote);
 
-    this.sections.push(gradient.root, stroke.root, arrange.root, align.root, transform.root, each.root, effects.root, warp.root, type.root, guides.root);
+    this.sections.push(gradient.root, stroke.root, arrange.root, align.root, transform.root, each.root, effects.root, warp.root, type.root, builder.root, guides.root);
+  }
+
+  private renderProfiles(): void {
+    this.profileRows.forEach((r, i) => {
+      const saved = this.profiles[i];
+      if (r.root.hidden !== !saved) r.root.hidden = !saved;
+      if (saved && r.apply.textContent !== saved.name) r.apply.textContent = saved.name;
+    });
+  }
+
+  private saveProfile(): void {
+    const points = this.editor.ops.currentProfile();
+    const name = this.profileName.value.trim().slice(0, 40);
+    if (!points) { this.editor.notify('Give the selected path a variable width first.'); return; }
+    if (!name) { this.editor.notify('Name the profile first.'); return; }
+    this.profiles = [...this.profiles.filter(p => p.name !== name), { name, points }].slice(-PROFILE_ROWS);
+    if (!storeProfiles(this.profiles)) this.editor.notify('Profiles could not be stored in this browser.');
+    this.profileName.value = '';
+    this.renderProfiles();
+  }
+
+  private dropProfile(index: number): void {
+    this.profiles = this.profiles.filter((_, i) => i !== index);
+    storeProfiles(this.profiles);
+    this.renderProfiles();
   }
 
   update(): void {
@@ -227,6 +317,27 @@ export class ExtraSections {
     const width = shape ? readWidth(e.site().nodes[shape.id]) : undefined;
     text(this.widthNote, width ? `Variable width: ${width.points.length} point${width.points.length === 1 ? '' : 's'}` : 'Uniform width');
     this.alignToSeg.set(this.alignTo);
+    let typed: ReturnType<typeof readType> = null;
+    try { typed = readType(typeHolder(e.site(), e.ctx.getSelected())); } catch { typed = null; }
+    const typeKey = typed ? JSON.stringify(typed) : '';
+    if (typeKey !== this.typeKey) {
+      this.typeKey = typeKey;
+      if (typed) {
+        this.typeEffect = typed.effect;
+        this.typeAlign = typed.align;
+        this.effectSeg.set(typed.effect);
+        this.alignSeg.set(typed.align);
+        if (document.activeElement !== this.typeLabel) value(this.typeLabel, typed.text);
+        value(this.typeSize, String(typed.size));
+        value(this.typeOffset, String(Math.round(typed.offset * 100) / 100));
+        value(this.typeSpacing, String(typed.spacing));
+        this.typeFlip.input.checked = typed.flip === 1;
+      }
+    }
+    let mask = { clip: true, invert: false };
+    try { mask = e.ops.maskState(); } catch { mask = { clip: true, invert: false }; }
+    if (this.maskClip.input.checked !== mask.clip) this.maskClip.input.checked = mask.clip;
+    if (this.maskInvert.input.checked !== mask.invert) this.maskInvert.input.checked = mask.invert;
     this.isoExit.hidden = !extras.iso;
     text(this.isoNote, extras.iso ? 'Isolation mode: only this group is editable. Press Escape or double-click empty space to leave.' : 'Double-click a grouped path with the Selection tool to enter isolation mode.');
     if (document.activeElement !== this.eraser) value(this.eraser, String(extras.eraserSize));

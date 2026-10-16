@@ -1,6 +1,6 @@
 import type { Piece } from './boolean';
 import { applyCorners } from './corners';
-import { eraseFilled, eraseOpen, hitPiece, knifeCut, mergePieces, regionPieces } from './cut';
+import { eraseFilled, eraseOpen, gapInputs, hitPiece, knifeCut, mergePieces, regionPieces, strokeSplit } from './cut';
 import { rotation, scaling, type Mat } from './distort';
 import { dist, formatPath, mapPath, pathBounds, type Box, type Pt, type SubPath } from './geometry';
 import {
@@ -12,7 +12,9 @@ import type { ExtraItem, Scene } from './overlay';
 import { snapLocal, type Guide } from './snap';
 import { addPath, freshId, moveNode, pathIds, removeNode, updateAttrs, type Shape } from './store';
 import { readWidth, widthCommands } from './stroke';
-import { insertWidth, nearestParam, pointAtParam, variableOutline, type WidthPoint } from './widthprofile';
+import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variableOutline, type WidthPoint } from './widthprofile';
+import { WidthDialog } from './widthdialog';
+import { bracketParam, offsetFromParam, readType, typeCommands, typeHolder, type TypeConfig } from './typepath';
 import { matrixCommands, applyMat, unionBox } from './arrange';
 
 export const EXTRA_TOOLS = new Set(['knife', 'eraser', 'shapebuilder', 'width', 'gradient', 'transform']);
@@ -21,7 +23,8 @@ type Gesture =
   | { kind: 'knife'; pts: Pt[]; alt: boolean }
   | { kind: 'eraser'; pts: Pt[] }
   | { kind: 'builder'; picks: Set<number>; alt: boolean }
-  | { kind: 'width'; id: string; idx: number; t: number; points: WidthPoint[] }
+  | { kind: 'width'; id: string; idx: number; t: number; points: WidthPoint[]; alt: boolean; moved: boolean; start: [number, number] }
+  | { kind: 'tbracket'; id: string; flip: 0 | 1; offset: number; moved: boolean }
   | { kind: 'grad'; mode: 'p0' | 'p1' | 'stop' | 'draw'; id: string; idx: number; next: Gradient | null; start: Pt }
   | { kind: 'tf'; i: number; base: Map<string, SubPath[]>; box: Box; per: Map<string, Mat>; svg: string };
 
@@ -32,15 +35,19 @@ const poly = (pts: Pt[]): string => (pts.length ? `M${pts.map(p => `${Math.round
 export class Extras {
   snapping = true;
   eraserSize = 12;
+  gap = 0;
+  splitStroke = false;
   iso: string | null = null;
   target: Target = 'fill';
   stop = 0;
   private gesture: Gesture | null = null;
   private guides: { svg: string; list: Guide[] } = { svg: '', list: [] };
   private pieces: Piece[] = [];
+  private owners: number[] = [];
   private pieceKey = '';
   private hover = -1;
   private pointer: Pt = [0, 0];
+  private dialog = new WidthDialog();
 
   constructor(private h: Host) {}
 
@@ -88,11 +95,12 @@ export class Extras {
       return this.startGradient('stop', index, p);
     }
     if (role === 'x-wpt') return this.startWidthPoint(index, event.altKey);
+    if (role === 'x-tbracket') return this.startTypeBracket();
     if (role === 'x-tf') return this.startTransform(index);
     if (tool === 'knife') { this.gesture = { kind: 'knife', pts: [p], alt: event.altKey }; return true; }
     if (tool === 'eraser') { this.gesture = { kind: 'eraser', pts: [p] }; return true; }
     if (tool === 'shapebuilder') return this.startBuilder(p, event.altKey);
-    if (tool === 'width') return this.startWidth(p);
+    if (tool === 'width') return this.startWidth(p, event.altKey);
     if (tool === 'gradient') return this.downGradient(p);
     if (tool === 'transform') return this.downTransform(p);
     return false;
@@ -113,8 +121,9 @@ export class Extras {
         g.pts = [g.pts[0], end];
       } else if (dist(g.pts[g.pts.length - 1], p) > 2 * this.h.px()) g.pts.push(p);
     } else if (g.kind === 'eraser') { if (dist(g.pts[g.pts.length - 1], p) > 1.5 * this.h.px()) g.pts.push(p); }
-    else if (g.kind === 'builder') { const i = this.hitBuilder(p); if (i >= 0 && !g.alt) g.picks.add(i); this.hover = i; }
-    else if (g.kind === 'width') this.dragWidth(g, p);
+    else if (g.kind === 'builder') { const i = this.hitBuilder(p); if (i >= 0) g.picks.add(i); this.hover = i; }
+    else if (g.kind === 'width') this.dragWidth(g, p, event.altKey);
+    else if (g.kind === 'tbracket') this.dragBracket(g, p);
     else if (g.kind === 'grad') this.dragGradient(g, p, event.shiftKey);
     else if (g.kind === 'tf') this.dragTransform(g, p, event);
     this.h.render();
@@ -129,6 +138,7 @@ export class Extras {
     else if (g.kind === 'eraser') void this.cutLine(g.pts, 'eraser');
     else if (g.kind === 'builder') void this.finishBuilder(g);
     else if (g.kind === 'width') void this.finishWidth(g);
+    else if (g.kind === 'tbracket') void this.finishBracket(g);
     else if (g.kind === 'grad') void this.finishGradient(g, p, event.shiftKey);
     else if (g.kind === 'tf') void this.finishTransform(g);
     this.h.render();
@@ -191,8 +201,14 @@ export class Extras {
     const svg = this.h.activeSvg();
     const f = svg ? this.h.frame(svg) : undefined;
     if (shapes.length < 2 || !svg || !f) { this.pieces = []; this.pieceKey = ''; return null; }
-    const key = shapes.map(s => `${s.id}:${formatPath(applyCorners(s.subs))}`).join('|');
-    if (key !== this.pieceKey) { this.pieces = regionPieces(shapes.map(s => applyCorners(s.subs))); this.pieceKey = key; this.hover = -1; }
+    const key = `${this.gap}#${shapes.map(s => `${s.id}:${formatPath(applyCorners(s.subs))}`).join('|')}`;
+    if (key !== this.pieceKey) {
+      const made = gapInputs(shapes.map(s => applyCorners(s.subs)), this.gap);
+      this.pieces = regionPieces(made.inputs);
+      this.owners = made.owners;
+      this.pieceKey = key;
+      this.hover = -1;
+    }
     return { shapes, f };
   }
 
@@ -206,8 +222,32 @@ export class Extras {
     if (i !== this.hover) { this.hover = i; this.h.render(); }
   }
 
+  private splitAt(p: Pt): boolean {
+    const ready = this.ensurePieces();
+    if (!ready) return false;
+    const { shapes, f } = ready;
+    const found = strokeSplit(shapes.map(s => applyCorners(s.subs)), this.local(f, p), (5 * this.h.px()) / f.sx);
+    if (!found) return false;
+    const shape = shapes[found.shape];
+    const site = this.h.site();
+    const parent = this.h.parentOf(shape.id) ?? shape.svg;
+    const index = site.nodes[parent].children.indexOf(shape.id);
+    const taken = new Set<string>();
+    const cmds = [removeNode(shape.id)];
+    const created: string[] = [];
+    found.subs.forEach((sub, k) => {
+      const id = freshId(site, taken, 'path');
+      created.push(id);
+      cmds.push(addPath(parent, id, [sub], shape.paint), moveNode(id, parent, index + k));
+    });
+    this.pieceKey = '';
+    void this.h.commit(cmds, [...shapes.filter(s => s.id !== shape.id).map(s => s.id), ...created]);
+    return true;
+  }
+
   private startBuilder(p: Pt, alt: boolean): boolean {
     if (!this.ensurePieces()) { this.h.notify('Select two or more overlapping paths, then use the Shape Builder.'); return true; }
+    if (this.splitStroke && !alt && this.splitAt(p)) return true;
     const i = this.hitBuilder(p);
     const picks = new Set<number>(i >= 0 ? [i] : []);
     this.gesture = { kind: 'builder', picks, alt };
@@ -222,8 +262,12 @@ export class Extras {
     const order = pathIds(site, ready.shapes[0].svg);
     const byZ = shapes.slice().sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
     const topShape = (piece: Piece): Shape => {
-      for (let k = shapes.length - 1; k >= 0; k--) if (piece.sig & (1 << k)) return shapes[k];
-      return shapes[0];
+      let best: Shape | null = null;
+      this.owners.forEach((owner, k) => {
+        const s = shapes[owner];
+        if (piece.sig & (1 << k) && (!best || order.indexOf(s.id) >= order.indexOf(best.id))) best = s;
+      });
+      return best ?? shapes[0];
     };
     const results: { subs: SubPath[]; paint: Shape['paint'] }[] = [];
     if (g.alt) this.pieces.forEach((piece, i) => { if (!g.picks.has(i)) results.push({ subs: piece.subs, paint: topShape(piece).paint }); });
@@ -256,13 +300,14 @@ export class Extras {
     return readWidth(this.h.site().nodes[shape.id]!)?.points ?? [];
   }
 
-  private startWidth(p: Pt): boolean {
+  private startWidth(p: Pt, alt: boolean): boolean {
     const shape = this.widthShape();
     const f = shape && this.h.frame(shape.svg);
     if (!shape || !f) { const hit = this.h.pick(p); if (hit?.kind === 'path') this.h.setSelection([hit.id]); return true; }
     const hit = nearestParam(applyCorners(shape.subs), this.local(f, p));
     if (!hit || hit.d * f.sx > 12 * this.h.px()) { const other = this.h.pick(p); if (other?.kind === 'path') this.h.setSelection([other.id]); return true; }
-    this.gesture = { kind: 'width', id: shape.id, idx: -1, t: hit.t, points: this.widthBase(shape) };
+    const points = this.widthBase(shape);
+    this.gesture = { kind: 'width', id: shape.id, idx: -1, t: hit.t, points, alt, moved: false, start: sidesAt(points, hit.t, Math.max(1, shape.paint.strokeWidth) / 2) };
     return true;
   }
 
@@ -270,29 +315,46 @@ export class Extras {
     const shape = this.widthShape();
     if (!shape) return true;
     const points = this.widthBase(shape);
-    if (alt) { void this.h.commit(widthCommands(this.h.site(), shape, points.filter((_, i) => i !== index))); return true; }
-    this.gesture = { kind: 'width', id: shape.id, idx: index, t: points[index]?.[0] ?? 0, points };
+    const point = points[index];
+    this.gesture = { kind: 'width', id: shape.id, idx: index, t: point?.[0] ?? 0, points, alt, moved: false, start: point ? [point[1], point[2]] : [0, 0] };
     return true;
   }
 
-  private dragWidth(g: Extract<Gesture, { kind: 'width' }>, p: Pt): void {
+  private dragWidth(g: Extract<Gesture, { kind: 'width' }>, p: Pt, alt: boolean): void {
     const shape = this.h.shape(g.id);
     const f = shape && this.h.frame(shape.svg);
     if (!shape || !f) return;
     const subs = applyCorners(shape.subs);
     const at = pointAtParam(subs, g.t);
     if (!at) return;
-    const width = Math.max(0, 2 * dist(this.local(f, p), at.at));
-    const next = g.points.map(pt => [...pt] as WidthPoint);
-    if (g.idx >= 0 && next[g.idx]) next[g.idx][1] = width;
-    else { g.points = insertWidth(g.points, g.t, width); g.idx = g.points.findIndex(pt => Math.abs(pt[0] - g.t) < 1e-6); return; }
-    g.points = next;
+    const local = this.local(f, p);
+    const d = dist(local, at.at);
+    const side = (local[0] - at.at[0]) * at.normal[0] + (local[1] - at.at[1]) * at.normal[1];
+    const one = alt || g.alt;
+    const s1 = one ? (side >= 0 ? d : g.start[0]) : d, s2 = one ? (side < 0 ? d : g.start[1]) : d;
+    g.moved = true;
+    if (g.idx >= 0 && g.points[g.idx]) g.points = g.points.map((pt, i) => (i === g.idx ? [pt[0], s1, s2] as WidthPoint : pt));
+    else { g.points = insertWidth(g.points, g.t, s1, s2); g.idx = g.points.findIndex(pt => Math.abs(pt[0] - g.t) < 0.02); }
   }
 
   private async finishWidth(g: Extract<Gesture, { kind: 'width' }>): Promise<void> {
     const shape = this.h.shape(g.id);
     if (!shape) return;
+    if (!g.moved) {
+      if (g.alt && g.idx >= 0) await this.h.commit(widthCommands(this.h.site(), shape, g.points.filter((_, i) => i !== g.idx)));
+      return;
+    }
     await this.h.commit(widthCommands(this.h.site(), shape, g.points));
+  }
+
+  openWidthDialog(index: number): void {
+    const shape = this.widthShape();
+    const point = shape && this.widthBase(shape)[index];
+    if (!shape || !point) return;
+    this.dialog.open({ side1: point[1], side2: point[2], apply: (a, b, adjoin) => {
+      const current = this.h.shape(shape.id);
+      if (current) void this.h.commit(widthCommands(this.h.site(), current, setPointWidth(this.widthBase(current), index, a, b, adjoin)));
+    } });
   }
 
   private currentGradient(): { shape: Shape; found: NonNullable<ReturnType<typeof readFor>> } | null {
@@ -462,6 +524,7 @@ export class Extras {
       });
     }
     if (tool === 'width') this.decorateWidth(items, g);
+    if (tool === 'select' || tool === 'direct') this.decorateType(items, g);
     if (tool === 'gradient') this.decorateGradient(items, g);
     if (tool === 'transform') this.decorateTransform(items);
     if (this.iso && f) {
@@ -482,6 +545,55 @@ export class Extras {
     }
     void px;
     scene.extras = items;
+  }
+
+  private typeInfo(): { shape: Shape; cfg: TypeConfig; f: Frame } | null {
+    const shape = this.shape();
+    const f = shape && this.h.frame(shape.svg);
+    const cfg = shape && readType(typeHolder(this.h.site(), shape.id));
+    return shape && f && cfg ? { shape, cfg, f } : null;
+  }
+
+  private startTypeBracket(): boolean {
+    const info = this.typeInfo();
+    if (info) this.gesture = { kind: 'tbracket', id: info.shape.id, flip: info.cfg.flip, offset: info.cfg.offset, moved: false };
+    return true;
+  }
+
+  private dragBracket(g: Extract<Gesture, { kind: 'tbracket' }>, p: Pt): void {
+    const info = this.typeInfo();
+    if (!info) return;
+    const subs = applyCorners(info.shape.subs);
+    const local = this.local(info.f, p);
+    const hit = nearestParam(subs, local);
+    if (!hit) return;
+    const side = (local[0] - hit.at[0]) * hit.normal[0] + (local[1] - hit.at[1]) * hit.normal[1];
+    const band = (5 * this.h.px()) / info.f.sx;
+    const flip: 0 | 1 = Math.abs(side) <= band ? g.flip : side > 0 ? 1 : 0;
+    g.flip = flip;
+    g.offset = offsetFromParam(subs, info.cfg, hit.t, flip === 1);
+    g.moved = true;
+  }
+
+  private async finishBracket(g: Extract<Gesture, { kind: 'tbracket' }>): Promise<void> {
+    const info = this.typeInfo();
+    if (!info || !g.moved) return;
+    const c = info.cfg;
+    await this.h.commit(typeCommands(this.h.site(), c.path, { text: c.text, size: c.size, offset: g.offset, effect: c.effect, flip: g.flip === 1, align: c.align, spacing: c.spacing }, message => this.h.notify(message)));
+  }
+
+  private decorateType(items: ExtraItem[], g: Gesture | null): void {
+    const info = this.typeInfo();
+    if (!info) return;
+    const subs = applyCorners(info.shape.subs);
+    const live = g?.kind === 'tbracket' ? { ...info.cfg, offset: g.offset, flip: g.flip } : info.cfg;
+    const at = pointAtParam(subs, bracketParam(subs, live));
+    if (!at) return;
+    const s = this.h.toShell(info.f, at.at);
+    const side = live.flip ? 1 : -1;
+    const reach = 14 * this.h.px();
+    items.push({ kind: 'line', x1: s[0], y1: s[1], x2: s[0] + at.normal[0] * side * reach, y2: s[1] + at.normal[1] * side * reach, cls: 'gline' });
+    items.push({ kind: 'circle', x: s[0], y: s[1], r: 6, cls: 'tbracket', role: 'x-tbracket', i: 0 });
   }
 
   private decorateWidth(items: ExtraItem[], g: Gesture | null): void {

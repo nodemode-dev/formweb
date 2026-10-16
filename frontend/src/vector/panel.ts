@@ -42,7 +42,8 @@ export const PATHFINDERS: { op: PathfinderOp; label: string; icon: VectorIcon }[
   { op: 'trim', label: 'Trim', icon: 'trim' },
   { op: 'merge', label: 'Merge', icon: 'merge' },
   { op: 'crop', label: 'Crop', icon: 'crop' },
-  { op: 'minus-back', label: 'Minus Back', icon: 'minusBack' }
+  { op: 'minus-back', label: 'Minus Back', icon: 'minusBack' },
+  { op: 'outline', label: 'Outline', icon: 'pfOutline' }
 ];
 
 const CORNER_TYPES: { id: CornerType; label: string }[] = [{ id: 'round', label: 'Round' }, { id: 'inverted', label: 'Inverted' }, { id: 'chamfer', label: 'Chamfer' }];
@@ -174,7 +175,7 @@ export class VectorPanel {
     const corners = section('Corners', true);
     this.radius = numberInput(0, 100000, 1, n => editor.applyCorner({ radius: n }));
     this.cornerType = segment<CornerType>(CORNER_TYPES, id => editor.applyCorner({ type: id }));
-    this.cornerMode = segment<'absolute' | 'relative'>([{ id: 'absolute', label: 'Absolute' }, { id: 'relative', label: 'Relative' }], id => editor.applyCorner({ mode: id, radius: id === 'relative' ? 50 : undefined }));
+    this.cornerMode = segment<'absolute' | 'relative'>([{ id: 'absolute', label: 'Absolute' }, { id: 'relative', label: 'Relative' }], id => editor.applyCorner({ mode: id }));
     corners.body.append(field('Radius', this.radius), field('Type', this.cornerType.root, true), field('Mode', this.cornerMode.root, true), this.cornerInfo, button('Expand corners', 'Bake rounded corners into plain anchors', () => editor.bakeCorners(), 'bake'));
     editor.cornerRequests.add(() => { corners.root.open = true; this.setOpen(true); this.radius.focus(); this.radius.select(); });
 

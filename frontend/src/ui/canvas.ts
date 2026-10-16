@@ -6,7 +6,7 @@ const allowedTags = new Set(['div', 'main', 'section', 'article', 'header', 'foo
 const vectorTags = new Set(['svg', 'g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath']);
 const vectorAttributes = new Set(['d', 'viewBox', 'preserveAspectRatio', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'fill-rule', 'fill-opacity', 'stroke-opacity', 'transform', 'vector-effect', 'opacity',
   'clip-path', 'mask', 'paint-order', 'clip-rule', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'fx', 'fy', 'x', 'y', 'gradientUnits', 'gradientTransform', 'spreadMethod', 'offset', 'stop-color', 'stop-opacity',
-  'clipPathUnits', 'maskUnits', 'maskContentUnits', 'font-size', 'font-family', 'font-weight', 'letter-spacing', 'text-anchor', 'startOffset']);
+  'clipPathUnits', 'maskUnits', 'maskContentUnits', 'font-size', 'font-family', 'font-weight', 'letter-spacing', 'text-anchor', 'startOffset', 'dy']);
 const referenceAttributes = new Set(['fill', 'stroke', 'clip-path', 'mask']);
 function safeVectorValue(name: string, content: string): boolean {
   if (/^url\(#[A-Za-z0-9_-]{1,64}\)$/.test(content)) return referenceAttributes.has(name);

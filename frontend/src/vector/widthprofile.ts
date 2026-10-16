@@ -1,41 +1,99 @@
 import { flattenSub } from './edit';
 import type { Anchor, Pt, SubPath } from './geometry';
 
-export type WidthPoint = [number, number];
+export type WidthPoint = [number, number, number];
 export type WidthPreset = 'uniform' | 'taper-end' | 'taper-both' | 'bulge' | 'ends';
 
+export interface SavedProfile { name: string; points: WidthPoint[] }
+
+const PROFILE_KEY = 'formweb_width_profiles';
+
+const sym = (t: number, w: number): WidthPoint => [t, w / 2, w / 2];
+
 export function widthPreset(name: WidthPreset, base: number): WidthPoint[] {
-  if (name === 'taper-end') return [[0, base], [1, 0]];
-  if (name === 'taper-both') return [[0, 0], [0.5, base], [1, 0]];
-  if (name === 'bulge') return [[0, base * 0.4], [0.5, base * 1.6], [1, base * 0.4]];
-  if (name === 'ends') return [[0, base * 1.6], [0.5, base * 0.5], [1, base * 1.6]];
+  if (name === 'taper-end') return [sym(0, base), sym(1, 0)];
+  if (name === 'taper-both') return [sym(0, 0), sym(0.5, base), sym(1, 0)];
+  if (name === 'bulge') return [sym(0, base * 0.4), sym(0.5, base * 1.6), sym(1, base * 0.4)];
+  if (name === 'ends') return [sym(0, base * 1.6), sym(0.5, base * 0.5), sym(1, base * 1.6)];
   return [];
 }
 
 export function flipProfile(points: WidthPoint[]): WidthPoint[] {
-  return points.map(([t, w]) => [1 - t, w] as WidthPoint).sort((a, b) => a[0] - b[0]);
+  return points.map(([t, a, b]) => [1 - t, a, b] as WidthPoint).sort((x, y) => x[0] - y[0]);
 }
 
-export function widthAt(points: WidthPoint[], t: number, base: number): number {
-  if (!points.length) return base;
+export function normalizePoint(value: unknown): WidthPoint | null {
+  if (!Array.isArray(value) || value.length < 2 || !value.every(n => typeof n === 'number' && Number.isFinite(n))) return null;
+  const t = Math.max(0, Math.min(1, value[0]));
+  if (value.length === 2) return sym(t, Math.max(0, value[1]));
+  return [t, Math.max(0, value[1]), Math.max(0, value[2])];
+}
+
+export function sidesAt(points: WidthPoint[], t: number, half: number): [number, number] {
+  if (!points.length) return [half, half];
   const s = points.slice().sort((a, b) => a[0] - b[0]);
-  if (t <= s[0][0]) return s[0][1];
+  if (t <= s[0][0]) return [s[0][1], s[0][2]];
   for (let i = 1; i < s.length; i++) {
     if (t <= s[i][0]) {
       const span = s[i][0] - s[i - 1][0] || 1, k = (t - s[i - 1][0]) / span;
       const e = k * k * (3 - 2 * k);
-      return s[i - 1][1] + (s[i][1] - s[i - 1][1]) * e;
+      return [s[i - 1][1] + (s[i][1] - s[i - 1][1]) * e, s[i - 1][2] + (s[i][2] - s[i - 1][2]) * e];
     }
   }
-  return s[s.length - 1][1];
+  const last = s[s.length - 1];
+  return [last[1], last[2]];
 }
 
-export function insertWidth(points: WidthPoint[], t: number, width: number): WidthPoint[] {
+export function widthAt(points: WidthPoint[], t: number, base: number): number {
+  const [a, b] = sidesAt(points, t, base / 2);
+  return a + b;
+}
+
+export function insertWidth(points: WidthPoint[], t: number, side1: number, side2: number): WidthPoint[] {
   const next = points.map(p => [...p] as WidthPoint);
   const near = next.find(p => Math.abs(p[0] - t) < 0.02);
-  if (near) near[1] = Math.max(0, width);
-  else next.push([Math.max(0, Math.min(1, t)), Math.max(0, width)]);
+  if (near) { near[1] = Math.max(0, side1); near[2] = Math.max(0, side2); }
+  else next.push([Math.max(0, Math.min(1, t)), Math.max(0, side1), Math.max(0, side2)]);
   return next.sort((a, b) => a[0] - b[0]);
+}
+
+export function setPointWidth(points: WidthPoint[], index: number, side1: number, side2: number, adjoining: boolean): WidthPoint[] {
+  const next = points.map(p => [...p] as WidthPoint);
+  const at = next[index];
+  if (!at) return next;
+  const r1 = at[1] > 1e-6 ? side1 / at[1] : 1, r2 = at[2] > 1e-6 ? side2 / at[2] : 1;
+  if (adjoining) for (const k of [index - 1, index + 1]) if (next[k]) { next[k][1] *= r1; next[k][2] *= r2; }
+  at[1] = Math.max(0, side1);
+  at[2] = Math.max(0, side2);
+  return next;
+}
+
+export function profileToSaved(points: WidthPoint[], weight: number): WidthPoint[] {
+  const w = weight > 0 ? weight : 1;
+  return points.map(([t, a, b]) => [t, Math.round((a / w) * 1000) / 1000, Math.round((b / w) * 1000) / 1000] as WidthPoint);
+}
+
+export function profileFromSaved(points: WidthPoint[], weight: number): WidthPoint[] {
+  return points.map(([t, a, b]) => [t, a * weight, b * weight] as WidthPoint);
+}
+
+export function loadProfiles(): SavedProfile[] {
+  try {
+    const list = JSON.parse(window.localStorage.getItem(PROFILE_KEY) ?? '[]') as unknown;
+    if (!Array.isArray(list)) return [];
+    const out: SavedProfile[] = [];
+    for (const item of list.slice(0, 40)) {
+      const entry = item as { name?: unknown; points?: unknown };
+      if (typeof entry.name !== 'string' || !Array.isArray(entry.points)) continue;
+      const points = entry.points.map(normalizePoint).filter((p): p is WidthPoint => !!p);
+      if (points.length) out.push({ name: entry.name.slice(0, 40), points });
+    }
+    return out;
+  } catch { return []; }
+}
+
+export function storeProfiles(list: SavedProfile[]): boolean {
+  try { window.localStorage.setItem(PROFILE_KEY, JSON.stringify(list.slice(0, 40))); return true; } catch { return false; }
 }
 
 const corner = (p: Pt): Anchor => ({ x: p[0], y: p[1], in: null, out: null, kind: 'corner' });
@@ -89,9 +147,10 @@ export function variableOutline(subs: SubPath[], points: WidthPoint[], base: num
       const l = Math.hypot(dx, dy) || 1;
       return [-dy / l, dx / l];
     });
-    const half = lens.map(s => widthAt(points, s / total, base) / 2);
-    const left = pts.map((p, i): Pt => [p[0] + normals[i][0] * half[i], p[1] + normals[i][1] * half[i]]);
-    const right = pts.map((p, i): Pt => [p[0] - normals[i][0] * half[i], p[1] - normals[i][1] * half[i]]);
+    const sides = lens.map(s => sidesAt(points, s / total, base / 2));
+    const half = sides.map(s => (s[0] + s[1]) / 2);
+    const left = pts.map((p, i): Pt => [p[0] + normals[i][0] * sides[i][0], p[1] + normals[i][1] * sides[i][0]]);
+    const right = pts.map((p, i): Pt => [p[0] - normals[i][0] * sides[i][1], p[1] - normals[i][1] * sides[i][1]]);
     if (sub.closed) {
       out.push({ closed: true, nodes: left.slice(0, -1).map(corner) });
       out.push({ closed: true, nodes: right.slice(0, -1).reverse().map(corner) });

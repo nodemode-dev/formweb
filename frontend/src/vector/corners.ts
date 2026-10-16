@@ -75,16 +75,20 @@ function piece(s: CSeg, from: number, to: number): [Pt, Pt, Pt, Pt] {
   return b;
 }
 
-export function distanceFromCorner(corner: { type: CornerType; radius: number; mode: CornerMode }, theta: number, minLength: number): number {
-  if (corner.mode === 'relative') return (Math.max(0, corner.radius) / 100) * (minLength / 2);
-  if (corner.type === 'chamfer') return corner.radius;
-  return corner.radius / Math.tan(theta / 2);
+export function effectiveRadius(corner: { radius: number; mode: CornerMode }, theta: number): number {
+  const r = Math.max(0, corner.radius);
+  return corner.mode === 'relative' ? r * Math.tan(theta / 2) : r;
 }
 
-export function radiusFromDistance(type: CornerType, mode: CornerMode, theta: number, minLength: number, d: number): number {
-  if (mode === 'relative') return minLength > EPS ? Math.max(0, (d / (minLength / 2)) * 100) : 0;
-  if (type === 'chamfer') return Math.max(0, d);
-  return Math.max(0, d * Math.tan(theta / 2));
+export function distanceFromCorner(corner: { type: CornerType; radius: number; mode: CornerMode }, theta: number): number {
+  const r = effectiveRadius(corner, theta);
+  if (corner.type === 'chamfer') return r;
+  return r / Math.tan(theta / 2);
+}
+
+export function radiusFromDistance(type: CornerType, mode: CornerMode, theta: number, d: number): number {
+  const r = type === 'chamfer' ? Math.max(0, d) : Math.max(0, d * Math.tan(theta / 2));
+  return mode === 'relative' ? r / Math.tan(theta / 2) : r;
 }
 
 export function widgetDistance(theta: number, d: number): number {
@@ -153,7 +157,7 @@ export function cornerBasics(sub: SubPath, i: number): CornerBasics | null {
   if (!basic) return null;
   const wanted = sub.nodes.map((node, k) => {
     const b = k === i ? basic : basicsAt(sub, segs, k);
-    return b && node.corner && node.corner.radius > 0 ? distanceFromCorner(node.corner, b.theta, b.minLength) : 0;
+    return b && node.corner && node.corner.radius > 0 ? distanceFromCorner(node.corner, b.theta) : 0;
   });
   return { ...basic, max: maxFor(sub, segs, wanted, i) };
 }
@@ -178,7 +182,7 @@ export function solveCorners(sub: SubPath): CornerSolution {
   const basics = sub.nodes.map((_, i) => basicsAt(sub, segs, i));
   const wanted = sub.nodes.map((node, i) => {
     const b = basics[i];
-    return b && node.corner && node.corner.radius > 0 ? distanceFromCorner(node.corner, b.theta, b.minLength) : 0;
+    return b && node.corner && node.corner.radius > 0 ? distanceFromCorner(node.corner, b.theta) : 0;
   });
   const finals = finalDistances(sub, segs, wanted);
   const trimStart = segs.map((_, k) => finals[k]);

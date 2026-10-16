@@ -65,3 +65,10 @@
 .fw-vo-x[data-c="gstop-on"] { stroke: var(--accent-color); stroke-width: calc(2.5px * var(--fw-vo-px)); }
 .fw-vo-x[data-c="gend"], .fw-vo-x[data-c="thandle"], .fw-vo-x[data-c="wpt"], .fw-vo-x[data-c="wpt-on"] { fill: var(--bg-primary); stroke: var(--accent-color); }
 .fw-vo-x[data-c="wpt-on"] { fill: var(--accent-color); }
+.fw-vo-x[data-c="tbracket"] { fill: var(--accent-soft); stroke: var(--accent-color); stroke-width: calc(2px * var(--fw-vo-px)); cursor: grab; }
+.fw-v-dialog { position: fixed; left: 50%; top: 22%; z-index: var(--z-popover); display: flex; flex-direction: column; gap: var(--space-2); width: 240px; padding: var(--space-3); transform: translateX(-50%); border: 1px solid var(--line-2); border-radius: var(--radius-md); background: var(--surface-2); box-shadow: var(--shadow-md); color: var(--text-primary); font-size: var(--fs-11); }
+.fw-v-dialog[hidden] { display: none; }
+.fw-v-dialog .fw-v-summary { padding: 0; cursor: default; }
+.fw-v-profiles { display: flex; flex-direction: column; gap: 2px; }
+.fw-v-profile { display: grid; grid-template-columns: minmax(0, 1fr) var(--ctl-sm); gap: var(--space-1); }
+.fw-v-profile[hidden] { display: none; }

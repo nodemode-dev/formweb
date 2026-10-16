@@ -1,7 +1,7 @@
 import type { Command } from '../types';
 import {
-  alignCommands, blendCommands, distributeCommands, groupCommands, makeMaskCommands, releaseMaskCommands, repeatCommands, textOnPathCommands, transformEach, transformSelection, ungroupCommands, unionBox,
-  type AlignMode, type AlignTo, type DistributeMode, type EachParams, type RepeatParams, type TransformParams
+  alignCommands, blendCommands, distributeCommands, groupCommands, makeMaskCommands, maskHolder, maskOptionCommands, releaseMaskCommands, repeatCommands, transformEach, transformSelection, ungroupCommands, unionBox,
+  type AlignMode, type AlignTo, type DistributeMode, type EachParams, type MaskOptions, type RepeatParams, type TransformParams
 } from './arrange';
 import { applyCorners } from './corners';
 import { distortSubs, warpSubs, type DistortOptions, type WarpOptions } from './distort';
@@ -9,9 +9,12 @@ import { editGradient, setPaintKind, withAngle, type Gradient, type Target } fro
 import type { Host } from './host';
 import { pathIds, updateGeometry, type Shape } from './store';
 import { presetCommands, readWidth, widthCommands } from './stroke';
-import { flipProfile, type WidthPreset } from './widthprofile';
+import { typeCommands, type TypeOptions } from './typepath';
+import { flipProfile, profileFromSaved, profileToSaved, type SavedProfile, type WidthPoint, type WidthPreset } from './widthprofile';
 
 export class Ops {
+  private maskDefaults: MaskOptions = { clip: true, invert: false };
+
   constructor(private h: Host, private leave: () => void) {}
 
   private shapes(): Shape[] {
@@ -42,7 +45,18 @@ export class Ops {
     const svg = this.h.activeSvg();
     const order = svg ? pathIds(this.h.site(), svg) : [];
     ids.sort((a, b) => order.indexOf(a) - order.indexOf(b));
-    await this.run(makeMaskCommands(this.h, kind), ids.slice(0, -1));
+    await this.run(makeMaskCommands(this.h, kind, { ...this.maskDefaults }), ids.slice(0, -1));
+  }
+
+  maskState(): MaskOptions {
+    return maskHolder(this.h.site(), this.h.selection())?.options ?? this.maskDefaults;
+  }
+
+  async maskOption(change: Partial<MaskOptions>): Promise<void> {
+    const next = { ...this.maskState(), ...change };
+    if (maskHolder(this.h.site(), this.h.selection())) await this.run(maskOptionCommands(this.h, next));
+    else this.maskDefaults = next;
+    this.h.emit();
   }
 
   async releaseMask(): Promise<void> {
@@ -87,9 +101,9 @@ export class Ops {
     await this.run(shapes.map(s => updateGeometry(s.id, distortSubs(applyCorners(s.subs), options))));
   }
 
-  async textOnPath(text: string, size: number, offset: number): Promise<void> {
+  async textOnPath(options: TypeOptions): Promise<void> {
     const id = this.h.primary();
-    await this.run(textOnPathCommands(this.h, id, text, size, offset));
+    await this.run(typeCommands(this.h.site(), id, options, message => this.h.notify(message)));
   }
 
   async paintKind(target: Target, kind: 'solid' | 'linear' | 'radial'): Promise<void> {
@@ -107,6 +121,17 @@ export class Ops {
   async widthPreset(preset: WidthPreset): Promise<void> {
     const shapes = this.shapes().filter(s => s.subs[0] && !s.subs[0].closed || preset === 'uniform');
     await this.run(shapes.flatMap(s => presetCommands(this.h.site(), s, preset)));
+  }
+
+  async widthSaved(profile: SavedProfile): Promise<void> {
+    const site = this.h.site();
+    await this.run(this.shapes().flatMap(s => widthCommands(site, s, profileFromSaved(profile.points, Math.max(1, s.paint.strokeWidth)))));
+  }
+
+  currentProfile(): WidthPoint[] | null {
+    const shape = this.shapes()[0];
+    const info = shape && readWidth(this.h.site().nodes[shape.id]);
+    return shape && info ? profileToSaved(info.points, Math.max(1, shape.paint.strokeWidth)) : null;
   }
 
   async widthFlip(): Promise<void> {

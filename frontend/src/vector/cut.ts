@@ -1,5 +1,6 @@
 import { fragmentPieces, unionSubs, type Piece } from './boolean';
 import { flattenSub } from './edit';
+import { fitCurve } from './fit';
 import { pathBounds, type Anchor, type Pt, type SubPath } from './geometry';
 
 const corner = (p: Pt): Anchor => ({ x: p[0], y: p[1], in: null, out: null, kind: 'corner' });
@@ -111,4 +112,106 @@ export function hitPiece(pieces: Piece[], p: Pt): number {
 
 export function mergePieces(pieces: Piece[], picks: Set<number>): SubPath[] {
   return unionSubs([...picks].map(i => pieces[i].subs));
+}
+
+function reverseSub(sub: SubPath): SubPath {
+  return { closed: sub.closed, nodes: [...sub.nodes].reverse().map(n => ({ ...n, in: n.out, out: n.in })) };
+}
+
+export function gapInputs(shapes: SubPath[][], gap: number): { inputs: SubPath[][]; owners: number[] } {
+  const keep = shapes.map(subs => subs.slice());
+  const loops: { sub: SubPath; owner: number }[] = [];
+  if (gap > 0) {
+    const open: { owner: number; sub: SubPath }[] = [];
+    shapes.forEach((subs, owner) => subs.forEach(sub => { if (!sub.closed && sub.nodes.length >= 2) open.push({ owner, sub }); }));
+    const used = new Set<number>();
+    const tip = (s: SubPath, first: boolean): Pt => { const n = first ? s.nodes[0] : s.nodes[s.nodes.length - 1]; return [n.x, n.y]; };
+    open.forEach((item, i) => {
+      if (used.has(i)) return;
+      let acc = item.sub;
+      const taken = [i];
+      let closed = false;
+      for (let guard = 0; guard <= open.length; guard++) {
+        if (acc.nodes.length >= 3 && Math.hypot(tip(acc, false)[0] - tip(acc, true)[0], tip(acc, false)[1] - tip(acc, true)[1]) <= gap) { closed = true; break; }
+        const tail = tip(acc, false);
+        let best = -1, bestD = Infinity, flip = false;
+        open.forEach((cand, j) => {
+          if (taken.includes(j) || used.has(j)) return;
+          const a = Math.hypot(tail[0] - tip(cand.sub, true)[0], tail[1] - tip(cand.sub, true)[1]);
+          const b = Math.hypot(tail[0] - tip(cand.sub, false)[0], tail[1] - tip(cand.sub, false)[1]);
+          if (Math.min(a, b) < bestD) { bestD = Math.min(a, b); best = j; flip = b < a; }
+        });
+        if (best < 0 || bestD > gap) break;
+        taken.push(best);
+        const next = flip ? reverseSub(open[best].sub) : open[best].sub;
+        acc = { closed: false, nodes: [...acc.nodes, ...next.nodes] };
+      }
+      if (!closed) return;
+      taken.forEach(t => { used.add(t); keep[open[t].owner] = keep[open[t].owner].filter(s => s !== open[t].sub); });
+      loops.push({ sub: { closed: true, nodes: acc.nodes }, owner: item.owner });
+    });
+  }
+  const inputs: SubPath[][] = [], owners: number[] = [];
+  keep.forEach((subs, k) => { if (subs.length) { inputs.push(subs); owners.push(k); } });
+  loops.forEach(l => { inputs.push([l.sub]); owners.push(l.owner); });
+  return { inputs, owners };
+}
+
+function crossAt(a: Pt, b: Pt, c: Pt, d: Pt): number | null {
+  const rx = b[0] - a[0], ry = b[1] - a[1], sx = d[0] - c[0], sy = d[1] - c[1];
+  const den = rx * sy - ry * sx;
+  if (Math.abs(den) < 1e-12) return null;
+  const t = ((c[0] - a[0]) * sy - (c[1] - a[1]) * sx) / den, u = ((c[0] - a[0]) * ry - (c[1] - a[1]) * rx) / den;
+  return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? t : null;
+}
+
+export function strokeSplit(shapes: SubPath[][], p: Pt, tol: number): { shape: number; subs: SubPath[] } | null {
+  const hits: { shape: number; sub: number; pos: number; d: number; pts: Pt[] }[] = [];
+  shapes.forEach((subs, k) => subs.forEach((sub, si) => {
+    const pts = flattenSub(sub, 0.3);
+    const count = sub.closed ? pts.length : pts.length - 1;
+    for (let i = 0; i < count; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length];
+      const dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l2));
+      const d = Math.hypot(p[0] - (a[0] + dx * t), p[1] - (a[1] + dy * t));
+      if (d <= tol) hits.push({ shape: k, sub: si, pos: i + t, d, pts });
+    }
+  }));
+  if (!hits.length) return null;
+  const { shape, sub: si, pos, pts } = hits.reduce((a, b) => (b.d < a.d ? b : a));
+  const target = shapes[shape][si];
+  const n = pts.length, count = target.closed ? n : n - 1;
+  const cuts: number[] = [];
+  shapes.forEach((subs, k) => subs.forEach((other, oi) => {
+    if (k === shape && oi === si) return;
+    const q = flattenSub(other, 0.3);
+    const qc = other.closed ? q.length : q.length - 1;
+    for (let i = 0; i < count; i++) for (let j = 0; j < qc; j++) {
+      const t = crossAt(pts[i], pts[(i + 1) % n], q[j], q[(j + 1) % q.length]);
+      if (t !== null) cuts.push(i + t);
+    }
+  }));
+  cuts.sort((a, b) => a - b);
+  if (cuts.length < (target.closed ? 2 : 1)) return null;
+  const at = (x: number): Pt => { const i = Math.floor(x) % n, t = x - Math.floor(x), a = pts[i], b = pts[(i + 1) % n]; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; };
+  const run = (u0: number, u1: number): SubPath | null => {
+    if (u1 - u0 < 1e-6) return null;
+    const list: Pt[] = [at(u0)];
+    for (let x = Math.floor(u0) + 1; x < u1 - 1e-9; x++) list.push(pts[x % n]);
+    list.push(at(u1));
+    const curved = target.nodes.some(node => node.in || node.out);
+    return curved && list.length > 2 ? fitCurve(list, 0.15) : { closed: false, nodes: list.map(q => ({ x: q[0], y: q[1], in: null, out: null, kind: 'corner' as const })) };
+  };
+  const lower = cuts.filter(c => c <= pos).pop(), upper = cuts.find(c => c > pos);
+  const out: (SubPath | null)[] = [];
+  if (target.closed) {
+    const lo = lower ?? cuts[cuts.length - 1] - count, hi = upper ?? cuts[0] + count;
+    out.push(run(lo, hi), run(hi, lo + count));
+  } else out.push(lower !== undefined ? run(0, lower) : null, run(lower ?? 0, upper ?? count), upper !== undefined ? run(upper, count) : null);
+  const pieces = out.filter((s): s is SubPath => !!s);
+  if (pieces.length < 2) return null;
+  const subs = shapes[shape].slice();
+  subs.splice(si, 1, ...pieces);
+  return { shape, subs };
 }

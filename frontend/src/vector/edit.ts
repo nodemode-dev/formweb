@@ -117,11 +117,11 @@ export function joinEndpoints(subs: SubPath[], picks: Map<number, Set<number>>):
   return [...keep, merged];
 }
 
-export function averageAnchors(subs: SubPath[], picks: Map<number, Set<number>>, axis: 'x' | 'y' | 'both'): void {
+export function averageAnchors(subs: SubPath[], picks: Map<number, Set<number>>, axis: 'x' | 'y' | 'both', target?: Pt): void {
   const chosen: Anchor[] = [];
   for (const [si, set] of picks) for (const i of set) if (subs[si]?.nodes[i]) chosen.push(subs[si].nodes[i]);
-  if (chosen.length < 2) return;
-  const mx = chosen.reduce((s, n) => s + n.x, 0) / chosen.length, my = chosen.reduce((s, n) => s + n.y, 0) / chosen.length;
+  if (chosen.length < (target ? 1 : 2)) return;
+  const mx = target ? target[0] : chosen.reduce((s, n) => s + n.x, 0) / chosen.length, my = target ? target[1] : chosen.reduce((s, n) => s + n.y, 0) / chosen.length;
   for (const n of chosen) {
     const nx = axis === 'y' ? n.x : mx, ny = axis === 'x' ? n.y : my;
     const dx = nx - n.x, dy = ny - n.y;

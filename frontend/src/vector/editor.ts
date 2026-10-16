@@ -14,6 +14,7 @@ import type { Frame as HostFrame, Host } from './host';
 import { Ops } from './ops';
 import { Overlay, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
 import { alignFixes, widthFixes } from './stroke';
+import { typeFixes } from './typepath';
 import { exportSvg, importSvg } from './svg';
 import {
   CONTAINER_TAGS, VECTOR_TAGS, addPath, addSvg, defaultPaint, freshId, geometryAttrs, moveNode, paintAttrs, pathIds, readShape, removeNode, svgOf, updateAttrs, updateGeometry, viewBoxOf,
@@ -41,7 +42,7 @@ type Gesture =
   | { kind: 'move'; start: Pt; base: Map<string, SubPath[]>; moved: boolean }
   | { kind: 'handle'; ref: Ref; which: 'in' | 'out'; base: SubPath[]; moved: boolean }
   | { kind: 'corner'; ref: Ref; base: Map<string, SubPath[]>; moved: boolean }
-  | { kind: 'convert'; ref: Ref; base: SubPath[]; start: Pt; moved: boolean }
+  | { kind: 'convert'; ref: Ref; base: SubPath[]; start: Pt; moved: boolean; retract?: boolean }
   | { kind: 'pen'; node: Anchor }
   | { kind: 'shape'; start: Pt; current: Pt; alt: boolean; shift: boolean }
   | { kind: 'marquee'; start: Pt; current: Pt; shift: boolean; click?: string }
@@ -322,7 +323,7 @@ export class Editor {
   async commit(cmds: Command[], afterSelect?: string[]): Promise<boolean> {
     if (!cmds.length) { this.endDrafts(); return false; }
     const before = this.site();
-    cmds = [...cmds, ...alignFixes(before, cmds), ...widthFixes(before, cmds)];
+    cmds = [...cmds, ...alignFixes(before, cmds), ...widthFixes(before, cmds), ...typeFixes(before, cmds)];
     this.busy = true;
     const touched = [...this.drafts.keys()];
     try {
@@ -520,6 +521,7 @@ export class Editor {
   private double(event: MouseEvent): void {
     const target = (event.target as Element).closest('[data-role]');
     if (target?.getAttribute('data-role') === 'widget') { this.cornerRequests.forEach(fn => fn()); return; }
+    if (target?.getAttribute('data-role') === 'x-wpt') { this.extras.openWidthDialog(Number(target.getAttribute('data-i') ?? '-1')); return; }
     if (this.tool === 'select' && !this.pen) {
       const hit = this.pickPath(this.pt(event));
       const group = hit?.kind === 'path' ? outerGroup(this.site(), hit.id, this.extras.iso) : undefined;
@@ -533,7 +535,29 @@ export class Editor {
     }
   }
 
+  private penAlt(p: Pt): boolean {
+    const tolerance = HIT * this.px();
+    for (const shape of this.selectedShapes()) {
+      const f = this.frame(shape.svg);
+      if (!f) continue;
+      for (let si = 0; si < shape.subs.length; si++) {
+        for (let idx = 0; idx < shape.subs[si].nodes.length; idx++) {
+          const n = shape.subs[si].nodes[idx];
+          if (dist(this.toShell(f, [n.x, n.y]), p) > tolerance) continue;
+          const ref: Ref = { id: shape.id, sub: si, idx };
+          this.anchors.clear();
+          this.anchors.add(this.anchorKey(ref));
+          this.gesture = { kind: 'convert', ref, base: clonePath(shape.subs), start: p, moved: false, retract: true };
+          this.render();
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   private downPen(p: Pt, event: PointerEvent): void {
+    if (event.altKey && this.tool === 'pen' && !this.pen && this.penAlt(p)) return;
     if (!this.pen) this.pen = { closed: false, nodes: [] };
     const last = this.pen.nodes[this.pen.nodes.length - 1];
     let at = event.shiftKey ? p : this.extras.snapPoint(p, new Set(), last ? [last.x, last.y] : undefined, true);
@@ -575,10 +599,15 @@ export class Editor {
     }
     if (g.kind === 'pen') {
       const node = g.node;
-      if (dist(p, [node.x, node.y]) > 3 * this.px()) {
-        node.out = p;
+      let q = p;
+      if (event.shiftKey) {
+        const dx = p[0] - node.x, dy = p[1] - node.y, angle = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) * (Math.PI / 4), l = Math.hypot(dx, dy);
+        q = [node.x + Math.cos(angle) * l, node.y + Math.sin(angle) * l];
+      }
+      if (dist(q, [node.x, node.y]) > 3 * this.px()) {
+        node.out = q;
         if (event.altKey) node.kind = 'corner';
-        else { node.in = [2 * node.x - p[0], 2 * node.y - p[1]]; node.kind = 'symmetric'; }
+        else { node.in = [2 * node.x - q[0], 2 * node.y - q[1]]; node.kind = 'symmetric'; }
       }
       this.render();
       return;
@@ -724,7 +753,7 @@ export class Editor {
     const along = (local[0] - basics.P[0]) * basics.bisector[0] + (local[1] - basics.P[1]) * basics.bisector[1];
     const s = Math.max(0, along - (16 * this.px()) / f.sx);
     const d = Math.min(distanceFromWidget(basics.theta, s), basics.max);
-    const radius = radiusFromDistance(type, mode, basics.theta, basics.minLength, d);
+    const radius = radiusFromDistance(type, mode, basics.theta, d);
     this.setRadius(g.base, radius, { type, mode }, true);
     this.render();
   }
@@ -773,7 +802,8 @@ export class Editor {
     if (g.kind === 'convert' && !g.moved) {
       const next = clonePath(g.base);
       const node = next[g.ref.sub].nodes[g.ref.idx];
-      const kind: AnchorKind = node.kind === 'corner' ? 'smooth' : 'corner';
+      if (g.retract && node.kind === 'corner' && !node.in && !node.out) { this.render(); return; }
+      const kind: AnchorKind = g.retract || node.kind !== 'corner' ? 'corner' : 'smooth';
       next[g.ref.sub].nodes[g.ref.idx].kind = kind;
       const picks = new Map([[g.ref.sub, new Set([g.ref.idx])]]);
       convertAnchors(next, picks, kind);
@@ -1123,7 +1153,9 @@ export class Editor {
     results.forEach((result, k) => {
       const source = site.nodes[order[sorted[Math.min(result.source, sorted.length - 1)].index]];
       const sourcePaint = this.shapeOf(source.id)?.paint ?? this.paint;
-      const paint: Paint = { ...sourcePaint, fillRule: result.fillRule, stroke: result.stroke ? sourcePaint.stroke : 'none' };
+      const paint: Paint = result.outline
+        ? { ...sourcePaint, fillRule: 'nonzero', fill: 'none', stroke: sourcePaint.fill !== 'none' ? sourcePaint.fill : sourcePaint.stroke, strokeWidth: sourcePaint.stroke === 'none' ? 1 : sourcePaint.strokeWidth }
+        : { ...sourcePaint, fillRule: result.fillRule, stroke: result.stroke ? sourcePaint.stroke : 'none' };
       const id = freshId(site, taken, 'path');
       ids.push(id);
       cmds.push(addPath(parent, id, result.subs, paint));
@@ -1132,12 +1164,18 @@ export class Editor {
     void this.commit(cmds, [ids[ids.length - 1]]).then(() => { this.selection = ids; this.refresh(); });
   }
 
-  runPathOp(name: 'join' | 'average-x' | 'average-y' | 'average' | 'simplify' | 'offset' | 'outline' | 'reverse', amount = 0): void {
+  runPathOp(name: 'join' | 'join-average' | 'average-x' | 'average-y' | 'average' | 'simplify' | 'offset' | 'outline' | 'reverse', amount = 0): void {
     const cmds: Command[] = [];
     const taken = new Set<string>();
     const site = this.site();
     let select: string[] | undefined;
-    if (name === 'join') {
+    const joining = name === 'join' || name === 'join-average';
+    let center: Pt | undefined;
+    if (name === 'average' || name === 'average-x' || name === 'average-y') {
+      const nodes = this.selectedRefs().map(ref => this.shapeOf(ref.id)?.subs[ref.sub]?.nodes[ref.idx]).filter((n): n is Anchor => !!n);
+      if (nodes.length > 1) center = [nodes.reduce((s, n) => s + n.x, 0) / nodes.length, nodes.reduce((s, n) => s + n.y, 0) / nodes.length];
+    }
+    if (joining) {
       const refs = this.selectedRefs();
       const ids = [...new Set(refs.map(ref => ref.id))];
       const pair = ids.length === 2 ? ids.map(id => this.shapeOf(id)) : [];
@@ -1145,7 +1183,9 @@ export class Editor {
         const offset = pair[0].subs.length;
         const joinPicks = new Map<number, Set<number>>();
         for (const ref of refs) { const at = ref.sub + (ref.id === ids[1] ? offset : 0); joinPicks.set(at, (joinPicks.get(at) ?? new Set()).add(ref.idx)); }
-        const merged = joinEndpoints([...clonePath(pair[0].subs), ...clonePath(pair[1].subs)], joinPicks);
+        const both = [...clonePath(pair[0].subs), ...clonePath(pair[1].subs)];
+        if (name === 'join-average') averageAnchors(both, joinPicks, 'both');
+        const merged = joinEndpoints(both, joinPicks);
         if (!merged) { this.notify('Select two end anchors to join.'); return; }
         void this.commit([updateGeometry(ids[0], merged), removeNode(ids[1])], [ids[0]]);
         return;
@@ -1154,10 +1194,10 @@ export class Editor {
     for (const shape of this.selectedShapes()) {
       const picks = new Map<number, Set<number>>();
       for (const ref of this.selectedRefs()) if (ref.id === shape.id) picks.set(ref.sub, (picks.get(ref.sub) ?? new Set()).add(ref.idx));
-      if (name === 'join' && !picks.size) continue;
+      if (joining && !picks.size) continue;
       let subs = clonePath(shape.subs);
-      if (name === 'join') { const joined = joinEndpoints(subs, picks); if (!joined) { this.notify('Select two end anchors to join.'); return; } subs = joined; }
-      else if (name === 'average' || name === 'average-x' || name === 'average-y') averageAnchors(subs, picks, name === 'average' ? 'both' : name === 'average-x' ? 'x' : 'y');
+      if (joining) { if (name === 'join-average') averageAnchors(subs, picks, 'both'); const joined = joinEndpoints(subs, picks); if (!joined) { this.notify('Select two end anchors to join.'); return; } subs = joined; }
+      else if (name === 'average' || name === 'average-x' || name === 'average-y') averageAnchors(subs, picks, name === 'average' ? 'both' : name === 'average-x' ? 'x' : 'y', center);
       else if (name === 'simplify') subs = subs.map(sub => simplifySub(sub, Math.max(0.1, amount)));
       else if (name === 'reverse') subs = subs.map(sub => ({ closed: sub.closed, nodes: [...sub.nodes].reverse().map(n => ({ ...n, in: n.out, out: n.in })) }));
       else if (name === 'offset') {

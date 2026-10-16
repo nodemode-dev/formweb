@@ -18,7 +18,7 @@ SVG_ATTRS = {'xmlns', 'width', 'height', 'viewBox', 'fill', 'stroke', 'stroke-wi
              'x', 'y', 'x1', 'y1', 'x2', 'y2', 'points', 'transform', 'opacity', 'fill-opacity', 'stroke-opacity',
              'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'fill-rule', 'clip-rule', 'vector-effect', 'preserveAspectRatio',
              'id', 'fx', 'fy', 'offset', 'stop-color', 'stop-opacity', 'gradientUnits', 'gradientTransform', 'spreadMethod',
-             'clipPathUnits', 'maskUnits', 'maskContentUnits', 'clip-path', 'mask', 'paint-order'}
+             'clipPathUnits', 'maskUnits', 'maskContentUnits', 'clip-path', 'mask', 'paint-order', 'dy'}
 SVG_DEFINITIONS = {'linearGradient', 'radialGradient', 'clipPath', 'mask'}
 SVG_REFERENCES = {'fill', 'stroke', 'clip-path', 'mask'}
 SVG_REF = re.compile(r'^url\(#([A-Za-z0-9_-]{1,64})\)$')  # only a fragment inside the same document, never a link

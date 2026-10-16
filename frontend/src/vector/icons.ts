@@ -26,6 +26,7 @@ const paths = {
   merge: '<path d="M4 4h10v6h6v10H10v-6H4V4Z"/><path d="M10 10h4v4h-4z" opacity="0.5"/>',
   crop: '<path d="M4 4h10v10H4z" stroke-dasharray="2 2"/><path d="M10 10h10v10H10z"/>',
   minusBack: '<path d="M10 10h10v10H10z"/><path d="M4 4h10v6M4 4v10h6" stroke-dasharray="2 2"/>',
+  pfOutline: '<path d="M4 4h10v6H10v4H4V4Z" stroke-dasharray="3 2"/><path d="M10 10h10v10H10V10Z" stroke-dasharray="3 2"/>',
   download: '<path d="M12 3v12m-5-5 5 5 5-5M3 17v4h18v-4"/>',
   upload: '<path d="M12 16V4m-5 5 5-5 5 5M4 16v4h16v-4"/>',
   join: '<path d="M4 12h6m4 0h6"/><circle cx="12" cy="12" r="1.5"/>',

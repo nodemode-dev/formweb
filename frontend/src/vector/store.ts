@@ -54,7 +54,7 @@ export function pathIds(site: Site, root: string): string[] {
   const out: string[] = [];
   const visit = (id: string): void => {
     const node = site.nodes[id];
-    if (!node || DEF_TAGS.has(node.tag)) return;
+    if (!node || DEF_TAGS.has(node.tag) || node.attrs['data-fw-type']) return;
     if (node.tag === 'path') out.push(id);
     node.children.forEach(visit);
   };

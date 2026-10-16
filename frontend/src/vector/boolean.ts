@@ -6,10 +6,10 @@ export type Ring = Pt[];
 export interface Region { groups: Ring[][] }
 export type MergeOp = 'union' | 'combine' | 'fragment' | 'intersect' | 'subtract' | 'exclude';
 export interface Piece { subs: SubPath[]; sig: number }
-export type PathfinderOp = 'unite' | 'minus-front' | 'intersect' | 'exclude' | 'divide' | 'trim' | 'merge' | 'crop' | 'minus-back';
+export type PathfinderOp = 'unite' | 'minus-front' | 'intersect' | 'exclude' | 'divide' | 'trim' | 'merge' | 'crop' | 'minus-back' | 'outline';
 
 export interface PathfinderInput { subs: SubPath[]; fill: string; index: number }
-export interface PathfinderOutput { subs: SubPath[]; source: number; fillRule: 'nonzero' | 'evenodd'; stroke: boolean }
+export interface PathfinderOutput { subs: SubPath[]; source: number; fillRule: 'nonzero' | 'evenodd'; stroke: boolean; outline?: boolean }
 
 const SNAP = 1000;
 const FLAT_TOL = 0.04;
@@ -277,6 +277,76 @@ function topmost(sig: number): number {
   return 31 - Math.clz32(sig);
 }
 
+function chainPath(pts: Pt[], smooth: Set<string>): SubPath {
+  const at = (p: Pt): Anchor => ({ x: p[0], y: p[1], in: null, out: null, kind: 'corner' });
+  const nodes: Anchor[] = [at(pts[0])];
+  let i = 0;
+  while (i < pts.length - 1) {
+    let j = i + 1;
+    while (j < pts.length - 1 && smooth.has(key(pts[j]))) j++;
+    const run = pts.slice(i, j + 1);
+    if (run.length <= 2) nodes.push(at(run[1]));
+    else {
+      const fit = fitCurve(run, FIT_TOL).nodes;
+      nodes[nodes.length - 1].out = fit[0].out;
+      for (let k = 1; k < fit.length; k++) nodes.push({ x: fit[k].x, y: fit[k].y, in: fit[k].in, out: fit[k].out, kind: fit[k].kind });
+    }
+    i = j;
+  }
+  return { closed: false, nodes };
+}
+
+interface Seg { a: Pt; b: Pt; ka: string; kb: string }
+
+function outlineSegments(regions: Region[], smooth: Set<string>): Array<{ object: number; subs: SubPath[] }> {
+  const edges = arrange(regions);
+  const out: Array<{ object: number; subs: SubPath[] }> = [];
+  regions.forEach((_, k) => {
+    const bit = 1 << k;
+    const groups = new Map<number, Seg[]>();
+    for (const e of edges) {
+      const l = (e.sig[0] & bit) !== 0, r = (e.sig[1] & bit) !== 0;
+      if (l === r) continue;
+      const seg: Seg = l ? { a: e.a, b: e.b, ka: e.ka, kb: e.kb } : { a: e.b, b: e.a, ka: e.kb, kb: e.ka };
+      const other = (l ? e.sig[0] : e.sig[1]) & ~bit;
+      const list = groups.get(other);
+      if (list) list.push(seg); else groups.set(other, [seg]);
+    }
+    for (const list of groups.values()) {
+      const starts = new Map<string, number[]>();
+      list.forEach((s, i) => { const l = starts.get(s.ka); if (l) l.push(i); else starts.set(s.ka, [i]); });
+      const ends = new Set(list.map(s => s.kb));
+      const used = new Uint8Array(list.length);
+      const walk = (first: number): { pts: Pt[]; closed: boolean } => {
+        const pts: Pt[] = [list[first].a];
+        let cur = first;
+        for (let guard = list.length + 1; guard > 0; guard--) {
+          used[cur] = 1;
+          const s = list[cur];
+          if (s.kb === list[first].ka) return { pts, closed: true };
+          pts.push(s.b);
+          const next = (starts.get(s.kb) ?? []).find(j => !used[j]);
+          if (next === undefined) return { pts, closed: false };
+          cur = next;
+        }
+        return { pts, closed: false };
+      };
+      const open = list.map((_, i) => i).filter(i => !ends.has(list[i].ka));
+      for (const i of [...open, ...list.map((_, j) => j)]) {
+        if (used[i]) continue;
+        const run = walk(i);
+        if (run.pts.length < 2) continue;
+        if (run.closed) {
+          if (run.pts.length < 3) continue;
+          const loop = simplifyLoop({ pts: run.pts, keys: run.pts.map(key), area: 0 });
+          out.push({ object: k, subs: [{ ...loopPath(loop, smooth), closed: true }] });
+        } else out.push({ object: k, subs: [chainPath(run.pts, smooth)] });
+      }
+    }
+  });
+  return out;
+}
+
 export function pathfinder(op: PathfinderOp, inputs: PathfinderInput[]): PathfinderOutput[] {
   const items = inputs.slice().sort((a, b) => a.index - b.index);
   if (items.length < 2 || items.length > 30) return [];
@@ -284,6 +354,7 @@ export function pathfinder(op: PathfinderOp, inputs: PathfinderInput[]): Pathfin
   const regions = items.map(item => regionOf(item.subs, smooth));
   const top = items.length - 1;
   const result = (subs: SubPath[], source: number, stroke = false): PathfinderOutput => ({ subs, source, fillRule: 'nonzero', stroke });
+  if (op === 'outline') return outlineSegments(regions, smooth).map(s => ({ subs: s.subs, source: s.object, fillRule: 'nonzero' as const, stroke: true, outline: true }));
   if (op === 'unite') {
     const pieces = mergeRegions(regions, 'union', smooth);
     return pieces.length ? [result(toSubs(pieces), top, true)] : [];
