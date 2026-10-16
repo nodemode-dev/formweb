@@ -1517,4 +1517,11 @@ export default [
   "strek mellomrom strek mellomrom",
   "Gradientverktøy (G): dra for å angi linjen, dra endene eller stoppene, klikk på linjen for å legge til et stopp, Alt-klikk på et stopp for å fjerne det.",
   "Når to eller flere ankerpunkter er valgt, virker disse på ankerpunktene. Nøkkelobjektet er den sist valgte banen.",
+  "Alle {0} hjørner i utvalget",
+  "{0} ankerpunkt valgt",
+  "{0} ankerpunkter valgt",
+  "Variabel bredde: {0} punkt",
+  "Variabel bredde: {0} punkter",
+  "{0} element i {1}.",
+  "{0} elementer i {1}.",
 ] as readonly string[];

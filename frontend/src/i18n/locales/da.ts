@@ -1517,4 +1517,11 @@ export default [
   "streg mellemrum streg mellemrum",
   "Overgangsværktøj (G): træk for at angive linjen, træk i enderne eller stoppene, klik på linjen for at tilføje et stop, Alt-klik på et stop for at fjerne det.",
   "Når to eller flere ankerpunkter er markeret, virker disse på ankerpunkter. Nøgleobjektet er den sidst markerede sti.",
+  "Alle {0} hjørner af markeringen",
+  "{0} ankerpunkt markeret",
+  "{0} ankerpunkter markeret",
+  "Variabel bredde: {0} punkt",
+  "Variabel bredde: {0} punkter",
+  "{0} element i {1}.",
+  "{0} elementer i {1}.",
 ] as readonly string[];

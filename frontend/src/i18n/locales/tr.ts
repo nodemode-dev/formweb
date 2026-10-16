@@ -1517,4 +1517,11 @@ export default [
   "çizgi boşluk çizgi boşluk",
   "Degrade aracı (G): çizgiyi belirlemek için sürükleyin, uçları veya durakları sürükleyin, durak eklemek için çizgiye tıklayın, bir durağı kaldırmak için Alt tuşuyla tıklayın.",
   "İki veya daha fazla bağlantı noktası seçiliyken bunlar bağlantı noktalarına uygulanır. Anahtar nesne en son seçilen yoldur.",
+  "Seçimin tüm {0} köşesi",
+  "{0} bağlantı noktası seçildi",
+  "{0} bağlantı noktası seçildi",
+  "Değişken genişlik: {0} nokta",
+  "Değişken genişlik: {0} nokta",
+  "{1} içinde {0} öğe.",
+  "{1} içinde {0} öğe.",
 ] as readonly string[];

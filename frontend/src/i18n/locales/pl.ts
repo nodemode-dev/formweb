@@ -1517,4 +1517,11 @@ export default [
   "kreska przerwa kreska przerwa",
   "Narzędzie Gradient (G): przeciągnij, aby ustawić linię, przeciągaj końce lub punkty zatrzymania, kliknij linię, aby dodać punkt zatrzymania, Alt-kliknięcie punktu zatrzymania usuwa go.",
   "Gdy zaznaczono co najmniej dwa punkty kontrolne, te polecenia działają na punkty kontrolne. Obiektem kluczowym jest ostatnio zaznaczona ścieżka.",
+  "Wszystkie narożniki zaznaczenia ({0})",
+  "Zaznaczone punkty kontrolne: {0}",
+  "Zaznaczone punkty kontrolne: {0}",
+  "Zmienna szerokość, punkty: {0}",
+  "Zmienna szerokość, punkty: {0}",
+  "Elementy w {1}: {0}.",
+  "Elementy w {1}: {0}.",
 ] as readonly string[];

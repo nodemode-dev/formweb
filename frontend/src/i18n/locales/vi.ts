@@ -1517,4 +1517,11 @@ export default [
   "nét khoảng trống nét khoảng trống",
   "Công cụ Chuyển màu (G): kéo để đặt đường, kéo các đầu hoặc điểm dừng, nhấp vào đường để thêm điểm dừng, Alt-nhấp vào điểm dừng để xóa nó.",
   "Khi chọn từ hai điểm neo trở lên, các thao tác này tác động lên điểm neo. Đối tượng khóa là đường dẫn được chọn sau cùng.",
+  "Tất cả {0} góc của vùng chọn",
+  "Đã chọn {0} điểm neo",
+  "Đã chọn {0} điểm neo",
+  "Độ rộng thay đổi: {0} điểm",
+  "Độ rộng thay đổi: {0} điểm",
+  "{0} mục trong {1}.",
+  "{0} mục trong {1}.",
 ] as readonly string[];

@@ -1517,4 +1517,11 @@ export default [
   "tratto spazio tratto spazio",
   "Strumento Sfumatura (G): trascina per impostare la linea, trascina le estremità o i punti di arresto, fai clic sulla linea per aggiungere un punto di arresto, Alt-clic su un punto per rimuoverlo.",
   "Con due o più punti di ancoraggio selezionati queste azioni agiscono sui punti di ancoraggio. L’oggetto chiave è l’ultimo tracciato selezionato.",
+  "Tutti i {0} angoli della selezione",
+  "{0} punto di ancoraggio selezionato",
+  "{0} punti di ancoraggio selezionati",
+  "Larghezza variabile: {0} punto",
+  "Larghezza variabile: {0} punti",
+  "{0} elemento in {1}.",
+  "{0} elementi in {1}.",
 ] as readonly string[];

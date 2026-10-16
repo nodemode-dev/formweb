@@ -1,5 +1,5 @@
 import { element, value } from '../ui/dom';
-import { t } from '../i18n';
+import { t, tn } from '../i18n';
 import { openAverage } from './averagedialog';
 import { openPathfinderOptions } from './pfdialog';
 import type { PathfinderOp } from './boolean';
@@ -142,7 +142,7 @@ export class VectorPanel {
     this.bar.setAttribute('role', 'toolbar');
     this.bar.setAttribute('aria-label', 'Vector tools');
     for (const tool of TOOLS) {
-      const b = button('', tool.keys ? `${t(tool.label)} (${tool.keys})` : t(tool.label), () => editor.setTool(editor.tool === tool.id ? null : tool.id), tool.icon);
+      const b = button('', tool.keys ? t('{0} ({1})', [{ t: tool.label }, tool.keys]) : t(tool.label), () => editor.setTool(editor.tool === tool.id ? null : tool.id), tool.icon);
       b.dataset.tool = tool.id;
       this.toolButtons.set(tool.id, b);
       this.bar.append(b);
@@ -325,7 +325,7 @@ export class VectorPanel {
     this.radius.disabled = c.count === 0;
     this.cornerType.set(c.type);
     this.cornerMode.set(c.mode);
-    const info = c.count === 0 ? 'No rounded-corner anchors. Select an anchor with the Direct Selection tool.' : c.selected ? `${c.selected} anchor${c.selected === 1 ? '' : 's'} selected` : `All ${c.count} corners of the selection`;
+    const info = c.count === 0 ? t('No rounded-corner anchors. Select an anchor with the Direct Selection tool.') : c.selected ? tn(c.selected, '{0} anchor selected', '{0} anchors selected') : t('All {0} corners of the selection', [c.count]);
     if (this.cornerInfo.textContent !== info) this.cornerInfo.textContent = info;
     value(this.sides, String(e.options.sides));
     value(this.points, String(e.options.points));

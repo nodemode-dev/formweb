@@ -91,7 +91,7 @@ async function load(lang: Lang): Promise<void> {
   }
 }
 
-export function t(english: string): string {
+function lookup(english: string): string {
   if (current === 'en') return english;
   const tail = english.endsWith('...') ? '...' : english.endsWith(':') && !english.endsWith('::') ? ':' : '';
   const base = tail ? english.slice(0, -tail.length) : english;
@@ -102,7 +102,60 @@ export function t(english: string): string {
   return tail && look(base) !== undefined ? `${found}${tail}` : found;
 }
 
-const known = (text: string): boolean => current !== 'en' && t(text) !== text;
+type Value = string | number | { t: string };
+type Entry = { en: string; redo: () => string };
+type Rec = { en: string; shown: string; redo?: () => string };
+
+const made = new Map<string, Entry>();
+const MADE_MAX = 3000;
+const rules = new Map<string, Intl.PluralRules>();
+
+function fill(text: string, values: readonly Value[], english: boolean): string {
+  return text.replace(/\{(\d+)\}/g, (token, index: string) => {
+    const value = values[Number(index)];
+    if (value === undefined) return token;
+    if (typeof value !== 'object') return String(value);
+    return english ? value.t : lookup(value.t);
+  });
+}
+
+function remember(shown: string, entry: Entry): void {
+  made.delete(shown);
+  made.set(shown, entry);
+  if (made.size > MADE_MAX) made.delete(made.keys().next().value as string);
+}
+
+function category(lang: string, n: number): string {
+  let found = rules.get(lang);
+  if (!found) {
+    try { found = new Intl.PluralRules(lang); } catch { found = new Intl.PluralRules('en'); }
+    rules.set(lang, found);
+  }
+  return found.select(n);
+}
+
+export function t(english: string, values?: readonly Value[]): string {
+  if (!values) {
+    const plain = lookup(english);
+    if (plain !== english) remember(plain, { en: english, redo: () => lookup(english) });
+    return plain;
+  }
+  const render = (): string => fill(lookup(english), values, false);
+  const shown = render();
+  remember(shown, { en: fill(english, values, true), redo: render });
+  return shown;
+}
+
+export function tn(n: number, one: string, other: string, values?: readonly Value[]): string {
+  const args = values ?? [n];
+  const pick = (lang: string): string => category(lang, n) === 'one' ? one : other;
+  const render = (): string => fill(lookup(pick(current)), args, false);
+  const shown = render();
+  remember(shown, { en: fill(pick('en'), args, true), redo: render });
+  return shown;
+}
+
+const known = (text: string): boolean => current !== 'en' && lookup(text) !== text;
 
 export async function setLanguage(lang: Lang): Promise<void> {
   wanted = lang;
@@ -131,8 +184,8 @@ export function onLanguage(fn: () => void): () => void {
 const ATTRS = ['title', 'aria-label', 'placeholder'] as const;
 const SKIP = 'textarea, input, select option[data-user], script, style, canvas, iframe, pre, code, [contenteditable], [data-no-i18n], .xterm, .fw-term-body, .fw-chat-log, .layers-scroll, .page-list, .fw-crumbs, .inspector-name, .project-name, .frame-label';
 const SKIP_ATTR = SKIP.replace('textarea, input, ', '');
-const textEn = new WeakMap<Text, { en: string; shown: string }>();
-const attrEn = new WeakMap<Element, Map<string, { en: string; shown: string }>>();
+const textEn = new WeakMap<Text, Rec>();
+const attrEn = new WeakMap<Element, Map<string, Rec>>();
 let observer: MutationObserver | null = null;
 
 const skipped = (node: Node | null): boolean => {
@@ -145,12 +198,21 @@ function translateText(node: Text): void {
   const raw = node.data;
   const rec = textEn.get(node);
   if (rec && raw === rec.shown) {
-    const next = t(rec.en);
+    const next = rec.redo ? rec.redo() : t(rec.en);
     if (next !== raw) { rec.shown = next; node.data = next; }
     if (current === 'en' || next === rec.en) textEn.delete(node);
     return;
   }
   const trimmed = raw.trim();
+  const entry = trimmed ? made.get(trimmed) : undefined;
+  if (entry && !skipped(node)) {
+    const lead = raw.slice(0, raw.indexOf(trimmed)), tail = raw.slice(lead.length + trimmed.length);
+    const redo = (): string => lead + entry.redo() + tail;
+    const next = redo();
+    textEn.set(node, { en: lead + entry.en + tail, shown: next, redo });
+    if (next !== raw) node.data = next;
+    return;
+  }
   if (!trimmed || trimmed.length > 240 || !known(trimmed) || skipped(node)) { if (rec) textEn.delete(node); return; }
   const next = raw.replace(trimmed, t(trimmed));
   textEn.set(node, { en: raw, shown: next });
@@ -164,8 +226,16 @@ function translateAttrs(el: Element): void {
     let recs = attrEn.get(el);
     const rec = recs?.get(name);
     if (rec && value === rec.shown) {
-      const next = t(rec.en);
+      const next = rec.redo ? rec.redo() : t(rec.en);
       if (next !== value) { rec.shown = next; el.setAttribute(name, next); }
+      continue;
+    }
+    const entry = made.get(value);
+    if (entry && !skippedAttr(el)) {
+      if (!recs) { recs = new Map(); attrEn.set(el, recs); }
+      const next = entry.redo();
+      recs.set(name, { en: entry.en, shown: next, redo: entry.redo });
+      if (next !== value) el.setAttribute(name, next);
       continue;
     }
     if (!known(value) || skippedAttr(el)) { recs?.delete(name); continue; }

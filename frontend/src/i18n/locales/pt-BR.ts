@@ -1517,4 +1517,11 @@ export default [
   "traço espaço traço espaço",
   "Ferramenta Gradiente (G): arraste para definir a linha, arraste as pontas ou as paradas, clique na linha para adicionar uma parada e Alt+clique em uma parada para removê-la.",
   "Com dois ou mais pontos de ancoragem selecionados, estas ações atuam nos pontos de ancoragem. O objeto-chave é o último caminho selecionado.",
+  "Todos os {0} cantos da seleção",
+  "{0} ponto de ancoragem selecionado",
+  "{0} pontos de ancoragem selecionados",
+  "Largura variável: {0} ponto",
+  "Largura variável: {0} pontos",
+  "{0} item em {1}.",
+  "{0} itens em {1}.",
 ] as readonly string[];

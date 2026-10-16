@@ -1,5 +1,5 @@
 import { element, text, value } from '../ui/dom';
-import { t } from '../i18n';
+import { t, tn } from '../i18n';
 import type { AlignMode, AlignTo, DistributeMode, RepeatParams } from './arrange';
 import { readBlend, readRepeat, type BlendMode } from './live';
 import { BrushSections } from './brushpanel';
@@ -430,7 +430,7 @@ export class ExtraSections {
     });
     this.align.set(shape ? shape.paint.align : 'center');
     const width = shape ? readWidth(e.site().nodes[shape.id]) : undefined;
-    text(this.widthNote, width ? `${t('Variable width:')} ${width.points.length} ${t(width.points.length === 1 ? 'point' : 'points')}` : 'Uniform width');
+    text(this.widthNote, width ? tn(width.points.length, 'Variable width: {0} point', 'Variable width: {0} points') : t('Uniform width'));
     this.alignToSeg.set(this.alignTo);
     let typed: ReturnType<typeof readType> = null;
     try { typed = readType(typeHolder(e.site(), e.ctx.getSelected())); } catch { typed = null; }

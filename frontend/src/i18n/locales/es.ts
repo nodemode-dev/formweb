@@ -1517,4 +1517,11 @@ export default [
   "guion espacio guion espacio",
   "Herramienta Degradado (G): arrastra para fijar la línea, arrastra los extremos o las paradas, haz clic en la línea para añadir una parada y Alt-clic en una parada para quitarla.",
   "Con dos o más puntos de ancla seleccionados, estas acciones actúan sobre los puntos de ancla. El objeto clave es la última ruta seleccionada.",
+  "Las {0} esquinas de la selección",
+  "{0} punto de ancla seleccionado",
+  "{0} puntos de ancla seleccionados",
+  "Ancho variable: {0} punto",
+  "Ancho variable: {0} puntos",
+  "{0} elemento en {1}.",
+  "{0} elementos en {1}.",
 ] as readonly string[];

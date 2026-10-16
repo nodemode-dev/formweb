@@ -1517,4 +1517,11 @@ export default [
   "vonal szünet vonal szünet",
   "Színátmenet eszköz (G): húzással adhatja meg a vonalat, húzza a végpontokat vagy a megállókat, kattintson a vonalra megálló hozzáadásához, Alt+kattintás a megállón eltávolítja azt.",
   "Ha két vagy több horgonypont van kijelölve, ezek a parancsok a horgonypontokra hatnak. A kulcsobjektum az utoljára kijelölt útvonal.",
+  "A kijelölés összes sarka ({0})",
+  "{0} horgonypont kijelölve",
+  "{0} horgonypont kijelölve",
+  "Változó szélesség: {0} pont",
+  "Változó szélesség: {0} pont",
+  "{0} elem itt: {1}.",
+  "{0} elem itt: {1}.",
 ] as readonly string[];

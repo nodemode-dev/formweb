@@ -1517,4 +1517,11 @@ export default [
   "čárka mezera čárka mezera",
   "Nástroj Přechod (G): tažením nastavíte přímku, tažením koncových bodů nebo zarážek je upravíte, kliknutím na přímku přidáte zarážku, Alt+kliknutím na zarážku ji odeberete.",
   "Pokud jsou vybrány dva nebo více kotevních bodů, působí tyto příkazy na kotevní body. Klíčovým objektem je naposledy vybraná cesta.",
+  "Všechny rohy výběru ({0})",
+  "Vybrané kotevní body: {0}",
+  "Vybrané kotevní body: {0}",
+  "Proměnná šířka, body: {0}",
+  "Proměnná šířka, body: {0}",
+  "Položek v {1}: {0}.",
+  "Položek v {1}: {0}.",
 ] as readonly string[];

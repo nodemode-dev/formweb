@@ -1,5 +1,6 @@
 import type { EditorState } from '../../types';
 import { element, keyed, text as setText } from '../../ui/dom';
+import { t, tn } from '../../i18n';
 import { btn, check, cmsGroup, containerFor, field, listCollection, note, number, row, section, select, setChecked, setValue, slug, sync, text, type Facet, type SortOption, type Tab, type WishlistContext } from './kit';
 
 function fieldChoices(state: EditorState, collection: string): [string, string][] {
@@ -235,7 +236,7 @@ export function buildCms(ctx: WishlistContext): Tab[] {
         node.ondrop = event => { event.preventDefault(); if (dragging && dragging !== item.id) move(dragging, items.indexOf(item)); dragging = ''; };
         node.ondragend = () => { dragging = ''; };
       });
-      setText(orderNote, collection ? `${items.length} items in ${collection.name}.` : 'Create a collection to order its items.');
+      setText(orderNote, collection ? tn(items.length, '{0} item in {1}.', '{0} items in {1}.', [items.length, collection.name]) : t('Create a collection to order its items.'));
     }
   };
   return [filtersTab, sliderTab, organiseTab];

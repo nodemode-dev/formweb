@@ -1517,4 +1517,11 @@ export default [
   "Strich Lücke Strich Lücke",
   "Verlaufswerkzeug (G): Ziehen legt die Linie fest, Enden oder Stopps ziehen, auf die Linie klicken fügt einen Stopp hinzu, Alt-Klick auf einen Stopp entfernt ihn.",
   "Bei zwei oder mehr ausgewählten Ankerpunkten wirken diese auf Ankerpunkte. Das Schlüsselobjekt ist der zuletzt ausgewählte Pfad.",
+  "Alle {0} Ecken der Auswahl",
+  "{0} Ankerpunkt ausgewählt",
+  "{0} Ankerpunkte ausgewählt",
+  "Variable Breite: {0} Punkt",
+  "Variable Breite: {0} Punkte",
+  "{0} Element in {1}.",
+  "{0} Elemente in {1}.",
 ] as readonly string[];

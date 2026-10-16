@@ -1517,4 +1517,11 @@ export const KEYS: readonly string[] = [
   "dash gap dash gap",
   "Gradient tool (G): drag to set the line, drag the ends or stops, click the line to add a stop, Alt-click a stop to remove it.",
   "With two or more anchors selected these act on anchors. The key object is the last selected path.",
+  "All {0} corners of the selection",
+  "{0} anchor selected",
+  "{0} anchors selected",
+  "Variable width: {0} point",
+  "Variable width: {0} points",
+  "{0} item in {1}.",
+  "{0} items in {1}.",
 ];

@@ -1517,4 +1517,11 @@ export default [
   "tiret espace tiret espace",
   "Outil Dégradé (G) : faites glisser pour définir la ligne, faites glisser les extrémités ou les arrêts, cliquez sur la ligne pour ajouter un arrêt, Alt+clic sur un arrêt pour le supprimer.",
   "Avec au moins deux points d’ancrage sélectionnés, ces actions s’appliquent aux points d’ancrage. L’objet clé est le dernier tracé sélectionné.",
+  "Les {0} coins de la sélection",
+  "{0} point d’ancrage sélectionné",
+  "{0} points d’ancrage sélectionnés",
+  "Largeur variable : {0} point",
+  "Largeur variable : {0} points",
+  "{0} élément dans {1}.",
+  "{0} éléments dans {1}.",
 ] as readonly string[];

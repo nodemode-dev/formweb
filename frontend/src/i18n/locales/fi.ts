@@ -1517,4 +1517,11 @@ export default [
   "viiva väli viiva väli",
   "Liukuvärityökalu (G): vedä asettaaksesi viivan, vedä päitä tai pysäytyksiä, lisää pysäytys napsauttamalla viivaa, poista pysäytys Alt-napsauttamalla sitä.",
   "Kun kaksi tai useampi ankkuripiste on valittu, nämä toimivat ankkuripisteisiin. Avainobjekti on viimeksi valittu polku.",
+  "Valinnan kaikki {0} kulmaa",
+  "{0} ankkuripiste valittu",
+  "{0} ankkuripistettä valittu",
+  "Muuttuva leveys: {0} piste",
+  "Muuttuva leveys: {0} pistettä",
+  "{0} kohde: {1}.",
+  "{0} kohdetta: {1}.",
 ] as readonly string[];

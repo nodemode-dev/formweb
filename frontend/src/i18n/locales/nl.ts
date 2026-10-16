@@ -1517,4 +1517,11 @@ export default [
   "streep opening streep opening",
   "Verloopgereedschap (G): sleep om de lijn in te stellen, sleep de uiteinden of stops, klik op de lijn om een stop toe te voegen, Alt-klik op een stop om hem te verwijderen.",
   "Bij twee of meer geselecteerde ankerpunten werken deze op ankerpunten. Het sleutelobject is het laatst geselecteerde pad.",
+  "Alle {0} hoeken van de selectie",
+  "{0} ankerpunt geselecteerd",
+  "{0} ankerpunten geselecteerd",
+  "Variabele breedte: {0} punt",
+  "Variabele breedte: {0} punten",
+  "{0} item in {1}.",
+  "{0} items in {1}.",
 ] as readonly string[];

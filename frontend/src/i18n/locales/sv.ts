@@ -1517,4 +1517,11 @@ export default [
   "streck mellanrum streck mellanrum",
   "Övertoningsverktyg (G): dra för att ange linjen, dra ändarna eller stoppen, klicka på linjen för att lägga till ett stopp, Alt-klicka på ett stopp för att ta bort det.",
   "När två eller fler ankarpunkter är markerade verkar dessa på ankarpunkter. Nyckelobjektet är den senast markerade banan.",
+  "Alla {0} hörn i markeringen",
+  "{0} ankarpunkt markerad",
+  "{0} ankarpunkter markerade",
+  "Variabel bredd: {0} punkt",
+  "Variabel bredd: {0} punkter",
+  "{0} objekt i {1}.",
+  "{0} objekt i {1}.",
 ] as readonly string[];

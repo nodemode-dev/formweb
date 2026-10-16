@@ -1517,4 +1517,11 @@ export default [
   "garis celah garis celah",
   "Alat Gradien (G): seret untuk menetapkan garis, seret ujung atau perhentian, klik garis untuk menambah perhentian, Alt-klik perhentian untuk menghapusnya.",
   "Jika dua atau lebih titik jangkar dipilih, aksi ini bekerja pada titik jangkar. Objek kunci adalah jalur yang terakhir dipilih.",
+  "Semua {0} sudut dari seleksi",
+  "{0} titik jangkar dipilih",
+  "{0} titik jangkar dipilih",
+  "Lebar variabel: {0} titik",
+  "Lebar variabel: {0} titik",
+  "{0} item di {1}.",
+  "{0} item di {1}.",
 ] as readonly string[];

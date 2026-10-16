@@ -22,6 +22,10 @@ def table(path: Path) -> dict:
     return json.loads('{' + inner + '}')
 
 
+def tokens(text: str) -> list:
+    return sorted(re.findall(r'\{\d+\}', text))
+
+
 def main() -> int:
     keys = array(ROOT / 'keys.ts')
     problems, report = [], []
@@ -40,6 +44,9 @@ def main() -> int:
             problems.append(f'{code}: {len(values)} entries for {len(keys)} keys')
         if empty:
             problems.append(f'{code}: empty entries at {empty[:10]}')
+        broken = [key for key, value in zip(keys, values) if isinstance(value, str) and tokens(key) != tokens(value)]
+        for key in broken[:20]:
+            problems.append(f'{code}: placeholders differ for "{key}"')
         same = sum(1 for key, value in zip(keys, values) if key == value)
         report.append(f'{code}: {len(values)} entries, {same} left as English')
     for code in REGIONAL:
@@ -47,6 +54,9 @@ def main() -> int:
         if path.exists():
             try:
                 stray = [key for key in table(path) if key not in keys]
+                for key, value in table(path).items():
+                    if tokens(key) != tokens(value):
+                        problems.append(f'{code}: placeholders differ for "{key}"')
                 report.append(f'{code}: {len(table(path))} overrides')
                 if stray:
                     problems.append(f'{code}: overrides for unknown keys {stray[:5]}')
