@@ -17,7 +17,7 @@ INSTRUCTIONS = (
     'FormWeb is a local visual website builder. Use these tools to read, edit, check, save, export and publish '
     'the site that is open in the FormWeb editor; the person sees every change live and can undo it.\n'
     'Start: read formweb://site/tree (page and element outline with IDs) or call get_site with detail "summary". '
-    'Edit with the domain tools (edit_nodes, edit_pages, edit_styles, edit_components, edit_cms, edit_locales, edit_site) '
+    'Edit with the domain tools (edit_nodes, edit_pages, edit_styles, edit_components, edit_cms, edit_locales, edit_site, edit_creative) '
     'or apply_commands for a multi-command batch. Pass expected_revision from your last read; on a revision conflict, '
     're-read and apply only what is still needed. Edits return a compact summary; pass detail "site" only when you need the whole document.\n'
     'Brand: style with var(--brand-...) or a linked team library\'s var(--lib-...) tokens (list_team_libraries, use_team_library); run brand_check before delivery.\n'
@@ -70,6 +70,19 @@ COMMAND_DOCS = {
     'site.replace': '{site} replaces the whole document (use sparingly)',
     'extension.set': '{group, value} replaces one validated extension group',
     'extension.remove': '{group}',
+    'cms.list': '{node, patch:{facets?, sortOptions?, slider?, pageSize?, filter?, sort?, limit?}} merges keys into the list config; null removes one. facets [{key, field, kind: checkbox|select|search|range, label}] and sortOptions [{key, field, direction, label}] become live filter and sort controls on the published list, with state in the URL; slider {perView, arrows, dots, autoplay, interval, loop, label, gap} turns the list into a slider (not combinable with facets)',
+    'cms.reorder': '{collection, ids:[itemId]} sets the manual item order; ids must list every item once',
+    'cms.move': '{collection, id, index} moves one item to a position',
+    'cms.folder': '{id, name?, collections?:[collectionId], remove?} creates or updates a collection folder; a collection lives in one folder',
+    'slider.create': '{parent, collection, perView?, index?} inserts a slide card bound to the collection plus its slider list config',
+    'table.insert': '{parent, rows?, cols?, header?, caption?, index?} inserts a semantic table (caption, thead with th scope col, tbody)',
+    'table.row.add': '{table, index?} adds a body row before the row at index (all rows count), or at the end',
+    'table.row.remove': '{table, index}',
+    'table.col.add': '{table, index?} adds a column of cells before index, or at the end; regular tables without merged cells',
+    'table.col.remove': '{table, index}',
+    'layout.convert': '{id, mode: flex|grid, direction?, columns?, gap?, padding?} sets display, gap and padding, defaulting to the site settings layoutGap, layoutPadding and layoutColumns',
+    'text.script': '{id, mode?: super|sub|none|keep, shift?: "-0.2em"|null, trueGlyphs?} makes a span a real sup or sub element and sets a baseline shift (vertical-align)',
+    'form.steps': '{form, steps:[{title, nodes:[childId]}]} groups direct children of a form into steps (Back, Next, per-step validation); steps [] removes them',
 }
 
 DOMAINS = [
@@ -77,9 +90,10 @@ DOMAINS = [
     ('edit_pages', 'Edit pages', 'Create, rename, re-slug, duplicate, bulk-create from data, or remove pages, and set page SEO.', ['page.add', 'page.update', 'page.duplicate', 'page.bulk', 'page.remove']),
     ('edit_styles', 'Edit design system', 'Change design tokens, text presets and responsive breakpoints shared across the site.', ['token.set', 'token.define', 'textpreset.set', 'textpreset.apply', 'breakpoint.set', 'breakpoint.remove']),
     ('edit_components', 'Edit components', 'Create reusable components, insert linked instances, set props, variants and slots, or work with pinned libraries.', ['component.create', 'component.insert', 'component.configure', 'component.props', 'component.variant', 'component.reset', 'component.slot', 'component.detach', 'library.import', 'library.update', 'library.detach']),
-    ('edit_cms', 'Edit CMS', 'Create collections, add or replace items, bind elements to fields and set list queries for dynamic pages.', ['collection.create', 'collection.update', 'cms.upsert', 'cms.remove', 'cms.replace', 'cms.query', 'cms.binding', 'cms.localize']),
+    ('edit_cms', 'Edit CMS', 'Create collections, add or replace items, bind elements to fields and set list queries for dynamic pages.', ['collection.create', 'collection.update', 'cms.upsert', 'cms.remove', 'cms.replace', 'cms.query', 'cms.binding', 'cms.localize', 'cms.list', 'cms.reorder', 'cms.move', 'cms.folder']),
     ('edit_locales', 'Edit translations', 'Set translated text for a locale.', ['locale.set']),
     ('edit_site', 'Edit site settings', 'Change site name, locales and settings (icons, hidden scrollbars), or replace extension groups.', ['site.update', 'extension.set', 'extension.remove', 'site.replace']),
+    ('edit_creative', 'Edit tables, sliders, layout and forms', 'Insert and edit semantic tables, CMS sliders, flex or grid layout with site defaults, superscript and subscript, and multi-step forms.', ['table.insert', 'table.row.add', 'table.row.remove', 'table.col.add', 'table.col.remove', 'slider.create', 'layout.convert', 'text.script', 'form.steps']),
 ]
 
 DETAIL = {'type': 'string', 'enum': ['summary', 'site'], 'default': 'summary', 'description': 'summary (default) returns revision, undo state and an outline of pages; site returns the whole document.'}

@@ -7,7 +7,7 @@ from jsonschema import Draft202012Validator
 from starlette.responses import FileResponse, RedirectResponse, Response
 
 from .advanced_catalog import ADVANCED_BY_NAME
-from .config import DATA_DIR, MAX_FORM_BYTES
+from .config import DATA_DIR, MAX_FORM_BYTES, MAX_FORM_UPLOAD_BYTES
 from .engine import EngineError
 from .passwords import FORM_PATH as PASSWORD_FORM
 from .providers.service import providers
@@ -100,7 +100,7 @@ async def submission_values(request):
     content = bytearray()
     async for chunk in request.stream():
         content.extend(chunk)
-        if len(content) > MAX_FORM_BYTES:
+        if len(content) > (MAX_FORM_UPLOAD_BYTES if request.headers.get('content-type', '').split(';', 1)[0] == 'application/json' else MAX_FORM_BYTES):
             raise EngineError('Submission body is too large.', 413)
     media = request.headers.get('content-type', '').split(';', 1)[0]
     try:

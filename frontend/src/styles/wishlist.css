@@ -1,0 +1,38 @@
+.wl-panel { position: fixed; top: 52px; right: var(--space-4); z-index: var(--z-popover); display: flex; flex-direction: column; width: min(400px, calc(100vw - 2 * var(--space-4))); height: min(640px, calc(100dvh - 72px)); border: 1px solid var(--border-color); border-radius: var(--radius); background: var(--bg-secondary); color: var(--text-primary); box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45); }
+.wl-panel[hidden] { display: none; }
+.wl-head { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 0 var(--space-3) 0 var(--space-4); border-bottom: 1px solid var(--border-color); }
+.wl-heading { margin: 0; font-size: var(--fs-12); font-weight: 600; }
+.wl-close { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--radius); background: transparent; color: var(--text-secondary); }
+.wl-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.wl-close svg { width: 16px; height: 16px; }
+.wl-tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: var(--space-2) var(--space-3) 0; border-bottom: 1px solid var(--border-color); }
+.wl-tab { min-height: 32px; padding: 0 var(--space-3); border: 0; border-bottom: 2px solid transparent; border-radius: var(--radius) var(--radius) 0 0; background: transparent; color: var(--text-secondary); font-size: var(--fs-11); }
+.wl-tab:hover { color: var(--text-primary); }
+.wl-tab[aria-selected="true"] { border-bottom-color: var(--accent-color); color: var(--text-primary); }
+.wl-body { flex: 1; min-height: 0; overflow: auto; scrollbar-gutter: stable; }
+.wl-pane { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-4); }
+.wl-pane[hidden] { display: none; }
+.wl-section { display: flex; flex-direction: column; gap: var(--space-2); }
+.wl-title { margin: 0; color: var(--text-muted); font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.wl-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: var(--space-2); align-items: end; }
+.wl-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.wl-label { color: var(--text-secondary); font-size: var(--fs-11); }
+.wl-field input, .wl-field select, .wl-field-row select, .wl-field-row input { min-width: 0; height: 30px; padding: 0 var(--space-2); }
+.wl-check { display: flex; align-items: center; gap: var(--space-2); min-height: 28px; color: var(--text-secondary); font-size: var(--fs-12); }
+.wl-note, .wl-hint { margin: 0; color: var(--text-secondary); font-size: var(--fs-11); line-height: 1.5; min-height: 1.5em; }
+.wl-hint { color: var(--text-muted); }
+.wl-list { display: flex; flex-direction: column; gap: 4px; }
+.wl-item { display: flex; align-items: center; gap: var(--space-2); min-height: 36px; padding: 2px var(--space-2); border: 1px solid var(--border-soft); border-radius: var(--radius); background: var(--surface-2); }
+.wl-item-name { flex: 1; min-width: 0; overflow: hidden; color: var(--text-primary); font-size: var(--fs-12); text-overflow: ellipsis; white-space: nowrap; }
+.wl-item[data-severity="error"] { border-color: var(--danger-color); }
+.wl-item[data-severity="warning"] { border-color: var(--accent-line); }
+.wl-item select, .wl-item input { flex: 0 1 132px; min-width: 0; }
+.wl-drag { cursor: grab; }
+.wl-btn { min-height: 30px; padding: 0 var(--space-3); border: 1px solid var(--border-light); border-radius: var(--radius); background: var(--bg-tertiary); color: var(--text-primary); font-size: var(--fs-11); }
+.wl-btn:hover:not(:disabled) { border-color: var(--accent-line); background: var(--bg-hover); }
+.wl-btn:disabled { opacity: 0.45; }
+.wl-primary { border-color: var(--accent-color); background: var(--accent-color); color: var(--text-on-accent); }
+.wl-primary:hover:not(:disabled) { background: var(--accent-color-hover); }
+.wl-danger { color: var(--danger-color); }
+.wl-quiet { min-height: 26px; padding: 0 var(--space-2); border-color: transparent; background: transparent; color: var(--text-secondary); }
+.wl-panel :focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }

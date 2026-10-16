@@ -63,7 +63,7 @@ pub fn apply(site:&mut Site,command:&str,params:&Value)->Result<(),String>{
         "cms.replace"=>{let id=string(params,"collection")?;let items:Vec<Item>=serde_json::from_value(params.get("items").ok_or("items required")?.clone()).map_err(|e|e.to_string())?;site.collections.get_mut(id).ok_or("unknown collection")?.items=items;}
         "library.import"=>library_import(site,params)?,"library.update"=>library_update(site,params)?,
         "library.detach"=>{let id=string(params,"id")?;group(site,"libraries").get_mut("packages").and_then(Value::as_object_mut).ok_or("no library pins")?.remove(id).ok_or("unknown library pin")?;}
-        _=>return Err(format!("unknown command {command}")),
+        _=>crate::wishlist::apply(site,command,params)?,
     }Ok(())
 }
 

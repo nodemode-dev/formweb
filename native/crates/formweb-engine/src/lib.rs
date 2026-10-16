@@ -3,8 +3,9 @@ use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 
 mod advanced;
+mod wishlist;
 
-pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "collection.update", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo", "page.duplicate", "breakpoint.set", "breakpoint.remove", "extension.set", "extension.remove", "token.define", "textpreset.set", "textpreset.apply", "component.detach", "component.configure", "component.props", "component.reset", "component.variant", "component.slot", "library.import", "library.update", "library.detach", "cms.query", "cms.binding", "cms.localize", "cms.replace", "site.replace", "page.bulk"];
+pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "collection.update", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo", "page.duplicate", "breakpoint.set", "breakpoint.remove", "extension.set", "extension.remove", "token.define", "textpreset.set", "textpreset.apply", "component.detach", "component.configure", "component.props", "component.reset", "component.variant", "component.slot", "library.import", "library.update", "library.detach", "cms.query", "cms.binding", "cms.localize", "cms.replace", "site.replace", "page.bulk", "table.insert", "table.row.add", "table.row.remove", "table.col.add", "table.col.remove", "cms.reorder", "cms.move", "cms.folder", "cms.list", "slider.create", "layout.convert", "text.script", "form.steps"];
 
 pub struct Engine {
     pub site: Site,
@@ -432,5 +433,6 @@ pub fn audit(site: &Site) -> Value {
         if node.interactions.iter().any(|i| i.trigger == "hover") { issues.push(json!({"severity":"info","code":"interaction.hover","node":node.id,"message":"Verify hover interactions also have an accessible keyboard/touch path"})); }
     }
     if site.settings.get("baseUrl").map(String::as_str) == Some("https://example.com") { issues.push(json!({"severity":"warning","code":"seo.base-url","message":"Set the real public base URL before deployment"})); }
+    wishlist::audit(site, &mut issues);
     json!({"issues": issues, "counts": {"pages": site.pages.len(), "nodes": site.nodes.len(), "components":site.components.len(), "collections":site.collections.len(), "cmsItems":site.collections.values().map(|c|c.items.len()).sum::<usize>(), "locales":site.locales.len()}})
 }

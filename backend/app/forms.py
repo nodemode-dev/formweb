@@ -1,12 +1,31 @@
+import base64
+import binascii
 import csv
 import io
 import json
 import math
 import re
 from datetime import date, datetime, timedelta, timezone
+from pathlib import PurePosixPath
 from urllib.parse import urlparse
+from uuid import uuid4
 
+from .config import DATA_DIR
 from .engine import EngineError
+
+UPLOAD_DIR = DATA_DIR / 'form-uploads'
+UPLOAD_TYPES = {
+    '.png': ('image/png', b'\x89PNG'), '.jpg': ('image/jpeg', b'\xff\xd8\xff'), '.jpeg': ('image/jpeg', b'\xff\xd8\xff'), '.gif': ('image/gif', b'GIF8'),
+    '.webp': ('image/webp', b'RIFF'), '.pdf': ('application/pdf', b'%PDF'), '.txt': ('text/plain', b''), '.csv': ('text/csv', b''),
+    '.docx': ('application/vnd.openxmlformats-officedocument.wordprocessingml.document', b'PK'), '.xlsx': ('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', b'PK'), '.zip': ('application/zip', b'PK'),
+}
+UPLOAD_LIMIT = 2 * 1024 * 1024
+UPLOAD_FILES = 5
+PRESETS = {
+    'phone': (r'\+?[0-9][0-9 .\-]{5,18}[0-9]', 'Enter a valid phone number.'),
+    'postal': (r'[A-Za-z0-9][A-Za-z0-9 \-]{2,9}', 'Enter a valid postal code.'),
+    'email': (r'[^\s@]+@[^\s@]+\.[^\s@]+', 'Enter a valid email address.'),
+}
 
 
 class FormValidationError(EngineError):
@@ -21,6 +40,55 @@ class Forms:
         self.store = studio.store
         self.store.db.execute('CREATE TABLE IF NOT EXISTS submission_meta (submission_id TEXT PRIMARY KEY,tracking TEXT NOT NULL,source TEXT,publication TEXT)')
         self.store.db.commit()
+
+    def check_files(self, supplied, attrs, rule, required):
+        files = supplied if isinstance(supplied, list) else [supplied]
+        files = [item for item in files if item not in ('', None)]
+        if not files:
+            return ('This file is required.' if required else None), []
+        limit = min(UPLOAD_LIMIT, int(rule.get('maxSize', UPLOAD_LIMIT))) if isinstance(rule.get('maxSize', UPLOAD_LIMIT), (int, float)) else UPLOAD_LIMIT
+        if len(files) > (UPLOAD_FILES if 'multiple' in attrs else 1):
+            return 'Attach fewer files.', []
+        accept = [token.strip().lower() for token in str(rule.get('accept', attrs.get('accept', ''))).split(',') if token.strip()]
+        accepted = []
+        for item in files:
+            if not isinstance(item, dict) or not isinstance(item.get('name'), str) or not isinstance(item.get('data'), str):
+                return 'Attach a file using the form.', []
+            name = PurePosixPath(item['name'].replace('\\', '/')).name[:120]
+            extension = PurePosixPath(name).suffix.lower()
+            if extension not in UPLOAD_TYPES:
+                return 'This file type is not allowed.', []
+            mime = UPLOAD_TYPES[extension][0]
+            if accept and not any(token == extension or token == mime or (token.endswith('/*') and mime.startswith(token[:-1])) for token in accept):
+                return 'This file type is not accepted here.', []
+            try:
+                content = base64.b64decode(item['data'], validate=True)
+            except (binascii.Error, ValueError):
+                return 'The file could not be read.', []
+            if not content or len(content) > limit:
+                return f'Files must be between 1 byte and {limit // 1024} KB.', []
+            if not content.startswith(UPLOAD_TYPES[extension][1]):
+                return 'The file content does not match its type.', []
+            accepted.append((name, mime, content))
+        return None, accepted
+
+    def store_files(self, name, accepted):
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        stored = []
+        for original, mime, content in accepted:
+            path = UPLOAD_DIR / f'{uuid4().hex}{PurePosixPath(original).suffix.lower()}'
+            path.write_bytes(content)
+            stored.append({'name': original, 'type': mime, 'size': len(content), 'file': f'form-uploads/{path.name}'})
+        return stored
+
+    def remove_files(self, ids):
+        for submission_id in ids:
+            row = self.store.db.execute('SELECT values_json FROM submissions WHERE id=?', (submission_id,)).fetchone()
+            for value in json.loads(row['values_json']).values() if row else []:
+                for item in value if isinstance(value, list) else []:
+                    name = item.get('file', '') if isinstance(item, dict) else ''
+                    if re.fullmatch(r'form-uploads/[0-9a-f]{32}\.[a-z]{3,4}', name):
+                        (UPLOAD_DIR / name.split('/', 1)[1]).unlink(missing_ok=True)
 
     def validate(self, site, form_id, values):
         form = site['nodes'].get(form_id)
@@ -40,7 +108,7 @@ class Forms:
         unknown = set(values) - set(fields) - set(tracking_config) - {'_formweb_hp'}
         if len(values) > 128 or unknown:
             raise FormValidationError({name: 'Unrecognized field.' for name in unknown} or {'form': 'Too many fields.'})
-        output, errors, tracking = {}, {}, {}
+        output, errors, tracking, uploads = {}, {}, {}, {}
         for name in tracking_config:
             value = values.get(name, '')
             if not isinstance(value, str) or len(value) > 1024:
@@ -52,6 +120,15 @@ class Forms:
             rule = constraints.get(name, {})
             kind = attrs.get('type', 'text') if node['tag'] == 'input' else node['tag']
             supplied = values.get(name, '')
+            if kind == 'file':
+                failure, accepted = self.check_files(supplied, attrs, rule, bool(rule.get('required', any('required' in item.get('attrs', {}) for item in nodes))))
+                if failure:
+                    errors[name] = failure
+                elif accepted:
+                    uploads[name] = accepted
+                else:
+                    output[name] = []
+                continue
             supplied_list = supplied if isinstance(supplied, list) else [supplied]
             if any(not isinstance(value, (str, int, float, bool)) for value in supplied_list) or len(supplied_list) > 64:
                 errors[name] = 'Use text or scalar field values.'
@@ -61,9 +138,6 @@ class Forms:
                 errors[name] = 'This field accepts a single value.'
             required = bool(rule.get('required', any('required' in item.get('attrs', {}) for item in nodes)))
             value = entries[0] if entries else ''
-            if kind == 'file':
-                errors[name] = 'File uploads are unavailable.'
-                continue
             if kind == 'checkbox':
                 checked = [entry for entry in entries if entry.lower() not in ('false', '0', 'off')]
                 if required and not checked:
@@ -117,6 +191,9 @@ class Forms:
                         errors[name] = 'This field pattern is invalid.'
             if kind == 'email' and any(not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', entry) for entry in entries):
                 errors[name] = 'Enter a valid email address.'
+            preset = PRESETS.get(rule.get('preset'))
+            if preset and any(re.fullmatch(preset[0], entry) is None for entry in entries):
+                errors[name] = preset[1]
             if kind == 'url':
                 parsed = urlparse(value)
                 if parsed.scheme not in ('http', 'https') or not parsed.hostname:
@@ -150,6 +227,8 @@ class Forms:
             output[name] = entries if 'multiple' in attrs else value
         if errors:
             raise FormValidationError(errors)
+        for name, accepted in uploads.items():
+            output[name] = self.store_files(name, accepted)
         return output, tracking, config
 
     def record_tracking(self, submission_id, tracking, source, publication):
@@ -196,6 +275,7 @@ class Forms:
     def prune(self, days, site_id=None):
         cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
         ids = [row['id'] for row in self.store.db.execute('SELECT id FROM submissions WHERE created_at<? AND (? IS NULL OR site_id=?)', (cutoff, site_id, site_id))]
+        self.remove_files(ids)
         self.studio.delivery.prune(ids)
         self.store.db.executemany('DELETE FROM submission_meta WHERE submission_id=?', [(value,) for value in ids])
         self.store.db.executemany('DELETE FROM submissions WHERE id=?', [(value,) for value in ids])

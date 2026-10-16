@@ -2,11 +2,18 @@ import type { Collection, Page, Site } from '../types';
 
 type ItemContext = { collection: string; item: Collection['items'][number]; ids: Record<string, string>; suffix: string };
 
-const allowedTags = new Set(['div', 'main', 'section', 'article', 'header', 'footer', 'nav', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'a', 'button', 'img', 'figure', 'figcaption', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'blockquote', 'strong', 'em', 'small', 'b', 'i', 'br', 'hr', 'form', 'label', 'input', 'textarea', 'select', 'option', 'fieldset', 'legend', 'details', 'summary', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'time', 'code', 'pre', 'video', 'audio', 'source', 'wbr', 'svg', 'g', 'path']);
-const vectorTags = new Set(['svg', 'g', 'path']);
-const vectorAttributes = new Set(['d', 'viewBox', 'preserveAspectRatio', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'fill-rule', 'fill-opacity', 'stroke-opacity', 'transform', 'vector-effect', 'opacity']);
+const allowedTags = new Set(['div', 'main', 'section', 'article', 'header', 'footer', 'nav', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'a', 'button', 'img', 'figure', 'figcaption', 'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'blockquote', 'strong', 'em', 'small', 'b', 'i', 'br', 'hr', 'form', 'label', 'input', 'textarea', 'select', 'option', 'fieldset', 'legend', 'details', 'summary', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'caption', 'time', 'code', 'pre', 'sup', 'sub', 'tfoot', 'video', 'audio', 'source', 'wbr', 'svg', 'g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath']);
+const vectorTags = new Set(['svg', 'g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath']);
+const vectorAttributes = new Set(['d', 'viewBox', 'preserveAspectRatio', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit', 'stroke-dasharray', 'stroke-dashoffset', 'fill-rule', 'fill-opacity', 'stroke-opacity', 'transform', 'vector-effect', 'opacity',
+  'clip-path', 'mask', 'paint-order', 'clip-rule', 'x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r', 'fx', 'fy', 'x', 'y', 'gradientUnits', 'gradientTransform', 'spreadMethod', 'offset', 'stop-color', 'stop-opacity',
+  'clipPathUnits', 'maskUnits', 'maskContentUnits', 'font-size', 'font-family', 'font-weight', 'letter-spacing', 'text-anchor', 'startOffset']);
+const referenceAttributes = new Set(['fill', 'stroke', 'clip-path', 'mask']);
+function safeVectorValue(name: string, content: string): boolean {
+  if (/^url\(#[A-Za-z0-9_-]{1,64}\)$/.test(content)) return referenceAttributes.has(name);
+  return !/url\(|javascript:|[<>]/i.test(content);
+}
 const voidTags = new Set(['img', 'input', 'source', 'hr', 'br', 'wbr']);
-const allowedAttributes = new Set(['id', 'class', 'title', 'role', 'href', 'src', 'alt', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'required', 'checked', 'disabled', 'multiple', 'selected', 'min', 'max', 'step', 'pattern', 'minlength', 'maxlength', 'autocomplete', 'for', 'loading', 'width', 'height', 'tabindex', 'open', 'datetime', 'colspan', 'rowspan', 'scope', 'controls', 'muted', 'loop', 'poster', 'preload']);
+const allowedAttributes = new Set(['id', 'class', 'title', 'role', 'href', 'src', 'alt', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'required', 'checked', 'disabled', 'multiple', 'selected', 'min', 'max', 'step', 'pattern', 'minlength', 'maxlength', 'autocomplete', 'for', 'loading', 'width', 'height', 'tabindex', 'open', 'datetime', 'colspan', 'rowspan', 'scope', 'controls', 'muted', 'loop', 'poster', 'preload', 'accept']);
 function safeUrl(url: string): boolean {
   return !/^\/\//.test(url) && !/[\\<>"'\u0000-\u001f]/.test(url) && (/^(?:https?:\/\/|mailto:|tel:)/i.test(url) || !url.split(/[/?#]/)[0].includes(':'));
 }
@@ -164,7 +171,7 @@ export class Canvas {
     }
     const nextAttrs = new Set<string>();
     for (const [name, content] of Object.entries(attributes)) {
-      const vectorAttribute = vectorTags.has(tag) && vectorAttributes.has(name) && !/url\(|javascript:|[<>]/i.test(content);
+      const vectorAttribute = vectorTags.has(tag) && vectorAttributes.has(name) && safeVectorValue(name, content);
       if ((!allowedAttributes.has(name) && !vectorAttribute && !/^aria-[a-z-]+$/.test(name) && !/^data-[a-z-]+$/.test(name)) || /^data-fw-/.test(name)) continue;
       if (['href', 'src', 'poster'].includes(name) && !safeUrl(content)) continue;
       let actual = content;
@@ -172,6 +179,7 @@ export class Canvas {
         if (['id', 'for'].includes(name)) actual = context.ids[content] || content;
         if (['aria-labelledby', 'aria-describedby'].includes(name)) actual = content.split(/\s+/).map(id => context.ids[id] || id).join(' ');
         if (name === 'href') actual = scopedFragment(content, context.ids);
+        if (vectorTags.has(tag) && referenceAttributes.has(name)) actual = content.replace(/^url\(#([\w-]+)\)$/, (_match, ref: string) => `url(#${context.ids[ref] || ref})`);
       }
       nextAttrs.add(name);
       if (name === 'src' && tag === 'img' && node.getAttribute(name) !== actual) {
@@ -210,7 +218,7 @@ export class Canvas {
       }
       let textNode = this.textNodes.get(key);
       if (!textNode) {
-        textNode = this.doc.createElement('span');
+        textNode = (tag === 'textPath' ? this.doc.createElementNS('http://www.w3.org/2000/svg', 'tspan') : this.doc.createElement('span')) as HTMLSpanElement;
         textNode.dataset.fwText = id;
         this.textNodes.set(key, textNode);
       }

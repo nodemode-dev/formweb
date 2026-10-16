@@ -4,6 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 pub mod advanced;
 pub mod vector;
+pub mod wishlist;
 
 pub type Strings = BTreeMap<String, String>;
 
@@ -183,7 +184,7 @@ pub fn safe_css_value(value: &str) -> bool {
 
 pub fn safe_style(name: &str, value: &str) -> bool {
     const PROPERTIES: &[&str] = &[
-        "display", "position", "top", "right", "bottom", "left", "inset", "z-index", "width", "height", "min-width", "max-width", "min-height", "max-height", "margin", "margin-top", "margin-right", "margin-bottom", "margin-left", "padding", "padding-top", "padding-right", "padding-bottom", "padding-left", "gap", "row-gap", "column-gap", "grid-template-columns", "grid-template-rows", "grid-column", "grid-row", "grid-auto-flow", "align-items", "align-self", "align-content", "justify-content", "justify-items", "justify-self", "flex", "flex-grow", "flex-shrink", "flex-basis", "flex-direction", "flex-wrap", "order", "background", "background-color", "background-image", "color", "opacity", "border", "border-color", "border-width", "border-style", "border-radius", "border-top", "border-bottom", "border-left", "border-right", "box-shadow", "box-sizing", "font", "font-family", "font-size", "font-weight", "font-style", "line-height", "letter-spacing", "text-align", "text-transform", "text-decoration", "text-wrap", "white-space", "word-break", "overflow", "overflow-x", "overflow-y", "object-fit", "object-position", "aspect-ratio", "transform", "transform-origin", "transition", "filter", "backdrop-filter", "cursor", "list-style", "outline", "outline-offset", "visibility", "vertical-align", "content", "scroll-margin-top", "pointer-events"
+        "display", "position", "top", "right", "bottom", "left", "inset", "z-index", "width", "height", "min-width", "max-width", "min-height", "max-height", "margin", "margin-top", "margin-right", "margin-bottom", "margin-left", "padding", "padding-top", "padding-right", "padding-bottom", "padding-left", "gap", "row-gap", "column-gap", "grid-template-columns", "grid-template-rows", "grid-column", "grid-row", "grid-auto-flow", "align-items", "align-self", "align-content", "justify-content", "justify-items", "justify-self", "flex", "flex-grow", "flex-shrink", "flex-basis", "flex-direction", "flex-wrap", "order", "background", "background-color", "background-image", "color", "opacity", "border", "border-color", "border-width", "border-style", "border-radius", "border-top", "border-bottom", "border-left", "border-right", "box-shadow", "box-sizing", "font", "font-family", "font-size", "font-weight", "font-style", "line-height", "letter-spacing", "text-align", "text-transform", "text-decoration", "text-wrap", "white-space", "word-break", "overflow", "overflow-x", "overflow-y", "object-fit", "object-position", "aspect-ratio", "transform", "transform-origin", "transition", "filter", "backdrop-filter", "cursor", "list-style", "outline", "outline-offset", "visibility", "vertical-align", "content", "scroll-margin-top", "pointer-events", "border-collapse", "border-spacing", "table-layout", "caption-side", "font-variant-position"
     ];
     let valid_name = PROPERTIES.contains(&name) || (name.starts_with("--") && identifier(&name[2..]));
     valid_name && safe_css_value(value)
@@ -263,6 +264,7 @@ pub fn validate(site: &Site) -> Result<(), String> {
     if let Some(base) = site.settings.get("baseUrl") {
         if !safe_url(base) || !(base.starts_with("https://") || base.starts_with("http://")) { return Err("baseUrl must be an http(s) URL".into()); }
     }
+    wishlist::validate_settings(&site.settings)?;
     advanced::validate_extensions(site)?;
     Ok(())
 }
@@ -310,6 +312,11 @@ pub fn linked_attrs(source: &Node, ids: &Strings) -> Strings {
     if let Some(href) = attrs.get_mut("href") {
         if let Some(mapped) = href.strip_prefix('#').and_then(|id|ids.get(id)) { *href = format!("#{mapped}"); }
     }
+    for name in ["fill", "stroke", "clip-path", "mask"] {
+        if let Some(value) = attrs.get_mut(name) {
+            if let Some(mapped) = value.strip_prefix("url(#").and_then(|rest| rest.strip_suffix(')')).and_then(|id| ids.get(id)) { *value = format!("url(#{mapped})"); }
+        }
+    }
     attrs
 }
 
@@ -322,13 +329,13 @@ fn walk(site: &Site, id: &str, path: &mut BTreeSet<String>, visited: &mut BTreeS
 }
 
 fn validate_node(node: &Node, site: &Site) -> Result<(), String> {
-    const TAGS: &[&str] = &["div", "main", "section", "article", "header", "footer", "nav", "aside", "h1", "h2", "h3", "h4", "h5", "h6", "p", "span", "a", "button", "img", "figure", "figcaption", "ul", "ol", "li", "dl", "dt", "dd", "blockquote", "strong", "em", "small", "b", "i", "br", "hr", "form", "label", "input", "textarea", "select", "option", "fieldset", "legend", "details", "summary", "table", "thead", "tbody", "tr", "th", "td", "caption", "time", "code", "pre", "video", "audio", "source", "wbr", "svg", "g", "path"];
+    const TAGS: &[&str] = &["div", "main", "section", "article", "header", "footer", "nav", "aside", "h1", "h2", "h3", "h4", "h5", "h6", "p", "span", "a", "button", "img", "figure", "figcaption", "ul", "ol", "li", "dl", "dt", "dd", "blockquote", "strong", "em", "small", "b", "i", "br", "hr", "form", "label", "input", "textarea", "select", "option", "fieldset", "legend", "details", "summary", "table", "thead", "tbody", "tr", "th", "td", "caption", "time", "code", "pre", "sup", "sub", "tfoot", "video", "audio", "source", "wbr", "svg", "g", "path", "defs", "linearGradient", "radialGradient", "stop", "clipPath", "mask", "text", "textPath"];
     if !TAGS.contains(&node.tag.as_str()) { return Err(format!("unsupported tag {}", node.tag)); }
     vector::check_node(node, site)?;
     if node.text.len() > 100000 || node.name.len() > 1000 || node.attrs.len() > 100 || node.interactions.len() > 20 { return Err("node content exceeds limit".into()); }
     if void_tag(&node.tag) && (!node.children.is_empty() || !node.text.is_empty()) { return Err("void elements cannot contain text or children".into()); }
     for (name, value) in &node.attrs {
-        let allowed = ["id", "class", "title", "role", "href", "src", "alt", "target", "rel", "type", "name", "value", "placeholder", "required", "checked", "disabled", "multiple", "selected", "min", "max", "step", "pattern", "minlength", "maxlength", "autocomplete", "for", "method", "action", "enctype", "loading", "width", "height", "tabindex", "open", "datetime", "colspan", "rowspan", "scope", "controls", "muted", "loop", "poster", "preload"].contains(&name.as_str())
+        let allowed = ["id", "class", "title", "role", "href", "src", "alt", "target", "rel", "type", "name", "value", "placeholder", "required", "checked", "disabled", "multiple", "selected", "min", "max", "step", "pattern", "minlength", "maxlength", "autocomplete", "for", "method", "action", "enctype", "loading", "width", "height", "tabindex", "open", "datetime", "colspan", "rowspan", "scope", "controls", "muted", "loop", "poster", "preload", "accept"].contains(&name.as_str())
             || (name.starts_with("aria-") && identifier(&name[5..])) || (name.starts_with("data-") && identifier(&name[5..])) || vector::attr_allowed(&node.tag, name);
         if !allowed || value.len() > vector::max_len(&node.tag, name) || name.starts_with("on") { return Err(format!("unsupported attribute {name}")); }
         if vector::is_tag(&node.tag) { vector::check_attr(&node.tag, name, value)?; }

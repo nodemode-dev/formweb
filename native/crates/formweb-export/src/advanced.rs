@@ -18,7 +18,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     let mut warnings = BTreeSet::new();
     if base == "https://example.com" { warnings.insert("Set the public base URL before deploying canonical URLs and sitemap".to_string()); }
     if gated { warnings.insert("Private routes require backend membership authorization before serving; editable source JSON is omitted".into()); }
-    let mut files = vec![json!({"path":"assets/site.css","content":crate::route_styles::base(site)}),json!({"path":"assets/runtime.js","content":format!("{}{}",include_str!("runtime.js"),crate::embed::GATE_RUNTIME)})];
+    let mut files = vec![json!({"path":"assets/site.css","content":crate::route_styles::base(site)}),json!({"path":"assets/runtime.js","content":format!("{}{}{}",include_str!("runtime.js"),crate::wishlist::SCRIPT,crate::embed::GATE_RUNTIME)})];
     files.extend(code::files(site)?);
     let mut asset_access:BTreeMap<String,BTreeSet<String>>=BTreeMap::new();
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n");
@@ -28,7 +28,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         files.push(json!({"path":css_path,"content":crate::route_styles::render(site,&route.page.root)}));
         let links = routing::links(site, route, &routes);
         let mut records = vec![];
-        let mut renderer = Renderer { site, locale:&route.locale,forms,prefix:&prefix,warnings:&mut warnings,interactions:&mut records,budget:100000,links:Some(&links) };
+        let mut renderer = Renderer { site, locale:&route.locale,forms,prefix:&prefix,warnings:&mut warnings,interactions:&mut records,budget:250000,links:Some(&links) };
         let ids = subtree_ids(site, &route.page.root);
         let suffix = route.item.as_ref().map(|i| format!("-{}-{}", route.collection.as_deref().unwrap_or("item"),i.id)).unwrap_or_default();
         let ids: Strings = ids.into_iter().map(|id| { let mapped = format!("{id}{suffix}"); (id,mapped) }).collect();
@@ -74,6 +74,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
 pub fn styles(site:&Site)->String {
     let mut css=String::from(":root{--fw-layer-dialog:300}.fw-widget{min-height:96px}.fw-widget-status,.fw-field-error{display:block;min-height:1.5em}.fw-pagination{display:flex;align-items:center;gap:12px;min-height:44px}.fw-pagination-output{min-width:8ch;font-variant-numeric:tabular-nums}dialog[data-fw-overlay]{position:fixed;z-index:var(--fw-layer-dialog);max-width:min(90vw,680px);max-height:90vh;overflow:auto;border:0;border-radius:12px;padding:24px}dialog::backdrop{background:rgb(0 0 0 / .5)}[data-fw-list]>[hidden]{display:none!important}\n");
     css.push_str("[data-fw-widget=fetch]{height:160px;overflow:auto}[data-fw-widget=product]{height:300px;overflow:auto}[data-fw-product-title]{min-height:2.5em}[data-fw-price]{min-height:1.5em}[data-fw-widget=member-login]{height:240px;overflow:auto}.fw-widget-status{height:3em;overflow:auto}\n");
+    css.push_str(&crate::wishlist::css(site));
     if let Some(nodes)=site.extensions.get("behaviors").and_then(|v|v.get("nodes")).and_then(Value::as_object) {
         for(id,node)in nodes { if let Some(states)=node.get("states").and_then(Value::as_object) { for(state,styles)in states { let pseudo=match state.as_str(){"hover"=>":hover","focus"=>":focus-within","press"=>"[data-fw-press]",_=>continue};css.push_str(&format!("[data-fw-node=\"{id}\"]{pseudo}{{"));if let Some(styles)=styles.as_object(){for(key,value)in styles{if let Some(value)=value.as_str(){css.push_str(&format!("{key}:{value};"));}}}css.push_str("}\n"); } } }
     }
@@ -91,7 +92,7 @@ pub fn record(site:&Site,node:&Node,id:&str,scope:&str)->Option<Value> {
     config.map(|config|json!({"id":id,"scope":scope,"actions":config.get("actions"),"conditions":config.get("conditions")}))
 }
 pub fn form_extra(site:&Site,node:&Node)->String {
-    let mut output=String::new();
+    let mut output=crate::wishlist::form_steps(site,node);
     if let Some(tracking)=site.extensions.get("forms").and_then(|v|v.get("forms")).and_then(|v|v.get(&node.id)).and_then(|v|v.get("tracking")).and_then(Value::as_object) { for(name,key)in tracking{if let Some(key)=key.as_str(){let authored=site.nodes.values().any(|field|field.tag=="input"&&field.attrs.get("type").map(String::as_str)==Some("hidden")&&!field.attrs.contains_key("disabled")&&field.attrs.get("name")==Some(name)&&descendant(site,&node.id,&field.id));if !authored{output.push_str(&format!("<input type=\"hidden\" name=\"{}\" data-fw-track=\"{}\" value=\"\">",escape(name),escape(key)));}}} }
     output
 }

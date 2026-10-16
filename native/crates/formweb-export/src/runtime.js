@@ -134,7 +134,7 @@
       }
     }
   }
-  for (const list of document.querySelectorAll('[data-fw-list]')) {
+  for (const list of document.querySelectorAll('[data-fw-list]:not([data-fw-managed])')) {
     const rows = Array.from(list.children).filter(node => node.hasAttribute('data-fw-item'));
     const size = Math.max(1, Number(list.dataset.fwPageSize));
     const navigation = list.querySelector('[data-fw-pagination]');
@@ -159,8 +159,9 @@
       for (const output of errors.values()) output.textContent = '';
       try {
         const fields = new FormData(form);
-        if (Array.from(fields.values()).some(value => typeof value !== 'string')) throw Error('File uploads are unavailable');
-        const response = await fetch(form.action, { method: 'POST', body: new URLSearchParams(fields), headers: { Accept: 'application/json' } });
+        const encoded = window.fwEncodeForm ? await window.fwEncodeForm(form, fields) : null;
+        if (!encoded && Array.from(fields.values()).some(value => typeof value !== 'string')) throw Error('File uploads are unavailable');
+        const response = await fetch(form.action, { method: 'POST', body: encoded ? encoded.body : new URLSearchParams(fields), headers: { Accept: 'application/json', ...(encoded ? { 'Content-Type': encoded.type } : {}) } });
         const result = await response.json();
         if (!response.ok) { for (const [name, message] of Object.entries(result.errors || {})) { const output = errors.get(name); if (output) output.textContent = String(message); } throw Error(result.detail || 'Submission failed'); }
         if (status) status.textContent = result.successMessage || settings.successMessage || 'Thank you. Your message has been received.';

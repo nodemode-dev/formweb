@@ -11,6 +11,7 @@ mod inline_module;
 mod routing;
 mod route_styles;
 mod scope;
+mod wishlist;
 
 fn escape(value: &str) -> String {
     value.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&#39;")
@@ -46,7 +47,7 @@ fn translation(site: &Site, locale: &str, key: &str, fallback: &str) -> String {
 
 pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     validate(site)?;
-    if !site.extensions.is_empty() { return advanced::export(site, params); }
+    if !site.extensions.is_empty() || wishlist::needs_advanced(site) { return advanced::export(site, params); }
     let locale = params.get("locale").map(|v| v.as_str().ok_or("locale must be a string")).transpose()?.unwrap_or(&site.default_locale);
     if locale != site.default_locale && !site.locales.contains_key(locale) { return Err("unknown locale".into()); }
     let base = params.get("baseUrl").map(|v| v.as_str().ok_or("baseUrl must be a string")).transpose()?.or_else(|| site.settings.get("baseUrl").map(String::as_str)).unwrap_or("https://example.com").trim_end_matches('/');
@@ -69,7 +70,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         let prefix = "../".repeat(if route.is_empty() { 0 } else { route.split('/').count() });
         let canonical = if route.is_empty() { format!("{base}/") } else { format!("{base}/{route}/") };
         let mut interactions = vec![];
-        let mut render = Renderer { site, locale, forms, prefix: &prefix, warnings: &mut warnings, interactions: &mut interactions, budget: 100000, links: None };
+        let mut render = Renderer { site, locale, forms, prefix: &prefix, warnings: &mut warnings, interactions: &mut interactions, budget: 250000, links: None };
         let body = render.node(&page.root, None, None)?;
         let title = translation(site, locale, &format!("{}.title", page.id), &page.seo.title);
         let description = translation(site, locale, &format!("{}.description", page.id), &page.seo.description);
@@ -143,7 +144,7 @@ struct Renderer<'a> {
 
 impl Renderer<'_> {
     fn node(&mut self, id: &str, context: Option<RenderContext<'_>>, repeated: Option<&str>) -> Result<String, String> {
-        if self.budget == 0 { return Err("CMS expansion exceeds 100000 rendered nodes".into()); }
+        if self.budget == 0 { return Err("CMS expansion exceeds 250000 rendered nodes on one page".into()); }
         self.budget -= 1;
         let node = &self.site.nodes[id];
         if cms::is_empty_target(self.site, id) && repeated != Some("__empty") { return Ok(String::new()); }
@@ -155,6 +156,7 @@ impl Renderer<'_> {
                     if let Some(empty) = cms::empty_target(self.site, id) { return self.node(empty, context, Some("__empty")); }
                     return Ok(String::new());
                 }
+                if let Some(html) = wishlist::list(self, id, collection_id, &items, context)? { return Ok(html); }
                 let mut result = String::new();
                 let page_size = cms::page_size(self.site, id);
                 if let Some(size) = page_size { result.push_str(&format!("<div data-fw-list=\"{}\" data-fw-page-size=\"{}\">", escape(id), size)); }
