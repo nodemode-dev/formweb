@@ -15,6 +15,7 @@ import { TeamLibraries, type TeamLibrary, type TeamLibrarySummary } from './feat
 import { BackgroundRemover, type BackgroundStatus } from './features/background-remover';
 import { StockLibrary } from './features/stock-library';
 import { AiWriter, SiteGenerator } from './features/ai-writer';
+import { installVector } from './vector';
 import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -159,7 +160,7 @@ const brand = element('div', 'brand');
 brand.innerHTML = BRAND_MARK;
 brand.append(element('span', 'brand-name', 'formweb'));
 brand.title = 'formweb by NodeMode';
-const menubar = new Menubar(['File', 'Edit', 'Insert', 'Page', 'Arrange', 'CMS', 'View', 'Window', 'Help'], overlay);
+const menubar = new Menubar(['File', 'Edit', 'Insert', 'Page', 'Arrange', 'Vector', 'CMS', 'View', 'Window', 'Help'], overlay);
 const titleTools = element('div', 'fw-title-tools');
 const topActions = element('div', 'top-actions');
 async function toggleAgents(): Promise<void> {
@@ -1578,6 +1579,8 @@ registerCommands([
   { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: 'Ctrl Alt J', group: 3, run: () => terminalDock.chat() },
   { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
 ]);
+const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
+registerCommands(vector.commands);
 menubar.build();
 exposeToAgents();
 document.addEventListener('nm:ui-settings-changed', () => { themeSelect.value = readChoice().theme; themeButton.classList.toggle('is-on', readChoice().theme === 'light'); });
