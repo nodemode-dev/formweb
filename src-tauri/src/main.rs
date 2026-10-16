@@ -26,6 +26,33 @@ const SCREEN_FRACTION: f64 = 0.9;
 
 struct Service(Mutex<Option<Child>>);
 
+#[cfg(unix)]
+static SERVICE_GROUP: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+
+#[cfg(unix)]
+extern "C" {
+    fn signal(signum: i32, handler: usize) -> usize;
+    fn kill(pid: i32, sig: i32) -> i32;
+    fn _exit(code: i32) -> !;
+}
+
+/// A terminate, interrupt or hangup signal skips Tauri's exit event, so stop the service's process group here.
+#[cfg(unix)]
+extern "C" fn on_signal(_: i32) {
+    let group = SERVICE_GROUP.load(std::sync::atomic::Ordering::SeqCst);
+    unsafe {
+        if group > 0 { kill(-group, 15); }
+        _exit(0)
+    }
+}
+
+#[cfg(unix)]
+fn watch_signals() {
+    for number in [1, 2, 15] {
+        unsafe { signal(number, on_signal as *const () as usize); }
+    }
+}
+
 /// True when the FormWeb service answers its health route.
 fn healthy() -> bool {
     let Ok(mut stream) = TcpStream::connect_timeout(&([127, 0, 0, 1], PORT).into(), Duration::from_millis(400)) else { return false };
@@ -79,7 +106,15 @@ fn start_sidecar(path: &Path) -> std::io::Result<Child> {
 fn stop_service(handle: &tauri::AppHandle) {
     if let Some(mut child) = handle.state::<Service>().0.lock().unwrap().take() {
         #[cfg(unix)]
-        let _ = Command::new("kill").args(["-TERM", &format!("-{}", child.id())]).status();
+        {
+            let group = child.id() as i32;
+            unsafe { kill(-group, 15); }
+            let deadline = Instant::now() + Duration::from_secs(5);
+            while matches!(child.try_wait(), Ok(None)) && Instant::now() < deadline {
+                std::thread::sleep(Duration::from_millis(100));
+            }
+            unsafe { kill(-group, 9); }
+        }
         #[cfg(windows)]
         let _ = Command::new("taskkill").args(["/T", "/F", "/PID", &child.id().to_string()]).status();
         let _ = child.kill();
@@ -108,6 +143,8 @@ fn open_editor(handle: &tauri::AppHandle) {
 }
 
 fn main() {
+    #[cfg(unix)]
+    watch_signals();
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
@@ -122,7 +159,10 @@ fn main() {
                         None => formweb_root().map(|root| start_service(&root)),
                     };
                     match started {
-                        Some(Ok(child)) => { handle.state::<Service>().0.lock().unwrap().replace(child); }
+                        Some(Ok(child)) => {
+                            #[cfg(unix)]
+                            SERVICE_GROUP.store(child.id() as i32, std::sync::atomic::Ordering::SeqCst);
+                            handle.state::<Service>().0.lock().unwrap().replace(child); }
                         Some(Err(error)) => {
                             handle.dialog().message(format!("FormWeb could not start its local service: {error}")).blocking_show();
                             std::process::exit(1);
