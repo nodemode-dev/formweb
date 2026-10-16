@@ -24,8 +24,8 @@ export interface Shape { id: string; svg: string; subs: SubPath[]; paint: Paint 
 
 export const defaultPaint: Paint = { align: 'center', fill: '#f97316', stroke: 'none', strokeWidth: 2, cap: 'butt', join: 'miter', miter: 4, dash: '', dashOffset: 0, fillRule: 'nonzero', opacity: 1 };
 
-export const VECTOR_TAGS = new Set(['svg', 'g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath', 'symbol', 'use']);
-export const DEF_TAGS = new Set(['defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask']);
+export const VECTOR_TAGS = new Set(['svg', 'g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath', 'symbol', 'use', 'pattern']);
+export const DEF_TAGS = new Set(['defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'pattern']);
 export const REF_PATTERN = /^url\(#([A-Za-z0-9_-]{1,64})\)$/;
 
 export function refOf(paint: string | undefined): string | undefined {

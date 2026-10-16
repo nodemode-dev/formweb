@@ -1,5 +1,9 @@
 # Backend context
 
+## SVG pattern in the asset cleaner · v0.9.7 (2026-10-16)
+
+`app/assets.py`: `pattern` joins `SVG_TAGS` and `SVG_DEFINITIONS`, and `patternUnits` and `patternTransform` join `SVG_ATTRS`, mirroring the Rust model and the canvas so an imported SVG keeps a pattern fill. `href` on any element still has to be a fragment naming a definition in the same file (`svg_value_ok`), so no external pattern can come in; the model separately refuses `href` on a pattern altogether. compileall passed; the cleaner path was not driven with a pattern-bearing SVG this release.
+
 ## MCP apply_commands limit · v0.8.4 (2026-10-16)
 
 `app/mcp_catalog.py`: the `apply_commands` schema `maxItems` went from 200 to 4000 and the description says "up to 4000", matching `Batch.commands` in `main.py` (4000) and the engine `batch` command. `mcp_server.py` has no count check of its own: `call_tool` validates the arguments against the catalog schema, so the schema is the single place the limit lives. The size guards are unchanged: the `/mcp` route is bounded by `MAX_PROJECT_FILE_BYTES`, the batch then goes through `studio.mutate('batch')` to the engine, which still caps a site at 10000 nodes, and destructive commands in the batch still wait for approval when Agent Connect asks for it. Checked with the catalog schema: 1, 300 and 4000 commands validate and 4001 is refused. `compileall` clean (pycache removed).

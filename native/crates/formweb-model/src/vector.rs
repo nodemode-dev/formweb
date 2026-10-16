@@ -11,7 +11,7 @@ const SHARED: &[&str] = &[
 const DATA_LIMIT: usize = 262_144;
 
 pub fn is_tag(tag: &str) -> bool {
-    matches!(tag, "svg" | "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "stop" | "clipPath" | "mask" | "text" | "textPath" | "symbol" | "use")
+    matches!(tag, "svg" | "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "stop" | "clipPath" | "mask" | "text" | "textPath" | "symbol" | "use" | "pattern")
 }
 
 pub fn attr_allowed(tag: &str, name: &str) -> bool {
@@ -30,6 +30,7 @@ pub fn attr_allowed(tag: &str, name: &str) -> bool {
         || (tag == "text" && matches!(name, "x" | "y" | "dy" | "font-size" | "font-family" | "font-weight" | "letter-spacing" | "text-anchor"))
         || (tag == "textPath" && matches!(name, "startOffset" | "dy"))
         || (tag == "use" && matches!(name, "x" | "y" | "width" | "height"))
+        || (tag == "pattern" && matches!(name, "x" | "y" | "width" | "height" | "patternUnits" | "patternTransform"))
 }
 
 pub fn max_len(tag: &str, name: &str) -> usize {
@@ -38,8 +39,9 @@ pub fn max_len(tag: &str, name: &str) -> usize {
 
 fn child_ok(parent: &str, child: &str) -> bool {
     match parent {
-        "svg" | "g" => matches!(child, "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "clipPath" | "mask" | "text" | "use"),
-        "defs" => matches!(child, "linearGradient" | "radialGradient" | "clipPath" | "mask" | "symbol"),
+        "svg" | "g" => matches!(child, "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "clipPath" | "mask" | "text" | "use" | "pattern"),
+        "defs" => matches!(child, "linearGradient" | "radialGradient" | "clipPath" | "mask" | "symbol" | "pattern"),
+        "pattern" => matches!(child, "g" | "path"),
         "symbol" => matches!(child, "g" | "path" | "text"),
         "linearGradient" | "radialGradient" => child == "stop",
         "clipPath" => child == "path",
@@ -76,7 +78,7 @@ fn url_target(value: &str) -> Option<&str> {
 fn scan(site: &Site, node: &Node, depth: usize, refs: &mut Refs) -> Result<(), String> {
     if depth > 64 { return Err("vector nesting exceeds 64".into()); }
     if let Some(id) = node.attrs.get("id") {
-        if matches!(node.tag.as_str(), "linearGradient" | "radialGradient" | "clipPath" | "mask") { refs.defined.insert(id.clone()); }
+        if matches!(node.tag.as_str(), "linearGradient" | "radialGradient" | "clipPath" | "mask" | "pattern") { refs.defined.insert(id.clone()); }
         if node.tag == "path" { refs.paths.insert(id.clone()); }
     }
     for name in ["fill", "stroke", "clip-path", "mask"] {
@@ -105,6 +107,7 @@ pub fn check_node(node: &Node, site: &Site) -> Result<(), String> {
     if vector_parent && !node.text.is_empty() && node.tag != "textPath" { return Err("vector elements cannot contain text".into()); }
     if node.tag == "textPath" && (node.text.chars().count() > 500 || node.text.contains(['<', '>'])) { return Err("path text is too long or has markup".into()); }
     if node.tag == "path" && !node.children.is_empty() { return Err("path cannot have children".into()); }
+    if node.tag == "pattern" && node.attrs.contains_key("href") { return Err("a pattern cannot reference another pattern".into()); }
     for child in &node.children {
         let Some(child) = site.nodes.get(child) else { continue };
         let vector_child = is_tag(&child.tag);

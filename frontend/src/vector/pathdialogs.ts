@@ -8,6 +8,7 @@ import type { SubPath } from './geometry';
 import { updateGeometry } from './store';
 import { defaultTweak, tweakSubs, type TweakOptions } from './tweak';
 import { BLOB_MAX_SIZE, blobOptions, setBlobOptions } from './blob';
+import { BRICK_OFFSETS, patternCommands, patternOptions, patternParts, tileSize, type TileType } from './pattern';
 
 interface Shell { root: HTMLElement; open(focus?: HTMLElement): void; close(): void }
 
@@ -339,3 +340,81 @@ class BlobDialog {
 
 let blobDialog: BlobDialog | undefined;
 export const openBlobOptions = (): void => { (blobDialog ??= new BlobDialog()).open(); };
+
+/* Object > Pattern > Make, Pattern Options */
+
+function selectField(label: string, choices: [string, string][]): { field: HTMLElement; input: HTMLSelectElement } {
+  const input = element('select', 'fw-v-input');
+  for (const [value, text] of choices) { const option = element('option', '', text); option.value = value; input.append(option); }
+  const field = element('div', 'field');
+  field.append(element('span', 'field-label', label), input);
+  return { field, input };
+}
+
+class PatternDialog {
+  private dialog: Shell | null = null;
+  private host: Host | null = null;
+  private tile = selectField(t('Tile type'), [['grid', t('Grid')], ['brick-row', t('Brick by Row')], ['brick-column', t('Brick by Column')]]);
+  private offset = selectField(t('Brick offset'), BRICK_OFFSETS.map(([v, label]) => [String(v), label]));
+  private fit = checkRow(t('Size Tile to Art'));
+  private width = numberField(t('Width'), 1, 100000, 0.1);
+  private height = numberField(t('Height'), 1, 100000, 0.1);
+  private hSpace = numberField(t('H Spacing'), -100000, 100000, 0.1);
+  private vSpace = numberField(t('V Spacing'), -100000, 100000, 0.1);
+
+  private build(): Shell {
+    const size = element('div', 'fw-v-row');
+    size.append(this.width.field, this.height.field);
+    const space = element('div', 'fw-v-row');
+    space.append(this.hSpace.field, this.vSpace.field);
+    const root = shell(t('Pattern Options'), [this.tile.field, this.offset.field, this.fit.row, size, space,
+      element('p', 'fw-v-note', t('The last selected shape gets the pattern fill; the other selected shapes become the tile.'))], () => this.apply(), t('Make pattern'));
+    root.root.addEventListener('change', () => this.sync());
+    return root;
+  }
+
+  private sync(): void {
+    const brick = this.tile.input.value !== 'grid';
+    if (this.offset.input.disabled === brick) this.offset.input.disabled = !brick;
+    const fit = this.fit.input.checked;
+    if (this.width.input.disabled !== fit) { this.width.input.disabled = fit; this.height.input.disabled = fit; }
+    if (this.hSpace.input.disabled === fit) { this.hSpace.input.disabled = !fit; this.vSpace.input.disabled = !fit; }
+  }
+
+  open(host: Host): void {
+    const parts = patternParts(host);
+    if (!parts) { host.notify(t('Select the tile artwork, then the shape to fill last.')); return; }
+    this.host = host;
+    const o = patternOptions;
+    const [w, h] = tileSize(parts, { ...o, sizeToArt: true });
+    this.tile.input.value = o.tile;
+    this.offset.input.value = String(o.offset);
+    this.fit.input.checked = o.sizeToArt;
+    this.width.input.value = String(Math.round((o.sizeToArt ? w : o.width) * 100) / 100);
+    this.height.input.value = String(Math.round((o.sizeToArt ? h : o.height) * 100) / 100);
+    this.hSpace.input.value = String(o.hSpace);
+    this.vSpace.input.value = String(o.vSpace);
+    this.dialog = this.dialog ?? this.build();
+    this.sync();
+    this.dialog.open(this.tile.input);
+  }
+
+  private apply(): void {
+    const host = this.host;
+    if (!host) return;
+    const num = (input: { value: string }, fallback: number): number => { const v = parseFloat(input.value); return Number.isFinite(v) ? v : fallback; };
+    Object.assign(patternOptions, {
+      tile: this.tile.input.value as TileType, offset: num(this.offset.input, 0.5), sizeToArt: this.fit.input.checked,
+      width: Math.max(1, num(this.width.input, 50)), height: Math.max(1, num(this.height.input, 50)), hSpace: num(this.hSpace.input, 0), vSpace: num(this.vSpace.input, 0)
+    });
+    const parts = patternParts(host);
+    this.host = null;
+    this.dialog?.close();
+    if (!parts) return;
+    const made = patternCommands(host, parts, patternOptions);
+    void host.commit(made.cmds, [parts.target.id]);
+  }
+}
+
+let patternDialog: PatternDialog | undefined;
+export const openPattern = (host: Host): void => { (patternDialog ??= new PatternDialog()).open(host); };
