@@ -1864,4 +1864,12 @@ export default [
   "Teksten får ikke plass i denne formen.",
   "Overflyt: {0} ord fikk ikke plass i formen.",
   "Overflyt: {0} ord fikk ikke plass i formen.",
+  "Tegnebrett",
+  "Nytt tegnebrett",
+  "Ingen tegnebrett på noen side ennå.",
+  "Navn på tegnebrett",
+  "Tilpass til grafikk",
+  "Endre størrelse",
+  "Dette tegnebrettet har ingen baner å tilpasse.",
+  "Bredde og høyde må være mellom 1 og 20000.",
 ] as readonly string[];

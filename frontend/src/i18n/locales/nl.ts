@@ -1864,4 +1864,12 @@ export default [
   "De tekst past niet in deze vorm.",
   "Overloop: {0} woord paste niet in de vorm.",
   "Overloop: {0} woorden pasten niet in de vorm.",
+  "Tekengebieden",
+  "Nieuw tekengebied",
+  "Nog geen tekengebieden op een pagina.",
+  "Naam van tekengebied",
+  "Aan illustratie aanpassen",
+  "Formaat wijzigen",
+  "Dit tekengebied heeft geen paden om aan te passen.",
+  "Breedte en hoogte moeten tussen 1 en 20000 liggen.",
 ] as readonly string[];

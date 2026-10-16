@@ -1864,4 +1864,12 @@ export default [
   "Teksti ei mahdu tähän muotoon.",
   "Ylivuoto: {0} sana ei mahtunut muotoon.",
   "Ylivuoto: {0} sanaa ei mahtunut muotoon.",
+  "Piirtoalueet",
+  "Uusi piirtoalue",
+  "Millään sivulla ei ole vielä piirtoalueita.",
+  "Piirtoalueen nimi",
+  "Sovita kuvitukseen",
+  "Muuta kokoa",
+  "Tällä piirtoalueella ei ole sovitettavia polkuja.",
+  "Leveyden ja korkeuden on oltava välillä 1 ja 20000.",
 ] as readonly string[];

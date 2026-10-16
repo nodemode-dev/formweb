@@ -14,6 +14,7 @@ import { addAnchorCommands, divideBelowCommands, removeAnchorCommands } from './
 import { openExportScreens } from './exportscreens';
 import { openAreaType, openCleanUp, openPattern, openSplitGrid, openTweak } from './pathdialogs';
 import { objectsOnPathCommands } from './objectsonpath';
+import { ArtboardsPanel } from './artboards';
 import { viewCommands } from './view';
 
 export type { VectorContext, ToolId } from './editor';
@@ -33,6 +34,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
   editor.shortcuts = options.shortcuts !== false;
   const panel = new VectorPanel(editor, ctx.panelHost ?? document.body);
   subscribe(() => editor.refresh());
+  const artboards = new ArtboardsPanel(editor.host(), id => ctx.select(id), () => ctx.pageRoot());
 
   const commandId: Record<ToolId, string> = {
     select: 'vector.select', direct: 'vector.direct', pen: 'vector.pen', curvature: 'vector.curvature', add: 'vector.add-anchor', delete: 'vector.delete-anchor',
@@ -124,6 +126,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.snap.toggle', label: 'Smart guides and snapping', menu: MENU, keys: 'Mod+Shift+;', group: 8, run: () => { editor.extras.snapping = !editor.extras.snapping; editor.emit(); }, checked: () => editor.extras.snapping },
     { id: 'vector.recolor', label: 'Recolor artwork...', menu: 'Edit', group: 3, run: () => openRecolor(editor.host(), () => editor.panelSvg()), enabled: () => { try { return !!(editor.activeSvg() ?? editor.panelSvg()); } catch { return false; } } },
     { id: 'vector.graphic-styles', label: 'Graphic styles', menu: 'Window', group: 6, run: () => openGraphicStyles(editor.host()) },
+    { id: 'vector.artboards', label: 'Artboards', menu: 'Window', group: 6, run: () => artboards.toggle() },
     ...viewCommands(editor.view, () => editor.tool !== null, () => editor.render()),
     { id: 'vector.svg.import', label: 'Import SVG...', menu: MENU, group: 5, run: () => panel.pickFile() },
     { id: 'vector.trace', label: 'Image Trace', menu: MENU, keys: 'Mod+Alt+Shift+T', group: 5, run: () => runTrace() },

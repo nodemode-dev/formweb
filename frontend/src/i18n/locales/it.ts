@@ -1864,4 +1864,12 @@ export default [
   "Il testo non entra in questa forma.",
   "Testo in eccesso: {0} parola non è entrata nella forma.",
   "Testo in eccesso: {0} parole non sono entrate nella forma.",
+  "Tavole da disegno",
+  "Nuova tavola da disegno",
+  "Ancora nessuna tavola da disegno nelle pagine.",
+  "Nome della tavola da disegno",
+  "Adatta al disegno",
+  "Ridimensiona",
+  "Questa tavola da disegno non ha tracciati da adattare.",
+  "Larghezza e altezza devono essere tra 1 e 20000.",
 ] as readonly string[];

@@ -1864,4 +1864,12 @@ export default [
   "Văn bản không vừa trong hình này.",
   "Tràn: {0} từ không vừa trong hình.",
   "Tràn: {0} từ không vừa trong hình.",
+  "Bảng vẽ",
+  "Bảng vẽ mới",
+  "Chưa có bảng vẽ nào trên các trang.",
+  "Tên bảng vẽ",
+  "Khớp với hình vẽ",
+  "Đổi kích thước",
+  "Bảng vẽ này không có đường dẫn để khớp.",
+  "Chiều rộng và chiều cao phải từ 1 đến 20000.",
 ] as readonly string[];

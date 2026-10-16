@@ -1864,4 +1864,12 @@ export default [
   "Der Text passt nicht in diese Form.",
   "Übersatz: {0} Wort passte nicht in die Form.",
   "Übersatz: {0} Wörter passten nicht in die Form.",
+  "Zeichenflächen",
+  "Neue Zeichenfläche",
+  "Noch keine Zeichenflächen auf einer Seite.",
+  "Name der Zeichenfläche",
+  "An Bildmaterial anpassen",
+  "Größe ändern",
+  "Diese Zeichenfläche enthält keine Pfade zum Anpassen.",
+  "Breite und Höhe müssen zwischen 1 und 20000 liegen.",
 ] as readonly string[];

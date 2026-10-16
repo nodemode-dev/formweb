@@ -1864,4 +1864,12 @@ export default [
   "A szöveg nem fér el ebben az alakzatban.",
   "Túlcsordulás: {0} szó nem fért el az alakzatban.",
   "Túlcsordulás: {0} szó nem fért el az alakzatban.",
+  "Rajztáblák",
+  "Új rajztábla",
+  "Még egyik oldalon sincs rajztábla.",
+  "Rajztábla neve",
+  "Igazítás a grafikához",
+  "Átméretezés",
+  "Ezen a rajztáblán nincs igazítható útvonal.",
+  "A szélességnek és a magasságnak 1 és 20000 között kell lennie.",
 ] as readonly string[];

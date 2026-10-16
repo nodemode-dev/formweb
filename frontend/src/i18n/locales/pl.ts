@@ -1864,4 +1864,12 @@ export default [
   "Tekst nie mieści się w tym kształcie.",
   "Nadmiar: {0} słowo nie zmieściło się w kształcie.",
   "Nadmiar: słowa, które się nie zmieściły: {0}.",
+  "Obszary robocze",
+  "Nowy obszar roboczy",
+  "Na żadnej stronie nie ma jeszcze obszarów roboczych.",
+  "Nazwa obszaru roboczego",
+  "Dopasuj do grafiki",
+  "Zmień rozmiar",
+  "Ten obszar roboczy nie ma ścieżek do dopasowania.",
+  "Szerokość i wysokość muszą mieścić się między 1 a 20000.",
 ] as readonly string[];

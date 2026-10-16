@@ -83,6 +83,15 @@
 .fw-v-body .fw-v-stack .fw-v-btn { justify-content: flex-start; height: auto; min-height: var(--ctl-md); padding: var(--space-1) var(--space-2); border-color: var(--line-1); text-align: left; white-space: normal; }
 .fw-v-body .fw-v-stack .fw-v-btn.is-on { border-color: var(--accent-color); color: var(--text-primary); }
 .fw-v-brushdlg { width: 300px; max-height: 76vh; overflow-y: auto; }
+.fw-v-artboards { width: 340px; }
+.fw-v-artboards > .fw-v-row:first-child { justify-content: space-between; align-items: center; }
+.fw-v-boardarea { height: min(40vh, 300px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.fw-v-boardarea::-webkit-scrollbar { display: none; }
+.fw-v-boardlist { display: flex; flex-direction: column; gap: var(--space-2); }
+.fw-v-boardarea .fw-v-note[hidden] { display: none; }
+.fw-v-board { display: flex; flex-direction: column; gap: var(--space-1); padding-bottom: var(--space-2); border-bottom: 1px solid var(--line-1); }
+.fw-v-board .fw-v-row { flex-wrap: wrap; }
+.fw-v-boardsize { min-height: 1.3em; color: var(--text-muted); font-size: var(--fs-10); }
 .fw-v-brushdlg .fw-v-dlgbody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
 .fw-v-brushdlg .fw-v-dlgbody > [hidden] { display: none; }
 .fw-v-brushdlg .field.full, .fw-v-brushdlg .fw-v-checkrow { grid-column: 1 / -1; }

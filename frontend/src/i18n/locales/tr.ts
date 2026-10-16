@@ -1864,4 +1864,12 @@ export default [
   "Metin bu şekle sığmıyor.",
   "Taşma: {0} sözcük şekle sığmadı.",
   "Taşma: {0} sözcük şekle sığmadı.",
+  "Çalışma Yüzeyleri",
+  "Yeni çalışma yüzeyi",
+  "Henüz hiçbir sayfada çalışma yüzeyi yok.",
+  "Çalışma yüzeyi adı",
+  "Resme sığdır",
+  "Yeniden boyutlandır",
+  "Bu çalışma yüzeyinde sığdırılacak yol yok.",
+  "Genişlik ve yükseklik 1 ile 20000 arasında olmalıdır.",
 ] as readonly string[];

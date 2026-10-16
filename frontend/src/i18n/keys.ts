@@ -1864,4 +1864,12 @@ export const KEYS: readonly string[] = [
   "The text does not fit in this shape.",
   "Overflow: {0} word did not fit in the shape.",
   "Overflow: {0} words did not fit in the shape.",
+  "Artboards",
+  "New artboard",
+  "No artboards on any page yet.",
+  "Artboard name",
+  "Fit to artwork",
+  "Resize",
+  "This artboard has no paths to fit.",
+  "Width and height must be between 1 and 20000.",
 ];

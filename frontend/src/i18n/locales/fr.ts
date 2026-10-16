@@ -1864,4 +1864,12 @@ export default [
   "Le texte ne tient pas dans cette forme.",
   "Débordement : {0} mot n’a pas tenu dans la forme.",
   "Débordement : {0} mots n’ont pas tenu dans la forme.",
+  "Plans de travail",
+  "Nouveau plan de travail",
+  "Aucun plan de travail sur les pages pour l’instant.",
+  "Nom du plan de travail",
+  "Ajuster à l’illustration",
+  "Redimensionner",
+  "Ce plan de travail ne contient aucun tracé à ajuster.",
+  "La largeur et la hauteur doivent être comprises entre 1 et 20000.",
 ] as readonly string[];

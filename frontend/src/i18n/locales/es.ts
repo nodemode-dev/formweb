@@ -1864,4 +1864,12 @@ export default [
   "El texto no cabe en esta forma.",
   "Desbordamiento: {0} palabra no cupo en la forma.",
   "Desbordamiento: {0} palabras no cupieron en la forma.",
+  "Mesas de trabajo",
+  "Nueva mesa de trabajo",
+  "Aún no hay mesas de trabajo en ninguna página.",
+  "Nombre de la mesa de trabajo",
+  "Ajustar a la ilustración",
+  "Cambiar tamaño",
+  "Esta mesa de trabajo no tiene trazados que ajustar.",
+  "El ancho y el alto deben estar entre 1 y 20000.",
 ] as readonly string[];

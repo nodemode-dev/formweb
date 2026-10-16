@@ -1864,4 +1864,12 @@ export default [
   "Teks tidak muat di bentuk ini.",
   "Luapan: {0} kata tidak muat di bentuk.",
   "Luapan: {0} kata tidak muat di bentuk.",
+  "Artboard",
+  "Artboard baru",
+  "Belum ada artboard di halaman mana pun.",
+  "Nama artboard",
+  "Sesuaikan dengan gambar",
+  "Ubah ukuran",
+  "Artboard ini tidak punya jalur untuk disesuaikan.",
+  "Lebar dan tinggi harus antara 1 dan 20000.",
 ] as readonly string[];

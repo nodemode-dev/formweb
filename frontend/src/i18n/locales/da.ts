@@ -1864,4 +1864,12 @@ export default [
   "Teksten kan ikke være i denne form.",
   "Overløb: {0} ord var der ikke plads til i formen.",
   "Overløb: {0} ord var der ikke plads til i formen.",
+  "Tegnebrætter",
+  "Nyt tegnebræt",
+  "Ingen tegnebrætter på nogen side endnu.",
+  "Tegnebrættets navn",
+  "Tilpas til grafik",
+  "Skift størrelse",
+  "Dette tegnebræt har ingen stier at tilpasse.",
+  "Bredde og højde skal være mellem 1 og 20000.",
 ] as readonly string[];

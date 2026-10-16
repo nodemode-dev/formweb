@@ -1864,4 +1864,12 @@ export default [
   "Texten får inte plats i den här formen.",
   "Överflöde: {0} ord fick inte plats i formen.",
   "Överflöde: {0} ord fick inte plats i formen.",
+  "Ritytor",
+  "Ny rityta",
+  "Inga ritytor på någon sida än.",
+  "Ritytans namn",
+  "Anpassa till teckning",
+  "Ändra storlek",
+  "Den här ritytan har inga banor att anpassa.",
+  "Bredd och höjd måste vara mellan 1 och 20000.",
 ] as readonly string[];

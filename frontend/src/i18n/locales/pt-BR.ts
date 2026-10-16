@@ -1864,4 +1864,12 @@ export default [
   "O texto não cabe nesta forma.",
   "Excesso: {0} palavra não coube na forma.",
   "Excesso: {0} palavras não couberam na forma.",
+  "Pranchetas",
+  "Nova prancheta",
+  "Ainda não há pranchetas em nenhuma página.",
+  "Nome da prancheta",
+  "Ajustar à arte",
+  "Redimensionar",
+  "Esta prancheta não tem demarcadores para ajustar.",
+  "Largura e altura devem estar entre 1 e 20000.",
 ] as readonly string[];

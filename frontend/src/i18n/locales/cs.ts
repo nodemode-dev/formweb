@@ -1864,4 +1864,12 @@ export default [
   "Text se do tohoto tvaru nevejde.",
   "Přetečení: {0} slovo se do tvaru nevešlo.",
   "Přetečení: počet slov, která se nevešla: {0}.",
+  "Kreslicí plátna",
+  "Nové kreslicí plátno",
+  "Na žádné stránce zatím nejsou kreslicí plátna.",
+  "Název kreslicího plátna",
+  "Přizpůsobit kresbě",
+  "Změnit velikost",
+  "Toto kreslicí plátno nemá cesty k přizpůsobení.",
+  "Šířka a výška musí být mezi 1 a 20000.",
 ] as readonly string[];
