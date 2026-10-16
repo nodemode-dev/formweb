@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.8.6",
- "previous": "0.8.5",
+ "version": "0.8.7",
+ "previous": "0.8.6",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Dashes and arrowheads honor stroke align, dashes on variable-width strokes, continuous corner dashes (FW-159 stays Partial: sources are secondary); Brush Options freeze fixed; newer panels verified under throttling.",
+ "release_note": "Pathfinder Options and live compound shapes, 15 warp styles with live envelopes, clipping Edit Contents and Edit Clipping Path (FW-081 and FW-094 stay Partial: sources unverified, no mesh envelope); the desktop shell now builds for Windows and macOS targets.",
  "lanes": [
   [
    "m",
@@ -5551,6 +5551,12 @@
     "FW-159": "partial"
    },
    "note": "Stroke dashes and arrowheads added as Partial; Average dialog. 105 of 116."
+  },
+  {
+   "version": "0.8.6",
+   "date": "2026-10-16",
+   "same_as": "0.8.5",
+   "note": "Stroke align on dashes and arrowheads, dashed variable widths, continuous corner dashes; Brush Options freeze fixed; no grade moved. 105 of 116."
   }
  ],
  "changes": [

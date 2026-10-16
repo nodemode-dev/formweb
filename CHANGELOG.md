@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.7 · 2026-10-16
+
+- Pathfinder Options: precision, removing redundant points, and dropping unpainted pieces after Divide and Outline. Alt-click a shape mode to keep a live compound shape you can still edit, then Expand or Release it.
+- Envelopes: 15 warp styles (arc, arch, bulge, shell, flag, wave, fish, rise, fisheye, inflate, squeeze, twist and more) with bend and distortion, kept live; or fit shapes inside a top shape.
+- Clipping masks: Edit Contents and Edit Clipping Path.
+- The desktop app now has Windows and macOS icons; without them the Windows build could not finish.
+
 ## 0.8.6 · 2026-10-16
 
 - Dashed and arrowed strokes follow the stroke's inside or outside alignment, variable-width strokes can be dashed, and a dash that crosses a corner is one continuous dash with the line's corner join.
