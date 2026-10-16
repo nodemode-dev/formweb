@@ -1,5 +1,6 @@
 import { element, value } from '../ui/dom';
 import { openAverage } from './averagedialog';
+import { openPathfinderOptions } from './pfdialog';
 import type { PathfinderOp } from './boolean';
 import type { CornerType } from './geometry';
 import { vectorIcon, type VectorIcon } from './icons';
@@ -50,7 +51,7 @@ export const PATHFINDERS: { op: PathfinderOp; label: string; icon: VectorIcon }[
 
 const CORNER_TYPES: { id: CornerType; label: string }[] = [{ id: 'round', label: 'Round' }, { id: 'inverted', label: 'Inverted' }, { id: 'chamfer', label: 'Chamfer' }];
 
-function button(label: string, title: string, run: () => void, icon?: VectorIcon): HTMLButtonElement {
+function button(label: string, title: string, run: (event: MouseEvent) => void, icon?: VectorIcon): HTMLButtonElement {
   const b = element('button', 'fw-v-btn');
   b.type = 'button';
   b.title = title;
@@ -197,8 +198,14 @@ export class VectorPanel {
 
     const pathfinder = section('Pathfinder', true);
     const grid = element('div', 'fw-v-grid');
-    for (const item of PATHFINDERS) grid.append(button(item.label, `${item.label} on the selected paths`, () => editor.runPathfinder(item.op), item.icon));
-    pathfinder.body.append(grid);
+    for (const item of PATHFINDERS) grid.append(button(item.label, `${item.label} on the selected paths`, event => editor.runPathfinder(item.op, event.altKey), item.icon));
+    const compoundRow = element('div', 'fw-v-grid');
+    compoundRow.append(
+      button('Options', 'Open the Pathfinder Options dialog', () => openPathfinderOptions(), 'simplify'),
+      button('Expand', 'Expand the live compound shape into a plain path', () => { void editor.ops.expandLive(); }, 'bake'),
+      button('Release', 'Release the live compound shape and return its operands', () => { void editor.ops.releaseLive(); }, 'divide')
+    );
+    pathfinder.body.append(grid, compoundRow, element('p', 'fw-v-note', 'Alt-click Unite, Minus Front, Intersect or Exclude to keep a live compound shape.'));
 
     const path = section('Path', false);
     this.simplifyTolerance = numberInput(0.1, 50, 0.1, () => undefined);

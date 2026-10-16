@@ -8,7 +8,7 @@ import {
   arcPath, autoSmooth, clonePath, dist, ellipsePath, formatPath, linePath, mapPath, moveAnchor, moveHandle, nearestOnPath, pathBounds, polyPath, polygonPath, rectPath, spiralPath, starPath, translate,
   type Anchor, type AnchorKind, type Corner, type CornerType, type Pt, type SubPath
 } from './geometry';
-import { moveCommands, outerGroup } from './arrange';
+import { clipHolder, moveCommands, outerGroup } from './arrange';
 import { brushedPathCommands } from './brushcmd';
 import { fitCurve, simplifyPolyline } from './fit';
 import { EXTRA_TOOLS, Extras } from './extras';
@@ -76,6 +76,7 @@ export class Editor {
   fidelity = 2.5;
   activeBrush = '';
   symbolEdit: string | null = null;
+  clipEdit: string | null = null;
   private drafts = new Map<string, SubPath[]>();
   private lastSvg: string | undefined;
   private cache = new Map<string, { key: string; shape: Shape }>();
@@ -447,7 +448,7 @@ export class Editor {
 
   private downCapture(p: Pt, event: PointerEvent): void {
     const tool = this.tool;
-    const hit = this.symbolEdit ? undefined : this.pickPath(p);
+    const hit = this.symbolEdit || this.clipEdit ? undefined : this.pickPath(p);
     if (hit?.kind === 'other' && tool === 'select' && this.site().nodes[hit.id]?.tag === 'use') { this.startUseMove(hit.id, p); return; }
     if (hit?.kind === 'other' && event.shiftKey && (tool === 'select' || tool === 'direct')) return;
     if (hit?.kind === 'other' && (tool === 'select' || tool === 'direct')) { this.gesture = { kind: 'marquee', start: p, current: p, shift: false, click: hit.id }; return; }
@@ -546,6 +547,42 @@ export class Editor {
     this.selection = use ? [use] : [];
     this.anchors.clear();
     if (use) this.ctx.select(use);
+    this.render();
+    this.emit();
+  }
+
+  editClipContents(): void {
+    const found = clipHolder(this.site(), this.selection);
+    if (!found) { this.notify('Select a clipped group first.'); return; }
+    this.leaveClip();
+    const ids = pathIds(this.site(), found.group);
+    this.selection = ids;
+    this.anchors.clear();
+    if (ids.length) this.ctx.select(ids[ids.length - 1]);
+    this.extras.enter(found.group);
+    this.setTool('direct');
+  }
+
+  editClipPath(): void {
+    const found = clipHolder(this.site(), this.selection);
+    if (!found) { this.notify('Select a clipped group first.'); return; }
+    const ids = found.def.children.filter(id => this.site().nodes[id]?.tag === 'path' && this.site().nodes[id].name !== 'Mask background');
+    if (!ids.length) { this.notify('Select a clipped group first.'); return; }
+    this.extras.exit();
+    this.clipEdit = found.group;
+    this.selection = ids;
+    this.anchors.clear();
+    this.ctx.select(ids[ids.length - 1]);
+    this.setTool('direct');
+  }
+
+  leaveClip(): void {
+    const group = this.clipEdit;
+    if (!group) return;
+    this.clipEdit = null;
+    this.selection = this.site().nodes[group] ? pathIds(this.site(), group) : [];
+    this.anchors.clear();
+    if (this.selection.length) this.ctx.select(this.selection[this.selection.length - 1]);
     this.render();
     this.emit();
   }
@@ -1035,6 +1072,7 @@ export class Editor {
     if (event.key === 'Escape') {
       if (this.extras.key(event)) { event.preventDefault(); return; }
       if (this.symbolEdit) { this.leaveSymbol(); event.preventDefault(); return; }
+      if (this.clipEdit) { this.leaveClip(); event.preventDefault(); return; }
       if (this.pen) { this.finishPen(false); event.preventDefault(); return; }
       if (this.anchors.size) { this.anchors.clear(); this.render(); this.emit(); event.preventDefault(); return; }
       this.setTool(null);
@@ -1235,7 +1273,8 @@ export class Editor {
     this.emit();
   }
 
-  runPathfinder(op: PathfinderOp): void {
+  runPathfinder(op: PathfinderOp, live = false): void {
+    if (live && (op === 'unite' || op === 'minus-front' || op === 'intersect' || op === 'exclude')) { void this.ops.compound(op); return; }
     const site = this.site();
     const svg = this.activeSvg();
     if (!svg) { this.notify('Select two or more paths first.'); return; }
@@ -1244,7 +1283,7 @@ export class Editor {
       .filter(id => order.includes(id))
       .map(id => ({ id, shape: this.shapeOf(id)! }))
       .filter(item => item.shape)
-      .map(item => ({ subs: item.shape.subs, fill: item.shape.paint.fill, index: order.indexOf(item.id) }));
+      .map(item => ({ subs: item.shape.subs, fill: item.shape.paint.fill, stroke: item.shape.paint.stroke, index: order.indexOf(item.id) }));
     if (inputs.length < 2) { this.notify('Select two or more paths first.'); return; }
     const results = pathfinder(op, inputs);
     if (!results.length) { this.notify('The operation produced no shape.'); return; }

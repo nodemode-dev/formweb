@@ -75,7 +75,7 @@
 .fw-v-dialog[hidden] { display: none; }
 .fw-v-dialog .fw-v-summary { padding: 0; cursor: default; }
 .fw-v-dialog .fw-v-checkrow { justify-content: flex-start; }
-.fw-v-dialog .fw-v-checkrow input[type="radio"], .fw-v-body .fw-v-checkrow input[type="checkbox"] { width: auto; height: auto; flex: none; padding: 0; margin: 0; }
+.fw-v-dialog .fw-v-checkrow input[type="radio"], .fw-v-dialog .fw-v-checkrow input[type="checkbox"], .fw-v-body .fw-v-checkrow input[type="checkbox"] { width: auto; height: auto; flex: none; padding: 0; margin: 0; }
 .fw-v-body .fw-v-stack .fw-v-btn { justify-content: flex-start; height: auto; min-height: var(--ctl-md); padding: var(--space-1) var(--space-2); border-color: var(--line-1); text-align: left; white-space: normal; }
 .fw-v-body .fw-v-stack .fw-v-btn.is-on { border-color: var(--accent-color); color: var(--text-primary); }
 .fw-v-brushdlg { width: 300px; max-height: 76vh; overflow-y: auto; }

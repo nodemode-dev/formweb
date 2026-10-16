@@ -230,6 +230,20 @@ export function releaseMaskCommands(h: Host): Command[] {
   return cmds;
 }
 
+export function clipHolder(site: Site, ids: string[]): { group: string; def: SiteNode } | undefined {
+  for (const id of ids) {
+    let g = site.nodes[id]?.tag === 'g' ? id : nearestGroup(site, id);
+    while (g) {
+      const ref = refOf(site.nodes[g].attrs['clip-path']);
+      const svg = svgOf(site, g);
+      const def = ref && svg ? defFor(site, svg, ref) : undefined;
+      if (def && def.tag === 'clipPath') return { group: g, def };
+      g = nearestGroup(site, g);
+    }
+  }
+  return undefined;
+}
+
 function holders(site: Site, ids: string[]): { group: string; def: SiteNode; members: string[] }[] {
   const wanted = new Set(ids);
   const seen = new Set<string>();

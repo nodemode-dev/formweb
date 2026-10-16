@@ -1,10 +1,12 @@
-import { clonePath, dist, pathBounds, segments, splitBezier, type Anchor, type Box, type Pt, type SubPath } from './geometry';
+import { fitCurve } from './fit';
+import { bezierAt, clonePath, dist, inferKind, pathBounds, segments, splitBezier, type Anchor, type Box, type Pt, type SubPath } from './geometry';
 
-export type WarpPreset = 'arc' | 'bulge' | 'flag' | 'wave';
+export const WARP_PRESETS = ['arc', 'arc-lower', 'arc-upper', 'arch', 'bulge', 'shell-lower', 'shell-upper', 'flag', 'wave', 'fish', 'rise', 'fisheye', 'inflate', 'squeeze', 'twist'] as const;
+export type WarpPreset = (typeof WARP_PRESETS)[number];
 export type DistortKind = 'pucker-bloat' | 'roughen' | 'zigzag' | 'twist';
 export type Mat = [number, number, number, number, number, number];
 
-export interface WarpOptions { preset: WarpPreset; bend: number; horizontal: number; vertical: number }
+export interface WarpOptions { preset: WarpPreset; bend: number; horizontal: number; vertical: number; orient?: 'h' | 'v' }
 export interface DistortOptions { kind: DistortKind; amount: number; size: number; detail: number; smooth: boolean; seed: number }
 
 const interpolated = new WeakSet<Anchor>();
@@ -84,21 +86,99 @@ function mapAll(subs: SubPath[], f: (p: Pt) => Pt, smooth = true): SubPath[] {
   return subs;
 }
 
-export function warpSubs(subs: SubPath[], options: WarpOptions, box: Box): SubPath[] {
+function warpCore(style: WarpPreset, b: number, u: number, v: number): Pt {
+  const k = 1 - u * u, wT = (1 - v) / 2, wB = (1 + v) / 2, t = (1 + u) / 2;
+  switch (style) {
+    case 'arc': return [u, v - 0.9 * b * k * (0.15 + 0.85 * wT)];
+    case 'arc-lower': return [u, v - 0.9 * b * k * wB];
+    case 'arc-upper': return [u, v - 0.9 * b * k * wT];
+    case 'arch': return [u, v - 0.9 * b * k];
+    case 'bulge': return [u * (1 + 0.6 * b * (1 - v * v)), v * (1 + 0.6 * b * k)];
+    case 'shell-lower': return [u * (1 + 0.3 * b * wB), v - 0.9 * b * k * wB * wB];
+    case 'shell-upper': return [u * (1 + 0.3 * b * wT), v - 0.9 * b * k * wT * wT];
+    case 'flag': return [u, v + 0.5 * b * Math.sin(Math.PI * u) * (1 - 0.3 * v)];
+    case 'wave': return [u, v + 0.5 * b * Math.sin(2 * Math.PI * u)];
+    case 'fish': return [u, v * Math.max(0.05, 1 + b * (0.8 * Math.sin(Math.PI * t) - 0.5 * (1 - t)))];
+    case 'rise': return [u, v * (1 - 0.5 * b * u) - 0.6 * b * t * t];
+    case 'fisheye': { const s = 1 + 0.8 * b * Math.max(0, 1 - (u * u + v * v) / 2); return [u * s, v * s]; }
+    case 'inflate': return [u * (1 + 0.7 * b * (1 - v * v) ** 2), v * (1 + 0.7 * b * k * k)];
+    case 'squeeze': return [u * (1 + 0.4 * b * (1 - v * v)), v * (1 - 0.6 * b * k)];
+    default: { const a = 0.9 * b * u; return [u * Math.cos(a) - v * Math.sin(a), u * Math.sin(a) + v * Math.cos(a)]; }
+  }
+}
+
+export function warpMap(options: WarpOptions, box: Box): (p: Pt) => Pt {
   const cx = box.x + box.w / 2, cy = box.y + box.h / 2, hw = Math.max(1e-6, box.w / 2), hh = Math.max(1e-6, box.h / 2);
-  const b = options.bend, hd = options.horizontal, vd = options.vertical;
-  const f = (p: Pt): Pt => {
+  return p => {
     const u = (p[0] - cx) / hw, v = (p[1] - cy) / hh;
-    let x = p[0], y = p[1];
-    if (options.preset === 'arc') y += -b * hh * (1 - u * u) * 0.9;
-    else if (options.preset === 'bulge') { x = cx + (p[0] - cx) * (1 + b * (1 - v * v) * 0.6); y = cy + (p[1] - cy) * (1 + b * (1 - u * u) * 0.6); }
-    else if (options.preset === 'flag') y += b * hh * 0.5 * Math.sin(Math.PI * u) * (1 - 0.3 * v);
-    else y += b * hh * 0.5 * Math.sin(2 * Math.PI * u);
-    x += hd * hw * v * 0.5;
-    y += vd * hh * u * 0.5;
-    return [x, y];
+    let r: Pt;
+    if (options.orient === 'v') { const q = warpCore(options.preset, options.bend, v, u); r = [q[1], q[0]]; } else r = warpCore(options.preset, options.bend, u, v);
+    return [cx + r[0] * (1 + 0.5 * options.horizontal * v) * hw, cy + r[1] * (1 + 0.5 * options.vertical * u) * hh];
   };
-  return mapAll(subdivide(clonePath(subs), Math.max(box.w, box.h) / 24), f);
+}
+
+export function remapSubs(subs: SubPath[], f: (p: Pt) => Pt, scale: number): SubPath[] {
+  const err = Math.max(0.05, scale / 500);
+  return subs.map(sub => {
+    const segs = segments([sub]);
+    if (!segs.length) return { closed: sub.closed, nodes: sub.nodes.map(n => { const m = f([n.x, n.y]); return { x: m[0], y: m[1], in: null, out: null, kind: 'corner' as const }; }) };
+    const nodes: Anchor[] = [];
+    segs.forEach((seg, k) => {
+      const length = seg.line ? dist(seg.p0, seg.p3) : dist(seg.p0, seg.c1) + dist(seg.c1, seg.c2) + dist(seg.c2, seg.p3);
+      const steps = Math.max(12, Math.min(64, Math.ceil(length / (scale / 40))));
+      const pts: Pt[] = [];
+      for (let s = 0; s <= steps; s++) pts.push(f(bezierAt(seg, s / steps)));
+      const part = fitCurve(pts, err).nodes;
+      if (k === 0) nodes.push(...part);
+      else { nodes[nodes.length - 1].out = part[0].out; nodes.push(...part.slice(1)); }
+    });
+    if (sub.closed && nodes.length > 1) { const last = nodes.pop()!; nodes[0].in = last.in; }
+    for (const n of nodes) n.kind = inferKind(n);
+    return { closed: sub.closed, nodes };
+  });
+}
+
+export function warpSubs(subs: SubPath[], options: WarpOptions, box: Box): SubPath[] {
+  return remapSubs(clonePath(subs), warpMap(options, box), Math.max(box.w, box.h));
+}
+
+export function envelopeMap(env: SubPath[], box: Box): ((p: Pt) => Pt) | null {
+  const sub = env[0];
+  if (!sub || !sub.closed) return null;
+  let pts: Pt[] = [];
+  for (const seg of segments([sub])) for (let s = 0; s < 32; s++) pts.push(bezierAt(seg, s / 32));
+  if (pts.length < 8) return null;
+  let area = 0;
+  pts.forEach((p, i) => { const q = pts[(i + 1) % pts.length]; area += p[0] * q[1] - q[0] * p[1]; });
+  if (area < 0) pts.reverse();
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const nearest = (c: Pt): number => { let best = 0, d = Infinity; pts.forEach((p, i) => { const e = dist(p, c); if (e < d) { d = e; best = i; } }); return best; };
+  const start = nearest([x0, y0]);
+  pts = [...pts.slice(start), ...pts.slice(0, start)];
+  const iTR = nearest([x1, y0]), iBR = nearest([x1, y1]), iBL = nearest([x0, y1]);
+  if (!(iTR > 0 && iBR > iTR && iBL > iBR)) return null;
+  const top = pts.slice(0, iTR + 1), right = pts.slice(iTR, iBR + 1), bottom = pts.slice(iBR, iBL + 1).reverse(), left = [...pts.slice(iBL), pts[0]].reverse();
+  const along = (a: Pt[]): ((s: number) => Pt) => {
+    const cum = [0];
+    for (let i = 1; i < a.length; i++) cum.push(cum[i - 1] + dist(a[i - 1], a[i]));
+    const total = cum[cum.length - 1] || 1;
+    return s => {
+      const target = Math.max(0, Math.min(1, s)) * total;
+      let i = 1;
+      while (i < a.length - 1 && cum[i] < target) i++;
+      const span = cum[i] - cum[i - 1] || 1, w = (target - cum[i - 1]) / span;
+      return [a[i - 1][0] + (a[i][0] - a[i - 1][0]) * w, a[i - 1][1] + (a[i][1] - a[i - 1][1]) * w];
+    };
+  };
+  const C0 = along(top), C1 = along(bottom), D0 = along(left), D1 = along(right);
+  const P00 = top[0], P10 = top[top.length - 1], P01 = bottom[0], P11 = bottom[bottom.length - 1];
+  return p => {
+    const s = (p[0] - box.x) / Math.max(1e-6, box.w), t = (p[1] - box.y) / Math.max(1e-6, box.h);
+    const a = C0(s), b = C1(s), c = D0(t), d = D1(t);
+    const at = (i: 0 | 1): number => (1 - t) * a[i] + t * b[i] + (1 - s) * c[i] + s * d[i] - ((1 - s) * (1 - t) * P00[i] + s * (1 - t) * P10[i] + (1 - s) * t * P01[i] + s * t * P11[i]);
+    return [at(0), at(1)];
+  };
 }
 
 export function distortSubs(subs: SubPath[], options: DistortOptions): SubPath[] {

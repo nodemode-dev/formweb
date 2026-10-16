@@ -7,13 +7,14 @@ import { applyCorners } from './corners';
 import { distortSubs, warpSubs, type DistortOptions, type WarpOptions } from './distort';
 import { editGradient, setPaintKind, withAngle, type Gradient, type Target } from './gradient';
 import type { Host } from './host';
-import { blendAttrs, expandCommands, liveContainer, liveOf, readBlend, readRepeat, releaseCommands, repeatAttrs, type BlendMode } from './live';
+import { blendAttrs, compoundAttrs, expandCommands, liveContainer, liveOf, readBlend, readRepeat, releaseCommands, repeatAttrs, type BlendMode, type CompoundOp, type LiveKind } from './live';
 import { pathIds, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
 import { breakCommands, defineCommands, placeCommands } from './symbols';
 import { presetCommands, readWidth, widthCommands } from './stroke';
 import { strokeCommands, strokeModelOf } from './strokecmd';
 import type { StrokeModel } from './strokefx';
 import { typeCommands, type TypeOptions } from './typepath';
+import { readWarp, warpAttrs } from './warp';
 import { flipProfile, profileFromSaved, profileToSaved, type SavedProfile, type WidthPoint, type WidthPreset } from './widthprofile';
 
 export class Ops {
@@ -89,7 +90,7 @@ export class Ops {
     return this.shapes().sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
   }
 
-  liveSelected(kind: 'blend' | 'repeat' | 'brush' | 'stroke'): string | undefined {
+  liveSelected(kind: LiveKind): string | undefined {
     try {
       const site = this.h.site();
       for (const id of this.h.selection()) { const found = liveOf(site, id); if (found && found.kind === kind) return found.group; }
@@ -132,14 +133,28 @@ export class Ops {
     if (made && grouped) await this.run([...grouped.cmds, ...liveContainer(site, new Set([grouped.group]), grouped.group, 'repeat', made.outputs, ids.length)], ids);
   }
 
+  async compound(op: CompoundOp): Promise<void> {
+    const site = this.h.site();
+    const ids = this.ordered().slice(0, 16).map(s => s.id);
+    if (ids.length < 2) { this.h.notify('Select two or more paths first.'); return; }
+    if (ids.some(id => liveOf(site, id))) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
+    if (new Set(ids.map(id => this.h.parentOf(id))).size !== 1 || !this.h.parentOf(ids[0])) { this.h.notify('Live compound shapes need paths that sit in the same group.'); return; }
+    const made = compoundAttrs(site, ids, op);
+    if (!made || !made.outputs.length) { this.h.notify('The operation produced no shape.'); return; }
+    const grouped = groupCommands(this.h, ids, 'Compound shape', { 'data-fw-compound': made.attr });
+    if (grouped) await this.run([...grouped.cmds, ...ids.map(id => updateAttrs(id, { visibility: 'hidden' })), ...liveContainer(site, new Set([grouped.group]), grouped.group, 'compound', made.outputs, ids.length)], ids);
+  }
+
   async expandLive(): Promise<void> {
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
-    await this.run(expandCommands(this.h.site(), group), this.h.selection().slice());
+    const site = this.h.site();
+    const holder = site.nodes[group].children.find(id => site.nodes[id]?.attrs['data-fw-live']);
+    await this.run(expandCommands(site, group), (site.nodes[group].attrs['data-fw-compound'] || site.nodes[group].attrs['data-fw-warp']) && holder ? site.nodes[holder].children.slice() : this.h.selection().slice());
   }
 
   async releaseLive(): Promise<void> {
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     const made = releaseCommands(this.h.site(), group);
     this.leave();
@@ -179,6 +194,31 @@ export class Ops {
     const box = unionBox(shapes);
     if (!box) { this.h.notify('Select one or more paths first.'); return; }
     await this.run(shapes.map(s => updateGeometry(s.id, warpSubs(applyCorners(s.subs), options, box))));
+  }
+
+  async envelope(mode: 'warp' | 'top', options: WarpOptions): Promise<void> {
+    const site = this.h.site();
+    const pct = (n: number): number => Math.max(-100, Math.min(100, Math.round(n * 10000) / 100));
+    const change = { style: options.preset, orient: options.orient ?? 'h', bend: pct(options.bend), hd: pct(options.horizontal), vd: pct(options.vertical) };
+    const group = this.liveSelected('warp');
+    const spec = group ? readWarp(site.nodes[group].attrs['data-fw-warp']) : null;
+    if (group && spec) { await this.run([updateAttrs(group, { 'data-fw-warp': JSON.stringify({ ...spec, ...change }) })]); return; }
+    const shapes = this.ordered().slice(0, 16);
+    if (!shapes.length) { this.h.notify('Select one or more paths first.'); return; }
+    let ids = shapes.map(s => s.id), env = '';
+    if (mode === 'top') {
+      const top = shapes[shapes.length - 1];
+      if (shapes.length < 2 || !top.subs.some(s => s.closed)) { this.h.notify('Select a closed path above the shapes to use as the envelope.'); return; }
+      env = top.id;
+      ids = ids.slice(0, -1);
+    }
+    const all = env ? [...ids, env] : ids;
+    if (all.some(id => liveOf(site, id))) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
+    if (new Set(all.map(id => this.h.parentOf(id))).size !== 1 || !this.h.parentOf(all[0])) { this.h.notify('Envelope needs paths that sit in the same group.'); return; }
+    const made = warpAttrs(site.nodes, ids, env, change);
+    if (!made) { this.h.notify('The envelope produced no shape.'); return; }
+    const grouped = groupCommands(this.h, all, 'Envelope', { 'data-fw-warp': made.attr });
+    if (grouped) await this.run([...grouped.cmds, ...all.map(id => updateAttrs(id, { opacity: '0' })), ...liveContainer(site, new Set([grouped.group]), grouped.group, 'warp', made.outputs, all.length)], all);
   }
 
   async distort(options: DistortOptions): Promise<void> {

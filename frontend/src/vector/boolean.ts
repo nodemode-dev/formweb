@@ -8,12 +8,13 @@ export type MergeOp = 'union' | 'combine' | 'fragment' | 'intersect' | 'subtract
 export interface Piece { subs: SubPath[]; sig: number }
 export type PathfinderOp = 'unite' | 'minus-front' | 'intersect' | 'exclude' | 'divide' | 'trim' | 'merge' | 'crop' | 'minus-back' | 'outline';
 
-export interface PathfinderInput { subs: SubPath[]; fill: string; index: number }
+export interface PathfinderInput { subs: SubPath[]; fill: string; stroke?: string; index: number }
+export const pathfinderOptions = { precision: 0.028, redundant: true, unpainted: false };
 export interface PathfinderOutput { subs: SubPath[]; source: number; fillRule: 'nonzero' | 'evenodd'; stroke: boolean; outline?: boolean }
 
 const SNAP = 1000;
-const FLAT_TOL = 0.04;
-const FIT_TOL = 0.08;
+const flatTol = (): number => pathfinderOptions.precision;
+const fitTol = (): number => pathfinderOptions.precision * 2;
 
 const key = (p: Pt): string => `${Math.round(p[0] * SNAP)},${Math.round(p[1] * SNAP)}`;
 const snap = (p: Pt): Pt => [Math.round(p[0] * SNAP) / SNAP, Math.round(p[1] * SNAP) / SNAP];
@@ -27,7 +28,7 @@ function flatten(subs: SubPath[], smooth: Set<string>): Ring[] {
     if (!ring) { ring = [s.p0]; bySub.set(s.sub, ring); out.push(ring); }
     if (s.line) { ring.push(s.p3); continue; }
     const m = Math.max(Math.hypot(s.p0[0] - 2 * s.c1[0] + s.c2[0], s.p0[1] - 2 * s.c1[1] + s.c2[1]), Math.hypot(s.c1[0] - 2 * s.c2[0] + s.p3[0], s.c1[1] - 2 * s.c2[1] + s.p3[1]));
-    const n = Math.max(1, Math.min(256, Math.ceil(Math.sqrt((0.75 * m) / FLAT_TOL))));
+    const n = Math.max(1, Math.min(256, Math.ceil(Math.sqrt((0.75 * m) / flatTol()))));
     for (let i = 1; i <= n; i++) {
       const t = i / n, u = 1 - t;
       const a = u * u * u, b = 3 * u * u * t, c = 3 * u * t * t, d = t * t * t;
@@ -177,7 +178,7 @@ function simplifyLoop(loop: Loop): Loop {
     const a = loop.pts[(i + n - 1) % n], b = loop.pts[i], c = loop.pts[(i + 1) % n];
     const ux = b[0] - a[0], uy = b[1] - a[1], vx = c[0] - b[0], vy = c[1] - b[1];
     const cr = cross(ux, uy, vx, vy), lu = Math.hypot(ux, uy), lv = Math.hypot(vx, vy);
-    if (lu && lv && Math.abs(cr) <= 1e-7 * lu * lv && ux * vx + uy * vy > 0) continue;
+    if (!lu || (pathfinderOptions.redundant && lv && Math.abs(cr) <= 1e-7 * lu * lv && ux * vx + uy * vy > 0)) continue;
     pts.push(b);
     keys.push(loop.keys[i]);
   }
@@ -203,7 +204,7 @@ function loopPath(loop: Loop, smooth: Set<string>): SubPath {
     if (!nodes.length) nodes.push(at(run[0]));
     if (run.length <= 2) nodes.push(at(run[run.length - 1]));
     else {
-      const fit = fitCurve(run, FIT_TOL).nodes;
+      const fit = fitCurve(run, fitTol()).nodes;
       nodes[nodes.length - 1].out = fit[0].out;
       for (let k = 1; k < fit.length; k++) nodes.push({ x: fit[k].x, y: fit[k].y, in: fit[k].in, out: fit[k].out, kind: fit[k].kind });
     }
@@ -287,7 +288,7 @@ function chainPath(pts: Pt[], smooth: Set<string>): SubPath {
     const run = pts.slice(i, j + 1);
     if (run.length <= 2) nodes.push(at(run[1]));
     else {
-      const fit = fitCurve(run, FIT_TOL).nodes;
+      const fit = fitCurve(run, fitTol()).nodes;
       nodes[nodes.length - 1].out = fit[0].out;
       for (let k = 1; k < fit.length; k++) nodes.push({ x: fit[k].x, y: fit[k].y, in: fit[k].in, out: fit[k].out, kind: fit[k].kind });
     }
@@ -348,6 +349,13 @@ function outlineSegments(regions: Region[], smooth: Set<string>): Array<{ object
 }
 
 export function pathfinder(op: PathfinderOp, inputs: PathfinderInput[]): PathfinderOutput[] {
+  const out = compute(op, inputs);
+  if (!pathfinderOptions.unpainted || (op !== 'divide' && op !== 'outline')) return out;
+  const items = inputs.slice().sort((a, b) => a.index - b.index);
+  return out.filter(piece => { const src = items[Math.min(piece.source, items.length - 1)]; return !(src.fill === 'none' && (src.stroke ?? 'none') === 'none'); });
+}
+
+function compute(op: PathfinderOp, inputs: PathfinderInput[]): PathfinderOutput[] {
   const items = inputs.slice().sort((a, b) => a.index - b.index);
   if (items.length < 2 || items.length > 30) return [];
   const smooth = new Set<string>();

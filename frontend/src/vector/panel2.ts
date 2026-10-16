@@ -4,7 +4,8 @@ import { readBlend, readRepeat, type BlendMode } from './live';
 import { BrushSections } from './brushpanel';
 import type { TfMode } from './freetransform';
 import { symbolsIn } from './symbols';
-import type { DistortKind, WarpPreset } from './distort';
+import { WARP_PRESETS, type DistortKind, type WarpOptions, type WarpPreset } from './distort';
+import { readWarp } from './warp';
 import type { Editor } from './editor';
 import { colorToHex, gradientCss, readFor, angleOf, stopColorAt, type Target } from './gradient';
 import { vectorIcon, type VectorIcon } from './icons';
@@ -93,6 +94,7 @@ export class ExtraSections {
   private symbolDone: HTMLButtonElement;
   private symbolNote = element('p', 'fw-v-note');
   private syncLive: () => void = () => undefined;
+  private syncWarp: () => void = () => undefined;
   private brushes: BrushSections;
 
   constructor(private editor: Editor) {
@@ -164,6 +166,7 @@ export class ExtraSections {
     arrange.body.append(
       grid(button('Group', 'Group the selected paths', () => { void ops.group(); }, 'group'), button('Ungroup', 'Ungroup the selected group', () => { void ops.ungroup(); }, 'ungroup'), this.isoExit),
       grid(button('Make clip', 'Use the top path as a clipping mask', () => { void ops.makeMask('clip'); }, 'clip'), button('Make mask', 'Use the top path as an opacity mask (luminosity)', () => { void ops.makeMask('mask'); }, 'mask'), button('Release', 'Release the clipping or opacity mask', () => { void ops.releaseMask(); }, 'divide')),
+      grid(button('Edit Contents', 'Select and edit the clipped artwork while the clip stays', () => editor.editClipContents(), 'direct'), button('Edit Clipping Path', 'Select and reshape the clip path', () => editor.editClipPath(), 'direct')),
       row(this.maskClip.root, this.maskInvert.root),
       this.isoNote);
     this.maskClip.input.title = 'Add a black background so the artwork is cropped to the mask shape';
@@ -228,7 +231,7 @@ export class ExtraSections {
       this.symbolRows.push({ root: rowEl, label });
       symbolList.append(rowEl);
     }
-    this.symbolDone = button('Done editing', 'Leave symbol editing', () => editor.leaveSymbol());
+    this.symbolDone = button('Done editing', 'Leave symbol editing', () => { editor.leaveSymbol(); editor.leaveClip(); });
     symbols.body.append(field('Symbol name', symbolName, true),
       grid(button('Define symbol', 'Turn the selected paths into a symbol', () => { void ops.defineSymbol(symbolName.value); symbolName.value = ''; }, 'group'), button('Break link', 'Turn the selected instance back into ordinary paths', () => { void ops.breakLink(); }, 'ungroup'), this.symbolDone),
       symbolList, this.symbolNote);
@@ -290,17 +293,45 @@ export class ExtraSections {
       this.liveNote);
 
     const warp = section('Envelope and distort', false);
-    const preset = { value: 'arc' as WarpPreset };
-    const presetSeg = segment<WarpPreset>([{ id: 'arc', label: 'Arc' }, { id: 'bulge', label: 'Bulge' }, { id: 'flag', label: 'Flag' }, { id: 'wave', label: 'Wave' }], id => { preset.value = id; presetSeg.set(id); });
-    presetSeg.set('arc');
+    const preset = { value: 'arc' as WarpPreset, orient: 'h' as 'h' | 'v' };
+    const warpLabels = ['Arc', 'Arc Lower', 'Arc Upper', 'Arch', 'Bulge', 'Shell Lower', 'Shell Upper', 'Flag', 'Wave', 'Fish', 'Rise', 'Fisheye', 'Inflate', 'Squeeze', 'Twist'];
+    const styleSel = element('select', 'fw-v-input');
+    WARP_PRESETS.forEach((id, i) => { const o = element('option', '', warpLabels[i]); o.value = id; styleSel.append(o); });
+    styleSel.addEventListener('change', () => { preset.value = styleSel.value as WarpPreset; });
+    const orientSeg = segment<'h' | 'v'>([{ id: 'h', label: 'Horizontal' }, { id: 'v', label: 'Vertical' }], id => { preset.orient = id; orientSeg.set(id); liveWarp(); });
+    orientSeg.set('h');
     const bend = num(50, -100, 100, 5), hDist = num(0, -100, 100, 5), vDist = num(0, -100, 100, 5);
     const kindState = { value: 'pucker-bloat' as DistortKind };
     const kindSeg = segment<DistortKind>([{ id: 'pucker-bloat', label: 'Pucker/Bloat' }, { id: 'roughen', label: 'Roughen' }, { id: 'zigzag', label: 'Zig Zag' }, { id: 'twist', label: 'Twist' }], id => { kindState.value = id; kindSeg.set(id); });
     kindSeg.set('pucker-bloat');
     const amount = num(40, -360, 360, 5), size = num(6, 0, 500, 1), detail = num(4, 1, 40, 1), seed = num(7, 1, 9999, 1);
     const smooth = check('Smooth points');
-    warp.body.append(presetSeg.root, row(field('Bend %', bend), field('Horizontal %', hDist)), field('Vertical %', vDist),
-      button('Apply envelope', 'Warp the selected paths with the preset', () => { void ops.warp({ preset: preset.value, bend: read(bend, 0) / 100, horizontal: read(hDist, 0) / 100, vertical: read(vDist, 0) / 100 }); }, 'warp'),
+    const warpNow = (): WarpOptions => ({ preset: preset.value, orient: preset.orient, bend: read(bend, 0) / 100, horizontal: read(hDist, 0) / 100, vertical: read(vDist, 0) / 100 });
+    const liveWarp = (): void => { if (ops.liveSelected('warp')) void ops.envelope('warp', warpNow()); };
+    for (const control of [styleSel, bend, hDist, vDist]) control.addEventListener('change', liveWarp);
+    const warpNote = element('p', 'fw-v-note');
+    const warpKey = { value: '' };
+    this.syncWarp = () => {
+      const group = ops.liveSelected('warp');
+      const spec = group ? readWarp(editor.site().nodes[group]?.attrs['data-fw-warp']) : null;
+      text(warpNote, spec ? 'Live envelope selected. Changes above update it.' : '');
+      const key = spec ? `${spec.mode}|${spec.style}|${spec.orient}|${spec.bend}|${spec.hd}|${spec.vd}` : '';
+      if (key === warpKey.value) return;
+      warpKey.value = key;
+      if (!spec) return;
+      preset.value = spec.style;
+      preset.orient = spec.orient;
+      styleSel.value = spec.style;
+      orientSeg.set(spec.orient);
+      value(bend, String(spec.bend));
+      value(hDist, String(spec.hd));
+      value(vDist, String(spec.vd));
+    };
+    warp.body.append(field('Style', styleSel), orientSeg.root, row(field('Bend %', bend), field('Horizontal %', hDist)), field('Vertical %', vDist),
+      button('Make with Warp', 'Make a live envelope with the chosen warp style', () => { void ops.envelope('warp', warpNow()); }, 'warp'),
+      button('Make with Top Object', 'Use the top closed path as the envelope for the other selected paths', () => { void ops.envelope('top', warpNow()); }, 'warp'),
+      grid(button('Expand', 'Bake the generated copies into ordinary paths', () => { void ops.expandLive(); }, 'bake'), button('Release', 'Remove the generated copies and keep the originals', () => { void ops.releaseLive(); }, 'divide')), warpNote,
+      button('Apply envelope', 'Warp the selected paths with the preset', () => { void ops.warp(warpNow()); }, 'warp'),
       kindSeg.root, row(field('Amount (% or degrees)', amount), field('Size', size)), row(field('Detail', detail), field('Seed', seed)), smooth.root,
       button('Apply distort', 'Distort the selected paths', () => { void ops.distort({ kind: kindState.value, amount: kindState.value === 'twist' ? read(amount, 0) : read(amount, 0) / 100, size: read(size, 6), detail: read(detail, 4), smooth: smooth.input.checked, seed: read(seed, 7) }); }, 'warp'));
 
@@ -425,6 +456,7 @@ export class ExtraSections {
     this.snap.input.checked = extras.snapping;
     text(this.guideNote, extras.snapping ? 'Smart guides are on.' : 'Smart guides are off.');
     try { this.syncLive(); } catch { text(this.liveNote, ''); }
+    try { this.syncWarp(); } catch { text(this.liveNote, ''); }
     let listed: ReturnType<typeof symbolsIn> = [];
     try { listed = symbolsIn(e.site(), e.panelSvg()); } catch { listed = []; }
     this.symbolIds = listed.map(s => s.id);
@@ -434,7 +466,7 @@ export class ExtraSections {
       if (item) text(r.label, item.name);
     });
     try { this.brushes.update(); } catch { text(this.liveNote, ''); }
-    this.symbolDone.hidden = !e.symbolEdit;
-    text(this.symbolNote, e.symbolEdit ? 'Editing a symbol: drag anchors with the Direct Selection tool. Escape or Done editing leaves.' : listed.length ? '' : 'No symbols in this svg yet.');
+    this.symbolDone.hidden = !e.symbolEdit && !e.clipEdit;
+    text(this.symbolNote, e.symbolEdit ? 'Editing a symbol: drag anchors with the Direct Selection tool. Escape or Done editing leaves.' : e.clipEdit ? 'Editing the clipping path: drag anchors with the Direct Selection tool. Escape or Done editing leaves.' : listed.length ? '' : 'No symbols in this svg yet.');
   }
 }

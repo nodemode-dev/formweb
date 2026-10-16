@@ -1,5 +1,6 @@
 import type { Command, Site, SiteNode } from '../types';
 import { applyMat } from './arrange';
+import { pathfinder } from './boolean';
 import { applyCorners, renderPath } from './corners';
 import { brushOutputs, brushSig, needsArt, readBrush, spineOf, spinePoint, spineTangent } from './brush';
 import { blendSub, compose, matchSubs, repeatMatrices, rotation, translation, type Mat } from './distort';
@@ -7,13 +8,17 @@ import { decodeModel, dist, parsePath, pathBounds, type Box, type Pt, type SubPa
 import { colorToHex } from './gradient';
 import { freshId, geometryAttrs, moveNode, paintOf, parentOf, refOf, removeNode, updateAttrs } from './store';
 import { readStroke, strokeOutputs, strokeSig, strokeUnder, widthSpec } from './strokefx';
+import { readWarp, warpIds, warpOutputs, warpSig } from './warp';
 
 export type BlendMode = 'color' | 'steps' | 'distance';
 export type RepeatKind = 'radial' | 'grid' | 'mirror';
 type Attrs = Record<string, string>;
 
 export interface BlendSpec { v: 1; a: string; b: string; mid: string[]; spine: string; mode: BlendMode; steps: number; distance: number; orient: 'page' | 'path'; sig: string; home?: number[] }
-export const blendIds = (s: Pick<BlendSpec, 'a' | 'b' | 'mid'>): string[] => [s.a, ...s.mid, s.b];
+export type CompoundOp = 'unite' | 'minus-front' | 'intersect' | 'exclude';
+export interface CompoundSpec { v: 1; op: CompoundOp; src: string[]; sig: string }
+export type LiveKind = 'blend' | 'repeat' | 'brush' | 'stroke' | 'compound' | 'warp';
+export const blendIds =(s: Pick<BlendSpec, 'a' | 'b' | 'mid'>): string[] => [s.a, ...s.mid, s.b];
 export interface RepeatSpec { v: 1; kind: RepeatKind; src: string[]; count: number; radius: number; cols: number; rows: number; gx: number; gy: number; angle: number; brick: 'none' | 'row' | 'column'; offset: number; sig: string }
 
 const COPY_LIMIT = 3000;
@@ -47,6 +52,16 @@ export function readRepeat(raw: string | undefined): RepeatSpec | null {
   } catch { return null; }
 }
 
+export function readCompound(raw: string | undefined): CompoundSpec | null {
+  if (!raw) return null;
+  try {
+    const c = JSON.parse(raw) as Partial<CompoundSpec>;
+    if (c.v !== 1 || (c.op !== 'unite' && c.op !== 'minus-front' && c.op !== 'intersect' && c.op !== 'exclude') || !Array.isArray(c.src) || c.src.length < 2 || c.src.length > 16
+      || !c.src.every(id => typeof id === 'string' && ID.test(id)) || new Set(c.src).size !== c.src.length || typeof c.sig !== 'string' || !/^[0-9a-f]{8}$/.test(c.sig)) return null;
+    return { v: 1, op: c.op, src: c.src, sig: c.sig };
+  } catch { return null; }
+}
+
 function hash(text: string): string {
   let h = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
@@ -56,6 +71,8 @@ function hash(text: string): string {
 const fingerprint = (attrs: Attrs): string => JSON.stringify(Object.keys(attrs).filter(k => k !== 'id').sort().map(k => [k, attrs[k]]));
 const blendSig = (s: BlendSpec, sources: Attrs[], spine: Attrs | null): string => hash(JSON.stringify([blendIds(s), s.spine, s.mode, s.steps, s.distance, s.orient, ...sources.map(fingerprint), spine ? fingerprint(spine) : '']));
 const repeatSig = (s: RepeatSpec, sources: Attrs[]): string => hash(JSON.stringify([s.kind, s.src, s.count, s.radius, s.cols, s.rows, s.gx, s.gy, s.angle, s.brick, s.offset, ...sources.map(fingerprint)]));
+
+const compoundSig = (s: CompoundSpec, sources: Attrs[]): string => hash(JSON.stringify([s.op, s.src, ...sources.map(a => fingerprint({ ...a, visibility: '' }))]));
 
 interface View { attrs(id: string): Attrs | undefined; kids(id: string): string[]; tag(id: string): string | undefined; alive(id: string): boolean }
 
@@ -220,9 +237,26 @@ export function repeatOutputs(sources: Attrs[], spec: RepeatSpec): Attrs[] {
   return out;
 }
 
-function containerCommands(site: Site, taken: Set<string>, group: string, kind: 'blend' | 'repeat' | 'brush' | 'stroke', list: Attrs[], index: number): Command[] {
+export function compoundOutputs(sources: Attrs[], spec: CompoundSpec): Attrs[] {
+  const items = sources.map(drawn);
+  const inputs = items.map((item, index) => { const p = paintOf({ attrs: item.attrs } as SiteNode); return { subs: item.subs, fill: p.fill, stroke: p.stroke, index }; });
+  const made = pathfinder(spec.op, inputs)[0];
+  if (!made) return [];
+  const attrs: Attrs = { ...copyAttrs(sources[Math.min(made.source, sources.length - 1)]), ...geometryAttrs(made.subs), 'fill-rule': made.fillRule };
+  delete attrs.visibility;
+  return [attrs];
+}
+
+export function compoundAttrs(site: Site, ids: string[], op: CompoundOp): { attr: string; outputs: Attrs[] } | null {
+  const sources = ids.map(id => site.nodes[id]?.attrs).filter((a): a is Attrs => !!a);
+  if (ids.length < 2 || ids.length > 16 || sources.length !== ids.length) return null;
+  const spec: CompoundSpec = { v: 1, op, src: ids, sig: '00000000' };
+  return { attr: JSON.stringify({ ...spec, sig: compoundSig(spec, sources) }), outputs: compoundOutputs(sources, spec) };
+}
+
+function containerCommands(site: Site, taken: Set<string>, group: string, kind: LiveKind, list: Attrs[], index: number): Command[] {
   const id = freshId(site, taken, 'live');
-  const names = { blend: ['Blend steps', 'Blend step'], repeat: ['Repeat copies', 'Repeat copy'], brush: ['Brush strokes', 'Brush stroke'], stroke: ['Stroke parts', 'Stroke part'] }[kind];
+  const names = { blend: ['Blend steps', 'Blend step'], repeat: ['Repeat copies', 'Repeat copy'], brush: ['Brush strokes', 'Brush stroke'], stroke: ['Stroke parts', 'Stroke part'], compound: ['Compound result', 'Compound shape'], warp: ['Envelope result', 'Envelope path'] }[kind];
   const cmds: Command[] = [{ command: 'node.add', params: { parent: group, node: { id, tag: 'g', name: names[0], attrs: { 'data-fw-live': kind } } } }];
   for (const attrs of list) {
     const pid = freshId(site, taken, 'path');
@@ -232,7 +266,7 @@ function containerCommands(site: Site, taken: Set<string>, group: string, kind: 
   return cmds;
 }
 
-function refresh(view: View, taken: Set<string>, site: Site, group: string, kind: 'blend' | 'repeat' | 'brush' | 'stroke', live: string | undefined, list: Attrs[], index: number): Command[] {
+function refresh(view: View, taken: Set<string>, site: Site, group: string, kind: LiveKind, live: string | undefined, list: Attrs[], index: number): Command[] {
   const children = live ? view.kids(live) : [];
   if (live && children.length === list.length && children.every(id => view.tag(id) === 'path')) {
     const cmds: Command[] = [];
@@ -249,7 +283,7 @@ function refresh(view: View, taken: Set<string>, site: Site, group: string, kind
 }
 
 export function liveFixes(site: Site, cmds: Command[]): Command[] {
-  const groups = Object.values(site.nodes).filter(n => n.tag === 'g' && (n.attrs['data-fw-blend'] || n.attrs['data-fw-repeat'] || n.attrs['data-fw-brush'] || n.attrs['data-fw-stroke']));
+  const groups = Object.values(site.nodes).filter(n => n.tag === 'g' && (n.attrs['data-fw-blend'] || n.attrs['data-fw-repeat'] || n.attrs['data-fw-brush'] || n.attrs['data-fw-stroke'] || n.attrs['data-fw-compound'] || n.attrs['data-fw-warp']));
   if (!groups.length) return [];
   const view = viewOf(site, cmds);
   const taken = new Set<string>();
@@ -260,9 +294,22 @@ export function liveFixes(site: Site, cmds: Command[]): Command[] {
     const kids = view.kids(g.id);
     const live = kids.find(id => view.attrs(id)?.['data-fw-live']);
     const rest = kids.filter(id => id !== live);
-    const blend = readBlend(gattrs['data-fw-blend']), repeat = readRepeat(gattrs['data-fw-repeat']), brush = readBrush(gattrs['data-fw-brush']), fx = readStroke(gattrs['data-fw-stroke']);
+    const blend = readBlend(gattrs['data-fw-blend']), repeat = readRepeat(gattrs['data-fw-repeat']), brush = readBrush(gattrs['data-fw-brush']), fx = readStroke(gattrs['data-fw-stroke']), compound = readCompound(gattrs['data-fw-compound']), warp = readWarp(gattrs['data-fw-warp']);
     const ok = (id: string): boolean => view.alive(id) && rest.includes(id) && view.tag(id) === 'path';
-    if (fx) {
+    if (warp) {
+      const ids = warpIds(warp);
+      if (!ids.every(ok)) {
+        out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-warp': null }));
+        ids.forEach((id, i) => { if (ok(id)) out.push(updateAttrs(id, { opacity: warp.op[i] || null })); });
+        continue;
+      }
+      const attrs = warp.src.map(id => view.attrs(id)!), envAttrs = warp.env ? view.attrs(warp.env)! : null;
+      const sig = warpSig(warp, attrs, envAttrs);
+      if (sig === warp.sig && live) continue;
+      const made = warpOutputs(attrs, envAttrs, warp);
+      if (made.length) out.push(...refresh(view, taken, site, g.id, 'warp', live, made, rest.length));
+      out.push(updateAttrs(g.id, { 'data-fw-warp': JSON.stringify({ ...warp, sig }) }));
+    } else if (fx) {
       if (!ok(fx.src)) { out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-stroke': null })); continue; }
       const sattrs = view.attrs(fx.src)!;
       const wide = widthSpec(sattrs['data-fw-width']);
@@ -305,6 +352,18 @@ export function liveFixes(site: Site, cmds: Command[]): Command[] {
       if (Object.keys(patch).length) out.push(updateAttrs(brush.src, patch));
       if (sig !== brush.sig || !live) out.push(...refresh(view, taken, site, g.id, 'brush', live, brushOutputs(sattrs, art, next), rest.indexOf(brush.src) + 1));
       out.push(updateAttrs(g.id, { 'data-fw-brush': JSON.stringify({ ...next, sig }) }));
+    } else if (compound) {
+      const ids = compound.src.filter(ok);
+      if (ids.length < 2) {
+        out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-compound': null }), ...ids.map(id => updateAttrs(id, { visibility: null })));
+        continue;
+      }
+      for (const id of ids) if (view.attrs(id)?.visibility !== 'hidden') out.push(updateAttrs(id, { visibility: 'hidden' }));
+      const next: CompoundSpec = { ...compound, src: ids };
+      const attrs = ids.map(id => view.attrs(id)!);
+      const sig = compoundSig(next, attrs);
+      if (sig === compound.sig && live && ids.length === compound.src.length) continue;
+      out.push(...refresh(view, taken, site, g.id, 'compound', live, compoundOutputs(attrs, next), rest.length), updateAttrs(g.id, { 'data-fw-compound': JSON.stringify({ ...next, sig }) }));
     } else if (repeat) {
       const src = repeat.src.filter(id => view.alive(id) && rest.includes(id) && view.tag(id) === 'path');
       if (!src.length) { out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-repeat': null })); continue; }
@@ -318,7 +377,7 @@ export function liveFixes(site: Site, cmds: Command[]): Command[] {
   return out;
 }
 
-export function liveOf(site: Site, id: string): { group: string; kind: 'blend' | 'repeat' | 'brush' | 'stroke' } | undefined {
+export function liveOf(site: Site, id: string): { group: string; kind: LiveKind } | undefined {
   let current: string | undefined = id;
   for (let depth = 0; current && depth < 64; depth++) {
     const node: SiteNode | undefined = site.nodes[current];
@@ -327,6 +386,8 @@ export function liveOf(site: Site, id: string): { group: string; kind: 'blend' |
     if (node.tag === 'g' && node.attrs['data-fw-brush']) return { group: node.id, kind: 'brush' };
     if (node.tag === 'g' && node.attrs['data-fw-repeat']) return { group: node.id, kind: 'repeat' };
     if (node.tag === 'g' && node.attrs['data-fw-stroke']) return { group: node.id, kind: 'stroke' };
+    if (node.tag === 'g' && node.attrs['data-fw-warp']) return { group: node.id, kind: 'warp' };
+    if (node.tag === 'g' && node.attrs['data-fw-compound']) return { group: node.id, kind: 'compound' };
     if (node.tag === 'svg') return undefined;
     current = parentOf(site, current);
   }
@@ -335,20 +396,26 @@ export function liveOf(site: Site, id: string): { group: string; kind: 'blend' |
 
 export function liveSources(site: Site, group: string): string[] {
   const node = site.nodes[group];
-  const blend = node && readBlend(node.attrs['data-fw-blend']), repeat = node && readRepeat(node.attrs['data-fw-repeat']), brush = node && readBrush(node.attrs['data-fw-brush']), fx = node && readStroke(node.attrs['data-fw-stroke']);
-  return blend ? blendIds(blend) : brush ? [brush.src] : fx ? [fx.src] : repeat ? repeat.src : [];
+  const blend = node && readBlend(node.attrs['data-fw-blend']), repeat = node && readRepeat(node.attrs['data-fw-repeat']), brush = node && readBrush(node.attrs['data-fw-brush']), fx = node && readStroke(node.attrs['data-fw-stroke']), compound = node && readCompound(node.attrs['data-fw-compound']), warp = node && readWarp(node.attrs['data-fw-warp']);
+  return compound ? compound.src : blend ? blendIds(blend) : brush ? [brush.src] : fx ? [fx.src] : repeat ? repeat.src : warp ? warpIds(warp) : [];
 }
 
 export function liveCopyOwner(site: Site, id: string): string | undefined {
   const holder = parentOf(site, id);
   const above = holder && site.nodes[holder]?.attrs['data-fw-live'] ? parentOf(site, holder) : undefined;
-  return above && (site.nodes[above]?.attrs['data-fw-blend'] || site.nodes[above]?.attrs['data-fw-repeat'] || site.nodes[above]?.attrs['data-fw-brush'] || site.nodes[above]?.attrs['data-fw-stroke']) ? above : undefined;
+  return above && (site.nodes[above]?.attrs['data-fw-blend'] || site.nodes[above]?.attrs['data-fw-repeat'] || site.nodes[above]?.attrs['data-fw-brush'] || site.nodes[above]?.attrs['data-fw-stroke'] || site.nodes[above]?.attrs['data-fw-compound'] || site.nodes[above]?.attrs['data-fw-warp']) ? above : undefined;
 }
 
 export function expandCommands(site: Site, group: string): Command[] {
   const g = site.nodes[group];
   if (!g) return [];
   const live = g.children.find(id => site.nodes[id]?.attrs['data-fw-live']);
+  const compound = readCompound(g.attrs['data-fw-compound']);
+  const home = parentOf(site, group);
+  if (compound && home && live) {
+    const at = site.nodes[home].children.indexOf(group);
+    return [...site.nodes[live].children.map((child, k) => moveNode(child, home, at + k)), ...g.children.filter(id => id !== live).map(id => removeNode(id)), removeNode(live), removeNode(group)];
+  }
   const cmds: Command[] = [];
   if (live) {
     const at = g.children.indexOf(live);
@@ -357,12 +424,14 @@ export function expandCommands(site: Site, group: string): Command[] {
   }
   const brush = readBrush(g.attrs['data-fw-brush']);
   if (brush && site.nodes[brush.src]) cmds.push(removeNode(brush.src));
+  const warp = readWarp(g.attrs['data-fw-warp']);
+  if (warp) for (const id of warpIds(warp)) if (site.nodes[id]) cmds.push(removeNode(id));
   const fx = readStroke(g.attrs['data-fw-stroke']);
   const body = fx && site.nodes[fx.src];
   const wide = body && widthSpec(body.attrs['data-fw-width']);
   if (fx && body) cmds.push(body.attrs.fill === 'none' ? removeNode(fx.src) : updateAttrs(fx.src, { stroke: 'none', 'stroke-opacity': null, ...(wide ? { 'data-fw-width': null } : {}) }));
   if (fx && body && wide && body.attrs.fill !== 'none' && site.nodes[wide.outline]) cmds.push(removeNode(wide.outline));
-  cmds.push(updateAttrs(group, { 'data-fw-blend': null, 'data-fw-repeat': null, 'data-fw-brush': null, 'data-fw-stroke': null }));
+  cmds.push(updateAttrs(group, { 'data-fw-blend': null, 'data-fw-repeat': null, 'data-fw-brush': null, 'data-fw-stroke': null, 'data-fw-warp': null }));
   return cmds;
 }
 
@@ -372,8 +441,11 @@ export function releaseCommands(site: Site, group: string): { cmds: Command[]; s
   if (!g || !parent) return { cmds: [], sources: [] };
   const live = g.children.find(id => site.nodes[id]?.attrs['data-fw-live']);
   const cmds: Command[] = live ? [removeNode(live)] : [];
+  for (const id of readCompound(g.attrs['data-fw-compound'])?.src ?? []) if (site.nodes[id]) cmds.push(updateAttrs(id, { visibility: null }));
   const brush = readBrush(g.attrs['data-fw-brush']);
   if (brush && site.nodes[brush.src]) cmds.push(updateAttrs(brush.src, { stroke: brush.color, 'stroke-width': String(brush.weight) }));
+  const warp = readWarp(g.attrs['data-fw-warp']);
+  if (warp) warpIds(warp).forEach((id, i) => { if (site.nodes[id]) cmds.push(updateAttrs(id, { opacity: warp.op[i] || null })); });
   const fx = readStroke(g.attrs['data-fw-stroke']);
   if (fx && site.nodes[fx.src]) cmds.push(updateAttrs(fx.src, { 'stroke-opacity': null, 'stroke-dasharray': fx.mode === 'preserve' && fx.dash.length ? fx.dash.join(' ') : null }));
   const wide = fx && site.nodes[fx.src] && widthSpec(site.nodes[fx.src].attrs['data-fw-width']);
@@ -400,6 +472,6 @@ export function repeatAttrs(site: Site, src: string[], change: Omit<RepeatSpec, 
   return { attr: JSON.stringify({ ...spec, sig: repeatSig(spec, sources) }), outputs: repeatOutputs(sources, spec) };
 }
 
-export function liveContainer(site: Site, taken: Set<string>, group: string, kind: 'blend' | 'repeat' | 'brush' | 'stroke', outputs: Attrs[], index: number): Command[] {
+export function liveContainer(site: Site, taken: Set<string>, group: string, kind: LiveKind, outputs: Attrs[], index: number): Command[] {
   return containerCommands(site, taken, group, kind, outputs, index);
 }
