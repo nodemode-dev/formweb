@@ -41,7 +41,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     convert: 'vector.convert-anchor', scissors: 'vector.scissors', rect: 'vector.rect', ellipse: 'vector.ellipse', polygon: 'vector.polygon', star: 'vector.star',
     line: 'vector.line', arc: 'vector.arc', spiral: 'vector.spiral', knife: 'vector.knife', eraser: 'vector.eraser', shapebuilder: 'vector.shape-builder',
     width: 'vector.width', gradient: 'vector.gradient', transform: 'vector.free-transform', paintbrush: 'vector.paintbrush', pencil: 'vector.pencil', rgrid: 'vector.rect-grid', pgrid: 'vector.polar-grid',
-    lasso: 'vector.lasso', wand: 'vector.wand', eyedropper: 'vector.eyedropper', puppet: 'vector.puppet', reshape: 'vector.reshape', blob: 'vector.blob-brush', livepaint: 'vector.live-paint-bucket'
+    lasso: 'vector.lasso', wand: 'vector.wand', eyedropper: 'vector.eyedropper', puppet: 'vector.puppet', reshape: 'vector.reshape', blob: 'vector.blob-brush', livepaint: 'vector.live-paint-bucket', artboard: 'vector.artboard-tool'
   };
   const tools: CommandDef[] = TOOLS.map((tool, index) => ({
     id: commandId[tool.id],

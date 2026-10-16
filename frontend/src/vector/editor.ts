@@ -15,6 +15,7 @@ import { fitCurve, simplifyPolyline } from './fit';
 import { DRAW_TOOLS, GRID_TOOLS, dragBox, gridGroupCommands, gridParts, gridPreview, pencilFinish, pencilJoin, type PencilJoin } from './drawtools';
 import { openBlobOptions, openGridOptions } from './pathdialogs';
 import { blobMerge, blobOptions, blobOutline, stepBlobSize } from './blob';
+import { boards } from './artboards';
 import { EXTRA_TOOLS, Extras } from './extras';
 import type { Frame as HostFrame, Host } from './host';
 import { Ops } from './ops';
@@ -35,7 +36,7 @@ import {
 
 export type ToolId = 'select' | 'direct' | 'pen' | 'curvature' | 'add' | 'delete' | 'convert' | 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arc' | 'spiral' | 'scissors'
   | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush' | 'pencil' | 'rgrid' | 'pgrid'
-  | 'lasso' | 'wand' | 'eyedropper' | 'puppet' | 'reshape' | 'blob' | 'livepaint';
+  | 'lasso' | 'wand' | 'eyedropper' | 'puppet' | 'reshape' | 'blob' | 'livepaint' | 'artboard';
 
 export interface VectorContext {
   canvas: Canvas;
@@ -61,14 +62,15 @@ type Gesture =
   | { kind: 'shape'; start: Pt; current: Pt; alt: boolean; shift: boolean }
   | { kind: 'marquee'; start: Pt; current: Pt; shift: boolean; click?: string }
   | { kind: 'pathmove'; start: Pt; base: Map<string, SubPath[]>; svg?: string; moved: boolean }
-  | { kind: 'usemove'; id: string; start: Pt; x: number; y: number; nx: number; ny: number; moved: boolean };
+  | { kind: 'usemove'; id: string; start: Pt; x: number; y: number; nx: number; ny: number; moved: boolean }
+  | { kind: 'board'; start: Pt; current: Pt; svg: string | null; base: [number, number] };
 
 const HIT = 7;
 const TYPES: CornerType[] = ['round', 'inverted', 'chamfer'];
 const NUDGE_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
 export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete', k: 'knife', e: 'transform', g: 'gradient', b: 'paintbrush', q: 'lasso', y: 'wand', i: 'eyedropper', n: 'pencil' };
-const SHIFT_KEYS: Record<string, ToolId> = { c: 'convert', m: 'shapebuilder', e: 'eraser', w: 'width', b: 'blob' };
+const SHIFT_KEYS: Record<string, ToolId> = { c: 'convert', m: 'shapebuilder', e: 'eraser', w: 'width', b: 'blob', o: 'artboard' };
 
 export class Editor {
   readonly overlay: Overlay;
@@ -305,7 +307,7 @@ export class Editor {
     if (tool === null) { this.overlay.render(scene); return; }
     if (!this.gesture) this.sync();
     this.refs = []; this.handleRefs = []; this.widgetRefs = [];
-    const showPoints = this.picker.showsPoints(tool) ?? (tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && tool !== 'paintbrush' && tool !== 'blob' && tool !== 'puppet' && !DRAW_TOOLS.has(tool) && !EXTRA_TOOLS.has(tool));
+    const showPoints = this.picker.showsPoints(tool) ?? (tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && tool !== 'paintbrush' && tool !== 'blob' && tool !== 'artboard' && tool !== 'puppet' && !DRAW_TOOLS.has(tool) && !EXTRA_TOOLS.has(tool));
     const s = this.px();
     const margin = 16 * s;
     for (const shape of this.selectedShapes()) {
@@ -360,6 +362,7 @@ export class Editor {
     const g = this.gesture;
     if (g?.kind === 'shape') scene.draft = formatPath(applyCorners(this.shapeSubs(g.start, g.current, g.alt, g.shift)));
     if (g?.kind === 'paint' && g.pts.length > 1) scene.draft = formatPath(tool === 'blob' ? blobOutline(polyPath(g.pts, false), this.blobScreenSize()) : [polyPath(g.pts, false)]);
+    if (g?.kind === 'board' && !g.svg) scene.draft = formatPath([rectPath(Math.min(g.start[0], g.current[0]), Math.min(g.start[1], g.current[1]), Math.abs(g.current[0] - g.start[0]), Math.abs(g.current[1] - g.start[1]))]);
     if (g?.kind === 'marquee') scene.marquee = { x: g.start[0], y: g.start[1], w: g.current[0] - g.start[0], h: g.current[1] - g.start[1] };
     this.extras.decorate(scene);
     this.picker.decorate(scene);
@@ -470,6 +473,7 @@ export class Editor {
     if (role === 'handle') { this.startHandle(index); return; }
     if (role === 'anchor') { this.downAnchor(index, event, p); return; }
     if (tool === 'pen' || tool === 'curvature') { this.downPen(p, event); return; }
+    if (tool === 'artboard') { this.downBoard(p); return; }
     if (tool === 'paintbrush' || tool === 'pencil' || tool === 'blob') { this.gesture = { kind: 'paint', pts: [p], join: tool === 'pencil' ? pencilJoin(this.host(), p, HIT * this.px()) : undefined }; this.render(); return; }
     if (GRID_TOOLS.has(tool) || tool === 'rect' || tool === 'ellipse' || tool === 'polygon' || tool === 'star' || tool === 'line' || tool === 'arc' || tool === 'spiral') {
       const origin = event.shiftKey ? p : this.extras.snapPoint(p, new Set());
@@ -782,6 +786,13 @@ export class Editor {
       return;
     }
     if (g.kind === 'paint') { if (dist(g.pts[g.pts.length - 1], p) > 1.5 * this.px()) { g.pts.push(p); this.render(); } return; }
+    if (g.kind === 'board') {
+      g.current = p;
+      const el = g.svg ? this.element(g.svg) as SVGSVGElement | null : null;
+      if (el) { el.style.left = `${Math.round((g.base[0] + p[0] - g.start[0]) * 100) / 100}px`; el.style.top = `${Math.round((g.base[1] + p[1] - g.start[1]) * 100) / 100}px`; }
+      this.render();
+      return;
+    }
     if (g.kind === 'shape') { g.current = event.shiftKey ? p : this.extras.snapPoint(p, new Set(), g.start, true); g.alt = event.altKey; g.shift = event.shiftKey; this.render(); return; }
     if (g.kind === 'marquee') { g.current = p; this.render(); return; }
     if (g.kind === 'move') { this.dragAnchors(g, p, event.shiftKey); return; }
@@ -963,6 +974,7 @@ export class Editor {
       } else this.render();
       return;
     }
+    if (g.kind === 'board') { void this.finishBoard(g, p); return; }
     if (g.kind === 'shape') {
       if (dist(g.start, p) > 3 * this.px() && GRID_TOOLS.has(this.tool)) { void this.commitGrid(this.tool, g.start, event.shiftKey ? p : g.current, event.altKey, event.shiftKey); return; }
       if (dist(g.start, p) > 3 * this.px()) {
@@ -1196,6 +1208,44 @@ export class Editor {
   paintFor(open: boolean): Paint {
     if (!open) return { ...this.paint };
     return { ...this.paint, fill: 'none', stroke: this.paint.stroke === 'none' ? this.paint.fill : this.paint.stroke, strokeWidth: Math.max(1, this.paint.strokeWidth) };
+  }
+
+  private boardAt(p: Pt): string | null {
+    for (const b of boards(this.site()).reverse()) {
+      const r = this.element(b.id)?.getBoundingClientRect();
+      if (r && p[0] >= r.left && p[0] <= r.right && p[1] >= r.top && p[1] <= r.bottom) return b.id;
+    }
+    return null;
+  }
+
+  private downBoard(p: Pt): void {
+    const svg = this.boardAt(p);
+    const node = svg ? this.site().nodes[svg] : undefined;
+    const base: [number, number] = [parseFloat(node?.styles.left ?? '0') || 0, parseFloat(node?.styles.top ?? '0') || 0];
+    this.gesture = { kind: 'board', start: p, current: p, svg, base };
+    this.render();
+  }
+
+  private async finishBoard(g: Extract<Gesture, { kind: 'board' }>, p: Pt): Promise<void> {
+    const dx = p[0] - g.start[0], dy = p[1] - g.start[1];
+    const r2 = (v: number): number => Math.round(v * 100) / 100;
+    if (g.svg) {
+      const el = this.element(g.svg) as SVGSVGElement | null;
+      if (Math.hypot(dx, dy) < 3 * this.px()) { this.ctx.select(g.svg); this.render(); return; }
+      const ok = await this.commit([{ command: 'node.update', params: { id: g.svg, patch: { styles: { left: `${r2(g.base[0] + dx)}px`, top: `${r2(g.base[1] + dy)}px` } } } }]);
+      if (!ok && el) { el.style.left = `${g.base[0]}px`; el.style.top = `${g.base[1]}px`; }
+      return;
+    }
+    const w = Math.abs(dx), h = Math.abs(dy);
+    if (w < 4 || h < 4) { this.render(); return; }
+    const root = this.ctx.pageRoot();
+    const holder = { id: root, el: this.element(root) };
+    const rect = holder.el?.getBoundingClientRect();
+    const id = freshId(this.site(), new Set<string>(), 'vector');
+    const cmds: Command[] = [];
+    if (holder.el && getComputedStyle(holder.el).position === 'static') cmds.push({ command: 'node.update', params: { id: holder.id, patch: { styles: { position: 'relative' } } } });
+    cmds.push(addSvg(holder.id, id, { left: Math.min(g.start[0], p[0]) - (rect?.left ?? 0), top: Math.min(g.start[1], p[1]) - (rect?.top ?? 0), width: w, height: h }, t('Artboard')));
+    if (await this.commit(cmds)) this.ctx.select(id);
   }
 
   private container(): { id: string; el: Element | null } {

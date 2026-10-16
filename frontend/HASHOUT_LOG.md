@@ -1,5 +1,14 @@
 # Frontend context map
 
+## Artboard tool · v0.10.3 (2026-10-16)
+
+Edits in `vector/editor.ts` (Gesture `board`; ToolId `artboard` on Shift+O in `SHIFT_KEYS`; no anchor points shown; `down()` routes to new `downBoard`, `move()` previews, `up()` to new `finishBoard`; the draft draws the new rectangle; new `boardAt` hit-tests artboards by the canvas element's bounding box), `vector/panel.ts` (tool appended last), `vector/icons.ts` (`artboard`), `vector/index.ts`, `commands/catalogue.ts`. No new strings ("Artboard" comes from the vendored formvis tables).
+
+- **Source basis:** Shift+O for the Artboard tool from Illustrator How ("How to Move an Artboard") and a keyboard cheat sheet ("Shift-O opens artboard mode which allows you to drag and re-size artboards"); drawing a new artboard by dragging on the canvas from Dummies (read for v0.10.1). Moving by dragging an artboard from Illustrator How.
+- **Behavior:** drag on empty canvas draws an empty svg at that rectangle under the page root (not the selected container: the first run placed it in the selected grid div at top -610 px; artboards belong to the page, as with the panel's New artboard); the root gets `position: relative` when static. Drag inside an artboard moves it: the canvas element's `left`/`top` are written during the drag as the preview and the same values are committed on release (so the canvas patch finds nothing to change); on a failed commit the element is put back. A click without a drag selects the artboard. Each drag is one undo step. Resizing stays in the Artboards panel.
+- **Driven (CPU 4x, 400 ms latency, slow network, cache off):** Shift+O activated "Artboard (Shift+O)"; a 200 by 140 screen drag made a 322.42 by 225.69 svg (canvas zoom 0.62) under `root` at 236.98 px, 257.93 px, selected in the inspector, drawn where the drag was; dragging it 50 by 30 screen px moved the element to 317.58 px mid-drag, the same value as committed; Mod+Z restored 236.98 px in the engine and in the canvas. No layout shifts, no page errors.
+- **Not built:** resize handles on the canvas, moving several artboards at once, Alt-drag to duplicate, moving the art with the artboard as a choice (art always moves, since it lives inside the svg).
+
 ## Export all artboards · v0.10.2 (2026-10-16)
 
 Edits in `vector/exportscreens.ts` (the format and scale loop moved into `queueFiles`, used by `exportScreens` and new `exportArtboards`; new `pageArtboards`; a third scope radio "All artboards on this page (n)" with the count set on open; the name field becomes "File name prefix" in that scope; `run()`, `open()` and `openExportScreens` accept no active svg when the page has artboards), `vector/index.ts` (Export for Screens is enabled when an svg is active or the page has artboards), `commands/catalogue.ts`, `i18n/keys.ts` and the 23 locale files (4 strings, 1877 keys).
