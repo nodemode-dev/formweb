@@ -1,5 +1,12 @@
 # Frontend context map
 
+## href only on use and textPath · v0.9.8 (2026-10-16)
+
+`native/crates/formweb-model/src/vector.rs` `check_node`: the v0.9.7 line refusing `href` on a pattern becomes one rule for every vector element: only `use` and `textPath` may carry `href` (both were already required to point at a symbol or path inside the same svg). `href` is in the generic attribute list for every tag and only passes `safe_url`, so before this a gradient, path or svg accepted `https://...` or `#id`.
+
+- **Callers checked:** in `frontend/src/vector` only `ops.ts` (symbol uses), `symbols.ts` and `typepath.ts` (textPath) read or write vector `href`; SVG import (`svg.ts` via `/api/vector/import-svg`) converts files into plain paths and never creates gradient nodes, so gradient chaining (`href="#other"`) in imported files is not affected. A site saved through the API with an `href` on another vector element would now fail validation; none of FormWeb's own tools write one.
+- **Driven against the real engine:** `linearGradient` with `https://example.com/a.svg#g` refused 400, with `#g-other` refused 400, plain gradient accepted; `href` on the svg and on a path refused 400; Define symbol still made a `use` with `#symbol-...`; a `textPath` with `#curve1` accepted. cargo build and formweb-model tests pass.
+
 ## Make pattern and Pattern Options · v0.9.7 (2026-10-16)
 
 New `vector/pattern.ts`; edits in `vector/pathdialogs.ts` (`selectField`, `PatternDialog`), `vector/index.ts` (`vector.pattern.make`), `vector/store.ts` (`pattern` in `VECTOR_TAGS` and `DEF_TAGS`, so its art is never an editable shape), `ui/canvas.ts` (tag in both tag sets, `patternUnits` and `patternTransform` attributes), `commands/catalogue.ts`, `native/crates/formweb-model/src/vector.rs` (tag, attributes x, y, width, height, patternUnits, patternTransform; child of svg, g and defs; children g and path; a definition for `url(#)` checks; `href` on a pattern refused), `native/crates/formweb-model/src/lib.rs` (tag list), `backend/app/assets.py` (see the backend log), `i18n/keys.ts` and the 23 locale files (12 strings, 1853 keys).

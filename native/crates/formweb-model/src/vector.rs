@@ -107,7 +107,7 @@ pub fn check_node(node: &Node, site: &Site) -> Result<(), String> {
     if vector_parent && !node.text.is_empty() && node.tag != "textPath" { return Err("vector elements cannot contain text".into()); }
     if node.tag == "textPath" && (node.text.chars().count() > 500 || node.text.contains(['<', '>'])) { return Err("path text is too long or has markup".into()); }
     if node.tag == "path" && !node.children.is_empty() { return Err("path cannot have children".into()); }
-    if node.tag == "pattern" && node.attrs.contains_key("href") { return Err("a pattern cannot reference another pattern".into()); }
+    if vector_parent && !matches!(node.tag.as_str(), "use" | "textPath") && node.attrs.contains_key("href") { return Err(format!("{} cannot carry an href; only use and textPath point at other elements", node.tag)); }
     for child in &node.children {
         let Some(child) = site.nodes.get(child) else { continue };
         let vector_child = is_tag(&child.tag);
