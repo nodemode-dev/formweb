@@ -1,13 +1,45 @@
 import { applyCorners } from './corners';
-import { nearestOnPath, pathBounds, type Pt } from './geometry';
+import { nearestOnPath, pathBounds, type Pt, type SubPath } from './geometry';
 import type { Host } from './host';
 import { pathIds, viewBoxOf } from './store';
 
 export interface Guide { a: Pt; b: Pt; kind: 'x' | 'y' | 'angle' | 'point' | 'segment' }
 export interface SnapResult { p: Pt; guides: Guide[] }
-export interface SnapOptions { tolerance: number; exclude: Set<string>; origin?: Pt; angles?: boolean }
+export interface SnapOptions { tolerance: number; exclude: Set<string>; origin?: Pt; angles?: boolean; aids?: AidSource }
+
+/** Ruler guides, guide paths and the document grid, read from the view aids (view.ts). */
+export interface AidSource {
+  lines(svg: string): { axis: 'x' | 'y'; pos: number }[];
+  paths(svg: string): SubPath[][];
+  gridStep(): number;
+  active(svg: string): boolean;
+}
+
+export function snapAids(src: AidSource, svg: string, p: Pt, tol: number): SnapResult | null {
+  let x = p[0], y = p[1], sx = false, sy = false;
+  let bx = tol, by = tol;
+  for (const line of src.lines(svg)) {
+    if (line.axis === 'x') { const d = Math.abs(line.pos - p[0]); if (d < bx) { bx = d; x = line.pos; sx = true; } }
+    else { const d = Math.abs(line.pos - p[1]); if (d < by) { by = d; y = line.pos; sy = true; } }
+  }
+  const step = src.gridStep();
+  if (step > 0) {
+    if (!sx) { const g = Math.round(p[0] / step) * step; if (Math.abs(g - p[0]) < tol) { x = g; sx = true; } }
+    if (!sy) { const g = Math.round(p[1] / step) * step; if (Math.abs(g - p[1]) < tol) { y = g; sy = true; } }
+  }
+  if (!sx && !sy) {
+    for (const subs of src.paths(svg)) {
+      const hit = nearestOnPath(subs, p);
+      if (hit && hit.d < tol) return { p: hit.at, guides: [{ a: hit.at, b: hit.at, kind: 'segment' }] };
+    }
+    return null;
+  }
+  const at: Pt = [x, y];
+  return { p: at, guides: [{ a: at, b: at, kind: 'point' }] };
+}
 
 export function snapLocal(h: Host, svg: string, p: Pt, o: SnapOptions): SnapResult {
+  if (o.aids?.active(svg)) { const hit = snapAids(o.aids, svg, p, o.tolerance); if (hit) return hit; }
   const site = h.site();
   const points: Pt[] = [];
   const subsList = [];

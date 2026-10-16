@@ -20,6 +20,7 @@ import { PICK_TOOLS, Picker, rememberMove } from './select';
 import { Overlay, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
 import { alignFixes, widthFixes } from './stroke';
 import { typeFixes } from './typepath';
+import { ViewAids } from './view';
 import { liveCopyOwner, liveFixes, liveSources } from './live';
 import { parseTransform, symbolPaths, usesOf } from './symbols';
 import { exportSvg, importSvg } from './svg';
@@ -62,8 +63,7 @@ const HIT = 7;
 const TYPES: CornerType[] = ['round', 'inverted', 'chamfer'];
 const NUDGE_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
-  | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush' | 'pencil' | 'rgrid' | 'pgrid'
-  | 'lasso' | 'wand' | 'eyedropper';
+export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete', k: 'knife', e: 'transform', g: 'gradient', b: 'paintbrush', q: 'lasso', y: 'wand', i: 'eyedropper', n: 'pencil' };
 const SHIFT_KEYS: Record<string, ToolId> = { c: 'convert', m: 'shapebuilder', e: 'eraser', w: 'width' };
 
 export class Editor {
@@ -71,6 +71,7 @@ export class Editor {
   readonly extras: Extras;
   readonly ops: Ops;
   readonly picker: Picker;
+  readonly view: ViewAids;
   tool: ToolId | null = null;
   selection: string[] = [];
   anchors = new Set<string>();
@@ -102,6 +103,8 @@ export class Editor {
     this.extras = new Extras(this.host());
     this.ops = new Ops(this.host(), () => this.extras.exit());
     this.picker = new Picker(this.host());
+    this.view = new ViewAids(this.host(), ctx.canvas.shell);
+    this.extras.aids = this.view.source;
     const root = this.overlay.root;
     root.addEventListener('pointerdown', event => this.down(event));
     root.addEventListener('dblclick', event => this.double(event));
@@ -282,6 +285,7 @@ export class Editor {
   render(): void {
     this.frames.clear();
     const tool = this.tool;
+    this.view.render(tool !== null);
     const scene: Scene = {
       visible: tool !== null, capture: tool !== null, tool: tool ?? '', scale: this.shellScale(),
       outlines: [], anchors: [], handles: [], widgets: [], marquee: null, draft: '', rubber: ''
@@ -442,6 +446,7 @@ export class Editor {
     event.preventDefault();
     this.frames.clear();
     const tool = this.tool;
+    if (role === 'capture' && (tool === 'select' || tool === 'direct') && this.view.pointerDown(p, event)) return;
     if (PICK_TOOLS.has(tool)) { this.picker.down(tool, p, event); this.render(); return; }
     if (role.startsWith('x-') || EXTRA_TOOLS.has(tool)) { if (this.extras.down(tool, role, index, p, event)) { this.render(); return; } }
     if (role === 'widget') { this.startCorner(index, event); return; }
@@ -450,7 +455,8 @@ export class Editor {
     if (tool === 'pen' || tool === 'curvature') { this.downPen(p, event); return; }
     if (tool === 'paintbrush' || tool === 'pencil') { this.gesture = { kind: 'paint', pts: [p], join: tool === 'pencil' ? pencilJoin(this.host(), p, HIT * this.px()) : undefined }; this.render(); return; }
     if (GRID_TOOLS.has(tool) || tool === 'rect' || tool === 'ellipse' || tool === 'polygon' || tool === 'star' || tool === 'line' || tool === 'arc' || tool === 'spiral') {
-      this.gesture = { kind: 'shape', start: p, current: p, alt: event.altKey, shift: event.shiftKey };
+      const origin = event.shiftKey ? p : this.extras.snapPoint(p, new Set());
+      this.gesture = { kind: 'shape', start: origin, current: origin, alt: event.altKey, shift: event.shiftKey };
       this.render();
       return;
     }
