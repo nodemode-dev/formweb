@@ -423,6 +423,7 @@ export class Editor {
   }
 
   private down(event: PointerEvent): void {
+    if (this.tool !== null && event.button === 0) event.preventDefault();
     if (this.busy || this.tool === null || event.button !== 0) return;
     const target = (event.target as Element).closest('[data-role]');
     const role = target?.getAttribute('data-role') ?? 'capture';
