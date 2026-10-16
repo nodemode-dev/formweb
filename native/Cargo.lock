@@ -54,7 +54,7 @@ dependencies = [
 
 [[package]]
 name = "formweb-core"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "formweb-engine",
  "formweb-export",
@@ -64,7 +64,7 @@ dependencies = [
 
 [[package]]
 name = "formweb-engine"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "formweb-model",
  "getrandom",
@@ -73,7 +73,7 @@ dependencies = [
 
 [[package]]
 name = "formweb-export"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "formweb-model",
  "serde_json",
@@ -82,7 +82,7 @@ dependencies = [
 
 [[package]]
 name = "formweb-model"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "serde",
  "serde_json",

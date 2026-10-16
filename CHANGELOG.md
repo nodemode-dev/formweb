@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 · 2026-10-16
+
+- The editor speaks 26 languages, English by default: Settings > Editor language switches the whole interface live, with no reload, and remembers the choice. Your content, layer names and page names are never translated.
+- One command registry: every menu item, toolbar button and shortcut runs through it, shortcuts are real bindings (Mod+K search, Mod+Z, Mod+Shift+Z, Mod+S and more), typing in fields never triggers one, and agents can list and run editor commands (MCP `list_ui_commands`, `run_ui_command`) with an Allow or Deny prompt for risky ones.
+- Vector: gradients on fill and stroke, clipping and opacity masks, stroke align, knife and eraser, groups with isolation mode, Shape Builder, the width tool, align and distribute, smart guides and snapping, transform tools, blend, repeat, warp and distort effects, and type on a path.
+- Creative tools: published-site filters and sorting for collection lists, a collection slider, tables, collection folders and ordering, real superscript and subscript with baseline shift, default layout gap and padding, multi-step forms with file uploads and validation, and eight new pre-publish accessibility checks.
+- Fixes: the agent dock reconnects its sessions after a reload, and the tag field shows svg and path elements read-only.
+
 ## 0.6.0 · 2026-10-16
 
 - Live agent dock: real terminal sessions in tabs, a Claude button that starts your Claude Code already connected to this editor's MCP tools, and a Chat pane that streams Claude's answers and tool calls. Mod+J toggles the dock, Shift+Mod+J opens Claude Code, Alt+Mod+J opens Chat. Works without first turning on Agents; outside MCP clients still need the switch.
