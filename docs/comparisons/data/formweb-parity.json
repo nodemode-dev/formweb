@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.9.5",
- "previous": "0.9.4",
+ "version": "0.9.6",
+ "previous": "0.9.5",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "OpenType features (FW-173) added as Partial: ligatures, capitals, number styles and kerning in the Typography section, through the engine, canvas and export.",
@@ -7628,6 +7628,15 @@
     "FW-171": "partial"
    },
    "note": "Blob Brush added. 113 of 128."
+  },
+  {
+   "version": "0.9.5",
+   "date": "2026-10-16",
+   "same_as": "0.9.4",
+   "moved": {
+    "FW-172": "partial"
+   },
+   "note": "Live Paint Bucket added. 113.5 of 129."
   }
  ],
  "changes": [

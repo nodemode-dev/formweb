@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.6 · 2026-10-16
+
+- Typography gains OpenType features: Capitals (small caps, petite caps, titling caps), Kerning, Ligatures and Numbers (old-style or lining, tabular or proportional, fractions, ordinals, slashed zero). They show in the canvas and in exported sites, per breakpoint like any other style.
+- All new labels are translated into the 26 interface languages.
+
 ## 0.9.5 · 2026-10-16
 
 - Live Paint Bucket: select two or more overlapping shapes, then click any area where they overlap (or any part of one) to fill just that area with the current fill color; Shift-click colors a shape's outline. Painted areas are separate shapes placed under the originals and do not follow later edits to them.
