@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.1 · 2026-10-16
+
+- Artboards (Window > Artboards): every vector drawing on every page is listed as an artboard. Rename it, select it, duplicate it with everything inside, fit it to its artwork, resize it to a preset or your own size, delete it, or add a new one.
+- All new labels are translated into the 26 interface languages.
+- Version note: the previous release should have been 0.10.0 (a minor bump after 0.9.9) but shipped as 0.9.10; numbering continues here at 0.10.1.
+
 ## 0.9.10 · 2026-10-16
 
 - Layers stays calm: the lines of area type, the tiles of a pattern and the stops of a gradient sit under one row instead of filling the list, so placing text or a pattern no longer pushes the rows you are looking at.

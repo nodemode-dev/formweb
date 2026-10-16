@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.9.10",
- "previous": "0.9.9",
+ "version": "0.10.1",
+ "previous": "0.9.10",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Multiple artboards (FW-176) added as Partial: an Artboards panel to rename, duplicate, fit, resize, delete and add the vector drawings on every page.",
@@ -7791,6 +7791,13 @@
     "FW-175": "partial"
    },
    "note": "Area type added. 115 of 132."
+  },
+  {
+   "version": "0.9.10",
+   "date": "2026-10-16",
+   "same_as": "0.9.9",
+   "moved": {},
+   "note": "Layers stability fix. No grade change, 115 of 132."
   }
  ],
  "changes": [
