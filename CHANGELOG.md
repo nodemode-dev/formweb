@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.9 · 2026-10-16
+
+- Fixed: pressing again right after drawing a shape could start a stray browser drag that made the page stop responding to the mouse.
+- Labels with numbers ("2 anchors selected", "All 6 corners of the selection") are translated, with the right singular or plural, and tooltips and labels now switch language immediately instead of after a reload.
+
 ## 0.8.8 · 2026-10-16
 
 - Make with Mesh: an envelope with a grid of points you drag to bend the shapes inside; a warp envelope can be turned into a mesh.
