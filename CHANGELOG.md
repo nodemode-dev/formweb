@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.3 · 2026-10-16
+
+- Artboard tool (Shift+O): drag on an empty part of the page to draw a new artboard exactly there, or drag an artboard to move it. Click an artboard to select it. Resize it from Window > Artboards.
+
 ## 0.10.2 · 2026-10-16
 
 - Export for Screens can export every artboard on the page in one go: each one is saved under its own name, with an optional prefix, in every format and scale you picked.
