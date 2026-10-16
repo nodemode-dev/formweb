@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 · 2026-10-16
+
+- Live agent dock: real terminal sessions in tabs, a Claude button that starts your Claude Code already connected to this editor's MCP tools, and a Chat pane that streams Claude's answers and tool calls. Mod+J toggles the dock, Shift+Mod+J opens Claude Code, Alt+Mod+J opens Chat. Works without first turning on Agents; outside MCP clients still need the switch.
+- Vector editing: a Vector menu, tool palette and panel. Draw with Pen and Curvature or the rectangle, ellipse, polygon, star, line, arc and spiral tools; edit anchors with Direct Selection; round any single anchor with its corner widget (round, inverted round or chamfer, absolute or relative, clamped to the neighbours); combine shapes with all nine Pathfinder operations; set stroke caps, joins, miter and dashes; join, average, simplify, offset, outline stroke and compound paths; import and export SVG.
+- `./build_app` (and `build_app.bat`) builds the desktop app in one command. The app now carries its own frozen engine and runs without the FormWeb folder; user data lives in `~/FormWeb`.
+
 ## 0.5.8 · 2026-10-13
 
 - `./formweb desktop build` packages the desktop shell from the repo root (`setup/desktop_build`: `./formweb build`, then the Tauri build). The packaged app still runs the FormWeb folder it finds, so the folder stays on the machine.

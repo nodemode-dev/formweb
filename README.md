@@ -1,7 +1,7 @@
 <p align="center"><img src="assets/formweb_icon.svg" width="96" alt="FormWeb"></p>
 <h1 align="center">formweb</h1>
 <p align="center"><b>Visual website authoring for people & their agents.</b></p>
-<p align="center"><img src="https://img.shields.io/badge/version-0.5.8-f97316" alt="version 0.5.8"> <img src="https://img.shields.io/badge/TypeScript-7-3178c6" alt="TypeScript 7"> <img src="https://img.shields.io/badge/Python-3.12-3776ab" alt="Python 3.12"> <img src="https://img.shields.io/badge/Rust-stable-b7410e" alt="Rust stable"> <img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="Apache 2.0"></p>
+<p align="center"><img src="https://img.shields.io/badge/version-0.6.0-f97316" alt="version 0.6.0"> <img src="https://img.shields.io/badge/TypeScript-7-3178c6" alt="TypeScript 7"> <img src="https://img.shields.io/badge/Python-3.12-3776ab" alt="Python 3.12"> <img src="https://img.shields.io/badge/Rust-stable-b7410e" alt="Rust stable"> <img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="Apache 2.0"></p>
 
 ## What it is
 
@@ -40,6 +40,14 @@ Open http://localhost:5240. For the compiled editor:
 ```
 
 Then open http://127.0.0.1:8240. `./formweb help` lists commands; `./formweb doctor` checks the local setup.
+
+### Desktop app
+
+```bash
+./build_app            # macOS and Linux; build_app.bat on Windows
+```
+
+One command checks the tools, installs, builds, freezes the engine into the app and runs the Tauri build (`--install`, `--open`, `--clean`; log in `build_app.log`). The app runs on its own, keeps your data in `~/FormWeb`, and its agent dock (Mod+J) starts your installed Claude Code already connected to FormWeb's tools.
 
 ### Windows
 
