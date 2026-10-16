@@ -4,7 +4,7 @@
  "previous": "0.9.5",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "OpenType features (FW-173) added as Partial: ligatures, capitals, number styles and kerning in the Typography section, through the engine, canvas and export.",
+ "release_note": "Pattern swatches and Pattern Options (FW-174) added as Partial: Make pattern with grid and brick tiles fills a shape with an svg pattern; no pattern editing mode or swatches panel.",
  "lanes": [
   [
    "m",
@@ -6897,6 +6897,46 @@
     "partial",
     "v0.9.6: driven in Chromium under CPU 4x and slow network. On the Headline, Capitals small-caps, Kerning none, Ligatures discretionary-ligatures and Numbers oldstyle-nums tabular-nums reached the engine, the canvas computed style and the exported CSS; a CSS injection value was refused with 400.",
     "No preview of which features the chosen font supports; no raw font-feature-settings (stylistic sets, swashes); vector text elements are not covered."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 174,
+   "id": "FW-174",
+   "cat": 0,
+   "f": "Pattern swatches and Pattern Options",
+   "p": "P2",
+   "kn": "Object > Pattern > Make turns artwork into a repeating pattern; Pattern Options sets the tile type (Grid by default, Brick by Row and others), brick offset, tile width and height, Size Tile to Art and H and V spacing; patterns are saved as swatches. Source basis: Adobe Learn \"Create a pattern\" and CreativePro \"Pattern Making in Adobe Illustrator\".",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.7",
+   "m": [
+    "partial",
+    "v0.9.7: driven in Chromium under CPU 4x and slow network. A circle as tile art and a rectangle selected last, Brick by Row at 1/2 with 10 spacing: the svg pattern had the computed tile size and three offset copies, the rectangle drew offset rows of circles in the canvas and in the export, and one undo removed pattern and fill.",
+    "No Pattern Editing mode or later edits to a pattern; no Swatches panel (one pattern per use); no Hex tiles; Brick by Column is FormWeb's mirror of Brick by Row; live effects on the art are not copied into the tile."
    ],
    "fr": [
     "none",
