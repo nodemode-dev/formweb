@@ -58,7 +58,8 @@ const paths = {
   repeat: '<rect x="3" y="3" width="6" height="6"/><rect x="15" y="3" width="6" height="6"/><rect x="3" y="15" width="6" height="6"/><rect x="15" y="15" width="6" height="6"/>',
   warp: '<path d="M3 8c4-4 6 4 9 0s5-4 9 0M3 16c4-4 6 4 9 0s5-4 9 0"/>',
   type: '<path d="M4 17c4-10 12-10 16 0"/><path d="M6 12l2-1m3-1h2m3 1 2 1" opacity="0.6"/>',
-  close: '<path d="m6 6 12 12M18 6 6 18"/>'
+  close: '<path d="m6 6 12 12M18 6 6 18"/>',
+  sliders: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'
 };
 
 export type VectorIcon = keyof typeof paths;

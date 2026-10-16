@@ -1,5 +1,6 @@
 import { element, text, value } from '../ui/dom';
-import { defaultBrush, readBrush, type BrushKind, type BrushSettings } from './brush';
+import { defaultBrush, readBrush, type BristleShape, type BrushKind, type BrushSettings } from './brush';
+import { BrushDialog, SHOWN } from './brushdialog';
 import { applyBrushCommands, blendChange, blendGroupOf, brushChange, brushDefs, defineBrush, deleteBrushCommands, removeSpineCommands, spineCommands, type BrushDef } from './brushcmd';
 import type { Editor } from './editor';
 import { readBlend } from './live';
@@ -7,13 +8,7 @@ import { button, field, numberInput, section, segment } from './panel';
 import { useScaleRotation, useTransformCommand } from './symbols';
 
 const BRUSH_ROWS = 12;
-const KINDS: { id: BrushKind; label: string }[] = [{ id: 'calligraphic', label: 'Calligraphic' }, { id: 'scatter', label: 'Scatter' }, { id: 'art', label: 'Art' }, { id: 'pattern', label: 'Pattern' }];
-const SHOWN: Record<BrushKind, string[]> = {
-  calligraphic: ['angle', 'roundness', 'size'],
-  scatter: ['scale', 'spacing', 'scatter', 'rotation', 'rotmode', 'rotrel', 'seed'],
-  art: ['scale', 'stretch', 'flip', 'flipv'],
-  pattern: ['scale', 'fit', 'spacing', 'flip', 'flipv']
-};
+const KINDS: { id: BrushKind; label: string }[] = [{ id: 'calligraphic', label: 'Calligraphic' }, { id: 'scatter', label: 'Scatter' }, { id: 'art', label: 'Art' }, { id: 'pattern', label: 'Pattern' }, { id: 'bristle', label: 'Bristle' }];
 
 function check(label: string): { root: HTMLElement; input: HTMLInputElement } {
   const input = element('input', 'fw-v-check');
@@ -50,6 +45,14 @@ export class BrushSections {
   private scatter = this.num(0, 0, 500, 1);
   private rotation = this.num(0, -180, 180, 1);
   private seed = this.num(7, 1, 99999, 1);
+  private blen = this.num(80, 5, 100, 1);
+  private bdens = this.num(60, 1, 100, 1);
+  private bthick = this.num(1, 0.1, 50, 0.1);
+  private bopac = this.num(55, 5, 100, 1);
+  private bstiff = this.num(70, 0, 100, 1);
+  private bshape: BristleShape = 'round';
+  private bshapeSeg: ReturnType<typeof segment<BristleShape>>;
+  private dialog = new BrushDialog();
   private stretch = check('Stretch to fit stroke length');
   private flip = check('Flip along');
   private flipv = check('Flip across');
@@ -72,6 +75,8 @@ export class BrushSections {
     this.rotmodeSeg = segment<'fixed' | 'random'>([{ id: 'fixed', label: 'Fixed' }, { id: 'random', label: 'Random' }], id => { this.rotmode = id; this.rotmodeSeg.set(id); this.live(); });
     this.rotrelSeg = segment<'page' | 'path'>([{ id: 'page', label: 'Page' }, { id: 'path', label: 'Path' }], id => { this.rotrel = id; this.rotrelSeg.set(id); this.live(); });
     this.fitSeg = segment<'stretch' | 'space'>([{ id: 'stretch', label: 'Stretch' }, { id: 'space', label: 'Add space' }], id => { this.fit = id; this.fitSeg.set(id); this.live(); });
+    this.bshapeSeg = segment<BristleShape>([{ id: 'round', label: 'Round point' }, { id: 'flat', label: 'Flat' }, { id: 'fan', label: 'Fan' }, { id: 'angle', label: 'Angled' }], id => { this.bshape = id; this.bshapeSeg.set(id); this.live(); });
+    this.bshapeSeg.set('round');
     this.kindSeg.set('calligraphic');
     this.rotmodeSeg.set('fixed');
     this.rotrelSeg.set('path');
@@ -93,7 +98,9 @@ export class BrushSections {
       apply.setAttribute('aria-label', 'Apply this brush to the selected paths');
       const entry = { root: row, apply, id: '' };
       apply.addEventListener('click', () => { if (entry.id) void this.apply(entry.id); });
-      row.append(apply, button('', 'Delete this brush', () => { if (entry.id) void h().commit(deleteBrushCommands(entry.id)); }, 'close'));
+      const options = button('', 'Open the options of this brush', () => { const def = entry.id ? brushDefs(editor.site(), editor.activeSvg()).find(item => item.id === entry.id) : undefined; if (def) this.dialog.open(editor, def); }, 'sliders');
+      apply.addEventListener('dblclick', () => options.click());
+      row.append(apply, options, button('', 'Delete this brush', () => { if (entry.id) void h().commit(deleteBrushCommands(entry.id)); }, 'close'));
       this.rows.push(entry);
       list.append(row);
     }
@@ -104,6 +111,8 @@ export class BrushSections {
       mark('scale', field('Size %', this.scale)), mark('spacing', field('Spacing %', this.spacing)), mark('scatter', field('Scatter %', this.scatter)),
       mark('rotation', field('Rotation', this.rotation)), mark('rotmode', this.rotmodeSeg.root), mark('rotrel', field('Rotation relative to', this.rotrelSeg.root, true)),
       mark('seed', field('Seed', this.seed)), mark('fit', field('Fit', this.fitSeg.root, true)),
+      mark('bshape', field('Shape', this.bshapeSeg.root, true)), mark('blen', field('Bristle length %', this.blen)), mark('bdens', field('Bristle density %', this.bdens)),
+      mark('bthick', field('Bristle thickness', this.bthick)), mark('bopac', field('Paint opacity %', this.bopac)), mark('bstiff', field('Stiffness %', this.bstiff)),
       mark('stretch', this.stretch.root), mark('flip', this.flip.root), mark('flipv', this.flipv.root),
       field('Brush name', this.name, true),
       grid(button('Define brush', 'Define a brush from the selected artwork and these options', () => { void this.define(); }, 'add'),
@@ -163,7 +172,8 @@ export class BrushSections {
       ...defaultBrush(kind), kind, angle: clampOf(this.angle, -180, 180, 45), roundness: clampOf(this.roundness, 1, 100, 30), size: clampOf(this.size, 0.1, 2000, 8),
       scale: clampOf(this.scale, 1, 1000, 100), spacing: clampOf(this.spacing, 0, 1000, 20), scatter: clampOf(this.scatter, 0, 500, 0), rotation: clampOf(this.rotation, -180, 180, 0),
       rotmode: this.rotmode, rotrel: this.rotrel, seed: Math.round(clampOf(this.seed, 1, 99999, 7)), stretch: this.stretch.input.checked ? 1 : 0,
-      flip: this.flip.input.checked ? 1 : 0, flipv: this.flipv.input.checked ? 1 : 0, fit: this.fit
+      flip: this.flip.input.checked ? 1 : 0, flipv: this.flipv.input.checked ? 1 : 0, fit: this.fit,
+      bshape: this.bshape, blen: clampOf(this.blen, 5, 100, 80), bdens: clampOf(this.bdens, 1, 100, 60), bthick: clampOf(this.bthick, 0.1, 50, 1), bopac: clampOf(this.bopac, 5, 100, 55), bstiff: clampOf(this.bstiff, 0, 100, 70)
     };
   }
 
@@ -224,7 +234,9 @@ export class BrushSections {
         this.rotrelSeg.set(spec.rotrel);
         this.fit = spec.fit;
         this.fitSeg.set(spec.fit);
-        for (const [input, n] of [[this.angle, spec.angle], [this.roundness, spec.roundness], [this.size, spec.size], [this.scale, spec.scale], [this.spacing, spec.spacing], [this.scatter, spec.scatter], [this.rotation, spec.rotation], [this.seed, spec.seed]] as [HTMLInputElement, number][]) value(input, String(n));
+        this.bshape = spec.bshape;
+        this.bshapeSeg.set(spec.bshape);
+        for (const [input, n] of [[this.blen, spec.blen], [this.bdens, spec.bdens], [this.bthick, spec.bthick], [this.bopac, spec.bopac], [this.bstiff, spec.bstiff], [this.angle, spec.angle], [this.roundness, spec.roundness], [this.size, spec.size], [this.scale, spec.scale], [this.spacing, spec.spacing], [this.scatter, spec.scatter], [this.rotation, spec.rotation], [this.seed, spec.seed]] as [HTMLInputElement, number][]) value(input, String(n));
         this.stretch.input.checked = spec.stretch === 1;
         this.flip.input.checked = spec.flip === 1;
         this.flipv.input.checked = spec.flipv === 1;

@@ -1,6 +1,6 @@
 import type { Command, Site } from '../types';
 import { cloneCommands, groupCommands, moveCommands } from './arrange';
-import { brushOutputs, brushSig, readBrush, readBrushDef, spineOf, spinePoint, type BrushSettings, type BrushSpec } from './brush';
+import { brushOutputs, brushSig, needsArt, readBrush, readBrushDef, spineOf, spinePoint, type BrushSettings, type BrushSpec } from './brush';
 import { applyCorners } from './corners';
 import { colorToHex } from './gradient';
 import type { Host } from './host';
@@ -32,7 +32,7 @@ export function defineBrush(h: Host, name: string, settings: BrushSettings): { c
   const id = freshId(site, taken, 'brush');
   let art = '';
   let sources: string[] = [];
-  if (settings.kind !== 'calligraphic') {
+  if (needsArt(settings.kind)) {
     const selected = h.selection();
     const use = selected.find(item => site.nodes[item]?.tag === 'use');
     const master = use ? symbolOfUse(site, use) : undefined;
@@ -63,7 +63,7 @@ export function applyBrushCommands(h: Host, def: string): { cmds: Command[]; sel
   const holder = site.nodes[def];
   const settings = holder && readBrushDef(holder.attrs['data-fw-brushdef']);
   if (!holder || !settings) return null;
-  const art = settings.kind === 'calligraphic' ? '' : settings.art || def;
+  const art = needsArt(settings.kind) ? settings.art || def : '';
   const artList = art ? artAttrsOf(site, art) : [];
   if (art && !artList.length) { h.notify('This brush has no artwork.'); return null; }
   const ids = h.selection().filter(id => site.nodes[id]?.tag === 'path');
@@ -101,7 +101,7 @@ export function brushedPathCommands(h: Host, taken: Set<string>, def: string, pa
   const holder = site.nodes[def];
   const settings = holder && svgOf(site, def) === parent ? readBrushDef(holder.attrs['data-fw-brushdef']) : null;
   if (!holder || !settings) return null;
-  const art = settings.kind === 'calligraphic' ? '' : settings.art || def;
+  const art = needsArt(settings.kind) ? settings.art || def : '';
   const artList = art ? artAttrsOf(site, art) : [];
   if (art && !artList.length) return null;
   const stroke = paint.stroke !== 'none' && !refOf(paint.stroke) ? colorToHex(paint.stroke, '#000000') : '#000000';
@@ -121,6 +121,26 @@ export function brushedPathCommands(h: Host, taken: Set<string>, def: string, pa
 export function brushChange(site: Site, group: string, change: Partial<BrushSettings>): Command[] {
   const spec = readBrush(site.nodes[group]?.attrs['data-fw-brush']);
   return spec ? [updateAttrs(group, { 'data-fw-brush': JSON.stringify({ ...spec, ...change }) })] : [];
+}
+
+export function brushUsers(site: Site, def: BrushDef): string[] {
+  const art = needsArt(def.settings.kind) ? def.settings.art || def.id : '';
+  const mine = JSON.stringify({ ...def.settings, art: '' });
+  return Object.values(site.nodes).filter(node => {
+    const found = node.tag === 'g' ? readBrush(node.attrs['data-fw-brush']) : null;
+    if (!found || found.art !== art) return false;
+    const { src, color, weight, sig, ...rest } = found;
+    return JSON.stringify({ ...rest, art: '' }) === mine;
+  }).map(node => node.id);
+}
+
+export function brushOptionsCommands(site: Site, def: BrushDef, users: string[], change: BrushSettings, withDef: boolean): Command[] {
+  const cmds: Command[] = withDef && site.nodes[def.id] ? [updateAttrs(def.id, { 'data-fw-brushdef': JSON.stringify({ ...change, art: def.settings.art }) })] : [];
+  for (const group of users) {
+    const found = readBrush(site.nodes[group]?.attrs['data-fw-brush']);
+    if (found) cmds.push(updateAttrs(group, { 'data-fw-brush': JSON.stringify({ ...found, ...change, art: found.art }) }));
+  }
+  return cmds;
 }
 
 export function blendGroupOf(h: Host): string | undefined {

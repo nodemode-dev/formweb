@@ -7,11 +7,15 @@ import { geometryAttrs } from './store';
 
 type Attrs = Record<string, string>;
 
-export type BrushKind = 'calligraphic' | 'scatter' | 'art' | 'pattern';
+export type BrushKind = 'calligraphic' | 'scatter' | 'art' | 'pattern' | 'bristle';
+export type BristleShape = 'round' | 'flat' | 'fan' | 'angle';
 export interface BrushSettings {
   v: 1; kind: BrushKind; art: string; angle: number; roundness: number; size: number; scale: number; spacing: number; scatter: number; rotation: number;
   rotmode: 'fixed' | 'random'; rotrel: 'page' | 'path'; seed: number; stretch: 0 | 1; flip: 0 | 1; flipv: 0 | 1; fit: 'stretch' | 'space';
+  bshape: BristleShape; blen: number; bdens: number; bthick: number; bopac: number; bstiff: number;
 }
+
+export const needsArt = (kind: BrushKind): boolean => kind !== 'calligraphic' && kind !== 'bristle';
 export interface BrushSpec extends BrushSettings { src: string; color: string; weight: number; sig: string }
 
 export const BRUSH_LIMIT = 3000;
@@ -23,17 +27,21 @@ const rad = (d: number): number => (d * Math.PI) / 180;
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
 export function defaultBrush(kind: BrushKind): BrushSettings {
-  return { v: 1, kind, art: '', angle: 45, roundness: 30, size: 8, scale: 100, spacing: kind === 'pattern' ? 0 : 20, scatter: 0, rotation: 0, rotmode: 'fixed', rotrel: 'path', seed: 7, stretch: 1, flip: 0, flipv: 0, fit: 'stretch' };
+  return { v: 1, kind, art: '', angle: 45, roundness: 30, size: kind === 'bristle' ? 24 : 8, scale: 100, spacing: kind === 'pattern' ? 0 : 20, scatter: 0, rotation: 0, rotmode: 'fixed', rotrel: 'path', seed: 7, stretch: 1, flip: 0, flipv: 0, fit: 'stretch',
+    bshape: 'round', blen: 80, bdens: 60, bthick: 1, bopac: 55, bstiff: 70 };
 }
 
 function settingsOf(c: Record<string, unknown>): BrushSettings | null {
   const kind = c.kind;
-  if (c.v !== 1 || (kind !== 'calligraphic' && kind !== 'scatter' && kind !== 'art' && kind !== 'pattern')) return null;
+  if (c.v !== 1 || (kind !== 'calligraphic' && kind !== 'scatter' && kind !== 'art' && kind !== 'pattern' && kind !== 'bristle')) return null;
+  const d = defaultBrush(kind);
+  const bshape = c.bshape ?? d.bshape, blen = c.blen ?? d.blen, bdens = c.bdens ?? d.bdens, bthick = c.bthick ?? d.bthick, bopac = c.bopac ?? d.bopac, bstiff = c.bstiff ?? d.bstiff;
+  if ((bshape !== 'round' && bshape !== 'flat' && bshape !== 'fan' && bshape !== 'angle') || !inRange(blen, 5, 100) || !inRange(bdens, 1, 100) || !inRange(bthick, 0.1, 50) || !inRange(bopac, 5, 100) || !inRange(bstiff, 0, 100)) return null;
   if (typeof c.art !== 'string' || (c.art !== '' && !ID.test(c.art))) return null;
   if (!inRange(c.angle, -180, 180) || !inRange(c.roundness, 1, 100) || !inRange(c.size, 0.1, 2000) || !inRange(c.scale, 1, 1000) || !inRange(c.spacing, 0, 1000) || !inRange(c.scatter, 0, 500)
     || !inRange(c.rotation, -180, 180) || !whole(c.seed, 1, 99999) || !flag(c.stretch) || !flag(c.flip) || !flag(c.flipv)) return null;
   if ((c.rotmode !== 'fixed' && c.rotmode !== 'random') || (c.rotrel !== 'page' && c.rotrel !== 'path') || (c.fit !== 'stretch' && c.fit !== 'space')) return null;
-  return { v: 1, kind, art: c.art, angle: c.angle, roundness: c.roundness, size: c.size, scale: c.scale, spacing: c.spacing, scatter: c.scatter, rotation: c.rotation, rotmode: c.rotmode, rotrel: c.rotrel, seed: c.seed, stretch: c.stretch, flip: c.flip, flipv: c.flipv, fit: c.fit };
+  return { v: 1, kind, art: c.art, angle: c.angle, roundness: c.roundness, size: c.size, scale: c.scale, spacing: c.spacing, scatter: c.scatter, rotation: c.rotation, rotmode: c.rotmode, rotrel: c.rotrel, seed: c.seed, stretch: c.stretch, flip: c.flip, flipv: c.flipv, fit: c.fit, bshape, blen, bdens, bthick, bopac, bstiff };
 }
 
 export function readBrushDef(raw: string | undefined): BrushSettings | null {
@@ -47,7 +55,7 @@ export function readBrush(raw: string | undefined): BrushSpec | null {
     const c = JSON.parse(raw) as Record<string, unknown>;
     const s = settingsOf(c);
     if (!s || typeof c.src !== 'string' || !ID.test(c.src) || typeof c.color !== 'string' || !/^#[0-9a-f]{6}$/.test(c.color) || !inRange(c.weight, 0, 10000)
-      || typeof c.sig !== 'string' || !/^[0-9a-f]{8}$/.test(c.sig) || (s.kind !== 'calligraphic' && !s.art)) return null;
+      || typeof c.sig !== 'string' || !/^[0-9a-f]{8}$/.test(c.sig) || (needsArt(s.kind) && !s.art)) return null;
     return { ...s, src: c.src, color: c.color, weight: c.weight, sig: c.sig };
   } catch { return null; }
 }
@@ -215,9 +223,42 @@ function mulberry(seed: number): () => number {
   };
 }
 
+function bristles(subs: SubPath[], spec: BrushSettings & { color: string }, out: Attrs[]): void {
+  const rand = mulberry(spec.seed);
+  const half = spec.size / 2;
+  const count = Math.max(2, Math.min(200, Math.round((spec.size * spec.bdens) / 100 / Math.max(0.5, spec.bthick))));
+  const slack = 1 - spec.blen / 100, wobble = ((100 - spec.bstiff) / 100) * spec.size * 0.3;
+  for (const sub of subs) {
+    const sp = spineOf(sub);
+    if (!sp) continue;
+    const pts = Math.max(8, Math.min(160, Math.round(sp.total / 5)));
+    for (let k = 0; k < count && out.length < BRUSH_LIMIT; k++) {
+      const u = (k / (count - 1)) * 2 - 1;
+      const r = [rand(), rand(), rand(), rand(), rand()];
+      const jitter = (r[0] * 2 - 1) * 0.5 * (spec.size / count), phase = r[1] * 2 * Math.PI, freq = 1 + r[2] * 2;
+      const cut = slack * (0.4 + 0.6 * r[3]);
+      let head = cut * r[4], tail = cut - head;
+      if (spec.bshape === 'round') { head += u * u * 0.35; tail += u * u * 0.35; }
+      else if (spec.bshape === 'angle') head += ((u + 1) / 2) * 0.3;
+      const over = head + tail;
+      if (over > 0.9) { head = (head / over) * 0.9; tail = (tail / over) * 0.9; }
+      const s0 = head * sp.total, s1 = (1 - tail) * sp.total;
+      const nodes: Anchor[] = [];
+      for (let i = 0; i <= pts; i++) {
+        const s = s0 + ((s1 - s0) * i) / pts, g = s / sp.total;
+        const at = spinePoint(sp, s), t = spineTangent(sp, s);
+        const off = (u * half + jitter) * (spec.bshape === 'fan' ? 0.35 + 0.65 * g : 1) + wobble * Math.sin(phase + freq * 2 * Math.PI * g);
+        nodes.push(corner([at[0] - t[1] * off, at[1] + t[0] * off]));
+      }
+      out.push({ d: renderPath([{ closed: false, nodes }]), fill: 'none', stroke: spec.color, 'stroke-width': String(round2(spec.bthick)), 'stroke-opacity': String(round2(spec.bopac / 100)), 'stroke-linecap': 'round', 'stroke-linejoin': 'round' });
+    }
+  }
+}
+
 export function brushOutputs(src: Attrs, art: Attrs[], spec: BrushSettings & { color: string }): Attrs[] {
   const subs = drawn(src);
   const out: Attrs[] = [];
+  if (spec.kind === 'bristle') { bristles(subs, spec, out); return out; }
   if (spec.kind === 'calligraphic') {
     const outline = calligraphy(subs, spec);
     if (outline.length) out.push({ ...geometryAttrs(outline), fill: spec.color, stroke: 'none', 'fill-rule': 'nonzero' });

@@ -274,13 +274,16 @@ fn brush_config(value: &Value, group: bool) -> bool {
     let word = |key: &str, allowed: &[&str]| map.get(key).and_then(Value::as_str).map(|s| allowed.contains(&s)).unwrap_or(false);
     let kind = map.get("kind").and_then(Value::as_str).unwrap_or("");
     let art = map.get("art").and_then(Value::as_str);
-    let art_ok = art.map(|a| (a.is_empty() && (!group || kind == "calligraphic")) || (!a.is_empty() && ref_id(a))).unwrap_or(false);
+    let art_ok = art.map(|a| (a.is_empty() && (!group || kind == "calligraphic" || kind == "bristle")) || (!a.is_empty() && ref_id(a))).unwrap_or(false);
+    let bristle = map.contains_key("bshape");
+    let bristle_ok = !bristle || (word("bshape", &["round", "flat", "fan", "angle"]) && number("blen", 5.0, 100.0) && number("bdens", 1.0, 100.0) && number("bthick", 0.1, 50.0) && number("bopac", 5.0, 100.0) && number("bstiff", 0.0, 100.0));
     let own = !group || (map.get("src").and_then(Value::as_str).map(ref_id).unwrap_or(false)
         && map.get("color").and_then(Value::as_str).map(|c| c.len() == 7 && c.starts_with('#') && c[1..].bytes().all(|b| b.is_ascii_hexdigit())).unwrap_or(false)
         && number("weight", 0.0, 10000.0) && sig_ok(map));
-    map.len() == if group { 21 } else { 17 }
+    map.len() == (if group { 21 } else { 17 }) + if bristle { 6 } else { 0 }
         && map.get("v").and_then(Value::as_u64) == Some(1)
-        && word("kind", &["calligraphic", "scatter", "art", "pattern"])
+        && word("kind", &["calligraphic", "scatter", "art", "pattern", "bristle"])
+        && (bristle || kind != "bristle") && bristle_ok
         && art_ok && own
         && number("angle", -180.0, 180.0) && number("roundness", 1.0, 100.0) && number("size", 0.1, 2000.0) && number("scale", 1.0, 1000.0)
         && number("spacing", 0.0, 1000.0) && number("scatter", 0.0, 500.0) && number("rotation", -180.0, 180.0)

@@ -1,7 +1,7 @@
 import type { Command, Site, SiteNode } from '../types';
 import { applyMat } from './arrange';
 import { applyCorners, renderPath } from './corners';
-import { brushOutputs, brushSig, readBrush, spineOf, spinePoint, spineTangent } from './brush';
+import { brushOutputs, brushSig, needsArt, readBrush, spineOf, spinePoint, spineTangent } from './brush';
 import { blendSub, compose, matchSubs, repeatMatrices, rotation, translation, type Mat } from './distort';
 import { decodeModel, dist, parsePath, pathBounds, type Box, type Pt, type SubPath } from './geometry';
 import { colorToHex } from './gradient';
@@ -273,7 +273,7 @@ export function liveFixes(site: Site, cmds: Command[]): Command[] {
       out.push(...refresh(view, taken, site, g.id, 'blend', live, blendOutputs(attrs, rail, next), index), updateAttrs(g.id, { 'data-fw-blend': JSON.stringify({ ...next, sig }) }));
     } else if (brush) {
       const art = brush.art ? artOf(view, brush.art) : [];
-      if (!ok(brush.src) || (brush.kind !== 'calligraphic' && !art.length)) {
+      if (!ok(brush.src) || (needsArt(brush.kind) && !art.length)) {
         out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-brush': null }));
         if (ok(brush.src)) out.push(updateAttrs(brush.src, { stroke: brush.color, 'stroke-width': String(brush.weight) }));
         continue;

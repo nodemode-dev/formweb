@@ -74,6 +74,10 @@
 .fw-v-dialog { position: fixed; left: 50%; top: 22%; z-index: var(--z-popover); display: flex; flex-direction: column; gap: var(--space-2); width: 240px; padding: var(--space-3); transform: translateX(-50%); border: 1px solid var(--line-2); border-radius: var(--radius-md); background: var(--surface-2); box-shadow: var(--shadow-md); color: var(--text-primary); font-size: var(--fs-11); }
 .fw-v-dialog[hidden] { display: none; }
 .fw-v-dialog .fw-v-summary { padding: 0; cursor: default; }
+.fw-v-brushdlg { width: 300px; max-height: 76vh; overflow-y: auto; }
+.fw-v-brushdlg .fw-v-dlgbody { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.fw-v-brushdlg .fw-v-dlgbody > [hidden] { display: none; }
+.fw-v-brushdlg .field.full, .fw-v-brushdlg .fw-v-checkrow { grid-column: 1 / -1; }
 .fw-v-profiles { display: flex; flex-direction: column; gap: 2px; }
 .fw-v-profile { display: grid; grid-template-columns: minmax(0, 1fr) var(--ctl-sm); gap: var(--space-1); }
 .fw-v-profile[hidden] { display: none; }
