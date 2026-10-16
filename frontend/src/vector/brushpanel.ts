@@ -216,7 +216,7 @@ export class BrushSections {
     let blend: ReturnType<typeof readBlend> = null;
     try {
       const site = e.site();
-      defs = brushDefs(site, e.activeSvg());
+      defs = brushDefs(site, e.panelSvg());
       const group = this.group();
       spec = group ? readBrush(site.nodes[group]?.attrs['data-fw-brush']) : null;
       const bg = blendGroupOf(e.host());

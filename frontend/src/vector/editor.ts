@@ -77,6 +77,7 @@ export class Editor {
   activeBrush = '';
   symbolEdit: string | null = null;
   private drafts = new Map<string, SubPath[]>();
+  private lastSvg: string | undefined;
   private cache = new Map<string, { key: string; shape: Shape }>();
   private frames = new Map<string, Frame>();
   private gesture: Gesture | null = null;
@@ -194,6 +195,14 @@ export class Editor {
   activeSvg(): string | undefined {
     const site = this.site();
     return svgOf(site, this.ctx.getSelected()) ?? (this.selection[0] ? svgOf(site, this.selection[0]) : undefined);
+  }
+
+  panelSvg(): string | undefined {
+    const site = this.site();
+    const svg = this.activeSvg();
+    if (svg) return (this.lastSvg = svg);
+    const selected = this.ctx.getSelected();
+    return !selected || !site.nodes[selected] ? (this.lastSvg && site.nodes[this.lastSvg] ? this.lastSvg : undefined) : undefined;
   }
 
   private element(id: string): Element | null {

@@ -97,7 +97,7 @@ a { color: var(--accent-text); }
 .status-dot.offline { background: var(--danger-color); }
 .status-message { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .status-message.error { color: var(--danger-color); }
-.status-revision { min-width: 150px; text-align: right; font-variant-numeric: tabular-nums; }
+.status-revision { min-width: 240px; text-align: right; font-variant-numeric: tabular-nums; }
 #overlay-root { position: fixed; inset: 0; pointer-events: none; z-index: var(--z-overlay); }
 .dialog-scrim { position: fixed; inset: 0; background: #0008; display: grid; place-items: center; pointer-events: auto; }
 .dialog { width: min(760px, calc(100vw - 64px)); max-height: calc(100dvh - 96px); display: flex; flex-direction: column; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-large); box-shadow: 0 24px 80px #0008; }

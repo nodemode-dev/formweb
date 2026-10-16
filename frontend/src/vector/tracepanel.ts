@@ -84,6 +84,7 @@ export class TraceSection {
     this.source.title = 'Source image';
     this.source.setAttribute('aria-label', 'Source image');
     this.source.addEventListener('focus', () => { void this.loadAssets(); });
+    this.root.addEventListener('toggle', () => { if (this.root.open) void this.loadAssets(); });
     this.preset = segment<TracePreset>([{ id: 'bw', label: 'Black and White' }, { id: 'gray', label: 'Grayscale' }, { id: 'color', label: 'Color' }], id => { o.preset = id; this.sync(); });
     this.quant = segment<TraceQuant>([{ id: 'median', label: 'Median cut' }, { id: 'kmeans', label: 'K-means' }], id => { o.quant = id; this.sync(); });
     this.method = segment<TraceMethod>([{ id: 'abutting', label: 'Abutting' }, { id: 'overlapping', label: 'Overlapping' }], id => { o.method = id; this.sync(); });
@@ -161,26 +162,29 @@ export class TraceSection {
     if (signature !== this.signature) {
       this.signature = signature;
       const keep = this.source.value;
-      this.source.textContent = '';
-      const first = element('option', '', 'Choose an image');
-      first.value = '';
-      this.source.append(first);
-      if (pageImages.length) {
-        const group = element('optgroup');
-        group.label = 'Page images';
-        for (const item of pageImages) { const opt = element('option', '', item.label); opt.value = 'node:' + item.id; group.append(opt); }
-        this.source.append(group);
+      if (!this.source.firstElementChild) {
+        const first = element('option', '', 'Choose an image');
+        first.value = '';
+        this.source.append(first);
       }
-      if (this.assets.length) {
-        const group = element('optgroup');
-        group.label = 'Uploaded images';
-        for (const item of this.assets) { const opt = element('option', '', item.name); opt.value = 'asset:' + item.url; group.append(opt); }
-        this.source.append(group);
-      }
+      this.group('Page images', pageImages.map(item => ['node:' + item.id, item.label]));
+      this.group('Uploaded images', this.assets.map(item => ['asset:' + item.url, item.name]));
       this.source.value = Array.from(this.source.options).some(opt => opt.value === keep) ? keep : '';
     }
     this.run.disabled = this.busy;
     this.stop.disabled = !this.busy;
+  }
+
+  private group(label: string, items: string[][]): void {
+    const old = Array.from(this.source.querySelectorAll('optgroup')).find(node => node.label === label);
+    const sig = JSON.stringify(items);
+    if (old && old.dataset.sig === sig) return;
+    if (!items.length) { old?.remove(); return; }
+    const group = element('optgroup');
+    group.label = label;
+    group.dataset.sig = sig;
+    for (const [value, name] of items) { const opt = element('option', '', name); opt.value = value; group.append(opt); }
+    if (old) old.replaceWith(group); else this.source.insertBefore(group, label === 'Page images' ? this.source.querySelector('optgroup') : null);
   }
 
   private selectedImage(): string {

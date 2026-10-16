@@ -107,19 +107,19 @@ export class BrushDialog {
   private schedule(): void {
     if (!this.preview.checked || !this.def) return;
     this.dirty = true;
-    if (!this.running) this.running = this.pump();
+    if (this.running) return;
+    const run: Promise<void> = this.pump().finally(() => { if (this.running === run) this.running = null; });
+    this.running = run;
   }
 
   private async pump(): Promise<void> {
-    try {
-      while (this.dirty && this.editor && this.def) {
-        this.dirty = false;
-        const key = JSON.stringify(this.values);
-        if (key === this.applied) continue;
-        const cmds = brushOptionsCommands(this.editor.site(), this.def, this.users, this.values, false);
-        if (cmds.length && await this.editor.host().commit(cmds)) { this.steps++; this.applied = key; this.rev = state().revision; }
-      }
-    } finally { this.running = null; }
+    while (this.dirty && this.editor && this.def) {
+      this.dirty = false;
+      const key = JSON.stringify(this.values);
+      if (key === this.applied) continue;
+      const cmds = brushOptionsCommands(this.editor.site(), this.def, this.users, this.values, false);
+      if (cmds.length && await this.editor.host().commit(cmds)) { this.steps++; this.applied = key; this.rev = state().revision; }
+    }
   }
 
   private async settle(): Promise<void> {

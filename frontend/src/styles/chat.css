@@ -46,4 +46,5 @@
 .fw-chat-input:focus { border-color: var(--accent-line); outline: 0; }
 .fw-chat-send { display: grid; place-items: center; width: var(--ctl-md); height: var(--ctl-md); min-height: 0; padding: 0; border: 1px solid var(--accent-line); border-radius: var(--radius-md); background: var(--accent-soft); color: var(--accent-color); }
 .fw-chat-send .icon { width: 14px; height: 14px; }
+.fw-chat-send .icon[hidden] { display: none; }
 .fw-chat-send.is-stop { border-color: var(--line-2); background: var(--surface-1); color: var(--text-primary); }

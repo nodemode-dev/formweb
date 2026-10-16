@@ -426,7 +426,7 @@ export class ExtraSections {
     text(this.guideNote, extras.snapping ? 'Smart guides are on.' : 'Smart guides are off.');
     try { this.syncLive(); } catch { text(this.liveNote, ''); }
     let listed: ReturnType<typeof symbolsIn> = [];
-    try { listed = symbolsIn(e.site(), e.activeSvg()); } catch { listed = []; }
+    try { listed = symbolsIn(e.site(), e.panelSvg()); } catch { listed = []; }
     this.symbolIds = listed.map(s => s.id);
     this.symbolRows.forEach((r, i) => {
       const item = listed[i];

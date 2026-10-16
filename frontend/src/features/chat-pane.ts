@@ -59,19 +59,26 @@ function blocks(raw: string): Block[] {
 }
 
 function inline(parent: HTMLElement, value: string): void {
-  parent.textContent = '';
-  for (const part of value.split(/(`[^`]+`|\*\*[^*]+\*\*)/)) {
-    if (!part) continue;
-    if (part.startsWith('`') && part.endsWith('`') && part.length > 2) parent.append(element('code', '', part.slice(1, -1)));
-    else if (part.startsWith('**') && part.endsWith('**') && part.length > 4) parent.append(element('strong', '', part.slice(2, -2)));
-    else parent.append(document.createTextNode(part));
-  }
+  const parts = value.split(/(`[^`]+`|\*\*[^*]+\*\*)/).filter(Boolean);
+  parts.forEach((part, at) => {
+    const code = part.startsWith('`') && part.endsWith('`') && part.length > 2;
+    const strong = !code && part.startsWith('**') && part.endsWith('**') && part.length > 4;
+    const label = code ? part.slice(1, -1) : strong ? part.slice(2, -2) : part;
+    const old = parent.childNodes[at];
+    if (old && old.nodeName === (code ? 'CODE' : strong ? 'STRONG' : '#text')) { if (old.textContent !== label) old.textContent = label; return; }
+    const next = code ? element('code', '', label) : strong ? element('strong', '', label) : document.createTextNode(label);
+    if (old) old.replaceWith(next); else parent.append(next);
+  });
+  while (parent.childNodes.length > parts.length) parent.lastChild?.remove();
 }
 
 const TAGS: Record<Block['type'], keyof HTMLElementTagNameMap> = { p: 'p', code: 'pre', ul: 'ul', ol: 'ol', h: 'h4' };
 
 function fill(node: HTMLElement, block: Block): void {
-  if (block.type === 'code') { node.textContent = block.text; return; }
+  if (block.type === 'code') {
+    if (node.firstChild && node.firstChild.nodeType === 3) { if (node.firstChild.nodeValue !== block.text) node.firstChild.nodeValue = block.text; } else node.textContent = block.text;
+    return;
+  }
   if (block.type === 'ul' || block.type === 'ol') {
     const items = block.text.split('\n');
     while (node.children.length > items.length) node.lastElementChild?.remove();
@@ -107,6 +114,8 @@ export class ChatPane {
   private empty = element('p', 'fw-chat-empty', 'Ask Claude to build or change this site. It works through FormWeb\'s own tools, and every change appears in the editor.');
   private input = element('textarea', 'fw-chat-input');
   private send = element('button', 'fw-chat-send');
+  private sendIcon = glyph('send');
+  private stopIcon = glyph('stop');
   private fresh = element('button', 'fw-chat-quiet', 'New chat');
   private handoff = element('button', 'fw-chat-quiet', 'Continue in Claude Code');
   private note = element('span', 'fw-chat-note');
@@ -127,7 +136,7 @@ export class ChatPane {
     this.input.dataset.field = 'chat.input';
     this.send.type = 'button';
     this.send.dataset.command = 'chat.send';
-    this.send.append(glyph('send'));
+    this.send.append(this.sendIcon, this.stopIcon);
     this.fresh.type = 'button';
     this.fresh.dataset.command = 'chat.reset';
     this.handoff.type = 'button';
@@ -202,8 +211,8 @@ export class ChatPane {
 
   private setRunning(running: boolean): void {
     this.running = running;
-    this.send.textContent = '';
-    this.send.append(glyph(running ? 'stop' : 'send'));
+    this.sendIcon.hidden = running;
+    this.stopIcon.hidden = !running;
     this.send.title = running ? 'Stop the answer' : 'Send';
     this.send.setAttribute('aria-label', this.send.title);
     this.send.classList.toggle('is-stop', running);
