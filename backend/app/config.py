@@ -1,15 +1,21 @@
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).resolve().parents[2]
+FROZEN = bool(getattr(sys, 'frozen', False))
+BUNDLE = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parents[2]))
+ROOT = Path(os.getenv('FORMWEB_HOME', str(Path.home() / 'FormWeb'))) if FROZEN else Path(__file__).resolve().parents[2]
+if FROZEN:
+    ROOT.mkdir(parents=True, exist_ok=True)
 load_dotenv(ROOT / 'backend' / '.env')
 VERSION = '0.5.8'
 PORT = int(os.getenv('FORMWEB_PORT', '8240'))
-CORE_BIN = Path(os.getenv('FORMWEB_CORE_BIN', str(ROOT / 'native/target/release' / ('formweb-core.exe' if os.name == 'nt' else 'formweb-core'))))
-DATA_DIR = Path(os.getenv('FORMWEB_DATA_DIR', str(ROOT / 'backend/data'))).resolve()
-FRONTEND_DIST = Path(os.getenv('FORMWEB_FRONTEND_DIST', str(ROOT / 'frontend/dist'))).resolve()
+CORE_NAME = 'formweb-core.exe' if os.name == 'nt' else 'formweb-core'
+CORE_BIN = Path(os.getenv('FORMWEB_CORE_BIN', str(BUNDLE / 'bin' / CORE_NAME if FROZEN else ROOT / 'native/target/release' / CORE_NAME)))
+DATA_DIR = Path(os.getenv('FORMWEB_DATA_DIR', str(ROOT / 'Data' if FROZEN else ROOT / 'backend/data'))).resolve()
+FRONTEND_DIST = Path(os.getenv('FORMWEB_FRONTEND_DIST', str(BUNDLE / 'frontend_dist' if FROZEN else ROOT / 'frontend/dist'))).resolve()
 AUTH_TOKEN = os.getenv('FORMWEB_AUTH_TOKEN', '')
 ORIGINS = tuple(x.strip() for x in os.getenv('FORMWEB_ORIGINS', f'http://localhost:5240,http://127.0.0.1:5240,http://localhost:5241,http://127.0.0.1:5241,http://localhost:{PORT},http://127.0.0.1:{PORT}').split(',') if x.strip())
 PUBLIC_BASE = f'http://127.0.0.1:{PORT}'

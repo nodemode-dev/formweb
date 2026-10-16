@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+"$FORMWEB_ROOT/setup/install_backend"
+"$FORMWEB_ROOT/backend/venv/bin/python" -m pip install -r "$FORMWEB_ROOT/backend/requirements_desktop.txt"
+[ -n "$FORMWEB_CARGO" ] || { fw_say 'Rust is not installed. Install it from https://rustup.rs then run ./build_app again' >&2; exit 1; }
+if [ "$(uname -s)" = Linux ] && ! pkg-config --exists webkit2gtk-4.1 2>/dev/null; then
+  fw_say 'Tauri needs system libraries. On Debian or Ubuntu run:' >&2
+  fw_say 'sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf' >&2
+  exit 1
+fi
+fw_say "desktop toolchain ready: $("$FORMWEB_CARGO" --version)"

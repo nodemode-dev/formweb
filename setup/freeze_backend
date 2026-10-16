@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -e
+source "$(dirname "$0")/lib.sh"
+py="$FORMWEB_ROOT/backend/venv/bin/python"
+[ -x "$py" ] || py="$FORMWEB_PYTHON"
+"$py" -c 'import PyInstaller' 2>/dev/null || { fw_say 'PyInstaller is missing; run setup/install_desktop' >&2; exit 1; }
+triple="${FORMWEB_TARGET:-$(rustc -vV 2>/dev/null | awk '/^host:/ {print $2}')}"
+[ -n "$triple" ] || { fw_say 'rustc not found; install Rust or set FORMWEB_TARGET' >&2; exit 1; }
+core="$FORMWEB_ROOT/native/target/release/formweb-core"
+[ -x "$core" ] || "$FORMWEB_ROOT/setup/install_core"
+[ -f "$FORMWEB_ROOT/frontend/dist/index.html" ] || ( cd "$FORMWEB_ROOT/frontend" && npm run build )
+cd "$FORMWEB_ROOT/backend"
+rm -rf build/pyinstaller dist-engine
+"$py" -m PyInstaller --noconfirm --clean --onefile --name formweb-engine \
+  --distpath dist-engine --workpath build/pyinstaller --specpath build/pyinstaller --paths "$FORMWEB_ROOT/backend" \
+  --add-data "$FORMWEB_ROOT/frontend/dist:frontend_dist" \
+  --add-data "$FORMWEB_ROOT/backend/app/stock:app/stock" \
+  --add-binary "$core:bin" \
+  --collect-submodules app --collect-submodules uvicorn --collect-data mcp --exclude-module mcp.cli \
+  "$FORMWEB_ROOT/backend/formweb_engine.py"
+dist-engine/formweb-engine --selfcheck || { fw_say 'the frozen engine failed its selfcheck; nothing was copied to src-tauri/binaries' >&2; exit 1; }
+mkdir -p "$FORMWEB_ROOT/src-tauri/binaries"
+rm -f "$FORMWEB_ROOT/src-tauri/binaries/formweb-engine-$triple"
+cp dist-engine/formweb-engine "$FORMWEB_ROOT/src-tauri/binaries/formweb-engine-$triple"
+fw_say "sidecar ready: src-tauri/binaries/formweb-engine-$triple"

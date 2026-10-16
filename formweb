@@ -23,9 +23,11 @@ case "$cmd" in
     if [ ! -x "$bin" ]; then fw_say 'building the GPU renderer (first use)' >&2; "$FORMWEB_CARGO" build --release --manifest-path native/crates/formweb-render/Cargo.toml >&2; fi
     exec "$bin" "$@" ;;
   desktop) source setup/lib.sh
-    [ "${1:-}" = build ] && { shift; exec setup/desktop_build "$@"; }
+    [ "${1:-}" = build ] && { shift; exec ./build_app "$@"; }
     [ -f frontend/dist/index.html ] || { fw_say 'run ./formweb build first; the desktop shell serves the built editor' >&2; exit 1; }
     FORMWEB_ROOT="$PWD" exec "$FORMWEB_CARGO" run --manifest-path src-tauri/Cargo.toml "$@" ;;
+  build-app) exec ./build_app "$@" ;;
+  install-desktop) exec setup/install_desktop "$@" ;;
   doctor) exec setup/doctor "$@" ;;
   help|-h|--help)
     cat <<'HELP'
@@ -51,6 +53,8 @@ Usage: ./formweb COMMAND
   run COMMAND [k=v]   apply one engine command to the open site (--list, --json)
   render probe        GPU renderer: adapter and budget; also thumb IN OUT, diff A B OUT (JSON)
   desktop             open the Tauri desktop shell (starts ./formweb serve if needed)
+  build-app           build the desktop app start to finish (same as ./build_app, or desktop build)
+  install-desktop     install PyInstaller and check the Tauri toolchain
   doctor             inspect tools, installs and service ports
   help                this message
 

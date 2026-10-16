@@ -1,5 +1,13 @@
 # Backend context
 
+## Frozen engine for the desktop app · v0.6.0 (2026-10-16)
+
+`app/config.py`, `formweb_engine.py`, `requirements_desktop.txt` (new).
+- **Frozen paths:** `config.FROZEN` is true inside the PyInstaller bundle. Then `BUNDLE` is `sys._MEIPASS`, the core binary is `BUNDLE/bin/formweb-core`, the editor is `BUNDLE/frontend_dist`, and `ROOT` is `FORMWEB_HOME` or `~/FormWeb` (created), with data in `ROOT/Data`. Source runs keep the repo-relative paths. Every `FORMWEB_*` override still wins.
+- **Selfcheck:** `formweb_engine.py --selfcheck` exits 1 and names what is missing when the core binary or `index.html` is not in the bundle; `setup/freeze_backend` runs it before copying the sidecar.
+- **Desktop requirements:** `requirements_desktop.txt` adds PyInstaller 6.16.0 (GPL-2.0 with the bootloader exception: build tool only, the frozen engine is not GPL-bound).
+- **Checked:** the frozen engine, started from an empty HOME on another port, served the editor (200), `/api/health` reported the Rust engine, `/api/state` returned the site and `/api/claude/status` found Claude Code, with `~/FormWeb/Agent` and `~/FormWeb/Data` created.
+
 ## Live agent workspace · v0.6.0 (2026-10-16)
 
 `app/claude_code.py`, `app/chat.py` (new); edits in `app/terminal.py`, `app/main.py`, `app/service.py`, `app/clients.py`.

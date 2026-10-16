@@ -2,7 +2,8 @@
 //! FormWeb desktop shell, on the formvis and formlit pattern: a native window around the editor that the local FormWeb
 //! service serves on 127.0.0.1:8240, plus the family GPU renderer exposed to the page through `invoke`.
 //!
-//! Start-up: if a FormWeb service already answers /api/health, the window opens on it. Otherwise the shell runs
+//! Start-up: if a FormWeb service already answers /api/health, the window opens on it. Otherwise the shell starts the
+//! bundled formweb-engine sidecar beside its executable (built by ./build_app), or, in a source checkout, runs
 //! `formweb serve` (formweb.bat on Windows) from the FormWeb folder (FORMWEB_ROOT, or the folder above the executable's
 //! working directory that holds the launcher), waits up to 60 seconds for health, and stops that service on exit.
 
@@ -57,6 +58,24 @@ fn start_service(root: &Path) -> std::io::Result<Child> {
     Command::new("cmd").args(["/C", "formweb.bat", "serve"]).current_dir(root).spawn()
 }
 
+fn sidecar() -> Option<PathBuf> {
+    let name = if cfg!(windows) { "formweb-engine.exe" } else { "formweb-engine" };
+    let path = std::env::current_exe().ok()?.parent()?.join(name);
+    path.is_file().then_some(path)
+}
+
+#[cfg(unix)]
+fn start_sidecar(path: &Path) -> std::io::Result<Child> {
+    use std::os::unix::process::CommandExt;
+    Command::new(path).process_group(0).spawn()
+}
+
+#[cfg(windows)]
+fn start_sidecar(path: &Path) -> std::io::Result<Child> {
+    use std::os::windows::process::CommandExt;
+    Command::new(path).creation_flags(0x0800_0000).spawn()
+}
+
 fn stop_service(handle: &tauri::AppHandle) {
     if let Some(mut child) = handle.state::<Service>().0.lock().unwrap().take() {
         #[cfg(unix)]
@@ -98,7 +117,11 @@ fn main() {
             let handle = app.handle().clone();
             std::thread::spawn(move || {
                 if !healthy() {
-                    match formweb_root().map(|root| start_service(&root)) {
+                    let started = match sidecar() {
+                        Some(path) => Some(start_sidecar(&path)),
+                        None => formweb_root().map(|root| start_service(&root)),
+                    };
+                    match started {
                         Some(Ok(child)) => { handle.state::<Service>().0.lock().unwrap().replace(child); }
                         Some(Err(error)) => {
                             handle.dialog().message(format!("FormWeb could not start its local service: {error}")).blocking_show();
