@@ -1,5 +1,9 @@
 # Backend context
 
+## MCP apply_commands limit · v0.8.4 (2026-10-16)
+
+`app/mcp_catalog.py`: the `apply_commands` schema `maxItems` went from 200 to 4000 and the description says "up to 4000", matching `Batch.commands` in `main.py` (4000) and the engine `batch` command. `mcp_server.py` has no count check of its own: `call_tool` validates the arguments against the catalog schema, so the schema is the single place the limit lives. The size guards are unchanged: the `/mcp` route is bounded by `MAX_PROJECT_FILE_BYTES`, the batch then goes through `studio.mutate('batch')` to the engine, which still caps a site at 10000 nodes, and destructive commands in the batch still wait for approval when Agent Connect asks for it. Checked with the catalog schema: 1, 300 and 4000 commands validate and 4001 is refused. `compileall` clean (pycache removed).
+
 ## Batch limit · v0.8.3 (2026-10-16)
 
 `app/main.py`: `Batch.commands` max_length 200 to 4000, matching the engine's new `batch` limit (it was 500). Request size is still bounded by the middleware at `MAX_DOCUMENT_BYTES` and the model by 10000 nodes. The reason is live brush and blend output, which is one `node.add` per generated path inside a single undo step. `mcp_catalog.py` keeps `apply_commands` at 200. `compileall` clean (pycache removed).
