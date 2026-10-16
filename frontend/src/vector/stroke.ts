@@ -25,12 +25,22 @@ function merged(node: SiteNode, patch: Record<string, string | null>): Record<st
 export function alignFixes(site: Site, cmds: Command[]): Command[] {
   const out: Command[] = [];
   const taken = new Set<string>();
+  const up = new Map<string, string>();
+  for (const n of Object.values(site.nodes)) for (const child of n.children) up.set(child, n.id);
   for (const c of cmds) {
     if (c.command !== 'node.remove') continue;
     const node = site.nodes[(c.params as { id: string }).id];
     const ref = node && refOf(node.attrs['clip-path']);
     const holder = ref?.startsWith('fwa-') ? Object.values(site.nodes).find(n => n.tag === 'clipPath' && n.attrs.id === ref) : undefined;
-    if (holder && !cmds.some(o => o.command === 'node.remove' && (o.params as { id: string }).id === holder.id)) out.push(removeNode(holder.id));
+    const gone = (id: string): boolean => {
+      for (let cur: string | undefined = id; cur; cur = up.get(cur)) {
+        if (cmds.some(o => o.command === 'node.remove' && (o.params as { id: string }).id === cur)) return true;
+        if (cmds.some(o => o.command === 'node.move' && (o.params as { id: string }).id === cur)) return false;
+      }
+      return false;
+    };
+    const shared = Object.values(site.nodes).some(n => n.id !== node.id && n.attrs['clip-path'] === node.attrs['clip-path'] && !gone(n.id));
+    if (holder && !shared && !gone(holder.id) && !out.some(o => o.command === 'node.remove' && (o.params as { id: string }).id === holder.id)) out.push(removeNode(holder.id));
   }
   for (const [id, patch] of patchesOf(cmds, site)) {
     const node = site.nodes[id];

@@ -6,7 +6,7 @@ import { blendSub, compose, matchSubs, repeatMatrices, rotation, translation, ty
 import { decodeModel, dist, parsePath, pathBounds, type Box, type Pt, type SubPath } from './geometry';
 import { colorToHex } from './gradient';
 import { freshId, geometryAttrs, moveNode, paintOf, parentOf, refOf, removeNode, updateAttrs } from './store';
-import { readStroke, strokeOutputs, strokeSig } from './strokefx';
+import { readStroke, strokeOutputs, strokeSig, strokeUnder, widthSpec } from './strokefx';
 
 export type BlendMode = 'color' | 'steps' | 'distance';
 export type RepeatKind = 'radial' | 'grid' | 'mirror';
@@ -265,9 +265,13 @@ export function liveFixes(site: Site, cmds: Command[]): Command[] {
     if (fx) {
       if (!ok(fx.src)) { out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-stroke': null })); continue; }
       const sattrs = view.attrs(fx.src)!;
+      const wide = widthSpec(sattrs['data-fw-width']);
+      if (wide && view.alive(wide.outline) && view.attrs(wide.outline)?.opacity !== '0') out.push(updateAttrs(wide.outline, { opacity: '0' }));
       const sig = strokeSig(fx, sattrs);
       if (sig === fx.sig && live) continue;
-      out.push(...refresh(view, taken, site, g.id, 'stroke', live, strokeOutputs(sattrs, fx), rest.indexOf(fx.src) + 1), updateAttrs(g.id, { 'data-fw-stroke': JSON.stringify({ ...fx, sig }) }));
+      const at = rest.indexOf(fx.src) + (strokeUnder(sattrs) ? 0 : 1);
+      if (live && kids.indexOf(live) !== at) out.push(moveNode(live, g.id, at));
+      out.push(...refresh(view, taken, site, g.id, 'stroke', live, strokeOutputs(sattrs, fx), at), updateAttrs(g.id, { 'data-fw-stroke': JSON.stringify({ ...fx, sig }) }));
     } else if (blend) {
       const ids = blendIds(blend).filter(ok);
       if (ids.length < 2) { out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-blend': null })); continue; }
@@ -355,7 +359,9 @@ export function expandCommands(site: Site, group: string): Command[] {
   if (brush && site.nodes[brush.src]) cmds.push(removeNode(brush.src));
   const fx = readStroke(g.attrs['data-fw-stroke']);
   const body = fx && site.nodes[fx.src];
-  if (fx && body) cmds.push(body.attrs.fill === 'none' ? removeNode(fx.src) : updateAttrs(fx.src, { stroke: 'none', 'stroke-opacity': null }));
+  const wide = body && widthSpec(body.attrs['data-fw-width']);
+  if (fx && body) cmds.push(body.attrs.fill === 'none' ? removeNode(fx.src) : updateAttrs(fx.src, { stroke: 'none', 'stroke-opacity': null, ...(wide ? { 'data-fw-width': null } : {}) }));
+  if (fx && body && wide && body.attrs.fill !== 'none' && site.nodes[wide.outline]) cmds.push(removeNode(wide.outline));
   cmds.push(updateAttrs(group, { 'data-fw-blend': null, 'data-fw-repeat': null, 'data-fw-brush': null, 'data-fw-stroke': null }));
   return cmds;
 }
@@ -370,6 +376,8 @@ export function releaseCommands(site: Site, group: string): { cmds: Command[]; s
   if (brush && site.nodes[brush.src]) cmds.push(updateAttrs(brush.src, { stroke: brush.color, 'stroke-width': String(brush.weight) }));
   const fx = readStroke(g.attrs['data-fw-stroke']);
   if (fx && site.nodes[fx.src]) cmds.push(updateAttrs(fx.src, { 'stroke-opacity': null, 'stroke-dasharray': fx.mode === 'preserve' && fx.dash.length ? fx.dash.join(' ') : null }));
+  const wide = fx && site.nodes[fx.src] && widthSpec(site.nodes[fx.src].attrs['data-fw-width']);
+  if (wide && site.nodes[wide.outline]) cmds.push(updateAttrs(wide.outline, { opacity: null }));
   const keep = g.children.filter(id => id !== live);
   const at = site.nodes[parent].children.indexOf(group);
   keep.forEach((child, k) => cmds.push(moveNode(child, parent, at + k)));

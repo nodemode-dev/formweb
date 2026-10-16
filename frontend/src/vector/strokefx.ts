@@ -1,5 +1,6 @@
 import { applyCorners, renderPath } from './corners';
 import { bezierAt, decodeModel, dist, ellipsePath, formatPath, parsePath, polyPath, segments, splitBezier, type Anchor, type Pt, type SubPath } from './geometry';
+import { normalizePoint, sidesAt, variableOutline, widthAt, type WidthPoint } from './widthprofile';
 
 export type Arrow = 'none' | 'simple' | 'filled' | 'open' | 'circle' | 'square' | 'bar';
 export type DashMode = 'preserve' | 'align';
@@ -54,6 +55,20 @@ export function strokeSig(spec: StrokeModel & { src: string; v: 1; sig?: string 
   const keys = Object.keys(src).filter(k => k !== 'id' && k !== 'stroke-opacity').sort().map(k => [k, src[k]]);
   return hash(JSON.stringify([{ ...spec, sig: '' }, keys]));
 }
+
+export interface WidthSpec { outline: string; color: string; points: WidthPoint[] }
+
+export function widthSpec(raw: string | undefined): WidthSpec | null {
+  if (!raw) return null;
+  try {
+    const list = JSON.parse(raw) as unknown[];
+    if (!Array.isArray(list) || typeof list[0] !== 'string' || typeof list[1] !== 'string') return null;
+    const points = list.slice(2).map(normalizePoint).filter((p): p is WidthPoint => !!p);
+    return points.length ? { outline: list[0], color: list[1], points } : null;
+  } catch { return null; }
+}
+
+export const strokeUnder = (attrs: Attrs): boolean => attrs['data-fw-align'] === 'outside' && (attrs.fill ?? '#000000') !== 'none';
 
 interface Bz { p0: Pt; c1: Pt; c2: Pt; p3: Pt; line: boolean; corner: boolean }
 
@@ -139,21 +154,192 @@ function chain(list: Bz[]): SubPath {
   return { nodes, closed: false };
 }
 
-function runsOf(list: Bz[], closed: boolean): Bz[][] {
-  let order = list;
-  if (closed) {
-    const first = list.findIndex(s => s.corner);
-    if (first < 0) return [list];
-    order = [...list.slice(first + 1), ...list.slice(0, first + 1)];
+interface Track { list: Bz[]; lens: number[]; cum: number[]; total: number; closed: boolean }
+
+function trackOf(list: Bz[], closed: boolean): Track {
+  const lens = list.map(length);
+  const cum = [0];
+  lens.forEach((l, i) => cum.push(cum[i] + l));
+  return { list, lens, cum, total: cum[cum.length - 1], closed };
+}
+
+function evalAt(s: Bz, d: number, len: number): { p: Pt; dir: Pt } {
+  const t = len < 1e-9 ? 0 : paramAt(s, d);
+  if (s.line) return { p: [s.p0[0] + (s.p3[0] - s.p0[0]) * t, s.p0[1] + (s.p3[1] - s.p0[1]) * t], dir: unit(s.p0, s.p3) };
+  const u = 1 - t;
+  const dx = 3 * (u * u * (s.c1[0] - s.p0[0]) + 2 * u * t * (s.c2[0] - s.c1[0]) + t * t * (s.p3[0] - s.c2[0]));
+  const dy = 3 * (u * u * (s.c1[1] - s.p0[1]) + 2 * u * t * (s.c2[1] - s.c1[1]) + t * t * (s.p3[1] - s.c2[1]));
+  const l = Math.hypot(dx, dy);
+  return { p: bezierAt(s, t), dir: l < 1e-9 ? (t < 0.5 ? startDir(s) : endDir(s)) : [dx / l, dy / l] };
+}
+
+function pointAt(k: Track, pos: number, forward: boolean): { p: Pt; dir: Pt } {
+  const n = k.list.length;
+  let s = Math.max(0, Math.min(k.total, pos));
+  if (k.closed) s = pos - Math.floor((pos + (forward ? 1e-9 : -1e-9)) / k.total) * k.total;
+  let i = n - 1;
+  for (let j = 0; j < n; j++) if (forward ? s < k.cum[j + 1] - 1e-9 : s <= k.cum[j + 1] + 1e-9) { i = j; break; }
+  return evalAt(k.list[i], Math.max(0, Math.min(k.lens[i], s - k.cum[i])), k.lens[i]);
+}
+
+function extract(k: Track, a: number, b: number): Bz[] {
+  const n = k.list.length, out: Bz[] = [];
+  const rounds = k.closed ? Math.ceil(b / k.total) + 1 : 1;
+  for (let r = 0; r < rounds; r++) {
+    for (let i = 0; i < n; i++) {
+      const lo = r * k.total + k.cum[i], hi = lo + k.lens[i];
+      if (hi <= a + 1e-9 || k.lens[i] < 1e-9) continue;
+      if (lo >= b - 1e-9) return out;
+      let piece = { ...k.list[i] };
+      if (a - lo > 1e-9) piece = chop(piece, a - lo, true);
+      if (hi - b > 1e-9) piece = chop(piece, hi - b, false);
+      out.push(piece);
+    }
   }
-  const runs: Bz[][] = [];
-  let current: Bz[] = [];
-  for (const s of order) {
-    current.push(s);
-    if (s.corner) { runs.push(current); current = []; }
+  if (!out.length) { const at = pointAt(k, a, true).p; out.push({ p0: at, c1: at, c2: at, p3: at, line: true, corner: false }); }
+  return out;
+}
+
+function runBounds(k: Track, lo: number, hi: number): [number, number][] {
+  const marks: number[] = [];
+  k.list.forEach((s, i) => { if (s.corner) marks.push(k.cum[i + 1]); });
+  const runs: [number, number][] = [];
+  if (k.closed) {
+    if (!marks.length) return [[0, k.total]];
+    marks.forEach((a, i) => {
+      const b = i + 1 < marks.length ? marks[i + 1] : marks[0] + k.total;
+      if (b - a > 1e-6) runs.push([a, b]);
+    });
+    return runs;
   }
-  if (current.length) runs.push(current);
+  const cuts = [lo, ...marks.filter(m => m > lo + 1e-6 && m < hi - 1e-6), hi];
+  for (let i = 1; i < cuts.length; i++) runs.push([cuts[i - 1], cuts[i]]);
   return runs;
+}
+
+function dashSpans(runs: [number, number][], dash: number[], centered: boolean): [number, number][] {
+  const period = dash.reduce((x, y) => x + y, 0);
+  const out: [number, number][] = [];
+  if (period <= 0) return out;
+  for (const [lo, hi] of runs) {
+    const span = hi - lo;
+    if (span < 1e-6) continue;
+    const k = centered ? span / (Math.max(1, Math.round(span / period)) * period) : 1;
+    const sc = dash.map(v => v * k);
+    let pos = centered ? lo - sc[0] / 2 : lo, idx = 0;
+    while (pos < hi + 1e-9 && out.length < OUTPUT_LIMIT) {
+      const len = sc[idx % sc.length];
+      if (idx % 2 === 0 && pos + len >= lo - 1e-9) out.push([Math.max(lo, pos), Math.min(hi, pos + len)]);
+      pos += len;
+      idx++;
+    }
+  }
+  return out;
+}
+
+function joinSpans(list: [number, number][], closed: boolean, from: number, total: number): [number, number][] {
+  const out: [number, number][] = [];
+  for (const s of list.slice().sort((p, q) => p[0] - q[0])) {
+    const last = out[out.length - 1];
+    if (last && s[0] <= last[1] + 1e-6) last[1] = Math.max(last[1], s[1]);
+    else out.push([s[0], s[1]]);
+  }
+  if (closed && out.length > 1 && out[0][0] <= from + 1e-6 && out[out.length - 1][1] >= from + total - 1e-6) {
+    const head = out.shift() as [number, number];
+    out[out.length - 1][1] = head[1] + total;
+  }
+  return out;
+}
+
+interface Profile { points: WidthPoint[]; base: number; cap: string; join: string; miter: number }
+
+function capPoints(poly: Pt[], from: Pt, to: Pt, dir: Pt, sign: number, cap: string): void {
+  const c: Pt = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2];
+  const v: Pt = [from[0] - c[0], from[1] - c[1]], h = Math.hypot(v[0], v[1]);
+  if (h < 1e-6) return;
+  if (cap === 'round') {
+    for (let j = 1; j < 8; j++) {
+      const f = (Math.PI * j) / 8;
+      poly.push([c[0] + v[0] * Math.cos(f) + dir[0] * sign * h * Math.sin(f), c[1] + v[1] * Math.cos(f) + dir[1] * sign * h * Math.sin(f)]);
+    }
+  } else if (cap === 'square') {
+    poly.push([from[0] + dir[0] * sign * h, from[1] + dir[1] * sign * h], [to[0] + dir[0] * sign * h, to[1] + dir[1] * sign * h]);
+  }
+}
+
+function joinPoints(p: Pt, t1: Pt, t2: Pt, w: number, sign: number, f: Profile): Pt[] {
+  const n1: Pt = [-t1[1], t1[0]], n2: Pt = [-t2[1], t2[0]];
+  const cross = t1[0] * t2[1] - t1[1] * t2[0], dot = t1[0] * t2[0] + t1[1] * t2[1];
+  const at = (nv: Pt, r: number): Pt => [p[0] + sign * nv[0] * r, p[1] + sign * nv[1] * r];
+  if (Math.abs(cross) < 1e-6 && dot > 0) return [at(n1, w)];
+  const m: Pt = [n1[0] + n2[0], n1[1] + n2[1]], ml = Math.hypot(m[0], m[1]);
+  if (ml < 1e-6) return [at(n1, w), at([-n1[0], -n1[1]], w)];
+  const mu: Pt = [m[0] / ml, m[1] / ml];
+  const ratio = 1 / Math.max(ml / 2, 1e-3);
+  const inner = cross * sign > 0;
+  if (inner) return [at(mu, w * Math.min(ratio, 10))];
+  if (f.join === 'miter' && ratio <= f.miter) return [at(mu, w * ratio)];
+  if (f.join === 'round') {
+    const a0 = Math.atan2(n1[1], n1[0]), da = Math.atan2(cross, dot), out: Pt[] = [];
+    for (let j = 0; j <= 4; j++) out.push([p[0] + sign * Math.cos(a0 + (da * j) / 4) * w, p[1] + sign * Math.sin(a0 + (da * j) / 4) * w]);
+    return out;
+  }
+  return [at(n1, w), at(n2, w)];
+}
+
+function ribbon(k: Track, a: number, b: number, f: Profile): SubPath {
+  const total = k.total, n = k.list.length;
+  const steps = Math.max(2, Math.min(240, Math.ceil((b - a) / 2.5)));
+  const marks: { s: number; ci: number }[] = [];
+  const rounds = k.closed ? Math.ceil(b / total) + 1 : 1;
+  for (let r = 0; r < rounds; r++) k.list.forEach((s, i) => { const c = r * total + k.cum[i + 1]; if (s.corner && c > a + 1e-6 && c < b - 1e-6) marks.push({ s: c, ci: i }); });
+  const entries: { s: number; ci: number }[] = [...marks];
+  for (let j = 0; j <= steps; j++) {
+    const s = a + ((b - a) * j) / steps;
+    if (!marks.some(m => Math.abs(m.s - s) < 1e-6)) entries.push({ s, ci: -1 });
+  }
+  entries.sort((x, y) => x.s - y.s);
+  const left: Pt[] = [], right: Pt[] = [];
+  let startDirV: Pt = [1, 0], endDirV: Pt = [1, 0];
+  entries.forEach((e, idx) => {
+    const wrapped = k.closed ? ((e.s % total) + total) % total : e.s;
+    const [sl, sr] = sidesAt(f.points, Math.max(0, Math.min(1, wrapped / total)), f.base / 2);
+    if (e.ci >= 0) {
+      const sIn = k.list[e.ci], sOut = k.list[(e.ci + 1) % n];
+      const t1 = endDir(sIn), t2 = startDir(sOut);
+      left.push(...joinPoints(sIn.p3, t1, t2, sl, 1, f));
+      right.push(...joinPoints(sIn.p3, t1, t2, sr, -1, f));
+      return;
+    }
+    const at = pointAt(k, e.s, idx < entries.length - 1);
+    if (idx === 0) startDirV = at.dir;
+    if (idx === entries.length - 1) endDirV = at.dir;
+    const nv: Pt = [-at.dir[1], at.dir[0]];
+    left.push([at.p[0] + nv[0] * sl, at.p[1] + nv[1] * sl]);
+    right.push([at.p[0] - nv[0] * sr, at.p[1] - nv[1] * sr]);
+  });
+  const poly: Pt[] = [...left];
+  capPoints(poly, left[left.length - 1], right[right.length - 1], endDirV, 1, f.cap);
+  poly.push(...right.slice().reverse());
+  capPoints(poly, right[0], left[0], startDirV, -1, f.cap);
+  return polyPath(poly, true);
+}
+
+function widePart(list: Bz[], sub: SubPath, wide: WidthSpec, base: Attrs, weight: number, dash: number[], align: boolean, head: number, tail: number): Attrs | null {
+  const k = trackOf(list, sub.closed);
+  const lo = sub.closed ? 0 : head, hi = sub.closed ? k.total : k.total - tail;
+  if (hi - lo < 1e-6) return null;
+  const f: Profile = { points: wide.points, base: weight, cap: base['stroke-linecap'] ?? 'butt', join: base['stroke-linejoin'] ?? 'miter', miter: parseFloat(base['stroke-miterlimit'] ?? '4') || 4 };
+  let shapes: SubPath[];
+  if (dash.reduce((x, y) => x + y, 0) > 0) {
+    const runs = align ? runBounds(k, lo, hi) : [[lo, hi] as [number, number]];
+    shapes = joinSpans(dashSpans(runs, dash, align), sub.closed, runs.length ? runs[0][0] : 0, k.total).map(([a, b]) => ribbon(k, a, b, f));
+  } else if (sub.closed) shapes = variableOutline([sub], wide.points, weight, 'butt');
+  else shapes = [ribbon(k, lo, hi, f)];
+  if (!shapes.length) return null;
+  const attrs: Attrs = { ...base, d: formatPath(shapes), fill: wide.color, stroke: 'none', 'fill-rule': 'nonzero' };
+  for (const key of ['stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit']) delete attrs[key];
+  return attrs;
 }
 
 const num = (n: number): string => String(Math.round(n * 1000) / 1000);
@@ -189,15 +375,20 @@ function drawnSubs(src: Attrs): SubPath[] {
 }
 
 export function strokeOutputs(src: Attrs, model: StrokeModel): Attrs[] {
-  if (!src.stroke || src.stroke === 'none') return [];
+  const wide = widthSpec(src['data-fw-width']);
+  if (!wide && (!src.stroke || src.stroke === 'none')) return [];
   const base: Attrs = { ...src };
   for (const k of Object.keys(base)) if (k === 'id' || k.startsWith('data-fw-')) delete base[k];
-  if (src['data-fw-align']) { base['stroke-width'] = src['data-fw-weight'] ?? src['stroke-width'] ?? '1'; delete base['paint-order']; delete base['clip-path']; }
+  const aligned = !wide && !!src['data-fw-align'];
+  const raw = parseFloat(src['stroke-width'] ?? '1') || 1;
+  const weight = wide ? parseFloat(src['data-fw-weight'] ?? src['stroke-width'] ?? '2') || 2 : aligned ? parseFloat(src['data-fw-weight'] ?? '') || raw / 2 : raw;
+  if (aligned) base['stroke-width'] = String(weight * 2);
+  delete base['paint-order'];
   delete base['stroke-opacity'];
   delete base['stroke-dasharray'];
   delete base['stroke-dashoffset'];
   base.fill = 'none';
-  const weight = parseFloat(base['stroke-width'] ?? '1') || 1;
+  if (wide) delete base['clip-path'];
   let dash = model.dash.length ? model.dash.slice() : (src['stroke-dasharray'] ?? '').split(/[\s,]+/).filter(part => part !== '').map(Number).filter(n => Number.isFinite(n) && n >= 0).slice(0, 16);
   if (dash.length % 2) dash = [...dash, ...dash];
   const period = dash.reduce((a, b) => a + b, 0);
@@ -210,39 +401,46 @@ export function strokeOutputs(src: Attrs, model: StrokeModel): Attrs[] {
     const open = !sub.closed;
     const first = list[0], last = list[list.length - 1];
     const sd = startDir(first), ed = endDir(last);
-    const head = open && model.tip === 'end' ? arrowSize(model.a0, weight, model.s0).trim : 0;
-    const tail = open && model.tip === 'end' ? arrowSize(model.a1, weight, model.s1).trim : 0;
-    const body = open ? trim(list, head, tail) : list;
-    if (body.length) {
-      if (model.mode === 'align' && period > 0) {
-        for (const run of runsOf(body, sub.closed)) {
-          const total = run.reduce((a, s) => a + length(s), 0);
-          if (total < 1e-6) continue;
-          const count = Math.max(1, Math.round(total / period)), k = total / (count * period);
-          const scaled = dash.map(v => v * k);
-          push({ ...base, d: formatPath([chain(run)]), 'stroke-dasharray': scaled.map(num).join(' '), 'stroke-dashoffset': num(scaled[0] / 2) });
+    const w0 = wide ? Math.max(1, widthAt(wide.points, 0, weight)) : weight, w1 = wide ? Math.max(1, widthAt(wide.points, 1, weight)) : weight;
+    const head = open && model.tip === 'end' ? arrowSize(model.a0, w0, model.s0).trim : 0;
+    const tail = open && model.tip === 'end' ? arrowSize(model.a1, w1, model.s1).trim : 0;
+    if (wide) {
+      const part = widePart(list, sub, wide, base, weight, dash, model.mode === 'align', head, tail);
+      if (part) push(part);
+    } else {
+      const body = open ? trim(list, head, tail) : list;
+      if (body.length) {
+        if (model.mode === 'align' && period > 0) {
+          const k = trackOf(list, sub.closed);
+          const lo = open ? head : 0, hi = open ? k.total - tail : k.total;
+          const runs = hi - lo > 1e-6 ? runBounds(k, lo, hi) : [];
+          const spans = joinSpans(dashSpans(runs, dash, true), sub.closed, runs.length ? runs[0][0] : 0, k.total);
+          if (spans.length) push({ ...base, d: formatPath(spans.map(([a, b]) => chain(extract(k, a, b)))) });
+        } else {
+          const attrs: Attrs = { ...base, d: formatPath(open ? [chain(body)] : [sub]) };
+          if (dash.length && period > 0) attrs['stroke-dasharray'] = dash.map(num).join(' ');
+          push(attrs);
         }
-      } else {
-        const attrs: Attrs = { ...base, d: formatPath(open ? [chain(body)] : [sub]) };
-        if (dash.length && period > 0) attrs['stroke-dasharray'] = dash.map(num).join(' ');
-        push(attrs);
       }
     }
     if (!open) continue;
-    const ends: { id: Arrow; at: Pt; dir: Pt; scale: number }[] = [
-      { id: model.a0, at: first.p0, dir: [-sd[0], -sd[1]], scale: model.s0 },
-      { id: model.a1, at: last.p3, dir: ed, scale: model.s1 }
+    const ends: { id: Arrow; at: Pt; dir: Pt; scale: number; weight: number }[] = [
+      { id: model.a0, at: first.p0, dir: [-sd[0], -sd[1]], scale: model.s0, weight: w0 },
+      { id: model.a1, at: last.p3, dir: ed, scale: model.s1, weight: w1 }
     ];
     for (const end of ends) {
-      const shape = arrowShape(end.id, end.at, end.dir, weight, end.scale, model.tip);
+      const shape = arrowShape(end.id, end.at, end.dir, end.weight, end.scale, model.tip);
       if (!shape) continue;
       const filled = end.id !== 'simple' && end.id !== 'open';
+      const color = wide ? wide.color : base.stroke;
       const attrs: Attrs = { ...base, d: formatPath([shape]) };
       if (filled) {
-        attrs.fill = base.stroke;
+        attrs.fill = color;
         attrs.stroke = 'none';
         for (const k of ['stroke-width', 'stroke-linecap', 'stroke-linejoin', 'stroke-miterlimit']) delete attrs[k];
       } else {
+        attrs.stroke = color;
+        if (wide) attrs['stroke-width'] = num(end.weight);
         attrs['stroke-linecap'] = 'butt';
         attrs['stroke-linejoin'] = 'miter';
       }
