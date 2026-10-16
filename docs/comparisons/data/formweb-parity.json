@@ -4,7 +4,7 @@
  "previous": "0.10.1",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Multiple artboards (FW-176) stays Partial with a gap closed: Export for Screens can export every artboard on the page at once, named after each artboard with a prefix.",
+ "release_note": "Multiple artboards (FW-176) stays Partial with another gap closed: the Artboard tool (Shift+O) draws and moves artboards on the canvas.",
  "lanes": [
   [
    "m",
@@ -7015,8 +7015,8 @@
    "added": "0.10.1",
    "m": [
     "partial",
-    "v0.10.1: driven in Chromium under CPU 4x and slow network. The Artboards panel listed the page's drawings; rename, duplicate (with its gradient copied and re-pointed), Fit to artwork (art stayed at the same screen pixels), new 800 by 600, resize to 500 by 400 and delete all landed in one undo step each. v0.10.2: Export for Screens exported both artboards on the page in SVG and PNG at 1x and 2x as six files named prefix plus artboard name.",
-    "No Artboard tool or on-canvas resizing, no reordering or Rearrange All, no multi-artboard options, no artboard ranges or export from other pages, Fit measures paths only."
+    "v0.10.1: driven in Chromium under CPU 4x and slow network. The Artboards panel listed the page's drawings; rename, duplicate (with its gradient copied and re-pointed), Fit to artwork (art stayed at the same screen pixels), new 800 by 600, resize to 500 by 400 and delete all landed in one undo step each. v0.10.2: Export for Screens exported both artboards on the page in SVG and PNG at 1x and 2x as six files named prefix plus artboard name. v0.10.3: the Artboard tool (Shift+O) drew a new artboard where dragged and moved an artboard by dragging, previewed live, one undo step each.",
+    "No on-canvas resize handles, no moving several artboards at once, no reordering or Rearrange All, no multi-artboard options, no artboard ranges or export from other pages, Fit measures paths only."
    ],
    "fr": [
     "none",
