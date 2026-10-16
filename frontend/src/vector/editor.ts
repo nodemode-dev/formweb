@@ -1274,7 +1274,7 @@ export class Editor {
   }
 
   runPathfinder(op: PathfinderOp, live = false): void {
-    if (live && (op === 'unite' || op === 'minus-front' || op === 'intersect' || op === 'exclude')) { void this.ops.compound(op); return; }
+    if (live && (op === 'unite' || op === 'minus-front' || op === 'intersect' || op === 'exclude' || op === 'divide' || op === 'outline')) { void this.ops.compound(op); return; }
     const site = this.site();
     const svg = this.activeSvg();
     if (!svg) { this.notify('Select two or more paths first.'); return; }

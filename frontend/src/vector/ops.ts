@@ -7,14 +7,15 @@ import { applyCorners } from './corners';
 import { distortSubs, warpSubs, type DistortOptions, type WarpOptions } from './distort';
 import { editGradient, setPaintKind, withAngle, type Gradient, type Target } from './gradient';
 import type { Host } from './host';
-import { blendAttrs, compoundAttrs, expandCommands, liveContainer, liveOf, readBlend, readRepeat, releaseCommands, repeatAttrs, type BlendMode, type CompoundOp, type LiveKind } from './live';
+import type { PathfinderOp } from './boolean';
+import { blendAttrs, compoundAttrs, effectAttrs, expandCommands, liveContainer, liveOf, readBlend, readRepeat, releaseCommands, removeEffectCommands, repeatAttrs, type BlendMode, type CompoundOp, type LiveKind } from './live';
 import { pathIds, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
 import { breakCommands, defineCommands, placeCommands } from './symbols';
 import { presetCommands, readWidth, widthCommands } from './stroke';
 import { strokeCommands, strokeModelOf } from './strokecmd';
 import type { StrokeModel } from './strokefx';
 import { typeCommands, type TypeOptions } from './typepath';
-import { readWarp, warpAttrs } from './warp';
+import { meshFromWarp, meshGrid, readWarp, warpAttrs } from './warp';
 import { flipProfile, profileFromSaved, profileToSaved, type SavedProfile, type WidthPoint, type WidthPreset } from './widthprofile';
 
 export class Ops {
@@ -146,14 +147,16 @@ export class Ops {
   }
 
   async expandLive(): Promise<void> {
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp') ?? this.liveSelected('effect');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     const site = this.h.site();
     const holder = site.nodes[group].children.find(id => site.nodes[id]?.attrs['data-fw-live']);
-    await this.run(expandCommands(site, group), (site.nodes[group].attrs['data-fw-compound'] || site.nodes[group].attrs['data-fw-warp']) && holder ? site.nodes[holder].children.slice() : this.h.selection().slice());
+    await this.run(expandCommands(site, group), (site.nodes[group].attrs['data-fw-compound'] || site.nodes[group].attrs['data-fw-warp'] || site.nodes[group].attrs['data-fw-effect']) && holder ? site.nodes[holder].children.slice() : this.h.selection().slice());
   }
 
   async releaseLive(): Promise<void> {
+    const fxGroup = this.liveSelected('effect');
+    if (fxGroup) { await this.removeEffect(); return; }
     const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     const made = releaseCommands(this.h.site(), group);
@@ -219,6 +222,67 @@ export class Ops {
     if (!made) { this.h.notify('The envelope produced no shape.'); return; }
     const grouped = groupCommands(this.h, all, 'Envelope', { 'data-fw-warp': made.attr });
     if (grouped) await this.run([...grouped.cmds, ...all.map(id => updateAttrs(id, { opacity: '0' })), ...liveContainer(site, new Set([grouped.group]), grouped.group, 'warp', made.outputs, all.length)], all);
+  }
+
+  async envelopeMesh(rows: number, cols: number, reset: boolean): Promise<void> {
+    const site = this.h.site();
+    const r = Math.max(1, Math.min(50, Math.round(rows))), c = Math.max(1, Math.min(50, Math.round(cols)));
+    const group = this.liveSelected('warp');
+    const spec = group ? readWarp(site.nodes[group].attrs['data-fw-warp']) : null;
+    if (reset || (group && spec)) {
+      if (!group || !spec) { this.h.notify('Select a live warp envelope first.'); return; }
+      if (spec.mode === 'top') { this.h.notify('Select a live warp envelope first.'); return; }
+      const attrs = spec.src.map(id => site.nodes[id]?.attrs);
+      const mesh = spec.mode === 'mesh' ? meshGrid(r, c) : attrs.every(a => !!a) ? meshFromWarp(attrs as Record<string, string>[], null, spec, r, c) : null;
+      if (!mesh) { this.h.notify('The envelope produced no shape.'); return; }
+      await this.run([updateAttrs(group, { 'data-fw-warp': JSON.stringify({ ...spec, mode: 'mesh', rows: r, cols: c, mesh }) })]);
+      return;
+    }
+    const shapes = this.ordered().slice(0, 16);
+    if (!shapes.length) { this.h.notify('Select one or more paths first.'); return; }
+    const ids = shapes.map(s => s.id);
+    if (ids.some(id => liveOf(site, id))) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
+    if (new Set(ids.map(id => this.h.parentOf(id))).size !== 1 || !this.h.parentOf(ids[0])) { this.h.notify('Envelope needs paths that sit in the same group.'); return; }
+    const made = warpAttrs(site.nodes, ids, '', { style: 'arc', orient: 'h', bend: 0, hd: 0, vd: 0 }, { rows: r, cols: c });
+    if (!made) { this.h.notify('The envelope produced no shape.'); return; }
+    const grouped = groupCommands(this.h, ids, 'Envelope mesh', { 'data-fw-warp': made.attr });
+    if (grouped) await this.run([...grouped.cmds, ...ids.map(id => updateAttrs(id, { opacity: '0' })), ...liveContainer(site, new Set([grouped.group]), grouped.group, 'warp', made.outputs, ids.length)], ids);
+  }
+
+  async pathfinderEffect(op: PathfinderOp): Promise<void> {
+    const site = this.h.site();
+    const current = this.liveSelected('effect');
+    if (current) {
+      const ids = site.nodes[current].children.filter(id => site.nodes[id]?.tag === 'path' && !site.nodes[id].attrs['data-fw-live']);
+      const made = effectAttrs(site, ids, op);
+      if (made) await this.run([updateAttrs(current, { 'data-fw-effect': JSON.stringify({ v: 1, fx: 'pathfinder', op, sig: '00000000' }) })]);
+      return;
+    }
+    let ids = this.ordered().slice(0, 30).map(s => s.id);
+    const only = ids.length === 1 ? this.h.parentOf(ids[0]) : undefined;
+    const holder = only && site.nodes[only]?.tag === 'g' && !liveOf(site, ids[0]) ? only : undefined;
+    if (holder) {
+      ids = site.nodes[holder].children.filter(id => site.nodes[id]?.tag === 'path' && !site.nodes[id].attrs['data-fw-live']);
+      if (ids.length < 2) { this.h.notify('Select two or more paths, or a group, first.'); return; }
+      const made = effectAttrs(site, ids, op);
+      if (made) await this.run([updateAttrs(holder, { 'data-fw-effect': made.attr, visibility: 'hidden' }), ...liveContainer(site, new Set([holder]), holder, 'effect', made.outputs, ids.length)], ids);
+      return;
+    }
+    if (ids.length < 2) { this.h.notify('Select two or more paths, or a group, first.'); return; }
+    if (ids.some(id => liveOf(site, id))) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
+    if (new Set(ids.map(id => this.h.parentOf(id))).size !== 1 || !this.h.parentOf(ids[0])) { this.h.notify('Live compound shapes need paths that sit in the same group.'); return; }
+    const made = effectAttrs(site, ids, op);
+    if (!made) return;
+    const grouped = groupCommands(this.h, ids, 'Pathfinder effect', { 'data-fw-effect': made.attr, visibility: 'hidden' });
+    if (grouped) await this.run([...grouped.cmds, ...liveContainer(site, new Set([grouped.group]), grouped.group, 'effect', made.outputs, ids.length)], ids);
+  }
+
+  async removeEffect(): Promise<void> {
+    const group = this.liveSelected('effect');
+    if (!group) { this.h.notify('Select a group with a Pathfinder effect first.'); return; }
+    const site = this.h.site();
+    const ids = site.nodes[group].children.filter(id => site.nodes[id]?.tag === 'path' && !site.nodes[id].attrs['data-fw-live']);
+    await this.run(removeEffectCommands(site, group), ids);
   }
 
   async distort(options: DistortOptions): Promise<void> {

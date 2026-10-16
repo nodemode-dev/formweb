@@ -1,6 +1,6 @@
 import type { Command, Site, SiteNode } from '../types';
 import { applyMat } from './arrange';
-import { pathfinder } from './boolean';
+import { pathfinder, type PathfinderOp } from './boolean';
 import { applyCorners, renderPath } from './corners';
 import { brushOutputs, brushSig, needsArt, readBrush, spineOf, spinePoint, spineTangent } from './brush';
 import { blendSub, compose, matchSubs, repeatMatrices, rotation, translation, type Mat } from './distort';
@@ -15,9 +15,11 @@ export type RepeatKind = 'radial' | 'grid' | 'mirror';
 type Attrs = Record<string, string>;
 
 export interface BlendSpec { v: 1; a: string; b: string; mid: string[]; spine: string; mode: BlendMode; steps: number; distance: number; orient: 'page' | 'path'; sig: string; home?: number[] }
-export type CompoundOp = 'unite' | 'minus-front' | 'intersect' | 'exclude';
+export type CompoundOp = 'unite' | 'minus-front' | 'intersect' | 'exclude' | 'divide' | 'outline';
 export interface CompoundSpec { v: 1; op: CompoundOp; src: string[]; sig: string }
-export type LiveKind = 'blend' | 'repeat' | 'brush' | 'stroke' | 'compound' | 'warp';
+export interface EffectSpec { v: 1; fx: 'pathfinder'; op: PathfinderOp; sig: string }
+export type LiveKind = 'blend' | 'repeat' | 'brush' | 'stroke' | 'compound' | 'warp' | 'effect';
+export const PF_OPS: PathfinderOp[] = ['unite', 'minus-front', 'intersect', 'exclude', 'divide', 'trim', 'merge', 'crop', 'minus-back', 'outline'];
 export const blendIds =(s: Pick<BlendSpec, 'a' | 'b' | 'mid'>): string[] => [s.a, ...s.mid, s.b];
 export interface RepeatSpec { v: 1; kind: RepeatKind; src: string[]; count: number; radius: number; cols: number; rows: number; gx: number; gy: number; angle: number; brick: 'none' | 'row' | 'column'; offset: number; sig: string }
 
@@ -56,9 +58,18 @@ export function readCompound(raw: string | undefined): CompoundSpec | null {
   if (!raw) return null;
   try {
     const c = JSON.parse(raw) as Partial<CompoundSpec>;
-    if (c.v !== 1 || (c.op !== 'unite' && c.op !== 'minus-front' && c.op !== 'intersect' && c.op !== 'exclude') || !Array.isArray(c.src) || c.src.length < 2 || c.src.length > 16
+    if (c.v !== 1 || (c.op !== 'unite' && c.op !== 'minus-front' && c.op !== 'intersect' && c.op !== 'exclude' && c.op !== 'divide' && c.op !== 'outline') || !Array.isArray(c.src) || c.src.length < 2 || c.src.length > 16
       || !c.src.every(id => typeof id === 'string' && ID.test(id)) || new Set(c.src).size !== c.src.length || typeof c.sig !== 'string' || !/^[0-9a-f]{8}$/.test(c.sig)) return null;
     return { v: 1, op: c.op, src: c.src, sig: c.sig };
+  } catch { return null; }
+}
+
+export function readEffect(raw: string | undefined): EffectSpec | null {
+  if (!raw) return null;
+  try {
+    const c = JSON.parse(raw) as Partial<EffectSpec>;
+    if (c.v !== 1 || c.fx !== 'pathfinder' || !c.op || !PF_OPS.includes(c.op) || typeof c.sig !== 'string' || !/^[0-9a-f]{8}$/.test(c.sig)) return null;
+    return { v: 1, fx: 'pathfinder', op: c.op, sig: c.sig };
   } catch { return null; }
 }
 
@@ -73,6 +84,7 @@ const blendSig = (s: BlendSpec, sources: Attrs[], spine: Attrs | null): string =
 const repeatSig = (s: RepeatSpec, sources: Attrs[]): string => hash(JSON.stringify([s.kind, s.src, s.count, s.radius, s.cols, s.rows, s.gx, s.gy, s.angle, s.brick, s.offset, ...sources.map(fingerprint)]));
 
 const compoundSig = (s: CompoundSpec, sources: Attrs[]): string => hash(JSON.stringify([s.op, s.src, ...sources.map(a => fingerprint({ ...a, visibility: '' }))]));
+const effectSig = (op: PathfinderOp, ids: string[], sources: Attrs[]): string => hash(JSON.stringify(['effect', op, ids, ...sources.map(fingerprint)]));
 
 interface View { attrs(id: string): Attrs | undefined; kids(id: string): string[]; tag(id: string): string | undefined; alive(id: string): boolean }
 
@@ -237,14 +249,31 @@ export function repeatOutputs(sources: Attrs[], spec: RepeatSpec): Attrs[] {
   return out;
 }
 
-export function compoundOutputs(sources: Attrs[], spec: CompoundSpec): Attrs[] {
+function pathfinderAttrs(sources: Attrs[], op: PathfinderOp): Attrs[] {
   const items = sources.map(drawn);
   const inputs = items.map((item, index) => { const p = paintOf({ attrs: item.attrs } as SiteNode); return { subs: item.subs, fill: p.fill, stroke: p.stroke, index }; });
-  const made = pathfinder(spec.op, inputs)[0];
-  if (!made) return [];
-  const attrs: Attrs = { ...copyAttrs(sources[Math.min(made.source, sources.length - 1)]), ...geometryAttrs(made.subs), 'fill-rule': made.fillRule };
-  delete attrs.visibility;
-  return [attrs];
+  return pathfinder(op, inputs).map(made => {
+    const own = sources[Math.min(made.source, sources.length - 1)];
+    const attrs: Attrs = { ...copyAttrs(own), ...geometryAttrs(made.subs), 'fill-rule': made.fillRule };
+    const p = paintOf({ attrs: own } as SiteNode);
+    if (made.outline) { attrs.fill = 'none'; attrs.stroke = p.fill !== 'none' ? p.fill : p.stroke; attrs['stroke-width'] = String(p.stroke === 'none' ? 1 : p.strokeWidth); attrs['fill-rule'] = 'nonzero'; }
+    else if (!made.stroke) attrs.stroke = 'none';
+    delete attrs.visibility;
+    return attrs;
+  });
+}
+
+export function compoundOutputs(sources: Attrs[], spec: CompoundSpec): Attrs[] {
+  const out = pathfinderAttrs(sources, spec.op);
+  return spec.op === 'divide' || spec.op === 'outline' ? out : out.slice(0, 1);
+}
+
+export const effectOutputs = (sources: Attrs[], op: PathfinderOp): Attrs[] => pathfinderAttrs(sources, op).map(attrs => ({ ...attrs, visibility: 'visible' }));
+
+export function effectAttrs(site: Site, ids: string[], op: PathfinderOp): { attr: string; outputs: Attrs[] } | null {
+  const sources = ids.map(id => site.nodes[id]?.attrs).filter((a): a is Attrs => !!a);
+  if (ids.length < 2 || ids.length > 30 || sources.length !== ids.length) return null;
+  return { attr: JSON.stringify({ v: 1, fx: 'pathfinder', op, sig: effectSig(op, ids, sources) }), outputs: effectOutputs(sources, op) };
 }
 
 export function compoundAttrs(site: Site, ids: string[], op: CompoundOp): { attr: string; outputs: Attrs[] } | null {
@@ -256,7 +285,7 @@ export function compoundAttrs(site: Site, ids: string[], op: CompoundOp): { attr
 
 function containerCommands(site: Site, taken: Set<string>, group: string, kind: LiveKind, list: Attrs[], index: number): Command[] {
   const id = freshId(site, taken, 'live');
-  const names = { blend: ['Blend steps', 'Blend step'], repeat: ['Repeat copies', 'Repeat copy'], brush: ['Brush strokes', 'Brush stroke'], stroke: ['Stroke parts', 'Stroke part'], compound: ['Compound result', 'Compound shape'], warp: ['Envelope result', 'Envelope path'] }[kind];
+  const names = { blend: ['Blend steps', 'Blend step'], repeat: ['Repeat copies', 'Repeat copy'], brush: ['Brush strokes', 'Brush stroke'], stroke: ['Stroke parts', 'Stroke part'], compound: ['Compound result', 'Compound shape'], warp: ['Envelope result', 'Envelope path'], effect: ['Effect result', 'Effect shape'] }[kind];
   const cmds: Command[] = [{ command: 'node.add', params: { parent: group, node: { id, tag: 'g', name: names[0], attrs: { 'data-fw-live': kind } } } }];
   for (const attrs of list) {
     const pid = freshId(site, taken, 'path');
@@ -283,7 +312,7 @@ function refresh(view: View, taken: Set<string>, site: Site, group: string, kind
 }
 
 export function liveFixes(site: Site, cmds: Command[]): Command[] {
-  const groups = Object.values(site.nodes).filter(n => n.tag === 'g' && (n.attrs['data-fw-blend'] || n.attrs['data-fw-repeat'] || n.attrs['data-fw-brush'] || n.attrs['data-fw-stroke'] || n.attrs['data-fw-compound'] || n.attrs['data-fw-warp']));
+  const groups = Object.values(site.nodes).filter(n => n.tag === 'g' && (n.attrs['data-fw-blend'] || n.attrs['data-fw-repeat'] || n.attrs['data-fw-brush'] || n.attrs['data-fw-stroke'] || n.attrs['data-fw-compound'] || n.attrs['data-fw-warp'] || n.attrs['data-fw-effect']));
   if (!groups.length) return [];
   const view = viewOf(site, cmds);
   const taken = new Set<string>();
@@ -294,9 +323,17 @@ export function liveFixes(site: Site, cmds: Command[]): Command[] {
     const kids = view.kids(g.id);
     const live = kids.find(id => view.attrs(id)?.['data-fw-live']);
     const rest = kids.filter(id => id !== live);
-    const blend = readBlend(gattrs['data-fw-blend']), repeat = readRepeat(gattrs['data-fw-repeat']), brush = readBrush(gattrs['data-fw-brush']), fx = readStroke(gattrs['data-fw-stroke']), compound = readCompound(gattrs['data-fw-compound']), warp = readWarp(gattrs['data-fw-warp']);
+    const blend = readBlend(gattrs['data-fw-blend']), repeat = readRepeat(gattrs['data-fw-repeat']), brush = readBrush(gattrs['data-fw-brush']), fx = readStroke(gattrs['data-fw-stroke']), compound = readCompound(gattrs['data-fw-compound']), warp = readWarp(gattrs['data-fw-warp']), effect = readEffect(gattrs['data-fw-effect']);
     const ok = (id: string): boolean => view.alive(id) && rest.includes(id) && view.tag(id) === 'path';
-    if (warp) {
+    if (effect) {
+      const ids = rest.filter(ok);
+      if (ids.length < 2) { out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-effect': null, visibility: null })); continue; }
+      if (gattrs.visibility !== 'hidden') out.push(updateAttrs(g.id, { visibility: 'hidden' }));
+      const attrs = ids.map(id => view.attrs(id)!);
+      const sig = effectSig(effect.op, ids, attrs);
+      if (sig === effect.sig && live) continue;
+      out.push(...refresh(view, taken, site, g.id, 'effect', live, effectOutputs(attrs, effect.op), rest.length), updateAttrs(g.id, { 'data-fw-effect': JSON.stringify({ ...effect, sig }) }));
+    } else if (warp) {
       const ids = warpIds(warp);
       if (!ids.every(ok)) {
         out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-warp': null }));
@@ -387,6 +424,7 @@ export function liveOf(site: Site, id: string): { group: string; kind: LiveKind 
     if (node.tag === 'g' && node.attrs['data-fw-repeat']) return { group: node.id, kind: 'repeat' };
     if (node.tag === 'g' && node.attrs['data-fw-stroke']) return { group: node.id, kind: 'stroke' };
     if (node.tag === 'g' && node.attrs['data-fw-warp']) return { group: node.id, kind: 'warp' };
+    if (node.tag === 'g' && node.attrs['data-fw-effect']) return { group: node.id, kind: 'effect' };
     if (node.tag === 'g' && node.attrs['data-fw-compound']) return { group: node.id, kind: 'compound' };
     if (node.tag === 'svg') return undefined;
     current = parentOf(site, current);
@@ -397,20 +435,21 @@ export function liveOf(site: Site, id: string): { group: string; kind: LiveKind 
 export function liveSources(site: Site, group: string): string[] {
   const node = site.nodes[group];
   const blend = node && readBlend(node.attrs['data-fw-blend']), repeat = node && readRepeat(node.attrs['data-fw-repeat']), brush = node && readBrush(node.attrs['data-fw-brush']), fx = node && readStroke(node.attrs['data-fw-stroke']), compound = node && readCompound(node.attrs['data-fw-compound']), warp = node && readWarp(node.attrs['data-fw-warp']);
-  return compound ? compound.src : blend ? blendIds(blend) : brush ? [brush.src] : fx ? [fx.src] : repeat ? repeat.src : warp ? warpIds(warp) : [];
+  const effect = node && readEffect(node.attrs['data-fw-effect']);
+  return effect ? node.children.filter(id => site.nodes[id]?.tag === 'path' && !site.nodes[id].attrs['data-fw-live']) : compound ? compound.src : blend ? blendIds(blend) : brush ? [brush.src] : fx ? [fx.src] : repeat ? repeat.src : warp ? warpIds(warp) : [];
 }
 
 export function liveCopyOwner(site: Site, id: string): string | undefined {
   const holder = parentOf(site, id);
   const above = holder && site.nodes[holder]?.attrs['data-fw-live'] ? parentOf(site, holder) : undefined;
-  return above && (site.nodes[above]?.attrs['data-fw-blend'] || site.nodes[above]?.attrs['data-fw-repeat'] || site.nodes[above]?.attrs['data-fw-brush'] || site.nodes[above]?.attrs['data-fw-stroke'] || site.nodes[above]?.attrs['data-fw-compound'] || site.nodes[above]?.attrs['data-fw-warp']) ? above : undefined;
+  return above && (site.nodes[above]?.attrs['data-fw-blend'] || site.nodes[above]?.attrs['data-fw-repeat'] || site.nodes[above]?.attrs['data-fw-brush'] || site.nodes[above]?.attrs['data-fw-stroke'] || site.nodes[above]?.attrs['data-fw-compound'] || site.nodes[above]?.attrs['data-fw-warp'] || site.nodes[above]?.attrs['data-fw-effect']) ? above : undefined;
 }
 
 export function expandCommands(site: Site, group: string): Command[] {
   const g = site.nodes[group];
   if (!g) return [];
   const live = g.children.find(id => site.nodes[id]?.attrs['data-fw-live']);
-  const compound = readCompound(g.attrs['data-fw-compound']);
+  const compound = readCompound(g.attrs['data-fw-compound']) ?? readEffect(g.attrs['data-fw-effect']);
   const home = parentOf(site, group);
   if (compound && home && live) {
     const at = site.nodes[home].children.indexOf(group);
@@ -433,6 +472,13 @@ export function expandCommands(site: Site, group: string): Command[] {
   if (fx && body && wide && body.attrs.fill !== 'none' && site.nodes[wide.outline]) cmds.push(removeNode(wide.outline));
   cmds.push(updateAttrs(group, { 'data-fw-blend': null, 'data-fw-repeat': null, 'data-fw-brush': null, 'data-fw-stroke': null, 'data-fw-warp': null }));
   return cmds;
+}
+
+export function removeEffectCommands(site: Site, group: string): Command[] {
+  const g = site.nodes[group];
+  if (!g) return [];
+  const live = g.children.find(id => site.nodes[id]?.attrs['data-fw-live']);
+  return [...(live ? [removeNode(live)] : []), updateAttrs(group, { 'data-fw-effect': null, visibility: null })];
 }
 
 export function releaseCommands(site: Site, group: string): { cmds: Command[]; sources: string[] } {

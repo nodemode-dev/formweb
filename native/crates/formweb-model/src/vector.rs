@@ -6,7 +6,7 @@ const SHARED: &[&str] = &[
     "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset",
     "fill-rule", "fill-opacity", "stroke-opacity", "transform", "vector-effect", "opacity", "data-fw-vector",
     "clip-path", "mask", "paint-order", "clip-rule", "data-fw-align", "data-fw-weight", "data-fw-width", "data-fw-mask", "data-fw-type",
-    "data-fw-blend", "data-fw-repeat", "data-fw-live", "data-fw-brush", "data-fw-brushdef", "data-fw-stroke", "data-fw-compound", "visibility", "data-fw-warp",
+    "data-fw-blend", "data-fw-repeat", "data-fw-live", "data-fw-brush", "data-fw-brushdef", "data-fw-stroke", "data-fw-compound", "visibility", "data-fw-warp", "data-fw-effect",
 ];
 const DATA_LIMIT: usize = 262_144;
 
@@ -33,7 +33,7 @@ pub fn attr_allowed(tag: &str, name: &str) -> bool {
 }
 
 pub fn max_len(tag: &str, name: &str) -> usize {
-    if is_tag(tag) && matches!(name, "d" | "data-fw-vector" | "data-fw-width") { DATA_LIMIT } else { 10000 }
+    if is_tag(tag) && matches!(name, "d" | "data-fw-vector" | "data-fw-width" | "data-fw-warp") { DATA_LIMIT } else { 10000 }
 }
 
 fn child_ok(parent: &str, child: &str) -> bool {
@@ -130,14 +130,15 @@ fn check_live(node: &Node, site: &Site) -> Result<(), String> {
     let stroke = node.attrs.get("data-fw-stroke");
     let compound = node.attrs.get("data-fw-compound");
     let warp = node.attrs.get("data-fw-warp");
-    if (blend.is_some() || repeat.is_some() || brush.is_some() || stroke.is_some() || compound.is_some() || warp.is_some()) && node.tag != "g" { return Err("live blends, repeats, brushes, stroke options, compound shapes and envelopes live on a group".into()); }
-    if [blend, repeat, brush, stroke, compound, warp].iter().filter(|v| v.is_some()).count() > 1 { return Err("a group can be only one of a blend, a repeat, a brush or stroke options".into()); }
+    let effect = node.attrs.get("data-fw-effect");
+    if (blend.is_some() || repeat.is_some() || brush.is_some() || stroke.is_some() || compound.is_some() || warp.is_some() || effect.is_some()) && node.tag != "g" { return Err("live blends, repeats, brushes, stroke options, compound shapes, envelopes and effects live on a group".into()); }
+    if [blend, repeat, brush, stroke, compound, warp, effect].iter().filter(|v| v.is_some()).count() > 1 { return Err("a group can be only one of a blend, a repeat, a brush or stroke options".into()); }
     let kids: Vec<&Node> = node.children.iter().filter_map(|id| site.nodes.get(id)).collect();
     let mut live = 0;
     for child in &kids {
         let Some(kind) = child.attrs.get("data-fw-live") else { continue };
         live += 1;
-        let owned = match kind.as_str() { "blend" => blend.is_some(), "repeat" => repeat.is_some(), "brush" => brush.is_some(), "stroke" => stroke.is_some(), "compound" => compound.is_some(), "warp" => warp.is_some(), _ => false };
+        let owned = match kind.as_str() { "blend" => blend.is_some(), "repeat" => repeat.is_some(), "brush" => brush.is_some(), "stroke" => stroke.is_some(), "compound" => compound.is_some(), "warp" => warp.is_some(), "effect" => effect.is_some(), _ => false };
         let paths_only = child.children.iter().filter_map(|id| site.nodes.get(id)).all(|n| n.tag == "path");
         if !owned || child.tag != "g" || !paths_only { return Err("live copies must sit in a locked group inside their blend or repeat".into()); }
     }
@@ -171,6 +172,7 @@ fn check_live(node: &Node, site: &Site) -> Result<(), String> {
         if !env.is_empty() { ids.push(env); }
         if ids.is_empty() || !ids.iter().all(|id| source(id)) { return Err("an envelope must name its source paths inside its group".into()); }
     }
+    if effect.is_some() && kids.iter().filter(|k| k.tag == "path" && !k.attrs.contains_key("data-fw-live")).count() < 2 { return Err("a Pathfinder effect needs two or more paths inside its group".into()); }
     if let Some(raw) = repeat {
         let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-repeat".to_string())?;
         let ids: Vec<&str> = value.get("src").and_then(Value::as_array).map(|list| list.iter().filter_map(Value::as_str).collect()).unwrap_or_default();
@@ -195,8 +197,9 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-type" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| type_config(&v)).unwrap_or(false),
         "data-fw-blend" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| blend_config(&v)).unwrap_or(false),
         "data-fw-repeat" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| repeat_config(&v)).unwrap_or(false),
-        "data-fw-live" => matches!(value, "blend" | "repeat" | "brush" | "stroke" | "compound" | "warp"),
-        "data-fw-warp" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| warp_config(&v)).unwrap_or(false),
+        "data-fw-live" => matches!(value, "blend" | "repeat" | "brush" | "stroke" | "compound" | "warp" | "effect"),
+        "data-fw-effect" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| effect_config(&v)).unwrap_or(false),
+        "data-fw-warp" => value.len() <= 120_000 && serde_json::from_str::<Value>(value).map(|v| warp_config(&v)).unwrap_or(false),
         "data-fw-compound" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| compound_config(&v)).unwrap_or(false),
         "visibility" => matches!(value, "hidden" | "visible"),
         "data-fw-stroke" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| stroke_config(&v)).unwrap_or(false),
@@ -338,8 +341,24 @@ fn compound_config(value: &Value) -> bool {
     let unique: BTreeSet<&str> = ids.iter().copied().collect();
     map.len() == 4
         && map.get("v").and_then(Value::as_u64) == Some(1)
-        && map.get("op").and_then(Value::as_str).map(|s| matches!(s, "unite" | "minus-front" | "intersect" | "exclude")).unwrap_or(false)
+        && map.get("op").and_then(Value::as_str).map(|s| matches!(s, "unite" | "minus-front" | "intersect" | "exclude" | "divide" | "outline")).unwrap_or(false)
         && ids.len() == list.len() && ids.len() >= 2 && ids.len() <= 16 && unique.len() == ids.len() && ids.iter().all(|id| ref_id(id))
+        && sig_ok(map)
+}
+
+fn mesh_ok(map: &serde_json::Map<String, Value>) -> bool {
+    let grid = |key: &str| map.get(key).and_then(Value::as_u64).filter(|n| (1..=50).contains(n));
+    let (Some(rows), Some(cols)) = (grid("rows"), grid("cols")) else { return false };
+    let Some(points) = map.get("mesh").and_then(Value::as_array) else { return false };
+    points.len() as u64 == (rows + 1) * (cols + 1) * 2 && points.iter().all(|v| v.as_f64().map(|n| n.is_finite() && (-10.0..=10.0).contains(&n)).unwrap_or(false))
+}
+
+fn effect_config(value: &Value) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    map.len() == 4
+        && map.get("v").and_then(Value::as_u64) == Some(1)
+        && map.get("fx").and_then(Value::as_str) == Some("pathfinder")
+        && map.get("op").and_then(Value::as_str).map(|s| matches!(s, "unite" | "minus-front" | "intersect" | "exclude" | "divide" | "trim" | "merge" | "crop" | "minus-back" | "outline")).unwrap_or(false)
         && sig_ok(map)
 }
 
@@ -352,10 +371,12 @@ fn warp_config(value: &Value) -> bool {
     let envelope = map.get("env").and_then(Value::as_str).map(|s| !s.is_empty()).unwrap_or(false);
     let count = map.get("src").and_then(Value::as_array).map(|l| l.len()).unwrap_or(0) + usize::from(envelope);
     let op = map.get("op").and_then(Value::as_array).map(|list| list.len() == count && list.iter().all(|v| v.as_str().map(|s| s.is_empty() || s.parse::<f64>().map(|n| (0.0..=1.0).contains(&n)).unwrap_or(false)).unwrap_or(false))).unwrap_or(false);
-    map.len() == 11
+    let mesh = map.get("mode").and_then(Value::as_str) == Some("mesh");
+    map.len() == if mesh { 14 } else { 11 }
+        && (!mesh || mesh_ok(map))
         && map.get("v").and_then(Value::as_u64) == Some(1)
         && src && env && op
-        && word("mode", &["warp", "top"])
+        && word("mode", &["warp", "top", "mesh"])
         && (map.get("mode").and_then(Value::as_str) == Some("top")) == envelope
         && word("style", &["arc", "arc-lower", "arc-upper", "arch", "bulge", "shell-lower", "shell-upper", "flag", "wave", "fish", "rise", "fisheye", "inflate", "squeeze", "twist"])
         && word("orient", &["h", "v"])

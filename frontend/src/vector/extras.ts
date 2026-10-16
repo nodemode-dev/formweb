@@ -12,6 +12,8 @@ import type { ExtraItem, Scene } from './overlay';
 import { snapLocal, type Guide } from './snap';
 import { addPath, freshId, moveNode, pathIds, removeNode, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
 import { matrixText, parseTransform, useFrame } from './symbols';
+import { liveOf } from './live';
+import { readWarp, warpBox, type WarpSpec } from './warp';
 import { readWidth, widthCommands } from './stroke';
 import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variableOutline, type WidthPoint } from './widthprofile';
 import { WidthDialog } from './widthdialog';
@@ -29,7 +31,8 @@ type Gesture =
   | { kind: 'tbracket'; id: string; flip: 0 | 1; offset: number; moved: boolean }
   | { kind: 'grad'; mode: 'p0' | 'p1' | 'stop' | 'draw'; id: string; idx: number; next: Gradient | null; start: Pt }
   | { kind: 'tf'; i: number; base: Map<string, SubPath[]>; box: Box; per: Map<string, Mat>; svg: string; quad?: Quad; out?: Map<string, SubPath[]> }
-  | { kind: 'use'; id: string; i: number; svg: string; t: Mat; corners: Pt[]; centre: Pt; next?: Mat };
+  | { kind: 'use'; id: string; i: number; svg: string; t: Mat; corners: Pt[]; centre: Pt; next?: Mat }
+  | { kind: 'mesh'; idx: number; mesh: number[]; moved: boolean };
 
 const HANDLE_FRACTIONS: Pt[] = [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]];
 
@@ -102,6 +105,12 @@ export class Extras {
     if (role === 'x-tbracket') return this.startTypeBracket();
     if (role === 'x-tf') return this.startTransform(index);
     if (role === 'x-use') return this.startUse(index);
+    if (role === 'x-mesh') {
+      const state = this.meshState();
+      if (!state) return false;
+      this.gesture = { kind: 'mesh', idx: index, mesh: [...state.spec.mesh!], moved: false };
+      return true;
+    }
     if (tool === 'knife') { this.gesture = { kind: 'knife', pts: [p], alt: event.altKey }; return true; }
     if (tool === 'eraser') { this.gesture = { kind: 'eraser', pts: [p] }; return true; }
     if (tool === 'shapebuilder') return this.startBuilder(p, event.altKey);
@@ -132,6 +141,7 @@ export class Extras {
     else if (g.kind === 'grad') this.dragGradient(g, p, event.shiftKey);
     else if (g.kind === 'tf') this.dragTransform(g, p, event);
     else if (g.kind === 'use') this.dragUseHandle(g, p, event);
+    else if (g.kind === 'mesh') this.dragMesh(g, p);
     this.h.render();
     return true;
   }
@@ -148,6 +158,7 @@ export class Extras {
     else if (g.kind === 'grad') void this.finishGradient(g, p, event.shiftKey);
     else if (g.kind === 'tf') void this.finishTransform(g);
     else if (g.kind === 'use') void this.finishUse(g);
+    else if (g.kind === 'mesh') void this.finishMesh(g);
     this.h.render();
     return true;
   }
@@ -557,6 +568,7 @@ export class Extras {
     }
     if (tool === 'width') this.decorateWidth(items, g);
     if (tool === 'select' || tool === 'direct') { this.decorateType(items, g); this.decorateUse(items, g); }
+    if (tool === 'direct') this.decorateMesh(items, g);
     if (tool === 'gradient') this.decorateGradient(items, g);
     if (tool === 'transform') this.decorateTransform(items);
     if (this.iso && f) {
@@ -680,6 +692,53 @@ export class Extras {
     const reach = 14 * this.h.px();
     items.push({ kind: 'line', x1: s[0], y1: s[1], x2: s[0] + at.normal[0] * side * reach, y2: s[1] + at.normal[1] * side * reach, cls: 'gline' });
     items.push({ kind: 'circle', x: s[0], y: s[1], r: 6, cls: 'tbracket', role: 'x-tbracket', i: 0 });
+  }
+
+  private meshState(): { group: string; spec: WarpSpec; box: Box; svg: string } | null {
+    const site = this.h.site();
+    for (const id of this.h.selection()) {
+      const found = liveOf(site, id);
+      if (found?.kind !== 'warp') continue;
+      const spec = readWarp(site.nodes[found.group].attrs['data-fw-warp']);
+      if (!spec || spec.mode !== 'mesh' || !spec.mesh) continue;
+      const attrs = spec.src.map(s => site.nodes[s]?.attrs);
+      if (!attrs.every(a => !!a)) continue;
+      const box = warpBox(attrs as Record<string, string>[]);
+      const svg = svgOf(site, found.group);
+      if (box && svg) return { group: found.group, spec, box, svg };
+    }
+    return null;
+  }
+
+  private decorateMesh(items: ExtraItem[], g: Gesture | null): void {
+    const state = this.meshState();
+    const f = state && this.h.frame(state.svg);
+    if (!state || !f) return;
+    const { rows, cols, box } = { rows: state.spec.rows!, cols: state.spec.cols!, box: state.box };
+    const mesh = g?.kind === 'mesh' ? g.mesh : state.spec.mesh!;
+    const at = (i: number, j: number): Pt => { const k = (i * (cols + 1) + j) * 2; return this.h.toShell(f, [box.x + mesh[k] * box.w, box.y + mesh[k + 1] * box.h]); };
+    let d = '';
+    for (let i = 0; i <= rows; i++) d += `M${[...Array(cols + 1).keys()].map(j => at(i, j).map(n => Math.round(n * 100) / 100).join(' ')).join('L')}`;
+    for (let j = 0; j <= cols; j++) d += `M${[...Array(rows + 1).keys()].map(i => at(i, j).map(n => Math.round(n * 100) / 100).join(' ')).join('L')}`;
+    items.push({ kind: 'path', d, cls: 'trail' });
+    for (let i = 0; i <= rows; i++) for (let j = 0; j <= cols; j++) { const p = at(i, j); items.push({ kind: 'circle', x: p[0], y: p[1], r: 4, cls: g?.kind === 'mesh' && g.idx === i * (cols + 1) + j ? 'wpt-on' : 'thandle', role: 'x-mesh', i: i * (cols + 1) + j }); }
+  }
+
+  private dragMesh(g: Extract<Gesture, { kind: 'mesh' }>, p: Pt): void {
+    const state = this.meshState();
+    const f = state && this.h.frame(state.svg);
+    if (!state || !f) return;
+    const local = this.local(f, p);
+    const clamp = (n: number): number => Math.max(-10, Math.min(10, Math.round(n * 1e5) / 1e5));
+    g.mesh[g.idx * 2] = clamp((local[0] - state.box.x) / Math.max(1e-6, state.box.w));
+    g.mesh[g.idx * 2 + 1] = clamp((local[1] - state.box.y) / Math.max(1e-6, state.box.h));
+    g.moved = true;
+  }
+
+  private async finishMesh(g: Extract<Gesture, { kind: 'mesh' }>): Promise<void> {
+    const state = this.meshState();
+    if (!state || !g.moved) return;
+    await this.h.commit([updateAttrs(state.group, { 'data-fw-warp': JSON.stringify({ ...state.spec, mesh: g.mesh }) })]);
   }
 
   private decorateWidth(items: ExtraItem[], g: Gesture | null): void {
