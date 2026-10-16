@@ -9,6 +9,7 @@
 - [[Engine]]
 - [[Advanced-Studio]]
 - [[Agents-and-MCP]]
+- [[Languages]]
 - [[Project-Format]]
 - [[Publishing]]
 

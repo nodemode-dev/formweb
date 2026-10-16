@@ -7,7 +7,7 @@
 
 FormWeb is the Form family's visual website builder, researched against Framer & Webflow. One Rust engine owns the editable site, validation, history & static compilation. The TypeScript editor & MCP clients operate that same document through FastAPI, w/o needing a browser to keep agent edits alive.
 
-**Stack.** Vanilla TypeScript 7 + Vite 8 · Python 3.12 + FastAPI · Rust workspace · official Python MCP SDK. No desktop binary is included in this release.
+**Stack.** Vanilla TypeScript 7 + Vite 8 · Python 3.12 + FastAPI · Rust workspace · official Python MCP SDK. The desktop app builds locally with `./build_app`; no prebuilt binary is included in this release.
 
 ## Highlights
 
@@ -18,6 +18,12 @@ FormWeb is the Form family's visual website builder, researched against Framer &
 - **Projects & teams.** SQLite autosave, portable `.fweb` history/assets, isolated review branches, comments, roles, presence & attributed operations.
 - **Publishing & forms.** Immutable local releases, promotion/rollback, redirects, inbox/retention, constraints, tracking & durable signed webhook delivery.
 - **Connected services.** Configurable deployment/domain, translation, fetch & commerce adapters; separate visitor membership, consented analytics & experiments. Provider credentials stay on the server.
+- **Agent dock (v0.6).** Terminal tabs, a Claude button that starts your Claude Code already connected to this editor's MCP tools, and a Chat pane that streams Claude's answers & tool calls. Mod+J toggles it, and it works before Agents is switched on for outside clients.
+- **Desktop app (v0.6).** `./build_app` (`build_app.bat`) checks, installs, builds, freezes the engine & runs the Tauri build in one command. The app carries its own engine, runs w/o the FormWeb folder & keeps data in `~/FormWeb`.
+- **Vector editing (v0.6 & v0.7).** Pen, Curvature, shape & Pathfinder tools, Live Corners (round, inverted or chamfer on any single anchor, non-destructive), then the Illustrator-style set: gradients, clipping & opacity masks, stroke align, knife & eraser, groups w/ isolation, Shape Builder, width tool, align & distribute, smart guides, transforms, blend, repeat, warp & distort and type on a path. Paths are `svg`/`path` elements the engine validates & exports, so agents author them too.
+- **Command registry (v0.7).** Every menu item, toolbar button & shortcut runs through one registry w/ real bindings (Mod+K search, Mod+Z, Mod+Shift+Z, Mod+S, Delete, tool letters), also from inside the canvas. Agents list & run window commands w/ an Allow or Deny prompt for risky ones.
+- **26 languages (v0.7).** The editor switches live, w/o reload, from Settings > Editor language, English by default. Your content, layer names & page names are never translated. `./formweb i18n check` guards the tables.
+- **Creative CMS & forms (v0.7).** Published-site filters & sorting for collection lists, a collection slider, tables, collection folders & manual ordering, real superscript & subscript, default layout gap & padding, multi-step forms w/ file uploads & validation presets, and eight more pre-publish accessibility checks.
 - **Agents & evidence.** Real official-SDK MCP, shared role checks & revision authority. Start w/ the [agent quick start](docs/AGENT_QUICKSTART.md), the [four-vendor comparison](docs/comparisons/) (`FormWeb-Parity_v[version].html`, with every release's score) & the [consolidated matrix](docs/comparisons/FormAI-Parity-Matrix-consolidated.html). Research, audits & verification records ship in the release's planning sidecar.
 
 ## Quick Start
