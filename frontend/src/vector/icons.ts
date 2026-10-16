@@ -36,6 +36,7 @@ const paths = {
   outline: '<path d="M4 8c4-6 12 6 16 0M4 16c4-6 12 6 16 0"/>',
   bake: '<path d="M5 19V9a4 4 0 0 1 4-4h10"/><path d="M14 14h6m-3-3v6"/>',
   knife: '<path d="M4 20 15 9m0 0 5-5-1 7-4 4-3-3 3-3Z"/>',
+  paintbrush: '<path d="M20 4c-5 1-9 5-10 9l2 2c4-1 8-5 8-11Z"/><path d="M10 13c-3 0-5 2-5 4 0 1.500-.5 2.500-1 3 3 .5 7-.5 8-3"/>',
   eraser: '<path d="m4 15 8-9 8 7-5 6H8l-4-4Z"/><path d="M9 11l7 7"/>',
   shapebuilder: '<circle cx="9" cy="12" r="5.5"/><circle cx="15" cy="12" r="5.5"/><path d="M12 8.2v7.6" opacity="0.6"/>',
   width: '<path d="M3 12c4-4 6-4 9 0s5 4 9 0"/><path d="M3 12c4 4 6 4 9 0s5-4 9 0" opacity="0.6"/>',

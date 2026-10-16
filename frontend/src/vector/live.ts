@@ -11,12 +11,12 @@ export type BlendMode = 'color' | 'steps' | 'distance';
 export type RepeatKind = 'radial' | 'grid' | 'mirror';
 type Attrs = Record<string, string>;
 
-export interface BlendSpec { v: 1; a: string; b: string; mid: string[]; spine: string; mode: BlendMode; steps: number; distance: number; orient: 'page' | 'path'; sig: string }
+export interface BlendSpec { v: 1; a: string; b: string; mid: string[]; spine: string; mode: BlendMode; steps: number; distance: number; orient: 'page' | 'path'; sig: string; home?: number[] }
 export const blendIds = (s: Pick<BlendSpec, 'a' | 'b' | 'mid'>): string[] => [s.a, ...s.mid, s.b];
 export interface RepeatSpec { v: 1; kind: RepeatKind; src: string[]; count: number; radius: number; cols: number; rows: number; gx: number; gy: number; angle: number; brick: 'none' | 'row' | 'column'; offset: number; sig: string }
 
-const COPY_LIMIT = 800;
-const BLEND_LIMIT = 150;
+const COPY_LIMIT = 3000;
+const BLEND_LIMIT = 3000;
 const ID = /^[A-Za-z0-9_-]{1,64}$/;
 const finite = (v: unknown, lo: number, hi: number): v is number => typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi;
 const whole = (v: unknown, lo: number, hi: number): v is number => finite(v, lo, hi) && Number.isInteger(v);
@@ -28,9 +28,10 @@ export function readBlend(raw: string | undefined): BlendSpec | null {
     const mid = c.mid === undefined ? [] : c.mid, spine = c.spine === undefined ? '' : c.spine;
     if (c.v !== 1 || typeof c.a !== 'string' || typeof c.b !== 'string' || !ID.test(c.a) || !ID.test(c.b) || !Array.isArray(mid) || mid.length > 14 || !mid.every(id => typeof id === 'string' && ID.test(id))
       || typeof spine !== 'string' || (spine !== '' && !ID.test(spine)) || new Set([c.a, c.b, ...mid, ...(spine ? [spine] : [])]).size !== mid.length + 2 + (spine ? 1 : 0)
-      || (c.mode !== 'color' && c.mode !== 'steps' && c.mode !== 'distance') || !whole(c.steps, 1, 100) || !finite(c.distance, 0.5, 10000) || (c.orient !== 'page' && c.orient !== 'path')
+      || (c.mode !== 'color' && c.mode !== 'steps' && c.mode !== 'distance') || !whole(c.steps, 1, 500) || !finite(c.distance, 0.5, 10000) || (c.orient !== 'page' && c.orient !== 'path')
       || typeof c.sig !== 'string' || !/^[0-9a-f]{8}$/.test(c.sig)) return null;
-    return { v: 1, a: c.a, b: c.b, mid, spine, mode: c.mode, steps: c.steps, distance: c.distance, orient: c.orient, sig: c.sig };
+    const home = Array.isArray(c.home) && c.home.length === 4 && c.home.every(n => finite(n, -1e6, 1e6)) ? c.home : undefined;
+    return { v: 1, a: c.a, b: c.b, mid, spine, mode: c.mode, steps: c.steps, distance: c.distance, orient: c.orient, sig: c.sig, ...(home ? { home } : {}) };
   } catch { return null; }
 }
 
@@ -122,12 +123,12 @@ function channels(x: string, y: string): number {
 }
 
 export function blendCount(a: Drawn, b: Drawn, spec: BlendSpec): number {
-  if (spec.mode === 'steps') return clamp(Math.round(spec.steps), 1, 100);
+  if (spec.mode === 'steps') return clamp(Math.round(spec.steps), 1, 500);
   const gap = dist(centreOf(a.subs), centreOf(b.subs));
-  if (spec.mode === 'distance') return clamp(Math.round(gap / Math.max(0.5, spec.distance)) - 1, 1, 100);
+  if (spec.mode === 'distance') return clamp(Math.round(gap / Math.max(0.5, spec.distance)) - 1, 1, 500);
   const pa = paintOf({ attrs: a.attrs } as SiteNode), pb = paintOf({ attrs: b.attrs } as SiteNode);
   const delta = Math.max(channels(pa.fill, pb.fill), channels(pa.stroke, pb.stroke));
-  return clamp(delta > 0 ? delta : Math.round(gap / 6), 1, 100);
+  return clamp(delta > 0 ? delta : Math.round(gap / 6), 1, 500);
 }
 
 function blendPair(a: Attrs, b: Attrs, spec: BlendSpec, rail: ReturnType<typeof spineOf>, i: number, n: number, out: Attrs[]): void {

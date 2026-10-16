@@ -14,7 +14,7 @@ export interface BrushSettings {
 }
 export interface BrushSpec extends BrushSettings { src: string; color: string; weight: number; sig: string }
 
-export const BRUSH_LIMIT = 150;
+export const BRUSH_LIMIT = 3000;
 const ID = /^[A-Za-z0-9_-]{1,64}$/;
 const inRange = (v: unknown, lo: number, hi: number): v is number => typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi;
 const whole = (v: unknown, lo: number, hi: number): v is number => inRange(v, lo, hi) && Number.isInteger(v);

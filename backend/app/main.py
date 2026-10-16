@@ -127,7 +127,7 @@ class Command(BaseModel):
 
 class Batch(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    commands: list[dict[str, Any]] = Field(min_length=1, max_length=200)
+    commands: list[dict[str, Any]] = Field(min_length=1, max_length=4000)
     expectedRevision: int | None = Field(default=None, ge=0)
 
 

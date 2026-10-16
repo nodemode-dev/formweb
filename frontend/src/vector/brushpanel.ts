@@ -1,6 +1,6 @@
 import { element, text, value } from '../ui/dom';
 import { defaultBrush, readBrush, type BrushKind, type BrushSettings } from './brush';
-import { applyBrushCommands, blendChange, blendGroupOf, brushChange, brushDefs, defineBrush, deleteBrushCommands, spineCommands, type BrushDef } from './brushcmd';
+import { applyBrushCommands, blendChange, blendGroupOf, brushChange, brushDefs, defineBrush, deleteBrushCommands, removeSpineCommands, spineCommands, type BrushDef } from './brushcmd';
 import type { Editor } from './editor';
 import { readBlend } from './live';
 import { button, field, numberInput, section, segment } from './panel';
@@ -110,6 +110,11 @@ export class BrushSections {
         button('Remove brush', 'Turn the selected brushed path back into a plain stroke', () => { void editor.ops.releaseLive(); }, 'divide'),
         button('Expand appearance', 'Turn the brushed result into ordinary paths', () => { void editor.ops.expandLive(); }, 'bake')),
       list, this.note);
+    const fidelity = numberInput(0.1, 20, 0.1, () => undefined);
+    fidelity.value = String(editor.fidelity);
+    fidelity.title = 'Higher values smooth the freehand stroke more; lower values follow your hand closely.';
+    fidelity.addEventListener('change', () => { editor.fidelity = clampOf(fidelity, 0.1, 20, 2.5); });
+    brush.body.append(field('Fidelity', fidelity), element('p', 'fw-v-note', 'The Paintbrush draws with the last brush you applied or defined.'));
     this.show();
 
     const spine = section('Blend along a spine', false);
@@ -121,7 +126,7 @@ export class BrushSections {
     this.orientSeg.set('page');
     spine.body.append(this.orientSeg.root,
       grid(button('Replace spine', 'Use the selected extra path as the spine of the selected live blend', () => { const cmds = spineCommands(h()); if (cmds.length) void h().commit(cmds); }, 'blend'),
-        button('Remove spine', 'Blend along a straight line again', () => { const group = blendGroupOf(h()); if (group) void h().commit(blendChange(editor.site(), group, { spine: '' })); }, 'close')),
+        button('Remove spine', 'Blend along a straight line again', () => { const cmds = removeSpineCommands(h()); if (cmds.length) void h().commit(cmds); }, 'close')),
       this.spineNote);
 
     const instance = section('Symbol instance', false);
@@ -183,11 +188,13 @@ export class BrushSections {
     const made = defineBrush(h, this.name.value, this.settings(this.kind));
     if (!made) return;
     this.name.value = '';
+    this.editor.activeBrush = made.id;
     await h.commit(made.cmds);
   }
 
   private async apply(def: string): Promise<void> {
     const h = this.editor.host();
+    this.editor.activeBrush = def;
     const made = applyBrushCommands(h, def);
     if (made) await h.commit(made.cmds, made.select);
   }

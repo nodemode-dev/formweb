@@ -1389,4 +1389,8 @@ export const KEYS: readonly string[] = [
   "Remove the variable width before applying a brush.",
   "Select two or more paths to blend.",
   "Blend needs paths that sit in the same group.",
+  "Paintbrush",
+  "Fidelity",
+  "Higher values smooth the freehand stroke more; lower values follow your hand closely.",
+  "The Paintbrush draws with the last brush you applied or defined.",
 ];

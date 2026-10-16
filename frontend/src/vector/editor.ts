@@ -5,10 +5,12 @@ import { pathfinder, type PathfinderInput, type PathfinderOp } from './boolean';
 import { cornerBasics, distanceFromWidget, radiusFromDistance, solveCorners, widgetDistance, applyCorners } from './corners';
 import { addAnchor, averageAnchors, convertAnchors, deleteAnchors, joinEndpoints, offsetSubs, outlineStroke, scissorsAt, simplifySub } from './edit';
 import {
-  arcPath, autoSmooth, clonePath, dist, ellipsePath, formatPath, linePath, mapPath, moveAnchor, moveHandle, nearestOnPath, pathBounds, polygonPath, rectPath, spiralPath, starPath, translate,
+  arcPath, autoSmooth, clonePath, dist, ellipsePath, formatPath, linePath, mapPath, moveAnchor, moveHandle, nearestOnPath, pathBounds, polyPath, polygonPath, rectPath, spiralPath, starPath, translate,
   type Anchor, type AnchorKind, type Corner, type CornerType, type Pt, type SubPath
 } from './geometry';
 import { moveCommands, outerGroup } from './arrange';
+import { brushedPathCommands } from './brushcmd';
+import { fitCurve, simplifyPolyline } from './fit';
 import { EXTRA_TOOLS, Extras } from './extras';
 import type { Frame as HostFrame, Host } from './host';
 import { Ops } from './ops';
@@ -24,7 +26,7 @@ import {
 } from './store';
 
 export type ToolId = 'select' | 'direct' | 'pen' | 'curvature' | 'add' | 'delete' | 'convert' | 'rect' | 'ellipse' | 'polygon' | 'star' | 'line' | 'arc' | 'spiral' | 'scissors'
-  | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform';
+  | 'knife' | 'eraser' | 'shapebuilder' | 'width' | 'gradient' | 'transform' | 'paintbrush';
 
 export interface VectorContext {
   canvas: Canvas;
@@ -46,6 +48,7 @@ type Gesture =
   | { kind: 'corner'; ref: Ref; base: Map<string, SubPath[]>; moved: boolean }
   | { kind: 'convert'; ref: Ref; base: SubPath[]; start: Pt; moved: boolean; retract?: boolean }
   | { kind: 'pen'; node: Anchor }
+  | { kind: 'paint'; pts: Pt[] }
   | { kind: 'shape'; start: Pt; current: Pt; alt: boolean; shift: boolean }
   | { kind: 'marquee'; start: Pt; current: Pt; shift: boolean; click?: string }
   | { kind: 'pathmove'; start: Pt; base: Map<string, SubPath[]>; svg?: string; moved: boolean }
@@ -55,7 +58,7 @@ const HIT = 7;
 const TYPES: CornerType[] = ['round', 'inverted', 'chamfer'];
 const NUDGE_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 
-export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete', k: 'knife', e: 'transform', g: 'gradient' };
+export const TOOL_KEYS: Record<string, ToolId> = { v: 'select', a: 'direct', p: 'pen', m: 'rect', l: 'ellipse', '\\': 'line', c: 'scissors', '+': 'add', '-': 'delete', k: 'knife', e: 'transform', g: 'gradient', b: 'paintbrush' };
 const SHIFT_KEYS: Record<string, ToolId> = { c: 'convert', m: 'shapebuilder', e: 'eraser', w: 'width' };
 
 export class Editor {
@@ -70,6 +73,8 @@ export class Editor {
   readonly listeners = new Set<() => void>();
   readonly cornerRequests = new Set<() => void>();
   shortcuts = true;
+  fidelity = 2.5;
+  activeBrush = '';
   symbolEdit: string | null = null;
   private drafts = new Map<string, SubPath[]>();
   private cache = new Map<string, { key: string; shape: Shape }>();
@@ -266,7 +271,7 @@ export class Editor {
     if (tool === null) { this.overlay.render(scene); return; }
     if (!this.gesture) this.sync();
     this.refs = []; this.handleRefs = []; this.widgetRefs = [];
-    const showPoints = tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && !EXTRA_TOOLS.has(tool);
+    const showPoints = tool !== 'select' && tool !== 'pen' && tool !== 'curvature' && tool !== 'rect' && tool !== 'ellipse' && tool !== 'polygon' && tool !== 'star' && tool !== 'line' && tool !== 'arc' && tool !== 'spiral' && tool !== 'paintbrush' && !EXTRA_TOOLS.has(tool);
     const s = this.px();
     const margin = 16 * s;
     for (const shape of this.selectedShapes()) {
@@ -320,6 +325,7 @@ export class Editor {
     }
     const g = this.gesture;
     if (g?.kind === 'shape') scene.draft = formatPath(applyCorners(this.shapeSubs(g.start, g.current, g.alt, g.shift)));
+    if (g?.kind === 'paint' && g.pts.length > 1) scene.draft = formatPath([polyPath(g.pts, false)]);
     if (g?.kind === 'marquee') scene.marquee = { x: g.start[0], y: g.start[1], w: g.current[0] - g.start[0], h: g.current[1] - g.start[1] };
     this.extras.decorate(scene);
     this.overlay.render(scene);
@@ -421,6 +427,7 @@ export class Editor {
     if (role === 'handle') { this.startHandle(index); return; }
     if (role === 'anchor') { this.downAnchor(index, event, p); return; }
     if (tool === 'pen' || tool === 'curvature') { this.downPen(p, event); return; }
+    if (tool === 'paintbrush') { this.gesture = { kind: 'paint', pts: [p] }; this.render(); return; }
     if (tool === 'rect' || tool === 'ellipse' || tool === 'polygon' || tool === 'star' || tool === 'line' || tool === 'arc' || tool === 'spiral') {
       this.gesture = { kind: 'shape', start: p, current: p, alt: event.altKey, shift: event.shiftKey };
       this.render();
@@ -690,6 +697,7 @@ export class Editor {
       this.render();
       return;
     }
+    if (g.kind === 'paint') { if (dist(g.pts[g.pts.length - 1], p) > 1.5 * this.px()) { g.pts.push(p); this.render(); } return; }
     if (g.kind === 'shape') { g.current = event.shiftKey ? p : this.extras.snapPoint(p, new Set(), g.start, true); g.alt = event.altKey; g.shift = event.shiftKey; this.render(); return; }
     if (g.kind === 'marquee') { g.current = p; this.render(); return; }
     if (g.kind === 'move') { this.dragAnchors(g, p, event.shiftKey); return; }
@@ -858,6 +866,13 @@ export class Editor {
     const p = this.pt(event);
     if (g.kind === 'pen') { this.gesture = null; this.render(); return; }
     this.gesture = null;
+    if (g.kind === 'paint') {
+      const pts = [...g.pts, p];
+      const err = Math.max(0.1, this.fidelity) * this.px();
+      if (dist(pts[0], p) > 3 * this.px() || pts.length > 4) void this.commitNew([fitCurve(simplifyPolyline(pts, err * 0.3), err)], true, this.activeBrush);
+      else this.render();
+      return;
+    }
     if (g.kind === 'shape') {
       if (dist(g.start, p) > 3 * this.px()) {
         const open = this.tool === 'line' || this.tool === 'spiral' || (this.tool === 'arc' && !this.options.closedArc);
@@ -1045,7 +1060,7 @@ export class Editor {
     if (event.shiftKey && SHIFT_KEYS[event.key.toLowerCase()]) return SHIFT_KEYS[event.key.toLowerCase()];
     const tool = TOOL_KEYS[event.key.toLowerCase()];
     if (!tool) return undefined;
-    if (this.tool !== null || ['pen', 'rect', 'ellipse', 'line'].includes(tool)) return tool;
+    if (this.tool !== null || ['pen', 'rect', 'ellipse', 'line', 'paintbrush'].includes(tool)) return tool;
     const selected = this.site().nodes[this.ctx.getSelected()];
     return selected && VECTOR_TAGS.has(selected.tag) ? tool : undefined;
   }
@@ -1103,7 +1118,7 @@ export class Editor {
     return undefined;
   }
 
-  async commitNew(shellSubs: SubPath[], open: boolean): Promise<void> {
+  async commitNew(shellSubs: SubPath[], open: boolean, brush = ''): Promise<void> {
     const site = this.site();
     const paint = this.paintFor(open);
     const taken = new Set<string>();
@@ -1113,7 +1128,7 @@ export class Editor {
     const f = svg ? this.frame(svg) : undefined;
     if (svg && f) {
       const local = mapPath(shellSubs, p => this.toLocal(f, p));
-      cmds.push(addPath(svg, pathId, local, paint));
+      cmds.push(...(brush ? brushedPathCommands(this.host(), taken, brush, svg, pathId, local, paint) : null) ?? [addPath(svg, pathId, local, paint)]);
     } else {
       const box = pathBounds(applyCorners(shellSubs)) ?? { x: 0, y: 0, w: 1, h: 1 };
       const pad = Math.ceil(paint.stroke === 'none' ? 2 : paint.strokeWidth / 2 + 2);

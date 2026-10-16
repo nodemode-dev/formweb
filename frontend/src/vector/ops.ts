@@ -97,7 +97,7 @@ export class Ops {
 
   async blend(change: { mode: BlendMode; steps: number; distance: number }): Promise<void> {
     const site = this.h.site();
-    const next = { mode: change.mode, steps: Math.max(1, Math.min(100, Math.round(change.steps))), distance: Math.max(0.5, Math.min(10000, change.distance)) };
+    const next = { mode: change.mode, steps: Math.max(1, Math.min(500, Math.round(change.steps))), distance: Math.max(0.5, Math.min(10000, change.distance)) };
     const group = this.liveSelected('blend');
     const spec = group ? readBlend(site.nodes[group].attrs['data-fw-blend']) : null;
     if (group && spec) { await this.run([updateAttrs(group, { 'data-fw-blend': JSON.stringify({ ...spec, ...next }) })]); return; }

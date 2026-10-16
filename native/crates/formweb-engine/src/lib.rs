@@ -101,7 +101,7 @@ impl Engine {
 
     pub fn batch(&mut self, commands: &[Value], expected: Option<u64>) -> Result<Value, String> {
         self.check_revision(expected)?;
-        if commands.is_empty() || commands.len() > 500 { return Err("batch needs 1 to 500 commands".into()); }
+        if commands.is_empty() || commands.len() > 4000 { return Err("batch needs 1 to 4000 commands".into()); }
         let mut candidate = self.site.clone();
         for entry in commands {
             let command = string(entry, "command")?;

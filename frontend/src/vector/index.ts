@@ -29,7 +29,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     select: 'vector.select', direct: 'vector.direct', pen: 'vector.pen', curvature: 'vector.curvature', add: 'vector.add-anchor', delete: 'vector.delete-anchor',
     convert: 'vector.convert-anchor', scissors: 'vector.scissors', rect: 'vector.rect', ellipse: 'vector.ellipse', polygon: 'vector.polygon', star: 'vector.star',
     line: 'vector.line', arc: 'vector.arc', spiral: 'vector.spiral', knife: 'vector.knife', eraser: 'vector.eraser', shapebuilder: 'vector.shape-builder',
-    width: 'vector.width', gradient: 'vector.gradient', transform: 'vector.free-transform'
+    width: 'vector.width', gradient: 'vector.gradient', transform: 'vector.free-transform', paintbrush: 'vector.paintbrush'
   };
   const tools: CommandDef[] = TOOLS.map((tool, index) => ({
     id: commandId[tool.id],

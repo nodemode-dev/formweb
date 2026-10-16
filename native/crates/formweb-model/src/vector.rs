@@ -244,7 +244,9 @@ fn blend_config(value: &Value) -> bool {
     let id = |key: &str| map.get(key).and_then(Value::as_str).map(ref_id).unwrap_or(false);
     let int = |key: &str, lo: u64, hi: u64| map.get(key).and_then(Value::as_u64).map(|n| n >= lo && n <= hi).unwrap_or(false);
     let word = |key: &str, allowed: &[&str]| map.get(key).and_then(Value::as_str).map(|s| allowed.contains(&s)).unwrap_or(false);
-    let extended = map.len() == 10;
+    let home = map.get("home");
+    let home_ok = home.map(|h| h.as_array().map(|list| list.len() == 4 && list.iter().all(|v| v.as_f64().map(|n| n.is_finite() && n.abs() <= 1.0e6).unwrap_or(false))).unwrap_or(false)).unwrap_or(true);
+    let extended = map.len() == 10 + usize::from(home.is_some());
     let mut named: Vec<&str> = ["a", "b"].iter().filter_map(|key| map.get(*key).and_then(Value::as_str)).collect();
     let mid_ok = !extended || map.get("mid").and_then(Value::as_array).map(|list| list.len() <= 14 && list.iter().all(|v| v.as_str().map(ref_id).unwrap_or(false))).unwrap_or(false);
     if extended {
@@ -254,11 +256,12 @@ fn blend_config(value: &Value) -> bool {
     let spine_ok = !extended || map.get("spine").and_then(Value::as_str).map(|s| s.is_empty() || ref_id(s)).unwrap_or(false);
     let distinct = named.iter().collect::<BTreeSet<_>>().len() == named.len();
     (map.len() == 8 || extended)
+        && home_ok && (home.is_none() || extended)
         && mid_ok && spine_ok && distinct
         && map.get("v").and_then(Value::as_u64) == Some(1)
         && id("a") && id("b")
         && word("mode", &["color", "steps", "distance"])
-        && int("steps", 1, 100)
+        && int("steps", 1, 500)
         && map.get("distance").and_then(Value::as_f64).map(|n| n.is_finite() && (0.5..=10000.0).contains(&n)).unwrap_or(false)
         && word("orient", &["page", "path"])
         && sig_ok(map)

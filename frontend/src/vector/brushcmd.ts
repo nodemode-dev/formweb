@@ -1,11 +1,12 @@
 import type { Command, Site } from '../types';
-import { cloneCommands, groupCommands } from './arrange';
-import { brushOutputs, brushSig, readBrush, readBrushDef, type BrushSettings, type BrushSpec } from './brush';
+import { cloneCommands, groupCommands, moveCommands } from './arrange';
+import { brushOutputs, brushSig, readBrush, readBrushDef, spineOf, spinePoint, type BrushSettings, type BrushSpec } from './brush';
 import { applyCorners } from './corners';
 import { colorToHex } from './gradient';
 import type { Host } from './host';
 import { liveContainer, liveOf, readBlend } from './live';
-import { freshId, moveNode, pathIds, refOf, removeNode, svgOf, updateAttrs } from './store';
+import { pathBounds, type Pt, type SubPath } from './geometry';
+import { addPath, freshId, moveNode, pathIds, refOf, removeNode, svgOf, updateAttrs, type Paint } from './store';
 import { readWidth } from './stroke';
 import { symbolOfUse, symbolPaths } from './symbols';
 
@@ -95,6 +96,28 @@ export function applyBrushCommands(h: Host, def: string): { cmds: Command[]; sel
   return cmds.length ? { cmds, select } : null;
 }
 
+export function brushedPathCommands(h: Host, taken: Set<string>, def: string, parent: string, pathId: string, subs: SubPath[], paint: Paint): Command[] | null {
+  const site = h.site();
+  const holder = site.nodes[def];
+  const settings = holder && svgOf(site, def) === parent ? readBrushDef(holder.attrs['data-fw-brushdef']) : null;
+  if (!holder || !settings) return null;
+  const art = settings.kind === 'calligraphic' ? '' : settings.art || def;
+  const artList = art ? artAttrsOf(site, art) : [];
+  if (art && !artList.length) return null;
+  const stroke = paint.stroke !== 'none' && !refOf(paint.stroke) ? colorToHex(paint.stroke, '#000000') : '#000000';
+  const group = freshId(site, taken, 'group');
+  taken.add(pathId);
+  const path = addPath(group, pathId, subs, { ...paint, stroke: 'none' });
+  const attrs = (path.params as { node: { attrs: Record<string, string> } }).node.attrs;
+  const base: Omit<BrushSpec, 'sig'> = { ...settings, art, src: pathId, color: stroke, weight: paint.strokeWidth };
+  const sig = brushSig(base, attrs, artList);
+  return [
+    { command: 'node.add', params: { parent, node: { id: group, tag: 'g', name: 'Brushed path', attrs: { 'data-fw-brush': JSON.stringify({ ...base, sig }) } } } },
+    path,
+    ...liveContainer(site, taken, group, 'brush', brushOutputs(attrs, artList, base), 1)
+  ];
+}
+
 export function brushChange(site: Site, group: string, change: Partial<BrushSettings>): Command[] {
   const spec = readBrush(site.nodes[group]?.attrs['data-fw-brush']);
   return spec ? [updateAttrs(group, { 'data-fw-brush': JSON.stringify({ ...spec, ...change }) })] : [];
@@ -113,7 +136,26 @@ export function spineCommands(h: Host): Command[] {
   if (!group || !spec) { h.notify('Select a live blend and one more path to use as its spine.'); return []; }
   const pick = h.selection().find(id => site.nodes[id]?.tag === 'path' && !liveOf(site, id));
   if (!pick) { h.notify('Select a live blend and one more path to use as its spine.'); return []; }
-  return [moveNode(pick, group, site.nodes[group].children.length), updateAttrs(group, { 'data-fw-blend': JSON.stringify({ ...spec, spine: pick }) })];
+  const spine = h.shape(pick);
+  const rail = spine?.subs[0] ? spineOf(spine.subs[0]) : null;
+  const ends = [spec.a, spec.b].map(id => h.shape(id));
+  if (!rail || !ends[0] || !ends[1]) { h.notify('Select a live blend and one more path to use as its spine.'); return []; }
+  const old = spec.home ?? [0, 0, 0, 0];
+  const centres = ends.map((shape, k) => { const box = pathBounds(applyCorners(shape!.subs)); return box ? [box.x + box.w / 2 - old[k * 2], box.y + box.h / 2 - old[k * 2 + 1]] : [0, 0]; });
+  const at = [spinePoint(rail, 0), spinePoint(rail, rail.total)];
+  const home = [at[0][0] - centres[0][0], at[0][1] - centres[0][1], at[1][0] - centres[1][0], at[1][1] - centres[1][1]].map(n => Math.round(n * 1000) / 1000);
+  const moves = new Map<string, Pt>([[spec.a, [home[0] - old[0], home[1] - old[1]]], [spec.b, [home[2] - old[2], home[3] - old[3]]]]);
+  return [moveNode(pick, group, site.nodes[group].children.length), ...moveCommands(h, moves), updateAttrs(group, { 'data-fw-blend': JSON.stringify({ ...spec, spine: pick, home }) })];
+}
+
+export function removeSpineCommands(h: Host): Command[] {
+  const group = blendGroupOf(h);
+  const spec = group ? readBlend(h.site().nodes[group].attrs['data-fw-blend']) : null;
+  if (!group || !spec) return [];
+  const { home, ...rest } = spec;
+  const back = home ?? [0, 0, 0, 0];
+  const moves = new Map<string, Pt>([[spec.a, [-back[0], -back[1]]], [spec.b, [-back[2], -back[3]]]]);
+  return [...moveCommands(h, moves), updateAttrs(group, { 'data-fw-blend': JSON.stringify({ ...rest, spine: '' }) })];
 }
 
 export function blendChange(site: Site, group: string, change: { spine?: string; orient?: 'page' | 'path' }): Command[] {

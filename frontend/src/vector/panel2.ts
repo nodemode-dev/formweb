@@ -241,7 +241,7 @@ export class ExtraSections {
       }));
 
     const effects = section('Blend and repeat', false);
-    const steps = num(5, 1, 100, 1), spacing = num(20, 1, 10000, 1);
+    const steps = num(5, 1, 500, 1), spacing = num(20, 1, 10000, 1);
     const blendMode = { value: 'steps' as BlendMode };
     const blendNow = (): { mode: BlendMode; steps: number; distance: number } => ({ mode: blendMode.value, steps: read(steps, 5), distance: read(spacing, 20) });
     const liveBlend = (): void => { if (ops.liveSelected('blend')) void ops.blend(blendNow()); };

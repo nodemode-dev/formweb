@@ -13,6 +13,7 @@ export const TOOLS: ToolDef[] = [
   { id: 'select', label: 'Selection', icon: 'select', keys: 'V' },
   { id: 'direct', label: 'Direct Selection', icon: 'direct', keys: 'A' },
   { id: 'pen', label: 'Pen', icon: 'pen', keys: 'P' },
+  { id: 'paintbrush', label: 'Paintbrush', icon: 'paintbrush', keys: 'B' },
   { id: 'curvature', label: 'Curvature', icon: 'curvature', keys: '' },
   { id: 'add', label: 'Add Anchor Point', icon: 'add', keys: '+' },
   { id: 'delete', label: 'Delete Anchor Point', icon: 'remove', keys: '-' },

@@ -1,5 +1,9 @@
 # Backend context
 
+## Batch limit · v0.8.3 (2026-10-16)
+
+`app/main.py`: `Batch.commands` max_length 200 to 4000, matching the engine's new `batch` limit (it was 500). Request size is still bounded by the middleware at `MAX_DOCUMENT_BYTES` and the model by 10000 nodes. The reason is live brush and blend output, which is one `node.add` per generated path inside a single undo step. `mcp_catalog.py` keeps `apply_commands` at 200. `compileall` clean (pycache removed).
+
 ## Wishlist QA · v0.8.1 (2026-10-16)
 
 `app/mcp_domains.py` (the `cms.query` entry in `COMMAND_DOCS` now documents the `{parent.field}` filter token). `forms.py` needed no change.
