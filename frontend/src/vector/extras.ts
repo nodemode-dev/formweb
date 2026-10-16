@@ -10,12 +10,14 @@ import {
 import type { Frame, Host } from './host';
 import type { ExtraItem, Scene } from './overlay';
 import { snapLocal, type Guide } from './snap';
-import { addPath, freshId, moveNode, pathIds, removeNode, updateAttrs, type Shape } from './store';
+import { addPath, freshId, moveNode, pathIds, removeNode, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
+import { symbolBox, symbolOfUse } from './symbols';
 import { readWidth, widthCommands } from './stroke';
 import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variableOutline, type WidthPoint } from './widthprofile';
 import { WidthDialog } from './widthdialog';
 import { bracketParam, offsetFromParam, readType, typeCommands, typeHolder, type TypeConfig } from './typepath';
 import { matrixCommands, applyMat, unionBox } from './arrange';
+import { distortShape, dragQuad, isCorner, isSide, shearMatrix, type Quad, type TfMode } from './freetransform';
 
 export const EXTRA_TOOLS = new Set(['knife', 'eraser', 'shapebuilder', 'width', 'gradient', 'transform']);
 
@@ -26,7 +28,7 @@ type Gesture =
   | { kind: 'width'; id: string; idx: number; t: number; points: WidthPoint[]; alt: boolean; moved: boolean; start: [number, number] }
   | { kind: 'tbracket'; id: string; flip: 0 | 1; offset: number; moved: boolean }
   | { kind: 'grad'; mode: 'p0' | 'p1' | 'stop' | 'draw'; id: string; idx: number; next: Gradient | null; start: Pt }
-  | { kind: 'tf'; i: number; base: Map<string, SubPath[]>; box: Box; per: Map<string, Mat>; svg: string };
+  | { kind: 'tf'; i: number; base: Map<string, SubPath[]>; box: Box; per: Map<string, Mat>; svg: string; quad?: Quad; out?: Map<string, SubPath[]> };
 
 const HANDLE_FRACTIONS: Pt[] = [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]];
 
@@ -37,6 +39,7 @@ export class Extras {
   eraserSize = 12;
   gap = 0;
   splitStroke = false;
+  tfMode: TfMode = 'scale';
   iso: string | null = null;
   target: Target = 'fill';
   stop = 0;
@@ -476,8 +479,18 @@ export class Extras {
     if (!f) return;
     const lp = this.local(f, p), b = g.box;
     const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    const mode = this.modeFor(g.i, event);
+    if (mode === 'perspective' || mode === 'distort') {
+      g.quad = dragQuad(mode, g.i, b, lp, event.altKey, event.shiftKey);
+      g.out = new Map();
+      g.per = new Map();
+      for (const [id, subs] of g.base) { const mapped = distortShape(subs, b, g.quad); g.out.set(id, mapped); this.h.draft(id, mapped); }
+      return;
+    }
     let m: Mat;
-    if (g.i === 8) {
+    if (mode === 'shear') {
+      m = shearMatrix(g.i, b, lp, event.altKey, event.shiftKey);
+    } else if (g.i === 8) {
       const start = pointAtTop(b);
       let delta = ((Math.atan2(lp[1] - cy, lp[0] - cx) - Math.atan2(start[1] - cy, start[0] - cx)) * 180) / Math.PI;
       if (event.shiftKey) delta = Math.round(delta / 15) * 15;
@@ -498,7 +511,22 @@ export class Extras {
     for (const [id, subs] of g.base) this.h.draft(id, applyMat(subs, m));
   }
 
+  private modeFor(i: number, event: PointerEvent): TfMode {
+    const ctrl = event.ctrlKey || event.metaKey;
+    if (isCorner(i)) {
+      if (ctrl && event.altKey && event.shiftKey) return 'perspective';
+      if (ctrl) return 'distort';
+      return this.tfMode === 'perspective' || this.tfMode === 'distort' ? this.tfMode : 'scale';
+    }
+    return isSide(i) && (ctrl || this.tfMode === 'shear') ? 'shear' : 'scale';
+  }
+
   private async finishTransform(g: Extract<Gesture, { kind: 'tf' }>): Promise<void> {
+    if (g.out?.size) {
+      this.h.clearDrafts();
+      await this.h.commit([...g.out].map(([id, subs]) => updateGeometry(id, subs)));
+      return;
+    }
     if (!g.per.size) return;
     this.h.clearDrafts();
     const r = matrixCommands(this.h, g.per, false, false);
@@ -524,7 +552,7 @@ export class Extras {
       });
     }
     if (tool === 'width') this.decorateWidth(items, g);
-    if (tool === 'select' || tool === 'direct') this.decorateType(items, g);
+    if (tool === 'select' || tool === 'direct') { this.decorateType(items, g); this.decorateUse(items); }
     if (tool === 'gradient') this.decorateGradient(items, g);
     if (tool === 'transform') this.decorateTransform(items);
     if (this.iso && f) {
@@ -580,6 +608,21 @@ export class Extras {
     if (!info || !g.moved) return;
     const c = info.cfg;
     await this.h.commit(typeCommands(this.h.site(), c.path, { text: c.text, size: c.size, offset: g.offset, effect: c.effect, flip: g.flip === 1, align: c.align, spacing: c.spacing }, message => this.h.notify(message)));
+  }
+
+  private decorateUse(items: ExtraItem[]): void {
+    const site = this.h.site();
+    for (const id of this.h.selection()) {
+      const use = site.nodes[id];
+      const svg = use && use.tag === 'use' ? svgOf(site, id) : undefined;
+      const f = svg ? this.h.frame(svg) : undefined;
+      const symbol = symbolOfUse(site, id);
+      const box = symbol && symbolBox(site, symbol.id);
+      if (!f || !box) continue;
+      const x = parseFloat(use.attrs.x ?? '0') || 0, y = parseFloat(use.attrs.y ?? '0') || 0;
+      const a = this.h.toShell(f, [box.x + x, box.y + y]), b = this.h.toShell(f, [box.x + box.w + x, box.y + box.h + y]);
+      items.push({ kind: 'path', d: `M${a[0]} ${a[1]}H${b[0]}V${b[1]}H${a[0]}Z`, cls: 'iso' });
+    }
   }
 
   private decorateType(items: ExtraItem[], g: Gesture | null): void {
@@ -638,6 +681,8 @@ export class Extras {
     const pt = (x: number, y: number): Pt => this.h.toShell(f, [x, y]);
     const a = pt(box.x, box.y), c = pt(box.x + box.w, box.y + box.h);
     items.push({ kind: 'path', d: `M${a[0]} ${a[1]}H${c[0]}V${c[1]}H${a[0]}Z`, cls: 'tbox' });
+    const quad = this.gesture?.kind === 'tf' ? this.gesture.quad : undefined;
+    if (quad) items.push({ kind: 'path', d: `M${quad.map(q => pt(q[0], q[1])).map(p => `${p[0]} ${p[1]}`).join('L')}Z`, cls: 'trail' });
     HANDLE_FRACTIONS.forEach(([fx, fy], i) => { const at = pt(box.x + fx * box.w, box.y + fy * box.h); items.push({ kind: 'circle', x: at[0], y: at[1], r: 4.5, cls: 'thandle', role: 'x-tf', i }); });
     const top = pt(box.x + box.w / 2, box.y);
     const rot = pointAtTop(box);

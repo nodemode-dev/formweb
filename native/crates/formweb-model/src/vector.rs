@@ -6,18 +6,19 @@ const SHARED: &[&str] = &[
     "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset",
     "fill-rule", "fill-opacity", "stroke-opacity", "transform", "vector-effect", "opacity", "data-fw-vector",
     "clip-path", "mask", "paint-order", "clip-rule", "data-fw-align", "data-fw-weight", "data-fw-width", "data-fw-mask", "data-fw-type",
+    "data-fw-blend", "data-fw-repeat", "data-fw-live",
 ];
 const DATA_LIMIT: usize = 262_144;
 
 pub fn is_tag(tag: &str) -> bool {
-    matches!(tag, "svg" | "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "stop" | "clipPath" | "mask" | "text" | "textPath")
+    matches!(tag, "svg" | "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "stop" | "clipPath" | "mask" | "text" | "textPath" | "symbol" | "use")
 }
 
 pub fn attr_allowed(tag: &str, name: &str) -> bool {
     if !is_tag(tag) {
         return false;
     }
-    let drawn = matches!(tag, "svg" | "g" | "path" | "text" | "textPath");
+    let drawn = matches!(tag, "svg" | "g" | "path" | "text" | "textPath" | "symbol" | "use");
     (drawn && SHARED.contains(&name))
         || (tag == "path" && name == "d")
         || (tag == "svg" && matches!(name, "viewBox" | "preserveAspectRatio"))
@@ -28,6 +29,7 @@ pub fn attr_allowed(tag: &str, name: &str) -> bool {
         || (tag == "mask" && matches!(name, "maskUnits" | "maskContentUnits" | "x" | "y"))
         || (tag == "text" && matches!(name, "x" | "y" | "dy" | "font-size" | "font-family" | "font-weight" | "letter-spacing" | "text-anchor"))
         || (tag == "textPath" && matches!(name, "startOffset" | "dy"))
+        || (tag == "use" && matches!(name, "x" | "y" | "width" | "height"))
 }
 
 pub fn max_len(tag: &str, name: &str) -> usize {
@@ -36,8 +38,9 @@ pub fn max_len(tag: &str, name: &str) -> usize {
 
 fn child_ok(parent: &str, child: &str) -> bool {
     match parent {
-        "svg" | "g" => matches!(child, "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "clipPath" | "mask" | "text"),
-        "defs" => matches!(child, "linearGradient" | "radialGradient" | "clipPath" | "mask"),
+        "svg" | "g" => matches!(child, "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "clipPath" | "mask" | "text" | "use"),
+        "defs" => matches!(child, "linearGradient" | "radialGradient" | "clipPath" | "mask" | "symbol"),
+        "symbol" => matches!(child, "g" | "path" | "text"),
         "linearGradient" | "radialGradient" => child == "stop",
         "clipPath" => child == "path",
         "mask" => matches!(child, "g" | "path"),
@@ -52,6 +55,12 @@ struct Refs {
     paths: BTreeSet<String>,
     used: Vec<String>,
     hrefs: Vec<String>,
+    symbols: BTreeSet<String>,
+    uses: Vec<String>,
+}
+
+fn holds_use(site: &Site, node: &Node, depth: usize) -> bool {
+    depth > 64 || node.children.iter().filter_map(|id| site.nodes.get(id)).any(|child| child.tag == "use" || holds_use(site, child, depth + 1))
 }
 
 fn url_target(value: &str) -> Option<&str> {
@@ -69,6 +78,13 @@ fn scan(site: &Site, node: &Node, depth: usize, refs: &mut Refs) -> Result<(), S
     }
     if node.tag == "textPath" {
         if let Some(target) = node.attrs.get("href") { refs.hrefs.push(target.trim_start_matches('#').to_string()); }
+    }
+    if node.tag == "symbol" {
+        if holds_use(site, node, 0) { return Err("a symbol cannot contain use elements".into()); }
+        if let Some(id) = node.attrs.get("id") { refs.symbols.insert(id.clone()); }
+    }
+    if node.tag == "use" {
+        match node.attrs.get("href") { Some(target) => refs.uses.push(target.trim_start_matches('#').to_string()), None => return Err("a use element needs an href".into()) }
     }
     for child in &node.children {
         if let Some(child) = site.nodes.get(child) { scan(site, child, depth + 1, refs)?; }
@@ -92,6 +108,37 @@ pub fn check_node(node: &Node, site: &Site) -> Result<(), String> {
         scan(site, node, 0, &mut refs)?;
         if refs.used.iter().any(|id| !refs.defined.contains(id)) { return Err("paint, clip and mask references must point at definitions inside the same svg".into()); }
         if refs.hrefs.iter().any(|id| !refs.paths.contains(id)) { return Err("text on a path must reference a path inside the same svg".into()); }
+        if refs.uses.iter().any(|id| !refs.symbols.contains(id)) { return Err("a use element must point at a symbol inside the same svg".into()); }
+    }
+    if vector_parent { check_live(node, site)?; }
+    Ok(())
+}
+
+fn check_live(node: &Node, site: &Site) -> Result<(), String> {
+    let blend = node.attrs.get("data-fw-blend");
+    let repeat = node.attrs.get("data-fw-repeat");
+    if (blend.is_some() || repeat.is_some()) && node.tag != "g" { return Err("live blends and repeats live on a group".into()); }
+    if blend.is_some() && repeat.is_some() { return Err("a group cannot be both a blend and a repeat".into()); }
+    let kids: Vec<&Node> = node.children.iter().filter_map(|id| site.nodes.get(id)).collect();
+    let mut live = 0;
+    for child in &kids {
+        let Some(kind) = child.attrs.get("data-fw-live") else { continue };
+        live += 1;
+        let owned = match kind.as_str() { "blend" => blend.is_some(), "repeat" => repeat.is_some(), _ => false };
+        let paths_only = child.children.iter().filter_map(|id| site.nodes.get(id)).all(|n| n.tag == "path");
+        if !owned || child.tag != "g" || !paths_only { return Err("live copies must sit in a locked group inside their blend or repeat".into()); }
+    }
+    if live > 1 { return Err("a live group holds one set of generated copies".into()); }
+    let source = |id: &str| kids.iter().any(|k| k.id == id && k.tag == "path" && !k.attrs.contains_key("data-fw-live"));
+    if let Some(raw) = blend {
+        let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-blend".to_string())?;
+        let ids: Vec<&str> = ["a", "b"].iter().filter_map(|key| value.get(key).and_then(Value::as_str)).collect();
+        if ids.len() != 2 || !ids.iter().all(|id| source(id)) { return Err("a blend must name two paths inside its group".into()); }
+    }
+    if let Some(raw) = repeat {
+        let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-repeat".to_string())?;
+        let ids: Vec<&str> = value.get("src").and_then(Value::as_array).map(|list| list.iter().filter_map(Value::as_str).collect()).unwrap_or_default();
+        if ids.is_empty() || !ids.iter().all(|id| source(id)) { return Err("a repeat must name source paths inside its group".into()); }
     }
     Ok(())
 }
@@ -110,9 +157,14 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-width" => value.len() <= DATA_LIMIT && serde_json::from_str::<Value>(value).map(|v| width_profile(&v)).unwrap_or(false),
         "data-fw-mask" => matches!(value, "clip" | "clip-invert" | "invert" | "plain"),
         "data-fw-type" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| type_config(&v)).unwrap_or(false),
+        "data-fw-blend" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| blend_config(&v)).unwrap_or(false),
+        "data-fw-repeat" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| repeat_config(&v)).unwrap_or(false),
+        "data-fw-live" => matches!(value, "blend" | "repeat"),
+        "id" if tag == "symbol" => ref_id(value),
+        "href" if tag == "use" => value.strip_prefix('#').map(ref_id).unwrap_or(false),
         "dy" => number_in(value, -2000.0, 2000.0),
         "x1" | "y1" | "x2" | "y2" | "cx" | "cy" | "r" | "fx" | "fy" | "x" | "y" if tag != "svg" => coordinate(value),
-        "width" | "height" if tag == "mask" => coordinate(value),
+        "width" | "height" if tag == "mask" || tag == "use" => coordinate(value),
         "gradientUnits" | "clipPathUnits" | "maskUnits" | "maskContentUnits" => matches!(value, "userSpaceOnUse" | "objectBoundingBox"),
         "gradientTransform" => transform(value),
         "spreadMethod" => matches!(value, "pad" | "reflect" | "repeat"),
@@ -162,6 +214,41 @@ fn type_config(value: &Value) -> bool {
         && word("effect", &["rainbow", "skew", "ribbon", "stair", "gravity"])
         && word("align", &["baseline", "ascender", "descender", "center"])
         && map.len() == 9
+}
+
+fn sig_ok(map: &serde_json::Map<String, Value>) -> bool {
+    map.get("sig").and_then(Value::as_str).map(|s| s.len() == 8 && s.bytes().all(|c| c.is_ascii_hexdigit())).unwrap_or(false)
+}
+
+fn blend_config(value: &Value) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    let id = |key: &str| map.get(key).and_then(Value::as_str).map(ref_id).unwrap_or(false);
+    let int = |key: &str, lo: u64, hi: u64| map.get(key).and_then(Value::as_u64).map(|n| n >= lo && n <= hi).unwrap_or(false);
+    let word = |key: &str, allowed: &[&str]| map.get(key).and_then(Value::as_str).map(|s| allowed.contains(&s)).unwrap_or(false);
+    map.len() == 8
+        && map.get("v").and_then(Value::as_u64) == Some(1)
+        && id("a") && id("b") && map.get("a") != map.get("b")
+        && word("mode", &["color", "steps", "distance"])
+        && int("steps", 1, 100)
+        && map.get("distance").and_then(Value::as_f64).map(|n| n.is_finite() && (0.5..=10000.0).contains(&n)).unwrap_or(false)
+        && word("orient", &["page"])
+        && sig_ok(map)
+}
+
+fn repeat_config(value: &Value) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    let int = |key: &str, lo: u64, hi: u64| map.get(key).and_then(Value::as_u64).map(|n| n >= lo && n <= hi).unwrap_or(false);
+    let number = |key: &str, lo: f64, hi: f64| map.get(key).and_then(Value::as_f64).map(|n| n.is_finite() && n >= lo && n <= hi).unwrap_or(false);
+    let sources = map.get("src").and_then(Value::as_array).map(|list| !list.is_empty() && list.len() <= 16 && list.iter().all(|v| v.as_str().map(ref_id).unwrap_or(false))).unwrap_or(false);
+    map.len() == 13
+        && map.get("v").and_then(Value::as_u64) == Some(1)
+        && sources
+        && map.get("kind").and_then(Value::as_str).map(|s| matches!(s, "radial" | "grid" | "mirror")).unwrap_or(false)
+        && int("count", 2, 120) && int("cols", 1, 60) && int("rows", 1, 60)
+        && number("radius", -5000.0, 5000.0) && number("gx", -1000.0, 1000.0) && number("gy", -1000.0, 1000.0) && number("offset", -1000.0, 1000.0)
+        && number("angle", -360.0, 360.0)
+        && map.get("brick").and_then(Value::as_str).map(|s| matches!(s, "none" | "row" | "column")).unwrap_or(false)
+        && sig_ok(map)
 }
 
 fn number_in(value: &str, min: f64, max: f64) -> bool {

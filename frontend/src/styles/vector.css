@@ -72,3 +72,7 @@
 .fw-v-profiles { display: flex; flex-direction: column; gap: 2px; }
 .fw-v-profile { display: grid; grid-template-columns: minmax(0, 1fr) var(--ctl-sm); gap: var(--space-1); }
 .fw-v-profile[hidden] { display: none; }
+.fw-v-symbols { display: flex; flex-direction: column; gap: 2px; }
+.fw-v-symbol { display: grid; grid-template-columns: minmax(0, 1fr) var(--ctl-sm) var(--ctl-sm) var(--ctl-sm);align-items: center; gap: var(--space-1); }
+.fw-v-symbol[hidden] { display: none; }
+.fw-v-symbol-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-11); color: var(--text-primary); }

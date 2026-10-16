@@ -329,7 +329,7 @@ fn walk(site: &Site, id: &str, path: &mut BTreeSet<String>, visited: &mut BTreeS
 }
 
 fn validate_node(node: &Node, site: &Site) -> Result<(), String> {
-    const TAGS: &[&str] = &["div", "main", "section", "article", "header", "footer", "nav", "aside", "h1", "h2", "h3", "h4", "h5", "h6", "p", "span", "a", "button", "img", "figure", "figcaption", "ul", "ol", "li", "dl", "dt", "dd", "blockquote", "strong", "em", "small", "b", "i", "br", "hr", "form", "label", "input", "textarea", "select", "option", "fieldset", "legend", "details", "summary", "table", "thead", "tbody", "tr", "th", "td", "caption", "time", "code", "pre", "sup", "sub", "tfoot", "video", "audio", "source", "wbr", "svg", "g", "path", "defs", "linearGradient", "radialGradient", "stop", "clipPath", "mask", "text", "textPath"];
+    const TAGS: &[&str] = &["div", "main", "section", "article", "header", "footer", "nav", "aside", "h1", "h2", "h3", "h4", "h5", "h6", "p", "span", "a", "button", "img", "figure", "figcaption", "ul", "ol", "li", "dl", "dt", "dd", "blockquote", "strong", "em", "small", "b", "i", "br", "hr", "form", "label", "input", "textarea", "select", "option", "fieldset", "legend", "details", "summary", "table", "thead", "tbody", "tr", "th", "td", "caption", "time", "code", "pre", "sup", "sub", "tfoot", "video", "audio", "source", "wbr", "svg", "g", "path", "defs", "linearGradient", "radialGradient", "stop", "clipPath", "mask", "text", "textPath", "symbol", "use"];
     if !TAGS.contains(&node.tag.as_str()) { return Err(format!("unsupported tag {}", node.tag)); }
     vector::check_node(node, site)?;
     if node.text.len() > 100000 || node.name.len() > 1000 || node.attrs.len() > 100 || node.interactions.len() > 20 { return Err("node content exceeds limit".into()); }

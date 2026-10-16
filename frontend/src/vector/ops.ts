@@ -1,13 +1,15 @@
 import type { Command } from '../types';
 import {
-  alignCommands, blendCommands, distributeCommands, groupCommands, makeMaskCommands, maskHolder, maskOptionCommands, releaseMaskCommands, repeatCommands, transformEach, transformSelection, ungroupCommands, unionBox,
+  alignCommands, distributeCommands, groupCommands, makeMaskCommands, maskHolder, maskOptionCommands, releaseMaskCommands, transformEach, transformSelection, ungroupCommands, unionBox,
   type AlignMode, type AlignTo, type DistributeMode, type EachParams, type MaskOptions, type RepeatParams, type TransformParams
 } from './arrange';
 import { applyCorners } from './corners';
 import { distortSubs, warpSubs, type DistortOptions, type WarpOptions } from './distort';
 import { editGradient, setPaintKind, withAngle, type Gradient, type Target } from './gradient';
 import type { Host } from './host';
-import { pathIds, updateGeometry, type Shape } from './store';
+import { blendAttrs, expandCommands, liveContainer, liveOf, readBlend, readRepeat, releaseCommands, repeatAttrs, type BlendMode } from './live';
+import { pathIds, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
+import { breakCommands, defineCommands, placeCommands } from './symbols';
 import { presetCommands, readWidth, widthCommands } from './stroke';
 import { typeCommands, type TypeOptions } from './typepath';
 import { flipProfile, profileFromSaved, profileToSaved, type SavedProfile, type WidthPoint, type WidthPreset } from './widthprofile';
@@ -34,6 +36,7 @@ export class Ops {
 
   async ungroup(): Promise<void> {
     const ids = this.shapes().map(s => s.id);
+    if (ids.some(id => liveOf(this.h.site(), id))) { await this.releaseLive(); return; }
     const cmds = ungroupCommands(this.h, ids);
     if (!cmds.length) { this.h.notify('The selection is not in a group.'); return; }
     this.leave();
@@ -78,14 +81,95 @@ export class Ops {
     await this.run(r.cmds, r.created.length ? r.created : undefined);
   }
 
-  async blend(steps: number): Promise<void> {
-    const r = blendCommands(this.h, steps);
-    if (r) await this.run(r.cmds);
+  private ordered(): Shape[] {
+    const svg = this.h.activeSvg();
+    const order = svg ? pathIds(this.h.site(), svg) : [];
+    return this.shapes().sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+  }
+
+  liveSelected(kind: 'blend' | 'repeat'): string | undefined {
+    try {
+      const site = this.h.site();
+      for (const id of this.h.selection()) { const found = liveOf(site, id); if (found && found.kind === kind) return found.group; }
+    } catch { return undefined; }
+    return undefined;
+  }
+
+  async blend(change: { mode: BlendMode; steps: number; distance: number }): Promise<void> {
+    const site = this.h.site();
+    const next = { mode: change.mode, steps: Math.max(1, Math.min(100, Math.round(change.steps))), distance: Math.max(0.5, Math.min(10000, change.distance)) };
+    const group = this.liveSelected('blend');
+    const spec = group ? readBlend(site.nodes[group].attrs['data-fw-blend']) : null;
+    if (group && spec) { await this.run([updateAttrs(group, { 'data-fw-blend': JSON.stringify({ ...spec, ...next }) })]); return; }
+    const shapes = this.ordered();
+    if (shapes.length !== 2) { this.h.notify('Select exactly two paths to blend.'); return; }
+    const [a, b] = shapes;
+    if (liveOf(site, a.id) || liveOf(site, b.id)) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
+    if (!this.h.parentOf(a.id) || this.h.parentOf(a.id) !== this.h.parentOf(b.id)) { this.h.notify('Blend needs two paths that sit in the same group.'); return; }
+    const made = blendAttrs(site, a.id, b.id, next);
+    const grouped = made && groupCommands(this.h, [a.id, b.id], 'Blend', { 'data-fw-blend': made.attr });
+    if (made && grouped) await this.run([...grouped.cmds, ...liveContainer(site, new Set([grouped.group]), grouped.group, 'blend', made.outputs, 1)], [a.id, b.id]);
   }
 
   async repeat(p: RepeatParams): Promise<void> {
-    const r = repeatCommands(this.h, p);
-    if (r) await this.run(r.cmds);
+    const site = this.h.site();
+    const next = {
+      kind: p.kind, count: Math.max(2, Math.min(120, Math.round(p.count))), radius: Math.max(-5000, Math.min(5000, p.radius)), cols: Math.max(1, Math.min(60, Math.round(p.cols))), rows: Math.max(1, Math.min(60, Math.round(p.rows))),
+      gx: Math.max(-1000, Math.min(1000, p.gapX)), gy: Math.max(-1000, Math.min(1000, p.gapY)), angle: Math.max(-360, Math.min(360, p.angle)), brick: p.brick, offset: Math.max(-1000, Math.min(1000, p.offset))
+    };
+    const group = this.liveSelected('repeat');
+    const spec = group ? readRepeat(site.nodes[group].attrs['data-fw-repeat']) : null;
+    if (group && spec) { await this.run([updateAttrs(group, { 'data-fw-repeat': JSON.stringify({ ...spec, ...next }) })]); return; }
+    const shapes = this.ordered().slice(0, 16);
+    if (!shapes.length) { this.h.notify('Select one or more paths to repeat.'); return; }
+    const ids = shapes.map(s => s.id);
+    if (ids.some(id => liveOf(site, id))) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
+    if (new Set(ids.map(id => this.h.parentOf(id))).size !== 1 || !this.h.parentOf(ids[0])) { this.h.notify('Repeat needs paths that sit in the same group.'); return; }
+    const made = repeatAttrs(site, ids, next);
+    const grouped = made && groupCommands(this.h, ids, `Repeat (${p.kind})`, { 'data-fw-repeat': made.attr });
+    if (made && grouped) await this.run([...grouped.cmds, ...liveContainer(site, new Set([grouped.group]), grouped.group, 'repeat', made.outputs, ids.length)], ids);
+  }
+
+  async expandLive(): Promise<void> {
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat');
+    if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
+    await this.run(expandCommands(this.h.site(), group), this.h.selection().slice());
+  }
+
+  async releaseLive(): Promise<void> {
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat');
+    if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
+    const made = releaseCommands(this.h.site(), group);
+    this.leave();
+    await this.run(made.cmds, made.sources);
+  }
+
+  async defineSymbol(name: string): Promise<void> {
+    const made = defineCommands(this.h, name);
+    if (made) await this.run(made.cmds, [made.use]);
+  }
+
+  async placeSymbol(symbol: string): Promise<void> {
+    const made = placeCommands(this.h, symbol);
+    if (made) await this.run(made.cmds, [made.use]);
+  }
+
+  async replaceSymbol(symbol: string): Promise<void> {
+    const site = this.h.site();
+    const target = site.nodes[symbol];
+    const svg = this.h.activeSvg();
+    const uses = this.h.selection().filter(id => site.nodes[id]?.tag === 'use');
+    if (!target || target.tag !== 'symbol' || !svg) return;
+    if (!uses.length) { this.h.notify('Select a symbol instance first.'); return; }
+    if (uses.some(id => svgOf(site, id) !== svgOf(site, symbol))) { this.h.notify('Select something in the svg that holds this symbol first.'); return; }
+    await this.run(uses.map(id => updateAttrs(id, { href: `#${target.attrs.id}` })), uses);
+  }
+
+  async breakLink(): Promise<void> {
+    const id = this.h.selection().find(item => this.h.site().nodes[item]?.tag === 'use');
+    if (!id) { this.h.notify('Select a symbol instance first.'); return; }
+    const made = breakCommands(this.h, id);
+    if (made) await this.run(made.cmds, made.created);
   }
 
   async warp(options: WarpOptions): Promise<void> {

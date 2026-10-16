@@ -540,7 +540,7 @@ export function blendCommands(h: Host, steps: number): { cmds: Command[]; group:
   return { cmds, group: wrap.id };
 }
 
-export interface RepeatParams { kind: 'radial' | 'grid' | 'mirror'; count: number; radius: number; cols: number; rows: number; gapX: number; gapY: number; axis: 'vertical' | 'horizontal'; offset: number }
+export interface RepeatParams { kind: 'radial' | 'grid' | 'mirror'; count: number; radius: number; cols: number; rows: number; gapX: number; gapY: number; angle: number; brick: 'none' | 'row' | 'column'; offset: number }
 
 export function repeatCommands(h: Host, p: RepeatParams): { cmds: Command[]; group: string } | null {
   const shapes = orderedSelection(h);

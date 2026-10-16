@@ -1,5 +1,8 @@
 import { element, text, value } from '../ui/dom';
-import type { AlignMode, AlignTo, DistributeMode } from './arrange';
+import type { AlignMode, AlignTo, DistributeMode, RepeatParams } from './arrange';
+import { readBlend, readRepeat, type BlendMode } from './live';
+import type { TfMode } from './freetransform';
+import { symbolsIn } from './symbols';
 import type { DistortKind, WarpPreset } from './distort';
 import type { Editor } from './editor';
 import { colorToHex, gradientCss, readFor, angleOf, stopColorAt, type Target } from './gradient';
@@ -12,6 +15,7 @@ import { TYPE_ALIGNS, TYPE_EFFECTS, readType, typeHolder, type TypeAlign, type T
 
 const STOP_ROWS = 8;
 const PROFILE_ROWS = 12;
+const SYMBOL_ROWS = 12;
 
 function num(init: number, min: number, max: number, step: number): HTMLInputElement {
   const input = numberInput(min, max, step, () => undefined);
@@ -80,6 +84,12 @@ export class ExtraSections {
   private snap = check('Snap to anchors, segments, centers and 45 degree angles', true);
   private eraser: HTMLInputElement;
   private guideNote = element('p', 'fw-v-note');
+  private liveNote = element('p', 'fw-v-note');
+  private symbolIds: string[] = [];
+  private symbolRows: { root: HTMLElement; label: HTMLElement }[] = [];
+  private symbolDone: HTMLButtonElement;
+  private symbolNote = element('p', 'fw-v-note');
+  private syncLive: () => void = () => undefined;
 
   constructor(private editor: Editor) {
     const ops = editor.ops, extras = editor.extras;
@@ -188,6 +198,37 @@ export class ExtraSections {
         button('Shear', 'Shear along the axis angle', () => { void ops.transform({ ...base(), kind: 'shear', angle: read(shear, 0) }); }),
         button('Move', 'Move by the distances', () => { void ops.transform({ ...base(), kind: 'move' }); })));
 
+    const free = section('Free Transform', false);
+    const tfSeg = segment<TfMode>([{ id: 'scale', label: 'Scale and rotate' }, { id: 'shear', label: 'Shear' }, { id: 'perspective', label: 'Perspective' }, { id: 'distort', label: 'Free Distort' }], id => {
+      extras.tfMode = id;
+      tfSeg.set(id);
+      if (editor.tool !== 'transform') editor.setTool('transform');
+    });
+    tfSeg.set('scale');
+    free.body.append(tfSeg.root, element('p', 'fw-v-note', 'Hold Ctrl while dragging a side handle to shear or a corner handle to free distort. Ctrl+Alt+Shift on a corner gives perspective. Shift constrains a distort to one axis and a shear to 15 degree steps.'));
+
+    const symbols = section('Symbols', false);
+    const symbolName = element('input', 'fw-v-input');
+    symbolName.type = 'text';
+    symbolName.maxLength = 60;
+    symbolName.placeholder = 'Symbol name';
+    const symbolList = element('div', 'fw-v-symbols');
+    for (let i = 0; i < SYMBOL_ROWS; i++) {
+      const label = element('span', 'fw-v-symbol-name');
+      const place = button('', 'Place another instance of this symbol', () => { const id = this.symbolIds[i]; if (id) void ops.placeSymbol(id); }, 'add');
+      const edit = button('', 'Edit this symbol, every instance updates', () => { const id = this.symbolIds[i]; if (id) editor.editSymbol(id); }, 'direct');
+      const swap = button('', 'Replace the selected instance with this symbol', () => { const id = this.symbolIds[i]; if (id) void ops.replaceSymbol(id); }, 'convert');
+      const rowEl = element('div', 'fw-v-symbol');
+      rowEl.hidden = true;
+      rowEl.append(label, place, swap, edit);
+      this.symbolRows.push({ root: rowEl, label });
+      symbolList.append(rowEl);
+    }
+    this.symbolDone = button('Done editing', 'Leave symbol editing', () => editor.leaveSymbol());
+    symbols.body.append(field('Symbol name', symbolName, true),
+      grid(button('Define symbol', 'Turn the selected paths into a symbol', () => { void ops.defineSymbol(symbolName.value); symbolName.value = ''; }, 'group'), button('Break link', 'Turn the selected instance back into ordinary paths', () => { void ops.breakLink(); }, 'ungroup'), this.symbolDone),
+      symbolList, this.symbolNote);
+
     const each = section('Transform each', false);
     const eSx = num(110, 1, 10000, 1), eSy = num(110, 1, 10000, 1), eRot = num(10, -360, 360, 1), eDx = num(0, -10000, 10000, 1), eDy = num(0, -10000, 10000, 1);
     const eRx = check('Reflect X'), eRy = check('Reflect Y'), eRand = check('Random'), eCopy = check('Copy');
@@ -197,17 +238,52 @@ export class ExtraSections {
       }));
 
     const effects = section('Blend and repeat', false);
-    const steps = num(5, 1, 60, 1);
+    const steps = num(5, 1, 100, 1), spacing = num(20, 1, 10000, 1);
+    const blendMode = { value: 'steps' as BlendMode };
+    const blendNow = (): { mode: BlendMode; steps: number; distance: number } => ({ mode: blendMode.value, steps: read(steps, 5), distance: read(spacing, 20) });
+    const liveBlend = (): void => { if (ops.liveSelected('blend')) void ops.blend(blendNow()); };
+    const modeSeg = segment<BlendMode>([{ id: 'color', label: 'Smooth Color' }, { id: 'steps', label: 'Specified Steps' }, { id: 'distance', label: 'Specified Distance' }], id => { blendMode.value = id; modeSeg.set(id); liveBlend(); });
+    modeSeg.set('steps');
+    steps.addEventListener('change', liveBlend);
+    spacing.addEventListener('change', liveBlend);
     const repeatKind = { value: 'radial' as 'radial' | 'grid' | 'mirror' };
-    const repeatSeg = segment<'radial' | 'grid' | 'mirror'>([{ id: 'radial', label: 'Radial' }, { id: 'grid', label: 'Grid' }, { id: 'mirror', label: 'Mirror' }], id => { repeatKind.value = id; repeatSeg.set(id); });
-    repeatSeg.set('radial');
     const count = num(6, 2, 120, 1), radius = num(80, -5000, 5000, 1), cols = num(3, 1, 60, 1), rows = num(2, 1, 60, 1), gapX = num(10, -1000, 1000, 1), gapY = num(10, -1000, 1000, 1), offset = num(0, -1000, 1000, 1);
-    const axisSeg = segment<'vertical' | 'horizontal'>([{ id: 'vertical', label: 'Vertical axis' }, { id: 'horizontal', label: 'Horizontal axis' }], id => { axisValue.value = id; axisSeg.set(id); });
-    const axisValue = { value: 'vertical' as 'vertical' | 'horizontal' };
-    axisSeg.set('vertical');
-    effects.body.append(field('Blend steps', steps), button('Blend', 'Create steps between two selected paths', () => { void ops.blend(read(steps, 5)); }, 'blend'),
-      repeatSeg.root, row(field('Copies', count), field('Radial offset', radius)), row(field('Columns', cols), field('Rows', rows)), row(field('Gap X', gapX), field('Gap Y', gapY)), axisSeg.root, field('Mirror offset', offset),
-      button('Repeat', 'Create copies (expanded)', () => { void ops.repeat({ kind: repeatKind.value, count: read(count, 6), radius: read(radius, 80), cols: read(cols, 3), rows: read(rows, 2), gapX: read(gapX, 10), gapY: read(gapY, 10), axis: axisValue.value, offset: read(offset, 0) }); }, 'repeat'));
+    const angleIn = num(90, -360, 360, 1);
+    const brickValue = { value: 'none' as 'none' | 'row' | 'column' };
+    const repeatNow = (): RepeatParams => ({ kind: repeatKind.value, count: read(count, 6), radius: read(radius, 80), cols: read(cols, 3), rows: read(rows, 2), gapX: read(gapX, 10), gapY: read(gapY, 10), angle: read(angleIn, 90), brick: brickValue.value, offset: read(offset, 0) });
+    const liveRepeat = (): void => { if (ops.liveSelected('repeat')) void ops.repeat(repeatNow()); };
+    const repeatSeg = segment<'radial' | 'grid' | 'mirror'>([{ id: 'radial', label: 'Radial' }, { id: 'grid', label: 'Grid' }, { id: 'mirror', label: 'Mirror' }], id => { repeatKind.value = id; repeatSeg.set(id); liveRepeat(); });
+    repeatSeg.set('radial');
+    const brickSeg = segment<'none' | 'row' | 'column'>([{ id: 'none', label: 'Aligned grid' }, { id: 'row', label: 'Offset rows' }, { id: 'column', label: 'Offset columns' }], id => { brickValue.value = id; brickSeg.set(id); liveRepeat(); });
+    brickSeg.set('none');
+    for (const control of [count, radius, cols, rows, gapX, gapY, offset, angleIn]) control.addEventListener('change', liveRepeat);
+    const liveState = { key: '' };
+    this.syncLive = () => {
+      const site = editor.site();
+      const bg = ops.liveSelected('blend'), rg = ops.liveSelected('repeat');
+      const blend = bg ? readBlend(site.nodes[bg]?.attrs['data-fw-blend']) : null, repeat = rg ? readRepeat(site.nodes[rg]?.attrs['data-fw-repeat']) : null;
+      const key = blend ? `b${blend.mode}|${blend.steps}|${blend.distance}` : repeat ? `r${JSON.stringify({ ...repeat, sig: '', src: [] })}` : '';
+      text(this.liveNote, blend ? 'Live blend selected. Changes below update it.' : repeat ? 'Live repeat selected. Changes below update it.' : 'Select two paths and Blend, or paths and Repeat, to make live copies.');
+      if (key === liveState.key) return;
+      liveState.key = key;
+      if (blend) {
+        blendMode.value = blend.mode;
+        modeSeg.set(blend.mode);
+        value(steps, String(blend.steps));
+        value(spacing, String(blend.distance));
+      } else if (repeat) {
+        repeatKind.value = repeat.kind;
+        repeatSeg.set(repeat.kind);
+        brickValue.value = repeat.brick;
+        brickSeg.set(repeat.brick);
+        for (const [input, n] of [[count, repeat.count], [radius, repeat.radius], [cols, repeat.cols], [rows, repeat.rows], [gapX, repeat.gx], [gapY, repeat.gy], [offset, repeat.offset], [angleIn, repeat.angle]] as [HTMLInputElement, number][]) value(input, String(n));
+      }
+    };
+    effects.body.append(modeSeg.root, row(field('Blend steps', steps), field('Spacing', spacing)), button('Blend', 'Make a live blend between two selected paths', () => { void ops.blend(blendNow()); }, 'blend'),
+      repeatSeg.root, row(field('Copies', count), field('Radial offset', radius)), field('Start angle or axis angle', angleIn), row(field('Columns', cols), field('Rows', rows)), row(field('Gap X', gapX), field('Gap Y', gapY)), brickSeg.root, field('Mirror offset', offset),
+      button('Repeat', 'Make a live repeat of the selected paths', () => { void ops.repeat(repeatNow()); }, 'repeat'),
+      grid(button('Expand', 'Bake the generated copies into ordinary paths', () => { void ops.expandLive(); }, 'bake'), button('Release', 'Remove the generated copies and keep the originals', () => { void ops.releaseLive(); }, 'divide')),
+      this.liveNote);
 
     const warp = section('Envelope and distort', false);
     const preset = { value: 'arc' as WarpPreset };
@@ -261,7 +337,7 @@ export class ExtraSections {
     this.eraser = numberInput(1, 400, 1, n => { extras.eraserSize = n; });
     guides.body.append(this.snap.root, field('Eraser size', this.eraser), this.guideNote);
 
-    this.sections.push(gradient.root, stroke.root, arrange.root, align.root, transform.root, each.root, effects.root, warp.root, type.root, builder.root, guides.root);
+    this.sections.push(gradient.root, stroke.root, arrange.root, align.root, transform.root, free.root, each.root, effects.root, symbols.root, warp.root, type.root, builder.root, guides.root);
   }
 
   private renderProfiles(): void {
@@ -343,5 +419,16 @@ export class ExtraSections {
     if (document.activeElement !== this.eraser) value(this.eraser, String(extras.eraserSize));
     this.snap.input.checked = extras.snapping;
     text(this.guideNote, extras.snapping ? 'Smart guides are on.' : 'Smart guides are off.');
+    try { this.syncLive(); } catch { text(this.liveNote, ''); }
+    let listed: ReturnType<typeof symbolsIn> = [];
+    try { listed = symbolsIn(e.site(), e.activeSvg()); } catch { listed = []; }
+    this.symbolIds = listed.map(s => s.id);
+    this.symbolRows.forEach((r, i) => {
+      const item = listed[i];
+      if (r.root.hidden !== !item) r.root.hidden = !item;
+      if (item) text(r.label, item.name);
+    });
+    this.symbolDone.hidden = !e.symbolEdit;
+    text(this.symbolNote, e.symbolEdit ? 'Editing a symbol: drag anchors with the Direct Selection tool. Escape or Done editing leaves.' : listed.length ? '' : 'No symbols in this svg yet.');
   }
 }

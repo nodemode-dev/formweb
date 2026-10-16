@@ -24,7 +24,7 @@ export interface Shape { id: string; svg: string; subs: SubPath[]; paint: Paint 
 
 export const defaultPaint: Paint = { align: 'center', fill: '#f97316', stroke: 'none', strokeWidth: 2, cap: 'butt', join: 'miter', miter: 4, dash: '', dashOffset: 0, fillRule: 'nonzero', opacity: 1 };
 
-export const VECTOR_TAGS = new Set(['svg', 'g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath']);
+export const VECTOR_TAGS = new Set(['svg', 'g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath', 'symbol', 'use']);
 export const DEF_TAGS = new Set(['defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask']);
 export const REF_PATTERN = /^url\(#([A-Za-z0-9_-]{1,64})\)$/;
 
@@ -54,7 +54,7 @@ export function pathIds(site: Site, root: string): string[] {
   const out: string[] = [];
   const visit = (id: string): void => {
     const node = site.nodes[id];
-    if (!node || DEF_TAGS.has(node.tag) || node.attrs['data-fw-type']) return;
+    if (!node || DEF_TAGS.has(node.tag) || node.attrs['data-fw-type'] || node.attrs['data-fw-live']) return;
     if (node.tag === 'path') out.push(id);
     node.children.forEach(visit);
   };

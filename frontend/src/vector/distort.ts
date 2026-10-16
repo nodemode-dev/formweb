@@ -264,17 +264,24 @@ export function compose(a: Mat, b: Mat): Mat {
   ];
 }
 
-export function repeatMatrices(kind: 'radial' | 'grid' | 'mirror', box: Box, p: { count: number; radius: number; cols: number; rows: number; gapX: number; gapY: number; axis: 'vertical' | 'horizontal'; offset: number }): Mat[] {
+export function repeatMatrices(kind: 'radial' | 'grid' | 'mirror', box: Box, p: { count: number; radius: number; cols: number; rows: number; gapX: number; gapY: number; angle: number; brick: 'none' | 'row' | 'column'; offset: number }): Mat[] {
   const cx = box.x + box.w / 2, cy = box.y + box.h / 2;
+  const a = (p.angle * Math.PI) / 180;
   if (kind === 'radial') {
-    const px = cx, py = cy + p.radius;
+    const px = cx + Math.cos(a) * p.radius, py = cy + Math.sin(a) * p.radius;
     return Array.from({ length: Math.max(0, Math.round(p.count) - 1) }, (_, i) => rotation((360 / Math.round(p.count)) * (i + 1), px, py));
   }
   if (kind === 'grid') {
     const out: Mat[] = [];
-    for (let r = 0; r < Math.max(1, Math.round(p.rows)); r++) for (let c = 0; c < Math.max(1, Math.round(p.cols)); c++) if (r || c) out.push(translation(c * (box.w + p.gapX), r * (box.h + p.gapY)));
+    for (let r = 0; r < Math.max(1, Math.round(p.rows)); r++) for (let c = 0; c < Math.max(1, Math.round(p.cols)); c++) {
+      if (!r && !c) continue;
+      const dx = c * (box.w + p.gapX) + (p.brick === 'row' && r % 2 ? (box.w + p.gapX) / 2 : 0);
+      const dy = r * (box.h + p.gapY) + (p.brick === 'column' && c % 2 ? (box.h + p.gapY) / 2 : 0);
+      out.push(translation(dx, dy));
+    }
     return out;
   }
-  if (p.axis === 'vertical') return [reflection(90, box.x + box.w + p.offset, cy)];
-  return [reflection(0, cx, box.y + box.h + p.offset)];
+  const nx = Math.sin(a), ny = Math.cos(a);
+  const reach = Math.abs(nx) * box.w / 2 + Math.abs(ny) * box.h / 2 + p.offset;
+  return [reflection(p.angle, cx + nx * reach, cy + ny * reach)];
 }

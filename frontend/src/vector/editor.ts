@@ -15,6 +15,8 @@ import { Ops } from './ops';
 import { Overlay, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
 import { alignFixes, widthFixes } from './stroke';
 import { typeFixes } from './typepath';
+import { liveCopyOwner, liveFixes, liveSources } from './live';
+import { symbolPaths, usesOf } from './symbols';
 import { exportSvg, importSvg } from './svg';
 import {
   CONTAINER_TAGS, VECTOR_TAGS, addPath, addSvg, defaultPaint, freshId, geometryAttrs, moveNode, paintAttrs, pathIds, readShape, removeNode, svgOf, updateAttrs, updateGeometry, viewBoxOf,
@@ -46,7 +48,8 @@ type Gesture =
   | { kind: 'pen'; node: Anchor }
   | { kind: 'shape'; start: Pt; current: Pt; alt: boolean; shift: boolean }
   | { kind: 'marquee'; start: Pt; current: Pt; shift: boolean; click?: string }
-  | { kind: 'pathmove'; start: Pt; base: Map<string, SubPath[]>; svg?: string; moved: boolean };
+  | { kind: 'pathmove'; start: Pt; base: Map<string, SubPath[]>; svg?: string; moved: boolean }
+  | { kind: 'usemove'; id: string; start: Pt; x: number; y: number; nx: number; ny: number; moved: boolean };
 
 const HIT = 7;
 const TYPES: CornerType[] = ['round', 'inverted', 'chamfer'];
@@ -67,6 +70,7 @@ export class Editor {
   readonly listeners = new Set<() => void>();
   readonly cornerRequests = new Set<() => void>();
   shortcuts = true;
+  symbolEdit: string | null = null;
   private drafts = new Map<string, SubPath[]>();
   private cache = new Map<string, { key: string; shape: Shape }>();
   private frames = new Map<string, Frame>();
@@ -77,6 +81,7 @@ export class Editor {
   private handleRefs: { ref: Ref; which: 'in' | 'out' }[] = [];
   private widgetRefs: Ref[] = [];
   private busy = false;
+  private liveSkip = '';
   private lastDown = 0;
 
   constructor(readonly ctx: VectorContext) {
@@ -147,6 +152,13 @@ export class Editor {
     const selected = this.ctx.getSelected();
     let site: Site;
     try { site = this.site(); } catch { return; }
+    const copyOf = site.nodes[selected] ? liveCopyOwner(site, selected) : undefined;
+    if (copyOf) {
+      this.selection = liveSources(site, copyOf).filter(id => site.nodes[id]);
+      this.anchors.clear();
+      if (this.selection.length) this.ctx.select(this.selection[this.selection.length - 1]);
+      return;
+    }
     if (!this.selection.includes(selected)) {
       this.selection = site.nodes[selected] ? [selected] : [];
       this.anchors.clear();
@@ -161,6 +173,17 @@ export class Editor {
     this.cache.forEach((_, id) => { if (!site.nodes[id]) this.cache.delete(id); });
     this.render();
     this.emit();
+    this.reconcileLive(site);
+  }
+
+  private reconcileLive(site: Site): void {
+    if (this.busy || this.gesture) return;
+    const fixes = liveFixes(site, []);
+    if (!fixes.length) return;
+    const key = `${state().revision}|${fixes.length}`;
+    if (key === this.liveSkip) return;
+    this.liveSkip = key;
+    void this.commit(fixes);
   }
 
   activeSvg(): string | undefined {
@@ -324,6 +347,7 @@ export class Editor {
     if (!cmds.length) { this.endDrafts(); return false; }
     const before = this.site();
     cmds = [...cmds, ...alignFixes(before, cmds), ...widthFixes(before, cmds), ...typeFixes(before, cmds)];
+    cmds = [...cmds, ...liveFixes(before, cmds)];
     this.busy = true;
     const touched = [...this.drafts.keys()];
     try {
@@ -351,7 +375,9 @@ export class Editor {
     if (!doc) return undefined;
     const iso = this.extras.iso;
     for (const el of doc.elementsFromPoint(p[0], p[1])) {
-      const id = (el as HTMLElement).dataset?.fwId;
+      const raw = (el as HTMLElement).dataset?.fwId;
+      const owner = raw && this.site().nodes[raw] ? liveCopyOwner(this.site(), raw) : undefined;
+      const id = owner ? liveSources(this.site(), owner)[0] : raw;
       if (!id || !this.site().nodes[id]) continue;
       const tag = this.site().nodes[id].tag;
       if (iso && tag === 'path' && !pathIds(this.site(), iso).includes(id)) continue;
@@ -405,7 +431,8 @@ export class Editor {
 
   private downCapture(p: Pt, event: PointerEvent): void {
     const tool = this.tool;
-    const hit = this.pickPath(p);
+    const hit = this.symbolEdit ? undefined : this.pickPath(p);
+    if (hit?.kind === 'other' && tool === 'select' && this.site().nodes[hit.id]?.tag === 'use') { this.startUseMove(hit.id, p); return; }
     if (hit?.kind === 'other' && event.shiftKey && (tool === 'select' || tool === 'direct')) return;
     if (hit?.kind === 'other' && (tool === 'select' || tool === 'direct')) { this.gesture = { kind: 'marquee', start: p, current: p, shift: false, click: hit.id }; return; }
     if (tool === 'select') {
@@ -454,6 +481,55 @@ export class Editor {
       this.gesture = { kind: 'marquee', start: p, current: p, shift: event.shiftKey };
       if (!event.shiftKey) { this.anchors.clear(); this.render(); }
     }
+  }
+
+  private startUseMove(id: string, p: Pt): void {
+    const node = this.site().nodes[id];
+    const x = parseFloat(node?.attrs.x ?? '0') || 0, y = parseFloat(node?.attrs.y ?? '0') || 0;
+    this.selection = [id];
+    this.anchors.clear();
+    this.ctx.select(id);
+    this.gesture = { kind: 'usemove', id, start: p, x, y, nx: x, ny: y, moved: false };
+    this.render();
+    this.emit();
+  }
+
+  private dragUse(g: Extract<Gesture, { kind: 'usemove' }>, p: Pt): void {
+    const svg = svgOf(this.site(), g.id);
+    const f = svg ? this.frame(svg) : undefined;
+    if (!f || (!g.moved && dist(p, g.start) < 2 * this.px())) return;
+    g.moved = true;
+    g.nx = Math.round((g.x + (p[0] - g.start[0]) / f.sx) * 100) / 100;
+    g.ny = Math.round((g.y + (p[1] - g.start[1]) / f.sy) * 100) / 100;
+    const el = this.element(g.id);
+    el?.setAttribute('x', String(g.nx));
+    el?.setAttribute('y', String(g.ny));
+    this.render();
+  }
+
+  editSymbol(symbol: string): void {
+    const site = this.site();
+    const ids = symbolPaths(site, symbol);
+    if (!ids.length) { this.notify('This symbol has no paths to edit.'); return; }
+    this.symbolEdit = symbol;
+    this.selection = ids;
+    this.anchors.clear();
+    this.ctx.select(ids[ids.length - 1]);
+    this.setTool('direct');
+  }
+
+  leaveSymbol(): void {
+    const symbol = this.symbolEdit;
+    if (!symbol) return;
+    this.symbolEdit = null;
+    const site = this.site();
+    const svg = svgOf(site, symbol);
+    const use = svg ? usesOf(site, svg, symbol)[0] : undefined;
+    this.selection = use ? [use] : [];
+    this.anchors.clear();
+    if (use) this.ctx.select(use);
+    this.render();
+    this.emit();
   }
 
   private baseOf(ids: string[]): Map<string, SubPath[]> {
@@ -616,6 +692,7 @@ export class Editor {
     if (g.kind === 'marquee') { g.current = p; this.render(); return; }
     if (g.kind === 'move') { this.dragAnchors(g, p, event.shiftKey); return; }
     if (g.kind === 'pathmove') { this.dragPaths(g, p, event.shiftKey); return; }
+    if (g.kind === 'usemove') { this.dragUse(g, p); return; }
     if (g.kind === 'handle') { this.dragHandle(g, p, event.altKey); return; }
     if (g.kind === 'corner') { this.dragCorner(g, p); return; }
     if (g.kind === 'convert') { this.dragConvert(g, p); }
@@ -799,6 +876,10 @@ export class Editor {
       void this.commit(moveCommands(this.host(), deltas));
       return;
     }
+    if (g.kind === 'usemove') {
+      if (g.moved) void this.commit([updateAttrs(g.id, { x: String(g.nx), y: String(g.ny) })]); else this.render();
+      return;
+    }
     if (g.kind === 'convert' && !g.moved) {
       const next = clonePath(g.base);
       const node = next[g.ref.sub].nodes[g.ref.idx];
@@ -927,6 +1008,7 @@ export class Editor {
     }
     if (event.key === 'Escape') {
       if (this.extras.key(event)) { event.preventDefault(); return; }
+      if (this.symbolEdit) { this.leaveSymbol(); event.preventDefault(); return; }
       if (this.pen) { this.finishPen(false); event.preventDefault(); return; }
       if (this.anchors.size) { this.anchors.clear(); this.render(); this.emit(); event.preventDefault(); return; }
       this.setTool(null);
