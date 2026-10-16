@@ -1750,4 +1750,9 @@ export default [
   "Näytä ruudukko",
   "Tartu ruudukkoon",
   "Ruudukon asetukset",
+  "Nukkevääristys",
+  "Muotoile uudelleen",
+  "Aloita yleismuokkaus",
+  "Lopeta yleismuokkaus",
+  "Valitse muoto aloittaaksesi yleismuokkauksen.",
 ] as readonly string[];

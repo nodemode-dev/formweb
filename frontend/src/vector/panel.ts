@@ -41,7 +41,9 @@ export const TOOLS: ToolDef[] = [
   { id: 'transform', label: 'Free Transform', icon: 'transform', keys: 'E' },
   { id: 'lasso', label: 'Lasso', icon: 'lasso', keys: 'Q' },
   { id: 'wand', label: 'Magic Wand', icon: 'wand', keys: 'Y' },
-  { id: 'eyedropper', label: 'Eyedropper', icon: 'eyedropper', keys: 'I' }
+  { id: 'eyedropper', label: 'Eyedropper', icon: 'eyedropper', keys: 'I' },
+  { id: 'puppet', label: 'Puppet Warp', icon: 'puppet', keys: '' },
+  { id: 'reshape', label: 'Reshape', icon: 'reshape', keys: '' }
 ];
 
 export const PATHFINDERS: { op: PathfinderOp; label: string; icon: VectorIcon }[] = [

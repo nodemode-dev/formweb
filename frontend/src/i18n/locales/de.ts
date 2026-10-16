@@ -1750,4 +1750,9 @@ export default [
   "Raster einblenden",
   "Am Raster ausrichten",
   "Rastereinstellungen",
+  "Formgitter",
+  "Umformen",
+  "Globale Bearbeitung starten",
+  "Globale Bearbeitung beenden",
+  "Wähle eine Form aus, um die globale Bearbeitung zu starten.",
 ] as readonly string[];

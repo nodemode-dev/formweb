@@ -1750,4 +1750,9 @@ export default [
   "Afficher la grille",
   "Magnétisme sur la grille",
   "Préférences de la grille",
+  "Déformation de la marionnette",
+  "Remodeler",
+  "Démarrer la modification globale",
+  "Arrêter la modification globale",
+  "Sélectionnez une forme pour démarrer la modification globale.",
 ] as readonly string[];

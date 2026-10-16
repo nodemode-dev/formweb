@@ -1750,4 +1750,9 @@ export default [
   "Hiện lưới",
   "Bắt dính vào lưới",
   "Tùy chọn lưới",
+  "Biến dạng con rối",
+  "Định hình lại",
+  "Bắt đầu chỉnh sửa toàn cục",
+  "Dừng chỉnh sửa toàn cục",
+  "Chọn một hình để bắt đầu chỉnh sửa toàn cục.",
 ] as readonly string[];

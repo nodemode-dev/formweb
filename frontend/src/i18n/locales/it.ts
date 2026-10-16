@@ -1750,4 +1750,9 @@ export default [
   "Mostra griglia",
   "Aggancia alla griglia",
   "Preferenze della griglia",
+  "Deformazione marionetta",
+  "Rimodella",
+  "Avvia modifica globale",
+  "Termina modifica globale",
+  "Seleziona una forma per avviare la modifica globale.",
 ] as readonly string[];

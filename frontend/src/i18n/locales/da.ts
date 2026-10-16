@@ -1750,4 +1750,9 @@ export default [
   "Vis gitter",
   "Fastgør til gitter",
   "Gitterindstillinger",
+  "Marionetforvridning",
+  "Omform",
+  "Start global redigering",
+  "Stop global redigering",
+  "Markér en form for at starte global redigering.",
 ] as readonly string[];

@@ -1750,4 +1750,9 @@ export const KEYS: readonly string[] = [
   "Show Grid",
   "Snap to Grid",
   "Grid Preferences",
+  "Puppet Warp",
+  "Reshape",
+  "Start Global Edit",
+  "Stop Global Edit",
+  "Select a shape to start Global Edit.",
 ];

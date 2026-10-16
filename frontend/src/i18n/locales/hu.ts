@@ -1750,4 +1750,9 @@ export default [
   "Rács megjelenítése",
   "Illesztés a rácshoz",
   "Rácsbeállítások",
+  "Bábutorzítás",
+  "Átformálás",
+  "Globális szerkesztés indítása",
+  "Globális szerkesztés leállítása",
+  "Jelölj ki egy alakzatot a globális szerkesztés indításához.",
 ] as readonly string[];

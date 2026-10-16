@@ -1750,4 +1750,9 @@ export default [
   "Tampilkan kisi",
   "Tempel ke kisi",
   "Preferensi kisi",
+  "Puppet Warp",
+  "Bentuk ulang",
+  "Mulai Edit Global",
+  "Hentikan Edit Global",
+  "Pilih bentuk untuk memulai Edit Global.",
 ] as readonly string[];

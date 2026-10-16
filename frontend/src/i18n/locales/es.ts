@@ -1750,4 +1750,9 @@ export default [
   "Mostrar cuadrícula",
   "Ajustar a la cuadrícula",
   "Preferencias de la cuadrícula",
+  "Deformación de marioneta",
+  "Remodelar",
+  "Iniciar edición global",
+  "Detener edición global",
+  "Selecciona una forma para iniciar la edición global.",
 ] as readonly string[];

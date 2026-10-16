@@ -100,6 +100,8 @@ Vector authoring uses ordinary `node.add` and `node.update` with svg tags. An in
 
 Vector selection commands run through `run_ui_command` while the vector editor is open: tools `vector.lasso` (Q), `vector.wand` (Y) and `vector.eyedropper` (I) are pointer tools, and `vector.select.same-fill`, `vector.select.same-stroke`, `vector.select.same-weight`, `vector.select.same-opacity`, `vector.select.same-fill-stroke` and `vector.select.inverse` change the selection by the first selected shape's look. `vector.transform-again` (Ctrl+D) repeats the last transform and is the only one of these that edits the site; it is available while a vector tool is active.
 
+Warp and global editing (v0.9.2), run with `window.formweb.run(id)` while a shape is selected: `vector.puppet` (Puppet Warp tool: pins, moving-least-squares bend of the selected paths), `vector.reshape` (Reshape tool: drag a selected anchor to move the other selected anchors in proportion, or drag a segment to add and pull an anchor) and `vector.global-edit` (Start or Stop Global Edit: shapes whose geometry matches the selected one up to translation are highlighted and receive the same paint and geometry edits in one undo step; Escape stops). None has a default shortcut.
+
 Path commands and drawing tools (v0.9.1), run with `window.formweb.run(id)`: `vector.path.add-anchors` (midpoint of every segment of the selected paths), `vector.path.remove-anchors` (selected anchors), `vector.path.divide-below` (selected path cuts the filled shapes beneath it), `vector.path.split-grid` and `vector.path.clean-up` (dialogs), and the tools `vector.pencil` (N), `vector.arc`, `vector.rect-grid` and `vector.polar-grid` (the last three have no default shortcut).
 
 ## Editor window commands (v0.7)

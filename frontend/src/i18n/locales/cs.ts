@@ -1750,4 +1750,9 @@ export default [
   "Zobrazit mřížku",
   "Přichytávat k mřížce",
   "Předvolby mřížky",
+  "Deformace loutky",
+  "Přetvořit",
+  "Zahájit globální úpravu",
+  "Ukončit globální úpravu",
+  "Vyberte tvar, abyste zahájili globální úpravu.",
 ] as readonly string[];

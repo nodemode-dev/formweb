@@ -48,6 +48,8 @@ const paths = {
   lasso: '<path d="M12 4c5 0 8 2 8 5s-3 5-8 5-8-2-8-5 3-5 8-5Z"/><path d="M8 13c-1 2 0 4 2 5s2 2 1 3"/>',
   wand: '<path d="m4 20 10-10"/><path d="M15 3v4m-2-2h4M19 9v3m-1.500-1.500h3M9 4v2m-1-1h2"/>',
   eyedropper: '<path d="m15 4 5 5-3 1-7 7-4 1 1-4 7-7 1-3Z"/><path d="m13 6 5 5"/>',
+  puppet: '<path d="M5 7c4-3 10 3 14 0v10c-4 3-10-3-14 0V7Z"/><circle cx="8" cy="10" r="1.600" fill="currentColor"/><circle cx="16" cy="14" r="1.600" fill="currentColor"/>',
+  reshape: '<path d="M4 18c3-12 13-12 16 0"/><rect x="3" y="16" width="4" height="4" fill="currentColor"/><rect x="17" y="16" width="4" height="4" fill="currentColor"/><rect x="10" y="5" width="4" height="4"/>',
   group: '<rect x="3" y="3" width="10" height="10" rx="1"/><rect x="11" y="11" width="10" height="10" rx="1"/>',
   ungroup: '<rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>',
   clip: '<circle cx="12" cy="12" r="7"/><path d="M4 8h16M4 16h16" stroke-dasharray="2 2"/>',

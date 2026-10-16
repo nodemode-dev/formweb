@@ -1750,4 +1750,9 @@ export default [
   "Vis rutenett",
   "Fest til rutenett",
   "Rutenettinnstillinger",
+  "Marionettforvrengning",
+  "Omform",
+  "Start global redigering",
+  "Stopp global redigering",
+  "Velg en form for å starte global redigering.",
 ] as readonly string[];

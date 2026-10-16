@@ -1750,4 +1750,9 @@ export default [
   "Raster tonen",
   "Uitlijnen op raster",
   "Rastervoorkeuren",
+  "Marionetvervorming",
+  "Hervormen",
+  "Globaal bewerken starten",
+  "Globaal bewerken stoppen",
+  "Selecteer een vorm om globaal bewerken te starten.",
 ] as readonly string[];

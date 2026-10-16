@@ -1750,4 +1750,9 @@ export default [
   "Mostrar grade",
   "Ajustar à grade",
   "Preferências da grade",
+  "Deformação de marionete",
+  "Remodelar",
+  "Iniciar edição global",
+  "Parar edição global",
+  "Selecione uma forma para iniciar a edição global.",
 ] as readonly string[];

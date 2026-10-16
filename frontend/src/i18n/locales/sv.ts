@@ -1750,4 +1750,9 @@ export default [
   "Visa rutnät",
   "Fäst vid rutnät",
   "Rutnätsinställningar",
+  "Dockvridning",
+  "Omforma",
+  "Starta global redigering",
+  "Avsluta global redigering",
+  "Markera en form för att starta global redigering.",
 ] as readonly string[];

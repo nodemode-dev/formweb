@@ -1750,4 +1750,9 @@ export default [
   "Pokaż siatkę",
   "Przyciągaj do siatki",
   "Preferencje siatki",
+  "Wypaczenie marionetkowe",
+  "Przekształć",
+  "Rozpocznij edycję globalną",
+  "Zatrzymaj edycję globalną",
+  "Zaznacz kształt, aby rozpocząć edycję globalną.",
 ] as readonly string[];

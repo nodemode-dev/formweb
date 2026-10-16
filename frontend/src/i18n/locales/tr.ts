@@ -1750,4 +1750,9 @@ export default [
   "Izgarayı göster",
   "Izgaraya yapış",
   "Izgara tercihleri",
+  "Kukla Bükme",
+  "Yeniden Biçimlendir",
+  "Genel Düzenlemeyi Başlat",
+  "Genel Düzenlemeyi Durdur",
+  "Genel düzenlemeyi başlatmak için bir şekil seçin.",
 ] as readonly string[];
