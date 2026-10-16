@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.1 · 2026-10-16
+
+- Claude Code and Chat were driven end to end against a real Claude Code install: Chat streamed answers, called formweb's tools, changed the page and remembered the conversation; the Claude button started Claude Code with formweb's tools and made an edit.
+- The desktop app was launched from its package with no source folder present, and closing it now stops its engine (closing the window used to leave it running).
+- Every Creative tools tab was used in the real editor and checked in the published site. Fixes: duplicated collection pages get a working address, superscript, subscript and baseline shift work on words inside a paragraph, form fields can set a custom pattern and Required, and nested collection lists can show only the items that belong to their parent.
+- Vector: blends and repeats stay live and update when their sources change, Free Transform adds shear, perspective and free distort, and a Symbols panel defines, places and edits reusable symbols.
+
 ## 0.8.0 · 2026-10-16
 
 Illustrator behaviors checked against Adobe sources, then built and driven in the editor. Parity: 99 of 112 (rows regraded from browser verification at 0.7.1; four rows added for the agent dock, desktop build, command registry and languages).

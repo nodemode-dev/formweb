@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.8.0",
- "previous": "0.7.1",
+ "version": "0.8.1",
+ "previous": "0.8.0",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Illustrator behaviors verified against Adobe sources and driven in the browser: relative corners by angle, Pathfinder Outline and result paints, Shape Builder gap detection and stroke split, width tool per side with profiles, five type on a path effects, opacity mask Clip and Invert. No grade moved: each row keeps a named gap. 99 of 112.",
+ "release_note": "Creative tools driven in the real editor and published output (FW-140 to FW-149, nine Full), live blends and repeats and Free Transform shear and perspective (FW-092, FW-093 Full), Claude Code and Chat driven end to end and the desktop app launched on Linux (FW-152, FW-153 still Partial for Windows and macOS), Symbols added (FW-156 Partial).",
  "lanes": [
   [
    "m",
@@ -5494,6 +5494,12 @@
     "FW-155": "partial"
    },
    "note": "Vector and creative rows reviewed against the recorded browser verification: eleven Partial to Full and four rows added (FW-152 to FW-155). 99 of 112."
+  },
+  {
+   "version": "0.8.0",
+   "date": "2026-10-16",
+   "same_as": "0.7.1",
+   "note": "Illustrator behaviors verified against Adobe sources and driven in the browser; no grade moved. 99 of 112."
   }
  ],
  "changes": [
