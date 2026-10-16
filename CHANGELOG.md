@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0 · 2026-10-16
+
+- The editor is translated nearly everywhere: the stock and team libraries, brand kit, Agent Connect, the AI writer, Studio, multi-step forms, the inspector's reset and style tooltips, and the long explanations in the main dialogs. Names, links, sample content and CSS values stay as they are.
+
 ## 0.8.9 · 2026-10-16
 
 - Fixed: pressing again right after drawing a shape could start a stray browser drag that made the page stop responding to the mouse.
