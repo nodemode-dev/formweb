@@ -4,7 +4,7 @@
  "previous": "0.9.7",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Security fix, no grade change: inside an svg only use and textPath may carry an href, so gradients, patterns and paths can no longer point at outside files.",
+ "release_note": "Area type (FW-175) added as Partial: text flows inside a closed shape in one or more columns with overflow reported, laid out once rather than live.",
  "lanes": [
   [
    "m",
@@ -6937,6 +6937,46 @@
     "partial",
     "v0.9.7: driven in Chromium under CPU 4x and slow network. A circle as tile art and a rectangle selected last, Brick by Row at 1/2 with 10 spacing: the svg pattern had the computed tile size and three offset copies, the rectangle drew offset rows of circles in the canvas and in the export, and one undo removed pattern and fill.",
     "No Pattern Editing mode or later edits to a pattern; no Swatches panel (one pattern per use); no Hex tiles; Brick by Column is FormWeb's mirror of Brick by Row; live effects on the art are not copied into the tile."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 175,
+   "id": "FW-175",
+   "cat": 0,
+   "f": "Area type",
+   "p": "P2",
+   "kn": "Text flowing inside any closed path, reflowing when the container is reshaped; Area Type Options for inset spacing, first baseline, rows and columns; an overflow indicator when text does not fit. Source basis: Peachpit and Envato Tuts+.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.9",
+   "m": [
+    "partial",
+    "v0.9.9: driven in Chromium under CPU 4x and slow network. Two centered paragraphs in an ellipse produced 8 lines whose ends lie inside the ellipse; long text reported 66 overflow words; two columns split 33 and 24 lines at the gutter; the export carried the lines and one undo removed them.",
+    "Laid out once: no live reflow when the shape or text changes, no in-place editing, no threaded text, no rows or first baseline choices, no hyphenation or justification."
    ],
    "fr": [
     "none",

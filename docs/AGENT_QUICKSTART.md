@@ -112,6 +112,8 @@ OpenType features (v0.9.6): node styles accept `font-variant-ligatures` (for exa
 
 Patterns (v0.9.7): `vector.pattern.make` opens Pattern Options for the current selection; the last selected shape is filled and the other selected shapes become the tile (Grid, Brick by Row or Brick by Column, brick offset 1/4 to 4/5, Size Tile to Art with H and V spacing, or a fixed width and height). It adds a `pattern` element with `patternUnits="userSpaceOnUse"` inside the svg and sets `fill="url(#pattern-...)"`, one undo step. Through `node.add` an agent can build the same structure: a `pattern` under the svg (attributes x, y, width, height, patternUnits, patternTransform; children `g` and `path`; no `href`).
 
+Area type (v0.9.9): `vector.type.area` opens Area Type for the selected closed shape (text, font size, leading, family, weight, color, alignment, inset spacing, columns, gutter) and flows the words inside it as one `text` with a `tspan` per line, placed after the shape; leftover words are reported as overflow. Laid out once; run it again after reshaping. Agents can write the same structure directly: a `text` with `tspan` children (attributes x, y, dx, dy; plain text up to 500 characters each; no children).
+
 Path commands and drawing tools (v0.9.1), run with `window.formweb.run(id)`: `vector.path.add-anchors` (midpoint of every segment of the selected paths), `vector.path.remove-anchors` (selected anchors), `vector.path.divide-below` (selected path cuts the filled shapes beneath it), `vector.path.split-grid` and `vector.path.clean-up` (dialogs), and the tools `vector.pencil` (N), `vector.arc`, `vector.rect-grid` and `vector.polar-grid` (the last three have no default shortcut).
 
 ## Editor window commands (v0.7)
