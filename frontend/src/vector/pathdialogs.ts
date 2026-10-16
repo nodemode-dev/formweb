@@ -1,11 +1,12 @@
-import { t } from '../i18n';
+import { t, tn } from '../i18n';
 import { element } from '../ui/dom';
 import { gridOptions, setGridOptions } from './drawtools';
 import type { Host } from './host';
 import { cleanUp, gridTargets, splitGridCommands, type CleanOptions, type GridSpec } from './pathcmds';
 import { applyCorners } from './corners';
 import type { SubPath } from './geometry';
-import { updateGeometry } from './store';
+import { freshId, updateGeometry } from './store';
+import { areaCommands, areaOptions, layoutArea, measurer, type AreaAlign } from './areatype';
 import { defaultTweak, tweakSubs, type TweakOptions } from './tweak';
 import { BLOB_MAX_SIZE, blobOptions, setBlobOptions } from './blob';
 import { BRICK_OFFSETS, patternCommands, patternOptions, patternParts, tileSize, type TileType } from './pattern';
@@ -418,3 +419,81 @@ class PatternDialog {
 
 let patternDialog: PatternDialog | undefined;
 export const openPattern = (host: Host): void => { (patternDialog ??= new PatternDialog()).open(host); };
+
+/* Type > Area Type Options */
+
+class AreaTypeDialog {
+  private dialog: Shell | null = null;
+  private host: Host | null = null;
+  private text = element('textarea', 'fw-v-input');
+  private size = numberField(t('Font size'), 1, 1000, 0.5);
+  private leading = numberField(t('Leading'), 1, 2000, 0.5);
+  private family = element('input', 'fw-v-input');
+  private weight = selectField(t('Weight'), ['300', '400', '500', '600', '700', '800'].map(w => [w, w]));
+  private color = element('input', 'fw-v-input');
+  private align = selectField(t('Alignment'), [['left', t('Left')], ['center', t('Center')], ['right', t('Right')]]);
+  private inset = numberField(t('Inset spacing'), 0, 1000, 0.5);
+  private columns = numberField(t('Columns'), 1, 12);
+  private gutter = numberField(t('Gutter'), 0, 1000, 0.5);
+
+  private build(): Shell {
+    this.text.rows = 5;
+    this.text.setAttribute('aria-label', t('Text'));
+    this.color.type = 'color';
+    this.color.setAttribute('aria-label', t('Color'));
+    const wrap = (label: string, input: HTMLElement): HTMLElement => { const f = element('div', 'field'); f.append(element('span', 'field-label', label), input); return f; };
+    const row = (...parts: HTMLElement[]): HTMLElement => { const r = element('div', 'fw-v-row'); r.append(...parts); return r; };
+    return shell(t('Area Type'), [
+      wrap(t('Text'), this.text), row(this.size.field, this.leading.field), wrap(t('Font family'), this.family),
+      row(this.weight.field, wrap(t('Color'), this.color)), this.align.field, this.inset.field, row(this.columns.field, this.gutter.field),
+      element('p', 'fw-v-note', t('Text is laid out once inside the selected closed shape; run it again after reshaping.'))
+    ], () => this.apply(), t('Place text'));
+  }
+
+  open(host: Host): void {
+    const shape = host.shape(host.primary());
+    if (!shape || !shape.subs.some(s => s.closed)) { host.notify(t('Select a closed shape to hold the text.')); return; }
+    this.host = host;
+    const o = areaOptions;
+    this.text.value = o.text;
+    this.size.input.value = String(o.size);
+    this.leading.input.value = String(o.leading);
+    this.family.value = o.family;
+    this.weight.input.value = o.weight;
+    this.color.value = o.color;
+    this.align.input.value = o.align;
+    this.inset.input.value = String(o.inset);
+    this.columns.input.value = String(o.columns);
+    this.gutter.input.value = String(o.gutter);
+    this.dialog = this.dialog ?? this.build();
+    this.dialog.open(this.text);
+  }
+
+  private apply(): void {
+    const host = this.host;
+    if (!host) return;
+    const num = (input: { value: string }, fallback: number, min: number): number => { const v = parseFloat(input.value); return Number.isFinite(v) && v >= min ? v : fallback; };
+    Object.assign(areaOptions, {
+      text: this.text.value.slice(0, 20000), size: num(this.size.input, 16, 1), leading: num(this.leading.input, 20, 1), family: this.family.value.replace(/[<>;{}\\@]/g, '').trim() || 'system-ui, sans-serif',
+      weight: this.weight.input.value, color: /^#[0-9a-fA-F]{6}$/.test(this.color.value) ? this.color.value : '#1f1f1f', align: this.align.input.value as AreaAlign,
+      inset: num(this.inset.input, 0, 0), columns: Math.round(num(this.columns.input, 1, 1)), gutter: num(this.gutter.input, 0, 0)
+    });
+    const shape = host.shape(host.primary());
+    this.host = null;
+    this.dialog?.close();
+    if (!shape || !areaOptions.text.trim()) return;
+    const { lines, overflow } = layoutArea(applyCorners(shape.subs), areaOptions, measurer(areaOptions));
+    if (!lines.length) { host.notify(t('The text does not fit in this shape.')); return; }
+    const site = host.site();
+    const taken = new Set<string>();
+    const textId = freshId(site, taken, 'text');
+    const lineIds = lines.map(() => freshId(site, taken, 'tspan'));
+    const parent = host.parentOf(shape.id) ?? shape.svg;
+    const index = site.nodes[parent].children.indexOf(shape.id) + 1;
+    if (overflow) host.notify(tn(overflow, 'Overflow: {0} word did not fit in the shape.', 'Overflow: {0} words did not fit in the shape.'));
+    void host.commit(areaCommands(parent, index, textId, lineIds, lines, areaOptions), [shape.id]);
+  }
+}
+
+let areaDialog: AreaTypeDialog | undefined;
+export const openAreaType = (host: Host): void => { (areaDialog ??= new AreaTypeDialog()).open(host); };

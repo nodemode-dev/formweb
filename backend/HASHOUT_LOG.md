@@ -1,5 +1,9 @@
 # Backend context
 
+## tspan in the asset cleaner · v0.9.9 (2026-10-16)
+
+`app/assets.py`: `tspan` joins `SVG_TAGS` and `dx` joins `SVG_ATTRS`, mirroring the model and canvas for area type lines. Values still pass `SVG_VALUE` (no colon, so no scheme). compileall passed; not driven with a tspan-bearing SVG.
+
 ## SVG pattern in the asset cleaner · v0.9.7 (2026-10-16)
 
 `app/assets.py`: `pattern` joins `SVG_TAGS` and `SVG_DEFINITIONS`, and `patternUnits` and `patternTransform` join `SVG_ATTRS`, mirroring the Rust model and the canvas so an imported SVG keeps a pattern fill. `href` on any element still has to be a fragment naming a definition in the same file (`svg_value_ok`), so no external pattern can come in; the model separately refuses `href` on a pattern altogether. compileall passed; the cleaner path was not driven with a pattern-bearing SVG this release.

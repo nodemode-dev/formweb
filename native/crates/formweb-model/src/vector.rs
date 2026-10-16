@@ -11,7 +11,7 @@ const SHARED: &[&str] = &[
 const DATA_LIMIT: usize = 262_144;
 
 pub fn is_tag(tag: &str) -> bool {
-    matches!(tag, "svg" | "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "stop" | "clipPath" | "mask" | "text" | "textPath" | "symbol" | "use" | "pattern")
+    matches!(tag, "svg" | "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "stop" | "clipPath" | "mask" | "text" | "textPath" | "symbol" | "use" | "pattern" | "tspan")
 }
 
 pub fn attr_allowed(tag: &str, name: &str) -> bool {
@@ -31,6 +31,7 @@ pub fn attr_allowed(tag: &str, name: &str) -> bool {
         || (tag == "textPath" && matches!(name, "startOffset" | "dy"))
         || (tag == "use" && matches!(name, "x" | "y" | "width" | "height"))
         || (tag == "pattern" && matches!(name, "x" | "y" | "width" | "height" | "patternUnits" | "patternTransform"))
+        || (tag == "tspan" && matches!(name, "x" | "y" | "dx" | "dy"))
 }
 
 pub fn max_len(tag: &str, name: &str) -> usize {
@@ -46,7 +47,7 @@ fn child_ok(parent: &str, child: &str) -> bool {
         "linearGradient" | "radialGradient" => child == "stop",
         "clipPath" => child == "path",
         "mask" => matches!(child, "g" | "path"),
-        "text" => child == "textPath",
+        "text" => matches!(child, "textPath" | "tspan"),
         _ => false,
     }
 }
@@ -104,8 +105,9 @@ fn scan(site: &Site, node: &Node, depth: usize, refs: &mut Refs) -> Result<(), S
 
 pub fn check_node(node: &Node, site: &Site) -> Result<(), String> {
     let vector_parent = is_tag(&node.tag);
-    if vector_parent && !node.text.is_empty() && node.tag != "textPath" { return Err("vector elements cannot contain text".into()); }
-    if node.tag == "textPath" && (node.text.chars().count() > 500 || node.text.contains(['<', '>'])) { return Err("path text is too long or has markup".into()); }
+    if vector_parent && !node.text.is_empty() && !matches!(node.tag.as_str(), "textPath" | "tspan") { return Err("vector elements cannot contain text".into()); }
+    if matches!(node.tag.as_str(), "textPath" | "tspan") && (node.text.chars().count() > 500 || node.text.contains(['<', '>'])) { return Err("path text is too long or has markup".into()); }
+    if node.tag == "tspan" && !node.children.is_empty() { return Err("a text line cannot have children".into()); }
     if node.tag == "path" && !node.children.is_empty() { return Err("path cannot have children".into()); }
     if vector_parent && !matches!(node.tag.as_str(), "use" | "textPath") && node.attrs.contains_key("href") { return Err(format!("{} cannot carry an href; only use and textPath point at other elements", node.tag)); }
     for child in &node.children {

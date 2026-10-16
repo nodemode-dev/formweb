@@ -12,7 +12,7 @@ import { selectCommands } from './select';
 import { runTrace } from './tracepanel';
 import { addAnchorCommands, divideBelowCommands, removeAnchorCommands } from './pathcmds';
 import { openExportScreens } from './exportscreens';
-import { openCleanUp, openPattern, openSplitGrid, openTweak } from './pathdialogs';
+import { openAreaType, openCleanUp, openPattern, openSplitGrid, openTweak } from './pathdialogs';
 import { objectsOnPathCommands } from './objectsonpath';
 import { viewCommands } from './view';
 
@@ -89,6 +89,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.path.split-grid', label: 'Split into grid...', menu: MENU, group: 4, run: () => openSplitGrid(editor.host()), enabled: hasShape },
     { id: 'vector.path.clean-up', label: 'Clean up...', menu: MENU, group: 4, run: () => openCleanUp(editor.host()), enabled: () => { try { return !!editor.activeSvg(); } catch { return false; } } },
     { id: 'vector.path.objects-on-path', label: 'Attach objects to path', menu: MENU, group: 4, mutates: true, run: () => { const cmds = objectsOnPathCommands(editor.host()); if (cmds.length) void editor.commit(cmds); }, enabled: hasPair },
+    { id: 'vector.type.area', label: 'Area type...', menu: MENU, group: 7, mutates: true, run: () => openAreaType(editor.host()), enabled: hasShape },
     { id: 'vector.pattern.make', label: 'Make pattern...', menu: MENU, group: 7, run: () => openPattern(editor.host()), enabled: hasPair },
     { id: 'vector.effect.tweak', label: 'Tweak...', menu: MENU, group: 7, run: () => openTweak(editor.host()), enabled: hasShape },
     { id: 'vector.path.simplify', label: 'Simplify path', menu: MENU, group: 4, run: () => editor.runPathOp('simplify', 1), enabled: hasShape },
