@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.9.1",
- "previous": "0.9.0",
+ "version": "0.9.2",
+ "previous": "0.9.1",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Illustrator gaps from a new audit: Lasso, Magic Wand, Select Same and Inverse, Eyedropper and Transform Again (FW-160, Partial); Add and Remove Anchor Points, Divide Objects Below, Split Into Grid, Clean Up, Pencil, Arc and the Rectangular and Polar Grid tools (FW-161, Full); rulers, guides, document grid with snapping and Outline mode (FW-162, Partial, guides are not saved with the project).",
+ "release_note": "Export for Screens (FW-163) and Recolor Artwork (FW-164) and the Reshape tool (FW-167) added as Full; Graphic Styles (FW-165), Puppet Warp (FW-166) and Global Edit (FW-168) as Partial; guides are now saved with the document (FW-162 stays Partial).",
  "lanes": [
   [
    "m",
@@ -6455,8 +6455,248 @@
    "added": "0.9.1",
    "m": [
     "partial",
-    "v0.9.1: driven in Chromium. Rulers drew in SVG user units with a pointer tick; a guide dragged from the top ruler was created, moved and deleted by dragging it back; a rectangle started 3 px from a guide landed on it; the grid drew at 72 units with 8 subdivisions and Snap to Grid put a rectangle on multiples of 9; Make Guides and Release Guides round-tripped a path; Outline mode left the document's fill and stroke unchanged.",
-    "Guides live in editor memory per svg, so they are not saved with the project and undo does not restore them; aids show only while a vector tool is active; grid lines draw over the artwork; Mod+Y no longer aliases Redo (Mod+Shift+Z does)."
+    "v0.9.1: driven in Chromium. Rulers drew in SVG user units with a pointer tick; a guide dragged from the top ruler was created, moved and deleted by dragging it back; a rectangle started 3 px from a guide landed on it; the grid drew at 72 units with 8 subdivisions and Snap to Grid put a rectangle on multiples of 9; Make Guides and Release Guides round-tripped a path; Outline mode left the document's fill and stroke unchanged. v0.9.2: guides are saved on the svg as a validated data-fw-guides attribute; create, move, delete, lock, make, release and clear are each one undo step and survive a reload (driven in Chromium); export drops the attribute.",
+    "Aids show only while a vector tool is active; grid lines draw over the artwork; Mod+Y no longer aliases Redo (Mod+Shift+Z does)."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 163,
+   "id": "FW-163",
+   "cat": 0,
+   "f": "Export for Screens (PNG, JPG, WebP, SVG at several scales)",
+   "p": "P3",
+   "kn": "Export the drawing or only the selected shapes as PNG, JPG, WebP and clean SVG at 0.5x to 4x with per-scale suffixes and background options. Source basis: Illustrator behavior as recorded in research/illustrator_parity.md, not Adobe documentation read this release.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.2",
+   "m": [
+    "full",
+    "v0.9.2: driven in Chromium with download events. PNG, JPG, WebP and SVG at 1x and 2x gave 7 files; the 1x PNG was 300x150 and the 2x PNG 600x300; PNG and WebP corners were transparent and the JPG corner white; the gradient rendered; the SVG kept its linearGradient and no data-fw attributes; a selection export cropped to a 22x22 viewBox and gave a 132x132 PNG at 2x.",
+    "WebP needs a browser that encodes it (Chromium); SVG is written once at 1x."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 164,
+   "id": "FW-164",
+   "cat": 0,
+   "f": "Recolor Artwork",
+   "p": "P3",
+   "kn": "Edit the colors of the selection or drawing: per-color reassignment, seven harmony rules, Reduce colors to N, Randomize, live preview and one undo step. Source basis: Illustrator behavior as recorded in research/illustrator_parity.md, not Adobe documentation read this release.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.2",
+   "m": [
+    "full",
+    "v0.9.2: driven in Chromium. A triadic harmony previewed new fills without changing the document, Cancel restored them, OK changed both fills in one revision and one undo restored them; Reduce to 1 gave one color.",
+    "No color library limits or color group editing; gradient stops are recolored for every shape using that gradient."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 165,
+   "id": "FW-165",
+   "cat": 0,
+   "f": "Graphic Styles",
+   "p": "P3",
+   "kn": "Save the appearance of a shape as a named style, apply it to the selection, rename and delete, stored with the site. Source basis: Illustrator behavior as recorded in research/illustrator_parity.md, not Adobe documentation read this release.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.2",
+   "m": [
+    "partial",
+    "v0.9.2: driven in Chromium. A dashed orange style was saved, applied to another shape in one revision (fill, stroke, weight, join, dash, opacity), renamed, and still listed after a reload; the library is a validated site setting checked by the engine.",
+    "No blend modes (the engine has none) and no Pathfinder effects; a gradient is saved as its first stop color; applying live stroke options needs targets that already have a stroke."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 166,
+   "id": "FW-166",
+   "cat": 0,
+   "f": "Puppet Warp",
+   "p": "P3",
+   "kn": "Pins on the selection with automatic placement; dragging a pin deforms the paths by moving least squares while other pins stay fixed. Source basis: Illustrator behavior as recorded in research/illustrator_parity.md, not Adobe documentation read this release.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.2",
+   "m": [
+    "partial",
+    "v0.9.2: driven in Chromium. Three pins were placed automatically on a rectangle; dragging one moved its anchor while the other two pinned anchors stayed put and the free anchor followed; Alt-click removed a pin; Shift-click dragged two pins together; each drag was one undo step.",
+    "No mesh display, density or pin rotation; pins reset when the selection changes outside a drag; no Delete key for pins."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 167,
+   "id": "FW-167",
+   "cat": 0,
+   "f": "Reshape tool",
+   "p": "P3",
+   "kn": "Drag a selected anchor to move it fully and other selected anchors proportionally along the path, or drag a segment to add and pull an anchor. Source basis: Illustrator behavior as recorded in research/illustrator_parity.md, not Adobe documentation read this release.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.2",
+   "m": [
+    "full",
+    "v0.9.2: driven in Chromium. Dragging one of two selected anchors moved it by (-30,-45) and the other by half that, unselected anchors stayed; a segment drag added an anchor and its neighbours followed at 35 percent; one undo step each.",
+    "The falloff weights are FormWeb's own choice."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 168,
+   "id": "FW-168",
+   "cat": 0,
+   "f": "Global Edit",
+   "p": "P3",
+   "kn": "Find shapes matching the selected one up to translation and mirror paint and anchor edits to all of them in one undo step. Source basis: Illustrator behavior as recorded in research/illustrator_parity.md, not Adobe documentation read this release.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.2",
+   "m": [
+    "partial",
+    "v0.9.2: driven in Chromium. Starting it on one of three identical circles highlighted the other two; a fill change turned all three green in one revision and one undo reverted them; an anchor drag was mirrored on all three; Escape stopped it.",
+    "Matches only within the edited SVG; pure moves and edits from the HTML inspector are not mirrored."
    ],
    "fr": [
     "none",
@@ -7144,6 +7384,17 @@
    "date": "2026-10-16",
    "same_as": "0.8.9",
    "note": "Translation completion for dialogs, libraries, agent and writer panels and the inspector; no grade moved. 105 of 116."
+  },
+  {
+   "version": "0.9.1",
+   "date": "2026-10-16",
+   "same_as": "0.9.0",
+   "moved": {
+    "FW-160": "partial",
+    "FW-161": "full",
+    "FW-162": "partial"
+   },
+   "note": "Selection tools, path commands and drawing tools, rulers, guides, grid and Outline mode added. 107 of 119."
   }
  ],
  "changes": [

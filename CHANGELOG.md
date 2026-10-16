@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.9.2 · 2026-10-16
+
+- Export for Screens (Ctrl+Alt+E): export the drawing, or only the selected shapes, as PNG, JPG, WebP and clean SVG at 0.5x to 4x, with a suffix per scale and background choices.
+- Recolor Artwork: change every color in the selection at once, with harmony rules, Reduce colors, Randomize and a live preview.
+- Graphic Styles: save a shape's look as a named style and apply it to others; styles are saved with the site.
+- Puppet Warp, the Reshape tool and Global Edit (edit one shape and every identical copy follows).
+- Guides are now saved with the drawing, survive a reload and can be undone.
+- All new labels are translated into the 26 interface languages.
+
 ## 0.9.1 · 2026-10-16
 
 - New selection tools for vector editing: Lasso (Q), Magic Wand (Y) with tolerances, Select Same (fill, stroke, weight, opacity) and Select Inverse, Eyedropper (I), and Transform Again (Ctrl+D) to repeat the last move, rotate, scale, reflect or shear.
