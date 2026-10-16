@@ -9,7 +9,7 @@ import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
-import { TerminalDock } from './features/terminal';
+import { TerminalDock, dockTitleButtons } from './features/terminal';
 import { BrandKit, readBrand, type BrandEntry, type BrandReport } from './features/brand-kit';
 import { TeamLibraries, type TeamLibrary, type TeamLibrarySummary } from './features/team-library';
 import { BackgroundRemover, type BackgroundStatus } from './features/background-remover';
@@ -166,7 +166,7 @@ async function toggleAgents(): Promise<void> {
   const result = await request<{ enabled?: boolean; agentsEnabled?: boolean }>('/api/agents', { enabled: !agentsEnabled });
   agentsEnabled = result.agentsEnabled ?? result.enabled ?? !agentsEnabled;
   updateAgents();
-  status(agentsEnabled ? 'Agents on. MCP clients and the terminal share this site engine.' : 'Agents off. MCP clients and the terminal are blocked.');
+  status(agentsEnabled ? 'Agents on. Outside MCP clients share this site engine.' : 'Agents off. Outside MCP clients are blocked; Claude Code and Chat from this editor still work.');
 }
 // Not shown in the title bar since v0.4.0: Agent Connect owns the switch. Kept as the agents.toggle command target.
 const agentsButton = button('Agents off', 'bolt', toggleAgents, 'quiet');
@@ -258,7 +258,8 @@ captureWrap.append(componentName, button('Capture selection', 'component', async
 captureWrap.lastElementChild?.setAttribute('style', 'width:100%;margin-top:var(--space-2)');
 const componentList = element('div', 'list');
 insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), componentsHead, captureWrap, componentList);
-const terminalDock = new TerminalDock(next => { try { localStorage.setItem('formweb_terminal', next); } catch {} rail.refresh(); });
+const terminalDock = new TerminalDock(next => { try { localStorage.setItem('formweb_terminal', next); } catch {} rail.refresh(); }, () => `Open page: ${pageId}. Selected element id: ${selectedId}.`);
+titleTools.prepend(...dockTitleButtons(runCommand), element('span', 'fw-tt-sep'));
 const agentConnect = new AgentConnect({
   toggleAgents,
   launch: preset => terminalDock.launch(preset),
@@ -1572,6 +1573,9 @@ registerCommands([
   { id: 'agents.toggle', label: 'Allow agents (MCP and terminal)', menu: 'Window', group: 3, run: () => agentsButton.click(), checked: () => agentsEnabled },
   { id: 'view.terminal', label: 'Terminal', menu: 'View', keys: 'Ctrl `', group: 3, run: () => terminalDock.toggle(), checked: () => terminalDock.state === 'open' },
   { id: 'terminal.new', label: 'New terminal session', menu: 'View', group: 3, run: () => terminalDock.launch('shell') },
+  { id: 'terminal.toggle', label: 'Toggle agent dock', menu: 'View', keys: 'Ctrl J', group: 3, run: () => terminalDock.toggle(), checked: () => terminalDock.state === 'open' },
+  { id: 'claude.open', label: 'Claude Code', menu: 'View', keys: 'Ctrl Shift J', group: 3, run: () => terminalDock.claude() },
+  { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: 'Ctrl Alt J', group: 3, run: () => terminalDock.chat() },
   { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
 ]);
 menubar.build();

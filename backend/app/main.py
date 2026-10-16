@@ -11,7 +11,9 @@ from starlette.responses import FileResponse, JSONResponse, Response, StreamingR
 
 from .access import CHANNELS, actor, channel
 from .advanced_routes import router as advanced_router, form_gate, serve_release, submission_values
+from . import claude_code
 from .assets import MIME_TYPES, asset_path, ingest, list_assets, own_asset, project_envelope, visible_assets
+from .chat import router as chat_router
 from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_FILE_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
 from .mcp_server import mcp, mcp_app
@@ -52,7 +54,7 @@ class LocalAccess:
                 raise EngineError('This service accepts exact loopback hostnames only.', 421)
             if origin is not None and origin not in ORIGINS and not (origin == 'null' and verified_preview):
                 raise EngineError('Origin is not allowed.', 403)
-            if path == '/mcp' and not studio.agents_enabled:
+            if path == '/mcp' and not (studio.agents_enabled or claude_code.valid_token(headers.get(claude_code.INAPP_HEADER.lower(), ''))):
                 raise EngineError('Agents are disabled. Enable Agents in the editor or set FORMWEB_AGENTS=1.', 403)
             if control and scope['method'] != 'OPTIONS':
                 identity = studio.access.authenticate(headers, mcp=path == '/mcp')
@@ -97,6 +99,7 @@ app.add_middleware(LocalAccess)
 app.include_router(advanced_router)
 app.include_router(provider_router)
 app.include_router(terminal_router)
+app.include_router(chat_router)
 
 
 @app.get('/api/terminal/status')
@@ -201,7 +204,7 @@ async def agents(body: Agents):
     studio.agents_enabled = body.enabled
     if not body.enabled:
         from .terminal import close_all
-        close_all()
+        close_all(external_only=True)
     return await system()
 
 class SubstrateRun(BaseModel):

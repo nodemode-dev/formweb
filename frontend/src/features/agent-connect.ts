@@ -41,7 +41,7 @@ export class AgentConnect {
     mcpRow.append(icon('bolt'), this.mcpState, element('span', 'fw-ac-grow'), this.mcpButton);
     this.section('MCP access', mcpRow, this.mcpNote);
 
-    this.section('Clients', this.clientList, element('p', 'fw-ac-note', 'Each client reads the project file and starts ./formweb mcp. Open one in the terminal below, or run it in your own terminal from the FormWeb folder.'));
+    this.section('Clients', this.clientList, element('p', 'fw-ac-note', 'Open starts a client in the dock below. Claude Code gets FormWeb\'s tools automatically and needs no setup or Agents switch. Codex and Cursor read the project file, which starts ./formweb mcp and needs Agents on.'));
 
     this.destructive.type = 'checkbox';
     this.destructive.dataset.field = 'approvals.agentDestructive';
@@ -75,7 +75,7 @@ export class AgentConnect {
     text(this.mcpButton, enabled ? 'Turn off' : 'Turn on');
     this.mcpButton.setAttribute('aria-checked', String(enabled));
     this.mcpButton.classList.toggle('is-on', enabled);
-    text(this.mcpNote, enabled ? 'MCP clients and the terminal can change this site. Every change shows in Activity with who made it.' : 'MCP clients and the terminal are blocked. Turn on to let Claude Code, Codex or Cursor work on this site.');
+    text(this.mcpNote, enabled ? 'Outside MCP clients can change this site. Every change shows in Activity with who made it.' : 'Outside MCP clients are blocked. Claude Code and Chat opened from this editor still work. Turn on to let Codex, Cursor or a Claude Code you start yourself connect.');
   }
 
   /** Start or stop live polling; only polls while the panel is visible. */
@@ -98,9 +98,8 @@ export class AgentConnect {
     keyed(this.clientList, clients.clients, item => item.id, item => this.clientCard(item), (node, item) => {
       text(node.querySelector('.fw-ac-chip')!, STATUS_TEXT[item.status]);
       (node.querySelector('.fw-ac-chip') as HTMLElement).dataset.status = item.status;
-      text(node.querySelector('.fw-ac-sub')!, `${item.file} · ${item.cliFound ? item.cli + ' found' : item.cli + ' not found on PATH'}`);
+      text(node.querySelector('.fw-ac-sub')!, `${item.file} · ${item.cliFound ? item.cli + ' found' : item.cli + ' not found'}`);
       (node.querySelector('[data-action="write"]') as HTMLButtonElement).hidden = item.status === 'ready';
-      (node.querySelector('[data-action="launch"]') as HTMLButtonElement).disabled = !clients.agentsEnabled;
     });
     if (document.activeElement !== this.destructive) this.destructive.checked = approvals.settings.agentDestructive;
     if (document.activeElement !== this.review) this.review.checked = approvals.settings.publishReview;

@@ -77,6 +77,41 @@ export async function requestBlob(path: string, body?: unknown): Promise<{ blob:
   }
   return { blob: await response.blob(), headers: response.headers };
 }
+/** POST that answers with Server-Sent Events (the Chat pane); same auth and error handling as request(). */
+export async function stream(path: string, body: unknown, onEvent: (name: string, data: Record<string, unknown>) => void, signal?: AbortSignal): Promise<void> {
+  const response = await fetch(apiBase + path, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify(body),
+    signal
+  });
+  if (!response.ok || !response.body) {
+    let detail = `${response.status} ${response.statusText}`;
+    try { const error = await response.json(); if (typeof error.detail === 'string') detail = error.detail; } catch {}
+    throw new Error(detail);
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  for (;;) {
+    const chunk = await reader.read();
+    if (chunk.done) break;
+    buffer += decoder.decode(chunk.value, { stream: true });
+    for (let at = buffer.indexOf('\n\n'); at >= 0; at = buffer.indexOf('\n\n')) {
+      const frame = buffer.slice(0, at);
+      buffer = buffer.slice(at + 2);
+      let name = 'message';
+      let data = '';
+      for (const line of frame.split('\n')) {
+        if (line.startsWith('event:')) name = line.slice(6).trim();
+        else if (line.startsWith('data:')) data += line.slice(5).trim();
+      }
+      if (!data) continue;
+      try { onEvent(name, JSON.parse(data) as Record<string, unknown>); } catch {}
+    }
+  }
+}
 /** For service routes that change the site and return `{ state, ... }` (team library link and sync). */
 export function mutateVia<T extends { state: EditorState }>(path: string, body: unknown): Promise<T> {
   const work = queue.catch(() => undefined).then(async () => { const result = await request<T>(path, body); accept(result.state); return result; });

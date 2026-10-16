@@ -1,6 +1,7 @@
 """Live terminal: a loopback WebSocket bridged to a pseudo-terminal in the FormWeb folder.
 
-Owner-only, enabled only while Agents is on. Uses the standard library `pty` on macOS and Linux and
+Owner-only. Sessions the editor opens itself (POST /api/terminal/open: a shell or Claude Code) work without the Agents
+switch; a socket that creates its own session still needs Agents on. Uses the standard library `pty` on macOS and Linux and
 `pywinpty` on Windows. A session outlives its socket so the editor can collapse the dock or reconnect and
 get the same shell back, with the last 64 KiB of output replayed.
 
@@ -15,7 +16,9 @@ import shutil
 from collections import deque
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel, ConfigDict, Field
 
+from . import claude_code
 from .access import actor, channel
 from .config import ORIGINS, PORT, ROOT
 from .engine import EngineError
@@ -34,19 +37,21 @@ PRESETS = [
 
 
 class Session:
-    def __init__(self, cols, rows):
+    def __init__(self, cols, rows, kind='shell', title='Terminal', argv=None, env=None, cwd=None, app=False):
         self.id = secrets.token_urlsafe(12)
+        self.kind, self.title, self.app = kind, title, app
         self.buffer: deque[str] = deque()
         self.size = 0
         self.sockets: set[WebSocket] = set()
         self.exit_code = None
         self.closed = False
-        env = {**os.environ, 'TERM': 'xterm-256color', 'FORMWEB_CHANNEL': 'terminal', 'FORMWEB_API': f'http://127.0.0.1:{PORT}', 'FORMWEB_TERMINAL': '1'}
+        env = {**(os.environ if env is None else env), 'TERM': 'xterm-256color', 'FORMWEB_API': f'http://127.0.0.1:{PORT}', 'FORMWEB_TERMINAL': '1', 'FORMWEB_CHANNEL': 'terminal'}
+        folder = str(cwd or ROOT)
         self.loop = asyncio.get_running_loop()
         if os.name == 'nt':
             from winpty import PtyProcess  # pywinpty, Windows only
             shell = os.environ.get('COMSPEC', 'cmd.exe')
-            self.process = PtyProcess.spawn(shell, cwd=str(ROOT), env=env, dimensions=(rows, cols))
+            self.process = PtyProcess.spawn(argv or shell, cwd=folder, env=env, dimensions=(rows, cols))
             self.reader = asyncio.ensure_future(self._read_windows())
         else:
             import fcntl
@@ -55,9 +60,13 @@ class Session:
             import termios
             shell = os.environ.get('SHELL') or shutil.which('bash') or '/bin/sh'
             pid, fd = pty.fork()
-            if pid == 0:  # child: become the shell inside the FormWeb folder
-                os.chdir(ROOT)
-                os.execvpe(shell, [shell, '-l'], env)
+            if pid == 0:  # child: become the shell, or the given command, inside the working folder
+                try:
+                    os.chdir(folder)
+                    command = argv or [shell, '-l']
+                    os.execvpe(command[0], command, env)
+                except OSError:
+                    os._exit(127)
             self.pid, self.fd = pid, fd
             fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack('HHHH', rows, cols, 0, 0))
             os.set_blocking(fd, False)
@@ -156,9 +165,14 @@ class Session:
 SESSIONS: dict[str, Session] = {}
 
 
-def close_all():
+def close_all(external_only=False):
     for session in tuple(SESSIONS.values()):
-        session.close()
+        if not (external_only and session.app):
+            session.close()
+
+
+def listing():
+    return [{'id': item.id, 'title': item.title, 'kind': item.kind, 'app': item.app} for item in SESSIONS.values()]
 
 
 def status():
@@ -173,7 +187,54 @@ def _winpty_available():
         return False
 
 
-def _gate(websocket: WebSocket):
+class Open(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    kind: str = Field(default='shell', pattern='^(shell|claude)$')
+    prompt: str | None = Field(default=None, max_length=20000)
+    resume: str | None = Field(default=None, max_length=200)
+    preset: str | None = Field(default=None, max_length=16)
+    cols: int = Field(default=100, ge=20, le=500)
+    rows: int = Field(default=24, ge=5, le=200)
+
+
+@router.get('/api/terminal/sessions')
+async def sessions():
+    from .service import studio
+    studio.access.authorize('manage')
+    return {'sessions': listing()}
+
+
+@router.post('/api/terminal/open')
+async def open_session(body: Open):
+    from .service import studio
+    studio.access.authorize('manage')
+    types = {'shell': 'Shell', 'claude': 'Claude Code'}
+    prompt = (body.prompt or '').strip()
+    if body.kind == 'claude' and not body.resume:
+        live = next((item for item in SESSIONS.values() if item.kind == 'claude' and item.app), None)
+        if live:
+            if prompt:
+                live.write(prompt + ('\r\n' if os.name == 'nt' else '\r'))
+            return {'id': live.id, 'title': live.title, 'kind': live.kind, 'reused': True}
+    if len(SESSIONS) >= MAX_SESSIONS:
+        raise EngineError(f'At most {MAX_SESSIONS} terminal sessions can run at once. Close one first.', 429)
+    argv = env = cwd = None
+    if body.kind == 'claude':
+        await asyncio.to_thread(claude_code.require_cli)
+        argv, env, cwd = claude_code.argv(prompt, body.resume or ''), claude_code.child_env(), claude_code.workdir()
+    try:
+        session = Session(body.cols, body.rows, body.kind, types[body.kind], argv, env, cwd, True)
+    except Exception as error:
+        raise EngineError(f'Could not start {types[body.kind]}: {error}', 500) from error
+    SESSIONS[session.id] = session
+    studio.access.record('terminal.open', {'session': session.id, 'kind': body.kind})
+    command = next((item['command'] for item in PRESETS if item['id'] == body.preset), '') if body.kind == 'shell' else ''
+    if command:
+        session.write(command + ('\r\n' if os.name == 'nt' else '\n'))
+    return {'id': session.id, 'title': session.title, 'kind': session.kind, 'reused': False}
+
+
+def _gate(websocket: WebSocket, app_session=False):
     """WebSockets skip the HTTP middleware, so repeat its host, origin and identity checks here."""
     from .service import studio
     headers = {key.lower(): value for key, value in websocket.headers.items()}
@@ -182,7 +243,7 @@ def _gate(websocket: WebSocket):
     origin = headers.get('origin')
     if origin is not None and origin not in ORIGINS:
         raise EngineError('Origin is not allowed.', 403)
-    if not studio.agents_enabled:
+    if not (app_session or studio.agents_enabled):
         raise EngineError('Turn Agents on to use the terminal.', 403)
     token = websocket.query_params.get('token', '')
     if token:
@@ -197,13 +258,14 @@ def _gate(websocket: WebSocket):
 @router.websocket('/api/terminal')
 async def terminal(websocket: WebSocket):
     await websocket.accept()
+    wanted = websocket.query_params.get('session', '')
+    opened = SESSIONS.get(wanted)
     try:
-        studio = _gate(websocket)
+        studio = _gate(websocket, bool(opened and opened.app))
     except EngineError as error:
         await websocket.send_text(json.dumps({'type': 'error', 'message': str(error)}))
         await websocket.close(code=4403)
         return
-    wanted = websocket.query_params.get('session', '')
     session = SESSIONS.get(wanted)
     replay = session is not None
     if session is None:
@@ -233,7 +295,7 @@ async def terminal(websocket: WebSocket):
     try:
         while True:
             message = json.loads(await websocket.receive_text())
-            if not studio.agents_enabled:
+            if not (session.app or studio.agents_enabled):
                 await websocket.send_text(json.dumps({'type': 'error', 'message': 'Agents were turned off; the terminal closed.'}))
                 session.close()
                 break

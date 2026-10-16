@@ -11,7 +11,10 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from uuid import uuid4
 
-from .access import AccessControl, actor
+from contextvars import ContextVar
+
+from . import claude_code
+from .access import LOCAL_OWNER, AccessControl, actor
 from .assets import bundle_assets, file_bytes, project_envelope
 from .collaboration import Collaboration
 from .config import DATA_DIR, PUBLIC_BASE
@@ -34,7 +37,29 @@ def safe_export_path(value: str) -> PurePosixPath:
     return path
 
 
+inapp = ContextVar('formweb_inapp', default=False)
+
+
+class InAppAccess(AccessControl):
+    """The Claude Code that FormWeb itself launched presents a per-run token; it acts as the local owner and passes the Agents gate."""
+
+    def authenticate(self, headers, mcp=False):
+        trusted = bool(mcp) and claude_code.valid_token(headers.get(claude_code.INAPP_HEADER.lower(), ''))
+        inapp.set(trusted)
+        if trusted:
+            return LOCAL_OWNER
+        return super().authenticate(headers, mcp)
+
+
 class Studio:
+    @property
+    def agents_enabled(self):
+        return self._agents or inapp.get()
+
+    @agents_enabled.setter
+    def agents_enabled(self, value):
+        self._agents = bool(value)
+
     def __init__(self):
         self.engine = RustEngine()
         self.store: Store | None = None
@@ -45,7 +70,7 @@ class Studio:
 
     async def start(self):
         self.store = Store()
-        self.access = AccessControl(self.store)
+        self.access = InAppAccess(self.store)
         self.collaboration = Collaboration(self)
         self.forms = Forms(self)
         self.releases = Releases(self)
