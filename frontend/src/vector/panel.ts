@@ -1,4 +1,5 @@
 import { element, value } from '../ui/dom';
+import { t } from '../i18n';
 import { openAverage } from './averagedialog';
 import { openPathfinderOptions } from './pfdialog';
 import type { PathfinderOp } from './boolean';
@@ -141,7 +142,7 @@ export class VectorPanel {
     this.bar.setAttribute('role', 'toolbar');
     this.bar.setAttribute('aria-label', 'Vector tools');
     for (const tool of TOOLS) {
-      const b = button('', tool.keys ? `${tool.label} (${tool.keys})` : tool.label, () => editor.setTool(editor.tool === tool.id ? null : tool.id), tool.icon);
+      const b = button('', tool.keys ? `${t(tool.label)} (${tool.keys})` : t(tool.label), () => editor.setTool(editor.tool === tool.id ? null : tool.id), tool.icon);
       b.dataset.tool = tool.id;
       this.toolButtons.set(tool.id, b);
       this.bar.append(b);
@@ -198,14 +199,22 @@ export class VectorPanel {
 
     const pathfinder = section('Pathfinder', true);
     const grid = element('div', 'fw-v-grid');
-    for (const item of PATHFINDERS) grid.append(button(item.label, `${item.label} on the selected paths`, event => editor.runPathfinder(item.op, event.altKey), item.icon));
+    for (const item of PATHFINDERS) grid.append(button(item.label, t(`${item.label} on the selected paths`), event => editor.runPathfinder(item.op, event.altKey), item.icon));
     const compoundRow = element('div', 'fw-v-grid');
     compoundRow.append(
       button('Options', 'Open the Pathfinder Options dialog', () => openPathfinderOptions(), 'simplify'),
       button('Expand', 'Expand the live compound shape into a plain path', () => { void editor.ops.expandLive(); }, 'bake'),
       button('Release', 'Release the live compound shape and return its operands', () => { void editor.ops.releaseLive(); }, 'divide')
     );
-    pathfinder.body.append(grid, compoundRow, element('p', 'fw-v-note', 'Alt-click Unite, Minus Front, Intersect or Exclude to keep a live compound shape.'));
+    const effectSel = element('select', 'fw-v-input');
+    for (const item of PATHFINDERS) { const o = element('option', '', item.label); o.value = item.op; effectSel.append(o); }
+    const effectRow = element('div', 'fw-v-grid');
+    effectRow.append(
+      button('Apply effect', 'Apply effect', () => { void editor.ops.pathfinderEffect(effectSel.value as PathfinderOp); }, 'divide'),
+      button('Remove effect', 'Remove effect', () => { void editor.ops.removeEffect(); }, 'simplify'),
+      button('Expand appearance', 'Expand appearance', () => { void editor.ops.expandLive(); }, 'bake')
+    );
+    pathfinder.body.append(grid, compoundRow, element('p', 'fw-v-note', 'Alt-click Unite, Minus Front, Intersect, Exclude, Divide or Outline to keep a live compound shape.'), field('Pathfinder effect', effectSel), effectRow);
 
     const path = section('Path', false);
     this.simplifyTolerance = numberInput(0.1, 50, 0.1, () => undefined);

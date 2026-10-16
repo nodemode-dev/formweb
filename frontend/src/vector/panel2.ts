@@ -1,4 +1,5 @@
 import { element, text, value } from '../ui/dom';
+import { t } from '../i18n';
 import type { AlignMode, AlignTo, DistributeMode, RepeatParams } from './arrange';
 import { readBlend, readRepeat, type BlendMode } from './live';
 import { BrushSections } from './brushpanel';
@@ -6,6 +7,7 @@ import type { TfMode } from './freetransform';
 import { symbolsIn } from './symbols';
 import { WARP_PRESETS, type DistortKind, type WarpOptions, type WarpPreset } from './distort';
 import { readWarp } from './warp';
+import { openMeshDialog } from './meshdialog';
 import type { Editor } from './editor';
 import { colorToHex, gradientCss, readFor, angleOf, stopColorAt, type Target } from './gradient';
 import { vectorIcon, type VectorIcon } from './icons';
@@ -137,7 +139,7 @@ export class ExtraSections {
     const stroke = section('Stroke align and width', false);
     this.align = segment<StrokeAlign>([{ id: 'center', label: 'Center' }, { id: 'inside', label: 'Inside' }, { id: 'outside', label: 'Outside' }], id => editor.applyPaint({ align: id }));
     const presets: { id: WidthPreset; label: string }[] = [{ id: 'uniform', label: 'Uniform' }, { id: 'taper-end', label: 'Taper end' }, { id: 'taper-both', label: 'Taper both' }, { id: 'bulge', label: 'Bulge' }, { id: 'ends', label: 'Wide ends' }];
-    stroke.body.append(field('Stroke align', this.align.root, true), grid(...presets.map(p => button(p.label, `Width profile: ${p.label}`, () => { void ops.widthPreset(p.id); }))),
+    stroke.body.append(field('Stroke align', this.align.root, true), grid(...presets.map(p => button(p.label, `${t('Width profile:')} ${t(p.label)}`, () => { void ops.widthPreset(p.id); }))),
       grid(button('Flip profile', 'Reverse the width profile along the path', () => { void ops.widthFlip(); }, 'convert')), this.widthNote,
       element('p', 'fw-v-note', 'Width tool (Shift+W): drag from a point on the path to set the width there, drag a point to change it, Alt-drag changes one side, double-click a point for exact widths, Alt-click a point to remove it.'));
     this.profileName.type = 'text';
@@ -330,6 +332,7 @@ export class ExtraSections {
     warp.body.append(field('Style', styleSel), orientSeg.root, row(field('Bend %', bend), field('Horizontal %', hDist)), field('Vertical %', vDist),
       button('Make with Warp', 'Make a live envelope with the chosen warp style', () => { void ops.envelope('warp', warpNow()); }, 'warp'),
       button('Make with Top Object', 'Use the top closed path as the envelope for the other selected paths', () => { void ops.envelope('top', warpNow()); }, 'warp'),
+      grid(button('Make with Mesh', 'Make an envelope with a mesh of draggable points', () => openMeshDialog((r, c) => { void ops.envelopeMesh(r, c, false); }), 'warp'), button('Reset with Mesh', 'Convert the selected warp envelope into a mesh', () => openMeshDialog((r, c) => { void ops.envelopeMesh(r, c, true); }), 'warp')),
       grid(button('Expand', 'Bake the generated copies into ordinary paths', () => { void ops.expandLive(); }, 'bake'), button('Release', 'Remove the generated copies and keep the originals', () => { void ops.releaseLive(); }, 'divide')), warpNote,
       button('Apply envelope', 'Warp the selected paths with the preset', () => { void ops.warp(warpNow()); }, 'warp'),
       kindSeg.root, row(field('Amount (% or degrees)', amount), field('Size', size)), row(field('Detail', detail), field('Seed', seed)), smooth.root,
@@ -427,7 +430,7 @@ export class ExtraSections {
     });
     this.align.set(shape ? shape.paint.align : 'center');
     const width = shape ? readWidth(e.site().nodes[shape.id]) : undefined;
-    text(this.widthNote, width ? `Variable width: ${width.points.length} point${width.points.length === 1 ? '' : 's'}` : 'Uniform width');
+    text(this.widthNote, width ? `${t('Variable width:')} ${width.points.length} ${t(width.points.length === 1 ? 'point' : 'points')}` : 'Uniform width');
     this.alignToSeg.set(this.alignTo);
     let typed: ReturnType<typeof readType> = null;
     try { typed = readType(typeHolder(e.site(), e.ctx.getSelected())); } catch { typed = null; }
