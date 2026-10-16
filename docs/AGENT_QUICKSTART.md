@@ -108,6 +108,8 @@ Three MCP tools reach the open editor window, which must be open in a browser or
 
 Vector view aids (run with `run_ui_command` while vector editing): `vector.rulers` (Mod+R), `vector.guides.toggle` (Mod+;), `vector.guides.lock` (Mod+Alt+;), `vector.guides.make` (Mod+5), `vector.guides.release` (Mod+Alt+5), `vector.guides.clear`, `vector.grid.show` (Mod+'), `vector.grid.snap` (Mod+Shift+'), `vector.grid.prefs` and `vector.outline` (Mod+Y). Guides live in editor memory per SVG, not in the document; outline mode only restyles the canvas.
 
+Recolor and styles (v0.9.2), run with `window.formweb.run(id)`: `vector.recolor` (Edit menu, no shortcut) opens the Recolor Artwork dialog for the selected shapes or the whole edited SVG, with live preview and one undo step on OK; `vector.graphic-styles` (Window menu, no shortcut) opens the Graphic Styles window. The style library is the site setting `vectorGraphicStyles` (a JSON list, validated by the engine, shared by all SVGs, not exported).
+
 ## Recover a stopped workflow
 
 For missing tools, rediscover instead of guessing names. For permission rejection, inspect actual identity/role and Agents state. For a stale revision, read current state, preserve acknowledged changes and apply only the remaining change with a fresh revision. Do not replay successful steps.

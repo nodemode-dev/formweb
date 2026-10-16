@@ -72,6 +72,8 @@ const META: Record<string, Meta> = {
   'vector.guides.lock': { description: 'Lock or unlock the guides so they cannot be moved or released.' },
   'vector.guides.make': { description: 'Turn the selected shapes into path guides and remove the shapes from the SVG.', flags: 'm', when: 'Use to build construction guides from a drawn path.' },
   'vector.guides.release': { description: 'Turn the selected guides (or all path guides) back into path shapes.', flags: 'm' },
+  'vector.recolor': { description: 'Open Recolor Artwork (Edit > Edit Colors): lists every solid fill, stroke and gradient stop color of the selected shapes (or the whole edited SVG), lets you pick new colors, generate a harmony (complementary, analogous, triadic, split complementary, tetradic, monochromatic, shades), reduce to N colors or randomize, with a live canvas preview; OK is one undo step.', flags: 'm', when: 'Use to change the palette of artwork in one go.' },
+  'vector.graphic-styles': { description: 'Open the Graphic Styles window: save the first selected shape as a named style (fill, stroke, weight, caps, joins, dash, opacity and live stroke options), apply a style to the selected shapes in one undo step, rename or delete it. The library is stored in the site setting vectorGraphicStyles and is shared by every SVG of the project.', flags: 'm', when: 'Use to reuse one look across shapes.' },
   'vector.guides.clear': { description: 'Remove every guide of the edited SVG.' },
   'vector.grid.show': { description: 'Show or hide the document grid (72 units with 8 subdivisions by default) in the vector editing area.' },
   'vector.grid.snap': { description: 'Snap drawn and moved points to the grid; guides always snap while visible.' },
