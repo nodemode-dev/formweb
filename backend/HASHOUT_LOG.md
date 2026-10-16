@@ -1,5 +1,20 @@
 # Backend context
 
+## Wishlist QA · v0.8.1 (2026-10-16)
+
+`app/mcp_domains.py` (the `cms.query` entry in `COMMAND_DOCS` now documents the `{parent.field}` filter token). `forms.py` needed no change.
+- **Live form POST:** done through the running service (uvicorn on its own port and data directory) against a published multi-step form: a PDF was accepted and stored as `form-uploads/<uuid>.pdf`, the submission appeared in `GET /api/forms` with `{name, type, size, file}`, and an exe, an svg, a PDF whose bytes are not a PDF, a 600 KB png against a 500 KB `maxSize`, a bad phone preset and a pattern mismatch were rejected with 422 and a per-field error. A browser submit showed the same messages next to the field.
+- **Checked:** `compileall` clean (pycache removed).
+
+## Claude Code, Chat and the packaged app, driven end to end · v0.8.1 (2026-10-16)
+
+No backend source change was needed; one fix in `src-tauri/src/main.rs`.
+- **Chat:** a real `claude` (2.1.301) run through `POST /api/chat/send` from the Chat pane in headless Chromium: streamed `delta` frames, a `get_site` pill and an `edit_nodes` pill, `/api/state` headline changed to "Hello from Claude" (rev 1) and the canvas showed it, and a follow-up recalled the earlier request through `--resume`. The engine was started with `HOME=/tmp/fwhome`; Claude authenticated through the inherited `ANTHROPIC_BASE_URL`, and `child_env()` keeps `HOME`, `ANTHROPIC_*` and the `KEEP_ENV` login variables.
+- **Claude Code button:** Shift+Mod+J started the TUI in xterm (first-run theme, security and folder-trust prompts appear once for a fresh HOME), `mcp__formweb__*` tools were listed, and a prompt made one `edit_nodes` call that changed the headline (rev 2).
+- **Gotcha:** Claude Code caches an HTTP MCP server that answered 401 or 403 as "needs-auth" for about 15 minutes in `~/.claude/mcp-needs-auth-cache.json` and then skips it. A test that sent a token from a different process than the engine poisoned the cache; deleting the file fixed it. The in-app token is per engine start, so only a client using a stale token is affected.
+- **Desktop shell:** closing the window left the frozen engine running (health still 200, process group alive): `stop_service` ran `kill -TERM -<pgid>`, which procps `kill` parsed as `kill(-8, ...)` (ESRCH). It now calls libc `kill(-pgid, SIGTERM)`, waits up to 5 s for the sidecar, then `kill(-pgid, SIGKILL)`. Rebuilt and rechecked: a window close (openbox, `wmctrl -c`) and a SIGTERM both stop the sidecar and its core.
+- **Build:** `./build_app` stopped at `setup/build` on a `tsc` error in another engineer's `features/wishlist/quality.ts` (outside this change); `vite build`, `setup/freeze_backend` and the Tauri deb build were then run directly with the same arguments.
+
 ## Window command mirror · v0.7.0 (2026-10-16)
 
 `app/commands_mirror.py` (new); edits in `app/main.py`, `app/mcp_catalog.py`, `app/mcp_server.py`.
