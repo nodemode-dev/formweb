@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.1 · 2026-10-16
+
+- Gradients, clipping and opacity masks, inside strokes and type on a path now show in the editor canvas (their SVG tags were being rendered as plain boxes).
+- Shortcuts work after clicking the canvas: undo, delete, search and the vector tool keys no longer need focus moved out of the page first. Typing inside inline text editing is unaffected.
+- Vector fixes from a full pass over every tool: width presets apply, straight lines honour every width point, Free Transform scales once, and Join works across two paths. Join is Mod+Alt+Shift+J and Average Mod+Alt+Shift+A.
+- Docs: README highlights, the agent quick start (new commands and window tools), wiki pages and a Languages page.
+
 ## 0.7.0 · 2026-10-16
 
 - The editor speaks 26 languages, English by default: Settings > Editor language switches the whole interface live, with no reload, and remembers the choice. Your content, layer names and page names are never translated.
