@@ -147,9 +147,9 @@ export class Canvas {
     }
     if (visited.has(key)) return;
     visited.add(key);
-    const tag = allowedTags.has(data.tag.toLowerCase()) ? data.tag.toLowerCase() : 'div';
+    const tag = allowedTags.has(data.tag) ? data.tag : allowedTags.has(data.tag.toLowerCase()) ? data.tag.toLowerCase() : 'div';
     let node = this.nodes.get(key);
-    if (!node || node.tagName.toLowerCase() !== tag) {
+    if (!node || node.localName !== tag) {
       const replacement = (vectorTags.has(tag) ? this.doc.createElementNS('http://www.w3.org/2000/svg', tag) : this.doc.createElement(tag)) as HTMLElement;
       replacement.dataset.fwId = id;
       replacement.dataset.fwKey = key;
@@ -275,6 +275,11 @@ export class Canvas {
       }, { once: true });
     });
     doc.addEventListener('submit', event => event.preventDefault());
+    doc.addEventListener('keydown', event => {
+      if (event.isComposing || (event.target as Element | null)?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
+      const forwarded = new KeyboardEvent('keydown', { key: event.key, code: event.code, location: event.location, repeat: event.repeat, ctrlKey: event.ctrlKey, shiftKey: event.shiftKey, altKey: event.altKey, metaKey: event.metaKey, bubbles: true, cancelable: true, composed: true });
+      if (!this.frame.dispatchEvent(forwarded)) event.preventDefault();
+    });
     doc.addEventListener('mouseover', event => {
       if (!this.last?.preview) return;
       const element = (event.target as Element).closest<HTMLElement>('[data-fw-id]');
