@@ -14,12 +14,14 @@ from .advanced_routes import router as advanced_router, form_gate, serve_release
 from . import claude_code
 from .assets import MIME_TYPES, asset_path, ingest, list_assets, own_asset, project_envelope, visible_assets
 from .chat import router as chat_router
+from .commands_mirror import router as commands_router
 from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_FILE_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
 from .mcp_server import mcp, mcp_app
 from .providers.routes import router as provider_router
 from .service import safe_export_path, studio
 from .terminal import router as terminal_router
+from .vector_routes import router as vector_router
 from .workflows import load_native
 
 
@@ -100,6 +102,8 @@ app.include_router(advanced_router)
 app.include_router(provider_router)
 app.include_router(terminal_router)
 app.include_router(chat_router)
+app.include_router(commands_router)
+app.include_router(vector_router)
 
 
 @app.get('/api/terminal/status')

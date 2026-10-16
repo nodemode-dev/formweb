@@ -14,9 +14,9 @@ FormWeb is one document engine with several faces. The Rust engine owns every si
 | Model | `native/crates/formweb-model/` | Site, page, node types and validation |
 | Engine | `native/crates/formweb-engine/` | `COMMANDS`, command match arms, revisions, undo |
 | Exporter | `native/crates/formweb-export/` | HTML, CSS, JS, routes.json, manifests, embeds, icons |
-| Service | `backend/app/` | `main.py` routes and middleware, `service.py` studio, `substrate.py`, `terminal.py`, `passwords.py`, `releases.py` |
+| Service | `backend/app/` | `main.py` routes and middleware, `service.py` studio, `substrate.py`, `terminal.py`, `commands_mirror.py` (window command catalogue and run bridge), `passwords.py`, `releases.py` |
 | MCP | `backend/app/mcp_catalog.py`, `mcp_domains.py`, `mcp_server.py`, `advanced_catalog.py` | Tools, domain tools, resources, prompts, instructions |
-| Editor | `frontend/src/main.ts`, `ui/`, `features/`, `styles/` | Command registry, menus, rail, panels, canvas |
+| Editor | `frontend/src/main.ts`, `commands/`, `ui/`, `features/`, `styles/` | Command registry (`commands/registry.ts`), key router, catalogue and agent bridge; menus, rail, panels, canvas |
 | Renderer | `native/crates/formweb-render/` (own workspace) | wgpu thumbnails, minimap, release diffs, CPU fallback; `./formweb render` |
 | Desktop shell | `src-tauri/` (own workspace) | Tauri 2 window, starts and stops `formweb serve`, renderer commands; `./formweb desktop` |
 | Launcher | `formweb`, `formweb.bat`, `setup/` | install, boot, mcp, run, agents, comparisons, doctor |
@@ -36,7 +36,7 @@ FormWeb is one document engine with several faces. The Rust engine owns every si
 
 **Add an MCP tool.** Declare it with `tool(...)` in `mcp_catalog.py` (description first says what and when), add its `case` in `mcp_server.py` `call_tool`, update the tool counts in `.docs/wiki/Agents-and-MCP.md` and `.docs/wiki/Home.md`, and verify with the official SDK over stdio (`./formweb mcp`). Keep descriptions under 2,048 characters and results compact.
 
-**Add an editor action.** Register it in `registerCommands([...])` in `main.ts` with an id, label and menu; buttons carry `data-command` with that id so agents can find and run it through `window.formweb.run(id)`. List it in `docs/AGENT_QUICKSTART.md`.
+**Add an editor action.** Register it in `registerCommands([...])` in `main.ts` with an id, label, menu and `keys` in `'Mod+Shift+S'` form (Mod is Cmd on macOS, Ctrl elsewhere); that one entry feeds the menu bar, the command search, the single keydown router in `commands/keymap.ts`, `window.formweb.run(id)` and the agents' `list_ui_commands`, `describe_ui_command` and `run_ui_command` tools. Toolbar buttons carry `data-cmd` with the id and are run by one delegated click handler; never add a second keydown listener or a button that calls the action directly. Mark `global: true` for a shortcut that must work while typing, put agent words and the `m` (changes the site) and `r` (cannot be undone, the window asks the person) flags for the id in `META` in `commands/catalogue.ts`, and list it in `docs/AGENT_QUICKSTART.md`. Ids must be unique: `commands.add` throws on a duplicate.
 
 **Change agent skills.** Edit only `.claude/skills/`, then run `./formweb agents sync` and `./formweb agents sync --check`; `.agents/skills/` is a mirror. Validate packs with the god-tier validator (zero FAIL).
 

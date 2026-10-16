@@ -1,5 +1,22 @@
 # Backend context
 
+## Window command mirror · v0.7.0 (2026-10-16)
+
+`app/commands_mirror.py` (new); edits in `app/main.py`, `app/mcp_catalog.py`, `app/mcp_server.py`.
+- **Catalogue:** `POST /api/commands/catalogue` keeps the editor's latest command list in memory (read permission, at most 2,000 rows); `GET /api/commands?q=` filters it by words in id, label, group and description.
+- **Bridge:** the window long-polls `GET /api/commands/bridge?wait=25` (slices of one second, so a poll whose tab was closed or reloaded returns at once and a request it took is queued again) and answers with `POST /api/commands/bridge/result {rid, ok, result, error}`. `POST /api/commands/run {id, params}` queues a request and waits for the answer: 404 for an id not in the catalogue, 409 when no window has polled in 45 s or the command is unavailable, 403 when the person denied a risky command, 408 after 30 s (60 s for risky ones, which wait for Allow in the window). A command that changes the site needs edit permission, any other read; mutating runs are recorded in activity as `ui.command`.
+- **MCP:** `list_ui_commands` (query), `describe_ui_command` (id) and `run_ui_command` (id, params) in `mcp_catalog.py` and `call_tool`, behind the same Agents gate, schema validation and role checks as every tool; the in-app Claude token passes the gate through `InAppAccess`. They are not marked destructive, so the Agent Connect approval switch does not double-ask: the window's own confirm covers risky commands.
+- **Checked:** with the editor open, REST and MCP listed, described and ran view.tablet and view.desktop; an unknown id returned 404; agents.toggle waited for the confirm and returned 403 on Deny and 200 on Allow; a request sent right after a reload ran once the old poll was gone (the first version lost it to the dead poll, fixed with the disconnect check).
+
+## Wishlist · v0.7.0 (2026-10-16)
+
+`app/forms.py`, `app/config.py`, `app/advanced_routes.py`, `app/mcp_domains.py`.
+- **File uploads:** a file field now posts JSON `{name, type, size, data}` (base64) from the export runtime. `Forms.check_files` allows `.png .jpg .jpeg .gif .webp .pdf .txt .csv .docx .xlsx .zip` only, checks the field's `accept` list, the magic bytes, 2 MB per file (`maxSize` can lower it) and one file (five with `multiple`). `store_files` writes `form-uploads/<uuid>.<ext>` under the data directory; the submission keeps `{name, type, size, file}`. `prune()` deletes the files of removed submissions.
+- **Body size:** `MAX_FORM_UPLOAD_BYTES` (4 MiB) applies to JSON form bodies in `submission_values`; URL-encoded forms keep the 64 KiB cap.
+- **Presets:** constraint `preset` (phone, postal, email) is checked by `Forms.validate` with the same patterns the export runtime puts on the control.
+- **MCP:** `edit_creative` domain tool and `COMMAND_DOCS` entries for `cms.list`, `cms.reorder`, `cms.move`, `cms.folder`, `slider.create`, `table.*`, `layout.convert`, `text.script` and `form.steps`; `edit_cms` lists the four CMS additions.
+- **Checked:** `Forms.validate` against an exported multi-step form: valid PDF stored, bad phone, `.exe`, `.svg`, wrong type for the field, wrong magic bytes and oversize files rejected with field errors. `compileall` clean. Not run: a live POST through the running service, and delivery of files to webhooks (metadata only).
+
 ## Frozen engine for the desktop app · v0.6.0 (2026-10-16)
 
 `app/config.py`, `formweb_engine.py`, `requirements_desktop.txt` (new).

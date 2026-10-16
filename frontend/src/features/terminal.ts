@@ -61,7 +61,7 @@ export class TerminalDock {
   private sessions = new Map<string, Tab>();
   private active = '';
   private chatPane?: ChatPane;
-  private restored = false;
+  private restoring: Promise<void> | null = null;
   state: TerminalState = 'collapsed';
 
   constructor(private onChange: (state: TerminalState) => void, private context: () => string = () => '') {
@@ -83,13 +83,6 @@ export class TerminalDock {
     this.note.hidden = true;
     this.element.append(this.head, this.body);
     this.body.addEventListener('keydown', event => { if (!isChord(event)) event.stopPropagation(); });
-    document.addEventListener('keydown', event => {
-      if (!(event.ctrlKey || event.metaKey) || event.code !== 'KeyJ') return;
-      event.preventDefault();
-      if (event.altKey) void this.guard(() => this.chat());
-      else if (event.shiftKey) void this.guard(() => this.claude());
-      else this.toggle();
-    }, true);
     new ResizeObserver(() => this.refit()).observe(this.screen);
   }
 
@@ -166,16 +159,25 @@ export class TerminalDock {
     else if (!this.sessions.has(this.active)) this.select(this.sessions.keys().next().value as string);
   }
 
-  private async restore(): Promise<void> {
-    if (this.restored) return;
-    this.restored = true;
+  /** Re-mounts the sessions the server still runs, so tabs and the status line are right after a reload even while the dock is collapsed. */
+  async remount(): Promise<void> {
     try {
-      const listed = await request<{ sessions: { id: string; title: string; kind: Kind }[] }>('/api/terminal/sessions');
-      for (const item of listed.sessions) this.mount(item.id, item.title, item.kind);
-    } catch (error) {
-      this.restored = false;
-      throw error;
+      await this.restore();
+      const first = this.sessions.keys().next().value as string | undefined;
+      if (first && !this.sessions.has(this.active)) this.select(first, this.state === 'open');
+    } catch {}
+  }
+
+  private restore(): Promise<void> {
+    if (!this.restoring) {
+      this.restoring = request<{ sessions: { id: string; title: string; kind: Kind }[] }>('/api/terminal/sessions').then(listed => {
+        for (const item of listed.sessions) this.mount(item.id, item.title, item.kind);
+      }, error => {
+        this.restoring = null;
+        throw error;
+      });
     }
+    return this.restoring;
   }
 
   private async guard(action: () => Promise<unknown>): Promise<void> {
@@ -252,7 +254,7 @@ export class TerminalDock {
     return tab;
   }
 
-  private select(id: string): void {
+  private select(id: string, focus = true): void {
     const chosen = this.sessions.get(id);
     if (!chosen) return;
     this.active = id;
@@ -265,7 +267,7 @@ export class TerminalDock {
     text(this.stateLabel, chosen.status);
     this.syncButtons();
     if (chosen.kind === 'chat') void this.chatPane?.show();
-    requestAnimationFrame(() => { this.refit(); this.focus(); });
+    requestAnimationFrame(() => { this.refit(); if (focus) this.focus(); });
   }
 
   private closeTab(id: string): void {

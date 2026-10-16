@@ -204,6 +204,17 @@ async def call_tool(context, params):
                     result = await background.apply(studio, arguments['node'], None, arguments.get('method', 'auto'), arguments.get('feather', 0))
                 if 'state' in result:
                     result = {key: value for key, value in result.items() if key != 'state'} | {'site': compact(result['state'])}
+            case 'list_ui_commands':
+                from .commands_mirror import listing
+                studio.access.authorize('read')
+                result = listing(arguments.get('query', ''))
+            case 'describe_ui_command':
+                from .commands_mirror import describe
+                studio.access.authorize('read')
+                result = describe(arguments['id'])
+            case 'run_ui_command':
+                from .commands_mirror import run as run_ui_command
+                result = await run_ui_command(arguments['id'], arguments.get('params'))
             case 'qr_code':
                 from .qr import qr_image
                 studio.access.authorize('read')

@@ -5,6 +5,9 @@ import { element, keyed, options, revealApp, text, value } from './ui/dom';
 import { icon, type Icon } from './ui/icons';
 import { THEMES, applyTheme, readChoice, setTheme } from './ui/themes';
 import { BRAND_MARK, CommandSearch, Menubar, exposeToAgents, registerCommands, runCommand, setRunner } from './ui/shell';
+import { commands as commandRegistry } from './commands/registry';
+import { installKeymap } from './commands/keymap';
+import { startCatalogue } from './commands/catalogue';
 import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/layout';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
@@ -16,6 +19,7 @@ import { BackgroundRemover, type BackgroundStatus } from './features/background-
 import { StockLibrary } from './features/stock-library';
 import { AiWriter, SiteGenerator } from './features/ai-writer';
 import { installVector } from './vector';
+import { installWishlist } from './features/wishlist';
 import './styles/features.css';
 
 const app = document.querySelector<HTMLElement>('#app')!;
@@ -54,8 +58,9 @@ function button(label: string, symbol?: Icon, action?: () => unknown, className 
   if (action) node.addEventListener('click', () => void run(action));
   return node;
 }
-function iconButton(title: string, symbol: Icon, action: () => unknown): HTMLButtonElement {
+function iconButton(title: string, symbol: Icon, action?: () => unknown, cmd = ''): HTMLButtonElement {
   const node = button('', symbol, action, 'icon-button');
+  if (cmd) node.dataset.cmd = cmd;
   node.title = title;
   node.setAttribute('aria-label', title);
   return node;
@@ -171,11 +176,13 @@ async function toggleAgents(): Promise<void> {
 }
 // Not shown in the title bar since v0.4.0: Agent Connect owns the switch. Kept as the agents.toggle command target.
 const agentsButton = button('Agents off', 'bolt', toggleAgents, 'quiet');
-const previewButton = button('Preview', 'eye', () => { preview = !preview; update(state()); }, 'quiet');
-const refreshPreviewButton = iconButton('Refresh compiled runtime preview', 'redo', () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } });
+const previewButton = button('Preview', 'eye', undefined, 'quiet');
+previewButton.dataset.cmd = 'view.preview';
+const refreshPreviewButton = iconButton('Refresh compiled runtime preview', 'redo', undefined, 'view.refresh');
 previewButton.title = 'Compiled preview';
 previewButton.setAttribute('aria-label', previewButton.title);
-const publishButton = button('Publish', 'arrow', () => openDialog('publish'), 'primary');
+const publishButton = button('Publish', 'arrow', undefined, 'primary');
+publishButton.dataset.cmd = 'file.publish';
 topActions.append(previewButton, refreshPreviewButton, publishButton);
 topbar.append(brand, menubar.element, element('div'), titleTools, topActions);
 
@@ -183,22 +190,24 @@ const toolbar = element('div', 'toolbar');
 const projectIdentity = element('div', 'project-identity');
 const projectName = element('span', 'project-name', 'Connecting to site engine');
 projectIdentity.append(icon('globe'), projectName);
-const undoButton = iconButton('Undo (Ctrl/Cmd+Z)', 'undo', () => command('history.undo'));
-const redoButton = iconButton('Redo (Ctrl/Cmd+Shift+Z)', 'redo', () => command('history.redo'));
+const undoButton = iconButton('Undo (Ctrl/Cmd+Z)', 'undo', undefined, 'edit.undo');
+const redoButton = iconButton('Redo (Ctrl/Cmd+Shift+Z)', 'redo', undefined, 'edit.redo');
 undoButton.className = 'fw-tt-btn';
 redoButton.className = 'fw-tt-btn';
 const commandSearch = new CommandSearch(icon('search'));
-const themeButton = button('', 'sun', () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), 'fw-tt-btn');
+const themeButton = button('', 'sun', undefined, 'fw-tt-btn');
+themeButton.dataset.cmd = 'view.theme';
 themeButton.title = 'Switch light or dark theme';
 themeButton.setAttribute('aria-label', themeButton.title);
-const settingsButton = button('', 'gear', () => openDialog('settings'), 'fw-tt-btn');
+const settingsButton = button('', 'gear', undefined, 'fw-tt-btn');
+settingsButton.dataset.cmd = 'edit.settings';
 settingsButton.title = 'Settings';
 settingsButton.setAttribute('aria-label', 'Settings');
 titleTools.append(undoButton, redoButton, element('span', 'fw-tt-sep'), settingsButton, themeButton, commandSearch.button, commandSearch.popup);
 const viewportActions = element('div', 'toolbar-group');
 const viewportButtons = new Map<string, HTMLButtonElement>();
 for (const [id, symbol] of [['desktop', 'desktop'], ['tablet', 'tablet'], ['mobile', 'mobile']] as [string, Icon][]) {
-  const node = iconButton(id[0].toUpperCase() + id.slice(1) + ' breakpoint', symbol, () => { breakpoint = id; update(state()); });
+  const node = iconButton(id[0].toUpperCase() + id.slice(1) + ' breakpoint', symbol, undefined, 'view.' + id);
   viewportButtons.set(id, node);
   viewportActions.append(node);
 }
@@ -217,9 +226,13 @@ breakpointSelect.addEventListener('change', () => { breakpoint = breakpointSelec
 localeSelect.className = 'toolbar-select';
 localeSelect.setAttribute('aria-label', 'Canvas locale');
 localeSelect.addEventListener('change', () => { locale = localeSelect.value; update(state()); });
+const exportButton = button('Export', 'code', undefined, 'quiet');
+exportButton.dataset.cmd = 'file.export';
+const auditButton = button('Audit', 'check', undefined, 'quiet');
+auditButton.dataset.cmd = 'page.audit';
 toolbar.append(projectIdentity);
 separator(toolbar);
-toolbar.append(viewportActions, breakpointSelect, viewportSize, element('span', 'toolbar-label', 'px'), element('div', 'toolbar-spacer'), localeSelect, button('Export', 'code', exportSite, 'quiet'), button('Audit', 'check', auditSite, 'quiet'));
+toolbar.append(viewportActions, breakpointSelect, viewportSize, element('span', 'toolbar-label', 'px'), element('div', 'toolbar-spacer'), localeSelect, exportButton, auditButton);
 
 const workspace = element('main', 'workspace');
 const sidebar = element('aside', 'sidebar');
@@ -399,7 +412,9 @@ function addSegments(container: HTMLElement, label: string, key: string, choices
 const elementSection = section(designPane, 'Element');
 const elementGrid = element('div', 'form-grid');
 addInspectorInput(elementGrid, 'Name', 'name', name => nodePatch({ name }), undefined, true);
-addInspectorInput(elementGrid, 'HTML tag', 'tag', tag => nodePatch({ tag }), ['main', 'section', 'div', 'article', 'header', 'footer', 'nav', 'h1', 'h2', 'h3', 'p', 'span', 'a', 'button', 'img', 'form', 'label', 'input', 'textarea', 'ul', 'ol', 'li']);
+const HTML_TAGS = ['main', 'section', 'div', 'article', 'header', 'footer', 'nav', 'h1', 'h2', 'h3', 'p', 'span', 'a', 'button', 'img', 'form', 'label', 'input', 'textarea', 'ul', 'ol', 'li'];
+const SVG_TAGS = new Set(['svg', 'g', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'defs', 'clippath', 'lineargradient', 'radialgradient', 'stop', 'use', 'symbol', 'mask']);
+const tagSelect = addInspectorInput(elementGrid, 'HTML tag', 'tag', tag => nodePatch({ tag }), HTML_TAGS) as HTMLSelectElement;
 const breakpointBadge = element('div', 'field');
 breakpointBadge.append(element('span', 'field-label', 'Style scope'));
 const scopeLabel = element('span', 'micro', 'Desktop base');
@@ -1052,6 +1067,9 @@ function update(next: EditorState): void {
     'page.name': page.name, 'page.slug': page.slug,
     'seo.title': page.seo.title, 'seo.description': page.seo.description
   };
+  const vectorTag = SVG_TAGS.has(node.tag.toLowerCase());
+  options(tagSelect, (vectorTag ? [node.tag] : HTML_TAGS.includes(node.tag) ? HTML_TAGS : [node.tag, ...HTML_TAGS]).map(id => ({ id, name: id })));
+  tagSelect.disabled = vectorTag;
   inspectorFields.forEach((control, key) => value(control, inspectorValues[key] || ''));
   text(scopeLabel, breakpoint === 'desktop' ? 'Desktop base' : breakpoint + ' override');
   const override = breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {};
@@ -1495,11 +1513,6 @@ document.addEventListener('keydown', event => {
     if (event.shiftKey && document.activeElement === first) { last?.focus(); event.preventDefault(); }
     else if (!event.shiftKey && document.activeElement === last) { first?.focus(); event.preventDefault(); }
   }
-  if (!lastState || featureStudio.opened) return;
-  const editable = (event.target as Element).closest('input, textarea, select, [contenteditable=true]');
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); void run(saveProject); }
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !editable) { event.preventDefault(); void run(() => command(event.shiftKey ? 'history.redo' : 'history.undo')); }
-  if (event.key === 'Delete' && !editable && scrim.hidden && currentNode().id !== currentPage().root) void run(() => command('node.remove', { id: currentNode().id }));
 });
 const runtimePreview = new RuntimePreview(stage, canvas.outer, status);
 const featureStudio = new FeatureStudio({
@@ -1517,13 +1530,13 @@ registerCommands([
   { id: 'file.new', label: 'New site...', menu: 'File', run: () => openDialog('new') },
   { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
   { id: 'file.import', label: 'Import .fweb file...', menu: 'File', run: () => importer.click() },
-  { id: 'file.save', label: 'Save', menu: 'File', keys: 'Ctrl S', group: 1, run: saveProject, enabled: ready },
+  { id: 'file.save', label: 'Save', menu: 'File', keys: ['Mod+S'], global: true, group: 1, run: saveProject, enabled: ready },
   { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },
   { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: ready },
   { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
-  { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: 'Ctrl Z', run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
-  { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: 'Ctrl Shift Z', run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
-  { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: 'Del', group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: notRoot },
+  { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
+  { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z', 'Mod+Y'], repeat: true, run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
+  { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete'], group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: () => notRoot() && !!scrim.hidden },
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
   { id: 'image.edit-in-formvis', label: 'Edit in formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await request<{ message: string }>('/api/formvis/send', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\/[0-9a-f]{64}\.(png|jpg|gif|webp)/.test(currentNode().attrs.src || '') },
   { id: 'image.update-from-formvis', label: 'Update from formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await mutateVia<{ message: string; state: EditorState }>('/api/formvis/update', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' },
@@ -1556,13 +1569,13 @@ registerCommands([
   { id: 'view.preview', label: 'Compiled preview', menu: 'View', group: 1, run: () => { preview = !preview; update(state()); }, checked: () => preview, enabled: ready },
   { id: 'view.refresh', label: 'Refresh compiled preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
-  { id: 'view.search', label: 'Search commands', menu: 'View', keys: 'Ctrl K', group: 2, run: () => commandSearch.show() },
+  { id: 'view.search', label: 'Search commands', menu: 'View', keys: ['Mod+K'], global: true, group: 2, run: () => commandSearch.show() },
   { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => toggleLeft('pages'), checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
   { id: 'window.insert', label: 'Insert', menu: 'Window', run: () => toggleLeft('insert'), checked: () => activeSidebar === 'insert' && layout.state.left === 'open' },
   { id: 'window.design', label: 'Design inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('design'); }, checked: () => activeInspector === 'design' && layout.state.right === 'open' },
   { id: 'window.content', label: 'Content inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('content'); }, checked: () => activeInspector === 'content' && layout.state.right === 'open' },
-  { id: 'window.toggle-left', label: 'Left panel', menu: 'Window', keys: 'Ctrl [', group: 4, run: () => { layout.set({ left: layout.state.left === 'open' ? 'collapsed' : 'open' }); rail.refresh(); }, checked: () => layout.state.left === 'open' },
-  { id: 'window.toggle-right', label: 'Right panel', menu: 'Window', keys: 'Ctrl ]', group: 4, run: () => layout.set({ right: layout.state.right === 'open' ? 'collapsed' : 'open' }), checked: () => layout.state.right === 'open' },
+  { id: 'window.toggle-left', label: 'Left panel', menu: 'Window', keys: ['Mod+['], global: true, group: 4, run: () => { layout.set({ left: layout.state.left === 'open' ? 'collapsed' : 'open' }); rail.refresh(); }, checked: () => layout.state.left === 'open' },
+  { id: 'window.toggle-right', label: 'Right panel', menu: 'Window', keys: ['Mod+]'], global: true, group: 4, run: () => layout.set({ right: layout.state.right === 'open' ? 'collapsed' : 'open' }), checked: () => layout.state.right === 'open' },
   { id: 'window.toggle-rail', label: 'Rail labels', menu: 'Window', group: 4, run: () => layout.set({ rail: layout.state.rail === 'labels' ? 'icons' : 'labels' }), checked: () => layout.state.rail === 'labels' },
   ...PRESETS.map(preset => ({ id: `workspace.${preset.id}`, label: `${preset.label} workspace`, menu: 'Window', group: 5, run: () => usePreset(preset.id), checked: () => layout.preset === preset.id })),
   { id: 'workspace.reset', label: 'Reset this workspace', menu: 'Window', group: 5, run: () => { layout.resetPreset(); rail.refresh(); } },
@@ -1572,17 +1585,26 @@ registerCommands([
   { id: 'window.studio', label: 'Website studio...', menu: 'Window', group: 2, run: () => featureStudio.button.click(), enabled: ready },
   { id: 'window.agents', label: 'Agent Connect', menu: 'Window', group: 3, run: () => toggleLeft('agents'), checked: () => activeSidebar === 'agents' && layout.state.left === 'open' },
   { id: 'agents.toggle', label: 'Allow agents (MCP and terminal)', menu: 'Window', group: 3, run: () => agentsButton.click(), checked: () => agentsEnabled },
-  { id: 'view.terminal', label: 'Terminal', menu: 'View', keys: 'Ctrl `', group: 3, run: () => terminalDock.toggle(), checked: () => terminalDock.state === 'open' },
+  { id: 'view.terminal', label: 'Terminal', menu: 'View', keys: ['Mod+`'], global: true, group: 3, run: () => terminalDock.toggle(), checked: () => terminalDock.state === 'open' },
   { id: 'terminal.new', label: 'New terminal session', menu: 'View', group: 3, run: () => terminalDock.launch('shell') },
-  { id: 'terminal.toggle', label: 'Toggle agent dock', menu: 'View', keys: 'Ctrl J', group: 3, run: () => terminalDock.toggle(), checked: () => terminalDock.state === 'open' },
-  { id: 'claude.open', label: 'Claude Code', menu: 'View', keys: 'Ctrl Shift J', group: 3, run: () => terminalDock.claude() },
-  { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: 'Ctrl Alt J', group: 3, run: () => terminalDock.chat() },
+  { id: 'terminal.toggle', label: 'Toggle agent dock', menu: 'View', keys: ['Mod+J'], global: true, group: 3, run: () => terminalDock.toggle(), checked: () => terminalDock.state === 'open' },
+  { id: 'claude.open', label: 'Claude Code', menu: 'View', keys: ['Mod+Shift+J'], global: true, group: 3, run: () => terminalDock.claude() },
+  { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: ['Mod+Alt+J'], global: true, group: 3, run: () => terminalDock.chat() },
   { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
 ]);
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
+const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
+registerCommands(wishlist.commands);
+subscribe(() => wishlist.refresh());
 menubar.build();
 exposeToAgents();
+installKeymap(commandRegistry, () => !!lastState && !featureStudio.opened);
+document.addEventListener('click', event => {
+  const target = (event.target as Element | null)?.closest<HTMLElement>('[data-cmd]');
+  if (target && !(target as HTMLButtonElement).disabled) runCommand(target.dataset.cmd || '');
+});
+startCatalogue();
 document.addEventListener('nm:ui-settings-changed', () => { themeSelect.value = readChoice().theme; themeButton.classList.toggle('is-on', readChoice().theme === 'light'); });
 const workspaceSelect = select(PRESETS.map(preset => ({ id: preset.id, name: preset.label })));
 workspaceSelect.className = 'fw-tt-select';
@@ -1596,12 +1618,6 @@ function usePreset(id: string): void {
   setInspector(preset.inspector);
   setSidebar(preset.sidebar);
 }
-document.addEventListener('keydown', event => {
-  if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
-  if (event.key === '[') { event.preventDefault(); runCommand('window.toggle-left'); }
-  else if (event.key === ']') { event.preventDefault(); runCommand('window.toggle-right'); }
-  else if (event.key === '`') { event.preventDefault(); runCommand('view.terminal'); }
-});
 subscribe(update);
 workspaceSelect.value = layout.preset;
 setInspector(layout.presetInfo().inspector);
@@ -1615,5 +1631,6 @@ void run(async () => {
   const system = await request<{ version: string; engine: string; agentsEnabled: boolean }>('/api/system');
   agentsEnabled = system.agentsEnabled;
   updateAgents();
+  void terminalDock.remount();
   status('Ready. Select an element, or open Insert to add content.');
 }).finally(revealApp);

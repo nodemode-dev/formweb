@@ -1,32 +1,32 @@
 import { element, keyed, text } from './dom';
+import { listCommands, runFromBridge } from '../commands/catalogue';
+import { commands, type Command } from '../commands/registry';
 
-export interface CommandDef {
-  id: string;
-  label: string;
-  menu?: string;
-  keys?: string;
-  group?: number;
-  run: () => unknown;
-  enabled?: () => boolean;
-  checked?: () => boolean;
+export type CommandDef = Omit<Command, 'keys' | 'group' | 'label'> & { label: string | (() => string); keys?: string | string[]; group?: number; sep?: number };
+
+const LEGACY_KEYS: Record<string, string> = { Ctrl: 'Mod', Cmd: 'Mod', Del: 'Delete', Esc: 'Escape' };
+
+function bindings(keys: string | string[] | undefined): string[] {
+  if (!keys) return [];
+  const list = Array.isArray(keys) ? keys : [keys];
+  return list.filter(Boolean).map(item => (item.includes(' ') ? item.split(' ').map(part => LEGACY_KEYS[part] ?? part).join('+') : item));
 }
 
-const registry = new Map<string, CommandDef>();
-let runner: (action: () => unknown) => unknown = action => action();
-
-export function setRunner(next: (action: () => unknown) => unknown): void { runner = next; }
-export function registerCommands(list: CommandDef[]): void { for (const item of list) registry.set(item.id, item); }
-export function commandList(): CommandDef[] { return [...registry.values()]; }
-export function runCommand(id: string): boolean {
-  const item = registry.get(id);
-  if (!item || (item.enabled && !item.enabled())) return false;
-  void runner(item.run);
-  return true;
+export function setRunner(next: (action: () => unknown) => unknown): void { commands.execute = next; }
+export function registerCommands(list: CommandDef[]): void {
+  commands.add(...list.map(item => {
+    const { group, sep, keys, ...rest } = item;
+    const own = bindings(keys);
+    const passive = rest.passive ?? (rest.id.startsWith('vector.') && own.length > 0 && !own.some(combo => combo.includes('Mod')));
+    return { ...rest, keys: own, passive, sep: sep ?? (typeof group === 'number' ? group : undefined) } as Command;
+  }));
 }
+export function commandList(): Command[] { return commands.all(); }
+export function runCommand(id: string, params?: Record<string, unknown>): boolean { return commands.run(id, params); }
 
 export const BRAND_MARK = '<svg class="fw-mark" width="18" height="18" viewBox="0 0 128 128" fill="none" role="img" aria-label="formweb"><rect x="6" y="6" width="116" height="116" rx="28" fill="#17151b"/><path d="M31 37h66v53H31z" stroke="#f97316" stroke-width="8" stroke-linejoin="round"/><path d="M31 52h66M52 52v38" stroke="#f97316" stroke-width="8"/></svg>';
 
-interface MenuView { button: HTMLButtonElement; popup: HTMLElement; rows: { row: HTMLButtonElement; item: CommandDef }[] }
+interface MenuView { name: string; button: HTMLButtonElement; popup: HTMLElement; rows: { row: HTMLButtonElement; item: Command }[] }
 
 export class Menubar {
   readonly element = element('nav', 'fw-menubar');
@@ -38,13 +38,14 @@ export class Menubar {
     for (const name of names) {
       const button = element('button', 'fw-menu-btn', name);
       button.type = 'button';
+      button.dataset.menu = name;
       button.setAttribute('aria-haspopup', 'menu');
       button.setAttribute('aria-expanded', 'false');
       const popup = element('div', 'fw-menu');
       popup.setAttribute('role', 'menu');
       popup.setAttribute('aria-label', name);
       popup.hidden = true;
-      const view: MenuView = { button, popup, rows: [] };
+      const view: MenuView = { name, button, popup, rows: [] };
       button.addEventListener('click', () => (this.open === view ? this.close() : this.show(view)));
       button.addEventListener('pointerenter', () => { if (this.open && this.open !== view) this.show(view); });
       popup.addEventListener('keydown', event => this.keys(event, view));
@@ -60,19 +61,19 @@ export class Menubar {
   }
 
   build(): void {
-    const byMenu = new Map<string, CommandDef[]>();
+    const byMenu = new Map<string, Command[]>();
     for (const item of commandList()) if (item.menu) byMenu.set(item.menu, [...(byMenu.get(item.menu) || []), item]);
     for (const view of this.menus) {
-      const items = byMenu.get(view.button.textContent || '') || [];
-      let group = items[0]?.group ?? 0;
+      const items = byMenu.get(view.name) || [];
+      let group = items[0]?.sep ?? 0;
       for (const item of items) {
-        if ((item.group ?? 0) !== group) { view.popup.append(element('div', 'fw-menu-sep')); group = item.group ?? 0; }
+        if ((item.sep ?? 0) !== group) { view.popup.append(element('div', 'fw-menu-sep')); group = item.sep ?? 0; }
         const row = element('button', 'fw-menu-item');
         row.type = 'button';
         row.setAttribute('role', 'menuitem');
         row.dataset.command = item.id;
-        row.title = `${item.label} · ${item.id}`;
-        row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', item.label), element('span', 'fw-menu-keys', item.keys || ''));
+        row.title = `${commands.label(item)} · ${item.id}`;
+        row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', commands.label(item)), element('span', 'fw-menu-keys', commands.keyLabel(item)));
         row.addEventListener('click', () => { this.close(); runCommand(item.id); });
         view.popup.append(row);
         view.rows.push({ row, item });
@@ -83,7 +84,9 @@ export class Menubar {
   private show(view: MenuView): void {
     if (this.open && this.open !== view) this.hide(this.open);
     for (const { row, item } of view.rows) {
-      row.disabled = !!item.enabled && !item.enabled();
+      row.disabled = !commands.enabled(item);
+      text(row.children[1] as HTMLElement, commands.label(item));
+      text(row.children[2] as HTMLElement, commands.keyLabel(item));
       const checked = !!item.checked?.();
       row.classList.toggle('is-checked', checked);
       if (item.checked) row.setAttribute('aria-checked', String(checked));
@@ -126,7 +129,7 @@ export class CommandSearch {
   private input = element('input', 'fw-search-input');
   private results = element('div', 'fw-search-results');
   private picked = 0;
-  private matches: CommandDef[] = [];
+  private matches: Command[] = [];
 
   constructor(searchIcon: HTMLElement) {
     this.button.type = 'button';
@@ -148,21 +151,21 @@ export class CommandSearch {
       else if (event.key === 'Enter') { event.preventDefault(); const item = this.matches[this.picked]; if (item) { this.hide(); runCommand(item.id); } }
       else if (event.key === 'Escape') { event.preventDefault(); this.hide(); this.button.focus(); }
     });
-    document.addEventListener('keydown', event => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); this.popup.hidden ? this.show() : this.input.focus(); }
-    });
     document.addEventListener('pointerdown', event => {
       const target = event.target as Node;
       if (!this.popup.hidden && !this.popup.contains(target) && !this.button.contains(target)) this.hide();
     });
   }
 
-  show(): void { this.input.value = ''; this.picked = 0; this.refresh(); this.popup.hidden = false; this.input.focus(); }
+  show(): void {
+    if (!this.popup.hidden) { this.input.focus(); return; }
+    this.input.value = ''; this.picked = 0; this.refresh(); this.popup.hidden = false; this.input.focus();
+  }
   hide(): void { this.popup.hidden = true; }
 
   private refresh(): void {
     const words = this.input.value.toLowerCase().split(/\s+/).filter(Boolean);
-    this.matches = commandList().filter(item => (!item.enabled || item.enabled()) && words.every(word => `${item.menu || ''} ${item.label} ${item.id}`.toLowerCase().includes(word))).slice(0, 12);
+    this.matches = commandList().filter(item => commands.enabled(item) && words.every(word => `${item.menu || ''} ${commands.label(item)} ${item.id}`.toLowerCase().includes(word))).slice(0, 12);
     keyed(this.results, this.matches, item => item.id, item => {
       const row = element('button', 'fw-search-item');
       row.type = 'button';
@@ -173,8 +176,8 @@ export class CommandSearch {
     }, (row, item) => {
       row.dataset.command = item.id;
       row.title = item.id;
-      text(row.children[0] as HTMLElement, item.menu ? `${item.menu} › ${item.label}` : item.label);
-      text(row.children[1] as HTMLElement, item.keys || '');
+      text(row.children[0] as HTMLElement, item.menu ? `${item.menu} › ${commands.label(item)}` : commands.label(item));
+      text(row.children[1] as HTMLElement, commands.keyLabel(item));
       const picked = this.matches[this.picked] === item;
       row.classList.toggle('is-picked', picked);
       row.setAttribute('aria-selected', String(picked));
@@ -184,7 +187,7 @@ export class CommandSearch {
 
 export function exposeToAgents(): void {
   (window as unknown as { formweb?: unknown }).formweb = {
-    commands: () => commandList().map(item => ({ id: item.id, label: item.label, menu: item.menu || null, keys: item.keys || null, enabled: !item.enabled || item.enabled() })),
-    run: (id: string) => runCommand(id)
+    commands: (filter?: string) => listCommands(filter),
+    run: (id: string, params?: Record<string, unknown>) => runFromBridge(id, params, false)
   };
 }

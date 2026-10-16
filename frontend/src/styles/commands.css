@@ -1,0 +1,4 @@
+.fw-agent-confirm { position: fixed; left: 50%; bottom: var(--space-8); z-index: var(--z-toast); display: flex; flex-direction: column; gap: var(--space-3); width: min(420px, calc(100vw - 32px)); padding: var(--space-4); transform: translateX(-50%); border: 1px solid var(--accent-line); border-radius: var(--radius-xl); background: var(--surface-2); box-shadow: var(--shadow-lg); color: var(--text-primary); font-size: var(--fs-13); }
+.fw-agent-confirm[hidden] { display: none; }
+.fw-agent-confirm p { margin: 0; line-height: 1.45; }
+.fw-agent-confirm-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
