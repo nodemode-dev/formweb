@@ -4,7 +4,7 @@
  "previous": "0.9.1",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Export for Screens (FW-163) and Recolor Artwork (FW-164) and the Reshape tool (FW-167) added as Full; Graphic Styles (FW-165), Puppet Warp (FW-166) and Global Edit (FW-168) as Partial; guides are now saved with the document (FW-162 stays Partial).",
+ "release_note": "Tweak effect (FW-169) and Objects on Path (FW-170) added as Partial: Tweak is applied to the geometry rather than live, and objects are placed once rather than kept attached.",
  "lanes": [
   [
    "m",
@@ -6697,6 +6697,86 @@
     "partial",
     "v0.9.2: driven in Chromium. Starting it on one of three identical circles highlighted the other two; a fill change turned all three green in one revision and one undo reverted them; an anchor drag was mirrored on all three; Escape stopped it.",
     "Matches only within the edited SVG; pure moves and edits from the HTML inspector are not mirrored."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 169,
+   "id": "FW-169",
+   "cat": 0,
+   "f": "Tweak effect",
+   "p": "P3",
+   "kn": "Effect > Distort & Transform > Tweak: random horizontal and vertical distortion, absolute or relative, applied to anchor points, \"In\" control points and \"Out\" control points. Source basis: Adobe help page \"How to reshape objects using effects in Illustrator\", read this release.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.3",
+   "m": [
+    "partial",
+    "v0.9.3: driven in Chromium under CPU 4x and slow network. Preview redrew the selected square without moving the dialog, Escape restored it with the engine unchanged, OK turned it into four curved segments in one undo step.",
+    "Applied to the geometry, not a live effect in an appearance stack; random values come from a seed the user can change."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 170,
+   "id": "FW-170",
+   "cat": 0,
+   "f": "Objects on Path",
+   "p": "P3",
+   "kn": "Attach selected objects to a path: first at the start, last at the end, even spacing between centers, each rotated with the path. Source basis: CreativePro, \"Placing Objects on a Path in Illustrator\" (single source; Adobe's page did not load).",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.3",
+   "m": [
+    "partial",
+    "v0.9.3: driven in Chromium under CPU 4x and slow network. Three squares on a sloped line landed with their centers on the start, the midpoint and the end, rotated to the line's angle, in one undo step.",
+    "Applied once, not live: editing the path later does not move the objects; no on-canvas spacing or rotation handles; pivot is the center only; paths only, no groups."
    ],
    "fr": [
     "none",

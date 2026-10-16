@@ -102,6 +102,8 @@ Vector selection commands run through `run_ui_command` while the vector editor i
 
 Warp and global editing (v0.9.2), run with `window.formweb.run(id)` while a shape is selected: `vector.puppet` (Puppet Warp tool: pins, moving-least-squares bend of the selected paths), `vector.reshape` (Reshape tool: drag a selected anchor to move the other selected anchors in proportion, or drag a segment to add and pull an anchor) and `vector.global-edit` (Start or Stop Global Edit: shapes whose geometry matches the selected one up to translation are highlighted and receive the same paint and geometry edits in one undo step; Escape stops). None has a default shortcut.
 
+Tweak and objects on a path (v0.9.3): `vector.effect.tweak` opens Tweak (random horizontal and vertical moves, relative to the path size or absolute, for anchor points and the "In" and "Out" control points, with a seed and Preview; OK is one undo step). `vector.path.objects-on-path` places the selected shapes along the shape selected last: first at the start, last at the end of an open path (evenly around a closed one), each centered on the path and rotated to its direction, in one undo step; it is not live.
+
 Path commands and drawing tools (v0.9.1), run with `window.formweb.run(id)`: `vector.path.add-anchors` (midpoint of every segment of the selected paths), `vector.path.remove-anchors` (selected anchors), `vector.path.divide-below` (selected path cuts the filled shapes beneath it), `vector.path.split-grid` and `vector.path.clean-up` (dialogs), and the tools `vector.pencil` (N), `vector.arc`, `vector.rect-grid` and `vector.polar-grid` (the last three have no default shortcut).
 
 ## Editor window commands (v0.7)
