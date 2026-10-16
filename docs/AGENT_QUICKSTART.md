@@ -102,6 +102,8 @@ Vector authoring uses ordinary `node.add` and `node.update` with svg tags. An in
 
 Three MCP tools reach the open editor window, which must be open in a browser or the desktop app: `list_ui_commands` `{query?}` lists the window's commands (id, label, keys, group, `mutates`, `risky`, availability; words in `query` must all appear in the id, label, group or description), `describe_ui_command` `{id}` returns the description, shortcut, parameters and current availability, and `run_ui_command` `{id, params?}` runs one as if the person used its menu item or shortcut and returns what it returned or why it did not run. They are window actions: change the site with `edit_*` and `apply_commands`. A risky command waits for the person to press Allow in the window (Deny, or no answer in 45 seconds, refuses). An unknown id returns 404 and no open window returns 409. The same list is on `GET /api/commands?q=` and a command runs on `POST /api/commands/run {id, params}`.
 
+Vector view aids (run with `run_ui_command` while vector editing): `vector.rulers` (Mod+R), `vector.guides.toggle` (Mod+;), `vector.guides.lock` (Mod+Alt+;), `vector.guides.make` (Mod+5), `vector.guides.release` (Mod+Alt+5), `vector.guides.clear`, `vector.grid.show` (Mod+'), `vector.grid.snap` (Mod+Shift+'), `vector.grid.prefs` and `vector.outline` (Mod+Y). Guides live in editor memory per SVG, not in the document; outline mode only restyles the canvas.
+
 ## Recover a stopped workflow
 
 For missing tools, rediscover instead of guessing names. For permission rejection, inspect actual identity/role and Agents state. For a stale revision, read current state, preserve acknowledged changes and apply only the remaining change with a fresh revision. Do not replay successful steps.

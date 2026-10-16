@@ -7,6 +7,7 @@ import { spineCommands } from './brushcmd';
 import { Editor, type ToolId, type VectorContext } from './editor';
 import { PATHFINDERS, TOOLS, VectorPanel } from './panel';
 import { runTrace } from './tracepanel';
+import { viewCommands } from './view';
 
 export type { VectorContext, ToolId } from './editor';
 
@@ -97,6 +98,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.distribute.hspace', label: 'Distribute horizontal spacing', menu: MENU, group: 8, run: () => { void editor.ops.distribute('hspace', null); }, enabled: () => editor.selection.length >= 3 },
     { id: 'vector.distribute.vspace', label: 'Distribute vertical spacing', menu: MENU, group: 8, run: () => { void editor.ops.distribute('vspace', null); }, enabled: () => editor.selection.length >= 3 },
     { id: 'vector.snap.toggle', label: 'Smart guides and snapping', menu: MENU, keys: 'Mod+Shift+;', group: 8, run: () => { editor.extras.snapping = !editor.extras.snapping; editor.emit(); }, checked: () => editor.extras.snapping },
+    ...viewCommands(editor.view, () => editor.tool !== null, () => editor.render()),
     { id: 'vector.svg.import', label: 'Import SVG...', menu: MENU, group: 5, run: () => panel.pickFile() },
     { id: 'vector.trace', label: 'Image Trace', menu: MENU, keys: 'Mod+Alt+Shift+T', group: 5, run: () => runTrace() },
     { id: 'vector.svg.export',label: 'Export selection as SVG', menu: MENU, group: 5, run: () => panel.download(), enabled: () => !!ctx.getSelected() }

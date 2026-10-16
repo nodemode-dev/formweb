@@ -1552,7 +1552,7 @@ registerCommands([
   { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: ready },
   { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
   { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
-  { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z', 'Mod+Y'], repeat: true, run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
+  { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z'], repeat: true, run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
   { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete'], group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: () => notRoot() && !!scrim.hidden },
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
   { id: 'image.edit-in-formvis', label: 'Edit in formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await request<{ message: string }>('/api/formvis/send', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\/[0-9a-f]{64}\.(png|jpg|gif|webp)/.test(currentNode().attrs.src || '') },

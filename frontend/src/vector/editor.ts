@@ -17,6 +17,7 @@ import { Ops } from './ops';
 import { Overlay, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
 import { alignFixes, widthFixes } from './stroke';
 import { typeFixes } from './typepath';
+import { ViewAids } from './view';
 import { liveCopyOwner, liveFixes, liveSources } from './live';
 import { parseTransform, symbolPaths, usesOf } from './symbols';
 import { exportSvg, importSvg } from './svg';
@@ -65,6 +66,7 @@ export class Editor {
   readonly overlay: Overlay;
   readonly extras: Extras;
   readonly ops: Ops;
+  readonly view: ViewAids;
   tool: ToolId | null = null;
   selection: string[] = [];
   anchors = new Set<string>();
@@ -95,6 +97,8 @@ export class Editor {
     this.overlay = new Overlay(ctx.canvas.shell);
     this.extras = new Extras(this.host());
     this.ops = new Ops(this.host(), () => this.extras.exit());
+    this.view = new ViewAids(this.host(), ctx.canvas.shell);
+    this.extras.aids = this.view.source;
     const root = this.overlay.root;
     root.addEventListener('pointerdown', event => this.down(event));
     root.addEventListener('dblclick', event => this.double(event));
@@ -274,6 +278,7 @@ export class Editor {
   render(): void {
     this.frames.clear();
     const tool = this.tool;
+    this.view.render(tool !== null);
     const scene: Scene = {
       visible: tool !== null, capture: tool !== null, tool: tool ?? '', scale: this.shellScale(),
       outlines: [], anchors: [], handles: [], widgets: [], marquee: null, draft: '', rubber: ''
@@ -433,6 +438,7 @@ export class Editor {
     event.preventDefault();
     this.frames.clear();
     const tool = this.tool;
+    if (role === 'capture' && (tool === 'select' || tool === 'direct') && this.view.pointerDown(p, event)) return;
     if (role.startsWith('x-') || EXTRA_TOOLS.has(tool)) { if (this.extras.down(tool, role, index, p, event)) { this.render(); return; } }
     if (role === 'widget') { this.startCorner(index, event); return; }
     if (role === 'handle') { this.startHandle(index); return; }
@@ -440,7 +446,8 @@ export class Editor {
     if (tool === 'pen' || tool === 'curvature') { this.downPen(p, event); return; }
     if (tool === 'paintbrush') { this.gesture = { kind: 'paint', pts: [p] }; this.render(); return; }
     if (tool === 'rect' || tool === 'ellipse' || tool === 'polygon' || tool === 'star' || tool === 'line' || tool === 'arc' || tool === 'spiral') {
-      this.gesture = { kind: 'shape', start: p, current: p, alt: event.altKey, shift: event.shiftKey };
+      const origin = event.shiftKey ? p : this.extras.snapPoint(p, new Set());
+      this.gesture = { kind: 'shape', start: origin, current: origin, alt: event.altKey, shift: event.shiftKey };
       this.render();
       return;
     }

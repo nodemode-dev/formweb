@@ -90,3 +90,17 @@
 .fw-v-symbol[hidden] { display: none; }
 .fw-v-symbol-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-11); color: var(--text-primary); }
 .fw-v-body .field[hidden], .fw-v-body .fw-v-checkrow[hidden], .fw-v-body .fw-seg[hidden] { display: none; }
+
+.fw-vv { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: calc(var(--z-raised) - 1); --fw-vv-px: 1; }
+.fw-vv [data-off], .fw-vv[data-off] { display: none; }
+.fw-vv-minor { fill: none; stroke: var(--accent-color); stroke-opacity: .12; stroke-width: calc(1px * var(--fw-vv-px)); }
+.fw-vv-major { fill: none; stroke: var(--accent-color); stroke-opacity: .3; stroke-width: calc(1px * var(--fw-vv-px)); }
+.fw-vv-guide { fill: none; stroke: #22d3ee; stroke-width: calc(1px * var(--fw-vv-px)); stroke-opacity: .85; }
+.fw-vv-guide.is-picked { stroke: #0ea5e9; stroke-width: calc(1.5px * var(--fw-vv-px)); stroke-opacity: 1; }
+.fw-vv-guide.is-locked { stroke-opacity: .5; }
+.fw-vv-box { fill: none; stroke: #3b82f6; stroke-width: calc(1px * var(--fw-vv-px)); }
+.fw-vv-ruler { position: absolute; z-index: calc(var(--z-raised) + 1); display: block; }
+.fw-vv-ruler[data-off], .fw-vv-corner[data-off] { display: none; }
+.fw-vv-ruler-h { top: 0; cursor: ns-resize; }
+.fw-vv-ruler-v { left: 0; cursor: ew-resize; }
+.fw-vv-corner { position: absolute; left: 0; top: 0; z-index: calc(var(--z-raised) + 1); background: var(--surface-2); pointer-events: auto; }

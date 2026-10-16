@@ -9,7 +9,7 @@ import {
 } from './gradient';
 import type { Frame, Host } from './host';
 import type { ExtraItem, Scene } from './overlay';
-import { snapLocal, type Guide } from './snap';
+import { snapAids, snapLocal, type AidSource, type Guide } from './snap';
 import { addPath, freshId, moveNode, pathIds, removeNode, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
 import { matrixText, parseTransform, useFrame } from './symbols';
 import { liveOf } from './live';
@@ -49,6 +49,7 @@ export class Extras {
   stop = 0;
   private gesture: Gesture | null = null;
   private guides: { svg: string; list: Guide[] } = { svg: '', list: [] };
+  aids: AidSource | undefined;
   private pieces: Piece[] = [];
   private owners: number[] = [];
   private pieceKey = '';
@@ -78,8 +79,15 @@ export class Extras {
     this.guides = { svg: '', list: [] };
     const svg = this.h.activeSvg();
     const f = svg ? this.h.frame(svg) : undefined;
-    if (!this.snapping || !svg || !f) return p;
-    const result = snapLocal(this.h, svg, this.local(f, p), { tolerance: (6 * this.h.px()) / f.sx, exclude, origin: origin ? this.local(f, origin) : undefined, angles });
+    if (!svg || !f) return p;
+    const tolerance = (6 * this.h.px()) / f.sx;
+    if (!this.snapping) {
+      const aid = this.aids?.active(svg) ? snapAids(this.aids, svg, this.local(f, p), tolerance) : null;
+      if (!aid) return p;
+      this.guides = { svg, list: aid.guides };
+      return this.h.toShell(f, aid.p);
+    }
+    const result = snapLocal(this.h, svg, this.local(f, p), { tolerance, exclude, origin: origin ? this.local(f, origin) : undefined, angles, aids: this.aids });
     this.guides = { svg, list: result.guides };
     return this.h.toShell(f, result.p);
   }
