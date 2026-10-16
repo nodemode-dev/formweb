@@ -108,6 +108,8 @@ Three MCP tools reach the open editor window, which must be open in a browser or
 
 Vector view aids (run with `run_ui_command` while vector editing): `vector.rulers` (Mod+R), `vector.guides.toggle` (Mod+;), `vector.guides.lock` (Mod+Alt+;), `vector.guides.make` (Mod+5), `vector.guides.release` (Mod+Alt+5), `vector.guides.clear`, `vector.grid.show` (Mod+'), `vector.grid.snap` (Mod+Shift+'), `vector.grid.prefs` and `vector.outline` (Mod+Y). Guides are saved on the SVG as `data-fw-guides` (numbers only, up to 200, plus a locked flag); creating, moving, deleting, making, releasing, clearing and locking guides is one undo step each, and the attribute is dropped from exports. Outline mode only restyles the canvas. `vector.export-screens` (Mod+Alt+E) opens Export for Screens: PNG, JPG, WebP and clean SVG of the edited SVG or the selection at 0.5x to 4x, downloaded from the browser.
 
+Recolor and styles (v0.9.2), run with `window.formweb.run(id)`: `vector.recolor` (Edit menu, no shortcut) opens the Recolor Artwork dialog for the selected shapes or the whole edited SVG, with live preview and one undo step on OK; `vector.graphic-styles` (Window menu, no shortcut) opens the Graphic Styles window. The style library is the site setting `vectorGraphicStyles` (a JSON list, validated by the engine, shared by all SVGs, not exported).
+
 ## Recover a stopped workflow
 
 For missing tools, rediscover instead of guessing names. For permission rejection, inspect actual identity/role and Agents state. For a stale revision, read current state, preserve acknowledged changes and apply only the remaining change with a fresh revision. Do not replay successful steps.

@@ -552,6 +552,46 @@ pub fn path_data(d: &str) -> Result<(), String> {
     Ok(())
 }
 
+// Graphic Styles library: the site setting `vectorGraphicStyles` holds a JSON array of
+// {id, name, attrs, fx?}. It is site-level (shared by every svg), never exported, and checked here.
+pub const STYLE_SETTING: &str = "vectorGraphicStyles";
+const STYLE_KEYS: &[&str] = &[
+    "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset",
+    "fill-rule", "fill-opacity", "opacity", "paint-order", "data-fw-align", "data-fw-weight",
+];
+
+pub fn validate_styles(settings: &crate::Strings) -> Result<(), String> {
+    let Some(raw) = settings.get(STYLE_SETTING) else { return Ok(()) };
+    let bad = |why: &str| Err(format!("invalid graphic styles: {why}"));
+    if raw.len() > 120_000 { return bad("library too large"); }
+    let Ok(Value::Array(list)) = serde_json::from_str::<Value>(raw) else { return bad("not a list") };
+    if list.len() > 128 { return bad("too many styles"); }
+    let mut seen = BTreeSet::new();
+    for item in &list {
+        let Some(map) = item.as_object() else { return bad("style is not an object") };
+        if map.keys().any(|k| !matches!(k.as_str(), "id" | "name" | "attrs" | "fx")) { return bad("unknown style field"); }
+        let id = map.get("id").and_then(Value::as_str).unwrap_or("");
+        if !ref_id(id) || !seen.insert(id.to_string()) { return bad("style id"); }
+        let name = map.get("name").and_then(Value::as_str).unwrap_or("");
+        if name.is_empty() || name.chars().count() > 60 || name.contains(['<', '>']) { return bad("style name"); }
+        let Some(attrs) = map.get("attrs").and_then(Value::as_object) else { return bad("style attrs") };
+        for (key, value) in attrs {
+            let Some(text) = value.as_str() else { return bad("attribute value") };
+            if !STYLE_KEYS.contains(&key.as_str()) || check_attr("path", key, text).is_err() { return bad("attribute"); }
+        }
+        if let Some(fx) = map.get("fx") {
+            let Some(model) = fx.as_object() else { return bad("fx") };
+            // reuse the live stroke checker with a placeholder source and signature
+            let mut full = model.clone();
+            full.insert("v".into(), Value::from(1));
+            full.insert("src".into(), Value::from("style"));
+            full.insert("sig".into(), Value::from("00000000"));
+            if !stroke_config(&Value::Object(full)) { return bad("stroke options"); }
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -584,5 +624,35 @@ mod tests {
         let many = |n: usize| format!(r#"{{"v":1,"locked":0,"x":[{}],"y":[],"paths":[]}}"#, vec!["1"; n].join(","));
         assert!(check_attr("svg", "data-fw-guides", &many(200)).is_ok());
         assert!(check_attr("svg", "data-fw-guides", &many(201)).is_err());
+    }
+
+    fn settings(raw: &str) -> crate::Strings {
+        let mut map = crate::Strings::new();
+        map.insert(STYLE_SETTING.to_string(), raw.to_string());
+        map
+    }
+
+    #[test]
+    fn graphic_styles_accept_a_valid_library() {
+        let ok = r##"[{"id":"style-a1","name":"Orange","attrs":{"fill":"#f97316","stroke":"#111111","stroke-width":"4","stroke-linecap":"round","opacity":"0.5"},"fx":{"dash":[4,2],"mode":"preserve","a0":"none","a1":"simple","s0":100,"s1":100,"tip":"extend"}}]"##;
+        assert!(validate_styles(&settings(ok)).is_ok());
+        assert!(validate_styles(&crate::Strings::new()).is_ok());
+    }
+
+    #[test]
+    fn graphic_styles_reject_bad_libraries() {
+        let cases = [
+            "not json",
+            r##"{"id":"x"}"##,
+            r##"[{"id":"a","name":"A","attrs":{"onclick":"1"}}]"##,
+            r##"[{"id":"a","name":"A","attrs":{"fill":"url(javascript:1)"}}]"##,
+            r##"[{"id":"a b","name":"A","attrs":{}}]"##,
+            r##"[{"id":"a","name":"<b>","attrs":{}}]"##,
+            r##"[{"id":"a","name":"A","attrs":{}},{"id":"a","name":"B","attrs":{}}]"##,
+            r##"[{"id":"a","name":"A","attrs":{"stroke-width":"-3"}}]"##,
+            r##"[{"id":"a","name":"A","attrs":{},"fx":{"dash":[1],"mode":"preserve","a0":"none","a1":"none","s0":100,"s1":100,"tip":"extend"}}]"##,
+            r##"[{"id":"a","name":"A","attrs":{},"extra":1}]"##,
+        ];
+        for raw in cases { assert!(validate_styles(&settings(raw)).is_err(), "should reject {raw}"); }
     }
 }

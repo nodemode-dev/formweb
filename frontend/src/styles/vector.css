@@ -110,3 +110,18 @@
 .fw-v-exp-scale { display: grid; grid-template-columns: auto 4ch 1fr; align-items: center; gap: var(--space-2); color: var(--text-secondary); }
 .fw-v-exp-bg { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
 .fw-v-exportdlg input[type="checkbox"], .fw-v-exportdlg input[type="radio"] { width: auto; height: auto; flex: none; padding: 0; margin: 0; }
+.fw-v-recolor { width: 300px; max-height: 76vh; overflow-y: auto; }
+.fw-v-recolor-rows { display: flex; flex-direction: column; gap: var(--space-1); max-height: 30vh; overflow-y: auto; }
+.fw-v-recolor-row { display: grid; grid-template-columns: var(--ctl-sm) auto 64px minmax(0, 1fr); align-items: center; gap: var(--space-2); }
+.fw-v-swatch { display: block; width: var(--ctl-sm); height: var(--ctl-sm); border: 1px solid var(--line-1); border-radius: var(--radius-sm); }
+.fw-v-bar { display: flex; align-items: center; gap: var(--space-1); }
+.fw-v-bar > * { flex: 1 1 0; min-width: 0; }
+.fw-v-bar > .fw-v-color { flex: none; width: 40px; }
+.fw-v-bar > span { flex: none; }
+.fw-v-styles { width: 280px; max-height: 70vh; overflow-y: auto; }
+.fw-v-stylelist { display: flex; flex-direction: column; gap: var(--space-1); }
+.fw-v-styleitem { display: flex; align-items: center; gap: var(--space-1); }
+.fw-v-stylebtn { display: flex; flex: 1; align-items: center; gap: var(--space-2); min-width: 0; padding: 0 var(--space-1); border: 1px solid var(--line-1); border-radius: var(--radius-sm); background: var(--surface-field); color: var(--text-primary); text-align: left; cursor: pointer; }
+.fw-v-stylebtn:hover { border-color: var(--accent-color); }
+.fw-v-stylename { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fw-v-stylesw { flex: none; }

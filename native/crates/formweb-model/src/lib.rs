@@ -265,6 +265,7 @@ pub fn validate(site: &Site) -> Result<(), String> {
         if !safe_url(base) || !(base.starts_with("https://") || base.starts_with("http://")) { return Err("baseUrl must be an http(s) URL".into()); }
     }
     wishlist::validate_settings(&site.settings)?;
+    vector::validate_styles(&site.settings)?;
     advanced::validate_extensions(site)?;
     Ok(())
 }
