@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.10 · 2026-10-16
+
+- Layers stays calm: the lines of area type, the tiles of a pattern and the stops of a gradient sit under one row instead of filling the list, so placing text or a pattern no longer pushes the rows you are looking at.
+
 ## 0.9.9 · 2026-10-16
 
 - Area type (Vector > Area type...): pour text into any closed shape. Lines follow the shape's outline, paragraphs follow your line breaks, text can run in several columns, and you are told how many words did not fit. The text is laid out once; run it again after changing the shape.

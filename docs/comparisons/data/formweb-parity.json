@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.9.9",
- "previous": "0.9.8",
+ "version": "0.9.10",
+ "previous": "0.9.9",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Area type (FW-175) added as Partial: text flows inside a closed shape in one or more columns with overflow reported, laid out once rather than live.",
+ "release_note": "Stability fix, no grade change: the Layers list shows area type lines, pattern tiles and gradient stops under one parent row, so commands that add many of them no longer shift the rows in view.",
  "lanes": [
   [
    "m",
@@ -7742,6 +7742,15 @@
    "same_as": "0.9.7",
    "moved": {},
    "note": "Security fix: only use and textPath carry an href inside an svg. No grade change, 114.5 of 131."
+  },
+  {
+   "version": "0.9.9",
+   "date": "2026-10-16",
+   "same_as": "0.9.8",
+   "moved": {
+    "FW-175": "partial"
+   },
+   "note": "Area type added. 115 of 132."
   }
  ],
  "changes": [
