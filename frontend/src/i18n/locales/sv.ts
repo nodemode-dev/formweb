@@ -1872,4 +1872,8 @@ export default [
   "Ändra storlek",
   "Den här ritytan har inga banor att anpassa.",
   "Bredd och höjd måste vara mellan 1 och 20000.",
+  "Alla ritytor på den här sidan",
+  "Alla ritytor på den här sidan ({0})",
+  "Prefix för filnamn",
+  "Det finns inga ritytor att exportera på den här sidan.",
 ] as readonly string[];

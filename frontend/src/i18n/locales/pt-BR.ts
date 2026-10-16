@@ -1872,4 +1872,8 @@ export default [
   "Redimensionar",
   "Esta prancheta não tem demarcadores para ajustar.",
   "Largura e altura devem estar entre 1 e 20000.",
+  "Todas as pranchetas desta página",
+  "Todas as pranchetas desta página ({0})",
+  "Prefixo do nome do arquivo",
+  "Não há pranchetas para exportar nesta página.",
 ] as readonly string[];

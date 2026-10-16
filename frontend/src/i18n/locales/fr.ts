@@ -1872,4 +1872,8 @@ export default [
   "Redimensionner",
   "Ce plan de travail ne contient aucun tracé à ajuster.",
   "La largeur et la hauteur doivent être comprises entre 1 et 20000.",
+  "Tous les plans de travail de cette page",
+  "Tous les plans de travail de cette page ({0})",
+  "Préfixe des noms de fichier",
+  "Aucun plan de travail à exporter sur cette page.",
 ] as readonly string[];

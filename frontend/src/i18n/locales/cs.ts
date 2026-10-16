@@ -1872,4 +1872,8 @@ export default [
   "Změnit velikost",
   "Toto kreslicí plátno nemá cesty k přizpůsobení.",
   "Šířka a výška musí být mezi 1 a 20000.",
+  "Všechna kreslicí plátna na této stránce",
+  "Všechna kreslicí plátna na této stránce ({0})",
+  "Předpona názvu souboru",
+  "Na této stránce nejsou žádná kreslicí plátna k exportu.",
 ] as readonly string[];

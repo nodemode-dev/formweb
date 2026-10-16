@@ -1872,4 +1872,8 @@ export const KEYS: readonly string[] = [
   "Resize",
   "This artboard has no paths to fit.",
   "Width and height must be between 1 and 20000.",
+  "All artboards on this page",
+  "All artboards on this page ({0})",
+  "File name prefix",
+  "No artboards on this page to export.",
 ];

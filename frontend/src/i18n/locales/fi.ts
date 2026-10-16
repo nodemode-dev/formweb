@@ -1872,4 +1872,8 @@ export default [
   "Muuta kokoa",
   "Tällä piirtoalueella ei ole sovitettavia polkuja.",
   "Leveyden ja korkeuden on oltava välillä 1 ja 20000.",
+  "Kaikki tämän sivun piirtoalueet",
+  "Kaikki tämän sivun piirtoalueet ({0})",
+  "Tiedostonimen etuliite",
+  "Tällä sivulla ei ole vietäviä piirtoalueita.",
 ] as readonly string[];

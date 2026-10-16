@@ -1872,4 +1872,8 @@ export default [
   "Yeniden boyutlandır",
   "Bu çalışma yüzeyinde sığdırılacak yol yok.",
   "Genişlik ve yükseklik 1 ile 20000 arasında olmalıdır.",
+  "Bu sayfadaki tüm çalışma yüzeyleri",
+  "Bu sayfadaki tüm çalışma yüzeyleri ({0})",
+  "Dosya adı öneki",
+  "Bu sayfada dışa aktarılacak çalışma yüzeyi yok.",
 ] as readonly string[];

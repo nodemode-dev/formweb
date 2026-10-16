@@ -1872,4 +1872,8 @@ export default [
   "Ubah ukuran",
   "Artboard ini tidak punya jalur untuk disesuaikan.",
   "Lebar dan tinggi harus antara 1 dan 20000.",
+  "Semua artboard di halaman ini",
+  "Semua artboard di halaman ini ({0})",
+  "Awalan nama file",
+  "Tidak ada artboard untuk diekspor di halaman ini.",
 ] as readonly string[];

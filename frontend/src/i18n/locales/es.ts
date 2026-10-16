@@ -1872,4 +1872,8 @@ export default [
   "Cambiar tamaño",
   "Esta mesa de trabajo no tiene trazados que ajustar.",
   "El ancho y el alto deben estar entre 1 y 20000.",
+  "Todas las mesas de trabajo de esta página",
+  "Todas las mesas de trabajo de esta página ({0})",
+  "Prefijo del nombre de archivo",
+  "No hay mesas de trabajo para exportar en esta página.",
 ] as readonly string[];

@@ -1872,4 +1872,8 @@ export default [
   "Zmień rozmiar",
   "Ten obszar roboczy nie ma ścieżek do dopasowania.",
   "Szerokość i wysokość muszą mieścić się między 1 a 20000.",
+  "Wszystkie obszary robocze tej strony",
+  "Wszystkie obszary robocze tej strony ({0})",
+  "Prefiks nazwy pliku",
+  "Na tej stronie nie ma obszarów roboczych do eksportu.",
 ] as readonly string[];

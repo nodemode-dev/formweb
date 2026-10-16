@@ -1,5 +1,14 @@
 # Frontend context map
 
+## Export all artboards · v0.10.2 (2026-10-16)
+
+Edits in `vector/exportscreens.ts` (the format and scale loop moved into `queueFiles`, used by `exportScreens` and new `exportArtboards`; new `pageArtboards`; a third scope radio "All artboards on this page (n)" with the count set on open; the name field becomes "File name prefix" in that scope; `run()`, `open()` and `openExportScreens` accept no active svg when the page has artboards), `vector/index.ts` (Export for Screens is enabled when an svg is active or the page has artboards), `commands/catalogue.ts`, `i18n/keys.ts` and the 23 locale files (4 strings, 1877 keys).
+
+- **Source basis:** Adobe Learn ("Artboards basics"): Export for Screens exports selected or all artboards, renamed artboards keep their names in exported file names, and a prefix can be added to file names. Single source for the export behavior.
+- **Scope:** artboards on the current page only, since export renders from the live canvas element (`buildSource`); artboards on other pages are not exported. Files are named prefix + artboard name (sanitized) + scale suffix; a repeated name gets -2, -3. The prefix keeps a trailing separator (the first version passed it through `safeName`, which trims dashes, so "web-" became "web"; found in the run and fixed before commit).
+- **Driven (CPU 4x, 400 ms latency, slow network, cache off):** two artboards ("Hero art" and its duplicate) from the Artboards panel; the dialog showed "All artboards on this page (2)"; choosing it emptied the name field and relabeled it "File name prefix" without moving the dialog; prefix "web-", SVG and PNG at 1x and 2x: "Exported 6 files.", downloads web-Hero-art.svg, web-Hero-art.png, web-Hero-art@2x.png and the same three for web-Hero-art-copy. Switching back to Whole drawing kept the typed value. No layout shifts, no page errors.
+- **Not built:** a range of artboards, artboards on other pages, a zip of all files (each file is a separate download, 200 ms apart).
+
 ## Artboards panel · v0.10.1 (2026-10-16)
 
 New `vector/artboards.ts` (`boards`, `duplicateCommands`, `fitCommands`, `resizeCommands`, `ArtboardsPanel`); edits in `vector/index.ts` (panel built once with the editor's host and `ctx.select`/`ctx.pageRoot`, command `vector.artboards` in Window), `styles/vector.css` (`.fw-v-artboards`, `.fw-v-boardarea`, `.fw-v-boardlist`, `.fw-v-board`, `.fw-v-boardsize`; tokens only, scrollbar hidden), `commands/catalogue.ts`, `i18n/keys.ts` and the 23 locale files (8 strings, 1873 keys; Close, Custom, Size, Width, Height, Select, Duplicate, Delete and Artboard come from the vendored formvis tables).

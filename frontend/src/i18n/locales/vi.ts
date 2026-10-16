@@ -1872,4 +1872,8 @@ export default [
   "Đổi kích thước",
   "Bảng vẽ này không có đường dẫn để khớp.",
   "Chiều rộng và chiều cao phải từ 1 đến 20000.",
+  "Tất cả bảng vẽ trên trang này",
+  "Tất cả bảng vẽ trên trang này ({0})",
+  "Tiền tố tên tệp",
+  "Không có bảng vẽ nào để xuất trên trang này.",
 ] as readonly string[];

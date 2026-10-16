@@ -1872,4 +1872,8 @@ export default [
   "Ridimensiona",
   "Questa tavola da disegno non ha tracciati da adattare.",
   "Larghezza e altezza devono essere tra 1 e 20000.",
+  "Tutte le tavole da disegno di questa pagina",
+  "Tutte le tavole da disegno di questa pagina ({0})",
+  "Prefisso del nome file",
+  "Nessuna tavola da disegno da esportare in questa pagina.",
 ] as readonly string[];

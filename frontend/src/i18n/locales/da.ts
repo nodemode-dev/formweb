@@ -1872,4 +1872,8 @@ export default [
   "Skift størrelse",
   "Dette tegnebræt har ingen stier at tilpasse.",
   "Bredde og højde skal være mellem 1 og 20000.",
+  "Alle tegnebrætter på denne side",
+  "Alle tegnebrætter på denne side ({0})",
+  "Præfiks til filnavn",
+  "Der er ingen tegnebrætter at eksportere på denne side.",
 ] as readonly string[];

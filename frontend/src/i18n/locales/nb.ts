@@ -1872,4 +1872,8 @@ export default [
   "Endre størrelse",
   "Dette tegnebrettet har ingen baner å tilpasse.",
   "Bredde og høyde må være mellom 1 og 20000.",
+  "Alle tegnebrett på denne siden",
+  "Alle tegnebrett på denne siden ({0})",
+  "Prefiks for filnavn",
+  "Det finnes ingen tegnebrett å eksportere på denne siden.",
 ] as readonly string[];

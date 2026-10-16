@@ -1,7 +1,8 @@
 import { t } from '../i18n';
-import { element } from '../ui/dom';
+import { element, text } from '../ui/dom';
 import type { Host } from './host';
 import { svgOf } from './store';
+import { boards } from './artboards';
 
 /**
  * Export for Screens: the edited SVG (or only the selected shapes) as PNG, JPG, WebP and clean SVG at several scales.
@@ -163,12 +164,7 @@ const pause = (ms: number): Promise<void> => new Promise(resolve => setTimeout(r
 export const safeName = (value: string): string => value.replace(/[^\w.@+-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 
 /** Render and download every chosen format at every chosen scale. Returns the file names written. */
-export async function exportScreens(host: Host, svgId: string, options: ExportOptions): Promise<string[]> {
-  const source = buildSource(host, svgId, options.selectionOnly);
-  if (!source) throw new Error(options.selectionOnly ? t('Select shapes to export.') : t('The edited SVG is not on the canvas.'));
-  const base = safeName(options.base) || 'artwork';
-  const written: string[] = [];
-  const queue: { blob: Blob; name: string }[] = [];
+async function queueFiles(source: Source, base: string, options: ExportOptions, queue: { blob: Blob; name: string }[]): Promise<void> {
   for (const format of options.formats) {
     if (format === 'svg') {
       queue.push({ blob: new Blob([source.markup(1)], { type: 'image/svg+xml' }), name: `${base}.svg` });
@@ -176,7 +172,40 @@ export async function exportScreens(host: Host, svgId: string, options: ExportOp
     }
     for (const { scale, suffix } of options.scales) queue.push({ blob: await rasterize(source, scale, format, options), name: `${base}${safeName(suffix)}.${format}` });
   }
+}
+
+export async function exportScreens(host: Host, svgId: string, options: ExportOptions): Promise<string[]> {
+  const source = buildSource(host, svgId, options.selectionOnly);
+  if (!source) throw new Error(options.selectionOnly ? t('Select shapes to export.') : t('The edited SVG is not on the canvas.'));
+  const base = safeName(options.base) || 'artwork';
+  const written: string[] = [];
+  const queue: { blob: Blob; name: string }[] = [];
+  await queueFiles(source, base, options, queue);
   for (const item of queue) { download(item.blob, item.name); written.push(item.name); await pause(200); }
+  return written;
+}
+
+/** Every artboard (svg) drawn on the current page, in page order. */
+export function pageArtboards(host: Host): { id: string; name: string }[] {
+  return boards(host.site()).filter(b => !!host.element(b.id)).map(b => ({ id: b.id, name: b.name }));
+}
+
+/** Export each artboard under its own name, with the file name field as a prefix; names that collide get -2, -3. */
+export async function exportArtboards(host: Host, items: { id: string; name: string }[], options: ExportOptions): Promise<string[]> {
+  const prefix = options.base.replace(/[^\w.@+-]+/g, '-').replace(/^-+/, '').slice(0, 40);
+  const used = new Map<string, number>();
+  const queue: { blob: Blob; name: string }[] = [];
+  for (const item of items) {
+    const source = buildSource(host, item.id, false);
+    if (!source) continue;
+    const stem = `${prefix}${safeName(item.name) || 'artboard'}`;
+    const n = (used.get(stem) ?? 0) + 1;
+    used.set(stem, n);
+    await queueFiles(source, n > 1 ? `${stem}-${n}` : stem, options, queue);
+  }
+  if (!queue.length) throw new Error(t('No artboards on this page to export.'));
+  const written: string[] = [];
+  for (const file of queue) { download(file.blob, file.name); written.push(file.name); await pause(200); }
   return written;
 }
 
@@ -185,7 +214,8 @@ class ExportDialog {
   private host: Host | null = null;
   private svg = '';
   private named = '';
-  private scope!: { whole: HTMLInputElement; selection: HTMLInputElement };
+  private scope!: { whole: HTMLInputElement; selection: HTMLInputElement; all: HTMLInputElement };
+  private allLabel!: HTMLElement;
   private formats = new Map<Format, HTMLInputElement>();
   private scales: { scale: number; on: HTMLInputElement; suffix: HTMLInputElement }[] = [];
   private quality!: HTMLInputElement;
@@ -220,7 +250,17 @@ class ExportDialog {
     this.name.setAttribute('aria-label', t('File name'));
     const whole = check('radio', t('Whole drawing'), 'fw-exp-scope');
     const sel = check('radio', t('Selected shapes only'), 'fw-exp-scope');
-    this.scope = { whole: whole.input, selection: sel.input };
+    const all = check('radio', t('All artboards on this page'), 'fw-exp-scope');
+    this.allLabel = all.row.lastElementChild as HTMLElement;
+    this.scope = { whole: whole.input, selection: sel.input, all: all.input };
+    const nameMode = (): void => {
+      const prefix = this.scope.all.checked;
+      const label = prefix ? t('File name prefix') : t('File name');
+      if (this.name.getAttribute('aria-label') !== label) this.name.setAttribute('aria-label', label);
+      if (prefix && this.name.value === (safeName(this.host?.site().nodes[this.svg]?.name ?? '') || 'artwork')) this.name.value = '';
+      if (!prefix && !this.name.value) this.name.value = safeName(this.host?.site().nodes[this.svg]?.name ?? '') || 'artwork';
+    };
+    for (const input of [whole.input, sel.input, all.input]) input.addEventListener('change', nameMode);
 
     const formatRows = FORMATS.map(f => { const c = check('checkbox', f.label); this.formats.set(f.id, c.input); return c.row; });
     const formats = element('div', 'fw-v-exp-formats');
@@ -274,7 +314,7 @@ class ExportDialog {
     actions.append(this.go, cancel);
 
     root.append(element('div', 'fw-v-summary', t('Export for Screens')),
-      group(t('File name'), this.name), group(t('Export'), whole.row, sel.row), group(t('Formats'), formats), group(t('JPG and WebP quality'), qualityRow),
+      group(t('File name'), this.name), group(t('Export'), whole.row, sel.row, all.row), group(t('Formats'), formats), group(t('JPG and WebP quality'), qualityRow),
       group(t('Scales and file name suffixes'), ...scaleRows), group(t('Background'), bgRow, jpgRow), this.status, actions);
 
     const submit = (): void => { void this.run(); };
@@ -290,7 +330,7 @@ class ExportDialog {
 
   private async run(): Promise<void> {
     const host = this.host;
-    if (!host || !this.svg) return;
+    if (!host || (!this.svg && !this.scope.all.checked)) return;
     const formats = FORMATS.map(f => f.id).filter(id => this.formats.get(id)?.checked);
     const scales = this.scales.filter(s => s.on.checked).map(s => ({ scale: s.scale, suffix: s.suffix.value.trim() }));
     const raster = formats.some(f => f !== 'svg');
@@ -300,10 +340,11 @@ class ExportDialog {
     this.go.disabled = true;
     this.status.textContent = t('Exporting...');
     try {
-      const files = await exportScreens(host, this.svg, {
+      const options: ExportOptions = {
         base: this.name.value, selectionOnly: this.scope.selection.checked, formats, scales,
         quality: Number(this.quality.value) || 90, background: this.transparent.checked ? null : this.bg.value, jpgBackground: this.jpgBg.value
-      });
+      };
+      const files = this.scope.all.checked ? await exportArtboards(host, pageArtboards(host), options) : await exportScreens(host, this.svg, options);
       this.status.textContent = t('Exported {0} files.', [files.length]);
       host.notify(t('Exported {0} files.', [files.length]));
     } catch (error) {
@@ -316,11 +357,17 @@ class ExportDialog {
     this.host = host;
     this.svg = svg;
     const site = host.site();
-    const hasSelection = chosenIds(host, svg).length > 0;
+    const hasSelection = !!svg && chosenIds(host, svg).length > 0;
+    const count = pageArtboards(host).length;
+    text(this.allLabel, t('All artboards on this page ({0})', [count]));
+    this.scope.all.disabled = count === 0;
+    this.scope.whole.disabled = !svg;
     this.scope.selection.disabled = !hasSelection;
     this.scope.selection.checked = hasSelection;
-    this.scope.whole.checked = !hasSelection;
-    if (this.named !== svg) { this.named = svg; this.name.value = safeName(site.nodes[svg]?.name ?? '') || 'artwork'; }
+    this.scope.whole.checked = !hasSelection && !!svg;
+    this.scope.all.checked = !svg;
+    if (!svg) { this.named = ''; this.name.value = ''; }
+    else if (this.named !== svg) { this.named = svg; this.name.value = safeName(site.nodes[svg]?.name ?? '') || 'artwork'; }
     if (this.formats.size && !FORMATS.some(f => this.formats.get(f.id)?.checked)) this.formats.get('png')!.checked = true;
     if (!this.scales.some(s => s.on.checked)) this.scales.find(s => s.scale === 1)!.on.checked = true;
     this.status.textContent = '';
@@ -337,7 +384,7 @@ class ExportDialog {
 const dialog = new ExportDialog();
 
 export function openExportScreens(host: Host): void {
-  const svg = host.activeSvg();
-  if (!svg) { host.notify(t('Select an SVG to export.')); return; }
+  const svg = host.activeSvg() ?? '';
+  if (!svg && !pageArtboards(host).length) { host.notify(t('Select an SVG to export.')); return; }
   dialog.open(host, svg);
 }

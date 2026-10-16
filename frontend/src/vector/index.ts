@@ -11,7 +11,7 @@ import { PATHFINDERS, TOOLS, VectorPanel } from './panel';
 import { selectCommands } from './select';
 import { runTrace } from './tracepanel';
 import { addAnchorCommands, divideBelowCommands, removeAnchorCommands } from './pathcmds';
-import { openExportScreens } from './exportscreens';
+import { openExportScreens, pageArtboards } from './exportscreens';
 import { openAreaType, openCleanUp, openPattern, openSplitGrid, openTweak } from './pathdialogs';
 import { objectsOnPathCommands } from './objectsonpath';
 import { ArtboardsPanel } from './artboards';
@@ -130,7 +130,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     ...viewCommands(editor.view, () => editor.tool !== null, () => editor.render()),
     { id: 'vector.svg.import', label: 'Import SVG...', menu: MENU, group: 5, run: () => panel.pickFile() },
     { id: 'vector.trace', label: 'Image Trace', menu: MENU, keys: 'Mod+Alt+Shift+T', group: 5, run: () => runTrace() },
-    { id: 'vector.export-screens', label: 'Export for Screens...', menu: MENU, keys: 'Mod+Alt+E', group: 5, run: () => openExportScreens(editor.host()), enabled: () => { try { return !!editor.activeSvg(); } catch { return false; } } },
+    { id: 'vector.export-screens', label: 'Export for Screens...', menu: MENU, keys: 'Mod+Alt+E', group: 5, run: () => openExportScreens(editor.host()), enabled: () => { try { return !!editor.activeSvg() || pageArtboards(editor.host()).length > 0; } catch { return false; } } },
     { id: 'vector.svg.export',label: 'Export selection as SVG', menu: MENU, group: 5, run: () => panel.download(), enabled: () => !!ctx.getSelected() }
   ];
 

@@ -1872,4 +1872,8 @@ export default [
   "Átméretezés",
   "Ezen a rajztáblán nincs igazítható útvonal.",
   "A szélességnek és a magasságnak 1 és 20000 között kell lennie.",
+  "Az oldal összes rajztáblája",
+  "Az oldal összes rajztáblája ({0})",
+  "Fájlnév-előtag",
+  "Ezen az oldalon nincs exportálható rajztábla.",
 ] as readonly string[];

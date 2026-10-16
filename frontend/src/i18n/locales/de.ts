@@ -1872,4 +1872,8 @@ export default [
   "Größe ändern",
   "Diese Zeichenfläche enthält keine Pfade zum Anpassen.",
   "Breite und Höhe müssen zwischen 1 und 20000 liegen.",
+  "Alle Zeichenflächen dieser Seite",
+  "Alle Zeichenflächen dieser Seite ({0})",
+  "Präfix für Dateinamen",
+  "Auf dieser Seite gibt es keine Zeichenflächen zum Exportieren.",
 ] as readonly string[];

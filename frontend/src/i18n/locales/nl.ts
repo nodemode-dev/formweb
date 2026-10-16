@@ -1872,4 +1872,8 @@ export default [
   "Formaat wijzigen",
   "Dit tekengebied heeft geen paden om aan te passen.",
   "Breedte en hoogte moeten tussen 1 en 20000 liggen.",
+  "Alle tekengebieden op deze pagina",
+  "Alle tekengebieden op deze pagina ({0})",
+  "Voorvoegsel voor bestandsnaam",
+  "Er zijn geen tekengebieden om te exporteren op deze pagina.",
 ] as readonly string[];
