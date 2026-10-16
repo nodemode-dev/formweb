@@ -10,6 +10,10 @@
 - **Notes, not bugs:** dragging the first or last gradient stop moves the end handle that sits on it (use a middle stop for offsets); releasing a clip returns the shape as a grey outline, since the clip stores no paint; "artboard" for align is the svg viewBox; the first rect drawn leaves a viewBox whose corner is also a snap point.
 - **Checked:** `tsc --noEmit` and `vite build` pass; no page errors in any run.
 
+## Canvas SVG tag case · v0.7.1 (2026-10-16)
+
+`ui/canvas.ts` render: the tag is kept as written when the allowlist has it, and lowercased only as a fallback; the replace test compares `localName`. Before this, `clipPath`, `linearGradient`, `radialGradient` and `textPath` were lowercased, missed the camelCase allowlist and rendered as divs, so gradients, clip and opacity masks, inside strokes and type on a path showed nothing in the editor (export was unaffected). Checked in headless Chromium against the real build: a gradient with stop edits and a text on a curved path render.
+
 ## Canvas keyboard forwarding · v0.7.1 (2026-10-16)
 
 `ui/canvas.ts` only (one keydown listener in `bindEvents`).
