@@ -1817,4 +1817,13 @@ export default [
   "Start global redigering",
   "Stopp global redigering",
   "Velg en form for å starte global redigering.",
+  "Fest objekter til bane",
+  "Forvreng...",
+  "Forvreng",
+  "Ankerpunkter",
+  "Kontrollpunkter for «inn»",
+  "Kontrollpunkter for «ut»",
+  "Velg objektene og deretter banen de skal plasseres på.",
+  "{0} objekt plassert på banen.",
+  "{0} objekter plassert på banen.",
 ] as readonly string[];

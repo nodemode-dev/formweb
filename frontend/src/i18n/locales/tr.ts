@@ -1817,4 +1817,13 @@ export default [
   "Genel Düzenlemeyi Başlat",
   "Genel Düzenlemeyi Durdur",
   "Genel düzenlemeyi başlatmak için bir şekil seçin.",
+  "Nesneleri yola iliştir",
+  "Çarpıt...",
+  "Çarpıt",
+  "Bağlantı noktaları",
+  "\"Giriş\" denetim noktaları",
+  "\"Çıkış\" denetim noktaları",
+  "Nesneleri, ardından yerleştirilecekleri yolu seçin.",
+  "Yola {0} nesne yerleştirildi.",
+  "Yola {0} nesne yerleştirildi.",
 ] as readonly string[];

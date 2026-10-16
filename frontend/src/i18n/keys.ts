@@ -1817,4 +1817,13 @@ export const KEYS: readonly string[] = [
   "Start Global Edit",
   "Stop Global Edit",
   "Select a shape to start Global Edit.",
+  "Attach objects to path",
+  "Tweak...",
+  "Tweak",
+  "Anchor points",
+  "\"In\" control points",
+  "\"Out\" control points",
+  "Select the objects, then the path to place them on.",
+  "Placed {0} object on the path.",
+  "Placed {0} objects on the path.",
 ];

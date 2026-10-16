@@ -1817,4 +1817,13 @@ export default [
   "Zahájit globální úpravu",
   "Ukončit globální úpravu",
   "Vyberte tvar, abyste zahájili globální úpravu.",
+  "Připojit objekty k cestě",
+  "Zkroutit...",
+  "Zkroutit",
+  "Kotevní body",
+  "Řídicí body „dovnitř“",
+  "Řídicí body „ven“",
+  "Vyberte objekty a potom cestu, na kterou je umístit.",
+  "Na cestu byl umístěn {0} objekt.",
+  "Počet objektů umístěných na cestu: {0}.",
 ] as readonly string[];

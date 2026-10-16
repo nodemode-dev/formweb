@@ -1817,4 +1817,13 @@ export default [
   "Avvia modifica globale",
   "Termina modifica globale",
   "Seleziona una forma per avviare la modifica globale.",
+  "Collega oggetti al tracciato",
+  "Ritocca...",
+  "Ritocca",
+  "Punti di ancoraggio",
+  "Punti di controllo «In entrata»",
+  "Punti di controllo «In uscita»",
+  "Seleziona gli oggetti, poi il tracciato su cui disporli.",
+  "{0} oggetto disposto sul tracciato.",
+  "{0} oggetti disposti sul tracciato.",
 ] as readonly string[];

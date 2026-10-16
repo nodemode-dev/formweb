@@ -1817,4 +1817,13 @@ export default [
   "Rozpocznij edycję globalną",
   "Zatrzymaj edycję globalną",
   "Zaznacz kształt, aby rozpocząć edycję globalną.",
+  "Dołącz obiekty do ścieżki",
+  "Zniekształć...",
+  "Zniekształć",
+  "Punkty kontrolne",
+  "Punkty sterujące „wejścia”",
+  "Punkty sterujące „wyjścia”",
+  "Zaznacz obiekty, a potem ścieżkę, na której mają się znaleźć.",
+  "Umieszczono {0} obiekt na ścieżce.",
+  "Umieszczono obiekty na ścieżce: {0}.",
 ] as readonly string[];

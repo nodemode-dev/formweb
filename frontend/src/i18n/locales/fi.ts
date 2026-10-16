@@ -1817,4 +1817,13 @@ export default [
   "Aloita yleismuokkaus",
   "Lopeta yleismuokkaus",
   "Valitse muoto aloittaaksesi yleismuokkauksen.",
+  "Liitä objektit polkuun",
+  "Vääristä...",
+  "Vääristä",
+  "Ankkuripisteet",
+  "Sisään-ohjauspisteet",
+  "Ulos-ohjauspisteet",
+  "Valitse objektit ja sitten polku, jolle ne sijoitetaan.",
+  "{0} objekti sijoitettu polulle.",
+  "{0} objektia sijoitettu polulle.",
 ] as readonly string[];

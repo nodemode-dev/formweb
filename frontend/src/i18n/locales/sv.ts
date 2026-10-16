@@ -1817,4 +1817,13 @@ export default [
   "Starta global redigering",
   "Avsluta global redigering",
   "Markera en form för att starta global redigering.",
+  "Fäst objekt vid bana",
+  "Förvräng...",
+  "Förvräng",
+  "Ankarpunkter",
+  "Kontrollpunkter för ”in”",
+  "Kontrollpunkter för ”ut”",
+  "Markera objekten och sedan banan de ska placeras på.",
+  "{0} objekt placerat på banan.",
+  "{0} objekt placerade på banan.",
 ] as readonly string[];

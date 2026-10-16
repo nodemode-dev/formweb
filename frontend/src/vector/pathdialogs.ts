@@ -3,10 +3,14 @@ import { element } from '../ui/dom';
 import { gridOptions, setGridOptions } from './drawtools';
 import type { Host } from './host';
 import { cleanUp, gridTargets, splitGridCommands, type CleanOptions, type GridSpec } from './pathcmds';
+import { applyCorners } from './corners';
+import type { SubPath } from './geometry';
+import { updateGeometry } from './store';
+import { defaultTweak, tweakSubs, type TweakOptions } from './tweak';
 
 interface Shell { root: HTMLElement; open(focus?: HTMLElement): void; close(): void }
 
-function shell(title: string, body: HTMLElement[], submit: () => void, okLabel = t('OK')): Shell {
+function shell(title: string, body: HTMLElement[], submit: () => void, okLabel = t('OK'), onCancel?: () => void): Shell {
   const root = element('div', 'fw-v-dialog');
   root.setAttribute('role', 'dialog');
   root.setAttribute('aria-label', title);
@@ -20,10 +24,11 @@ function shell(title: string, body: HTMLElement[], submit: () => void, okLabel =
   root.append(element('div', 'fw-v-summary', title), ...body, actions);
   const close = (): void => { if (!root.hidden) root.hidden = true; };
   ok.addEventListener('click', () => { submit(); });
-  cancel.addEventListener('click', close);
+  const dismiss = (): void => { close(); onCancel?.(); };
+  cancel.addEventListener('click', dismiss);
   root.addEventListener('keydown', event => {
     if (event.key === 'Enter') { event.preventDefault(); submit(); }
-    else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); }
+    else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); dismiss(); }
   });
   document.body.append(root);
   return { root, open: focus => { root.hidden = false; focus?.focus(); }, close };
@@ -206,3 +211,98 @@ class GridOptionsDialog {
 
 let gridDialog: GridOptionsDialog | undefined;
 export const openGridOptions = (tool: string): void => { (gridDialog ??= new GridOptionsDialog()).open(tool); };
+
+/* Effect > Distort & Transform > Tweak */
+
+const radioRow = (label: string, name: string): { row: HTMLElement; input: HTMLInputElement } => {
+  const input = element('input', 'fw-v-check');
+  input.type = 'radio';
+  input.name = name;
+  const row = element('label', 'fw-v-checkrow');
+  row.append(input, element('span', '', label));
+  return { row, input };
+};
+
+class TweakDialog {
+  private dialog: Shell | null = null;
+  private host: Host | null = null;
+  private base = new Map<string, SubPath[]>();
+  private options: TweakOptions = { ...defaultTweak };
+  private horizontal = numberField(t('Horizontal'), 0, 100000, 0.1);
+  private vertical = numberField(t('Vertical'), 0, 100000, 0.1);
+  private relative = radioRow(t('Relative'), 'fw-tweak-mode');
+  private absolute = radioRow(t('Absolute'), 'fw-tweak-mode');
+  private anchors = checkRow(t('Anchor points'));
+  private ins = checkRow(t('"In" control points'));
+  private outs = checkRow(t('"Out" control points'));
+  private seed = numberField(t('Seed'), 1, 99999);
+  private preview = checkRow(t('Preview'));
+
+  private build(): Shell {
+    const amounts = element('div', 'fw-v-row');
+    amounts.append(this.horizontal.field, this.vertical.field);
+    const mode = element('div', 'fw-v-row');
+    mode.append(this.relative.row, this.absolute.row);
+    const shell_ = shell(t('Tweak'), [amounts, mode, this.anchors.row, this.ins.row, this.outs.row, this.seed.field, this.preview.row], () => this.apply(), t('OK'), () => this.cancel());
+    shell_.root.addEventListener('input', () => this.update());
+    shell_.root.addEventListener('change', () => this.update());
+    return shell_;
+  }
+
+  open(host: Host): void {
+    this.base.clear();
+    for (const id of host.selection()) { const shape = host.shape(id); if (shape) this.base.set(id, applyCorners(shape.subs)); }
+    if (!this.base.size) { host.notify(t('Select one or more paths first.')); return; }
+    this.host = host;
+    const o = this.options;
+    this.horizontal.input.value = String(o.horizontal);
+    this.vertical.input.value = String(o.vertical);
+    this.relative.input.checked = o.relative;
+    this.absolute.input.checked = !o.relative;
+    this.anchors.input.checked = o.anchors;
+    this.ins.input.checked = o.ins;
+    this.outs.input.checked = o.outs;
+    this.seed.input.value = String(o.seed);
+    this.preview.input.checked = false;
+    this.dialog = this.dialog ?? this.build();
+    this.dialog.open(this.horizontal.input);
+  }
+
+  private read(): TweakOptions {
+    const num = (input: HTMLInputElement, fallback: number): number => { const v = parseFloat(input.value); return Number.isFinite(v) && v >= 0 ? v : fallback; };
+    return {
+      horizontal: num(this.horizontal.input, 0), vertical: num(this.vertical.input, 0), relative: this.relative.input.checked,
+      anchors: this.anchors.input.checked, ins: this.ins.input.checked, outs: this.outs.input.checked, seed: Math.max(1, Math.round(num(this.seed.input, 7)))
+    };
+  }
+
+  private update(): void {
+    const host = this.host;
+    if (!host) return;
+    const options = this.read();
+    const show = this.preview.input.checked;
+    for (const [id, subs] of this.base) host.draft(id, show ? tweakSubs(subs, options) : subs);
+    host.render();
+  }
+
+  private cancel(): void {
+    const host = this.host;
+    this.host = null;
+    if (!host) return;
+    for (const [id, subs] of this.base) host.draft(id, subs);
+    host.clearDrafts();
+    host.render();
+  }
+
+  private apply(): void {
+    const host = this.host;
+    if (!host) return;
+    this.options = this.read();
+    this.host = null;
+    this.dialog?.close();
+    void host.commit([...this.base].map(([id, subs]) => updateGeometry(id, tweakSubs(subs, this.options))));
+  }
+}
+
+let tweak: TweakDialog | undefined;
+export const openTweak = (host: Host): void => { (tweak ??= new TweakDialog()).open(host); };

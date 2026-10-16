@@ -1817,4 +1817,13 @@ export default [
   "Globaal bewerken starten",
   "Globaal bewerken stoppen",
   "Selecteer een vorm om globaal bewerken te starten.",
+  "Objecten aan pad koppelen",
+  "Verdraaien...",
+  "Verdraaien",
+  "Ankerpunten",
+  "Controlepunten ‘In’",
+  "Controlepunten ‘Uit’",
+  "Selecteer de objecten en daarna het pad waarop ze komen.",
+  "{0} object op het pad geplaatst.",
+  "{0} objecten op het pad geplaatst.",
 ] as readonly string[];

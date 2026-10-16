@@ -1817,4 +1817,13 @@ export default [
   "Globale Bearbeitung starten",
   "Globale Bearbeitung beenden",
   "Wähle eine Form aus, um die globale Bearbeitung zu starten.",
+  "Objekte an Pfad anhängen",
+  "Aufrauen ...",
+  "Aufrauen",
+  "Ankerpunkte",
+  "„Einwärts“-Kontrollpunkte",
+  "„Auswärts“-Kontrollpunkte",
+  "Wähle die Objekte und dann den Pfad, auf dem sie platziert werden sollen.",
+  "{0} Objekt auf dem Pfad platziert.",
+  "{0} Objekte auf dem Pfad platziert.",
 ] as readonly string[];

@@ -1817,4 +1817,13 @@ export default [
   "Iniciar edición global",
   "Detener edición global",
   "Selecciona una forma para iniciar la edición global.",
+  "Adjuntar objetos al trazado",
+  "Desordenar...",
+  "Desordenar",
+  "Puntos de ancla",
+  "Puntos de control de «entrada»",
+  "Puntos de control de «salida»",
+  "Selecciona los objetos y después el trazado donde colocarlos.",
+  "{0} objeto colocado en el trazado.",
+  "{0} objetos colocados en el trazado.",
 ] as readonly string[];

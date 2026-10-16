@@ -1817,4 +1817,13 @@ export default [
   "Iniciar edição global",
   "Parar edição global",
   "Selecione uma forma para iniciar a edição global.",
+  "Anexar objetos ao demarcador",
+  "Ajustar...",
+  "Ajustar",
+  "Pontos de ancoragem",
+  "Pontos de controle de “entrada”",
+  "Pontos de controle de “saída”",
+  "Selecione os objetos e depois o demarcador onde colocá-los.",
+  "{0} objeto colocado no demarcador.",
+  "{0} objetos colocados no demarcador.",
 ] as readonly string[];

@@ -1817,4 +1817,13 @@ export default [
   "Démarrer la modification globale",
   "Arrêter la modification globale",
   "Sélectionnez une forme pour démarrer la modification globale.",
+  "Attacher des objets au tracé",
+  "Tordre...",
+  "Tordre",
+  "Points d’ancrage",
+  "Points de contrôle « Entrée »",
+  "Points de contrôle « Sortie »",
+  "Sélectionnez les objets, puis le tracé sur lequel les placer.",
+  "{0} objet placé sur le tracé.",
+  "{0} objets placés sur le tracé.",
 ] as readonly string[];

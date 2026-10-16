@@ -1817,4 +1817,13 @@ export default [
   "Globális szerkesztés indítása",
   "Globális szerkesztés leállítása",
   "Jelölj ki egy alakzatot a globális szerkesztés indításához.",
+  "Objektumok csatolása az útvonalhoz",
+  "Torzítás...",
+  "Torzítás",
+  "Horgonypontok",
+  "„Be” vezérlőpontok",
+  "„Ki” vezérlőpontok",
+  "Jelöld ki az objektumokat, majd az útvonalat, amelyre kerülnek.",
+  "{0} objektum az útvonalra helyezve.",
+  "{0} objektum az útvonalra helyezve.",
 ] as readonly string[];

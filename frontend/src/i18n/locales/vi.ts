@@ -1817,4 +1817,13 @@ export default [
   "Bắt đầu chỉnh sửa toàn cục",
   "Dừng chỉnh sửa toàn cục",
   "Chọn một hình để bắt đầu chỉnh sửa toàn cục.",
+  "Gắn đối tượng vào đường dẫn",
+  "Làm méo ngẫu nhiên...",
+  "Làm méo ngẫu nhiên",
+  "Điểm neo",
+  "Điểm điều khiển \"vào\"",
+  "Điểm điều khiển \"ra\"",
+  "Chọn các đối tượng, sau đó chọn đường dẫn để đặt chúng lên.",
+  "Đã đặt {0} đối tượng lên đường dẫn.",
+  "Đã đặt {0} đối tượng lên đường dẫn.",
 ] as readonly string[];

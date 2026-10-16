@@ -12,7 +12,8 @@ import { selectCommands } from './select';
 import { runTrace } from './tracepanel';
 import { addAnchorCommands, divideBelowCommands, removeAnchorCommands } from './pathcmds';
 import { openExportScreens } from './exportscreens';
-import { openCleanUp, openSplitGrid } from './pathdialogs';
+import { openCleanUp, openSplitGrid, openTweak } from './pathdialogs';
+import { objectsOnPathCommands } from './objectsonpath';
 import { viewCommands } from './view';
 
 export type { VectorContext, ToolId } from './editor';
@@ -87,6 +88,8 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.path.divide-below', label: 'Divide objects below', menu: MENU, group: 4, run: () => { const made = divideBelowCommands(editor.host()); if (made) void editor.commit(made.cmds, made.select); }, enabled: hasShape },
     { id: 'vector.path.split-grid', label: 'Split into grid...', menu: MENU, group: 4, run: () => openSplitGrid(editor.host()), enabled: hasShape },
     { id: 'vector.path.clean-up', label: 'Clean up...', menu: MENU, group: 4, run: () => openCleanUp(editor.host()), enabled: () => { try { return !!editor.activeSvg(); } catch { return false; } } },
+    { id: 'vector.path.objects-on-path', label: 'Attach objects to path', menu: MENU, group: 4, mutates: true, run: () => { const cmds = objectsOnPathCommands(editor.host()); if (cmds.length) void editor.commit(cmds); }, enabled: hasPair },
+    { id: 'vector.effect.tweak', label: 'Tweak...', menu: MENU, group: 7, run: () => openTweak(editor.host()), enabled: hasShape },
     { id: 'vector.path.simplify', label: 'Simplify path', menu: MENU, group: 4, run: () => editor.runPathOp('simplify', 1), enabled: hasShape },
     { id: 'vector.path.offset', label: 'Offset path', menu: MENU, group: 4, run: () => editor.runPathOp('offset', 8), enabled: hasShape },
     { id: 'vector.path.outline-stroke', label: 'Outline stroke', menu: MENU, keys: 'Mod+Shift+O', group: 4, run: () => editor.runPathOp('outline'), enabled: hasShape },

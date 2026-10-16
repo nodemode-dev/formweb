@@ -1817,4 +1817,13 @@ export default [
   "Mulai Edit Global",
   "Hentikan Edit Global",
   "Pilih bentuk untuk memulai Edit Global.",
+  "Lampirkan objek ke jalur",
+  "Tweak...",
+  "Tweak",
+  "Titik jangkar",
+  "Titik kontrol \"masuk\"",
+  "Titik kontrol \"keluar\"",
+  "Pilih objek, lalu jalur tempat objek akan diletakkan.",
+  "{0} objek diletakkan pada jalur.",
+  "{0} objek diletakkan pada jalur.",
 ] as readonly string[];

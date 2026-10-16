@@ -1817,4 +1817,13 @@ export default [
   "Start global redigering",
   "Stop global redigering",
   "Markér en form for at starte global redigering.",
+  "Fastgør objekter til sti",
+  "Forvræng...",
+  "Forvræng",
+  "Ankerpunkter",
+  "Kontrolpunkter for »ind«",
+  "Kontrolpunkter for »ud«",
+  "Markér objekterne og derefter stien, de skal placeres på.",
+  "{0} objekt placeret på stien.",
+  "{0} objekter placeret på stien.",
 ] as readonly string[];
