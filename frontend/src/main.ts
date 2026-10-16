@@ -1052,7 +1052,8 @@ function update(next: EditorState): void {
     const item = site.nodes[id];
     if (!item) return;
     layers.push({ node: item, depth });
-    item.children.forEach(child => walk(child, depth + 1));
+    if (item.tag === 'pattern' || item.tag === 'linearGradient' || item.tag === 'radialGradient') return;
+    item.children.forEach(child => { if (site.nodes[child]?.tag !== 'tspan') walk(child, depth + 1); });
   }
   walk(page.root, 0);
   text(nodeCount, String(layers.length));

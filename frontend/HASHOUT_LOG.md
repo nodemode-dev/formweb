@@ -1,5 +1,13 @@
 # Frontend context map
 
+## Layers list without vector internals · v0.9.10 (2026-10-16)
+
+`main.ts` `walk()` inside the Layers render: a `pattern`, `linearGradient` or `radialGradient` row is listed but its children are not (tile groups and paths, gradient stops), and `tspan` children of a text are skipped (area type lines). The parent row stays selectable; nothing else in the Layers code changed (rows are still `keyed()`, patched in place). The count beside Layers is the number of listed rows. `textPath` stays listed because type on a path is edited through it.
+
+- **Why:** each commit that added many nodes inserted that many rows above rows already in view, so the visible rows below jumped: the throttled runs recorded CLS 0.0061 and 0.0177 for area type (8 and up to 60 line rows) and 0.0039 for Make pattern (7 rows). Those rows were never useful targets: lines, tiles and stops are rebuilt by their commands and cannot be edited one by one.
+- **Driven again under CPU 4x, 400 ms latency, slow network, cache off:** area type now records 0.0007 per command (the one inserted text row, the same value as drawing any new shape, which pushes the rows below it by one row), Make pattern records no shift; all area type and pattern checks gave the same results as in v0.9.9 and v0.9.7; the Layers list shows one "Area type" row and 32 rows for 89 nodes.
+- **Still open:** a single inserted row still moves the rows under it by one row height. It counts as a layout shift only because, under throttling, the commit lands more than 500 ms after the click; unthrottled it falls inside the input window. Removing it would need the new row to appear without moving what is below it, for example by scrolling the list by one row height in the same frame when the insertion is above the first visible row.
+
 ## Area type · v0.9.9 (2026-10-16)
 
 New `vector/areatype.ts`; edits in `vector/pathdialogs.ts` (`AreaTypeDialog`, `tn` import), `vector/index.ts` (`vector.type.area`), `vector/store.ts` and `ui/canvas.ts` (`tspan` in the tag sets, `dx` attribute, and a `tspan` node holds its text in an svg `tspan` the way `textPath` does, not an html span), `commands/catalogue.ts`, `native/crates/formweb-model/src/vector.rs` (tag `tspan` with x, y, dx, dy; child of `text`; may hold up to 500 characters of plain text like `textPath`; no children), `lib.rs` (tag list), `backend/app/assets.py` (`tspan`, `dx`), `i18n/keys.ts` and the 23 locale files (12 strings, 1865 keys; Weight, Left, Center, Right and Leading come from the vendored formvis tables, which cover all 23).
