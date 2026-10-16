@@ -42,8 +42,25 @@ pub fn slot_nodes(site: &Site, root: &str, source: &str) -> Option<Vec<String>> 
     for (name,slot) in slots { if slot.get("target")?.as_str()?==source { return group.get("instances")?.get(root)?.get("slots")?.get(name)?.as_array().map(|v|v.iter().filter_map(Value::as_str).map(String::from).collect()); } }
     None
 }
+pub fn step_title(value: &str) -> Result<(), String> {
+    let count = value.chars().count();
+    if count == 0 || count > 60 { return Err("step title must be 1 to 60 characters".into()); }
+    if value != value.trim() || value.contains("  ") { return Err("step title cannot start or end with a space or repeat spaces".into()); }
+    if value.chars().any(|c| c.is_control() || matches!(c, '<' | '>' | '&' | '"' | '\u{2028}' | '\u{2029}')) { return Err("step title cannot contain control characters or the characters < > & \"".into()); }
+    Ok(())
+}
+fn step_titles(site: &Site) -> Result<(), String> {
+    for node in site.nodes.values() {
+        if let Some(title) = node.attrs.get("data-fw-step-title") {
+            if !node.attrs.contains_key("data-fw-step") { return Err("a step title needs a step".into()); }
+            step_title(title)?;
+        }
+    }
+    Ok(())
+}
 pub fn validate_extensions(site: &Site) -> Result<(), String> {
     if serde_json::to_vec(&site.extensions).map_err(|e|e.to_string())?.len()>4*1024*1024 { return Err("extensions exceed 4 MiB".into()); }
+    step_titles(site)?;
     for collection in site.collections.values() {
         for field in collection.fields.iter().filter(|f|f.collection.is_some()) {
             let target=site.collections.get(field.collection.as_ref().unwrap()).ok_or("unknown reference collection")?;

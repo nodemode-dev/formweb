@@ -791,7 +791,12 @@ const cmsDelete = button('Delete item', 'trash', async () => {
   cmsItems.value = '';
   fillCmsItem();
 }, 'danger');
-cmsControls.append(cmsSelectedName, cmsItemGrid, cmsDelete, element('p', 'micro', 'Bind a selected node in the Content inspector. Published items appear in exported collections; drafts remain editable.'));
+const cmsNew = button('New item', 'plus', () => {
+  cmsItems.value = '';
+  fillCmsItem();
+  cmsItemSlug.focus();
+});
+cmsControls.append(cmsSelectedName, cmsNew, cmsItemGrid, cmsDelete, element('p', 'micro', 'Bind a selected node in the Content inspector. Published items appear in exported collections; drafts remain editable.'));
 cmsLayout.append(cmsNav, cmsControls);
 cmsPane.append(cmsLayout);
 cmsItems.addEventListener('change', fillCmsItem);
@@ -1419,6 +1424,7 @@ function fillCmsItem(): void {
   const collection = state().site.collections[collectionId];
   const item = collection?.items.find(item => item.id === cmsItems.value);
   cmsItemId.value = item?.id || '';
+  cmsItemId.readOnly = !!item;
   cmsItemSlug.value = item?.slug || '';
   cmsItemStatus.value = item?.status || 'published';
   cmsValues.value = JSON.stringify(item?.values || Object.fromEntries((collection?.fields || []).map(field => [field.name, field.type === 'number' ? 0 : field.type === 'boolean' ? false : ''])), null, 2);
@@ -1442,11 +1448,14 @@ async function saveCmsItem(): Promise<void> {
   if (!collection) throw new Error('Create or choose a collection first.');
   const values = JSON.parse(cmsValues.value || '{}');
   if (!values || typeof values !== 'object' || Array.isArray(values)) throw new Error('Item values must be a JSON object.');
-  const item = { id: cmsItemId.value.trim() || uuid('item'), slug: cmsItemSlug.value.trim(), values, status: cmsItemStatus.value };
+  const editing = cmsItems.value;
+  const id = editing || cmsItemId.value.trim() || uuid('item');
+  if (!editing && collection.items.some(existing => existing.id === id)) throw new Error('An item with this ID already exists. Choose it in the list to edit it, or use another ID.');
+  const item = { id, slug: cmsItemSlug.value.trim(), values, status: cmsItemStatus.value };
   await command('cms.upsert', { collection: collectionId, item });
+  updateCms();
   cmsItems.value = item.id;
-  cmsItemId.value = item.id;
-  cmsDelete.disabled = false;
+  fillCmsItem();
   status('CMS item saved.');
 }
 function updateLocales(): void {

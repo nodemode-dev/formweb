@@ -38,7 +38,7 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
     const form = formOf(ctx);
     if (!form) { ctx.notify('Select a form first.', true); return; }
     const count = Math.max(2, Math.min(12, Number(stepCount.value) || 2));
-    const groups = Array.from({ length: count }, (_, index) => ({ title: `Step ${index + 1}`, nodes: [] as string[] }));
+    const groups = Array.from({ length: count }, (_, index) => ({ title: '', nodes: [] as string[] }));
     for (const id of form.children) {
       if (ctx.state().site.nodes[id]?.attrs['data-fw-step']) continue;
       groups[Math.min(count - 1, Math.max(0, (assignments.get(id) ?? 1) - 1))].nodes.push(id);
@@ -47,10 +47,23 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
     if (used.length < 2) { ctx.notify('Put elements on at least two steps.', true); return; }
     apply(used);
   };
+  const titleRows = element('div', 'wl-list');
+  const stepTitleBad = new RegExp('[<>&"\\p{Cc}\\p{Zl}\\p{Zp}  ]', 'u');
+  const saveTitles = () => {
+    const form = formOf(ctx);
+    if (!form) return;
+    const inputs = Array.from(titleRows.querySelectorAll('input'));
+    const titles = inputs.map(input => input.value.trim().replace(/\s+/g, ' '));
+    if (titles.some(title => title.length > 60 || stepTitleBad.test(title))) { ctx.notify('Step titles are up to 60 characters and cannot contain < > & or quotes.', true); inputs.forEach(input => { input.value = input.dataset.saved || ''; }); return; }
+    inputs.forEach((input, index) => { input.value = titles[index]; });
+    void ctx.commands([{ command: 'form.steps', params: { form: form.id, titles } }]);
+  };
+  const titleSection = section('Step titles', element('p', 'wl-hint', 'Shown as the heading of each step and in the progress label. Leave a title empty to use Step 1, Step 2 and so on.'), titleRows);
   const stepsPane = element('div', 'wl-pane');
   stepsPane.append(
     section('Multi-step form', stepNote, field('Number of steps', stepCount), element('p', 'wl-hint', 'Choose the step for each element directly inside the form. Put the submit button on the last step. Visitors move with Back and Next, and each step is checked before continuing.'), stepRows,
-      row(btn('Group into steps', split, 'wl-primary'), btn('Remove steps', () => apply([]))))
+      row(btn('Group into steps', split, 'wl-primary'), btn('Remove steps', () => apply([])))),
+    titleSection
   );
 
   const fieldRows = element('div', 'wl-list');
@@ -91,6 +104,24 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
         pick.onchange = () => { assignments.set(item.id, Number(pick.value)); };
       });
       setValue(stepCount, stepCount.value || '2');
+      const stepNodes = form ? form.children.map(id => nodes[id]).filter(node => node && node.attrs['data-fw-step']).sort((a, b) => Number(a.attrs['data-fw-step']) - Number(b.attrs['data-fw-step'])) : [];
+      titleSection.hidden = !stepNodes.length;
+      keyed(titleRows, stepNodes, node => node.id, () => {
+        const node = element('div', 'wl-item');
+        const input = text();
+        input.maxLength = 60;
+        input.addEventListener('change', saveTitles);
+        node.append(element('span', 'wl-item-name'), input);
+        return node;
+      }, (node, item) => {
+        const label = `Step ${item.attrs['data-fw-step']}`;
+        setText(node.firstElementChild as HTMLElement, label);
+        const input = node.lastElementChild as HTMLInputElement;
+        input.placeholder = label;
+        input.setAttribute('aria-label', `Title for ${label}`);
+        input.dataset.saved = item.attrs['data-fw-step-title'] || '';
+        setValue(input, input.dataset.saved);
+      });
     }
   };
   const validationTab: Tab = {

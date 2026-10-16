@@ -300,8 +300,22 @@ fn form_steps(site: &mut Site, params: &Value) -> Result<(), String> {
     let form = string(params, "form")?.to_string();
     guard_structure(site, &[&form])?;
     if site.nodes.get(&form).map(|n| n.tag == "form") != Some(true) { return Err("target must be a form element".into()); }
-    let steps = params.get("steps").and_then(Value::as_array).ok_or("steps must be an array")?;
     let existing: Vec<String> = site.nodes[&form].children.iter().filter(|c| site.nodes[*c].attrs.contains_key("data-fw-step")).cloned().collect();
+    if let Some(titles) = params.get("titles") {
+        let titles = titles.as_array().ok_or("titles must be an array")?;
+        if existing.is_empty() { return Err("form has no steps".into()); }
+        if titles.len() != existing.len() { return Err("send one title for each step".into()); }
+        let mut ordered = existing.clone();
+        ordered.sort_by_key(|id| site.nodes[id].attrs["data-fw-step"].parse::<u32>().unwrap_or(0));
+        for (id, title) in ordered.iter().zip(titles) {
+            let title = title.as_str().ok_or("step titles must be text")?.trim().to_string();
+            if !title.is_empty() { formweb_model::advanced::step_title(&title)?; }
+            let node = site.nodes.get_mut(id).unwrap();
+            if title.is_empty() { node.attrs.remove("data-fw-step-title"); } else { node.attrs.insert("data-fw-step-title".into(), title); }
+        }
+        return Ok(());
+    }
+    let steps = params.get("steps").and_then(Value::as_array).ok_or("steps must be an array")?;
     if steps.is_empty() {
         for step in existing {
             let inner = site.nodes[&step].children.clone();
@@ -320,8 +334,8 @@ fn form_steps(site: &mut Site, params: &Value) -> Result<(), String> {
         let nodes: Vec<String> = step.get("nodes").and_then(Value::as_array).ok_or("each step needs a nodes array")?.iter().map(|v| v.as_str().map(String::from).ok_or("step nodes must be ids")).collect::<Result<_, _>>()?;
         if nodes.is_empty() { return Err("a step needs at least one node".into()); }
         for id in &nodes { if !site.nodes[&form].children.contains(id) || !taken.insert(id.clone()) { return Err("step nodes must be unique direct children of the form".into()); } }
-        let title = step.get("title").and_then(Value::as_str).unwrap_or("").to_string();
-        if title.len() > 120 { return Err("step title is too long".into()); }
+        let title = step.get("title").and_then(Value::as_str).unwrap_or("").trim().to_string();
+        if !title.is_empty() { formweb_model::advanced::step_title(&title)?; }
         groups.push((nodes, title));
     }
     for (index, (nodes, title)) in groups.into_iter().enumerate() {
