@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.6 · 2026-10-16
+
+- Dashed and arrowed strokes follow the stroke's inside or outside alignment, variable-width strokes can be dashed, and a dash that crosses a corner is one continuous dash with the line's corner join.
+- Fixed: the Brush Options dialog could freeze the page when turning Preview off or closing it after making no change.
+- Steadier panels: Symbols and Brushes lists no longer blink after Break link, the Image Trace source list no longer refills, and Chat updates its streaming text in place.
+
 ## 0.8.5 · 2026-10-16
 
 - Stroke options: dashed lines with up to three dash and gap pairs, either at exact lengths or adjusted so a dash sits on every corner and path end; arrowheads at either end (arrow, triangles, circle, square, bar) with scale and a choice of tip beyond or at the end of the path. They follow the path as you edit it and can be removed or expanded.

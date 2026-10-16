@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.8.5",
- "previous": "0.8.4",
+ "version": "0.8.6",
+ "previous": "0.8.5",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Stroke dashes aligned to corners and arrowheads added (FW-159 Partial, from secondary sources); Average dialog with axis choice.",
+ "release_note": "Dashes and arrowheads honor stroke align, dashes on variable-width strokes, continuous corner dashes (FW-159 stays Partial: sources are secondary); Brush Options freeze fixed; newer panels verified under throttling.",
  "lanes": [
   [
    "m",
@@ -5542,6 +5542,15 @@
    "date": "2026-10-16",
    "same_as": "0.8.3",
    "note": "Bristle brush, Brush Options dialog and throttled DOM-stability fixes; no grade moved. 104.5 of 115."
+  },
+  {
+   "version": "0.8.5",
+   "date": "2026-10-16",
+   "same_as": "0.8.4",
+   "moved": {
+    "FW-159": "partial"
+   },
+   "note": "Stroke dashes and arrowheads added as Partial; Average dialog. 105 of 116."
   }
  ],
  "changes": [
