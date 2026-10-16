@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.9.2",
- "previous": "0.9.1",
+ "version": "0.9.3",
+ "previous": "0.9.2",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Tweak effect (FW-169) and Objects on Path (FW-170) added as Partial: Tweak is applied to the geometry rather than live, and objects are placed once rather than kept attached.",
@@ -7475,6 +7475,20 @@
     "FW-162": "partial"
    },
    "note": "Selection tools, path commands and drawing tools, rulers, guides, grid and Outline mode added. 107 of 119."
+  },
+  {
+   "version": "0.9.2",
+   "date": "2026-10-16",
+   "same_as": "0.9.1",
+   "moved": {
+    "FW-163": "full",
+    "FW-164": "full",
+    "FW-165": "partial",
+    "FW-166": "partial",
+    "FW-167": "full",
+    "FW-168": "partial"
+   },
+   "note": "Saved guides, Export for Screens, Recolor Artwork, Graphic Styles, Puppet Warp, Reshape and Global Edit added. 111.5 of 125."
   }
  ],
  "changes": [

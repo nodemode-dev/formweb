@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.3 · 2026-10-16
+
+- Tweak (Vector > Tweak...): randomly push anchor points and their control points inward and outward, by a relative or absolute amount, with a seed and a live preview.
+- Attach objects to path: select some shapes, then a path last, and they line up along it from start to end, evenly spaced and turned to follow its direction. The placement is applied once and does not follow later path edits.
+- All new labels are translated into the 26 interface languages.
+
 ## 0.9.2 · 2026-10-16
 
 - Export for Screens (Ctrl+Alt+E): export the drawing, or only the selected shapes, as PNG, JPG, WebP and clean SVG at 0.5x to 4x, with a suffix per scale and background choices.
