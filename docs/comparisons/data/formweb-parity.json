@@ -4,7 +4,7 @@
  "previous": "0.9.2",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Tweak effect (FW-169) and Objects on Path (FW-170) added as Partial: Tweak is applied to the geometry rather than live, and objects are placed once rather than kept attached.",
+ "release_note": "Blob Brush (FW-171) added as Partial: round tip only, merging with overlapping unstroked paths of the same fill.",
  "lanes": [
   [
    "m",
@@ -6777,6 +6777,46 @@
     "partial",
     "v0.9.3: driven in Chromium under CPU 4x and slow network. Three squares on a sloped line landed with their centers on the start, the midpoint and the end, rotated to the line's angle, in one undo step.",
     "Applied once, not live: editing the path later does not move the objects; no on-canvas spacing or rotation handles; pivot is the center only; paths only, no groups."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 171,
+   "id": "FW-171",
+   "cat": 0,
+   "f": "Blob Brush",
+   "p": "P2",
+   "kn": "Blob Brush tool (Shift+B): paints filled, unstroked shapes that merge where they overlap; options Keep Selected, Merge Only with Selection, Fidelity, Size, Angle and Roundness; [ and ] change the size. Source basis: Envato Tuts+ and CreativePro (two secondary sources; Adobe's page rendered navigation only). The same-fill-color merge rule is FormWeb's choice.",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.9.4",
+   "m": [
+    "partial",
+    "v0.9.4: driven in Chromium under CPU 4x and slow network. A stroke across a rectangle's edge merged into it as one path and one undo restored it; ] raised the size; the options dialog opened on double-click; a stroke with nothing to merge made a new filled, unstroked path of the set size.",
+    "Round tip only (no Angle or Roundness, no pressure); a click without a drag paints nothing; the svg box does not grow to fit; Merge Only with Selection not separately driven."
    ],
    "fr": [
     "none",

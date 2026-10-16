@@ -104,6 +104,8 @@ Warp and global editing (v0.9.2), run with `window.formweb.run(id)` while a shap
 
 Tweak and objects on a path (v0.9.3): `vector.effect.tweak` opens Tweak (random horizontal and vertical moves, relative to the path size or absolute, for anchor points and the "In" and "Out" control points, with a seed and Preview; OK is one undo step). `vector.path.objects-on-path` places the selected shapes along the shape selected last: first at the start, last at the end of an open path (evenly around a closed one), each centered on the path and rotated to its direction, in one undo step; it is not live.
 
+Blob Brush (v0.9.4): `vector.blob-brush` (Shift+B) selects the tool. Each drag paints a filled, unstroked shape the width of the brush in the stroke color (the fill color when stroke is none) and unites it with overlapping unstroked paths of the same fill in the edited SVG, one undo step per stroke. Double-click the canvas with the tool active for Size, Fidelity, Keep Selected and Merge Only with Selection; `[` and `]` change the size.
+
 Path commands and drawing tools (v0.9.1), run with `window.formweb.run(id)`: `vector.path.add-anchors` (midpoint of every segment of the selected paths), `vector.path.remove-anchors` (selected anchors), `vector.path.divide-below` (selected path cuts the filled shapes beneath it), `vector.path.split-grid` and `vector.path.clean-up` (dialogs), and the tools `vector.pencil` (N), `vector.arc`, `vector.rect-grid` and `vector.polar-grid` (the last three have no default shortcut).
 
 ## Editor window commands (v0.7)
