@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.4 · 2026-10-16
+
+- Bristle brush: painterly strokes made of many soft bristles, with shape, size, length, density, thickness, opacity and stiffness.
+- Brush Options: each brush opens a settings dialog with a live preview; OK updates every path that uses the brush at once, Cancel puts everything back.
+- Steadier editor: checked on a slowed-down machine and network, seven places where the layout shifted are fixed (the terminal status, field labels, two dialog notes, Agent Connect on first open, the viewport readout and the compiled preview).
+- Agents can send up to 4000 changes in one apply_commands call, the same as the editor.
+
 ## 0.8.3 · 2026-10-16
 
 - Paintbrush (B): draw freehand with your brush; a Fidelity setting controls how smooth the line is. Without a brush it draws a plain stroke.

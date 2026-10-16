@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.8.3",
- "previous": "0.8.2",
+ "version": "0.8.4",
+ "previous": "0.8.3",
  "date": "2026-10-16",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Paintbrush tool with live brushes, blend sources placed on the spine ends, dense brushes and blends no longer truncated. No grade moved: FW-093 and FW-158 gaps updated.",
+ "release_note": "Bristle brush and Brush Options dialog (FW-158 stays Partial); editor verified under CPU and network throttling with seven layout shifts fixed. No grade moved.",
  "lanes": [
   [
    "m",
@@ -5529,6 +5529,12 @@
     "FW-158": "partial"
    },
    "note": "Image Trace and Brushes added as Partial. 104.5 of 115."
+  },
+  {
+   "version": "0.8.3",
+   "date": "2026-10-16",
+   "same_as": "0.8.2",
+   "note": "Paintbrush tool, blend sources on the spine ends, no truncation of dense output; no grade moved. 104.5 of 115."
   }
  ],
  "changes": [
