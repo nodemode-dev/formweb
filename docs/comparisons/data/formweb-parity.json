@@ -4,7 +4,7 @@
  "previous": "0.11.5",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Area type (FW-175) stays Partial with in and out ports on the canvas and Remove Threading added.",
+ "release_note": "Area type (FW-175) stays Partial with Release Selection for single shapes in a thread added.",
  "lanes": [
   [
    "m",
@@ -6976,7 +6976,7 @@
    "m": [
     "partial",
     "v0.9.9: driven in Chromium under CPU 4x and slow network. Two centered paragraphs in an ellipse produced 8 lines whose ends lie inside the ellipse; long text reported 66 overflow words; two columns split 33 and 24 lines at the gutter; the export carried the lines and one undo removed them.",
-    "Reflows when the shape changes in the editor (v0.11.2: moving the ellipse moved the lines, pulling its top anchor down 60 units rewrapped five lines into four); v0.11.3: Edit area type changes the words and settings of placed text in one undo step; v0.11.4: Thread text carried 152 overflowing words into a second shape, deleting that shape and Release rolled them back, each one undo step; v0.11.6: in and out ports on selected area type (click a port, then a closed shape or an empty spot, to link; double-click a port to break the thread) and Remove Threading (282 and 124 words kept in their own shapes), each one undo step; no reflow for edits made only through the API, no typing straight into the canvas, no Release Selection for one linked shape, no rows or first baseline choices, no hyphenation or justification."
+    "Reflows when the shape changes in the editor (v0.11.2: moving the ellipse moved the lines, pulling its top anchor down 60 units rewrapped five lines into four); v0.11.3: Edit area type changes the words and settings of placed text in one undo step; v0.11.4: Thread text carried 152 overflowing words into a second shape, deleting that shape and Release rolled them back, each one undo step; v0.11.6: in and out ports on selected area type (click a port, then a closed shape or an empty spot, to link; double-click a port to break the thread) and Remove Threading (282 and 124 words kept in their own shapes), each one undo step; v0.11.7: Release Selection takes a middle or first shape out of a three-shape thread and the words flow on (overflow 110 to 262 and to 393), one undo step; no reflow for edits made only through the API, no typing straight into the canvas, no rows or first baseline choices, no hyphenation or justification."
    ],
    "fr": [
     "none",
