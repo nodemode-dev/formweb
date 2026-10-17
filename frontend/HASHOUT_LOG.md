@@ -1,5 +1,12 @@
 # Frontend context map
 
+## Custom code in head and body · v0.12.9 (2026-10-17)
+
+`main.ts` Page pane, after Search & metadata: `codeSection` with `codeScope` (Whole site or Page) and three `codeAreas` (`data-field` `code.head`, `code.bodyStart`, `code.bodyEnd`). `fillCustomCode` fills them through `value()` (skips the focused area, so typing is never overwritten) and runs in `update`; `saveCustomCode` merges into a copy of the `code` group (keeping `components` and `instances`), drops emptied slots and empty maps, and sends one `extension.set`. The engine validates (`formweb-model` `custom_code`), prunes and copies `pageCode` with pages, and the advanced exporter writes the slots. `styles/app.css` `.fw-code-area`: monospace, no wrap.
+
+- **Source basis:** Framer Help "How to add custom code" (head or body, all or chosen pages), Webflow Help "Custom code in head and body tags" (site and page level), Figma Sites "Edit website settings" (head or body start or end, site-wide only).
+- **Driven (CPU 4x, 400 ms latency, cache off):** site head tag typed and saved, page body-end script saved, scope switched both ways, slot cleared then undone; no layout shifts, no page errors. Exported pages ran the scripts; page code only on its page.
+
 ## Variable width on closed shapes · v0.12.7 (2026-10-17)
 
 `vector/ops.ts` `widthPreset`: closed paths take every preset (it skipped them except Uniform); the profile runs once around the outline from the first anchor and `variableOutline` draws it as an outer ring and a reversed inner ring (nonzero fill, so a hollow band). `vector/stroke.ts` `widthOwner` and `vector/editor.ts` `pickPath`: picking a variable-width stroke picks its path, not the generated Width outline (before, a click on such a stroke selected the outline, so the Width tool and the presets acted on the wrong path, open or closed).
