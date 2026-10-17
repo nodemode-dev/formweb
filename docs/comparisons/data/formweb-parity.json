@@ -3,7 +3,7 @@
  "version": "0.12.0",
  "previous": "0.11.9",
  "date": "2026-10-17",
- "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
+ "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
  "release_note": "Area type (FW-175) stays Partial with typing on the canvas added.",
  "lanes": [
   [
@@ -8115,9 +8115,9 @@
   "cv": "Canva Websites documents multi-page sites, forms with CSV, SEO, a sitemap, domains and insights, plus Bulk Create, Brand Kit and an MCP server behind a waitlist. No CMS or HTML export was found."
  },
  "text": {
-  "eyebrow": "FormWeb · Framer, Webflow, Adobe Express and Canva alternative · v0.7.1 · Apache-2.0",
-  "dek": "112 researched website-builder capabilities: 65 from Framer and Webflow, 14 more from Adobe Express and Canva, and 33 added since v0.5.7 for vector editing, creative CMS and form tools, the agent dock, the desktop build, the command registry and the editor languages. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation, fetched on 10 and 11 October 2026, so their scores are lower bounds rather than proof of absence. The 33 newest rows have no vendor assessment yet, so the vendor tiles undercount them.",
-  "baseline": "65 targets from Framer and Webflow (v0.1.0), 14 from Adobe Express and Canva (v0.3.0), and 33 FormWeb-side targets added in v0.7.0 and v0.7.1 with no vendor assessment",
+  "eyebrow": "FormWeb · Framer, Figma, Webflow and Canva alternative · Apache-2.0",
+  "dek": "134 researched capabilities, measured against Framer, Figma, Webflow and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation (Framer, Webflow and Canva fetched on 10 and 11 October 2026, Figma on 17 October 2026 across every row), so their scores are lower bounds rather than proof of absence. Framer, Webflow and Canva were not graded on the rows added since v0.5.7, so their tiles undercount those.",
+  "baseline": "65 targets from Framer and Webflow (v0.1.0), 14 more checked against Canva (v0.3.0), and FormWeb-side targets added from v0.7.0 on; the Figma lane was graded across all rows on 17 October 2026",
   "changes": "v0.7.1 reviews the 29 rows added in v0.7.0 against the browser verification recorded since: eleven move from Partial to Full (eight vector rows and three creative rows), the rest stay Partial with the recorded gap, and four rows are added for the agent dock, desktop build, command registry and 26 editor languages. The score moves from 91 of 108 as first graded in v0.7.0 to 99 of 112.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
@@ -8139,6 +8139,6 @@
     "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 16 October 2026 from FormWeb 0.7.1 and the sources listed. Framer, Webflow, Adobe Express and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Compiled 17 October 2026 from FormWeb and the sources listed. Framer, Figma, Webflow and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }

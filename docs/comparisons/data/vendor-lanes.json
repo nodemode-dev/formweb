@@ -1,0 +1,1615 @@
+{
+ "note": "Vendor lanes applied by setup/comparisons.py at build time. The comparison targets are Framer, Figma, Webflow and Canva; the Adobe Express lane and its sources are dropped. Figma cells were graded on 17 October 2026 from official Figma pages only.",
+ "drop": [
+  "ae"
+ ],
+ "drop_sources_by": [
+  "Adobe"
+ ],
+ "src": {
+  "G01": {
+   "name": "Add, delete, and organize webpages",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242763080983-Add-delete-and-organize-webpages"
+  },
+  "G02": {
+   "name": "Explore the navigation bar and left sidebar",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039831974-View-layers-and-assets-in-the-Layers-Panel"
+  },
+  "G03": {
+   "name": "Improve the accessibility of your site",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242789265431-Improve-the-accessibility-of-your-site"
+  },
+  "G04": {
+   "name": "Guide to auto layout",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360040451373-Guide-to-auto-layout"
+  },
+  "G05": {
+   "name": "Tips for creating a responsive webpage in Figma Sites",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/33257143505175-Tips-for-creating-a-responsive-webpage-in-Figma-Sites"
+  },
+  "G06": {
+   "name": "Use the grid auto layout flow",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31289469907863-Use-the-grid-auto-layout-flow"
+  },
+  "G07": {
+   "name": "Use design tools in Figma Sites",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242787286935-Use-design-tools-in-Figma-Sites"
+  },
+  "G08": {
+   "name": "Preview a webpage or site",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242824747287-Preview-a-webpage-or-site"
+  },
+  "G09": {
+   "name": "View a file's version history",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360038006754-View-a-file-s-version-history"
+  },
+  "G10": {
+   "name": "Add or delete breakpoints in a webpage",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242797809815-Add-or-delete-breakpoints-in-a-webpage"
+  },
+  "G11": {
+   "name": "Customize a text style for multiple breakpoints",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242838116119-Customize-a-text-style-for-multiple-breakpoints"
+  },
+  "G12": {
+   "name": "Overview of variables, collections, and modes",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/14506821864087-Overview-of-variables-collections-and-modes"
+  },
+  "G13": {
+   "name": "Manage and share styles",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039820134-Manage-and-share-styles"
+  },
+  "G14": {
+   "name": "Apply changes to instances",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039150733-Apply-changes-to-instances"
+  },
+  "G15": {
+   "name": "Component property fundamentals",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/39636407507735-Components-collection-Component-property-fundamentals"
+  },
+  "G16": {
+   "name": "Create and use variants",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360056440594-Create-and-use-variants"
+  },
+  "G17": {
+   "name": "Use slots to build flexible components",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/38231200344599-Use-slots-to-build-flexible-components-in-Figma"
+  },
+  "G18": {
+   "name": "Review and accept library updates",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039234193-Review-and-accept-library-updates"
+  },
+  "G19": {
+   "name": "Create a CMS collection",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/36165345510551-Create-a-CMS-collection"
+  },
+  "G20": {
+   "name": "Create a CMS page",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/35222938006679-Create-a-CMS-page"
+  },
+  "G21": {
+   "name": "Create a CMS list",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/36165334984855-Create-a-CMS-list"
+  },
+  "G22": {
+   "name": "Import a CMS collection from a CSV",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/35691883305879-Import-a-CMS-collection-from-a-CSV"
+  },
+  "G23": {
+   "name": "Edit a CMS collection",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/36165363290519-Edit-a-CMS-collection"
+  },
+  "G24": {
+   "name": "Guide to Figma Sites CMS",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/35995403973783-Guide-to-Figma-Sites-CMS"
+  },
+  "G25": {
+   "name": "Add interactions to an element",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242843431575-Add-interactions-to-an-element"
+  },
+  "G26": {
+   "name": "Insert blocks, embeds, webpages, and design libraries into a site",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242773374615-Insert-blocks-embeds-webpages-and-design-libraries-into-a-site"
+  },
+  "G27": {
+   "name": "Add links to a site",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242823085207-Add-links-to-a-site"
+  },
+  "G28": {
+   "name": "Edit website settings",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242875661591-Edit-website-settings"
+  },
+  "G29": {
+   "name": "Manage a custom domain for your site",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31414274019863-Manage-a-custom-domain-for-your-site"
+  },
+  "G30": {
+   "name": "Publish, update, or unpublish a site",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242845959703-Publish-update-or-unpublish-a-site"
+  },
+  "G31": {
+   "name": "Manage web publishing for an organization",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31242876956183-Manage-web-publishing-for-an-organization"
+  },
+  "G32": {
+   "name": "Branching overview",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360063144053"
+  },
+  "G33": {
+   "name": "Merge branch into main file",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/5691189138839"
+  },
+  "G34": {
+   "name": "Add comments to files",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360041068574-Add-comments-to-files"
+  },
+  "G35": {
+   "name": "How many people can be in a file at once?",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/1500006775761-How-many-people-can-be-in-a-file-at-once"
+  },
+  "G36": {
+   "name": "REST API",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://developers.figma.com/docs/rest-api"
+  },
+  "G37": {
+   "name": "Variables REST API",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://developers.figma.com/docs/rest-api/variables"
+  },
+  "G38": {
+   "name": "Guide to the Figma MCP server",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Dev-Mode-MCP-Server"
+  },
+  "G39": {
+   "name": "Introducing code layers",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://www.figma.com/blog/introducing-code-layers/"
+  },
+  "G40": {
+   "name": "Code layers, components and instances",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://developers.figma.com/docs/code/code-layers-components-and-instances/"
+  },
+  "G41": {
+   "name": "Add a backend to a Figma Make file",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/32640822050199-Add-a-backend-to-a-functional-prototype-or-web-app"
+  },
+  "G42": {
+   "name": "Edit the code of a Figma Make file",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/33649966245783-Edit-the-code-of-a-functional-prototype-or-web-app"
+  },
+  "G43": {
+   "name": "Save a local copy of files",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/8403626871063-Save-a-local-copy-of-files"
+  },
+  "G44": {
+   "name": "Add a cookie consent banner to your site",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/34883553489687-Add-a-cookie-consent-banner-to-your-site"
+  },
+  "G45": {
+   "name": "Guide to libraries in Figma",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360041051154-Guide-to-libraries-in-Figma"
+  },
+  "G46": {
+   "name": "Set up brand controls with Figma Buzz",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/33155043230487-Set-up-brand-controls-for-your-team-with-Figma-Buzz"
+  },
+  "G47": {
+   "name": "Create a Figma Make file",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31304485164695-Create-a-Figma-Make-file"
+  },
+  "G48": {
+   "name": "Figma AI tools in Figma Sites",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31433998164375"
+  },
+  "G49": {
+   "name": "Figma AI image tools",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/24004542669463"
+  },
+  "G50": {
+   "name": "Add and edit images in Figma Buzz",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/34290428383127-Add-and-edit-images-in-Figma-Buzz"
+  },
+  "G51": {
+   "name": "Bulk create assets in Figma Buzz",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31271824185623-Bulk-create-assets-in-Figma-Buzz"
+  },
+  "G52": {
+   "name": "Tables in FigJam",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/12583849250199"
+  },
+  "G53": {
+   "name": "Explore text properties",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039956634-Explore-text-properties"
+  },
+  "G54": {
+   "name": "Export formats and settings for static designs",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/13402894554519-Export-formats-and-settings-for-static-designs"
+  },
+  "G55": {
+   "name": "Export formats and settings",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/13402894554519"
+  },
+  "G56": {
+   "name": "Use gradients as a fill or stroke",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/34208860210199-Use-gradients-as-a-fill-or-stroke"
+  },
+  "G57": {
+   "name": "Masks",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360040450253"
+  },
+  "G58": {
+   "name": "Adjust your stroke position, weight and more",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360049283914-Adjust-your-stroke-position-weight-and-more"
+  },
+  "G59": {
+   "name": "Edit a vector object",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039957634"
+  },
+  "G60": {
+   "name": "Groups and frames",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039832054"
+  },
+  "G61": {
+   "name": "Create custom shapes with the shape builder tool",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31616004109847-Create-custom-shapes-with-the-shape-builder-tool"
+  },
+  "G62": {
+   "name": "Variable width stroke properties (plugin API)",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://developers.figma.com/docs/plugins/api/VariableWidthStrokeProperties"
+  },
+  "G63": {
+   "name": "Adjust alignment, rotation, position and dimensions",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039956914-Adjust-alignment-rotation-position-and-dimensions"
+  },
+  "G64": {
+   "name": "Adjust your zoom and view options",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360041065034"
+  },
+  "G65": {
+   "name": "Create patterns with transforms",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31440427042839"
+  },
+  "G66": {
+   "name": "Figma Draw",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://www.figma.com/draw/"
+  },
+  "G67": {
+   "name": "Guide to text in Figma Design",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039956434"
+  },
+  "G68": {
+   "name": "Introducing Figma Draw",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://www.figma.com/blog/introducing-figma-draw/"
+  },
+  "G69": {
+   "name": "Copy assets between design tools (import SVG)",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360040030374"
+  },
+  "G70": {
+   "name": "Use the actions menu in Figma Design",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/23570416033943-Use-quick-actions"
+  },
+  "G71": {
+   "name": "Change your language preference",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/6956360971415"
+  },
+  "G72": {
+   "name": "Guide to components in Figma",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360038662654"
+  },
+  "G73": {
+   "name": "Vectorize images",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/38031452710807"
+  },
+  "G74": {
+   "name": "Draw with illustration tools (brushes)",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/31440438150935"
+  },
+  "G75": {
+   "name": "Select layers and objects",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360040449873"
+  },
+  "G76": {
+   "name": "Sample colors with the eyedropper",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360041003774"
+  },
+  "G77": {
+   "name": "Arc tool",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360040450173"
+  },
+  "G78": {
+   "name": "Add guides to the canvas or frames",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360040449713-Add-guides-to-the-canvas-or-frames"
+  },
+  "G79": {
+   "name": "View layer outlines in Figma Design",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/5724448965527"
+  },
+  "G80": {
+   "name": "Styles in Figma Design",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360039238753-Styles-in-Figma-Design"
+  },
+  "G81": {
+   "name": "Use OpenType features",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/4913951097367"
+  },
+  "G82": {
+   "name": "Guide to fills",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360041003694-Apply-and-edit-fills-and-gradients"
+  },
+  "G83": {
+   "name": "Guide to frames",
+   "by": "Figma",
+   "date": "2026-10-17",
+   "url": "https://help.figma.com/hc/en-us/articles/360041539473"
+  }
+ },
+ "add": [
+  {
+   "after": "fr",
+   "lane": [
+    "fg",
+    "Figma",
+    "",
+    "figma",
+    "graded from official Figma help and developer pages"
+   ],
+   "colors": {
+    "light": [
+     "#b4236f",
+     "#f6dcea"
+    ],
+    "dark": [
+     "#f27ab4",
+     "#45192f"
+    ]
+   },
+   "platform": [
+    "Design suite whose Figma Sites (open beta) designs, prototypes and publishes responsive sites with a CMS from the same canvas",
+    "Published sites get a figma.site subdomain; custom domains on all paid plans, with SSL provisioned automatically",
+    "Exporting a site's code is not documented in the pages read",
+    "Official Figma MCP server (remote or desktop) gives agents design context and can write native content to Design, FigJam and Slides",
+    "REST API reads files, layers and their properties, comments, variables and usage, with webhooks",
+    "Code layers and code components in Figma Sites are React (.tsx); Figma Make builds React apps from prompts"
+   ],
+   "vp": "Figma Sites designs and publishes responsive sites with a CMS from the design canvas, with hosting, custom domains, Figma AI images and an official MCP server, and Figma Design and Draw cover most of the vector rows. Site forms, localization and commerce were not found in the official pages read.",
+   "cells": {
+    "FW-001": [
+     "partial",
+     "Create, duplicate, delete, reorder pages documented; rename and route uniqueness rules not found; no nesting.",
+     [
+      "G01"
+     ],
+     "documented"
+    ],
+    "FW-002": [
+     "full",
+     "Layers panel shows nested hierarchy of frames and layers; each layer shows its HTML tag.",
+     [
+      "G02",
+      "G03"
+     ],
+     "documented"
+    ],
+    "FW-003": [
+     "partial",
+     "Pages can be reordered by drag; layer reparent and cycle validation not described in docs read.",
+     [
+      "G02",
+      "G01"
+     ],
+     "documented"
+    ],
+    "FW-004": [
+     "full",
+     "Auto layout sets direction, gap, alignment and wrap, and is used for responsive pages in Sites.",
+     [
+      "G04",
+      "G05"
+     ],
+     "documented"
+    ],
+    "FW-005": [
+     "partial",
+     "Grid auto layout flow has rows, columns, gaps and spans, but its page does not mention Sites.",
+     [
+      "G06",
+      "G07"
+     ],
+     "documented"
+    ],
+    "FW-006": [
+     "partial",
+     "Inline and full-screen preview render like a browser; docs do not say editor UI is hidden or iframe isolated.",
+     [
+      "G08"
+     ],
+     "documented"
+    ],
+    "FW-007": [
+     "partial",
+     "Version history autosaves checkpoints and restores named versions non-destructively; step undo is not described in the pages read.",
+     [
+      "G09"
+     ],
+     "documented"
+    ],
+    "FW-008": [
+     "full",
+     "Primary breakpoint edits cascade to others; custom widths supported; reset overrides not documented.",
+     [
+      "G10",
+      "G05"
+     ],
+     "documented"
+    ],
+    "FW-009": [
+     "full",
+     "Text styles set font size, line height, letter and paragraph spacing per breakpoint.",
+     [
+      "G11"
+     ],
+     "documented"
+    ],
+    "FW-010": [
+     "none",
+     "Hiding layers per breakpoint not found in Sites docs read.",
+     [],
+     "not verified"
+    ],
+    "FW-011": [
+     "full",
+     "Variables: color, number, string, boolean with collections, modes and aliases; available in Sites.",
+     [
+      "G12",
+      "G07"
+     ],
+     "documented"
+    ],
+    "FW-012": [
+     "partial",
+     "Text styles exist and are available in Sites; semantic tag is set per layer, not per style.",
+     [
+      "G13",
+      "G07",
+      "G03"
+     ],
+     "documented"
+    ],
+    "FW-013": [
+     "full",
+     "Components and instances supported; only instances placed on webpages; overrides reset or detach.",
+     [
+      "G07",
+      "G14"
+     ],
+     "documented"
+    ],
+    "FW-014": [
+     "full",
+     "Component properties (text, boolean, swap, slot) with instance overrides and per-property reset.",
+     [
+      "G15",
+      "G14"
+     ],
+     "documented"
+    ],
+    "FW-015": [
+     "full",
+     "Variants grouped in component sets with property values; instances pick values.",
+     [
+      "G16"
+     ],
+     "documented"
+    ],
+    "FW-016": [
+     "full",
+     "Named slot properties with preferred instances and layer count limits.",
+     [
+      "G17"
+     ],
+     "documented"
+    ],
+    "FW-017": [
+     "partial",
+     "Libraries publish and share components, styles, variables with review of updates; no versioned manifest.",
+     [
+      "G18",
+      "G07"
+     ],
+     "documented"
+    ],
+    "FW-018": [
+     "partial",
+     "Sites CMS collections with Title, Slug, text, rich text, link, image, date fields; 200 item beta cap.",
+     [
+      "G19"
+     ],
+     "documented"
+    ],
+    "FW-019": [
+     "full",
+     "CMS pages give each item its own URL from one template, using the item slug.",
+     [
+      "G20"
+     ],
+     "documented"
+    ],
+    "FW-020": [
+     "full",
+     "Text, image fills and links connect to CMS fields via Connect view.",
+     [
+      "G20"
+     ],
+     "documented"
+    ],
+    "FW-021": [
+     "partial",
+     "CMS lists repeat items with a limit; list-level empty state not documented.",
+     [
+      "G21"
+     ],
+     "documented"
+    ],
+    "FW-022": [
+     "none",
+     "Docs say filtering or sorting a CMS list is not currently supported.",
+     [
+      "G21"
+     ],
+     "documented"
+    ],
+    "FW-023": [
+     "partial",
+     "Limit property exists; filtering, sorting and pagination not supported, manual order only.",
+     [
+      "G21"
+     ],
+     "documented"
+    ],
+    "FW-024": [
+     "partial",
+     "CSV import with field type mapping and unique slug requirement; no CSV export documented.",
+     [
+      "G22",
+      "G23"
+     ],
+     "documented"
+    ],
+    "FW-025": [
+     "none",
+     "Field types listed have no reference or multireference type.",
+     [
+      "G22",
+      "G23"
+     ],
+     "not verified"
+    ],
+    "FW-026": [
+     "partial",
+     "Collection changes appear only after republish; no per-item draft or archived state documented.",
+     [
+      "G23",
+      "G24"
+     ],
+     "documented"
+    ],
+    "FW-027": [
+     "full",
+     "Hover effect and Press effect interactions; hover does not work on touch devices.",
+     [
+      "G25"
+     ],
+     "documented"
+    ],
+    "FW-028": [
+     "full",
+     "Reveal triggers on in view or page load; scroll transform and parallax available.",
+     [
+      "G25"
+     ],
+     "documented"
+    ],
+    "FW-029": [
+     "full",
+     "Change to action switches variants of a component set.",
+     [
+      "G25"
+     ],
+     "documented"
+    ],
+    "FW-030": [
+     "partial",
+     "Many effects and Smart Animate exist, but a multi-track timeline is not documented.",
+     [
+      "G25",
+      "G08"
+     ],
+     "documented"
+    ],
+    "FW-031": [
+     "partial",
+     "Conditional interaction with If and Else plus set variable; overlay focus management not documented.",
+     [
+      "G25"
+     ],
+     "documented"
+    ],
+    "FW-032": [
+     "none",
+     "No native Sites form fields documented; forms only via external embeds.",
+     [
+      "G26"
+     ],
+     "not verified"
+    ],
+    "FW-033": [
+     "none",
+     "No form submission inbox documented for Sites.",
+     [],
+     "not verified"
+    ],
+    "FW-034": [
+     "none",
+     "No form webhook delivery documented for Sites.",
+     [],
+     "not verified"
+    ],
+    "FW-035": [
+     "none",
+     "No form success or error state documented for Sites.",
+     [],
+     "not verified"
+    ],
+    "FW-036": [
+     "none",
+     "No form spam controls documented for Sites.",
+     [],
+     "not verified"
+    ],
+    "FW-037": [
+     "none",
+     "No hidden form tracking fields documented; links can carry UTM parameters.",
+     [
+      "G27"
+     ],
+     "not verified"
+    ],
+    "FW-038": [
+     "none",
+     "No multi-locale content support documented for Sites.",
+     [],
+     "not verified"
+    ],
+    "FW-039": [
+     "none",
+     "No localized CMS documented; CMS docs list no locale fields.",
+     [
+      "G24"
+     ],
+     "not verified"
+    ],
+    "FW-040": [
+     "partial",
+     "Site and page language code can be set; no hreflang or localized slugs documented.",
+     [
+      "G28"
+     ],
+     "documented"
+    ],
+    "FW-041": [
+     "none",
+     "No built-in machine translation workflow documented for Sites.",
+     [],
+     "not verified"
+    ],
+    "FW-042": [
+     "partial",
+     "Site and page SEO title, description, social image, noindex; CMS title templates not documented.",
+     [
+      "G28"
+     ],
+     "documented"
+    ],
+    "FW-043": [
+     "none",
+     "No sitemap or robots.txt generation documented; only a per-page noindex tag.",
+     [
+      "G28"
+     ],
+     "not verified"
+    ],
+    "FW-044": [
+     "partial",
+     "Apex and www domain redirect only; no per-path redirect rules documented.",
+     [
+      "G29"
+     ],
+     "documented"
+    ],
+    "FW-045": [
+     "full",
+     "Per-layer HTML tag, alt text, decorative via Hidden, and aria-label labels.",
+     [
+      "G03"
+     ],
+     "documented"
+    ],
+    "FW-046": [
+     "partial",
+     "Sites lists issues before publish and has a manual contrast tool; no node IDs or severity levels documented.",
+     [
+      "G30",
+      "G03"
+     ],
+     "documented"
+    ],
+    "FW-047": [
+     "partial",
+     "Custom code can be added to the site head, so JSON-LD can be pasted; no JSON-LD editor or serializer.",
+     [
+      "G28"
+     ],
+     "documented"
+    ],
+    "FW-048": [
+     "partial",
+     "Editor preview at breakpoints, but no immutable release snapshots or shareable preview paths documented.",
+     [
+      "G08",
+      "G30"
+     ],
+     "documented"
+    ],
+    "FW-049": [
+     "full",
+     "Publish history lets you republish a previous version, which goes live immediately.",
+     [
+      "G30"
+     ],
+     "documented"
+    ],
+    "FW-050": [
+     "full",
+     "Custom domains on paid plans with DNS verification and automatic SSL; Figma hosts the site.",
+     [
+      "G29"
+     ],
+     "documented"
+    ],
+    "FW-077": [
+     "partial",
+     "One favicon chosen from a canvas image (48px advised); no dark variant or Apple touch icon documented.",
+     [
+      "G28"
+     ],
+     "documented"
+    ],
+    "FW-078": [
+     "full",
+     "One password for the whole site or per page on paid plans; Enterprise admins can require it.",
+     [
+      "G28",
+      "G31"
+     ],
+     "documented"
+    ],
+    "FW-079": [
+     "none",
+     "No built-in QR code feature found in official docs; community plugins could not be fetched.",
+     [],
+     "not verified"
+    ],
+    "FW-051": [
+     "full",
+     "Branches are isolated copies with review requests, conflict resolution and merge; Org and Enterprise plans.",
+     [
+      "G32",
+      "G33"
+     ],
+     "documented"
+    ],
+    "FW-052": [
+     "partial",
+     "Comments pin to top-level frames only; access roles (view, edit) control who can comment or edit.",
+     [
+      "G34"
+     ],
+     "documented"
+    ],
+    "FW-053": [
+     "full",
+     "Live multiplayer cursors with up to 200 simultaneous editors per file.",
+     [
+      "G35"
+     ],
+     "documented"
+    ],
+    "FW-068": [
+     "partial",
+     "Branch reviewers can approve before merge, but no approval gate before publishing a site.",
+     [
+      "G32",
+      "G31"
+     ],
+     "documented"
+    ],
+    "FW-054": [
+     "partial",
+     "REST API reads files and posts comments; variables can be written (Enterprise); no full design node CRUD.",
+     [
+      "G36",
+      "G37"
+     ],
+     "documented"
+    ],
+    "FW-055": [
+     "full",
+     "Figma MCP server (hosted) gives agents design context and canvas write tools.",
+     [
+      "G38"
+     ],
+     "documented"
+    ],
+    "FW-056": [
+     "partial",
+     "MCP access and writes follow seat and file permissions; an attributed audit trail is not documented.",
+     [
+      "G38"
+     ],
+     "documented"
+    ],
+    "FW-057": [
+     "full",
+     "Sites code components are React with props and npm packages; instances stay linked. Export not documented.",
+     [
+      "G39",
+      "G40"
+     ],
+     "documented"
+    ],
+    "FW-058": [
+     "partial",
+     "Make apps can use Supabase secrets or Payload env vars for private API keys; no visual fetch descriptor.",
+     [
+      "G41"
+     ],
+     "documented"
+    ],
+    "FW-059": [
+     "partial",
+     "Make code downloads as a zip (React source); Sites has no documented static HTML export.",
+     [
+      "G42"
+     ],
+     "documented"
+    ],
+    "FW-060": [
+     "none",
+     "No portable export of CMS pages or locales found in official docs.",
+     [
+      "G20"
+     ],
+     "not verified"
+    ],
+    "FW-061": [
+     "partial",
+     "Save local .fig copy and re-import, but it loses history and comments and relinks components.",
+     [
+      "G43"
+     ],
+     "documented"
+    ],
+    "FW-062": [
+     "none",
+     "No native catalog, variants or inventory in Sites or Make found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-063": [
+     "none",
+     "No native cart, payments, shipping or tax checkout found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-064": [
+     "partial",
+     "Site password protection only; Make Payload backends add accounts and permissions.",
+     [
+      "G28",
+      "G41"
+     ],
+     "documented"
+    ],
+    "FW-065": [
+     "partial",
+     "Google Analytics ID and cookie consent categories; no experiments or A/B assignment documented.",
+     [
+      "G28",
+      "G44"
+     ],
+     "documented"
+    ],
+    "FW-066": [
+     "full",
+     "Libraries share color and text styles, variables and logo components, usable via pickers.",
+     [
+      "G45"
+     ],
+     "documented"
+    ],
+    "FW-067": [
+     "partial",
+     "Figma Buzz template guidelines lock logos, text and images; no color or font restriction or brand check.",
+     [
+      "G46"
+     ],
+     "documented"
+    ],
+    "FW-069": [
+     "full",
+     "Figma Make builds editable web apps and sites from prompts with attached frames and images.",
+     [
+      "G47"
+     ],
+     "documented"
+    ],
+    "FW-070": [
+     "full",
+     "Sites AI rewrites, translates, shortens text and changes tone; paid plan with credits.",
+     [
+      "G48"
+     ],
+     "documented"
+    ],
+    "FW-071": [
+     "full",
+     "Make an image from a prompt in Design, Sites and Buzz; no provenance metadata documented.",
+     [
+      "G49",
+      "G48"
+     ],
+     "documented"
+    ],
+    "FW-072": [
+     "full",
+     "AI remove background plus lasso erase or isolate of image areas; paid plans.",
+     [
+      "G49"
+     ],
+     "documented"
+    ],
+    "FW-073": [
+     "partial",
+     "Buzz has a built-in Unsplash stock library; no bundled icon library or per-asset license data documented.",
+     [
+      "G50"
+     ],
+     "documented"
+    ],
+    "FW-074": [
+     "partial",
+     "Buzz bulk create maps CSV or XLSX columns to text and image layers, generating assets rather than pages.",
+     [
+      "G51"
+     ],
+     "documented"
+    ],
+    "FW-075": [
+     "full",
+     "Published libraries share styles, variables and components across files with access control.",
+     [
+      "G45"
+     ],
+     "documented"
+    ],
+    "FW-076": [
+     "partial",
+     "Embed blocks for iframe content such as video and Google Maps; embeds wait for cookie consent. No allowlist.",
+     [
+      "G26",
+      "G44"
+     ],
+     "documented"
+    ],
+    "FW-140": [
+     "none",
+     "Docs state filtering or sorting a CMS list is not currently supported.",
+     [
+      "G21"
+     ],
+     "documented"
+    ],
+    "FW-141": [
+     "none",
+     "No slider or carousel bound to a CMS list documented; interactions list only marquee and scroll effects.",
+     [
+      "G25"
+     ],
+     "not verified"
+    ],
+    "FW-142": [
+     "partial",
+     "Tables exist in FigJam and Slides; Sites exposes table roles, but no semantic table element.",
+     [
+      "G52",
+      "G03"
+     ],
+     "documented"
+    ],
+    "FW-143": [
+     "partial",
+     "Collection items can be reordered by drag; no collection folders documented.",
+     [
+      "G21"
+     ],
+     "documented"
+    ],
+    "FW-144": [
+     "none",
+     "Duplicating a CMS page template is not documented; only layer duplication within a page is.",
+     [
+      "G20"
+     ],
+     "not verified"
+    ],
+    "FW-145": [
+     "none",
+     "Nested lists and multi-level references are not documented; field types lack references.",
+     [
+      "G19",
+      "G21"
+     ],
+     "not verified"
+    ],
+    "FW-146": [
+     "partial",
+     "Type settings offer superscript and subscript; baseline shift is not documented.",
+     [
+      "G53"
+     ],
+     "documented"
+    ],
+    "FW-147": [
+     "none",
+     "No site or file level default gap, padding or columns documented for auto layout.",
+     [
+      "G06"
+     ],
+     "not verified"
+    ],
+    "FW-148": [
+     "partial",
+     "Sites sets alt text and tags manually and has a color contrast tool; no automated audit of these checks.",
+     [
+      "G03",
+      "G30"
+     ],
+     "documented"
+    ],
+    "FW-149": [
+     "none",
+     "No multi-step forms, upload fields or validation presets documented; forms only via embeds.",
+     [
+      "G26"
+     ],
+     "not verified"
+    ],
+    "FW-150": [
+     "none",
+     "Export docs list PNG, JPG, SVG and PDF and do not mention comments or annotations.",
+     [
+      "G54"
+     ],
+     "not verified"
+    ],
+    "FW-151": [
+     "partial",
+     "PDF export exists with image quality options, but bleed and crop marks are not documented.",
+     [
+      "G55"
+     ],
+     "documented"
+    ],
+    "FW-080": [
+     "partial",
+     "Linear, radial, angular, diamond on fill and stroke with stops and rotate; stop opacity not in the page.",
+     [
+      "G56"
+     ],
+     "documented"
+    ],
+    "FW-081": [
+     "full",
+     "Masks clip sibling layers and can be removed with Remove mask.",
+     [
+      "G57"
+     ],
+     "documented"
+    ],
+    "FW-082": [
+     "partial",
+     "Alpha and luminance masks are documented; invert and link options are not.",
+     [
+      "G57"
+     ],
+     "documented"
+    ],
+    "FW-083": [
+     "full",
+     "Stroke position menu sets inside, outside or center.",
+     [
+      "G58"
+     ],
+     "documented"
+    ],
+    "FW-084": [
+     "partial",
+     "Cut tool divides vector objects; freehand cutting of filled shapes is not documented.",
+     [
+      "G59"
+     ],
+     "documented"
+    ],
+    "FW-085": [
+     "full",
+     "Eraser tool removes parts of vector paths or shapes.",
+     [
+      "G59"
+     ],
+     "documented"
+    ],
+    "FW-086": [
+     "full",
+     "Group and ungroup with shortcuts; double-click selects a layer inside a group.",
+     [
+      "G60"
+     ],
+     "documented"
+    ],
+    "FW-087": [
+     "full",
+     "Shape builder merges dragged regions and subtracts with Alt-click.",
+     [
+      "G61"
+     ],
+     "documented"
+    ],
+    "FW-088": [
+     "full",
+     "Variable width tool adjusts stroke thickness along the path; presets and width points exist.",
+     [
+      "G58",
+      "G62"
+     ],
+     "documented"
+    ],
+    "FW-089": [
+     "full",
+     "Align and distribute spacing tools arrange selected layers.",
+     [
+      "G63"
+     ],
+     "documented"
+    ],
+    "FW-090": [
+     "full",
+     "Snaps to object centers and edges with red guides; pixel grid snapping available.",
+     [
+      "G63",
+      "G64"
+     ],
+     "documented"
+    ],
+    "FW-091": [
+     "partial",
+     "Numeric X/Y, rotate, flip and rotation origin; shear and Transform Each are not documented.",
+     [
+      "G63"
+     ],
+     "documented"
+    ],
+    "FW-092": [
+     "partial",
+     "On-canvas rotate and resize handles exist; shear and perspective handles are not documented.",
+     [
+      "G63"
+     ],
+     "documented"
+    ],
+    "FW-093": [
+     "partial",
+     "Linear and radial repeat transforms exist; blend between shapes, grid and mirror are not documented.",
+     [
+      "G65",
+      "G66"
+     ],
+     "documented"
+    ],
+    "FW-094": [
+     "none",
+     "No warp presets or distort effects found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-095": [
+     "partial",
+     "Text on a path tool with start handle and flip side; size and offset controls not described.",
+     [
+      "G67",
+      "G68"
+     ],
+     "documented"
+    ],
+    "FW-096": [
+     "partial",
+     "SVG can be pasted into a file; no sanitizing import route, and marker and pattern elements are dropped.",
+     [
+      "G69"
+     ],
+     "documented"
+    ],
+    "FW-152": [
+     "none",
+     "No in-editor terminal dock found; Figma MCP server lets external agents edit files instead.",
+     [],
+     "not verified"
+    ],
+    "FW-153": [
+     "none",
+     "No build-your-own desktop app feature found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-154": [
+     "partial",
+     "MCP server write tools and an actions menu exist; no unified command registry or Allow/Deny prompts documented.",
+     [
+      "G38",
+      "G70"
+     ],
+     "documented"
+    ],
+    "FW-155": [
+     "partial",
+     "Interface language switch in Settings, but docs list about 8 to 10 languages, not 26.",
+     [
+      "G71"
+     ],
+     "documented"
+    ],
+    "FW-156": [
+     "full",
+     "Components with linked instances that update from the main component; detach and swap documented as articles.",
+     [
+      "G72"
+     ],
+     "documented"
+    ],
+    "FW-157": [
+     "partial",
+     "Vectorize converts images with full color, grayscale and black and white modes; no presets or Ignore White.",
+     [
+      "G73",
+      "G66"
+     ],
+     "documented"
+    ],
+    "FW-158": [
+     "partial",
+     "Stretch and scatter brushes and custom brushes from closed paths; no calligraphic, art or bristle types.",
+     [
+      "G74",
+      "G68"
+     ],
+     "documented"
+    ],
+    "FW-159": [
+     "partial",
+     "Dash and gap pattern syntax and arrow tips on line ends; corner alignment and tip placement not documented.",
+     [
+      "G58"
+     ],
+     "documented"
+    ],
+    "FW-160": [
+     "partial",
+     "Select matching layers, inverse selection, lasso in vector edit and eyedropper for color; no magic wand or appearance copy.",
+     [
+      "G75",
+      "G76",
+      "G59",
+      "G68"
+     ],
+     "documented"
+    ],
+    "FW-161": [
+     "partial",
+     "Pen adds points, Pencil and Arc tools exist; Divide Objects Below, Split Into Grid, Clean Up and grid tools not found.",
+     [
+      "G59",
+      "G74",
+      "G77"
+     ],
+     "documented"
+    ],
+    "FW-162": [
+     "partial",
+     "Rulers, drag-out guides, pixel grid snapping and an outlines view; lock, hide and clear guides not documented.",
+     [
+      "G78",
+      "G64",
+      "G79"
+     ],
+     "documented"
+    ],
+    "FW-163": [
+     "partial",
+     "Export PNG, JPG, SVG and PDF with scale and suffix; WebP not listed and SVG and PDF only at 1x.",
+     [
+      "G55"
+     ],
+     "documented"
+    ],
+    "FW-164": [
+     "none",
+     "No Recolor Artwork feature found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-165": [
+     "partial",
+     "Color, text and effect styles update every object using them; save-from-appearance steps not confirmed on page.",
+     [
+      "G80"
+     ],
+     "documented"
+    ],
+    "FW-166": [
+     "none",
+     "No Puppet Warp found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-167": [
+     "none",
+     "No Reshape tool found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-168": [
+     "none",
+     "No Global Edit equivalent found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-169": [
+     "none",
+     "No Tweak distort effect found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-170": [
+     "none",
+     "No Objects on Path feature found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-171": [
+     "none",
+     "Brush tool draws strokes; no filled merging Blob Brush found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-172": [
+     "none",
+     "No Live Paint found in official docs.",
+     [],
+     "not verified"
+    ],
+    "FW-173": [
+     "partial",
+     "OpenType panel covers ligatures, ordinals, fractions, stylistic sets and kerning; small caps not mentioned.",
+     [
+      "G81"
+     ],
+     "documented"
+    ],
+    "FW-174": [
+     "partial",
+     "Pattern is a fill type and repeat transforms make patterns; Pattern Options tile types and swatches not documented.",
+     [
+      "G82",
+      "G65"
+     ],
+     "documented"
+    ],
+    "FW-175": [
+     "partial",
+     "Area text wraps in a drag-sized box; flowing into any closed path, insets and overflow indicator not documented.",
+     [
+      "G67"
+     ],
+     "documented"
+    ],
+    "FW-176": [
+     "full",
+     "Many top-level frames per page with presets, resize to fit, duplicate and per-frame export.",
+     [
+      "G83",
+      "G55"
+     ],
+     "documented"
+    ],
+    "FW-177": [
+     "none",
+     "No freeform or mesh gradient found in the gradient help page.",
+     [],
+     "not verified"
+    ]
+   }
+  }
+ ]
+}

@@ -213,8 +213,49 @@ def render(data: dict) -> str:
 '''
 
 
+LANES = FOLDER / "data" / "vendor-lanes.json"
+
+
+def vendor_lanes(data: dict) -> dict:
+    """Apply docs/comparisons/data/vendor-lanes.json: drop the listed vendor lanes (with their cells, platform column,
+    summary, colours, sources and claims) and add new lanes, each placed after a named lane, with one cell per row."""
+    if not LANES.is_file():
+        return data
+    spec = json.loads(LANES.read_text(encoding="utf-8"))
+    old = [lane[0] for lane in data["lanes"]]
+    drop = set(spec.get("drop", []))
+    lanes = [lane for lane in data["lanes"] if lane[0] not in drop]
+    for add in spec.get("add", []):
+        at = next((i + 1 for i, lane in enumerate(lanes) if lane[0] == add.get("after")), len(lanes))
+        lanes.insert(at, add["lane"])
+    keys = [lane[0] for lane in lanes]
+    cells = {add["lane"][0]: add["cells"] for add in spec.get("add", [])}
+    missing = [(k, row["id"]) for k in cells for row in data["rows"] if row["id"] not in cells[k]]
+    if missing:
+        raise ValueError(f"vendor lane cells missing for {missing[:5]}")
+    by = set(spec.get("drop_sources_by", []))
+    data["src"] = {**{k: v for k, v in data["src"].items() if v.get("by") not in by}, **spec.get("src", {})}
+    for row in data["rows"]:
+        for k in drop:
+            row.pop(k, None)
+        for k, table in cells.items():
+            row[k] = table[row["id"]]
+        row["src"] = [s for s in row["src"] if s in data["src"]]
+    platform_add = {add["lane"][0]: add["platform"] for add in spec.get("add", [])}
+    data["platform"] = [[item[0]] + [item[old.index(k) + 1] if k in old else platform_add[k][n] for k in keys] for n, item in enumerate(data["platform"])]
+    data["vp"] = {k: data["vp"][k] if k in data["vp"] else next(a["vp"] for a in spec["add"] if a["lane"][0] == k) for k in keys}
+    gone = {lane[3] for lane in data["lanes"] if lane[0] in drop}
+    for shade in ("light", "dark"):
+        data["colors"][shade] = {name: v for name, v in data["colors"][shade].items() if name not in gone}
+        for add in spec.get("add", []):
+            data["colors"][shade][add["lane"][3]] = add["colors"][shade]
+    data["claims"] = [c for c in data["claims"] if not c[2] or any(s in data["src"] for s in c[2])]
+    data["lanes"] = lanes
+    return data
+
+
 def build(args) -> dict:
-    data = json.loads(DATA.read_text(encoding="utf-8"))
+    data = vendor_lanes(json.loads(DATA.read_text(encoding="utf-8")))
     version = args.version or data["version"]
     if version != data["version"]:
         return {"ok": False, "error": f"data is for v{data['version']}, not v{version}", "hint": "update version in docs/comparisons/data/formweb-parity.json"}
