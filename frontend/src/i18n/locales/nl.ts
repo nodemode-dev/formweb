@@ -1909,4 +1909,6 @@ export default [
   "Levende verf maken",
   "Levende verf uitvouwen",
   "Levende verf vrijgeven",
+  "Koppeling verwijderen",
+  "Klik op een gesloten vorm om de tekst daarin voort te zetten, of op een lege plek voor een nieuwe vorm. Esc annuleert.",
 ] as readonly string[];

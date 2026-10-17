@@ -1909,4 +1909,6 @@ export default [
   "Luo elävä maalaus",
   "Laajenna elävä maalaus",
   "Vapauta elävä maalaus",
+  "Poista ketjutus",
+  "Napsauta suljettua muotoa jatkaaksesi tekstiä siinä tai tyhjää kohtaa uutta muotoa varten. Esc peruuttaa.",
 ] as readonly string[];

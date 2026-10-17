@@ -1909,4 +1909,6 @@ export default [
   "Criar Pintura em tempo real",
   "Expandir Pintura em tempo real",
   "Liberar Pintura em tempo real",
+  "Remover encadeamento",
+  "Clique em uma forma fechada para continuar o texto nela, ou em um espaço vazio para uma nova forma. Esc cancela.",
 ] as readonly string[];

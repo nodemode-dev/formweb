@@ -1909,4 +1909,6 @@ export default [
   "Lag levende maling",
   "Utvid levende maling",
   "Frigjør levende maling",
+  "Fjern kjeding",
+  "Klikk på en lukket form for å fortsette teksten i den, eller klikk på et tomt sted for en ny form. Esc avbryter.",
 ] as readonly string[];

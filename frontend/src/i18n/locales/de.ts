@@ -1909,4 +1909,6 @@ export default [
   "Interaktive Malgruppe erstellen",
   "Interaktive Malgruppe umwandeln",
   "Interaktive Malgruppe zurückwandeln",
+  "Verkettung entfernen",
+  "Klicken Sie auf eine geschlossene Form, um den Text darin fortzusetzen, oder auf eine leere Stelle für eine neue Form. Esc bricht ab.",
 ] as readonly string[];

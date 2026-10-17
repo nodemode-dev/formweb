@@ -1909,4 +1909,6 @@ export default [
   "Buat Live Paint",
   "Bentangkan Live Paint",
   "Lepaskan Live Paint",
+  "Hapus rangkaian",
+  "Klik bentuk tertutup untuk melanjutkan teks di dalamnya, atau klik tempat kosong untuk bentuk baru. Esc membatalkan.",
 ] as readonly string[];

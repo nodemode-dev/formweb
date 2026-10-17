@@ -1909,4 +1909,6 @@ export default [
   "Canlı Boya oluştur",
   "Canlı Boyayı genişlet",
   "Canlı Boyayı serbest bırak",
+  "Bağlantıyı kaldır",
+  "Metni içinde sürdürmek için kapalı bir şekle veya yeni bir şekil için boş bir yere tıklayın. Esc iptal eder.",
 ] as readonly string[];

@@ -1909,4 +1909,6 @@ export default [
   "Tạo Live Paint",
   "Mở rộng Live Paint",
   "Gỡ Live Paint",
+  "Xóa nối luồng",
+  "Bấm vào một hình khép kín để văn bản chảy tiếp vào đó, hoặc bấm vào chỗ trống để tạo hình mới. Esc để hủy.",
 ] as readonly string[];

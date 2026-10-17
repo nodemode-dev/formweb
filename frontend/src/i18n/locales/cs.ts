@@ -1909,4 +1909,6 @@ export default [
   "Vytvořit živou malbu",
   "Rozdělit živou malbu",
   "Uvolnit živou malbu",
+  "Odstranit propojení",
+  "Klepněte na uzavřený tvar, do kterého má text pokračovat, nebo na prázdné místo pro nový tvar. Esc ruší.",
 ] as readonly string[];

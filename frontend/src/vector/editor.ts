@@ -474,6 +474,12 @@ export class Editor {
     event.preventDefault();
     this.frames.clear();
     const tool = this.tool;
+    if (this.extras.threadLoaded() && !role.startsWith('x-')) {
+      const hit = this.pickPath(p);
+      void this.extras.placeThread(hit?.kind === 'path' ? hit.id : null, p);
+      this.render();
+      return;
+    }
     if (role === 'capture' && (tool === 'select' || tool === 'direct' || tool === 'reshape') && this.view.pointerDown(p, event)) return;
     if (tool === 'puppet') { this.puppet.down(role, index, p, event); return; }
     if (tool === 'reshape' && (role === 'anchor' || role === 'capture') && this.reshape.down(p, event, role === 'anchor')) return;

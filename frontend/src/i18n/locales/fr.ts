@@ -1909,4 +1909,6 @@ export default [
   "Créer un groupe de peinture dynamique",
   "Développer la peinture dynamique",
   "Annuler la peinture dynamique",
+  "Supprimer le chaînage",
+  "Cliquez sur une forme fermée pour y poursuivre le texte, ou sur un espace vide pour une nouvelle forme. Échap annule.",
 ] as readonly string[];

@@ -166,21 +166,65 @@ const shapeSubs = (site: Site, patched?: Map<string, Record<string, string | nul
 
 /* Type > Threaded Text > Create: link the area type to more closed shapes, in the order given. Each new shape gets
    an empty text after it with the same font; the words are laid out again through the whole thread. */
-export function threadCommands(site: Site, text: SiteNode, spec: AreaSpec, shapes: { id: string; parent: string; index: number }[]): Command[] | null {
+export function threadCommands(site: Site, text: SiteNode, spec: AreaSpec, shapes: { id: string; parent: string; index: number; d?: string }[], at?: number, taken = new Set<string>()): Command[] | null {
   const chain: [string, string][] = [...(spec.chain ?? [])];
   const used = new Set([spec.src, ...chain.map(l => l[0])]);
   const o = areaOptionsOf(text, spec);
-  const taken = new Set<string>();
   const cmds: Command[] = [];
+  const fresh = new Map<string, Record<string, string | null>>();
+  let slot = at === undefined ? chain.length : Math.max(0, Math.min(chain.length, at));
   for (const s of shapes) {
     if (used.has(s.id) || chain.length >= THREAD_LIMIT) continue;
     const id = freshId(site, taken, 'text');
     cmds.push({ command: 'node.add', params: { parent: s.parent, node: { id, tag: 'text', name: 'Threaded type', attrs: fontAttrs(o) } } }, { command: 'node.move', params: { id, parent: s.parent, index: s.index } });
-    chain.push([s.id, id]);
+    chain.splice(slot++, 0, [s.id, id]);
     used.add(s.id);
+    if (s.d) fresh.set(s.id, { d: s.d });
   }
   if (!cmds.length) return null;
-  return [...cmds, ...relayoutChain(site, text, spec, o, shapeSubs(site), chain).cmds];
+  return [...cmds, ...relayoutChain(site, text, spec, o, shapeSubs(site, fresh), chain).cmds];
+}
+
+/* The shapes of a thread in reading order: the first shape, then each linked shape. */
+export function threadShapes(spec: AreaSpec): string[] { return [spec.src, ...(spec.chain ?? []).map(l => l[0])]; }
+
+/* Double-clicking a port breaks the thread there: the shapes after the break keep their outlines, their texts
+   go, and the words flow back into the shapes before it. `after` is the index of the last shape kept. */
+export function breakThreadCommands(site: Site, text: SiteNode, spec: AreaSpec, after: number): Command[] {
+  const chain = spec.chain ?? [];
+  const keep = Math.max(0, Math.min(chain.length, after));
+  if (keep >= chain.length) return [];
+  const o = areaOptionsOf(text, spec);
+  return [...chain.slice(keep).filter(([, t]) => site.nodes[t]).map(([, t]) => removeNode(t)), ...relayoutChain(site, text, spec, o, shapeSubs(site), chain.slice(0, keep)).cmds];
+}
+
+const joinTokens = (list: Token[]): string => {
+  let out = '';
+  for (const tok of list) out += 'para' in tok ? '\n' : out && !out.endsWith('\n') ? ` ${tok.word}` : tok.word;
+  return out;
+};
+
+/* Type > Threaded Text > Remove Threading: every shape keeps the words it shows now as its own area type, and the
+   last one keeps the overflow. Nothing moves, so the lines stay as they are. */
+export function removeThreadingCommands(site: Site, text: SiteNode, spec: AreaSpec): Command[] {
+  const links = (spec.chain ?? []).filter(([s, t]) => site.nodes[s] && site.nodes[t]);
+  if (!links.length) return [];
+  const o = areaOptionsOf(text, spec);
+  const measure = measurer(o);
+  const subsOf = shapeSubs(site);
+  const parts: [string, string][] = [[spec.src, text.id], ...links];
+  const cmds: Command[] = [];
+  let remaining = o.text;
+  parts.forEach(([shapeId, textId], k) => {
+    const subs = subsOf(shapeId);
+    const res = subs && remaining.trim() ? layoutArea(subs, { ...o, text: remaining }, measure) : { rest: remaining, overflow: 0 };
+    const last = k === parts.length - 1;
+    const all = tokens(remaining);
+    const head = last ? remaining : joinTokens(all.slice(0, Math.max(0, all.length - tokens(res.rest).length)));
+    cmds.push(updateAttrs(textId, { 'data-fw-area': areaAttr(shapeId, { ...o, text: head }, undefined, last ? res.overflow : 0) }));
+    remaining = last ? '' : res.rest;
+  });
+  return cmds;
 }
 
 /* Thread from the selection: the selected area type (or its shape) plus the other selected closed paths, in

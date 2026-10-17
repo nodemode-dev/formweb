@@ -15,7 +15,8 @@ import { matrixText, parseTransform, useFrame } from './symbols';
 import { liveOf } from './live';
 import { FREEFORM_LIMIT, SPREAD_MIN, freeformGradient, readFreeform, sourceBox, stopsOf, turnHue, writeStops, type FreeformSpec, type FreeformStop } from './freeform';
 import { openFreeformStop } from './pathdialogs';
-import { readArea } from './areatype';
+import { areaTextFor, breakThreadCommands, readArea, threadCommands, threadShapes, type AreaSpec } from './areatype';
+import { t } from '../i18n';
 import { paintFill, readLivePaint, type LivePaintSpec } from './livepaint';
 import { readWarp, warpBox, type WarpSpec } from './warp';
 import { readWidth, widthCommands } from './stroke';
@@ -124,6 +125,7 @@ export class Extras {
     if (role === 'x-wpt') return this.startWidthPoint(index, event.altKey);
     if (role === 'x-tbracket') return this.startTypeBracket();
     if (role === 'x-tf') return this.startTransform(index);
+    if (role === 'x-tin' || role === 'x-tout') return this.downPort(role === 'x-tout', index);
     if (role === 'x-use') return this.startUse(index);
     if (role === 'x-mesh') {
       const state = this.meshState();
@@ -189,6 +191,7 @@ export class Extras {
   key(event: KeyboardEvent): boolean {
     if (event.key !== 'Escape') return false;
     if (this.gesture) { this.gesture = null; this.h.render(); return true; }
+    if (this.threadLoad) { this.threadLoad = null; this.h.render(); return true; }
     if (this.ffLine) { this.ffLine = 0; this.h.render(); return true; }
     if (this.iso) { this.exit(); return true; }
     return false;
@@ -656,7 +659,7 @@ export class Extras {
       });
     }
     if (tool === 'width') this.decorateWidth(items, g);
-    if (tool === 'select' || tool === 'direct') { this.decorateType(items, g); this.decorateUse(items, g); this.decorateOverflow(items); }
+    if (tool === 'select' || tool === 'direct') { this.decorateType(items, g); this.decorateUse(items, g); this.decorateOverflow(items, this.decoratePorts(items)); }
     if (tool === 'direct') this.decorateMesh(items, g);
     if (tool === 'gradient') this.decorateGradient(items, g);
     if (tool === 'transform') this.decorateTransform(items);
@@ -866,12 +869,108 @@ export class Extras {
     items.push({ kind: 'circle', x: a[0], y: a[1], r: 3, cls: 'gend', role: 'x-gstart', i: 0 }, { kind: 'circle', x: b[0], y: b[1], r: 3, cls: 'gend', role: 'x-gend', i: 1 });
   }
 
+  /* In and out ports on selected area type: a port at the top left and bottom right of every shape in the thread,
+     the out port of the last shape marked with a plus when words are left over, and a thread line from each out
+     port to the next in port. A click on an out port (or on the in port of a linked shape) loads the text; a
+     double-click on a port breaks the thread there. */
+  private portsOf(): { text: string; spec: AreaSpec; ports: { k: number; inP: Pt; outP: Pt }[] } | null {
+    const site = this.h.site();
+    const found = this.h.selection().map(id => areaTextFor(site, id)).find(Boolean);
+    if (!found) return null;
+    const ports: { k: number; inP: Pt; outP: Pt }[] = [];
+    threadShapes(found.spec).forEach((id, k) => {
+      const shape = this.h.shape(id);
+      const f = shape ? this.h.frame(shape.svg) : undefined;
+      const box = shape ? pathBounds(shape.subs) : null;
+      if (f && box) ports.push({ k, inP: this.h.toShell(f, [box.x, box.y]), outP: this.h.toShell(f, [box.x + box.w, box.y + box.h]) });
+    });
+    return { text: found.text.id, spec: found.spec, ports };
+  }
+
+  private decoratePorts(items: ExtraItem[]): string | null {
+    const got = this.portsOf();
+    if (!got) return null;
+    const { spec, ports } = got;
+    const last = ports.length - 1;
+    ports.forEach(({ k, inP, outP }, n) => {
+      if (n < last) items.push({ kind: 'line', x1: outP[0], y1: outP[1], x2: ports[n + 1].inP[0], y2: ports[n + 1].inP[1], cls: 'thread' });
+      const more = n === last && !!spec.over;
+      if (more) items.push({ kind: 'path', d: `M${outP[0] - 3} ${outP[1]}h6M${outP[0]} ${outP[1] - 3}v6`, cls: 'overflow' });
+      const loaded = this.threadLoad?.text === got.text && this.threadLoad.at === k + 1;
+      items.push({ kind: 'circle', x: inP[0], y: inP[1], r: 5, cls: 'tport', role: 'x-tin', i: k });
+      items.push({ kind: 'circle', x: outP[0], y: outP[1], r: 5, cls: loaded ? 'tport-on' : more ? 'tport-more' : 'tport', role: 'x-tout', i: k });
+    });
+    return got.text;
+  }
+
+  private threadLoad: { text: string; at: number } | null = null;
+  private portClick = { key: '', at: 0 };
+
+  threadLoaded(): boolean { return this.threadLoad !== null; }
+
+  private downPort(out: boolean, k: number): boolean {
+    const got = this.portsOf();
+    if (!got) return false;
+    if (!out && k === 0) return true;
+    const key = `${got.text}:${out ? 'o' : 'i'}:${k}`;
+    const now = performance.now();
+    const twice = this.portClick.key === key && now - this.portClick.at < 450;
+    this.portClick = { key: twice ? '' : key, at: now };
+    /* The thread between shape k and the next is broken from its out port; from an in port, the one before it. */
+    if (twice) {
+      this.threadLoad = null;
+      const site = this.h.site();
+      const text = site.nodes[got.text];
+      const cmds = text ? breakThreadCommands(site, text, got.spec, out ? k : k - 1) : [];
+      if (cmds.length) void this.h.commit(cmds);
+      return true;
+    }
+    this.threadLoad = { text: got.text, at: out ? k + 1 : k };
+    this.h.notify(t('Click a closed shape to continue the text in it, or click an empty spot for a new shape. Esc cancels.'));
+    return true;
+  }
+
+  /* With the text loaded, a click on a closed shape outside the thread links it after the loaded port; a click on
+     an empty spot makes a copy of the shape before it there, with its top left corner at the click. */
+  async placeThread(hit: string | null, p: Pt): Promise<void> {
+    const load = this.threadLoad;
+    this.threadLoad = null;
+    if (!load) return;
+    const site = this.h.site();
+    const text = site.nodes[load.text];
+    const spec = text ? readArea(text.attrs['data-fw-area']) : null;
+    if (!text || !spec) return;
+    const order = threadShapes(spec);
+    if (hit && order.includes(hit)) { this.h.notify(t('These shapes are already in the thread.')); this.h.render(); return; }
+    if (hit) {
+      const shape = this.h.shape(hit);
+      if (!shape || !shape.subs.some(s => s.closed)) { this.h.notify(t('Select one or more closed shapes to thread the text into.')); this.h.render(); return; }
+      const parent = this.h.parentOf(hit) ?? shape.svg;
+      const cmds = threadCommands(site, text, spec, [{ id: hit, parent, index: site.nodes[parent].children.indexOf(hit) + 1 }], load.at);
+      if (cmds) await this.h.commit(cmds);
+      return;
+    }
+    const model = this.h.shape(order[Math.max(0, load.at - 1)]);
+    const f = model ? this.h.frame(model.svg) : undefined;
+    const box = model ? pathBounds(model.subs) : null;
+    if (!model || !f || !box) return;
+    const at = this.local(f, p);
+    const subs = mapPath(model.subs, q => [q[0] - box.x + at[0], q[1] - box.y + at[1]]);
+    const taken = new Set<string>();
+    const id = freshId(site, taken, 'path');
+    const parent = this.h.parentOf(model.id) ?? model.svg;
+    const index = site.nodes[parent].children.length;
+    const made = threadCommands(site, text, spec, [{ id, parent, index: index + 1, d: formatPath(subs) }], load.at, taken);
+    if (!made) return;
+    await this.h.commit([addPath(parent, id, subs, model.paint), moveNode(id, parent, index), ...made]);
+  }
+
   /* Area type with words left over: a plus in a box at the bottom right of the last shape in its thread (the out port
-     plus sign). */
-  private decorateOverflow(items: ExtraItem[]): void {
+     plus sign). A selected thread shows its ports instead. */
+  private decorateOverflow(items: ExtraItem[], skip: string | null): void {
     const site = this.h.site();
     for (const n of Object.values(site.nodes)) {
-      if (n.tag !== 'text' || !n.attrs['data-fw-area']) continue;
+      if (n.tag !== 'text' || !n.attrs['data-fw-area'] || n.id === skip) continue;
       const spec = readArea(n.attrs['data-fw-area']);
       if (!spec?.over) continue;
       const last = spec.chain?.length ? spec.chain[spec.chain.length - 1][0] : spec.src;

@@ -1909,4 +1909,6 @@ export default [
   "Crea pittura dinamica",
   "Espandi pittura dinamica",
   "Svincola pittura dinamica",
+  "Rimuovi concatenazione",
+  "Fai clic su una forma chiusa per continuarvi il testo, oppure su uno spazio vuoto per una nuova forma. Esc annulla.",
 ] as readonly string[];
