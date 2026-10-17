@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.0 · 2026-10-17
+
+- Artboards panel: Move up and Move down change the order of artboards, which is also the order used when exporting all artboards.
+- Rearrange All Artboards: lay out the artboards on the page as a grid by row or by column, or in a single row or column, with the spacing you choose, left to right or right to left. One undo puts them back.
+
 ## 0.10.9 · 2026-10-17
 
 - Artboards: with the Artboard tool, hold Shift and drag a box on empty canvas to select every artboard it touches. Arrow keys move the selected artboards by 1 px, or 10 px with Shift; a burst of key presses is one undo step.
