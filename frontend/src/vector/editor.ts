@@ -63,7 +63,7 @@ type Gesture =
   | { kind: 'marquee'; start: Pt; current: Pt; shift: boolean; click?: string }
   | { kind: 'pathmove'; start: Pt; base: Map<string, SubPath[]>; svg?: string; moved: boolean }
   | { kind: 'usemove'; id: string; start: Pt; x: number; y: number; nx: number; ny: number; moved: boolean }
-  | { kind: 'board'; start: Pt; current: Pt; svg: string | null; base: [number, number] }
+  | { kind: 'board'; start: Pt; current: Pt; svg: string | null; base: [number, number]; others: { id: string; base: [number, number] }[] }
   | { kind: 'boardsize'; svg: string; handle: number; start: Pt; box: [number, number, number, number]; left: number; top: number; vb: [number, number, number, number]; next: [number, number, number, number] | null; shift: boolean; alt: boolean };
 
 const BOARD_HANDLES: [number, number][] = [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]];
@@ -101,6 +101,8 @@ export class Editor {
   private cache = new Map<string, { key: string; shape: Shape }>();
   private frames = new Map<string, Frame>();
   private gesture: Gesture | null = null;
+  /* Artboards added with Shift-click in the Artboard tool, besides the selected one; they move together. */
+  private boardPicks = new Set<string>();
   private pen: SubPath | null = null;
   private pointer: Pt = [0, 0];
   private refs: Ref[] = [];
@@ -478,7 +480,7 @@ export class Editor {
     if (role === 'anchor') { this.downAnchor(index, event, p); return; }
     if (tool === 'pen' || tool === 'curvature') { this.downPen(p, event); return; }
     if (tool === 'artboard' && role === 'x-abh') { this.downBoardHandle(index, p); return; }
-    if (tool === 'artboard') { this.downBoard(p); return; }
+    if (tool === 'artboard') { this.downBoard(p, event.shiftKey); return; }
     if (tool === 'paintbrush' || tool === 'pencil' || tool === 'blob') { this.gesture = { kind: 'paint', pts: [p], join: tool === 'pencil' ? pencilJoin(this.host(), p, HIT * this.px()) : undefined }; this.render(); return; }
     if (GRID_TOOLS.has(tool) || tool === 'rect' || tool === 'ellipse' || tool === 'polygon' || tool === 'star' || tool === 'line' || tool === 'arc' || tool === 'spiral') {
       const origin = event.shiftKey ? p : this.extras.snapPoint(p, new Set());
@@ -796,6 +798,10 @@ export class Editor {
       g.current = p;
       const el = g.svg ? this.element(g.svg) as SVGSVGElement | null : null;
       if (el) { el.style.left = `${Math.round((g.base[0] + p[0] - g.start[0]) * 100) / 100}px`; el.style.top = `${Math.round((g.base[1] + p[1] - g.start[1]) * 100) / 100}px`; }
+      for (const o of g.others) {
+        const other = this.element(o.id) as SVGSVGElement | null;
+        if (other) { other.style.left = `${Math.round((o.base[0] + p[0] - g.start[0]) * 100) / 100}px`; other.style.top = `${Math.round((o.base[1] + p[1] - g.start[1]) * 100) / 100}px`; }
+      }
       this.render();
       return;
     }
@@ -1231,6 +1237,16 @@ export class Editor {
   }
 
   private decorateBoard(scene: Scene): void {
+    const chosen = this.selectedBoards();
+    if (chosen.length > 1) {
+      const outlines: ExtraItem[] = [];
+      for (const b of chosen) {
+        const r = this.element(b)?.getBoundingClientRect();
+        if (r) outlines.push({ kind: 'path', d: `M${r.left} ${r.top}H${r.right}V${r.bottom}H${r.left}Z`, cls: 'tbox' });
+      }
+      scene.extras = [...(scene.extras ?? []), ...outlines];
+      return;
+    }
     const id = this.selectedBoard();
     const g = this.gesture;
     const r = id ? this.element(id)?.getBoundingClientRect() : undefined;
@@ -1303,11 +1319,36 @@ export class Editor {
     if (!ok) this.refresh();
   }
 
-  private downBoard(p: Pt): void {
+  private selectedBoards(): string[] {
+    const primary = this.selectedBoard();
+    if (!primary) { this.boardPicks.clear(); return []; }
+    const site = this.site();
+    return [primary, ...[...this.boardPicks].filter(id => id !== primary && site.nodes[id]?.tag === 'svg')];
+  }
+
+  private downBoard(p: Pt, shift = false): void {
     const svg = this.boardAt(p);
-    const node = svg ? this.site().nodes[svg] : undefined;
-    const base: [number, number] = [parseFloat(node?.styles.left ?? '0') || 0, parseFloat(node?.styles.top ?? '0') || 0];
-    this.gesture = { kind: 'board', start: p, current: p, svg, base };
+    const site = this.site();
+    if (shift && svg) {
+      const chosen = this.selectedBoards();
+      if (!chosen.includes(svg)) {
+        if (chosen[0]) this.boardPicks.add(chosen[0]);
+        this.boardPicks.delete(svg);
+        this.ctx.select(svg);
+      } else if (chosen.length > 1) {
+        this.boardPicks.delete(svg);
+        if (svg === chosen[0]) { const next = chosen[1]; this.boardPicks.delete(next); this.ctx.select(next); }
+      }
+      this.render();
+      this.emit();
+      return;
+    }
+    const baseOf = (id: string): [number, number] => [parseFloat(site.nodes[id]?.styles.left ?? '0') || 0, parseFloat(site.nodes[id]?.styles.top ?? '0') || 0];
+    const set = svg ? this.selectedBoards() : [];
+    const together = !!svg && set.length > 1 && set.includes(svg);
+    if (!together) this.boardPicks.clear();
+    const others = together ? set.filter(id => id !== svg).map(id => ({ id, base: baseOf(id) })) : [];
+    this.gesture = { kind: 'board', start: p, current: p, svg, base: svg ? baseOf(svg) : [0, 0], others };
     this.render();
   }
 
@@ -1315,10 +1356,10 @@ export class Editor {
     const dx = p[0] - g.start[0], dy = p[1] - g.start[1];
     const r2 = (v: number): number => Math.round(v * 100) / 100;
     if (g.svg) {
-      const el = this.element(g.svg) as SVGSVGElement | null;
-      if (Math.hypot(dx, dy) < 3 * this.px()) { this.ctx.select(g.svg); this.render(); return; }
-      const ok = await this.commit([{ command: 'node.update', params: { id: g.svg, patch: { styles: { left: `${r2(g.base[0] + dx)}px`, top: `${r2(g.base[1] + dy)}px` } } } }]);
-      if (!ok && el) { el.style.left = `${g.base[0]}px`; el.style.top = `${g.base[1]}px`; }
+      if (Math.hypot(dx, dy) < 3 * this.px()) { this.boardPicks.clear(); this.ctx.select(g.svg); this.render(); return; }
+      const moved = [{ id: g.svg, base: g.base }, ...g.others];
+      const ok = await this.commit(moved.map(m => ({ command: 'node.update', params: { id: m.id, patch: { styles: { left: `${r2(m.base[0] + dx)}px`, top: `${r2(m.base[1] + dy)}px` } } } })));
+      if (!ok) for (const m of moved) { const el = this.element(m.id) as SVGSVGElement | null; if (el) { el.style.left = `${m.base[0]}px`; el.style.top = `${m.base[1]}px`; } }
       return;
     }
     const w = Math.abs(dx), h = Math.abs(dy);
