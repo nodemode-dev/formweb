@@ -4,7 +4,7 @@
  "previous": "0.12.0",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Comparison targets are now Framer, Figma, Webflow and Canva: a Figma lane graded on all 134 rows from official Figma pages, the Adobe Express lane dropped. FormWeb unchanged at 116 of 134.",
+ "release_note": "Clipping masks (FW-081) and Shape Builder (FW-087) move to Full against Figma: Use as mask added and Alt-click subtract driven.",
  "lanes": [
   [
    "m",
@@ -5414,9 +5414,9 @@
    "conf": "vendor",
    "added": "0.7.0",
    "m": [
-    "partial",
-    "Mod+7 turns the top path into a clipPath and wraps the rest in a g with clip-path; release restores the shape. v0.7.0 and v0.7.1 driven in Chromium: make and release round trip, and the clip renders in the real editor after the canvas tag-case fix. v0.8.7 added Edit Contents (isolation of the clip group, by panel button or double-click) and Edit Clipping Path (the clipPath child is selected and reshaped with Direct Selection, with Done editing or Escape to leave). Driven in headless Chromium against the real engine and read back from GET /api/state: dragging a content anchor kept clip-path and changed the content path; dragging a clip anchor changed the clipPath d and the visible crop; both edits survived a page reload; Release still returns the clip as an unpainted path.",
-    "Clipping details (fill and stroke loss, Release result, Edit Contents versus Edit Clipping Path) are unverified against Adobe because no source could be read, so the grade stays Partial; export of a clipped group is not separately recorded."
+    "full",
+    "Mod+7 turns the top path into a clipPath and wraps the rest in a g with clip-path; release restores the shape. v0.7.0 and v0.7.1 driven in Chromium: make and release round trip, and the clip renders in the real editor after the canvas tag-case fix. v0.8.7 added Edit Contents (isolation of the clip group, by panel button or double-click) and Edit Clipping Path (the clipPath child is selected and reshaped with Direct Selection, with Done editing or Escape to leave). Driven in headless Chromium against the real engine and read back from GET /api/state: dragging a content anchor kept clip-path and changed the content path; dragging a clip anchor changed the clipPath d and the visible crop; both edits survived a page reload; Release still returns the clip as an unpainted path. v0.12.2: Use as mask, as Figma documents it (the bottom layer masks the selected layers above it; run again to remove), driven in Chromium under CPU 4x and slow network: a rectangle under an ellipse became the clip and the ellipse its content, undo, redo and remove each one step. Full against the targets (Figma Full); the Illustrator-detail caveats no longer apply now that Illustrator is not a target.",
+    "No default key for Use as mask (Figma's Ctrl+Alt+M is Make opacity mask here); Figma's alpha and luminance mask types are not separately matched; export of a clipped group is not separately recorded."
    ],
    "fr": [
     "none",
@@ -5654,9 +5654,9 @@
    "conf": "vendor",
    "added": "0.7.0",
    "m": [
-    "partial",
-    "Shape Builder (Shift+M) previews regions from fragmentPieces and merges or deletes them. v0.7.1 QA drove hover and a drag merge in Chromium against the real engine. Reviewed at v0.7.1: merge works; subtract is not recorded as driven.",
-    "Only hover and drag merge are recorded as driven; subtracting regions and Shape Builder options are not (options are planned in Phase 9)."
+    "full",
+    "Shape Builder (Shift+M) previews regions from fragmentPieces and merges or deletes them. v0.7.1 QA drove hover and a drag merge in Chromium against the real engine. v0.12.2, driven under CPU 4x and slow network against Figma's documented behavior (drag across regions to merge, Option or Alt-click a region to remove it): hover highlighted the overlap, Alt-click removed it (two paths left), undo, and a drag across all three regions merged them into one path.",
+    "Undo leaves the page selected rather than the paths, so a second Shape Builder pass needs the paths selected again."
    ],
    "fr": [
     "none",

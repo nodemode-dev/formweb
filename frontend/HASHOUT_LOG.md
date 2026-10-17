@@ -1,5 +1,13 @@
 # Frontend context map
 
+## Use as mask, Shape Builder subtract checked · v0.12.2 (2026-10-17)
+
+`vector/arrange.ts` `makeMaskCommands` takes `from: 'top' | 'bottom'`; 'bottom' is Figma's Use as mask (the bottom selected path becomes the clipPath, the paths above it go in the clipped group). `vector/ops.ts` `makeMask(kind, from)` selects the contents afterwards. `vector/index.ts`: `vector.mask.use` (makes the mask with two or more paths selected, otherwise releases), no default key because Mod+Alt+M is Make opacity mask. `commands/catalogue.ts` entry; 2 strings in `i18n/keys.ts` and the 23 locale files (1917 keys).
+
+- **Source basis:** Figma Help "Masks": the mask is the layer below the masked layers, Use as mask in the right sidebar, Remove mask, hidden areas reappear. Figma Help "Create custom shapes with the shape builder tool": drag to merge regions, Option or Alt-click to remove one.
+- **Driven (CPU 4x, 400 ms latency, slow network, cache off):** rectangle (bottom) and ellipse (top), Use as mask: the clipPath holds the rectangle, the clipped group holds the ellipse, render shows the ellipse cut to the rectangle; undo, redo, then Use as mask on the clipped ellipse removed the mask. Shape Builder: hover highlighted the overlap, Alt-click removed it (two paths), undo, then with both paths selected again a drag across the three regions merged them into one path. No page errors; one 0.00015 shift on the breadcrumb when the mask was removed.
+- **Seen:** undo leaves the page selected, so Shape Builder needs the paths selected again after an undo.
+
 ## Typing into area type on the canvas · v0.12.0 (2026-10-17)
 
 New `vector/areaedit.ts` (`AreaTextEditor`): a textarea over the first shape of the area type's thread, in shell coordinates (appended to the canvas shell beside the overlay), with the text's font, size, leading, weight, colour, alignment and inset at the canvas zoom, on a light or dark backing chosen from the text colour's brightness; Esc ends editing and keeps the text, `close(true)` commits `areaEditCommands` with the new text as one undo step and selects the text, an unchanged text commits nothing. `vector/editor.ts`: `areaEdit` field; a double-click with the Selection or Direct Selection tool on area type (a line, the text or its shape) opens it before the group isolation branch; any canvas pointerdown first closes and commits it, because the canvas's `preventDefault` keeps the textarea from blurring. Keys typed into the box do not reach the tool shortcuts (the editor key handler already skips textareas; the box also stops propagation). `styles/vector.css`: `.fw-v-areaedit`. `commands/catalogue.ts`: area-edit entry mentions the double-click. No new strings (the aria label is English like the Area Type dialog's).
