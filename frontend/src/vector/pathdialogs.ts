@@ -10,6 +10,7 @@ import { areaCommands, areaOptions, layoutArea, measurer, type AreaAlign } from 
 import { defaultTweak, tweakSubs, type TweakOptions } from './tweak';
 import { BLOB_MAX_SIZE, blobOptions, setBlobOptions } from './blob';
 import { BRICK_OFFSETS, patternCommands, patternOptions, patternParts, tileSize, type TileType } from './pattern';
+import { rearrangeCommands, type RearrangeLayout } from './artboards';
 
 interface Shell { root: HTMLElement; open(focus?: HTMLElement): void; close(): void }
 
@@ -528,6 +529,53 @@ class FreeformStopDialog {
     this.dialog?.close();
   }
 }
+
+/* Artboards > Rearrange All Artboards: layout, columns or rows, spacing and layout order for the current page. */
+
+class RearrangeDialog {
+  private dialog: Shell | null = null;
+  private layout = selectField(t('Layout'), [['grid-row', t('Grid by Row')], ['grid-column', t('Grid by Column')], ['row', t('Arrange by Row')], ['column', t('Arrange by Column')]]);
+  private count = numberField(t('Columns'), 1, 100);
+  private spacing = numberField(t('Spacing'), 0, 10000);
+  private order = selectField(t('Layout order'), [['ltr', t('Left to right')], ['rtl', t('Right to left')]]);
+  private host: Host | null = null;
+  private parent = '';
+
+  private build(): Shell {
+    this.layout.input.addEventListener('change', () => this.label());
+    return shell(t('Rearrange All Artboards'), [this.layout.field, this.count.field, this.spacing.field, this.order.field], () => this.apply());
+  }
+
+  private label(): void {
+    const v = this.layout.input.value;
+    const span = this.count.field.querySelector('.field-label');
+    const next = v === 'grid-column' ? t('Rows') : t('Columns');
+    if (span && span.textContent !== next) span.textContent = next;
+    this.count.input.disabled = v === 'row' || v === 'column';
+  }
+
+  open(host: Host, parent: string): void {
+    this.host = host;
+    this.parent = parent;
+    this.dialog = this.dialog ?? this.build();
+    if (!this.count.input.value) { this.count.input.value = '2'; this.spacing.input.value = '40'; }
+    this.label();
+    this.dialog.open(this.layout.input);
+  }
+
+  private apply(): void {
+    const host = this.host;
+    if (!host) return;
+    const num = (input: HTMLInputElement, fallback: number): number => { const v = parseFloat(input.value); return Number.isFinite(v) ? v : fallback; };
+    const cmds = rearrangeCommands(host.site(), this.parent, { layout: this.layout.input.value as RearrangeLayout, count: num(this.count.input, 2), spacing: num(this.spacing.input, 40), rtl: this.order.input.value === 'rtl' });
+    if (!cmds.length) { host.notify(t('No artboards on this page to rearrange.')); return; }
+    void host.commit(cmds);
+    this.dialog?.close();
+  }
+}
+
+let rearrangeDialog: RearrangeDialog | undefined;
+export const openRearrange = (host: Host, parent: string): void => { (rearrangeDialog ??= new RearrangeDialog()).open(host, parent); };
 
 let stopDialog: FreeformStopDialog | undefined;
 export const openFreeformStop = (color: string, spread: number, apply: (color: string, spread: number) => void): void => { (stopDialog ??= new FreeformStopDialog()).open(color, spread, apply); };

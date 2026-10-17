@@ -12,7 +12,7 @@ import { selectCommands } from './select';
 import { runTrace } from './tracepanel';
 import { addAnchorCommands, divideBelowCommands, removeAnchorCommands } from './pathcmds';
 import { openExportScreens, pageArtboards } from './exportscreens';
-import { openAreaType, openCleanUp, openPattern, openSplitGrid, openTweak } from './pathdialogs';
+import { openAreaType, openCleanUp, openPattern, openRearrange, openSplitGrid, openTweak } from './pathdialogs';
 import { objectsOnPathCommands } from './objectsonpath';
 import { ArtboardsPanel } from './artboards';
 import { viewCommands } from './view';
@@ -34,7 +34,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
   editor.shortcuts = options.shortcuts !== false;
   const panel = new VectorPanel(editor, ctx.panelHost ?? document.body);
   subscribe(() => editor.refresh());
-  const artboards = new ArtboardsPanel(editor.host(), id => ctx.select(id), () => ctx.pageRoot());
+  const artboards = new ArtboardsPanel(editor.host(), id => ctx.select(id), () => ctx.pageRoot(), () => openRearrange(editor.host(), ctx.pageRoot()));
 
   const commandId: Record<ToolId, string> = {
     select: 'vector.select', direct: 'vector.direct', pen: 'vector.pen', curvature: 'vector.curvature', add: 'vector.add-anchor', delete: 'vector.delete-anchor',
@@ -128,6 +128,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.recolor', label: 'Recolor artwork...', menu: 'Edit', group: 3, run: () => openRecolor(editor.host(), () => editor.panelSvg()), enabled: () => { try { return !!(editor.activeSvg() ?? editor.panelSvg()); } catch { return false; } } },
     { id: 'vector.graphic-styles', label: 'Graphic styles', menu: 'Window', group: 6, run: () => openGraphicStyles(editor.host()) },
     { id: 'vector.artboards', label: 'Artboards', menu: 'Window', group: 6, run: () => artboards.toggle() },
+    { id: 'vector.artboards.rearrange', label: 'Rearrange All Artboards', menu: MENU, group: 7, mutates: true, run: () => openRearrange(editor.host(), ctx.pageRoot()) },
     ...viewCommands(editor.view, () => editor.tool !== null, () => editor.render()),
     { id: 'vector.svg.import', label: 'Import SVG...', menu: MENU, group: 5, run: () => panel.pickFile() },
     { id: 'vector.trace', label: 'Image Trace', menu: MENU, keys: 'Mod+Alt+Shift+T', group: 5, run: () => runTrace() },

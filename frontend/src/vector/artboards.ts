@@ -4,7 +4,7 @@ import type { Command, Site, SiteNode } from '../types';
 import { element, keyed, text, value } from '../ui/dom';
 import { pathBounds } from './geometry';
 import type { Host } from './host';
-import { addSvg, freshId, pathIds, readShape, removeNode } from './store';
+import { addSvg, freshId, moveNode, pathIds, readShape, removeNode } from './store';
 
 export interface Board { id: string; name: string; page: string; w: number; h: number; vb: [number, number, number, number]; left: number; top: number }
 
@@ -35,6 +35,46 @@ export function boards(site: Site): Board[] {
 function parentOf(site: Site, id: string): string | undefined {
   for (const node of Object.values(site.nodes)) if (node.children.includes(id)) return node.id;
   return undefined;
+}
+
+/* Artboards panel order is document order. Move up or down swaps a board with its neighbour board in the same parent. */
+export function reorderCommands(site: Site, id: string, dir: -1 | 1): Command[] | null {
+  const parent = parentOf(site, id);
+  if (!parent) return null;
+  const kids = site.nodes[parent].children;
+  const peers = kids.filter(k => site.nodes[k]?.tag === 'svg');
+  const at = peers.indexOf(id), other = peers[at + dir];
+  if (at < 0 || !other) return null;
+  return [moveNode(id, parent, kids.indexOf(other))];
+}
+
+export type RearrangeLayout = 'grid-row' | 'grid-column' | 'row' | 'column';
+export interface RearrangeOptions { layout: RearrangeLayout; count: number; spacing: number; rtl: boolean }
+
+/* Rearrange All Artboards for the boards directly under one parent, in panel order, starting at their top-left
+   corner. Grid by Row fills rows of `count` boards, Grid by Column fills columns of `count`; Arrange by Row and by
+   Column put all in one row or column. Right to left fills each row from the right. Art lives inside each board,
+   so it always moves with it. */
+export function rearrangeCommands(site: Site, parent: string, o: RearrangeOptions): Command[] {
+  const list = boards(site).filter(b => parentOf(site, b.id) === parent);
+  if (!list.length) return [];
+  const n = list.length;
+  const count = Math.max(1, Math.min(n, Math.round(o.count)));
+  const perRow = o.layout === 'row' ? n : o.layout === 'column' ? 1 : o.layout === 'grid-row' ? count : Math.ceil(n / count);
+  const rowsOf = (i: number): [number, number] => (o.layout === 'grid-column' ? [i % count, Math.floor(i / count)] : [Math.floor(i / perRow), i % perRow]);
+  const cells = list.map((b, i) => ({ b, r: rowsOf(i)[0], c: rowsOf(i)[1] }));
+  const rows = Math.max(...cells.map(x => x.r)) + 1, cols = Math.max(...cells.map(x => x.c)) + 1;
+  const colW = Array.from({ length: cols }, (_, c) => Math.max(0, ...cells.filter(x => x.c === c).map(x => x.b.w)));
+  const rowH = Array.from({ length: rows }, (_, r) => Math.max(0, ...cells.filter(x => x.r === r).map(x => x.b.h)));
+  const x0 = Math.min(...list.map(b => b.left)), y0 = Math.min(...list.map(b => b.top));
+  const gap = Math.max(0, o.spacing);
+  const colX = colW.map((_, c) => x0 + colW.slice(0, c).reduce((a, w) => a + w + gap, 0));
+  const total = colW.reduce((a, w) => a + w, 0) + gap * (cols - 1);
+  const rowY = rowH.map((_, r) => y0 + rowH.slice(0, r).reduce((a, h) => a + h + gap, 0));
+  return cells.map(({ b, r, c }) => {
+    const left = o.rtl ? x0 + total - (colX[c] - x0) - colW[c] : colX[c];
+    return { command: 'node.update', params: { id: b.id, patch: { styles: { left: `${r2(left)}px`, top: `${r2(rowY[r])}px` } } } } as Command;
+  });
 }
 
 function subtree(site: Site, id: string, out: SiteNode[] = []): SiteNode[] {
@@ -106,7 +146,7 @@ export class ArtboardsPanel {
   private h = element('input', 'fw-v-input');
   private empty = element('p', 'fw-v-note');
 
-  constructor(private host: Host, private select: (id: string) => void, private pageRoot: () => string) {
+  constructor(private host: Host, private select: (id: string) => void, private pageRoot: () => string, private rearrange: () => void = () => undefined) {
     subscribe(() => { if (this.root && !this.root.hidden) this.refresh(); });
   }
 
@@ -133,7 +173,10 @@ export class ArtboardsPanel {
     this.empty.textContent = t('No artboards on any page yet.');
     const area = element('div', 'fw-v-boardarea');
     area.append(this.list, this.empty);
-    root.append(head, area, this.preset, size, add);
+    const arrange = element('button', 'fw-v-btn', t('Rearrange...'));
+    arrange.type = 'button';
+    arrange.addEventListener('click', () => this.rearrange());
+    root.append(head, area, this.preset, size, add, arrange);
     root.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); this.close(); } });
     document.body.append(root);
     this.preset.value = '1080x1080';
@@ -173,6 +216,8 @@ export class ArtboardsPanel {
       actions.append(btn);
     };
     act(t('Select'), b => this.select(b.id));
+    act(t('Move up'), b => { const cmds = reorderCommands(this.host.site(), b.id, -1); if (cmds) void this.host.commit(cmds); });
+    act(t('Move down'), b => { const cmds = reorderCommands(this.host.site(), b.id, 1); if (cmds) void this.host.commit(cmds); });
     act(t('Duplicate'), b => { const made = duplicateCommands(this.host.site(), b); if (made) void this.host.commit(made.cmds).then(ok => { if (ok) this.select(made.id); }); });
     act(t('Fit to artwork'), b => { const cmds = fitCommands(this.host.site(), b); if (cmds) void this.host.commit(cmds); else this.host.notify(t('This artboard has no paths to fit.')); });
     act(t('Resize'), b => { const w = parseFloat(this.w.value), h = parseFloat(this.h.value); if (w >= 1 && h >= 1 && w <= 20000 && h <= 20000) void this.host.commit(resizeCommands(b, w, h)); });
