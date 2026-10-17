@@ -1915,4 +1915,6 @@ export default [
   "Použít jako masku",
   "Vyberte dvě nebo více cest. Spodní se stane maskou.",
   "Přichytávat k mřížce pixelů",
+  "Vlastní kód",
+  "Vkládá se beze změn do exportovaných a publikovaných stránek, nejprve kód webu. Na plátně se nespouští.",
 ] as readonly string[];

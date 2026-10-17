@@ -1915,4 +1915,6 @@ export default [
   "Brug som maske",
   "Vælg to eller flere stier. Den nederste bliver masken.",
   "Fastgør til pixelgitter",
+  "Brugerdefineret kode",
+  "Skrives som indtastet i eksporterede og publicerede sider, webstedskode først. Den kører ikke på lærredet.",
 ] as readonly string[];

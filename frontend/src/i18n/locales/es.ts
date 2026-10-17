@@ -1915,4 +1915,6 @@ export default [
   "Usar como máscara",
   "Seleccione dos o más trazados. El inferior se convierte en la máscara.",
   "Ajustar a la cuadrícula de píxeles",
+  "Código personalizado",
+  "Se escribe tal cual en las páginas exportadas y publicadas, primero el código del sitio. No se ejecuta en el lienzo.",
 ] as readonly string[];

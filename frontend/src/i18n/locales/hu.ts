@@ -1915,4 +1915,6 @@ export default [
   "Használat maszkként",
   "Jelöljön ki két vagy több útvonalat. A legalsó lesz a maszk.",
   "Igazítás a képpontrácshoz",
+  "Egyéni kód",
+  "Változatlanul kerül az exportált és közzétett oldalakba, előbb a webhely kódja. A vásznon nem fut.",
 ] as readonly string[];

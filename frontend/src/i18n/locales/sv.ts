@@ -1915,4 +1915,6 @@ export default [
   "Använd som mask",
   "Markera två eller fler banor. Den nedersta blir masken.",
   "Fäst mot pixelrutnät",
+  "Anpassad kod",
+  "Skrivs in som den är i exporterade och publicerade sidor, webbplatskod först. Den körs inte på arbetsytan.",
 ] as readonly string[];

@@ -1915,4 +1915,6 @@ export default [
   "Dùng làm mặt nạ",
   "Hãy chọn hai đường dẫn trở lên. Đường dưới cùng sẽ thành mặt nạ.",
   "Bắt dính lưới điểm ảnh",
+  "Mã tùy chỉnh",
+  "Được ghi nguyên văn vào các trang đã xuất và xuất bản, mã của trang web trước. Không chạy trên canvas.",
 ] as readonly string[];

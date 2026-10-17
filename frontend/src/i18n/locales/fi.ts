@@ -1915,4 +1915,6 @@ export default [
   "Käytä maskina",
   "Valitse kaksi tai useampi polku. Alimmasta tulee maski.",
   "Kohdista pikseliruudukkoon",
+  "Mukautettu koodi",
+  "Kirjoitetaan sellaisenaan vietyihin ja julkaistuihin sivuihin, sivuston koodi ensin. Se ei suoritu piirtoalueella.",
 ] as readonly string[];

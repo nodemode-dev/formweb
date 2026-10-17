@@ -1915,4 +1915,6 @@ export default [
   "Bruk som maske",
   "Velg to eller flere baner. Den nederste blir masken.",
   "Fest til pikselrutenett",
+  "Egendefinert kode",
+  "Skrives slik den er inn i eksporterte og publiserte sider, nettstedskode først. Den kjører ikke på lerretet.",
 ] as readonly string[];

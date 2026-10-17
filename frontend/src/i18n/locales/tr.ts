@@ -1915,4 +1915,6 @@ export default [
   "Maske olarak kullan",
   "İki veya daha fazla yol seçin. En alttaki maske olur.",
   "Piksel ızgarasına yasla",
+  "Özel kod",
+  "Dışa aktarılan ve yayımlanan sayfalara yazıldığı gibi eklenir, önce site kodu. Tuvalde çalışmaz.",
 ] as readonly string[];

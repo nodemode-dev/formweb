@@ -1915,4 +1915,6 @@ export default [
   "Usar como máscara",
   "Selecione dois ou mais caminhos. O de baixo se torna a máscara.",
   "Ajustar à grade de pixels",
+  "Código personalizado",
+  "Inserido como digitado nas páginas exportadas e publicadas, com o código do site primeiro. Não é executado na tela.",
 ] as readonly string[];

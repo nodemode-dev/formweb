@@ -1915,4 +1915,6 @@ export default [
   "Usa come maschera",
   "Seleziona due o più tracciati. Quello in basso diventa la maschera.",
   "Aggancia alla griglia dei pixel",
+  "Codice personalizzato",
+  "Scritto così com’è nelle pagine esportate e pubblicate, prima il codice del sito. Non viene eseguito sulla tela.",
 ] as readonly string[];

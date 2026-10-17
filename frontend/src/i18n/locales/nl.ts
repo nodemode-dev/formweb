@@ -1915,4 +1915,6 @@ export default [
   "Gebruiken als masker",
   "Selecteer twee of meer paden. Het onderste wordt het masker.",
   "Uitlijnen op pixelraster",
+  "Aangepaste code",
+  "Wordt letterlijk in geëxporteerde en gepubliceerde pagina’s geschreven, sitecode eerst. Wordt niet uitgevoerd op het canvas.",
 ] as readonly string[];

@@ -1915,4 +1915,6 @@ export default [
   "Utiliser comme masque",
   "Sélectionnez au moins deux tracés. Celui du dessous devient le masque.",
   "Aligner sur la grille de pixels",
+  "Code personnalisé",
+  "Inséré tel quel dans les pages exportées et publiées, le code du site en premier. Il ne s’exécute pas sur le canevas.",
 ] as readonly string[];

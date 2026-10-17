@@ -1915,4 +1915,6 @@ export default [
   "Użyj jako maski",
   "Zaznacz co najmniej dwie ścieżki. Najniższa stanie się maską.",
   "Przyciągaj do siatki pikseli",
+  "Kod niestandardowy",
+  "Wstawiany bez zmian do eksportowanych i opublikowanych stron, najpierw kod witryny. Nie jest uruchamiany na kanwie.",
 ] as readonly string[];

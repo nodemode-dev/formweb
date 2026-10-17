@@ -577,6 +577,48 @@ noindex.addEventListener('change', () => void run(() => pagePatch({ seo: { ...cu
 const noindexLabel = element('label', 'checkbox-field');
 noindexLabel.append(noindex, element('span', '', 'Hide this page from search engines'));
 seoSection.append(seoGrid, noindexLabel, element('p', 'micro', 'Export produces metadata, sitemap.xml and robots.txt. Run Audit for accessibility and SEO issues.'));
+// Custom code (FW-178): the code extension group's siteCode and pageCode slots, written into exported pages only.
+type CodeSlot = 'head' | 'bodyStart' | 'bodyEnd';
+const CODE_SLOTS: CodeSlot[] = ['head', 'bodyStart', 'bodyEnd'];
+const codeSection = section(pagePane, 'Custom code');
+const codeScope = select([{ id: 'site', name: 'Whole site' }, { id: 'page', name: 'Page' }]);
+const codeAreas = CODE_SLOTS.map(slot => {
+  const area = element('textarea', 'fw-code-area');
+  area.rows = 3;
+  area.spellcheck = false;
+  area.dataset.field = `code.${slot}`;
+  area.addEventListener('change', () => void run(() => saveCustomCode(slot, area.value)));
+  return area;
+});
+codeScope.setAttribute('aria-label', 'Custom code');
+codeScope.addEventListener('change', () => fillCustomCode());
+const codeGrid = element('div', 'form-grid');
+const codeScopeField = element('div', 'field full');
+codeScopeField.append(codeScope);
+codeGrid.append(codeScopeField, field('<head>', codeAreas[0], true), field('<body>', codeAreas[1], true), field('</body>', codeAreas[2], true));
+codeSection.append(codeGrid, element('p', 'micro', 'Written into exported and published pages as typed, site code first. It does not run on the canvas.'));
+function codeGroup(): Record<string, unknown> { return { ...((state().site.extensions?.code || {}) as Record<string, unknown>) }; }
+function codeSlots(group: Record<string, unknown>): Record<string, string> {
+  const slots = codeScope.value === 'site' ? group.siteCode : (group.pageCode as Record<string, unknown> | undefined)?.[currentPage().id];
+  return { ...((slots || {}) as Record<string, string>) };
+}
+function fillCustomCode(): void {
+  const slots = codeSlots(codeGroup());
+  CODE_SLOTS.forEach((slot, index) => value(codeAreas[index], slots[slot] || ''));
+}
+function saveCustomCode(slot: CodeSlot, content: string): Promise<EditorState> {
+  const group = codeGroup();
+  const slots = codeSlots(group);
+  if (content.trim()) slots[slot] = content; else delete slots[slot];
+  if (codeScope.value === 'site') {
+    if (Object.keys(slots).length) group.siteCode = slots; else delete group.siteCode;
+  } else {
+    const pages = { ...((group.pageCode || {}) as Record<string, unknown>) };
+    if (Object.keys(slots).length) pages[currentPage().id] = slots; else delete pages[currentPage().id];
+    if (Object.keys(pages).length) group.pageCode = pages; else delete group.pageCode;
+  }
+  return command('extension.set', { group: 'code', value: group });
+}
 const passwordSection = section(pagePane, 'Password');
 const passwordInput = element('input');
 passwordInput.type = 'password';
@@ -1140,6 +1182,7 @@ function update(next: EditorState): void {
   downButton.disabled = !parent || parent.children.indexOf(node.id) === parent.children.length - 1;
   deleteNodeButton.disabled = node.id === page.root;
   noindex.checked = !!page.seo.noindex;
+  fillCustomCode();
   hideScrollbars.checked = site.settings.hideScrollbars === 'true';
   embedClick.checked = site.settings.embedClickToLoad === 'true';
   const favicon = site.settings.favicon || '';

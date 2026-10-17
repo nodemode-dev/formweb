@@ -1915,4 +1915,6 @@ export default [
   "Gunakan sebagai mask",
   "Pilih dua jalur atau lebih. Jalur paling bawah menjadi mask.",
   "Tempel ke kisi piksel",
+  "Kode kustom",
+  "Ditulis apa adanya ke halaman yang diekspor dan dipublikasikan, kode situs lebih dulu. Tidak dijalankan di kanvas.",
 ] as readonly string[];

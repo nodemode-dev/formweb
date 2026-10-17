@@ -1915,4 +1915,6 @@ export const KEYS: readonly string[] = [
   "Use as mask",
   "Select two or more paths. The bottom one becomes the mask.",
   "Snap to pixel grid",
+  "Custom code",
+  "Written into exported and published pages as typed, site code first. It does not run on the canvas.",
 ];

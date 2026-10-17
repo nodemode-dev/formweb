@@ -9,6 +9,7 @@ button:disabled { opacity: .35; cursor: default; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 1px; }
 input, select, textarea { min-width: 0; padding: var(--space-2); width: 100%; min-height: var(--control-height); }
 textarea { resize: vertical; min-height: 76px; line-height: 1.5; }
+.fw-code-area { font-family: var(--font-mono); font-size: var(--fs-11); white-space: pre; overflow-wrap: normal; }
 input[type='checkbox'] { width: 16px; min-height: 16px; height: 16px; accent-color: var(--accent-color); }
 input[type='color'] { padding: var(--space); }
 a { color: var(--accent-text); }

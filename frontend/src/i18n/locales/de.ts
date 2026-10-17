@@ -1915,4 +1915,6 @@ export default [
   "Als Maske verwenden",
   "Wählen Sie zwei oder mehr Pfade aus. Der unterste wird zur Maske.",
   "Am Pixelraster ausrichten",
+  "Benutzerdefinierter Code",
+  "Wird unverändert in exportierte und veröffentlichte Seiten geschrieben, Website-Code zuerst. Er läuft nicht auf der Arbeitsfläche.",
 ] as readonly string[];
