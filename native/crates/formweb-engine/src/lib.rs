@@ -47,8 +47,9 @@ impl Engine {
         json!({"site": self.site, "revision": self.revision, "canUndo": !self.undo.is_empty(), "canRedo": !self.redo.is_empty()})
     }
 
-    pub fn reset(&mut self, name: &str) -> Result<Value, String> {
-        let candidate = fresh_site(name)?;
+    pub fn reset(&mut self, name: &str, blank: bool) -> Result<Value, String> {
+        let mut candidate = fresh_site(name)?;
+        if blank { let id = candidate.id.clone(); candidate = formweb_model::blank(name); candidate.id = id; }
         validate(&candidate)?;
         let revision=self.revision.checked_add(1).ok_or("revision exhausted")?;
         self.site = candidate;

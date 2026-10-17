@@ -136,6 +136,11 @@ class Name(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=160)
 
 
+class NewSite(Name):
+    # blank: start without the sample content (starter sites fill it in one batch).
+    blank: bool | None = None
+
+
 class Agents(BaseModel):
     model_config = ConfigDict(extra='forbid')
     enabled: bool
@@ -569,7 +574,7 @@ async def batch(body: Batch):
 
 
 @app.post('/api/new')
-async def new(body: Name):
+async def new(body: NewSite):
     return await studio.mutate('new', body.model_dump(exclude_none=True))
 
 

@@ -421,6 +421,19 @@ pub fn blank_node(id: &str, tag: &str, name: &str, text: &str, styles: &[(&str, 
     Node { id: id.into(), tag: tag.into(), name: name.into(), text: text.into(), children: vec![], attrs: Strings::new(), styles: styles.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(), breakpoints: BTreeMap::new(), component_id: None, component_source_id: None, overrides: vec![], binding: None, interactions: vec![] }
 }
 
+/// The sample site with its content removed: one Home page whose root keeps the sample's page styles and tokens, no other
+/// nodes, components, collections or extensions. Starter sites (FW-186) fill it in one batch.
+pub fn blank(name: &str) -> Site {
+    let mut site = starter(name);
+    let root = site.pages[0].root.clone();
+    site.nodes.retain(|id, _| id == &root);
+    if let Some(node) = site.nodes.get_mut(&root) { node.children.clear(); }
+    site.components.clear();
+    site.collections.clear();
+    site.extensions.clear();
+    site.pages[0].seo = Seo { title: name.into(), description: String::new(), noindex: false };
+    site
+}
 pub fn starter(name: &str) -> Site {
     let mut site = Site {
         schema_version: 1, id: "formweb-site".into(), name: name.into(),

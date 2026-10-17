@@ -14,7 +14,8 @@ fn dispatch(engine: &mut Engine, method: &str, params: &Value) -> Result<Value, 
         "state" => Ok(engine.state()),
         "new" => {
             let name = params.get("name").map(|v|v.as_str().ok_or("name must be a string")).transpose()?.unwrap_or("Untitled website");
-            engine.reset(name)
+            let blank = params.get("blank").map(|v|v.as_bool().ok_or("blank must be a boolean")).transpose()?.unwrap_or(false);
+            engine.reset(name, blank)
         }
         "load" => {
             let restore_revision = params.get("restoreRevision").map(|value| value.as_u64().ok_or("restoreRevision must be a nonnegative integer")).transpose()?;
