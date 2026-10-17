@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.12.9",
- "previous": "0.12.8",
+ "version": "0.13.0",
+ "previous": "0.12.9",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Custom code in head and body (FW-178) Full: site-wide and per-page slots in Page settings, written into exported pages. 122 of 144.",
+ "release_note": "Prebuilt sections and starter pages (FW-186) Partial: nine sections and three starter pages in Insert, one undo step each. 122.5 of 144.",
  "lanes": [
   [
    "m",
@@ -7274,9 +7274,9 @@
    "conf": "vendor",
    "added": "0.12.8",
    "m": [
-    "none",
-    "v0.12.8 code search found no section library or template gallery; page.bulk (FW-074) copies a page the user made, and stock media (FW-073) is images and icons only.",
-    "A library of editable sections and starter sites not built."
+    "partial",
+    "v0.13.0: Insert has nine prebuilt sections (navigation bar, hero, feature grid, testimonial, pricing, FAQ, call to action, contact form, footer) and three starter pages (landing, pricing, contact), built from ordinary nodes and edited like any layer. Driven in Chromium under CPU 4x and 400 ms latency: each section went in after the selection as one undo step, a starter page added a page with a unique slug, and the export showed three-column grids on desktop and one column at 390 px with no overflow.",
+    "No whole-site template gallery and no way to save your own sections to the library; the set is small next to Framer's, Figma's and Webflow's, and sections do not pick up the site's tokens or brand kit."
    ],
    "fr": ["full", "Sections insert ready-made headers, footers and layouts, and templates open as editable projects.", ["F40", "F41"], "documented"],
    "wf": ["full", "The Add panel offers prebuilt layouts such as heroes, galleries, navigation bars and contact forms.", ["W39"], "documented"],
@@ -8254,6 +8254,13 @@
    "same_as": "0.12.7",
    "moved": {"FW-178": "none", "FW-179": "none", "FW-180": "none", "FW-181": "none", "FW-182": "none", "FW-183": "full", "FW-184": "none", "FW-185": "none", "FW-186": "none", "FW-187": "partial"},
    "note": "Ten rows researched from the four targets' documentation, 121 of 144."
+  },
+  {
+   "version": "0.12.9",
+   "date": "2026-10-17",
+   "same_as": "0.12.8",
+   "moved": {"FW-178": "full"},
+   "note": "Custom code in head and body, site-wide and per page: Full, 122 of 144."
   }
  ],
  "changes": [
@@ -8278,7 +8285,7 @@
    "Partial: no per-option counts, no recorded editor flow for several tabs, nested lists not filtered by parent item, element-level superscript only, no live form POST"
   ]
  ],
- "closed_note": "Still open: the seven v0.12.8 rows that are not built (FW-179 to FW-182, FW-184 to FW-186) and annotations in image export (FW-150); hosting, payments and AI images (FW-050, FW-063, FW-071) wait on real provider accounts.",
+ "closed_note": "Still open: the six v0.12.8 rows that are not built (FW-179 to FW-182, FW-184, FW-185), whole-site templates for FW-186 and annotations in image export (FW-150); hosting, payments and AI images (FW-050, FW-063, FW-071) wait on real provider accounts.",
  "platform": [
   [
    "What it is",
@@ -8399,7 +8406,7 @@
   "eyebrow": "FormWeb · Framer, Figma, Webflow and Canva alternative · Apache-2.0",
   "dek": "144 researched capabilities, measured against Framer, Figma, Webflow and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation (Framer, Webflow and Canva fetched on 10, 11 and 17 October 2026, Figma on 17 October 2026 across every row), so their scores are lower bounds rather than proof of absence. Framer, Webflow and Canva were not graded on the FormWeb-side rows added from v0.5.7 to v0.10.6, so their tiles undercount those; the ten rows added at v0.12.8 are graded in every lane.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0), 14 more checked against Canva (v0.3.0), FormWeb-side targets added from v0.7.0 on, and ten rows researched from the four products' own documentation at v0.12.8; the Figma lane was graded across all rows on 17 October 2026",
-  "changes": "v0.12.9 builds the first of the rows added in v0.12.8: custom code in the page head and body, for the whole site and for each page, edited in Page settings and written into exported and published pages. FW-178 moves from None to Full, and the score from 121 to 122 of 144.",
+  "changes": "v0.13.0 adds prebuilt sections and starter pages to the Insert panel: nine editable sections and three starter pages, each inserted as one undo step. FW-186 moves from None to Partial (no whole-site template gallery or saved sections yet), and the score from 122 to 122.5 of 144.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
