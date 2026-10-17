@@ -1914,4 +1914,5 @@ export default [
   "Auswahl aus Verkettung lösen",
   "Als Maske verwenden",
   "Wählen Sie zwei oder mehr Pfade aus. Der unterste wird zur Maske.",
+  "Am Pixelraster ausrichten",
 ] as readonly string[];

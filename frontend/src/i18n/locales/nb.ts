@@ -1914,4 +1914,5 @@ export default [
   "Frigjør utvalget fra kjeden",
   "Bruk som maske",
   "Velg to eller flere baner. Den nederste blir masken.",
+  "Fest til pikselrutenett",
 ] as readonly string[];

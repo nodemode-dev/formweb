@@ -1914,4 +1914,5 @@ export default [
   "Lepaskan pilihan dari rangkaian",
   "Gunakan sebagai mask",
   "Pilih dua jalur atau lebih. Jalur paling bawah menjadi mask.",
+  "Tempel ke kisi piksel",
 ] as readonly string[];

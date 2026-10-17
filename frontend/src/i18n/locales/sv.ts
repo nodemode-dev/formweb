@@ -1914,4 +1914,5 @@ export default [
   "Frigör markeringen från länken",
   "Använd som mask",
   "Markera två eller fler banor. Den nedersta blir masken.",
+  "Fäst mot pixelrutnät",
 ] as readonly string[];

@@ -1914,4 +1914,5 @@ export default [
   "Liberar seleção do encadeamento",
   "Usar como máscara",
   "Selecione dois ou mais caminhos. O de baixo se torna a máscara.",
+  "Ajustar à grade de pixels",
 ] as readonly string[];

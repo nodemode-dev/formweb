@@ -1914,4 +1914,5 @@ export default [
   "Selectie uit koppeling vrijgeven",
   "Gebruiken als masker",
   "Selecteer twee of meer paden. Het onderste wordt het masker.",
+  "Uitlijnen op pixelraster",
 ] as readonly string[];

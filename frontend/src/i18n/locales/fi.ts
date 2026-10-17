@@ -1914,4 +1914,5 @@ export default [
   "Vapauta valinta ketjusta",
   "Käytä maskina",
   "Valitse kaksi tai useampi polku. Alimmasta tulee maski.",
+  "Kohdista pikseliruudukkoon",
 ] as readonly string[];

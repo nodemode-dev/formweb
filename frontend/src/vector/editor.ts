@@ -476,6 +476,7 @@ export class Editor {
     const index = Number(target?.getAttribute('data-i') ?? '-1');
     const p = this.pt(event);
     this.pointer = p;
+    this.extras.suspend = event.ctrlKey;
     event.preventDefault();
     this.frames.clear();
     const tool = this.tool;
@@ -785,6 +786,7 @@ export class Editor {
     if (this.tool === null) return;
     const p = this.pt(event);
     this.pointer = p;
+    this.extras.suspend = event.ctrlKey;
     if (this.extras.move(p, event)) return;
     if (this.picker.move(p)) return;
     if (this.puppet.move(p) || this.reshape.move(p)) return;

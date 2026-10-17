@@ -1914,4 +1914,5 @@ export default [
   "Seçimi bağlantıdan serbest bırak",
   "Maske olarak kullan",
   "İki veya daha fazla yol seçin. En alttaki maske olur.",
+  "Piksel ızgarasına yasla",
 ] as readonly string[];

@@ -1914,4 +1914,5 @@ export default [
   "Zwolnij zaznaczenie z połączenia",
   "Użyj jako maski",
   "Zaznacz co najmniej dwie ścieżki. Najniższa stanie się maską.",
+  "Przyciągaj do siatki pikseli",
 ] as readonly string[];

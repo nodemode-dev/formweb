@@ -1,5 +1,13 @@
 # Frontend context map
 
+## Snapping to Figma's level · v0.12.3 (2026-10-17)
+
+`vector/snap.ts` `snapLocal`: every other object's box corners and edge middles join its centre and anchors as snap points (Figma snaps to the centres and outermost points of objects). `vector/extras.ts`: `suspend` (set from `event.ctrlKey` on every canvas pointerdown and pointermove in `vector/editor.ts`) turns snapping off while Control is held; `pixelSnap` rounds a point that snapped to nothing else to whole drawing units, or to whole page pixels when no drawing is active (a new drawing is placed in page pixels). `vector/index.ts`: `vector.snap.pixel` toggle (off by default); `commands/catalogue.ts` entry; 1 string in `i18n/keys.ts` and 23 locale files (1918 keys).
+
+- **Source basis:** Figma Help "Adjust alignment, rotation, position and dimensions": Snap to objects aligns "the centers and outermost points of different objects", a red guide appears, "hold Control to temporarily disable them", and Snap to pixel grid aligns objects to an underlying grid.
+- **Found while driving:** pixel snapping first did nothing for a shape drawn with no drawing selected, because `snapPoint` returned before rounding when there is no active svg; it now rounds page pixels there. Two script slips (path order in the state is not drawing order; a shape drawn under the floating panel) were fixed in the script.
+- **Driven (CPU 4x, 400 ms latency, slow network, cache off):** rectangle A, then a rectangle started 2 and 3 px off A's right edge middle began exactly at (324.42, 163.21); the same start with Control held stayed at (327.66, 168.04), undo; dragging the second rectangle's centre near A's centre landed it at A's centre with the snap marker; with Snap to pixel grid on, a new drawing's path read M2 2 L98 2 L98 115 L2 115 Z. No page errors, no layout shifts.
+
 ## Use as mask, Shape Builder subtract checked · v0.12.2 (2026-10-17)
 
 `vector/arrange.ts` `makeMaskCommands` takes `from: 'top' | 'bottom'`; 'bottom' is Figma's Use as mask (the bottom selected path becomes the clipPath, the paths above it go in the clipped group). `vector/ops.ts` `makeMask(kind, from)` selects the contents afterwards. `vector/index.ts`: `vector.mask.use` (makes the mask with two or more paths selected, otherwise releases), no default key because Mod+Alt+M is Make opacity mask. `commands/catalogue.ts` entry; 2 strings in `i18n/keys.ts` and the 23 locale files (1917 keys).

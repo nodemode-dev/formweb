@@ -1914,4 +1914,5 @@ export default [
   "Liberar selección del enlace",
   "Usar como máscara",
   "Seleccione dos o más trazados. El inferior se convierte en la máscara.",
+  "Ajustar a la cuadrícula de píxeles",
 ] as readonly string[];

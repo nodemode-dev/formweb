@@ -1914,4 +1914,5 @@ export default [
   "Svincola selezione dalla concatenazione",
   "Usa come maschera",
   "Seleziona due o più tracciati. Quello in basso diventa la maschera.",
+  "Aggancia alla griglia dei pixel",
 ] as readonly string[];

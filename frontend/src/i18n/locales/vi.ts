@@ -1914,4 +1914,5 @@ export default [
   "Gỡ vùng chọn khỏi luồng",
   "Dùng làm mặt nạ",
   "Hãy chọn hai đường dẫn trở lên. Đường dưới cùng sẽ thành mặt nạ.",
+  "Bắt dính lưới điểm ảnh",
 ] as readonly string[];

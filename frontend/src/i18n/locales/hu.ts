@@ -1914,4 +1914,5 @@ export default [
   "Kijelölés feloldása az összefűzésből",
   "Használat maszkként",
   "Jelöljön ki két vagy több útvonalat. A legalsó lesz a maszk.",
+  "Igazítás a képpontrácshoz",
 ] as readonly string[];

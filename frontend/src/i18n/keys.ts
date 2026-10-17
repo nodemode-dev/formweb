@@ -1914,4 +1914,5 @@ export const KEYS: readonly string[] = [
   "Release selection from thread",
   "Use as mask",
   "Select two or more paths. The bottom one becomes the mask.",
+  "Snap to pixel grid",
 ];

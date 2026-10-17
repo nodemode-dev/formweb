@@ -1914,4 +1914,5 @@ export default [
   "Libérer la sélection du chaînage",
   "Utiliser comme masque",
   "Sélectionnez au moins deux tracés. Celui du dessous devient le masque.",
+  "Aligner sur la grille de pixels",
 ] as readonly string[];

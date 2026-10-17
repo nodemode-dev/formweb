@@ -1914,4 +1914,5 @@ export default [
   "Uvolnit výběr z propojení",
   "Použít jako masku",
   "Vyberte dvě nebo více cest. Spodní se stane maskou.",
+  "Přichytávat k mřížce pixelů",
 ] as readonly string[];

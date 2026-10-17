@@ -1914,4 +1914,5 @@ export default [
   "Frigør markering fra kæden",
   "Brug som maske",
   "Vælg to eller flere stier. Den nederste bliver masken.",
+  "Fastgør til pixelgitter",
 ] as readonly string[];

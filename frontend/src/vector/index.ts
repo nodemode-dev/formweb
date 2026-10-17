@@ -139,6 +139,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.distribute.hspace', label: 'Distribute horizontal spacing', menu: MENU, group: 8, run: () => { void editor.ops.distribute('hspace', null); }, enabled: () => editor.selection.length >= 3 },
     { id: 'vector.distribute.vspace', label: 'Distribute vertical spacing', menu: MENU, group: 8, run: () => { void editor.ops.distribute('vspace', null); }, enabled: () => editor.selection.length >= 3 },
     { id: 'vector.snap.toggle', label: 'Smart guides and snapping', menu: MENU, keys: 'Mod+Shift+;', group: 8, run: () => { editor.extras.snapping = !editor.extras.snapping; editor.emit(); }, checked: () => editor.extras.snapping },
+    { id: 'vector.snap.pixel', label: 'Snap to pixel grid', menu: MENU, group: 8, run: () => { editor.extras.pixelSnap = !editor.extras.pixelSnap; editor.emit(); }, checked: () => editor.extras.pixelSnap },
     { id: 'vector.recolor', label: 'Recolor artwork...', menu: 'Edit', group: 3, run: () => openRecolor(editor.host(), () => editor.panelSvg()), enabled: () => { try { return !!(editor.activeSvg() ?? editor.panelSvg()); } catch { return false; } } },
     { id: 'vector.graphic-styles', label: 'Graphic styles', menu: 'Window', group: 6, run: () => openGraphicStyles(editor.host()) },
     { id: 'vector.artboards', label: 'Artboards', menu: 'Window', group: 6, run: () => artboards.toggle() },

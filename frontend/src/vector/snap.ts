@@ -50,8 +50,12 @@ export function snapLocal(h: Host, svg: string, p: Pt, o: SnapOptions): SnapResu
     const subs = applyCorners(shape.subs);
     subsList.push(subs);
     for (const sub of shape.subs) for (const n of sub.nodes) points.push([n.x, n.y]);
+    /* Figma snaps to the centers and outermost points of other objects: the box centre, corners and edge middles. */
     const box = pathBounds(subs);
-    if (box) points.push([box.x + box.w / 2, box.y + box.h / 2]);
+    if (box) {
+      const { x, y, w, h: bh } = box;
+      points.push([x + w / 2, y + bh / 2], [x, y], [x + w, y], [x, y + bh], [x + w, y + bh], [x + w / 2, y], [x + w / 2, y + bh], [x, y + bh / 2], [x + w, y + bh / 2]);
+    }
   }
   const node = site.nodes[svg];
   if (node) {

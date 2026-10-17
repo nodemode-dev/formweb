@@ -91,21 +91,29 @@ export class Extras {
 
   exit(): void { if (this.iso) { this.iso = null; this.h.render(); this.h.emit(); } }
 
+  /* Figma: holding Control turns snapping off for as long as it is held (set from each pointer event). */
+  suspend = false;
+  /* Figma's Snap to pixel grid: a point that snapped to nothing else lands on whole drawing units. */
+  pixelSnap = false;
+
   snapPoint(p: Pt, exclude: Set<string>, origin?: Pt, angles = false): Pt {
     this.guides = { svg: '', list: [] };
     const svg = this.h.activeSvg();
     const f = svg ? this.h.frame(svg) : undefined;
-    if (!svg || !f) return p;
+    if (this.suspend) return p;
+    /* No drawing yet: a new one is placed in page pixels, so the pixel grid is the page's. */
+    if (!svg || !f) return this.pixelSnap ? [Math.round(p[0]), Math.round(p[1])] : p;
     const tolerance = (6 * this.h.px()) / f.sx;
+    const whole = (q: Pt): Pt => this.h.toShell(f, this.pixelSnap ? [Math.round(q[0]), Math.round(q[1])] : q);
     if (!this.snapping) {
       const aid = this.aids?.active(svg) ? snapAids(this.aids, svg, this.local(f, p), tolerance) : null;
-      if (!aid) return p;
+      if (!aid) return this.pixelSnap ? whole(this.local(f, p)) : p;
       this.guides = { svg, list: aid.guides };
       return this.h.toShell(f, aid.p);
     }
     const result = snapLocal(this.h, svg, this.local(f, p), { tolerance, exclude, origin: origin ? this.local(f, origin) : undefined, angles, aids: this.aids });
     this.guides = { svg, list: result.guides };
-    return this.h.toShell(f, result.p);
+    return result.guides.length ? this.h.toShell(f, result.p) : whole(result.p);
   }
 
   clearGuides(): void { if (this.guides.list.length) this.guides = { svg: '', list: [] }; }
