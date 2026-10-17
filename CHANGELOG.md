@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.5 · 2026-10-17
+
+- Symbols can now be reused across all the drawings on a page. Place an instance of a symbol from any drawing on the page, and it follows edits to the master like any other instance.
+- A drawing whose symbol is still used elsewhere can't be deleted until those instances are detached, so nothing breaks silently.
+
 ## 0.12.4 · 2026-10-17
 
 - Export a drawing as a vector PDF: tick PDF in Export for Screens to get a one-page PDF with the shapes, masks, transparency and text as editable vectors. Text is set in Helvetica, gradients use their first colour, and images and filters are left out.

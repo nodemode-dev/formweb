@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.12.4",
- "previous": "0.12.3",
+ "version": "0.12.5",
+ "previous": "0.12.4",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
  "release_note": "Multiple artboards (FW-176) Full against Figma's frames; symbols (FW-156) now shared across a page, still Partial against Figma's file-wide components.",
@@ -8001,6 +8001,13 @@
    "same_as": "0.12.2",
    "moved": {"FW-090": "full"},
    "note": "Snapping at Figma's level: smart guides and snapping Full, 117.5 of 134."
+  },
+  {
+   "version": "0.12.4",
+   "date": "2026-10-17",
+   "same_as": "0.12.3",
+   "moved": {"FW-151": "partial"},
+   "note": "Vector PDF export: print PDF Partial, level with Figma, 118 of 134."
   }
  ],
  "changes": [
