@@ -8098,7 +8098,7 @@
    "version": "0.10.6",
    "date": "2026-10-17",
    "same_as": "0.10.5",
-   "moved": {},
+   "moved": {"FW-177": "partial"},
    "note": "Freeform gradients (FW-177) added as Partial, Points mode. 116 of 134."
   },
   {
@@ -8271,7 +8271,7 @@
    "Partial: no per-option counts, no recorded editor flow for several tabs, nested lists not filtered by parent item, element-level superscript only, no live form POST"
   ]
  ],
- "closed_note": "v0.7.1 reviewed all 29 rows added in v0.7.0 against the recorded verification: eleven moved from Partial to Full, and four rows were added (agent dock, desktop build, command registry, 26 interface languages). Still open: annotations in image export and print PDF with bleed are not built; AI images to Full (one real image generator run); hosting and payments stay operationally partial.",
+ "closed_note": "Still open: the eight v0.12.8 rows that are not built (FW-178 to FW-182, FW-184 to FW-186) and annotations in image export (FW-150); hosting, payments and AI images (FW-050, FW-063, FW-071) wait on real provider accounts.",
  "platform": [
   [
    "What it is",
@@ -8392,7 +8392,7 @@
   "eyebrow": "FormWeb · Framer, Figma, Webflow and Canva alternative · Apache-2.0",
   "dek": "144 researched capabilities, measured against Framer, Figma, Webflow and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation (Framer, Webflow and Canva fetched on 10, 11 and 17 October 2026, Figma on 17 October 2026 across every row), so their scores are lower bounds rather than proof of absence. Framer, Webflow and Canva were not graded on the FormWeb-side rows added from v0.5.7 to v0.10.6, so their tiles undercount those; the ten rows added at v0.12.8 are graded in every lane.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0), 14 more checked against Canva (v0.3.0), FormWeb-side targets added from v0.7.0 on, and ten rows researched from the four products' own documentation at v0.12.8; the Figma lane was graded across all rows on 17 October 2026",
-  "changes": "v0.7.1 reviews the 29 rows added in v0.7.0 against the browser verification recorded since: eleven move from Partial to Full (eight vector rows and three creative rows), the rest stay Partial with the recorded gap, and four rows are added for the agent dock, desktop build, command registry and 26 editor languages. The score moves from 91 of 108 as first graded in v0.7.0 to 99 of 112.",
+  "changes": "v0.12.8 adds ten rows researched from Framer's, Figma's, Webflow's and Canva's own documentation, each graded in all five lanes. FormWeb is Full on fixed and sticky positioning (checked in the export) and Partial on design import (SVG, with frame clipping lost); custom head and body code, site search, page transitions, device-following light and dark modes, editor plugins, scheduled publishing, scroll and pointer effects, and prebuilt sections are not built yet. The score moves from 119.5 of 134 to 121 of 144.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [

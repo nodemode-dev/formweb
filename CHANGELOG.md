@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.8 · 2026-10-17
+
+- The comparison page has ten new rows drawn from Framer's, Figma's, Webflow's and Canva's own documentation: custom head and body code, site search, page transitions, light and dark modes that follow the device, editor plugins, fixed and sticky positioning, scheduled publishing, scroll and pointer effects, prebuilt sections and templates, and importing designs from another tool.
+- FormWeb is Full on fixed and sticky positioning and Partial on design import (SVG, with frame clipping lost); the other eight are not built yet and are now listed as targets. 121 of 144.
+
 ## 0.12.7 · 2026-10-17
 
 - Variable-width strokes now work on closed shapes such as rectangles and ellipses, from the width presets and with the Width tool.
