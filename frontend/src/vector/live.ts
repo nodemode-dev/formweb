@@ -4,7 +4,7 @@ import { pathfinder, type PathfinderOp } from './boolean';
 import { applyCorners, renderPath } from './corners';
 import { brushOutputs, brushSig, needsArt, readBrush, spineOf, spinePoint, spineTangent } from './brush';
 import { blendSub, compose, matchSubs, repeatMatrices, rotation, translation, type Mat } from './distort';
-import { freeformGradient, freeformOutputs, freeformSig, readFreeform } from './freeform';
+import { freeformGradient, freeformOutputs, freeformSamples, freeformSig, readFreeform } from './freeform';
 import { decodeModel, dist, parsePath, pathBounds, type Box, type Pt, type SubPath } from './geometry';
 import { colorToHex } from './gradient';
 import { freshId, geometryAttrs, moveNode, paintOf, parentOf, refOf, removeNode, updateAttrs } from './store';
@@ -331,17 +331,20 @@ export function liveFixes(site: Site, cmds: Command[]): Command[] {
     const ok = (id: string): boolean => view.alive(id) && rest.includes(id) && view.tag(id) === 'path';
     const ff = readFreeform(gattrs['data-fw-freeform']);
     if (ff) {
-      if (!ok(ff.src) || !ff.grads.every(id => view.alive(id) && view.tag(id) === 'radialGradient')) { out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-freeform': null })); continue; }
+      if (!ok(ff.src) || ![...ff.grads, ...(ff.sg ?? [])].every(id => view.alive(id) && view.tag(id) === 'radialGradient')) { out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-freeform': null })); continue; }
       const sattrs = view.attrs(ff.src)!;
       const sig = freeformSig(ff, sattrs);
       if (sig === ff.sig && live) continue;
-      const old = live ? view.kids(live).map(id => refOf(view.attrs(id)?.fill)).filter((id): id is string => !!id && !ff.grads.includes(id)) : [];
-      ff.grads.forEach((id, i) => {
-        const made = freeformGradient(sattrs, ff, i);
+      const used = new Set([...ff.grads, ...(ff.sg ?? [])]);
+      const old = live ? view.kids(live).map(id => refOf(view.attrs(id)?.fill)).filter((id): id is string => !!id && !used.has(id)) : [];
+      const samples = freeformSamples(ff);
+      const place = (id: string, made: ReturnType<typeof freeformGradient>): void => {
         if (!made) return;
         out.push(updateAttrs(id, made.attrs));
         view.kids(id).forEach((stop, k) => { if (made.stops[k]) out.push(updateAttrs(stop, made.stops[k])); });
-      });
+      };
+      ff.grads.forEach((id, i) => place(id, freeformGradient(sattrs, ff.pts[i], ff.cols[i])));
+      (ff.sg ?? []).forEach((id, i) => { const s = samples[i]; if (s) place(id, freeformGradient(sattrs, [s.x, s.y, s.s], s.c)); });
       out.push(...refresh(view, taken, site, g.id, 'freeform', live, freeformOutputs(sattrs, ff), rest.indexOf(ff.src) + 1), updateAttrs(g.id, { 'data-fw-freeform': JSON.stringify({ ...ff, sig }) }));
       for (const id of new Set(old)) if (view.alive(id)) out.push(removeNode(id));
     } else if (effect) {
@@ -517,7 +520,8 @@ export function releaseCommands(site: Site, group: string): { cmds: Command[]; s
   if (fx && site.nodes[fx.src]) cmds.push(updateAttrs(fx.src, { 'stroke-opacity': null, 'stroke-dasharray': fx.mode === 'preserve' && fx.dash.length ? fx.dash.join(' ') : null }));
   const wide = fx && site.nodes[fx.src] && widthSpec(site.nodes[fx.src].attrs['data-fw-width']);
   if (wide && site.nodes[wide.outline]) cmds.push(updateAttrs(wide.outline, { opacity: null }));
-  for (const id of readFreeform(g.attrs['data-fw-freeform'])?.grads ?? []) if (site.nodes[id]) cmds.push(removeNode(id));
+  const ffSpec = readFreeform(g.attrs['data-fw-freeform']);
+  for (const id of [...(ffSpec?.grads ?? []), ...(ffSpec?.sg ?? [])]) if (site.nodes[id]) cmds.push(removeNode(id));
   const keep = g.children.filter(id => id !== live);
   const at = site.nodes[parent].children.indexOf(group);
   keep.forEach((child, k) => cmds.push(moveNode(child, parent, at + k)));

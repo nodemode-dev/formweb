@@ -61,6 +61,7 @@ export class ExtraSections {
   readonly sections: HTMLElement[] = [];
   private target: ReturnType<typeof segment<Target>>;
   private kind: ReturnType<typeof segment<'solid' | 'linear' | 'radial' | 'freeform'>>;
+  private ffMode: ReturnType<typeof segment<'points' | 'lines'>>;
   private spread: ReturnType<typeof segment<'pad' | 'reflect' | 'repeat'>>;
   private angle: HTMLInputElement;
   private bar = element('div', 'fw-v-gradbar');
@@ -105,6 +106,7 @@ export class ExtraSections {
     const gradient = section('Gradient', true);
     this.target = segment<Target>([{ id: 'fill', label: 'Fill' }, { id: 'stroke', label: 'Stroke' }], id => { extras.target = id; editor.emit(); editor.render(); });
     this.kind = segment<'solid' | 'linear' | 'radial' | 'freeform'>([{ id: 'solid', label: 'Solid' }, { id: 'linear', label: 'Linear' }, { id: 'radial', label: 'Radial' }, { id: 'freeform', label: 'Freeform' }], id => { void (id === 'freeform' ? ops.freeform() : ops.paintKind(extras.target, id)); });
+    this.ffMode = segment<'points' | 'lines'>([{ id: 'points', label: 'Points' }, { id: 'lines', label: 'Lines' }], id => { extras.setFreeformMode(id); this.ffMode.set(id); });
     this.spread = segment<'pad' | 'reflect' | 'repeat'>([{ id: 'pad', label: 'Pad' }, { id: 'reflect', label: 'Reflect' }, { id: 'repeat', label: 'Repeat' }], id => { void ops.gradient(extras.target, g => { g.spread = id; }); });
     this.angle = numberInput(-360, 360, 1, n => { void ops.gradientAngle(extras.target, n); });
     for (let i = 0; i < STOP_ROWS; i++) {
@@ -133,7 +135,7 @@ export class ExtraSections {
       });
     }, 'add');
     const reverse = button('Reverse', 'Reverse the gradient', () => { void ops.gradient(extras.target, g => { g.stops.forEach(s => { s.offset = 1 - s.offset; }); }); }, 'convert');
-    gradient.body.append(this.target.root, this.kind.root, field('Angle', this.angle), field('Spread', this.spread.root, true), this.gradientBody, grid(addStop, reverse),
+    gradient.body.append(this.target.root, this.kind.root, field('Freeform draw', this.ffMode.root, true), field('Angle', this.angle), field('Spread', this.spread.root, true), this.gradientBody, grid(addStop, reverse),
       element('p', 'fw-v-note', 'Gradient tool (G): drag to set the line, drag the ends or stops, click the line to add a stop, Alt-click a stop to remove it.'));
 
     const stroke = section('Stroke align and width', false);
@@ -414,6 +416,7 @@ export class ExtraSections {
     let freeform = false;
     try { const site = e.host().site(); freeform = e.selection.some(id => liveOf(site, id)?.kind === 'freeform'); } catch { freeform = false; }
     this.kind.set(freeform ? 'freeform' : g ? g.kind : 'solid');
+    this.ffMode.set(extras.ffMode);
     this.spread.set(g ? g.spread : 'pad');
     this.angle.disabled = !g || g.kind !== 'linear';
     if (g) value(this.angle, String(Math.round(angleOf(g))));

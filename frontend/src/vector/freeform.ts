@@ -1,6 +1,6 @@
 import type { Command, Site } from '../types';
 import { parsePath, pathBounds, type Box } from './geometry';
-import { colorToHex } from './gradient';
+import { colorToHex, mixColor } from './gradient';
 import { freshId, updateAttrs } from './store';
 
 /* Freeform gradients (Points mode). SVG has no mesh paint, so each colour stop is drawn as a copy of the
@@ -10,10 +10,11 @@ import { freshId, updateAttrs } from './store';
 
 type Attrs = Record<string, string>;
 export type FreeformPoint = [number, number, number];
-export interface FreeformSpec { v: 1; src: string; grads: string[]; pts: FreeformPoint[]; cols: string[]; sig: string }
-export interface FreeformStop { grad: string | null; x: number; y: number; s: number; c: string }
+export interface FreeformSpec { v: 1; src: string; grads: string[]; pts: FreeformPoint[]; cols: string[]; sig: string; ln?: number[]; sg?: string[] }
+export interface FreeformStop { grad: string | null; x: number; y: number; s: number; c: string; ln?: number }
 
 export const FREEFORM_LIMIT = 20;
+export const SAMPLE_LIMIT = 160;
 export const SPREAD_MIN = 0.02;
 const ID = /^[A-Za-z0-9_-]{1,64}$/;
 const HEX = /^#[0-9a-f]{6}$/;
@@ -36,11 +37,36 @@ export function readFreeform(raw: string | undefined): FreeformSpec | null {
     if (!grads.every(id => typeof id === 'string' && ID.test(id) && id !== c.src) || !cols.every(col => typeof col === 'string' && HEX.test(col))) return null;
     if (!pts.every(p => Array.isArray(p) && p.length === 3 && unit(p[0]) && unit(p[1]) && unit(p[2]) && p[2] >= SPREAD_MIN)) return null;
     if (typeof c.sig !== 'string' || !/^[0-9a-f]{8}$/.test(c.sig)) return null;
-    return { v: 1, src: c.src, grads, pts, cols, sig: c.sig };
+    const ln = c.ln, sg = c.sg;
+    if (ln !== undefined && (!Array.isArray(ln) || ln.length !== grads.length || !ln.every(k => Number.isInteger(k) && k >= 0 && k <= FREEFORM_LIMIT))) return null;
+    if (sg !== undefined && (!Array.isArray(sg) || sg.length > SAMPLE_LIMIT || !sg.every(id => typeof id === 'string' && ID.test(id) && id !== c.src && !grads.includes(id)) || new Set(sg).size !== sg.length)) return null;
+    return { v: 1, src: c.src, grads, pts, cols, sig: c.sig, ...(ln ? { ln } : {}), ...(sg ? { sg } : {}) };
   } catch { return null; }
 }
 
-export const freeformSig = (s: FreeformSpec, src: Attrs): string => hash(JSON.stringify(['freeform', s.src, s.grads, s.pts, s.cols, src.d ?? '', src.transform ?? '', src['fill-rule'] ?? '']));
+export const freeformSig = (s: FreeformSpec, src: Attrs): string => hash(JSON.stringify(['freeform', s.src, s.grads, s.pts, s.cols, s.ln ?? [], s.sg ?? [], src.d ?? '', src.transform ?? '', src['fill-rule'] ?? '']));
+
+/* Lines mode: stops that share a line number above 0 are joined in list order. Between two neighbours the
+   colour and spread are interpolated into sample points, about one per 0.05 of the box, at most 12 a segment.
+   The count depends on the stop positions only, so it is known when the stops are written. */
+export function freeformSamples(spec: Pick<FreeformSpec, 'pts' | 'cols' | 'ln'>): { x: number; y: number; s: number; c: string }[] {
+  const out: { x: number; y: number; s: number; c: string }[] = [];
+  const ln = spec.ln ?? [];
+  const lines = [...new Set(ln.filter(k => k > 0))];
+  for (const k of lines) {
+    const idx = ln.map((v, i) => (v === k ? i : -1)).filter(i => i >= 0);
+    for (let j = 1; j < idx.length; j++) {
+      const a = spec.pts[idx[j - 1]], b = spec.pts[idx[j]];
+      const count = Math.min(12, Math.max(0, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 0.05) - 1));
+      for (let m = 1; m <= count; m++) {
+        if (out.length >= SAMPLE_LIMIT) return out;
+        const t = m / (count + 1);
+        out.push({ x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, s: a[2] + (b[2] - a[2]) * t, c: mixColor(spec.cols[idx[j - 1]], spec.cols[idx[j]], t) });
+      }
+    }
+  }
+  return out;
+}
 
 export function sourceBox(src: Attrs): Box | null {
   const box = pathBounds(parsePath(src.d));
@@ -54,10 +80,9 @@ export function averageColor(cols: string[]): string {
   return `#${sum.map(v => Math.round(v / cols.length).toString(16).padStart(2, '0')).join('')}`;
 }
 
-/* The gradient and its two stops for stop i, sized to the source path's bounding box. */
-export function freeformGradient(src: Attrs, spec: Pick<FreeformSpec, 'pts' | 'cols'>, i: number): { attrs: Record<string, string | null>; stops: Attrs[] } | null {
+/* The gradient and its stops for one stop or sample point, sized to the source path's bounding box. */
+export function freeformGradient(src: Attrs, pt: FreeformPoint | undefined, col: string | undefined): { attrs: Record<string, string | null>; stops: Attrs[] } | null {
   const box = sourceBox(src);
-  const pt = spec.pts[i], col = spec.cols[i];
   if (!box || !pt || !col) return null;
   const [x, y, s] = pt;
   const k = box.w / box.h;
@@ -69,11 +94,11 @@ export function freeformGradient(src: Attrs, spec: Pick<FreeformSpec, 'pts' | 'c
 }
 
 export function freeformOutputs(src: Attrs, spec: FreeformSpec): Attrs[] {
-  return spec.grads.map(id => ({ d: src.d ?? '', ...(src.transform ? { transform: src.transform } : {}), ...(src['fill-rule'] ? { 'fill-rule': src['fill-rule'] } : {}), fill: `url(#${id})`, stroke: 'none' }));
+  return [...(spec.sg ?? []), ...spec.grads].map(id => ({ d: src.d ?? '', ...(src.transform ? { transform: src.transform } : {}), ...(src['fill-rule'] ? { 'fill-rule': src['fill-rule'] } : {}), fill: `url(#${id})`, stroke: 'none' }));
 }
 
 export function stopsOf(spec: FreeformSpec): FreeformStop[] {
-  return spec.grads.map((grad, i) => ({ grad, x: spec.pts[i][0], y: spec.pts[i][1], s: spec.pts[i][2], c: spec.cols[i] }));
+  return spec.grads.map((grad, i) => ({ grad, x: spec.pts[i][0], y: spec.pts[i][1], s: spec.pts[i][2], c: spec.cols[i], ln: spec.ln?.[i] ?? 0 }));
 }
 
 const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
@@ -85,19 +110,26 @@ export function writeStops(site: Site, svg: string, group: string, spec: Freefor
   if (!list.length) return [];
   const taken = new Set<string>();
   const cmds: Command[] = [];
-  const grads = list.map(stop => {
-    if (stop.grad) return stop.grad;
+  const make = (name: string, color: string): string => {
     const id = freshId(site, taken, 'ffgrad');
     taken.add(id);
-    cmds.push({ command: 'node.add', params: { parent: svg, node: { id, tag: 'radialGradient', name: 'Freeform stop', attrs: { id } } } });
+    cmds.push({ command: 'node.add', params: { parent: svg, node: { id, tag: 'radialGradient', name, attrs: { id } } } });
     for (const offset of ['0', '0.35', '1']) {
       const sid = freshId(site, taken, 'stop');
       taken.add(sid);
-      cmds.push({ command: 'node.add', params: { parent: id, node: { id: sid, tag: 'stop', name: 'Stop', attrs: { offset, 'stop-color': colorToHex(stop.c, '#808080') } } } });
+      cmds.push({ command: 'node.add', params: { parent: id, node: { id: sid, tag: 'stop', name: 'Stop', attrs: { offset, 'stop-color': colorToHex(color, '#808080') } } } });
     }
     return id;
-  });
+  };
+  const grads = list.map(stop => stop.grad ?? make('Freeform stop', stop.c));
+  const ln = list.map(s => Math.max(0, Math.min(FREEFORM_LIMIT, Math.round(s.ln ?? 0))));
   const next: FreeformSpec = { v: 1, src: spec.src, grads, pts: list.map(s => [r4n(clamp01(s.x)), r4n(clamp01(s.y)), r4n(Math.max(SPREAD_MIN, clamp01(s.s)))]), cols: list.map(s => colorToHex(s.c, '#808080')), sig: '00000000' };
+  if (ln.some(k => k > 0)) {
+    next.ln = ln;
+    const samples = freeformSamples(next);
+    const kept = (spec.sg ?? []).slice(0, samples.length);
+    next.sg = samples.map((s, i) => kept[i] ?? make('Freeform line', s.c));
+  }
   const fill = averageColor(next.cols);
   return [...cmds, ...(src.fill !== fill ? [updateAttrs(spec.src, { fill })] : []), updateAttrs(group, { 'data-fw-freeform': JSON.stringify(next) })];
 }

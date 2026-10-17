@@ -208,7 +208,7 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-blend" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| blend_config(&v)).unwrap_or(false),
         "data-fw-repeat" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| repeat_config(&v)).unwrap_or(false),
         "data-fw-live" => matches!(value, "blend" | "repeat" | "brush" | "stroke" | "compound" | "warp" | "effect" | "freeform"),
-        "data-fw-freeform" => value.len() <= 4096 && serde_json::from_str::<Value>(value).map(|v| freeform_config(&v)).unwrap_or(false),
+        "data-fw-freeform" => value.len() <= 16384 && serde_json::from_str::<Value>(value).map(|v| freeform_config(&v)).unwrap_or(false),
         "data-fw-effect" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| effect_config(&v)).unwrap_or(false),
         "data-fw-warp" => value.len() <= 120_000 && serde_json::from_str::<Value>(value).map(|v| warp_config(&v)).unwrap_or(false),
         "data-fw-compound" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| compound_config(&v)).unwrap_or(false),
@@ -394,7 +394,12 @@ fn freeform_config(value: &Value) -> bool {
     let unit = |v: &Value, lo: f64| v.as_f64().map(|n| n.is_finite() && n >= lo && n <= 1.0).unwrap_or(false);
     let point = |p: &Value| p.as_array().map(|a| a.len() == 3 && unit(&a[0], 0.0) && unit(&a[1], 0.0) && unit(&a[2], 0.02)).unwrap_or(false);
     let color = |c: &Value| c.as_str().map(|s| s.len() == 7 && s.starts_with('#') && s[1..].bytes().all(|b| b.is_ascii_hexdigit())).unwrap_or(false);
-    map.len() == 6
+    let lines = map.get("ln").map(|v| v.as_array().map(|a| a.len() == grads.len() && a.iter().all(|k| k.as_u64().map(|n| n <= 20).unwrap_or(false))).unwrap_or(false)).unwrap_or(true);
+    let samples: Vec<&str> = map.get("sg").and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_str).collect()).unwrap_or_default();
+    let sample_set: BTreeSet<&str> = samples.iter().copied().collect();
+    let samples_ok = map.get("sg").map(|v| v.as_array().map(|a| a.len() == samples.len() && a.len() <= 160 && sample_set.len() == samples.len() && samples.iter().all(|id| ref_id(id) && !unique.contains(id))).unwrap_or(false)).unwrap_or(true);
+    map.len() == 6 + usize::from(map.contains_key("ln")) + usize::from(map.contains_key("sg"))
+        && lines && samples_ok
         && map.get("v").and_then(Value::as_u64) == Some(1)
         && map.get("src").and_then(Value::as_str).map(ref_id).unwrap_or(false)
         && !ids.is_empty() && ids.len() <= 20 && ids.len() == grads.len() && unique.len() == ids.len() && ids.iter().all(|id| ref_id(id))

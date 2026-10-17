@@ -54,6 +54,8 @@ export class Extras {
   target: Target = 'fill';
   stop = 0;
   ffStop = 0;
+  ffMode: 'points' | 'lines' = 'points';
+  private ffLine = 0;
   private gesture: Gesture | null = null;
   private guides: { svg: string; list: Guide[] } = { svg: '', list: [] };
   aids: AidSource | undefined;
@@ -185,6 +187,7 @@ export class Extras {
   key(event: KeyboardEvent): boolean {
     if (event.key !== 'Escape') return false;
     if (this.gesture) { this.gesture = null; this.h.render(); return true; }
+    if (this.ffLine) { this.ffLine = 0; this.h.render(); return true; }
     if (this.iso) { this.exit(); return true; }
     return false;
   }
@@ -894,7 +897,7 @@ export class Extras {
     else stop.s = Math.max(SPREAD_MIN, Math.min(1, Math.hypot((at[0] - stop.x) * s.box.w, (at[1] - stop.y) * s.box.h) / Math.hypot(s.box.w, s.box.h)));
     g.moved = true;
     const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
-    const made = freeformGradient(s.src, { pts: g.stops.map(st => [clamp01(st.x), clamp01(st.y), st.s]), cols: g.stops.map(st => st.c) }, g.idx);
+    const made = freeformGradient(s.src, [clamp01(stop.x), clamp01(stop.y), stop.s], stop.c);
     const el = stop.grad ? this.h.element(stop.grad) : null;
     if (made && el) for (const [name, value] of Object.entries(made.attrs)) if (value !== null && el.getAttribute(name) !== value) el.setAttribute(name, value);
   }
@@ -918,10 +921,22 @@ export class Extras {
     if (stops.length >= FREEFORM_LIMIT) { this.h.notify(`A freeform gradient holds at most ${FREEFORM_LIMIT} stops.`); return true; }
     const gap = (st: FreeformStop): number => Math.hypot(st.x - at[0], st.y - at[1]);
     const near = stops.reduce((best, st, i) => (gap(st) < gap(stops[best]) ? i : best), 0);
-    stops.push({ grad: null, x: at[0], y: at[1], s: stops[near].s, c: turnHue(stops[near].c, 40) });
+    if (this.ffMode === 'lines' && (!this.ffLine || !stops.some(st => st.ln === this.ffLine))) {
+      const top = Math.max(0, ...stops.map(st => st.ln ?? 0));
+      if (top >= FREEFORM_LIMIT) { this.h.notify('This freeform gradient has no room for another line.'); return true; }
+      this.ffLine = top + 1;
+    }
+    stops.push({ grad: null, x: at[0], y: at[1], s: stops[near].s, c: turnHue(stops[near].c, 40), ln: this.ffMode === 'lines' ? this.ffLine : 0 });
     this.ffStop = stops.length - 1;
     void this.writeFreeform(s, stops);
     return true;
+  }
+
+  setFreeformMode(mode: 'points' | 'lines'): void {
+    this.ffMode = mode;
+    this.ffLine = 0;
+    this.h.render();
+    this.h.emit();
   }
 
   deleteFreeformStop(): boolean {
@@ -942,6 +957,10 @@ export class Extras {
     if (!s) return false;
     const stops = g?.kind === 'ff' && g.group === s.group ? g.stops : stopsOf(s.spec);
     const diag = Math.hypot(s.box.w, s.box.h);
+    for (const k of new Set(stops.map(st => st.ln ?? 0).filter(k => k > 0))) {
+      const pts = stops.filter(st => st.ln === k).map(st => this.ffPoint(s, st.x, st.y));
+      if (pts.length > 1) items.push({ kind: 'path', d: poly(pts), cls: 'gline' });
+    }
     stops.forEach((st, i) => {
       const c = this.ffPoint(s, st.x, st.y);
       if (i === this.ffStop) {
