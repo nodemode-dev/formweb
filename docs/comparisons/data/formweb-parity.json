@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.11.4",
- "previous": "0.11.3",
+ "version": "0.11.5",
+ "previous": "0.11.4",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Area type (FW-175) stays Partial with threaded text added: overflowing words flow on into linked shapes.",
+ "release_note": "Live Paint (FW-172) stays Partial with live groups added: fills follow their faces when the paths change.",
  "lanes": [
   [
    "m",
@@ -6856,7 +6856,7 @@
    "m": [
     "partial",
     "v0.9.5: Live Paint Bucket driven in Chromium under CPU 4x and slow network. With a rectangle and an overlapping ellipse selected, hovering highlighted the overlap face, a click added it as a fill-only path under both sources, a second click with the same color changed nothing, Shift-click stroked the rectangle, and each undo reverted one action.",
-    "No Live Paint group: faces are plain paths and do not reflow when the source paths change; faces come from overlapping closed shapes only, not crossing open lines; no double-click flood, triple-click, per-edge strokes or gap options; no default key (K is the Knife)."
+    "v0.11.5: Live Paint groups are live: Make kept three faces in the sources' colour, the bucket painted the overlap blue, and reshaping the rectangle kept every fill on its face; Release gave the paths their fills back. Faces come from overlapping closed shapes only, not crossing open lines; no double-click flood, triple-click, per-edge strokes or gap options; no default key (K is the Knife)."
    ],
    "fr": [
     "none",
@@ -7931,6 +7931,13 @@
    "same_as": "0.11.2",
    "moved": {},
    "note": "Edit area type. No grade change, 116 of 134."
+  },
+  {
+   "version": "0.11.4",
+   "date": "2026-10-17",
+   "same_as": "0.11.3",
+   "moved": {},
+   "note": "Threaded area type. No grade change, 116 of 134."
   }
  ],
  "changes": [
