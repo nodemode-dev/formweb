@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.12.6",
- "previous": "0.12.5",
+ "version": "0.12.7",
+ "previous": "0.12.6",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
  "release_note": "Variable width strokes (FW-088) Full against Figma: width profiles and the Width tool on closed shapes.",
@@ -8015,6 +8015,13 @@
    "same_as": "0.12.4",
    "moved": {"FW-176": "full"},
    "note": "Artboards Full against Figma frames; symbols shared across a page, 118.5 of 134."
+  },
+  {
+   "version": "0.12.6",
+   "date": "2026-10-17",
+   "same_as": "0.12.5",
+   "moved": {"FW-156": "full"},
+   "note": "Symbols across the whole site: Full against Figma components, 119 of 134."
   }
  ],
  "changes": [

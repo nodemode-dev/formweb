@@ -934,7 +934,7 @@ dependencies = [
 
 [[package]]
 name = "formweb"
-version = "0.12.6"
+version = "0.12.7"
 dependencies = [
  "formweb-render",
  "serde",

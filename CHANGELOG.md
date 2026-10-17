@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.7 · 2026-10-17
+
+- Variable-width strokes now work on closed shapes such as rectangles and ellipses, from the width presets and with the Width tool.
+- Clicking a variable-width stroke now selects its path rather than the generated outline.
+
 ## 0.12.6 · 2026-10-17
 
 - Symbols now work across your whole site, like components in Figma: place an instance of a symbol from any page, edit the master, and every instance updates, both in the editor and on the exported site.
