@@ -504,7 +504,10 @@
    "by": "Figma",
    "date": "2026-10-17",
    "url": "https://help.figma.com/hc/en-us/articles/360041539473"
-  }
+  },
+  "G84": {"name": "Position elements in a webpage", "by": "Figma", "date": "2026-10-17", "url": "https://help.figma.com/hc/en-us/articles/31242774629655-Position-elements-in-a-webpage"},
+  "G85": {"name": "Insert blocks, embeds, webpages, and design libraries into a site", "by": "Figma", "date": "2026-10-17", "url": "https://help.figma.com/hc/en-us/articles/31242773374615-Insert-blocks-embeds-webpages-and-design-libraries-into-a-site"},
+  "G86": {"name": "Figma Sites collection overview", "by": "Figma", "date": "2026-10-17", "url": "https://help.figma.com/hc/en-us/articles/35895608840599-Figma-Sites-collection-Figma-Sites-collection-overview"}
  },
  "add": [
   {
@@ -1608,7 +1611,17 @@
      "No freeform or mesh gradient found in the gradient help page.",
      [],
      "not verified"
-    ]
+    ],
+    "FW-178": ["partial", "Custom code at the start or end of the head or body, for the whole site only, not per page.", ["G28"], "documented"],
+    "FW-179": ["none", "Website settings list no site search; the only search setting is search engine indexing.", ["G28"], "not verified"],
+    "FW-180": ["none", "The Sites interactions list reveal, scroll, cursor and marquee effects but no page transition.", ["G25"], "not verified"],
+    "FW-181": ["partial", "Variables and modes are available in Sites; following the visitor's device appearance is not documented.", ["G12", "G07"], "documented"],
+    "FW-182": ["none", "Sites help says widgets and plugins are not currently available in Sites.", ["G07"], "documented"],
+    "FW-183": ["full", "Fixed and sticky elements are supported; sticky needs a parent tall enough to scroll within.", ["G84"], "documented"],
+    "FW-184": ["none", "The publish help describes publishing and unpublishing but no scheduled publish.", ["G30"], "not verified"],
+    "FW-185": ["full", "Scroll parallax, scroll transform, mouse parallax, marquee and cursor effects are Sites interactions.", ["G25"], "documented"],
+    "FW-186": ["full", "Blocks drag onto the page, and sites start from a template or a blank file.", ["G85"], "documented"],
+    "FW-187": ["full", "Sites can start from a Figma Design file, and content copies and pastes between Design and Sites.", ["G86"], "documented"]
    }
   }
  ]

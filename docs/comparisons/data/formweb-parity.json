@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.12.7",
- "previous": "0.12.6",
+ "version": "0.12.8",
+ "previous": "0.12.7",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Variable width strokes (FW-088) Full against Figma: width profiles and the Width tool on closed shapes.",
+ "release_note": "Ten new rows (FW-178 to FW-187) researched from Framer, Figma, Webflow and Canva documentation and graded in all five lanes: fixed and sticky positioning Full, design import Partial, eight not built. 121 of 144.",
  "lanes": [
   [
    "m",
@@ -751,6 +751,34 @@
    "date": "2026-10-11",
    "url": "https://www.canva.com/design-school/resources/paypal-x-canva-design-school"
   },
+  "C32": {"name": "Design websites", "by": "Canva", "date": "2026-10-17", "url": "https://www.canva.com/en_in/help/designing-websites/"},
+  "C33": {"name": "Apps quickstart", "by": "Canva", "date": "2026-10-17", "url": "https://www.canva.dev/docs/apps/quickstart/"},
+  "C34": {"name": "Import Figma files", "by": "Canva", "date": "2026-10-17", "url": "https://www.canva.com/en_au/help/importing-figma-files/"},
+  "C35": {"name": "Customizing your Canva navigation", "by": "Canva", "date": "2026-10-17", "url": "https://www.canva.com/en_in/help/customize-primary-navigation/"},
+  "F30": {"name": "How to add custom code", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/help/articles/how-to-add-custom-code/"},
+  "F31": {"name": "Site Search", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/updates/site-search"},
+  "F32": {"name": "Add site search with the Search Component", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/academy/lessons/search"},
+  "F33": {"name": "Create page transitions with Page Effects", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/academy/lessons/page-effects"},
+  "F34": {"name": "Create automatic light and dark mode", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/academy/lessons/light-dark-mode"},
+  "F35": {"name": "Light and dark mode options", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/help/articles/light-and-dark-mode-options/"},
+  "F36": {"name": "Plugins", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/plugins/"},
+  "F37": {"name": "Positioning modes in Framer", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/academy/lessons/framer-fundamentals-fixed-and-sticky-positioning"},
+  "F38": {"name": "CMS Scheduler plugin", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/marketplace/plugins/framer-cms-scheduler/"},
+  "F39": {"name": "Parallax with Scroll Speed", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/academy/lessons/framer-animations-scroll-speed-parallax"},
+  "F40": {"name": "Inserting Sections", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/updates/sections"},
+  "F41": {"name": "Using templates", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/help/articles/how-templates-work/"},
+  "F42": {"name": "Importing from Figma and the web", "by": "Framer", "date": "2026-10-17", "url": "https://www.framer.com/academy/lessons/framer-fundamentals-importing-from-figma-and-the-web"},
+  "W30": {"name": "Custom code in head and body tags", "by": "Webflow", "date": "2026-10-17", "url": "https://help.webflow.com/hc/en-us/articles/33961357265299-Custom-code-in-head-and-body-tags"},
+  "W31": {"name": "Site search", "by": "Webflow", "date": "2026-10-17", "url": "https://help.webflow.com/hc/en-us/articles/33961242348179-Site-search"},
+  "W32": {"name": "How to build page transitions in Webflow", "by": "Webflow", "date": "2026-10-17", "url": "https://webflow.com/blog/how-to-build-page-transitions-in-webflow"},
+  "W33": {"name": "Variables", "by": "Webflow", "date": "2026-10-17", "url": "https://webflow.com/webflow-way/design-systems/variables"},
+  "W34": {"name": "Variable modes", "by": "Webflow", "date": "2026-10-17", "url": "https://developers.webflow.com/designer/reference/variable-modes"},
+  "W35": {"name": "Register an App", "by": "Webflow", "date": "2026-10-17", "url": "https://developers.webflow.com/apps/data/docs/register-an-app"},
+  "W36": {"name": "CSS position properties", "by": "Webflow", "date": "2026-10-17", "url": "https://help.webflow.com/hc/en-us/articles/33961228002963-CSS-position-properties"},
+  "W37": {"name": "Scheduled publishing", "by": "Webflow", "date": "2026-10-17", "url": "https://help.webflow.com/hc/en-us/articles/33961272476563-Scheduled-publishing"},
+  "W38": {"name": "Glossary for Interactions with GSAP", "by": "Webflow", "date": "2026-10-17", "url": "https://help.webflow.com/hc/en-us/articles/42861691922963-Glossary-for-Interactions-with-GSAP"},
+  "W39": {"name": "Build faster with prebuilt layouts", "by": "Webflow", "date": "2026-10-17", "url": "https://webflow.com/updates/build-faster-with-prebuilt-layouts"},
+  "W40": {"name": "Figma to Webflow plugin and app", "by": "Webflow", "date": "2026-10-17", "url": "https://help.webflow.com/hc/en-us/articles/33961260854675-Figma-to-Webflow-plugin-and-app"},
   "A12": {
    "name": "Create designs with Adobe Express for ChatGPT",
    "by": "Adobe",
@@ -7082,6 +7110,196 @@
     [],
     "not verified"
    ]
+  },
+  {
+   "n": 135,
+   "id": "FW-178",
+   "cat": 10,
+   "f": "Custom code in head and body",
+   "p": "P1",
+   "kn": "Add custom HTML, script or style code at the start or end of the head or body, for the whole site and for chosen pages, from site and page settings. Source basis: Framer Help \"How to add custom code\", Webflow Help \"Custom code in head and body tags\", Figma Sites \"Edit website settings\".",
+   "src": ["F30", "W30"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "none",
+    "v0.12.8 code search found no head or body code setting in site or page settings; exported pages carry only the head tags the engine writes itself.",
+    "Site-wide and per-page head and body code, and how it is kept out of the editor canvas, not built."
+   ],
+   "fr": ["full", "Project Settings Custom Code places code in the head or body, for all pages or chosen pages, run once or on every visit.", ["F30"], "documented"],
+   "wf": ["full", "Site settings take head and footer code and page settings take per-page code, up to 50,000 characters each.", ["W30"], "documented"],
+   "cv": ["none", "The Canva website help lists embeds but no custom code setting.", ["C32"], "not verified"]
+  },
+  {
+   "n": 136,
+   "id": "FW-179",
+   "cat": 3,
+   "f": "Built-in site search",
+   "p": "P2",
+   "kn": "A search element that indexes the published pages and content and shows results to visitors, with scope or exclusion controls. Source basis: Framer \"Site Search\" update and Academy lesson, Webflow Help \"Site search\".",
+   "src": ["F31", "F32", "W31"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "none",
+    "v0.12.8 code search found no search element or search index in the engine, exporter or runtime; collection list filters (FW-022) search one list only.",
+    "A page and content index written at export, a search element and a results view, not built."
+   ],
+   "fr": ["full", "Search component indexes titles, descriptions, headings and body copy after publish, with fuzzy matching and a path scope.", ["F31", "F32"], "documented"],
+   "wf": ["full", "Search element and results page with page and element exclusions; Premium plans, results capped, not on exported sites.", ["W31"], "documented"],
+   "cv": ["none", "No site search was found in the Canva website help.", [], "not verified"]
+  },
+  {
+   "n": 137,
+   "id": "FW-180",
+   "cat": 4,
+   "f": "Page transitions",
+   "p": "P2",
+   "kn": "An exit and entrance animation when a visitor moves between pages, set for all pages or one page. Source basis: Framer Academy \"Page Effects\", Webflow blog \"How to build page transitions in Webflow\".",
+   "src": ["F33", "W32"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "none",
+    "v0.12.8 code search found no page transition setting; interactions (FW-027 to FW-031) run within one page.",
+    "Cross-page transitions (for example through the View Transitions API) not built."
+   ],
+   "fr": ["full", "Page Effects set exit and entrance transitions through the View Transitions API, for all pages or one page.", ["F33"], "documented"],
+   "wf": ["partial", "No native setting; the official tutorial builds it from interactions plus a script that delays link navigation.", ["W32"], "documented"],
+   "cv": ["none", "No page transitions for websites were found in the Canva help.", [], "not verified"]
+  },
+  {
+   "n": 138,
+   "id": "FW-181",
+   "cat": 2,
+   "f": "Light and dark modes that follow the device",
+   "p": "P2",
+   "kn": "Tokens or colour styles carry a light and a dark value, and the published site switches with the visitor's device appearance. Source basis: Framer Academy \"Create automatic light and dark mode\" and Help \"Light and dark mode options\", Webflow \"Variables\" and Developers \"Variable modes\".",
+   "src": ["F34", "F35", "W33", "W34"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "none",
+    "v0.12.8 code search: tokens (FW-011) hold one value each, and prefers-color-scheme appears only in the dark favicon (FW-077).",
+    "A second value set per token and a device-following switch in the export not built."
+   ],
+   "fr": ["full", "Colour styles get a dark variant and the published site can match the visitor's device appearance.", ["F34", "F35"], "documented"],
+   "wf": ["partial", "Variable modes hold light and dark values applied to elements or pages; following the device needs custom code.", ["W33", "W34"], "documented"],
+   "cv": ["none", "No mode or theme switching for websites was found in the Canva help.", [], "not verified"]
+  },
+  {
+   "n": 139,
+   "id": "FW-182",
+   "cat": 10,
+   "f": "Editor plugins and marketplace",
+   "p": "P2",
+   "kn": "Third-party plugins or apps that run inside the editor, with a public directory to install them from and a way to build private ones. Source basis: Framer \"Plugins\", Webflow Developers \"Register an App\", Canva \"Apps quickstart\".",
+   "src": ["F36", "W35", "C33"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "none",
+    "v0.12.8 code search: extension.set stores FormWeb's own feature groups; there is no third-party plugin runtime or directory. Agents reach the editor through MCP (FW-055) and code components through FW-057.",
+    "A plugin API that runs third-party code in the editor, its permissions and an install directory not built."
+   ],
+   "fr": ["full", "Plugins add canvas tools and integrations from a public directory, with a build-your-own path and private plugins.", ["F36"], "documented"],
+   "wf": ["full", "Apps with Designer Extensions and Data Clients, published through the Webflow Marketplace.", ["W35"], "documented"],
+   "cv": ["partial", "Apps run inside the Canva editor through the Apps SDK; the docs do not say they work in Canva websites.", ["C33"], "documented"]
+  },
+  {
+   "n": 140,
+   "id": "FW-183",
+   "cat": 0,
+   "f": "Fixed and sticky positioning",
+   "p": "P1",
+   "kn": "Elements set to fixed or sticky position that stay in view as the visitor scrolls, with offsets. Source basis: Framer Academy \"Positioning modes\", Webflow Help \"CSS position properties\", Figma Sites \"Position elements in a webpage\".",
+   "src": ["F37", "W36"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "full",
+    "v0.12.8: the inspector Position control offers static, relative, absolute, sticky and fixed. A header set to sticky with top 0px and a badge set to fixed with bottom and right 16px through /api/batch came out in the exported site.css as position:sticky;top:0px and position:fixed;bottom:16px;right:16px.",
+    "No warning when a sticky element's parent clips overflow or is too short for it to stick."
+   ],
+   "fr": ["full", "Positioning modes include Fixed and Sticky for elements that stay in view as visitors scroll.", ["F37"], "documented"],
+   "wf": ["full", "Style panel Position supports fixed and sticky, with parent overflow caveats for sticky.", ["W36"], "documented"],
+   "cv": ["none", "The Canva navigation help does not describe sticky or fixed elements.", ["C35"], "not verified"]
+  },
+  {
+   "n": 141,
+   "id": "FW-184",
+   "cat": 8,
+   "f": "Scheduled publishing",
+   "p": "P2",
+   "kn": "Set a date and time for content or the site to go live, without someone pressing Publish. Source basis: Webflow Help \"Scheduled publishing\", Framer Marketplace \"CMS Scheduler\".",
+   "src": ["W37", "F38"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "none",
+    "v0.12.8 code search found no publish schedule in the engine, backend or deploy adapters; publishing runs when asked (FW-048, FW-068).",
+    "A stored publish time per item or release and a backend job that runs it not built."
+   ],
+   "fr": ["partial", "Scheduling is offered only through Marketplace plugins such as CMS Scheduler.", ["F38"], "integration"],
+   "wf": ["full", "New CMS items can be scheduled to publish at a set time; not on Starter or Basic, and only for never-published items.", ["W37"], "documented"],
+   "cv": ["none", "No scheduled publishing for websites was found in the Canva help.", [], "not verified"]
+  },
+  {
+   "n": 142,
+   "id": "FW-185",
+   "cat": 4,
+   "f": "Scroll-linked and pointer effects",
+   "p": "P2",
+   "kn": "No-code effects tied to scroll position or pointer movement: scroll parallax, scroll scrubbing, mouse parallax, marquee and custom cursor. Source basis: Figma Sites \"Add interactions to an element\", Webflow Help \"Glossary for Interactions with GSAP\", Framer Academy \"Scroll Speed\".",
+   "src": ["W38", "F39"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "none",
+    "v0.12.8 code search: interactions offer hover, press, in-view reveal and timelines (FW-027, FW-028, FW-030); nothing is driven continuously by scroll position or pointer movement.",
+    "Scroll scrubbing, parallax, marquee and cursor effects not built."
+   ],
+   "fr": ["partial", "Scroll Speed gives layer parallax; cursor effects and scroll scrubbing were not found in the pages read.", ["F39"], "documented"],
+   "wf": ["full", "Interactions with GSAP support scroll scrub, pinning and mouse move triggers with velocity and stagger.", ["W38"], "documented"],
+   "cv": ["none", "The Canva animation help lists page and element animations only.", [], "not verified"]
+  },
+  {
+   "n": 143,
+   "id": "FW-186",
+   "cat": 0,
+   "f": "Prebuilt sections and starter templates",
+   "p": "P2",
+   "kn": "Insert ready-made page sections (hero, navigation, pricing, footer) and start a site from a template gallery, then edit them as normal layers. Source basis: Framer \"Inserting Sections\" and Help \"Using templates\", Webflow \"Prebuilt layouts\", Figma Sites \"Insert blocks\".",
+   "src": ["F40", "F41", "W39"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "none",
+    "v0.12.8 code search found no section library or template gallery; page.bulk (FW-074) copies a page the user made, and stock media (FW-073) is images and icons only.",
+    "A library of editable sections and starter sites not built."
+   ],
+   "fr": ["full", "Sections insert ready-made headers, footers and layouts, and templates open as editable projects.", ["F40", "F41"], "documented"],
+   "wf": ["full", "The Add panel offers prebuilt layouts such as heroes, galleries, navigation bars and contact forms.", ["W39"], "documented"],
+   "cv": ["partial", "Website templates and page blocks exist, up to 20 sections per page; no separate section library was found.", ["C32"], "documented"]
+  },
+  {
+   "n": 144,
+   "id": "FW-187",
+   "cat": 11,
+   "f": "Import designs from another design tool",
+   "p": "P2",
+   "kn": "Bring a design made in another tool into the editor as editable layers rather than a flat image. Source basis: Framer Academy \"Importing from Figma and the web\", Webflow Help \"Figma to Webflow plugin and app\", Canva Help \"Import Figma files\".",
+   "src": ["F42", "W40", "C34"],
+   "conf": "vendor",
+   "added": "0.12.8",
+   "m": [
+    "partial",
+    "v0.12.8: an SVG in Figma's export style (a named frame group, a rounded rectangle, a path and a clipPath) posted to /api/vector/import-svg came back with the layer ids, shapes, fills and strokes kept.",
+    "SVG only: the importer drops the clipPath id and the clip-path reference, so frame clipping is lost, and auto layout, components and text styles do not come across."
+   ],
+   "fr": ["full", "The official Figma to HTML with Framer plugin copies layers that paste as editable elements.", ["F42"], "integration"],
+   "wf": ["partial", "The Figma to Webflow plugin pastes auto layout frames as elements; variants are unsupported.", ["W40"], "integration"],
+   "cv": ["partial", "A third-party Figma to Canva app brings frames in, and complex elements may arrive as images; websites are not mentioned.", ["C34"], "integration"]
   }
  ],
  "grades": {
@@ -8022,6 +8240,13 @@
    "same_as": "0.12.5",
    "moved": {"FW-156": "full"},
    "note": "Symbols across the whole site: Full against Figma components, 119 of 134."
+  },
+  {
+   "version": "0.12.7",
+   "date": "2026-10-17",
+   "same_as": "0.12.6",
+   "moved": {"FW-088": "full"},
+   "note": "Variable width strokes on closed shapes: Full against Figma, 119.5 of 134."
   }
  ],
  "changes": [
@@ -8165,8 +8390,8 @@
  },
  "text": {
   "eyebrow": "FormWeb · Framer, Figma, Webflow and Canva alternative · Apache-2.0",
-  "dek": "134 researched capabilities, measured against Framer, Figma, Webflow and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation (Framer, Webflow and Canva fetched on 10 and 11 October 2026, Figma on 17 October 2026 across every row), so their scores are lower bounds rather than proof of absence. Framer, Webflow and Canva were not graded on the rows added since v0.5.7, so their tiles undercount those.",
-  "baseline": "65 targets from Framer and Webflow (v0.1.0), 14 more checked against Canva (v0.3.0), and FormWeb-side targets added from v0.7.0 on; the Figma lane was graded across all rows on 17 October 2026",
+  "dek": "144 researched capabilities, measured against Framer, Figma, Webflow and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation (Framer, Webflow and Canva fetched on 10, 11 and 17 October 2026, Figma on 17 October 2026 across every row), so their scores are lower bounds rather than proof of absence. Framer, Webflow and Canva were not graded on the FormWeb-side rows added from v0.5.7 to v0.10.6, so their tiles undercount those; the ten rows added at v0.12.8 are graded in every lane.",
+  "baseline": "65 targets from Framer and Webflow (v0.1.0), 14 more checked against Canva (v0.3.0), FormWeb-side targets added from v0.7.0 on, and ten rows researched from the four products' own documentation at v0.12.8; the Figma lane was graded across all rows on 17 October 2026",
   "changes": "v0.7.1 reviews the 29 rows added in v0.7.0 against the browser verification recorded since: eleven move from Partial to Full (eight vector rows and three creative rows), the rest stay Partial with the recorded gap, and four rows are added for the agent dock, desktop build, command registry and 26 editor languages. The score moves from 91 of 108 as first graded in v0.7.0 to 99 of 112.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
