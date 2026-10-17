@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.6 · 2026-10-17
+
+- Threaded text has in and out ports: select area type to see a port at the top left and bottom right of each of its shapes, joined by thread lines, with a red plus on the last out port when words are left over. Click an out port, then click a closed shape to continue the text in it, or an empty spot to add a copy of the shape there; Esc cancels. Double-click a port to break the thread there.
+- Remove Threading ends a thread without moving any words: each shape keeps the text it shows as its own area type, and the last one keeps any overflow.
+
 ## 0.11.5 · 2026-10-17
 
 - Live Paint is now live: Make Live Paint (or a click with the Live Paint Bucket on selected paths) turns overlapping paths into a Live Paint group. Each area keeps its color when you move or reshape the paths; an area that disappears loses its color. Expand Live Paint turns the areas into ordinary shapes, and Release Live Paint gives the paths their original fills back.
