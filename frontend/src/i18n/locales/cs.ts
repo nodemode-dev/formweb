@@ -1936,4 +1936,13 @@ export default [
   "Firemní web",
   "Uvedení produktu",
   "Portfolio",
+  "Efekt posouvání a ukazatele",
+  "Paralaxa",
+  "Transformace při posouvání",
+  "Paralaxa myši",
+  "Běžící text",
+  "Sledování kurzoru",
+  "Efekt",
+  "Síla",
+  "Běží v náhledu a na publikovaném webu, ne na plátně. Návštěvníci, kteří žádají omezení pohybu, žádný pohyb neuvidí.",
 ] as readonly string[];

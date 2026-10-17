@@ -1936,4 +1936,13 @@ export default [
   "Witryna firmowa",
   "Premiera produktu",
   "Portfolio",
+  "Efekt przewijania i wskaźnika",
+  "Paralaksa",
+  "Transformacja przy przewijaniu",
+  "Paralaksa myszy",
+  "Przewijany pasek",
+  "Podążanie za kursorem",
+  "Efekt",
+  "Siła",
+  "Działa w podglądzie i na opublikowanej witrynie, nie na kanwie. Odwiedzający, którzy proszą o ograniczenie ruchu, nie widzą ruchu.",
 ] as readonly string[];

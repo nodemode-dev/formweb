@@ -574,6 +574,21 @@ bindingField.addEventListener('change', () => void run(() => nodePatch({ binding
 bindingGrid.append(field('Collection', bindingCollection, true), field('Field', bindingField, true));
 const bindingNote = element('p', 'micro', 'List bindings repeat published items in the canvas and export. Descendant fields use their current item. Image fields bind image sources.');
 bindingSection.append(bindingGrid, bindingNote, button('Advanced bindings & queries', undefined, () => featureStudio.open('cms', 'cms-binding')));
+// Scroll and pointer effects (FW-185): data-fw-effect and data-fw-effect-speed, run by the exported site's runtime.
+const effectSection = section(contentPane, 'Scroll and pointer effect');
+const effectKind = select([{ id: '', name: 'None' }, { id: 'parallax', name: 'Parallax' }, { id: 'scroll', name: 'Scroll transform' }, { id: 'mouse', name: 'Mouse parallax' }, { id: 'marquee', name: 'Marquee' }, { id: 'cursor', name: 'Cursor follow' }]);
+effectKind.dataset.field = 'effect.kind';
+const effectSpeed = input('1');
+effectSpeed.type = 'number';
+effectSpeed.step = '0.1';
+effectSpeed.min = '-5';
+effectSpeed.max = '5';
+effectSpeed.dataset.field = 'effect.speed';
+effectKind.addEventListener('change', () => void run(() => nodePatch({ attrs: { 'data-fw-effect': effectKind.value || null, ...(effectKind.value ? {} : { 'data-fw-effect-speed': null }) } })));
+effectSpeed.addEventListener('change', () => void run(() => nodePatch({ attrs: { 'data-fw-effect-speed': effectSpeed.value.trim() || null } })));
+const effectGrid = element('div', 'form-grid');
+effectGrid.append(field('Effect', effectKind), field('Strength', effectSpeed));
+effectSection.append(effectGrid, element('p', 'micro', 'Runs in Preview and on the published site, not on the canvas. Visitors who ask for reduced motion see no movement.'));
 const interactionSection = section(contentPane, 'Interaction');
 const interactionGrid = element('div', 'form-grid');
 const interactionTrigger = select([{ id: 'click', name: 'Click' }, { id: 'hover', name: 'Hover' }, { id: 'scroll', name: 'Scroll into view' }]);
@@ -1239,6 +1254,9 @@ function update(next: EditorState): void {
   value(interactionClass, interaction?.className || '');
   value(interactionUrl, interaction?.url || '');
   value(interactionDuration, String(interaction?.duration || 500));
+  value(effectKind, node.attrs['data-fw-effect'] || '');
+  value(effectSpeed, node.attrs['data-fw-effect-speed'] || '');
+  effectSpeed.disabled = !node.attrs['data-fw-effect'];
   const invalidParents = descendants(node.id);
   options(parentSelect, Object.values(site.nodes).filter(item => !invalidParents.has(item.id) && descendants(page.root).has(item.id) && ['main', 'section', 'div', 'article', 'aside', 'header', 'footer', 'nav', 'form', 'ul', 'ol', 'li', 'figure'].includes(item.tag)).map(item => ({ id: item.id, name: item.name })));
   value(parentSelect, parent?.id || '');

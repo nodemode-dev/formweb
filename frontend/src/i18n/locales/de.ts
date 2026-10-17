@@ -1936,4 +1936,13 @@ export default [
   "Unternehmenswebsite",
   "Produktlaunch",
   "Portfolio",
+  "Scroll- und Zeigereffekt",
+  "Parallaxe",
+  "Scroll-Transformation",
+  "Maus-Parallaxe",
+  "Laufband",
+  "Cursor folgen",
+  "Effekt",
+  "Stärke",
+  "Läuft in der Vorschau und auf der veröffentlichten Website, nicht auf der Arbeitsfläche. Wer reduzierte Bewegung wünscht, sieht keine Bewegung.",
 ] as readonly string[];

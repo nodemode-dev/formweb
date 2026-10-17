@@ -1936,4 +1936,13 @@ export default [
   "Trang web doanh nghiệp",
   "Ra mắt sản phẩm",
   "Hồ sơ năng lực",
+  "Hiệu ứng cuộn và con trỏ",
+  "Thị sai",
+  "Biến đổi khi cuộn",
+  "Thị sai theo chuột",
+  "Chữ chạy",
+  "Theo con trỏ",
+  "Hiệu ứng",
+  "Cường độ",
+  "Chạy trong bản xem trước và trên trang đã xuất bản, không chạy trên canvas. Khách truy cập yêu cầu giảm chuyển động sẽ không thấy chuyển động.",
 ] as readonly string[];

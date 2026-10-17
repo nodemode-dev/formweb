@@ -1936,4 +1936,13 @@ export default [
   "Situs bisnis",
   "Peluncuran produk",
   "Portofolio",
+  "Efek gulir dan penunjuk",
+  "Paralaks",
+  "Transformasi saat menggulir",
+  "Paralaks mouse",
+  "Teks berjalan",
+  "Ikuti kursor",
+  "Efek",
+  "Kekuatan",
+  "Berjalan di pratinjau dan di situs yang dipublikasikan, tidak di kanvas. Pengunjung yang meminta gerakan dikurangi tidak melihat gerakan.",
 ] as readonly string[];

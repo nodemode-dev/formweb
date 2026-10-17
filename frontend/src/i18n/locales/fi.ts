@@ -1936,4 +1936,13 @@ export default [
   "Yrityssivusto",
   "Tuotelanseeraus",
   "Portfolio",
+  "Vieritys- ja osoitintehoste",
+  "Parallaksi",
+  "Vieritysmuunnos",
+  "Hiiren parallaksi",
+  "Juokseva teksti",
+  "Seuraa kohdistinta",
+  "Tehoste",
+  "Voimakkuus",
+  "Toimii esikatselussa ja julkaistulla sivustolla, ei piirtoalueella. Vähemmän liikettä pyytävät kävijät eivät näe liikettä.",
 ] as readonly string[];

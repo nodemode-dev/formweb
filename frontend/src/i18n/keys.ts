@@ -1936,4 +1936,13 @@ export const KEYS: readonly string[] = [
   "Business site",
   "Product launch",
   "Portfolio",
+  "Scroll and pointer effect",
+  "Parallax",
+  "Scroll transform",
+  "Mouse parallax",
+  "Marquee",
+  "Cursor follow",
+  "Effect",
+  "Strength",
+  "Runs in Preview and on the published site, not on the canvas. Visitors who ask for reduced motion see no movement.",
 ];

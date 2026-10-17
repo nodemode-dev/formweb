@@ -1936,4 +1936,13 @@ export default [
   "Sito aziendale",
   "Lancio di prodotto",
   "Portfolio",
+  "Effetto di scorrimento e puntatore",
+  "Parallasse",
+  "Trasformazione allo scorrimento",
+  "Parallasse con il mouse",
+  "Testo scorrevole",
+  "Segui il cursore",
+  "Effetto",
+  "Intensità",
+  "Funziona nell’anteprima e sul sito pubblicato, non sulla tela. Chi chiede movimento ridotto non vede alcun movimento.",
 ] as readonly string[];

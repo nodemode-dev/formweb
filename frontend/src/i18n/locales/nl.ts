@@ -1936,4 +1936,13 @@ export default [
   "Bedrijfssite",
   "Productlancering",
   "Portfolio",
+  "Scroll- en aanwijzereffect",
+  "Parallax",
+  "Scrolltransformatie",
+  "Muisparallax",
+  "Lichtkrant",
+  "Cursor volgen",
+  "Effect",
+  "Sterkte",
+  "Werkt in het voorbeeld en op de gepubliceerde site, niet op het canvas. Bezoekers die om minder beweging vragen, zien geen beweging.",
 ] as readonly string[];

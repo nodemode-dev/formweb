@@ -1936,4 +1936,13 @@ export default [
   "Virksomhedswebsted",
   "Produktlancering",
   "Portefølje",
+  "Rulle- og markøreffekt",
+  "Parallakse",
+  "Rulletransformation",
+  "Museparallakse",
+  "Rulletekst",
+  "Følg markøren",
+  "Effekt",
+  "Styrke",
+  "Kører i forhåndsvisningen og på det publicerede websted, ikke på lærredet. Besøgende, der beder om reduceret bevægelse, ser ingen bevægelse.",
 ] as readonly string[];

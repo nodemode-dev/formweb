@@ -1936,4 +1936,13 @@ export default [
   "Site empresarial",
   "Lançamento de produto",
   "Portfólio",
+  "Efeito de rolagem e ponteiro",
+  "Paralaxe",
+  "Transformação na rolagem",
+  "Paralaxe com o mouse",
+  "Letreiro",
+  "Seguir o cursor",
+  "Efeito",
+  "Intensidade",
+  "Funciona na prévia e no site publicado, não na tela. Quem pede movimento reduzido não vê movimento.",
 ] as readonly string[];

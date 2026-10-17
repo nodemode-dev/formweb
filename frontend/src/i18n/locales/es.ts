@@ -1936,4 +1936,13 @@ export default [
   "Sitio de empresa",
   "Lanzamiento de producto",
   "Portafolio",
+  "Efecto de desplazamiento y puntero",
+  "Paralaje",
+  "Transformación al desplazar",
+  "Paralaje con el ratón",
+  "Marquesina",
+  "Seguir el cursor",
+  "Efecto",
+  "Intensidad",
+  "Funciona en la vista previa y en el sitio publicado, no en el lienzo. Quien pida movimiento reducido no verá movimiento.",
 ] as readonly string[];

@@ -1936,4 +1936,13 @@ export default [
   "Kurumsal site",
   "Ürün lansmanı",
   "Portföy",
+  "Kaydırma ve işaretçi efekti",
+  "Paralaks",
+  "Kaydırma dönüşümü",
+  "Fare paralaksı",
+  "Kayan yazı",
+  "İmleci takip et",
+  "Efekt",
+  "Güç",
+  "Önizlemede ve yayımlanan sitede çalışır, tuvalde çalışmaz. Azaltılmış hareket isteyen ziyaretçiler hareket görmez.",
 ] as readonly string[];

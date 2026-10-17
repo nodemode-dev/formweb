@@ -1936,4 +1936,13 @@ export default [
   "Företagswebbplats",
   "Produktlansering",
   "Portfolio",
+  "Rull- och pekareffekt",
+  "Parallax",
+  "Rulltransformering",
+  "Musparallax",
+  "Rullande text",
+  "Följ pekaren",
+  "Effekt",
+  "Styrka",
+  "Körs i förhandsvisningen och på den publicerade webbplatsen, inte på arbetsytan. Besökare som ber om minskad rörelse ser ingen rörelse.",
 ] as readonly string[];

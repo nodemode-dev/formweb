@@ -1936,4 +1936,13 @@ export default [
   "Céges webhely",
   "Termékbevezetés",
   "Portfólió",
+  "Görgetési és mutatóeffektus",
+  "Parallaxis",
+  "Görgetési átalakítás",
+  "Egérparallaxis",
+  "Futó szöveg",
+  "Kurzorkövetés",
+  "Effektus",
+  "Erősség",
+  "Az előnézetben és a közzétett webhelyen fut, a vásznon nem. A csökkentett mozgást kérő látogatók nem látnak mozgást.",
 ] as readonly string[];

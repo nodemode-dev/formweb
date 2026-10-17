@@ -1936,4 +1936,13 @@ export default [
   "Site d’entreprise",
   "Lancement de produit",
   "Portfolio",
+  "Effet de défilement et de pointeur",
+  "Parallaxe",
+  "Transformation au défilement",
+  "Parallaxe à la souris",
+  "Défilement continu",
+  "Suivi du curseur",
+  "Effet",
+  "Intensité",
+  "S’exécute dans l’aperçu et sur le site publié, pas sur le canevas. Les visiteurs qui demandent moins d’animations ne voient aucun mouvement.",
 ] as readonly string[];
