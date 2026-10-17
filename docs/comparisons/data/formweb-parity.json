@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.10.4",
- "previous": "0.10.3",
+ "version": "0.10.5",
+ "previous": "0.10.4",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Multiple artboards (FW-176) stays Partial with another gap closed: Shift keeps proportions and Alt resizes from the center on artboard handles.",
@@ -7821,6 +7821,13 @@
    "same_as": "0.10.2",
    "moved": {},
    "note": "Artboard tool draws and moves artboards. No grade change, 115.5 of 133."
+  },
+  {
+   "version": "0.10.4",
+   "date": "2026-10-17",
+   "same_as": "0.10.3",
+   "moved": {},
+   "note": "Artboard resize handles on the canvas. No grade change, 115.5 of 133."
   }
  ],
  "changes": [

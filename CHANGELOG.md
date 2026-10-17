@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.5 · 2026-10-17
+
+- Artboard handles: hold Shift to keep the artboard's proportions and Alt (Option on Mac) to resize it from its center. The artwork still stays where it is.
+
 ## 0.10.4 · 2026-10-17
 
 - Resize artboards on the canvas: with the Artboard tool, the selected artboard shows eight handles; drag any of them to resize from that edge or corner. The artwork inside stays exactly where it is.
