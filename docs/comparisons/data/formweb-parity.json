@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.10.6",
- "previous": "0.10.5",
+ "version": "0.10.7",
+ "previous": "0.10.6",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Freeform gradients (FW-177) stays Partial with Lines mode added: stops joined by a line carry their colour along it.",
@@ -7875,6 +7875,13 @@
    "same_as": "0.10.4",
    "moved": {},
    "note": "Shift and Alt on artboard handles. No grade change, 115.5 of 133."
+  },
+  {
+   "version": "0.10.6",
+   "date": "2026-10-17",
+   "same_as": "0.10.5",
+   "moved": {},
+   "note": "Freeform gradients (FW-177) added as Partial, Points mode. 116 of 134."
   }
  ],
  "changes": [

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.7 · 2026-10-17
+
+- Freeform gradients, Lines mode: in the Gradient panel set Freeform draw to Lines, then click inside the shape to place stops joined by a line. The colors flow along the line. Press Escape to finish a line; the next click starts a new one. Points mode places single stops as before.
+
 ## 0.10.6 · 2026-10-17
 
 - Freeform gradients: choose Freeform in the Gradient panel to color a shape with stops you place anywhere inside it. With the Gradient tool (G), drag a stop to move it, drag its ring to change how far its color spreads, click inside the shape to add a stop, and drag a stop outside or press Backspace to remove it. Double-click a stop to change its color and spread. Lines mode is not available yet.
