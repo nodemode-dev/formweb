@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.10.7",
- "previous": "0.10.6",
+ "version": "0.10.8",
+ "previous": "0.10.7",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Multiple artboards (FW-176) stays Partial with another gap closed: Shift-click several artboards and move them together.",
@@ -7882,6 +7882,13 @@
    "same_as": "0.10.5",
    "moved": {},
    "note": "Freeform gradients (FW-177) added as Partial, Points mode. 116 of 134."
+  },
+  {
+   "version": "0.10.7",
+   "date": "2026-10-17",
+   "same_as": "0.10.6",
+   "moved": {},
+   "note": "Freeform gradient Lines mode. No grade change, 116 of 134."
   }
  ],
  "changes": [

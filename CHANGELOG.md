@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.8 · 2026-10-17
+
+- Move several artboards at once: with the Artboard tool, Shift-click artboards to select more than one (Shift-click a selected one to drop it), then drag any of them to move them all together. One undo puts them all back.
+
 ## 0.10.7 · 2026-10-17
 
 - Freeform gradients, Lines mode: in the Gradient panel set Freeform draw to Lines, then click inside the shape to place stops joined by a line. The colors flow along the line. Press Escape to finish a line; the next click starts a new one. Points mode places single stops as before.
