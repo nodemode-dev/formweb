@@ -59,6 +59,8 @@
 .fw-vo-x[data-c="trail"] { stroke-dasharray: calc(4px * var(--fw-vo-px)) calc(3px * var(--fw-vo-px)); }
 .fw-vo-x[data-c="eraser"] { stroke: var(--danger); opacity: .35; stroke-linecap: round; stroke-linejoin: round; }
 .fw-vo-x[data-c="region-hover"] { fill: var(--accent-wash); }
+.fw-vo-x[data-c="edge-halo"] { stroke: var(--bg-primary); stroke-width: calc(7px * var(--fw-vo-px)); stroke-linecap: round; stroke-linejoin: round; }
+.fw-vo-x[data-c="edge-hover"] { stroke: var(--accent-color); stroke-width: calc(3px * var(--fw-vo-px)); stroke-linecap: round; stroke-linejoin: round; }
 .fw-vo-x[data-c="region-pick"] { fill: var(--accent-soft); stroke-width: calc(2px * var(--fw-vo-px)); }
 .fw-vo-x[data-c="region-cut"] { fill: var(--danger); fill-opacity: .25; stroke: var(--danger); }
 .fw-vo-x[data-c="iso"] { stroke-dasharray: calc(6px * var(--fw-vo-px)) calc(4px * var(--fw-vo-px)); opacity: .7; }

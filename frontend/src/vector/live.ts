@@ -518,6 +518,10 @@ export function expandCommands(site: Site, group: string): Command[] {
   const wide = body && widthSpec(body.attrs['data-fw-width']);
   if (fx && body) cmds.push(body.attrs.fill === 'none' ? removeNode(fx.src) : updateAttrs(fx.src, { stroke: 'none', 'stroke-opacity': null, ...(wide ? { 'data-fw-width': null } : {}) }));
   if (fx && body && wide && body.attrs.fill !== 'none' && site.nodes[wide.outline]) cmds.push(removeNode(wide.outline));
+  /* A Live Paint group with painted edges draws everything itself: its sources have neither fill nor stroke left,
+     so Expand drops them instead of leaving invisible paths behind. */
+  const lp = readLivePaint(g.attrs['data-fw-livepaint']);
+  if (lp?.edges) for (const id of lp.src) if (site.nodes[id] && g.children.includes(id)) cmds.push(removeNode(id));
   cmds.push(updateAttrs(group, { 'data-fw-blend': null, 'data-fw-repeat': null, 'data-fw-brush': null, 'data-fw-stroke': null, 'data-fw-warp': null, 'data-fw-freeform': null, 'data-fw-livepaint': null }));
   return cmds;
 }

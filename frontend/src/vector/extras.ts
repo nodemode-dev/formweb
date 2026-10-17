@@ -17,7 +17,7 @@ import { FREEFORM_LIMIT, SPREAD_MIN, freeformGradient, readFreeform, sourceBox, 
 import { openFreeformStop } from './pathdialogs';
 import { areaTextFor, breakThreadCommands, readArea, threadCommands, threadShapes, type AreaSpec } from './areatype';
 import { t } from '../i18n';
-import { paintEdge, paintFill, readLivePaint, strokeMemo, type LivePaintSpec } from './livepaint';
+import { livePaintEdgePieces, nearestEdge, paintEdge, paintFill, readLivePaint, strokeMemo, type LivePaintSpec } from './livepaint';
 import { readWarp, warpBox, type WarpSpec } from './warp';
 import { readWidth, widthCommands } from './stroke';
 import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variableOutline, type WidthPoint } from './widthprofile';
@@ -66,6 +66,10 @@ export class Extras {
   private owners: number[] = [];
   private pieceKey = '';
   private hover = -1;
+  /* Shift with the Live Paint Bucket over a selected group: the edge a click would stroke, in shell coordinates.
+     The edge pieces are kept until the group's spec or sources change. */
+  private edgeHover: string | null = null;
+  private edgeCache: { key: string; pieces: { subs: SubPath[] }[] } = { key: '', pieces: [] };
   private pointer: Pt = [0, 0];
   private dialog = new WidthDialog();
 
@@ -148,6 +152,7 @@ export class Extras {
     const g = this.gesture;
     const tool = this.h.tool();
     if (!g) {
+      if (tool === 'livepaint' && this.hoverEdge(p, event.shiftKey)) return false;
       if (tool === 'shapebuilder' || tool === 'livepaint') this.hoverBuilder(p);
       return false;
     }
@@ -191,7 +196,7 @@ export class Extras {
   key(event: KeyboardEvent): boolean {
     if (event.key !== 'Escape') return false;
     if (this.gesture) { this.gesture = null; this.h.render(); return true; }
-    if (this.threadLoad) { this.threadLoad = null; this.h.render(); return true; }
+    if (this.threadLoad) { this.threadLoad = null; this.h.notify(''); this.h.render(); return true; }
     if (this.ffLine) { this.ffLine = 0; this.h.render(); return true; }
     if (this.iso) { this.exit(); return true; }
     return false;
@@ -260,6 +265,23 @@ export class Extras {
   private hitBuilder(p: Pt): number {
     const ready = this.ensurePieces();
     return ready ? hitPiece(this.pieces, this.local(ready.f, p)) : -1;
+  }
+
+  private hoverEdge(p: Pt, shift: boolean): boolean {
+    const lp = shift ? this.livePaintState() : null;
+    let next: string | null = null;
+    if (lp) {
+      const key = `${lp.group}#${lp.spec.sig}#${lp.sources.map(a => a.d ?? '').join('|')}`;
+      if (key !== this.edgeCache.key) this.edgeCache = { key, pieces: livePaintEdgePieces(lp.sources) };
+      const i = nearestEdge(this.edgeCache.pieces, this.local(lp.f, p), (6 * this.h.px()) / lp.f.sx);
+      if (i >= 0) next = formatPath(mapPath(this.edgeCache.pieces[i].subs, q => this.h.toShell(lp.f, q)));
+    }
+    if (next !== this.edgeHover) {
+      this.edgeHover = next;
+      if (next && this.hover !== -1) this.hover = -1;
+      this.h.render();
+    }
+    return !!lp;
   }
 
   private hoverBuilder(p: Pt): void {
@@ -663,6 +685,9 @@ export class Extras {
     const toShell = (subs: SubPath[], frame: Frame): string => formatPath(mapPath(subs, p => this.h.toShell(frame, p)));
     if (g?.kind === 'knife') items.push({ kind: 'path', d: poly(g.pts), cls: 'trail' });
     if (g?.kind === 'eraser') items.push({ kind: 'path', d: poly(g.pts), cls: 'eraser', w: this.eraserSize });
+    /* A wide halo in the page colour under the accent line, so the highlight shows even on faces painted in the
+       accent colour. */
+    if (tool === 'livepaint' && this.edgeHover) items.push({ kind: 'path', d: this.edgeHover, cls: 'edge-halo' }, { kind: 'path', d: this.edgeHover, cls: 'edge-hover' });
     if ((tool === 'shapebuilder' || tool === 'livepaint') && f && this.ensurePieces()) {
       const picks = g?.kind === 'builder' ? g.picks : new Set<number>();
       const alt = g?.kind === 'builder' && g.alt;
@@ -949,6 +974,7 @@ export class Extras {
     const load = this.threadLoad;
     this.threadLoad = null;
     if (!load) return;
+    this.h.notify('');
     const site = this.h.site();
     const text = site.nodes[load.text];
     const spec = text ? readArea(text.attrs['data-fw-area']) : null;

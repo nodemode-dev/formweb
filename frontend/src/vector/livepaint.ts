@@ -145,10 +145,15 @@ export function initialEdges(sources: Attrs[]): LivePaintEdge[] {
 
 /* Live Paint Bucket on an edge (Shift): the edge nearest the point, within `tol`, takes the colour and width, or
    loses its stroke when the colour is none. Returns null when no edge is that close. */
-export function paintEdge(spec: LivePaintSpec, sources: Attrs[], p: Pt, color: string, width: number, tol: number): LivePaintEdge[] | null {
-  const pieces = livePaintEdgePieces(sources);
+export function nearestEdge(pieces: { subs: SubPath[] }[], p: Pt, tol: number): number {
   let hit = -1, best = tol;
   pieces.forEach((pc, i) => { const d = distToEdge(pc.subs, p); if (d <= best) { best = d; hit = i; } });
+  return hit;
+}
+
+export function paintEdge(spec: LivePaintSpec, sources: Attrs[], p: Pt, color: string, width: number, tol: number): LivePaintEdge[] | null {
+  const pieces = livePaintEdgePieces(sources);
+  const hit = nearestEdge(pieces, p, tol);
   if (hit < 0) return null;
   const base = spec.edges ?? initialEdges(sources);
   const matched = matchEdges(pieces, base);
