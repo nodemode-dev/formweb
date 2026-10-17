@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.5 · 2026-10-17
+
+- Live Paint is now live: Make Live Paint (or a click with the Live Paint Bucket on selected paths) turns overlapping paths into a Live Paint group. Each area keeps its color when you move or reshape the paths; an area that disappears loses its color. Expand Live Paint turns the areas into ordinary shapes, and Release Live Paint gives the paths their original fills back.
+
 ## 0.11.4 · 2026-10-17
 
 - Threaded text: select area type and one or more other closed shapes, then choose Thread text. Words that do not fit flow on into the next shape, and everything reflows when a shape changes. A small boxed plus marks text that still does not fit. Release threaded text pulls all the words back into the first shape.
