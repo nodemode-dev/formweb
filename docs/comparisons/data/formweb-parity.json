@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.12.0",
- "previous": "0.11.9",
+ "version": "0.12.1",
+ "previous": "0.12.0",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Area type (FW-175) stays Partial with typing on the canvas added.",
+ "release_note": "Comparison targets are now Framer, Figma, Webflow and Canva: a Figma lane graded on all 134 rows from official Figma pages, the Adobe Express lane dropped. FormWeb unchanged at 116 of 134.",
  "lanes": [
   [
    "m",
@@ -7973,6 +7973,13 @@
    "same_as": "0.11.8",
    "moved": {},
    "note": "Live Paint edge highlight and Expand with edges. No grade change, 116 of 134."
+  },
+  {
+   "version": "0.12.0",
+   "date": "2026-10-17",
+   "same_as": "0.11.9",
+   "moved": {},
+   "note": "Typing into area type on the canvas. No grade change, 116 of 134."
   }
  ],
  "changes": [

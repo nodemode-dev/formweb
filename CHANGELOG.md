@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.1 · 2026-10-17
+
+- The comparison page now measures FormWeb against Framer, Figma, Webflow and Canva only. Figma was graded on all 134 rows from official Figma pages (38 Full, 60 Partial, 36 None, with the pages cited), and Adobe Express was removed. FormWeb's own grades are unchanged.
+
 ## 0.12.0 · 2026-10-17
 
 - Type straight into area type on the canvas: double-click area type with the Selection or Direct Selection tool to open a text box over its shape. Press Esc or click elsewhere and the words are laid out in the shape again, as one undo step. The text box wraps to the shape's bounding box while you type; the words follow the shape's outline once they are laid out.
