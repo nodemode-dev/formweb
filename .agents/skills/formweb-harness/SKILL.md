@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: "Project skill for Claude Code and other clients with the FormWeb MCP server connected. Requires a running local FormWeb FastAPI service and explicit Agents enablement."
 metadata:
   author: "nodemode-ai"
-  version: "0.12.5"
+  version: "0.12.6"
 ---
 
 # FormWeb Harness

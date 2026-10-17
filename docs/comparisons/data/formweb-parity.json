@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.12.5",
- "previous": "0.12.4",
+ "version": "0.12.6",
+ "previous": "0.12.5",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
  "release_note": "Symbols (FW-156) Full against Figma's components: shared across the whole site, in the editor and in exported pages.",
@@ -8008,6 +8008,13 @@
    "same_as": "0.12.3",
    "moved": {"FW-151": "partial"},
    "note": "Vector PDF export: print PDF Partial, level with Figma, 118 of 134."
+  },
+  {
+   "version": "0.12.5",
+   "date": "2026-10-17",
+   "same_as": "0.12.4",
+   "moved": {"FW-176": "full"},
+   "note": "Artboards Full against Figma frames; symbols shared across a page, 118.5 of 134."
   }
  ],
  "changes": [

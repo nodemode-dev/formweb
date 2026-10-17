@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.6 · 2026-10-17
+
+- Symbols now work across your whole site, like components in Figma: place an instance of a symbol from any page, edit the master, and every instance updates, both in the editor and on the exported site.
+
 ## 0.12.5 · 2026-10-17
 
 - Symbols can now be reused across all the drawings on a page. Place an instance of a symbol from any drawing on the page, and it follows edits to the master like any other instance.
