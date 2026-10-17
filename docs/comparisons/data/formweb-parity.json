@@ -4,7 +4,7 @@
  "previous": "0.10.4",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Multiple artboards (FW-176) stays Partial with another gap closed: Shift keeps proportions and Alt resizes from the center on artboard handles.",
+ "release_note": "Freeform gradients (FW-177) added as Partial: Points mode with stops to add, move, spread, recolour and remove on the canvas; no Lines mode.",
  "lanes": [
   [
    "m",
@@ -7017,6 +7017,46 @@
     "partial",
     "v0.10.1: driven in Chromium under CPU 4x and slow network. The Artboards panel listed the page's drawings; rename, duplicate (with its gradient copied and re-pointed), Fit to artwork (art stayed at the same screen pixels), new 800 by 600, resize to 500 by 400 and delete all landed in one undo step each. v0.10.2: Export for Screens exported both artboards on the page in SVG and PNG at 1x and 2x as six files named prefix plus artboard name. v0.10.3: the Artboard tool (Shift+O) drew a new artboard where dragged and moved an artboard by dragging, previewed live, one undo step each. v0.10.4: eight handles resized the selected artboard from any edge or corner while the art inside kept its screen position. v0.10.5: Shift kept the ratio (260 by 182 from 200 by 140) and Alt resized around the center.",
     "No moving several artboards at once, no reordering or Rearrange All, no multi-artboard options, no artboard ranges or export from other pages, Fit measures paths only."
+   ],
+   "fr": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "wf": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "ae": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ],
+   "cv": [
+    "none",
+    "Not assessed in this release.",
+    [],
+    "not verified"
+   ]
+  },
+  {
+   "n": 177,
+   "id": "FW-177",
+   "cat": 0,
+   "f": "Freeform gradients",
+   "p": "P2",
+   "kn": "Freeform gradient on a shape in Points mode: colour stops placed anywhere in the object, a spread per stop, click inside to add a stop, Backspace or dragging outside to remove one, and a Lines mode that draws colour along a path. Source basis: Adobe Learn \"Freeform gradients\" and Lessons in Design \"Using Illustrator's Freeform Gradient Tool in 6 Steps\".",
+   "src": [],
+   "conf": "vendor",
+   "added": "0.10.6",
+   "m": [
+    "partial",
+    "v0.10.6: driven in Chromium under CPU 4x and slow network. Freeform in the Gradient panel made a live group with five stops; with the Gradient tool a stop moved by dragging, a click inside added a sixth, Backspace removed it, the ring handle set the spread, dragging a stop outside removed it, and a double-click opened colour and spread. Editing the source path refreshed the stops, the export kept them, and each action was one undo step.",
+    "Points mode only (no Lines mode), no opacity per stop or several stops selected at once; rendered as layered radial gradients, so later stops cover earlier ones and the blend is close to Illustrator's but not the same."
    ],
    "fr": [
     "none",
