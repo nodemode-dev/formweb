@@ -17,7 +17,7 @@ import { FREEFORM_LIMIT, SPREAD_MIN, freeformGradient, readFreeform, sourceBox, 
 import { openFreeformStop } from './pathdialogs';
 import { areaTextFor, breakThreadCommands, readArea, threadCommands, threadShapes, type AreaSpec } from './areatype';
 import { t } from '../i18n';
-import { paintFill, readLivePaint, type LivePaintSpec } from './livepaint';
+import { paintEdge, paintFill, readLivePaint, strokeMemo, type LivePaintSpec } from './livepaint';
 import { readWarp, warpBox, type WarpSpec } from './warp';
 import { readWidth, widthCommands } from './stroke';
 import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variableOutline, type WidthPoint } from './widthprofile';
@@ -599,6 +599,19 @@ export class Extras {
   private async paintFace(p: Pt, edge: boolean): Promise<void> {
     const paint = this.h.paint();
     const sources = this.shapes();
+    const group = edge ? this.livePaintState() : null;
+    if (group) {
+      /* Shift with a Live Paint group selected: stroke the one edge under the bucket with the current stroke colour
+         and weight (no stroke removes it). The first painted edge moves every source stroke onto the edges. */
+      const { spec, sources: attrs, f } = group;
+      const edges = paintEdge(spec, attrs, this.local(f, p), paint.stroke, paint.strokeWidth || 1, (6 * this.h.px()) / f.sx);
+      if (!edges) { this.h.notify('Click closer to an edge of the Live Paint group.'); return; }
+      const os = spec.os ?? (spec.edges ? undefined : attrs.map(strokeMemo));
+      const cmds = [updateAttrs(group.group, { 'data-fw-livepaint': JSON.stringify({ ...spec, edges, ...(os ? { os } : {}), sig: '00000000' }) })];
+      if (!spec.edges) spec.src.forEach(id => cmds.push(updateAttrs(id, { stroke: 'none' })));
+      await this.h.commit(cmds);
+      return;
+    }
     if (edge) {
       const hit = this.h.pick(p);
       const color = paint.stroke !== 'none' ? paint.stroke : paint.fill;

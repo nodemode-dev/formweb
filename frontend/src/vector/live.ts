@@ -5,7 +5,7 @@ import { applyCorners, renderPath } from './corners';
 import { brushOutputs, brushSig, needsArt, readBrush, spineOf, spinePoint, spineTangent } from './brush';
 import { blendSub, compose, matchSubs, repeatMatrices, rotation, translation, type Mat } from './distort';
 import { freeformGradient, freeformOutputs, freeformSamples, freeformSig, readFreeform } from './freeform';
-import { livePaintOutputs, livePaintSig, readLivePaint, type LivePaintFill } from './livepaint';
+import { livePaintOutputs, livePaintSig, livePaintStroke, readLivePaint, type LivePaintEdge, type LivePaintFill } from './livepaint';
 import { decodeModel, dist, parsePath, pathBounds, type Box, type Pt, type SubPath } from './geometry';
 import { colorToHex } from './gradient';
 import { freshId, geometryAttrs, moveNode, paintOf, parentOf, refOf, removeNode, updateAttrs } from './store';
@@ -334,17 +334,19 @@ export function liveFixes(site: Site, cmds: Command[]): Command[] {
     if (lp) {
       const alive = lp.src.map((id, i) => ({ id, i, of: lp.of[i] })).filter(s => ok(s.id));
       if (alive.length < 2) {
-        out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-livepaint': null }), ...alive.map(s => updateAttrs(s.id, { fill: s.of || null })));
+        out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-livepaint': null }), ...alive.map(s => updateAttrs(s.id, { fill: s.of || null, ...livePaintStroke(lp.os?.[s.i]) })));
         continue;
       }
       const src = alive.map(s => s.id), of = alive.map(s => s.of);
-      /* A deleted source takes its bit out of every face signature. */
+      const os = lp.os ? alive.map(s => lp.os![s.i]) : undefined;
+      /* A deleted source takes its bit out of every face signature, and its edges go. */
       const remap = (sig: number): number => alive.reduce((acc, s, k) => (sig & (1 << s.i) ? acc | (1 << k) : acc), 0);
       const fills: LivePaintFill[] = src.length === lp.src.length ? lp.fills : lp.fills.map(f => [remap(f[0]), f[1], f[2], f[3]] as LivePaintFill).filter(f => f[0] > 0);
+      const edges: LivePaintEdge[] | undefined = !lp.edges || src.length === lp.src.length ? lp.edges : lp.edges.flatMap(e => { const k = alive.findIndex(s => s.i === e[0]); return k < 0 ? [] : [[k, remap(e[1]), e[2], e[3], e[4], e[5]] as LivePaintEdge]; });
       const attrs = src.map(id => view.attrs(id)!);
-      if (livePaintSig({ src, fills }, attrs) === lp.sig && live && src.length === lp.src.length) continue;
-      const made = livePaintOutputs(attrs, fills);
-      const next = { v: 1, src, fills: made.fills, of, sig: livePaintSig({ src, fills: made.fills }, attrs) };
+      if (livePaintSig({ src, fills, edges }, attrs) === lp.sig && live && src.length === lp.src.length) continue;
+      const made = livePaintOutputs(attrs, fills, edges);
+      const next = { v: 1, src, fills: made.fills, of, sig: livePaintSig({ src, fills: made.fills, edges: made.edges }, attrs), ...(made.edges ? { edges: made.edges } : {}), ...(os ? { os } : {}) };
       out.push(...refresh(view, taken, site, g.id, 'livepaint', live, made.outputs, rest.length), updateAttrs(g.id, { 'data-fw-livepaint': JSON.stringify(next) }));
       continue;
     }
@@ -543,7 +545,7 @@ export function releaseCommands(site: Site, group: string): { cmds: Command[]; s
   const wide = fx && site.nodes[fx.src] && widthSpec(site.nodes[fx.src].attrs['data-fw-width']);
   if (wide && site.nodes[wide.outline]) cmds.push(updateAttrs(wide.outline, { opacity: null }));
   const lpSpec = readLivePaint(g.attrs['data-fw-livepaint']);
-  lpSpec?.src.forEach((id, i) => { if (site.nodes[id]) cmds.push(updateAttrs(id, { fill: lpSpec.of[i] || null })); });
+  lpSpec?.src.forEach((id, i) => { if (site.nodes[id]) cmds.push(updateAttrs(id, { fill: lpSpec.of[i] || null, ...livePaintStroke(lpSpec.os?.[i]) })); });
   const ffSpec = readFreeform(g.attrs['data-fw-freeform']);
   for (const id of [...(ffSpec?.grads ?? []), ...(ffSpec?.sg ?? [])]) if (site.nodes[id]) cmds.push(removeNode(id));
   const keep = g.children.filter(id => id !== live);

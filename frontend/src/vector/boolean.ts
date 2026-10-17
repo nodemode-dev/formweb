@@ -299,9 +299,9 @@ function chainPath(pts: Pt[], smooth: Set<string>): SubPath {
 
 interface Seg { a: Pt; b: Pt; ka: string; kb: string }
 
-function outlineSegments(regions: Region[], smooth: Set<string>): Array<{ object: number; subs: SubPath[] }> {
+function outlineSegments(regions: Region[], smooth: Set<string>): Array<{ object: number; other: number; subs: SubPath[] }> {
   const edges = arrange(regions);
-  const out: Array<{ object: number; subs: SubPath[] }> = [];
+  const out: Array<{ object: number; other: number; subs: SubPath[] }> = [];
   regions.forEach((_, k) => {
     const bit = 1 << k;
     const groups = new Map<number, Seg[]>();
@@ -313,7 +313,7 @@ function outlineSegments(regions: Region[], smooth: Set<string>): Array<{ object
       const list = groups.get(other);
       if (list) list.push(seg); else groups.set(other, [seg]);
     }
-    for (const list of groups.values()) {
+    for (const [other, list] of groups) {
       const starts = new Map<string, number[]>();
       list.forEach((s, i) => { const l = starts.get(s.ka); if (l) l.push(i); else starts.set(s.ka, [i]); });
       const ends = new Set(list.map(s => s.kb));
@@ -340,8 +340,8 @@ function outlineSegments(regions: Region[], smooth: Set<string>): Array<{ object
         if (run.closed) {
           if (run.pts.length < 3) continue;
           const loop = simplifyLoop({ pts: run.pts, keys: run.pts.map(key), area: 0 });
-          out.push({ object: k, subs: [{ ...loopPath(loop, smooth), closed: true }] });
-        } else out.push({ object: k, subs: [chainPath(run.pts, smooth)] });
+          out.push({ object: k, other, subs: [{ ...loopPath(loop, smooth), closed: true }] });
+        } else out.push({ object: k, other, subs: [chainPath(run.pts, smooth)] });
       }
     }
   });
@@ -416,6 +416,15 @@ export function fragmentPieces(inputs: SubPath[][]): Piece[] {
   if (inputs.length < 1 || inputs.length > 30) return [];
   const smooth = new Set<string>();
   return mergeRegions(inputs.map(subs => regionOf(subs, smooth)), 'fragment', smooth);
+}
+
+/* Live Paint edges: each source outline cut wherever the faces on its two sides change. `object` is the source
+   the edge belongs to and `other` the signature of the other sources around it, so (object, other) names the two
+   faces it separates. */
+export function edgePieces(inputs: SubPath[][]): Array<{ object: number; other: number; subs: SubPath[] }> {
+  if (inputs.length < 1 || inputs.length > 30) return [];
+  const smooth = new Set<string>();
+  return outlineSegments(inputs.map(subs => regionOf(subs, smooth)), smooth);
 }
 
 export function unionSubs(inputs: SubPath[][]): SubPath[] {

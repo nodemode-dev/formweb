@@ -214,7 +214,7 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-blend" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| blend_config(&v)).unwrap_or(false),
         "data-fw-repeat" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| repeat_config(&v)).unwrap_or(false),
         "data-fw-live" => matches!(value, "blend" | "repeat" | "brush" | "stroke" | "compound" | "warp" | "effect" | "freeform" | "livepaint"),
-        "data-fw-livepaint" => value.len() <= 60_000 && serde_json::from_str::<Value>(value).map(|v| livepaint_config(&v)).unwrap_or(false),
+        "data-fw-livepaint" => value.len() <= 150_000 && serde_json::from_str::<Value>(value).map(|v| livepaint_config(&v)).unwrap_or(false),
         "data-fw-freeform" => value.len() <= 16384 && serde_json::from_str::<Value>(value).map(|v| freeform_config(&v)).unwrap_or(false),
         "data-fw-effect" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| effect_config(&v)).unwrap_or(false),
         "data-fw-warp" => value.len() <= 120_000 && serde_json::from_str::<Value>(value).map(|v| warp_config(&v)).unwrap_or(false),
@@ -404,7 +404,18 @@ fn livepaint_config(value: &Value) -> bool {
         && a[0].as_u64().map(|n| n > 0).unwrap_or(false)
         && a[1].as_f64().map(f64::is_finite).unwrap_or(false) && a[2].as_f64().map(f64::is_finite).unwrap_or(false)
         && a[3].as_str().map(|s| paint(s)).unwrap_or(false)).unwrap_or(false);
-    map.len() == 5
+    /* Painted edges: [source index, other sources' signature, x, y, colour, width]; `os` keeps the sources'
+       original strokes for Release. */
+    let edge_ok = |e: &Value| e.as_array().map(|a| a.len() == 6
+        && a[0].as_u64().map(|n| (n as usize) < ids.len()).unwrap_or(false)
+        && a[1].as_u64().is_some()
+        && a[2].as_f64().map(f64::is_finite).unwrap_or(false) && a[3].as_f64().map(f64::is_finite).unwrap_or(false)
+        && a[4].as_str().map(|s| paint(s)).unwrap_or(false)
+        && a[5].as_f64().map(|w| w.is_finite() && w > 0.0 && w <= 1000.0).unwrap_or(false)).unwrap_or(false);
+    let edges_ok = map.get("edges").map(|v| v.as_array().map(|a| a.len() <= 2000 && a.iter().all(edge_ok)).unwrap_or(false)).unwrap_or(true);
+    let os_ok = map.get("os").map(|v| v.as_array().map(|a| a.len() == ids.len() && a.iter().all(|s| s.as_str().map(|s| s.len() <= 64).unwrap_or(false))).unwrap_or(false)).unwrap_or(true);
+    map.len() == 5 + usize::from(map.contains_key("edges")) + usize::from(map.contains_key("os"))
+        && edges_ok && os_ok
         && map.get("v").and_then(Value::as_u64) == Some(1)
         && ids.len() == src.len() && ids.len() >= 2 && ids.len() <= 30 && unique.len() == ids.len() && ids.iter().all(|id| ref_id(id))
         && fills.len() <= 500 && fills.iter().all(fill_ok)
