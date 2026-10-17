@@ -4,7 +4,7 @@
  "previous": "0.11.7",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Live Paint (FW-172) stays Partial with per-edge strokes added.",
+ "release_note": "Live Paint (FW-172) stays Partial with the edge highlight and a clean Expand of painted edges added.",
  "lanes": [
   [
    "m",
@@ -6856,7 +6856,7 @@
    "m": [
     "partial",
     "v0.9.5: Live Paint Bucket driven in Chromium under CPU 4x and slow network. With a rectangle and an overlapping ellipse selected, hovering highlighted the overlap face, a click added it as a fill-only path under both sources, a second click with the same color changed nothing, Shift-click stroked the rectangle, and each undo reverted one action.",
-    "v0.11.5: Live Paint groups are live: Make kept three faces in the sources' colour, the bucket painted the overlap blue, and reshaping the rectangle kept every fill on its face; Release gave the paths their fills back. v0.11.8: Shift-click strokes one edge of a group (the stretch of a path between two crossings) with the current stroke colour and weight; edges kept their colours through a reshape and Release gave the paths their own strokes back. Faces come from overlapping closed shapes only, not crossing open lines; no double-click flood, triple-click, edge hover highlight or gap options; no default key (K is the Knife)."
+    "v0.11.5: Live Paint groups are live: Make kept three faces in the sources' colour, the bucket painted the overlap blue, and reshaping the rectangle kept every fill on its face; Release gave the paths their fills back. v0.11.8: Shift-click strokes one edge of a group (the stretch of a path between two crossings) with the current stroke colour and weight; edges kept their colours through a reshape and Release gave the paths their own strokes back. v0.11.9: holding Shift over a group highlights the edge a click would stroke, and Expand of a group with painted edges leaves only the face and edge paths. Faces come from overlapping closed shapes only, not crossing open lines; no double-click flood, triple-click, dragging across edges or gap options; no default key (K is the Knife)."
    ],
    "fr": [
     "none",
