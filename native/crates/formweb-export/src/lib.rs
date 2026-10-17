@@ -60,7 +60,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     let mut files = vec![];
     let css = stylesheet(site);
     files.push(json!({"path":"assets/site.css", "content":css}));
-    files.push(json!({"path":"assets/runtime.js", "content":format!("{RUNTIME}{}", embed::GATE_RUNTIME)}));
+    files.push(json!({"path":"assets/runtime.js", "content":format!("{RUNTIME}{}{EFFECTS_RUNTIME}", embed::GATE_RUNTIME)}));
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
     let mut route_manifest = vec![];
     for page in &site.pages {
@@ -317,6 +317,8 @@ pub fn page_path(page: &Page) -> String {
     if slug.is_empty() { "index.html".into() } else { format!("{slug}/index.html") }
 }
 
+/// Scroll and pointer effects (FW-185), appended to runtime.js by both exporters.
+pub const EFFECTS_RUNTIME: &str = include_str!("effects.js");
 const RUNTIME: &str = r#"'use strict';
 (() => {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');

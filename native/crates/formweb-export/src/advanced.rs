@@ -20,7 +20,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     let mut warnings = BTreeSet::new();
     if base == "https://example.com" { warnings.insert("Set the public base URL before deploying canonical URLs and sitemap".to_string()); }
     if gated { warnings.insert("Private routes require backend membership authorization before serving; editable source JSON is omitted".into()); }
-    let mut files = vec![json!({"path":"assets/site.css","content":crate::route_styles::base(site)}),json!({"path":"assets/runtime.js","content":format!("{}{}{}",include_str!("runtime.js"),crate::wishlist::SCRIPT,crate::embed::GATE_RUNTIME)})];
+    let mut files = vec![json!({"path":"assets/site.css","content":crate::route_styles::base(site)}),json!({"path":"assets/runtime.js","content":format!("{}{}{}{}",include_str!("runtime.js"),crate::wishlist::SCRIPT,crate::embed::GATE_RUNTIME,crate::EFFECTS_RUNTIME)})];
     files.extend(code::files(site)?);
     let mut asset_access:BTreeMap<String,BTreeSet<String>>=BTreeMap::new();
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n");
