@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0 · 2026-10-17
+
+- Type straight into area type on the canvas: double-click area type with the Selection or Direct Selection tool to open a text box over its shape. Press Esc or click elsewhere and the words are laid out in the shape again, as one undo step. The text box wraps to the shape's bounding box while you type; the words follow the shape's outline once they are laid out.
+
 ## 0.11.9 · 2026-10-17
 
 - Holding Shift with the Live Paint Bucket over a Live Paint group now highlights the edge a click would stroke.
