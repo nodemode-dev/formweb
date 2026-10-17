@@ -1859,7 +1859,7 @@ export default [
   "Texto",
   "Margen interior",
   "Colocar texto",
-  "El texto se compone una vez dentro de la forma cerrada seleccionada; vuelve a ejecutarlo tras modificarla.",
+  "El texto fluye dentro de la forma cerrada seleccionada y se recompone cuando la forma cambia.",
   "Selecciona una forma cerrada para contener el texto.",
   "El texto no cabe en esta forma.",
   "Desbordamiento: {0} palabra no cupo en la forma.",
@@ -1897,4 +1897,7 @@ export default [
   "Actualizar motivo",
   "Seleccione una forma rellena con un motivo.",
   "Cambia el motivo de la forma seleccionada; se actualizan todas las formas que lo usan.",
+  "Editar texto de área...",
+  "Actualizar texto",
+  "Seleccione el texto de área o la forma que lo contiene.",
 ] as readonly string[];

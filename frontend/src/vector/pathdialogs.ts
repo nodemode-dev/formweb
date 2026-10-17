@@ -6,7 +6,7 @@ import { cleanUp, gridTargets, splitGridCommands, type CleanOptions, type GridSp
 import { applyCorners } from './corners';
 import type { SubPath } from './geometry';
 import { freshId, updateGeometry } from './store';
-import { areaCommands, areaOptions, layoutArea, measurer, type AreaAlign } from './areatype';
+import { areaCommands, areaEditCommands, areaOptions, areaOptionsOf, areaTextFor, layoutArea, measurer, readArea, type AreaAlign } from './areatype';
 import { defaultTweak, tweakSubs, type TweakOptions } from './tweak';
 import { BLOB_MAX_SIZE, blobOptions, setBlobOptions } from './blob';
 import { BRICK_OFFSETS, patternCommands, patternEdit, patternOptions, patternParts, repatternCommands, tileSize, type PatternEdit, type TileType } from './pattern';
@@ -462,15 +462,24 @@ class AreaTypeDialog {
     return shell(t('Area Type'), [
       wrap(t('Text'), this.text), row(this.size.field, this.leading.field), wrap(t('Font family'), this.family),
       row(this.weight.field, wrap(t('Color'), this.color)), this.align.field, this.inset.field, row(this.columns.field, this.gutter.field),
-      element('p', 'fw-v-note', t('Text is laid out once inside the selected closed shape; run it again after reshaping.'))
+      element('p', 'fw-v-note', t('Text flows inside the selected closed shape and reflows when the shape changes.'))
     ], () => this.apply(), t('Place text'));
   }
 
-  open(host: Host): void {
-    const shape = host.shape(host.primary());
+  private editing: string | null = null;
+
+  open(host: Host, edit = false): void {
+    const found = edit ? areaTextFor(host.site(), host.primary()) : null;
+    if (edit && !found) { host.notify(t('Select area type or the shape that holds it.')); return; }
+    const shape = host.shape(found ? found.spec.src : host.primary());
     if (!shape || !shape.subs.some(s => s.closed)) { host.notify(t('Select a closed shape to hold the text.')); return; }
     this.host = host;
-    const o = areaOptions;
+    this.editing = found ? found.text.id : null;
+    const o = found ? areaOptionsOf(found.text, found.spec) : areaOptions;
+    this.dialog = this.dialog ?? this.build();
+    const ok = this.dialog.root.querySelector('.fw-v-row:last-child .fw-v-btn');
+    const okText = found ? t('Update text') : t('Place text');
+    if (ok && ok.textContent !== okText) ok.textContent = okText;
     this.text.value = o.text;
     this.size.input.value = String(o.size);
     this.leading.input.value = String(o.leading);
@@ -481,7 +490,6 @@ class AreaTypeDialog {
     this.inset.input.value = String(o.inset);
     this.columns.input.value = String(o.columns);
     this.gutter.input.value = String(o.gutter);
-    this.dialog = this.dialog ?? this.build();
     this.dialog.open(this.text);
   }
 
@@ -494,9 +502,22 @@ class AreaTypeDialog {
       weight: this.weight.input.value, color: /^#[0-9a-fA-F]{6}$/.test(this.color.value) ? this.color.value : '#1f1f1f', align: this.align.input.value as AreaAlign,
       inset: num(this.inset.input, 0, 0), columns: Math.round(num(this.columns.input, 1, 1)), gutter: num(this.gutter.input, 0, 0)
     });
-    const shape = host.shape(host.primary());
     this.host = null;
     this.dialog?.close();
+    if (this.editing) {
+      const site = host.site();
+      const text = site.nodes[this.editing];
+      const spec = text ? readArea(text.attrs['data-fw-area']) : null;
+      const src = spec ? host.shape(spec.src) : undefined;
+      this.editing = null;
+      if (!text || !spec || !src || !areaOptions.text.trim()) return;
+      const made = areaEditCommands(site, text, spec.src, applyCorners(src.subs), areaOptions);
+      if (!made.lines) { host.notify(t('The text does not fit in this shape.')); return; }
+      if (made.overflow) host.notify(tn(made.overflow, 'Overflow: {0} word did not fit in the shape.', 'Overflow: {0} words did not fit in the shape.'));
+      void host.commit(made.cmds, [spec.src]);
+      return;
+    }
+    const shape = host.shape(host.primary());
     if (!shape || !areaOptions.text.trim()) return;
     const { lines, overflow } = layoutArea(applyCorners(shape.subs), areaOptions, measurer(areaOptions));
     if (!lines.length) { host.notify(t('The text does not fit in this shape.')); return; }
@@ -512,7 +533,7 @@ class AreaTypeDialog {
 }
 
 let areaDialog: AreaTypeDialog | undefined;
-export const openAreaType = (host: Host): void => { (areaDialog ??= new AreaTypeDialog()).open(host); };
+export const openAreaType = (host: Host, edit = false): void => { (areaDialog ??= new AreaTypeDialog()).open(host, edit); };
 
 /* Freeform gradient stop: colour and spread, opened by double-clicking a stop with the Gradient tool. */
 

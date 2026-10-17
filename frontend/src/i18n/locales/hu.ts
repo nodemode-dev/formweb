@@ -1859,7 +1859,7 @@ export default [
   "Szöveg",
   "Belső margó",
   "Szöveg elhelyezése",
-  "A szöveg egyszer kerül a kijelölt zárt alakzatba; az alakzat módosítása után futtasd újra.",
+  "A szöveg a kijelölt zárt alakzatba folyik, és az alakzat változásakor újratördelődik.",
   "Jelölj ki egy zárt alakzatot a szövegnek.",
   "A szöveg nem fér el ebben az alakzatban.",
   "Túlcsordulás: {0} szó nem fért el az alakzatban.",
@@ -1897,4 +1897,7 @@ export default [
   "Minta frissítése",
   "Jelöljön ki egy mintával kitöltött alakzatot.",
   "Módosítja a kijelölt alakzat mintáját; az összes ezt használó alakzat frissül.",
+  "Területszöveg szerkesztése...",
+  "Szöveg frissítése",
+  "Jelölje ki a területszöveget vagy az azt tartalmazó alakzatot.",
 ] as readonly string[];

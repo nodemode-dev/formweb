@@ -1859,7 +1859,7 @@ export default [
   "Text",
   "Inre marginal",
   "Placera text",
-  "Texten sätts en gång i den markerade slutna formen; kör igen när formen har ändrats.",
+  "Texten flödar i den markerade slutna formen och radbryts om när formen ändras.",
   "Markera en sluten form för texten.",
   "Texten får inte plats i den här formen.",
   "Överflöde: {0} ord fick inte plats i formen.",
@@ -1897,4 +1897,7 @@ export default [
   "Uppdatera mönster",
   "Markera en form som är fylld med ett mönster.",
   "Ändrar mönstret för den markerade formen; alla former som använder det uppdateras.",
+  "Redigera områdestext...",
+  "Uppdatera text",
+  "Markera områdestext eller formen som innehåller den.",
 ] as readonly string[];

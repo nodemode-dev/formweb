@@ -1859,7 +1859,7 @@ export default [
   "Texto",
   "Recuo interno",
   "Inserir texto",
-  "O texto é composto uma vez dentro da forma fechada selecionada; execute de novo depois de alterá-la.",
+  "O texto flui dentro da forma fechada selecionada e é recomposto quando a forma muda.",
   "Selecione uma forma fechada para conter o texto.",
   "O texto não cabe nesta forma.",
   "Excesso: {0} palavra não coube na forma.",
@@ -1897,4 +1897,7 @@ export default [
   "Atualizar padrão",
   "Selecione uma forma preenchida com um padrão.",
   "Altera o padrão da forma selecionada; todas as formas que o usam são atualizadas.",
+  "Editar texto de área...",
+  "Atualizar texto",
+  "Selecione o texto de área ou a forma que o contém.",
 ] as readonly string[];

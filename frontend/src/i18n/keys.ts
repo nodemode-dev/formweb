@@ -1859,7 +1859,7 @@ export const KEYS: readonly string[] = [
   "Text",
   "Inset spacing",
   "Place text",
-  "Text is laid out once inside the selected closed shape; run it again after reshaping.",
+  "Text flows inside the selected closed shape and reflows when the shape changes.",
   "Select a closed shape to hold the text.",
   "The text does not fit in this shape.",
   "Overflow: {0} word did not fit in the shape.",
@@ -1897,4 +1897,7 @@ export const KEYS: readonly string[] = [
   "Update pattern",
   "Select a shape filled with a pattern.",
   "Changes the pattern of the selected shape; every shape using it updates.",
+  "Edit area type...",
+  "Update text",
+  "Select area type or the shape that holds it.",
 ];

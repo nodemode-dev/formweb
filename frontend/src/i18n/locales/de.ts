@@ -1859,7 +1859,7 @@ export default [
   "Text",
   "Versatzabstand",
   "Text platzieren",
-  "Der Text wird einmal in der ausgewählten geschlossenen Form gesetzt; nach dem Umformen erneut ausführen.",
+  "Der Text fließt in der ausgewählten geschlossenen Form und wird neu umbrochen, wenn sich die Form ändert.",
   "Wähle eine geschlossene Form für den Text aus.",
   "Der Text passt nicht in diese Form.",
   "Übersatz: {0} Wort passte nicht in die Form.",
@@ -1897,4 +1897,7 @@ export default [
   "Muster aktualisieren",
   "Wählen Sie eine mit einem Muster gefüllte Form aus.",
   "Ändert das Muster der ausgewählten Form; alle Formen mit diesem Muster werden aktualisiert.",
+  "Flächentext bearbeiten ...",
+  "Text aktualisieren",
+  "Wählen Sie Flächentext oder die Form aus, die ihn enthält.",
 ] as readonly string[];

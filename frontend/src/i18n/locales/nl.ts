@@ -1859,7 +1859,7 @@ export default [
   "Tekst",
   "Inzetafstand",
   "Tekst plaatsen",
-  "De tekst wordt één keer in de geselecteerde gesloten vorm gezet; voer het opnieuw uit na het aanpassen.",
+  "De tekst loopt in de geselecteerde gesloten vorm en wordt opnieuw gezet als de vorm verandert.",
   "Selecteer een gesloten vorm voor de tekst.",
   "De tekst past niet in deze vorm.",
   "Overloop: {0} woord paste niet in de vorm.",
@@ -1897,4 +1897,7 @@ export default [
   "Patroon bijwerken",
   "Selecteer een vorm die met een patroon is gevuld.",
   "Wijzigt het patroon van de geselecteerde vorm; alle vormen die het gebruiken worden bijgewerkt.",
+  "Tekst in vlak bewerken...",
+  "Tekst bijwerken",
+  "Selecteer tekst in vlak of de vorm die deze bevat.",
 ] as readonly string[];

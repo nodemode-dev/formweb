@@ -1859,7 +1859,7 @@ export default [
   "Texte",
   "Marge intérieure",
   "Placer le texte",
-  "Le texte est composé une fois dans la forme fermée sélectionnée ; relancez après l’avoir modifiée.",
+  "Le texte s’écoule dans la forme fermée sélectionnée et se recompose quand la forme change.",
   "Sélectionnez une forme fermée pour contenir le texte.",
   "Le texte ne tient pas dans cette forme.",
   "Débordement : {0} mot n’a pas tenu dans la forme.",
@@ -1897,4 +1897,7 @@ export default [
   "Mettre à jour le motif",
   "Sélectionnez une forme remplie d'un motif.",
   "Modifie le motif de la forme sélectionnée ; toutes les formes qui l'utilisent sont mises à jour.",
+  "Modifier le texte captif...",
+  "Mettre à jour le texte",
+  "Sélectionnez le texte captif ou la forme qui le contient.",
 ] as readonly string[];

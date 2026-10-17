@@ -1859,7 +1859,7 @@ export default [
   "Testo",
   "Spaziatura interna",
   "Inserisci testo",
-  "Il testo viene composto una volta nella forma chiusa selezionata; eseguilo di nuovo dopo averla modificata.",
+  "Il testo scorre nella forma chiusa selezionata e si ricompone quando la forma cambia.",
   "Seleziona una forma chiusa che contenga il testo.",
   "Il testo non entra in questa forma.",
   "Testo in eccesso: {0} parola non è entrata nella forma.",
@@ -1897,4 +1897,7 @@ export default [
   "Aggiorna pattern",
   "Seleziona una forma riempita con un pattern.",
   "Modifica il pattern della forma selezionata; tutte le forme che lo usano vengono aggiornate.",
+  "Modifica testo in area...",
+  "Aggiorna testo",
+  "Seleziona il testo in area o la forma che lo contiene.",
 ] as readonly string[];

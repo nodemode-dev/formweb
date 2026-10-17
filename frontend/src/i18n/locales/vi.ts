@@ -1859,7 +1859,7 @@ export default [
   "Văn bản",
   "Khoảng lề trong",
   "Đặt văn bản",
-  "Văn bản được dàn một lần trong hình khép kín đã chọn; chạy lại sau khi đổi hình.",
+  "Văn bản chảy trong hình khép kín đã chọn và được dàn lại khi hình thay đổi.",
   "Chọn một hình khép kín để chứa văn bản.",
   "Văn bản không vừa trong hình này.",
   "Tràn: {0} từ không vừa trong hình.",
@@ -1897,4 +1897,7 @@ export default [
   "Cập nhật mẫu tô",
   "Hãy chọn một hình được tô bằng mẫu.",
   "Thay đổi mẫu tô của hình đã chọn; mọi hình dùng mẫu này đều được cập nhật.",
+  "Sửa văn bản vùng...",
+  "Cập nhật văn bản",
+  "Hãy chọn văn bản vùng hoặc hình chứa nó.",
 ] as readonly string[];

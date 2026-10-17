@@ -1859,7 +1859,7 @@ export default [
   "Text",
   "Vnitřní odsazení",
   "Umístit text",
-  "Text se vysází jednou do vybraného uzavřeného tvaru; po úpravě tvaru spusťte znovu.",
+  "Text se vysází do vybraného uzavřeného tvaru a při změně tvaru se přeskládá.",
   "Vyberte uzavřený tvar pro text.",
   "Text se do tohoto tvaru nevejde.",
   "Přetečení: {0} slovo se do tvaru nevešlo.",
@@ -1897,4 +1897,7 @@ export default [
   "Aktualizovat vzorek",
   "Vyberte tvar vyplněný vzorkem.",
   "Změní vzorek vybraného tvaru; aktualizují se všechny tvary, které ho používají.",
+  "Upravit text v oblasti...",
+  "Aktualizovat text",
+  "Vyberte text v oblasti nebo tvar, který ho obsahuje.",
 ] as readonly string[];

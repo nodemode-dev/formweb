@@ -1859,7 +1859,7 @@ export default [
   "Teksti",
   "Sisennysväli",
   "Sijoita teksti",
-  "Teksti asetellaan kerran valitun suljetun muodon sisään; suorita uudelleen muodon muuttamisen jälkeen.",
+  "Teksti asettuu valitun suljetun muodon sisään ja rivittyy uudelleen, kun muoto muuttuu.",
   "Valitse suljettu muoto tekstiä varten.",
   "Teksti ei mahdu tähän muotoon.",
   "Ylivuoto: {0} sana ei mahtunut muotoon.",
@@ -1897,4 +1897,7 @@ export default [
   "Päivitä kuvio",
   "Valitse kuviolla täytetty muoto.",
   "Muuttaa valitun muodon kuviota; kaikki sitä käyttävät muodot päivittyvät.",
+  "Muokkaa aluetekstiä...",
+  "Päivitä teksti",
+  "Valitse aluetekstiä tai muoto, joka sisältää sen.",
 ] as readonly string[];

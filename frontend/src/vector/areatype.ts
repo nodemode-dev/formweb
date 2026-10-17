@@ -1,4 +1,4 @@
-import type { Command, Site } from '../types';
+import type { Command, Site, SiteNode } from '../types';
 import { flattenSub } from './edit';
 import { fmt, parsePath, pathBounds, type Pt, type SubPath } from './geometry';
 import { freshId, removeNode, updateAttrs } from './store';
@@ -125,6 +125,38 @@ export function readArea(raw: string | undefined): AreaSpec | null {
       || (c.align !== 'left' && c.align !== 'center' && c.align !== 'right') || !n(c.inset, 0, 10000) || !n(c.columns, 1, 12) || !n(c.gutter, 0, 10000)) return null;
     return { v: 1, src: c.src, text: c.text, leading: c.leading, align: c.align, inset: c.inset, columns: c.columns, gutter: c.gutter };
   } catch { return null; }
+}
+
+/* The live area text for a selected text, line or source shape. */
+export function areaTextFor(site: Site, id: string): { text: SiteNode; spec: AreaSpec } | null {
+  let node = site.nodes[id];
+  if (node?.tag === 'tspan') node = Object.values(site.nodes).find(n => n.children.includes(id)) ?? node;
+  if (node?.tag === 'text') { const spec = readArea(node.attrs['data-fw-area']); return spec ? { text: node, spec } : null; }
+  if (node?.tag !== 'path') return null;
+  for (const n of Object.values(site.nodes)) {
+    if (n.tag !== 'text') continue;
+    const spec = readArea(n.attrs['data-fw-area']);
+    if (spec?.src === id) return { text: n, spec };
+  }
+  return null;
+}
+
+export function areaOptionsOf(text: SiteNode, spec: AreaSpec): AreaOptions {
+  const size = parseFloat(text.attrs['font-size'] ?? '16');
+  return { text: spec.text, size: Number.isFinite(size) && size > 0 ? size : 16, leading: spec.leading, family: text.attrs['font-family'] ?? 'system-ui, sans-serif', weight: text.attrs['font-weight'] ?? '400', color: text.attrs.fill ?? '#1f1f1f', align: spec.align, inset: spec.inset, columns: spec.columns, gutter: spec.gutter };
+}
+
+/* Editing placed area type: new text and options, laid out again in the same shape, one undo step. */
+export function areaEditCommands(site: Site, text: SiteNode, src: string, subs: SubPath[], o: AreaOptions): { cmds: Command[]; overflow: number; lines: number } {
+  const { lines, overflow } = layoutArea(subs, o, measurer(o));
+  const taken = new Set<string>();
+  const anchor = o.align === 'center' ? 'middle' : o.align === 'right' ? 'end' : 'start';
+  const cmds: Command[] = [
+    updateAttrs(text.id, { 'font-size': fmt(o.size), 'font-family': o.family, 'font-weight': o.weight, fill: o.color, 'text-anchor': anchor, 'data-fw-area': areaAttr(src, o) }),
+    ...text.children.map(id => removeNode(id)),
+  ];
+  lines.forEach(line => cmds.push({ command: 'node.add', params: { parent: text.id, node: { id: freshId(site, taken, 'tspan'), tag: 'tspan', name: 'Line', text: line.text, attrs: { x: fmt(line.x), y: fmt(line.y) } } } }));
+  return { cmds, overflow, lines: lines.length };
 }
 
 export function areaFixes(site: Site, cmds: Command[]): Command[] {

@@ -1,5 +1,14 @@
 # Frontend context map
 
+## Edit area type, and the v0.11.2 open items · v0.11.3 (2026-10-17)
+
+Edits in `vector/areatype.ts` (new `areaTextFor` finds the live area text for a selected text, line or source shape; `areaOptionsOf` rebuilds the options from the stored spec and the text's font attributes; `areaEditCommands` updates the font attributes and spec and replaces the lines in the same shape), `vector/pathdialogs.ts` (Area Type has an edit mode: prefilled, button Update text, commits on the same text node; its note now says the text reflows), `vector/index.ts` (`vector.type.area-edit`, enabled only when the selection resolves to live area type), `commands/catalogue.ts` (both area entries describe reflow and editing), `i18n/keys.ts` and the 23 locale files (the stale note replaced in place, 3 strings added, 1901 keys).
+
+- **v0.11.2 Layers shift, explained:** recording every layout-shift entry with its `hadRecentInput` flag shows the same 0.00068 shift (the new "Area type" row pushing the rows below) in v0.11.1 too; there it landed 539 ms after the Place text click and was marked as near input, here 776 ms after and counted. Not a regression: any Layers row added by a commit that arrives more than 500 ms after the click moves the rows below it. Left as is; a general fix belongs to the Layers list.
+- **v0.11.2 anchor drag, explained:** a Direct Selection drag on the right anchor commits both on a plain ellipse (614.59 to 711.32) and with area type present, and the area text reflows to four lines with centres following the wider shape. The failed run was the test script, not the editor. The canvas holds two tspans per line (the line and its text), so 10 tspans for 5 lines is expected.
+- **Driven (CPU 4x, 400 ms latency, slow network, cache off):** area type in an ellipse; Edit area type prefilled the text, size 16 and Update text; new words at size 20 gave four lines on the same text node; one undo restored the five lines at 16; the command is unavailable on a plain rectangle. No page errors; the only shift is the placement one above.
+- **Not built:** typing straight into the canvas text, threaded text.
+
 ## Live area type reflow · v0.11.2 (2026-10-17)
 
 Edits in `vector/areatype.ts` (`AreaSpec`, `areaAttr`, `readArea`, `areaFixes`; `areaCommands` takes the source shape id and stores `data-fw-area` {v, src, text, leading, align, inset, columns, gutter} on the text), `vector/pathdialogs.ts` (Area Type passes the shape id), `vector/editor.ts` (`areaFixes` joins `typeFixes` in every commit: when a command changes a source path's `d`, the text's tspans are replaced by a fresh layout from the merged path in the same batch; when the source is removed the spec is dropped and the text stays as placed). Rust: `text` accepts `data-fw-area`, checked for its eight keys, a valid source id, text up to 20000 characters and number ranges.

@@ -1859,7 +1859,7 @@ export default [
   "Teks",
   "Jarak sisipan",
   "Tempatkan teks",
-  "Teks disusun sekali di dalam bentuk tertutup yang dipilih; jalankan lagi setelah bentuknya diubah.",
+  "Teks mengalir di dalam bentuk tertutup yang dipilih dan disusun ulang saat bentuknya berubah.",
   "Pilih bentuk tertutup untuk menampung teks.",
   "Teks tidak muat di bentuk ini.",
   "Luapan: {0} kata tidak muat di bentuk.",
@@ -1897,4 +1897,7 @@ export default [
   "Perbarui pola",
   "Pilih bentuk yang diisi pola.",
   "Mengubah pola bentuk yang dipilih; semua bentuk yang memakainya ikut diperbarui.",
+  "Edit teks area...",
+  "Perbarui teks",
+  "Pilih teks area atau bentuk yang memuatnya.",
 ] as readonly string[];

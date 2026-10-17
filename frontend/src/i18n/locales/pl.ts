@@ -1859,7 +1859,7 @@ export default [
   "Tekst",
   "Odstęp wewnętrzny",
   "Wstaw tekst",
-  "Tekst jest układany raz wewnątrz zaznaczonego zamkniętego kształtu; po zmianie kształtu uruchom ponownie.",
+  "Tekst wypełnia zaznaczony zamknięty kształt i układa się na nowo, gdy kształt się zmienia.",
   "Zaznacz zamknięty kształt na tekst.",
   "Tekst nie mieści się w tym kształcie.",
   "Nadmiar: {0} słowo nie zmieściło się w kształcie.",
@@ -1897,4 +1897,7 @@ export default [
   "Aktualizuj wzorek",
   "Zaznacz kształt wypełniony wzorkiem.",
   "Zmienia wzorek zaznaczonego kształtu; aktualizowane są wszystkie kształty, które go używają.",
+  "Edytuj tekst w obszarze...",
+  "Aktualizuj tekst",
+  "Zaznacz tekst w obszarze lub kształt, który go zawiera.",
 ] as readonly string[];

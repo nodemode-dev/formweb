@@ -1859,7 +1859,7 @@ export default [
   "Tekst",
   "Innvendig avstand",
   "Plasser tekst",
-  "Teksten settes én gang inni den merkede lukkede formen; kjør på nytt etter at formen er endret.",
+  "Teksten flyter inni den merkede lukkede formen og brytes om når formen endres.",
   "Merk en lukket form til teksten.",
   "Teksten får ikke plass i denne formen.",
   "Overflyt: {0} ord fikk ikke plass i formen.",
@@ -1897,4 +1897,7 @@ export default [
   "Oppdater mønster",
   "Velg en figur fylt med et mønster.",
   "Endrer mønsteret til den valgte figuren; alle figurer som bruker det, oppdateres.",
+  "Rediger områdetekst...",
+  "Oppdater tekst",
+  "Velg områdetekst eller formen som inneholder den.",
 ] as readonly string[];

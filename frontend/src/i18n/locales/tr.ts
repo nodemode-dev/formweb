@@ -1859,7 +1859,7 @@ export default [
   "Metin",
   "İç boşluk",
   "Metni yerleştir",
-  "Metin seçili kapalı şeklin içine bir kez dizilir; şekli değiştirdikten sonra yeniden çalıştırın.",
+  "Metin seçili kapalı şeklin içine akar ve şekil değiştiğinde yeniden dizilir.",
   "Metni tutacak kapalı bir şekil seçin.",
   "Metin bu şekle sığmıyor.",
   "Taşma: {0} sözcük şekle sığmadı.",
@@ -1897,4 +1897,7 @@ export default [
   "Deseni güncelle",
   "Desenle doldurulmuş bir şekil seçin.",
   "Seçili şeklin desenini değiştirir; onu kullanan tüm şekiller güncellenir.",
+  "Alan metnini düzenle...",
+  "Metni güncelle",
+  "Alan metnini veya onu içeren şekli seçin.",
 ] as readonly string[];
