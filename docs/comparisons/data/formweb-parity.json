@@ -4,7 +4,7 @@
  "previous": "0.10.7",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Multiple artboards (FW-176) stays Partial with another gap closed: Shift-click several artboards and move them together.",
+ "release_note": "Multiple artboards (FW-176) stays Partial with two more gaps closed: marquee selection of artboards and arrow-key nudging.",
  "lanes": [
   [
    "m",
@@ -7015,8 +7015,8 @@
    "added": "0.10.1",
    "m": [
     "partial",
-    "v0.10.1: driven in Chromium under CPU 4x and slow network. The Artboards panel listed the page's drawings; rename, duplicate (with its gradient copied and re-pointed), Fit to artwork (art stayed at the same screen pixels), new 800 by 600, resize to 500 by 400 and delete all landed in one undo step each. v0.10.2: Export for Screens exported both artboards on the page in SVG and PNG at 1x and 2x as six files named prefix plus artboard name. v0.10.3: the Artboard tool (Shift+O) drew a new artboard where dragged and moved an artboard by dragging, previewed live, one undo step each. v0.10.4: eight handles resized the selected artboard from any edge or corner while the art inside kept its screen position. v0.10.5: Shift kept the ratio (260 by 182 from 200 by 140) and Alt resized around the center. v0.10.8: Shift-click selected two artboards and one drag moved both, one undo step.",
-    "No marquee selection or nudging of artboards, no reordering or Rearrange All, no multi-artboard options, no artboard ranges or export from other pages, Fit measures paths only."
+    "v0.10.1: driven in Chromium under CPU 4x and slow network. The Artboards panel listed the page's drawings; rename, duplicate (with its gradient copied and re-pointed), Fit to artwork (art stayed at the same screen pixels), new 800 by 600, resize to 500 by 400 and delete all landed in one undo step each. v0.10.2: Export for Screens exported both artboards on the page in SVG and PNG at 1x and 2x as six files named prefix plus artboard name. v0.10.3: the Artboard tool (Shift+O) drew a new artboard where dragged and moved an artboard by dragging, previewed live, one undo step each. v0.10.4: eight handles resized the selected artboard from any edge or corner while the art inside kept its screen position. v0.10.5: Shift kept the ratio (260 by 182 from 200 by 140) and Alt resized around the center. v0.10.8: Shift-click selected two artboards and one drag moved both, one undo step. v0.10.9: Shift-drag marquee selected both, and arrow keys nudged them by 1 or 10 px with no stale position shown under throttling.",
+    "No reordering or Rearrange All, no multi-artboard options, no artboard ranges or export from other pages, Fit measures paths only."
    ],
    "fr": [
     "none",
