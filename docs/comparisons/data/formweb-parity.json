@@ -4,7 +4,7 @@
  "previous": "0.12.1",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Clipping masks (FW-081) and Shape Builder (FW-087) move to Full against Figma: Use as mask added and Alt-click subtract driven.",
+ "release_note": "Smart guides and snapping (FW-090) move to Full against Figma: edge snapping, Control to suspend and Snap to pixel grid.",
  "lanes": [
   [
    "m",
@@ -5774,9 +5774,9 @@
    "conf": "vendor",
    "added": "0.7.0",
    "m": [
-    "partial",
-    "snapLocal covers anchors, centers, the viewBox, axis guides, segments and 45 degree angles, with overlay guides and a toggle (Mod+Shift+;). v0.7.1 QA drove an x guide snap and the Mod+Shift+; toggle in Chromium. Reviewed at v0.7.1: stays Partial because only one snap kind is recorded as driven.",
-    "Only the x guide snap and the toggle are recorded as driven (anchor, center, angle and segment snaps are not); no grid or custom guides; the first rect drawn leaves a viewBox corner that is also a snap point."
+    "full",
+    "snapLocal covers anchors, centers, the viewBox, axis guides, segments and 45 degree angles, with overlay guides and a toggle (Mod+Shift+;). v0.7.1 QA drove an x guide snap and the Mod+Shift+; toggle in Chromium. v0.12.3, against Figma's documented snapping (centers and outermost points of other objects with a visible guide, Control held to turn snapping off, Snap to pixel grid): other objects' box corners and edge middles became snap points, Control suspends snapping, and vector.snap.pixel rounds unsnapped points to whole units. Driven under CPU 4x and slow network: a new rectangle started exactly on another's right edge middle (324.42, 163.21); with Control held the same start stayed at 327.66, 168.04; dragging a rectangle onto another's centre landed it there with the snap marker showing; with pixel snapping on a new shape's path was all whole numbers.",
+    "Rulers, saved guides and the document grid date from v0.9.1. Figma's spacing hints between objects are not documented on the page read and are not built."
    ],
    "fr": [
     "none",
