@@ -4,7 +4,7 @@
  "previous": "0.11.0",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Pattern swatches and Pattern Options (FW-174) stays Partial with two gaps closed: Hex tiles and editing an existing pattern's options.",
+ "release_note": "Area type (FW-175) stays Partial with live reflow added: the text lays itself out again when its shape is moved or reshaped.",
  "lanes": [
   [
    "m",
@@ -6976,7 +6976,7 @@
    "m": [
     "partial",
     "v0.9.9: driven in Chromium under CPU 4x and slow network. Two centered paragraphs in an ellipse produced 8 lines whose ends lie inside the ellipse; long text reported 66 overflow words; two columns split 33 and 24 lines at the gutter; the export carried the lines and one undo removed them.",
-    "Laid out once: no live reflow when the shape or text changes, no in-place editing, no threaded text, no rows or first baseline choices, no hyphenation or justification."
+    "Reflows when the shape changes in the editor (v0.11.2: moving the ellipse moved the lines, pulling its top anchor down 60 units rewrapped five lines into four); no reflow for edits made only through the API, no in-place editing of the text, no threaded text, no rows or first baseline choices, no hyphenation or justification."
    ],
    "fr": [
     "none",
