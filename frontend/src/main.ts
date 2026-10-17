@@ -20,6 +20,7 @@ import { StockLibrary } from './features/stock-library';
 import { AiWriter, SiteGenerator } from './features/ai-writer';
 import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
+import { SECTIONS, STARTERS, sectionCommands, type Command } from './features/sections';
 import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 
@@ -274,7 +275,52 @@ captureWrap.append(componentName, button('Capture selection', 'component', async
 }));
 captureWrap.lastElementChild?.setAttribute('style', 'width:100%;margin-top:var(--space-2)');
 const componentList = element('div', 'list');
-insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), componentsHead, captureWrap, componentList);
+// Prebuilt sections and starter pages (FW-186): ordinary nodes, one batch and one undo step per insert.
+const SECTION_ICONS: Record<string, Icon> = { nav: 'layers', hero: 'text', features: 'grid', testimonial: 'text', pricing: 'grid', faq: 'text', cta: 'arrow', contact: 'box', footer: 'layers' };
+const sectionsHead = element('div', 'panel-head');
+sectionsHead.append(element('span', 'eyebrow', 'Sections'));
+const sectionsGrid = element('div', 'insert-grid');
+for (const entry of SECTIONS) {
+  const card = button(entry.label, SECTION_ICONS[entry.id] || 'box', () => insertSection(entry.id), 'insert-card');
+  card.dataset.section = entry.id;
+  sectionsGrid.append(card);
+}
+const startersHead = element('div', 'panel-head');
+startersHead.append(element('span', 'eyebrow', 'Starter pages'));
+const startersGrid = element('div', 'insert-grid');
+for (const entry of STARTERS) {
+  const card = button(entry.label, 'page', () => insertStarter(entry.id), 'insert-card');
+  card.dataset.starter = entry.id;
+  startersGrid.append(card);
+}
+async function insertSection(id: string): Promise<void> {
+  const root = currentPage().root;
+  let anchor = selectedId;
+  while (anchor && anchor !== root && parentOf(anchor)?.id !== root) anchor = parentOf(anchor)?.id || '';
+  const siblings = state().site.nodes[root].children;
+  const index = anchor && anchor !== root && siblings.includes(anchor) ? siblings.indexOf(anchor) + 1 : siblings.length;
+  const made = sectionCommands(id, root, uuid);
+  if (index < siblings.length) made.commands.push({ command: 'node.move', params: { id: made.root, parent: root, index } });
+  await commands(made.commands);
+  selectedId = made.root;
+  update(state());
+}
+async function insertStarter(id: string): Promise<void> {
+  const starter = STARTERS.find(entry => entry.id === id);
+  if (!starter) return;
+  const slugs = new Set(state().site.pages.map(page => page.slug));
+  let slug = starter.slug;
+  for (let n = 2; slugs.has(slug); n++) slug = `${starter.slug}-${n}`;
+  const page = uuid('page');
+  const root = uuid('page-root');
+  const list: Command[] = [{ command: 'page.add', params: { name: starter.label, slug, id: page, root } }];
+  for (const section of starter.sections) list.push(...sectionCommands(section, root, uuid).commands);
+  await commands(list);
+  pageId = page;
+  selectedId = root;
+  update(state());
+}
+insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), sectionsHead, sectionsGrid, startersHead, startersGrid, element('div', 'sidebar-note', 'Sections insert after the selected section. Starter pages add a new page with its sections. Every insert is one undo step.'), componentsHead, captureWrap, componentList);
 const terminalDock = new TerminalDock(next => { try { localStorage.setItem('formweb_terminal', next); } catch {} rail.refresh(); }, () => `Open page: ${pageId}. Selected element id: ${selectedId}.`);
 titleTools.prepend(...dockTitleButtons(runCommand), element('span', 'fw-tt-sep'));
 const agentConnect = new AgentConnect({
