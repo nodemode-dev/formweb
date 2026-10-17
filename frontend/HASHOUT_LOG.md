@@ -1,5 +1,12 @@
 # Frontend context map
 
+## Starter sites · v0.13.1 (2026-10-17)
+
+`features/sections.ts`: `STARTER_SITES` (business, product, portfolio; pages as section lists) and an optional `links` argument to `sectionCommands` that swaps the navigation bar's links for real page links. `main.ts` New site dialog: `newStarter` select (`data-field` `new.starter`, Blank first); `performDialogAction` sends `/api/new` with `blank: true` when a starter is chosen, then `starterSiteCommands` (rename Home, fill its root, `page.add` with caller-chosen ids for the rest, every section) as one batch. The engine's `formweb_model::blank` is what makes the empty root possible: the sample's component source cannot be removed.
+
+- **Source basis:** Framer Help "Using templates", Figma Sites "Insert blocks, embeds, webpages, and design libraries into a site" (start from a template or blank file), Webflow Updates "Build faster with prebuilt layouts".
+- **Driven (CPU 4x, 400 ms latency, cache off):** Business site made Home, Pricing and Contact with linked navigation; undo to one empty page, redo to three. Layout shift 0.0056 twice: the pages list grows from one row to three and pushes the Layers head down, the same as adding pages any other way.
+
 ## Prebuilt sections and starter pages · v0.13.0 (2026-10-17)
 
 `features/sections.ts` (new): `SECTIONS` (nine specs: nav, hero, features, testimonial, pricing, faq, cta, contact, footer), `STARTERS` (landing, pricing, contact as lists of section ids) and `sectionCommands(id, parent, fresh)`, which flattens a spec into `node.add` commands, parents first, with fresh ids and a `mobile` breakpoint where a spec sets one. Styles inherit color and use a translucent neutral border so a section fits light or dark sites. `main.ts` Insert pane: Sections and Starter pages grids (`data-section`, `data-starter`), `insertSection` (finds the selection's top-level ancestor under the page root and adds a `node.move` to place the new section after it) and `insertStarter` (`page.add` with caller-chosen page and root ids, then every section, unique slug by suffix). Both send one `commands()` batch, so one undo step.
