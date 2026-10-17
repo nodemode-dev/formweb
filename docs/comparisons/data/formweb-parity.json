@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.11.0",
- "previous": "0.10.9",
+ "version": "0.11.1",
+ "previous": "0.11.0",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Pattern swatches and Pattern Options (FW-174) stays Partial with two gaps closed: Hex tiles and editing an existing pattern's options.",
@@ -7903,6 +7903,13 @@
    "same_as": "0.10.8",
    "moved": {},
    "note": "Artboard marquee and arrow-key nudging. No grade change, 116 of 134."
+  },
+  {
+   "version": "0.11.0",
+   "date": "2026-10-17",
+   "same_as": "0.10.9",
+   "moved": {},
+   "note": "Artboard reordering and Rearrange All Artboards. No grade change, 116 of 134."
   }
  ],
  "changes": [

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1 · 2026-10-17
+
+- Patterns: Pattern Options now offers Hex by Column and Hex by Row, which stagger the tiles in a honeycomb layout.
+- Edit pattern: select a shape filled with a pattern and choose Edit pattern to change its tile type, spacing or size; every shape using that pattern updates.
+- Fix: patterns and gradients no longer appear as rows in the Layers list, so making a pattern no longer nudges the list.
+
 ## 0.11.0 · 2026-10-17
 
 - Artboards panel: Move up and Move down change the order of artboards, which is also the order used when exporting all artboards.
