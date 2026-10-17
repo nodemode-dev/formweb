@@ -33,7 +33,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         let suffix = route.item.as_ref().map(|i| format!("-{}-{}", route.collection.as_deref().unwrap_or("item"),i.id)).unwrap_or_default();
         let ids: Strings = ids.into_iter().map(|id| { let mapped = format!("{id}{suffix}"); (id,mapped) }).collect();
         let context = route.collection.as_deref().zip(route.item.as_ref()).map(|(collection,item)|RenderContext { collection,item,ids:&ids,suffix:&suffix });
-        let body = renderer.node(&route.page.root,context,None)?;
+        let body = format!("{}{}", renderer.foreign_symbols(&route.page.root)?, renderer.node(&route.page.root,context,None)?);
         let (title,description,json_ld) = routing::metadata(site,route);
         let canonical = route.canonical(base);
         let alternates = routing::alternates(route,&routes,base);

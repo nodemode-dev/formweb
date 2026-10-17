@@ -1,5 +1,12 @@
 # Frontend context map
 
+## Symbols shared across the site · v0.12.6 (2026-10-17)
+
+`ui/canvas.ts`: `foreignSymbols` keeps one hidden svg at the top of the canvas document holding copies of symbols that this page's instances use but another page defines; rebuilt only when those symbols change (a JSON key of their subtrees), so editing a master elsewhere updates instances here without remounting anything. `vector/symbols.ts`: `symbolsOnPage` lists this page's symbols first and then the rest of the site's; `symbolOfUse` resolves site-wide; `placeCommands` places any symbol of the site. `vector/ops.ts` `replaceSymbol` swaps to any symbol. Rust: `formweb-model` `site_symbols` (a `use` may point at a symbol on any page; removing a symbol still used anywhere is refused); `formweb-export` `Renderer::foreign_symbols` renders the symbols a page uses from other pages into a hidden svg at the top of that page's body, in both the plain and the routed exporter.
+
+- **Source basis:** Figma reuses components across a whole file (Figma Help on components, G72 in the vendor lanes: main components, linked instances, detach, swap).
+- **Driven (CPU 4x, 400 ms latency, slow network, cache off):** a symbol defined on the home page; a second page "Two" added through the API with a drawing whose instance points at that symbol; opening page Two in the editor drew the instance at 161 by 161 from the hidden copy; removing the home page drawing was refused (400); GET /api/export returned the site zip, and two/index.html carried the hidden svg with the symbol and its path; that file opened in Chromium drew the instance at 161 by 161 in the symbol's orange, with no page errors.
+
 ## Symbols shared across a page · v0.12.5 (2026-10-17)
 
 `vector/symbols.ts`: `pageRootOf` and `symbolsOnPage`; `symbolOfUse` falls back to the symbols of the whole page; `placeCommands` places an instance of any symbol on the same page into the active svg. `vector/ops.ts` `replaceSymbol` swaps across svgs on one page. `vector/panel2.ts`: the Symbols list shows every symbol on the page. Rust (`formweb-model/src/vector.rs`): `page_symbols`; a `use` may point at a symbol in another svg on the same page (inline svgs share the page's id space); a commit that would leave an instance pointing at a deleted symbol is refused with "detach its instances before deleting a symbol they use".

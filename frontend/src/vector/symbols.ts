@@ -34,11 +34,19 @@ export function pageRootOf(site: Site, id: string): string | undefined {
   return site.pages.find(p => holds(p.root, 0))?.root;
 }
 
+/* Since v0.12.6 symbols are shared across the whole site, like Figma components across a file: the list starts with
+   the symbols of this page, then the rest of the site's. */
 export function symbolsOnPage(site: Site, svg: string | undefined): SymbolInfo[] {
   if (!svg) return [];
   const root = pageRootOf(site, svg);
-  return root ? symbolNodes(site, root).filter(node => !node.attrs['data-fw-brushdef']).map(node => ({ id: node.id, name: node.name || node.id })) : symbolsIn(site, svg);
+  const roots = [...(root ? [root] : []), ...site.pages.map(p => p.root).filter(r => r !== root)];
+  const seen = new Set<string>();
+  const out: SymbolInfo[] = [];
+  for (const r of roots) for (const node of symbolNodes(site, r)) if (!node.attrs['data-fw-brushdef'] && !seen.has(node.id)) { seen.add(node.id); out.push({ id: node.id, name: node.name || node.id }); }
+  return out.length || root ? out : symbolsIn(site, svg);
 }
+
+const siteSymbol = (site: Site, href: string | undefined): SiteNode | undefined => href ? Object.values(site.nodes).find(n => n.tag === 'symbol' && `#${n.attrs.id}` === href) : undefined;
 
 export function usesOf(site: Site, svg: string, symbol: string): string[] {
   const id = site.nodes[symbol]?.attrs.id;
@@ -57,9 +65,7 @@ export function symbolOfUse(site: Site, useId: string): SiteNode | undefined {
   const use = site.nodes[useId];
   const svg = use && use.tag === 'use' ? svgOf(site, useId) : undefined;
   if (!svg || !use) return undefined;
-  const local = symbolNodes(site, svg).find(node => `#${node.attrs.id}` === use.attrs.href);
-  const root = local ? undefined : pageRootOf(site, svg);
-  return local ?? (root ? symbolNodes(site, root).find(node => `#${node.attrs.id}` === use.attrs.href) : undefined);
+  return symbolNodes(site, svg).find(node => `#${node.attrs.id}` === use.attrs.href) ?? siteSymbol(site, use.attrs.href);
 }
 
 export function symbolBox(site: Site, symbol: string): Box | null {
@@ -124,8 +130,7 @@ export function placeCommands(h: Host, symbol: string): { cmds: Command[]; use: 
   const svg = h.activeSvg();
   const node = site.nodes[symbol];
   if (!svg || !node || node.tag !== 'symbol') return null;
-  const owner = svgOf(site, symbol);
-  if (owner !== svg && (!owner || pageRootOf(site, owner) !== pageRootOf(site, svg))) { h.notify('Select something in the svg that holds this symbol first.'); return null; }
+  if (!svgOf(site, symbol)) return null;
   const box = symbolBox(site, symbol);
   const count = usesOf(site, svg, symbol).length;
   const step = (box ? box.w : 40) + 16;

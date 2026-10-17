@@ -107,8 +107,55 @@ export class Canvas {
       } else if (node.parentNode === this.doc.body) node.hidden = node !== root;
     }
     if (root) root.hidden = false;
+    this.foreignSymbols(site, page.root);
     this.label.children[0].textContent = page.name + (preview ? ' · Preview' : '');
     this.fit();
+  }
+
+  /* Symbols are shared across the site: a `use` on this page may point at a symbol defined on another page, which
+     may never have been drawn here. Copies of those symbols live in one hidden svg, rebuilt only when they change,
+     as the exporter does for published pages. */
+  private foreignKey = '';
+  private foreignHost: SVGSVGElement | null = null;
+
+  private foreignSymbols(site: Site, root: string): void {
+    if (!this.doc) return;
+    const used = new Set<string>(), local = new Set<string>();
+    const walk = (id: string, depth: number): void => {
+      const node = site.nodes[id];
+      if (!node || depth > 100) return;
+      if (node.tag === 'use' && node.attrs.href) used.add(node.attrs.href.replace(/^#/, ''));
+      if (node.tag === 'symbol' && node.attrs.id) local.add(node.attrs.id);
+      node.children.forEach(child => walk(child, depth + 1));
+    };
+    walk(root, 0);
+    const wanted = [...used].filter(id => !local.has(id)).map(id => Object.values(site.nodes).find(n => n.tag === 'symbol' && n.attrs.id === id)).filter((n): n is NonNullable<typeof n> => !!n);
+    const dump = (id: string, depth: number): unknown => { const n = site.nodes[id]; return n && depth < 60 ? [n.tag, n.attrs, n.text, n.children.map(c => dump(c, depth + 1))] : null; };
+    const key = JSON.stringify(wanted.map(n => dump(n.id, 0)));
+    if (key === this.foreignKey) return;
+    this.foreignKey = key;
+    const NS = 'http://www.w3.org/2000/svg';
+    if (!this.foreignHost) {
+      this.foreignHost = this.doc.createElementNS(NS, 'svg');
+      this.foreignHost.setAttribute('aria-hidden', 'true');
+      this.foreignHost.setAttribute('width', '0');
+      this.foreignHost.setAttribute('height', '0');
+      this.foreignHost.setAttribute('style', 'position:absolute;width:0;height:0;overflow:hidden');
+      this.doc.body.prepend(this.foreignHost);
+    }
+    const build = (id: string, depth: number): Element | null => {
+      const n = site.nodes[id];
+      if (!n || depth > 60) return null;
+      const el = this.doc!.createElementNS(NS, n.tag);
+      for (const [name, value] of Object.entries(n.attrs)) if (!/^on/i.test(name)) el.setAttribute(name, value);
+      if (n.tag === 'symbol') el.setAttribute('overflow', 'visible');
+      if (n.text && (n.tag === 'tspan' || n.tag === 'textPath')) el.textContent = n.text;
+      n.children.forEach(c => { const child = build(c, depth + 1); if (child) el.append(child); });
+      return el;
+    };
+    const defs = this.doc.createElementNS(NS, 'defs');
+    wanted.forEach(n => { const el = build(n.id, 0); if (el) defs.append(el); });
+    this.foreignHost.replaceChildren(defs);
   }
 
   private patch(site: Site, id: string, selected: string, width: number, locale: string, visited: Set<string>, context?: ItemContext, skipRepeat = false): HTMLElement | undefined {

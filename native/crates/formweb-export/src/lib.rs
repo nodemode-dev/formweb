@@ -71,7 +71,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         let canonical = if route.is_empty() { format!("{base}/") } else { format!("{base}/{route}/") };
         let mut interactions = vec![];
         let mut render = Renderer { site, locale, forms, prefix: &prefix, warnings: &mut warnings, interactions: &mut interactions, budget: 250000, links: None };
-        let body = render.node(&page.root, None, None)?;
+        let body = format!("{}{}", render.foreign_symbols(&page.root)?, render.node(&page.root, None, None)?);
         let title = translation(site, locale, &format!("{}.title", page.id), &page.seo.title);
         let description = translation(site, locale, &format!("{}.description", page.id), &page.seo.description);
         let encoded_interactions = serde_json::to_string(&interactions).map_err(|e| e.to_string())?.replace('<', "\\u003c").replace('>', "\\u003e").replace('&', "\\u0026");
@@ -143,6 +143,27 @@ struct Renderer<'a> {
 }
 
 impl Renderer<'_> {
+    /// Symbols are shared across the site (like Figma components across a file): a `use` on this page may point at a
+    /// symbol defined on another page. Those symbols are rendered into one hidden svg at the top of the page so every
+    /// instance resolves; symbols already on the page are left where they are.
+    fn foreign_symbols(&mut self, root: &str) -> Result<String, String> {
+        fn walk(site: &Site, id: &str, used: &mut BTreeSet<String>, local: &mut BTreeSet<String>, depth: usize) {
+            let Some(node) = site.nodes.get(id) else { return };
+            if depth > 100 { return; }
+            if node.tag == "use" { if let Some(href) = node.attrs.get("href") { used.insert(href.trim_start_matches('#').to_string()); } }
+            if node.tag == "symbol" { if let Some(sid) = node.attrs.get("id") { local.insert(sid.clone()); } }
+            for child in &node.children { walk(site, child, used, local, depth + 1); }
+        }
+        let (mut used, mut local) = (BTreeSet::new(), BTreeSet::new());
+        walk(self.site, root, &mut used, &mut local, 0);
+        let mut out = String::new();
+        for wanted in used.difference(&local) {
+            let site = self.site;
+            if let Some(node) = site.nodes.values().find(|n| n.tag == "symbol" && n.attrs.get("id") == Some(wanted)) { out.push_str(&self.node(&node.id, None, None)?); }
+        }
+        Ok(if out.is_empty() { out } else { format!("<svg aria-hidden=\"true\" focusable=\"false\" width=\"0\" height=\"0\" style=\"position:absolute;width:0;height:0;overflow:hidden\"><defs>{out}</defs></svg>") })
+    }
+
     fn node(&mut self, id: &str, context: Option<RenderContext<'_>>, repeated: Option<&str>) -> Result<String, String> {
         if self.budget == 0 { return Err("CMS expansion exceeds 250000 rendered nodes on one page".into()); }
         self.budget -= 1;

@@ -72,11 +72,8 @@ fn holds_use(site: &Site, node: &Node, depth: usize) -> bool {
     depth > 64 || node.children.iter().filter_map(|id| site.nodes.get(id)).any(|child| child.tag == "use" || holds_use(site, child, depth + 1))
 }
 
-/// Symbol ids defined anywhere under the page root that holds `svg_id` (empty when the svg is on no page).
-fn page_symbols(site: &Site, svg_id: &str) -> BTreeSet<String> {
-    fn holds(site: &Site, id: &str, target: &str, depth: usize) -> bool {
-        id == target || (depth < 100 && site.nodes.get(id).map(|n| n.children.iter().any(|c| holds(site, c, target, depth + 1))).unwrap_or(false))
-    }
+/// Symbol ids defined under any page of the site.
+fn site_symbols(site: &Site) -> BTreeSet<String> {
     fn collect(site: &Site, id: &str, out: &mut BTreeSet<String>, depth: usize) {
         let Some(node) = site.nodes.get(id) else { return };
         if depth > 100 { return; }
@@ -84,7 +81,7 @@ fn page_symbols(site: &Site, svg_id: &str) -> BTreeSet<String> {
         for child in &node.children { collect(site, child, out, depth + 1); }
     }
     let mut out = BTreeSet::new();
-    if let Some(page) = site.pages.iter().find(|p| holds(site, &p.root, svg_id, 0)) { collect(site, &page.root, &mut out, 0); }
+    for page in &site.pages { collect(site, &page.root, &mut out, 0); }
     out
 }
 
@@ -138,10 +135,11 @@ pub fn check_node(node: &Node, site: &Site) -> Result<(), String> {
         if refs.used.iter().any(|id| !refs.defined.contains(id)) { return Err("paint, clip and mask references must point at definitions inside the same svg".into()); }
         if refs.hrefs.iter().any(|id| !refs.paths.contains(id)) { return Err("text on a path must reference a path inside the same svg".into()); }
         if refs.uses.iter().any(|id| !refs.symbols.contains(id)) {
-            /* Symbols are shared across a page, as Figma components are reused across a file: an instance may point at
-               a symbol defined in another svg on the same page (inline svgs share the page's id space). */
-            let shared = page_symbols(site, &node.id);
-            if refs.uses.iter().any(|id| !refs.symbols.contains(id) && !shared.contains(id)) { return Err("a use element must point at a symbol on the same page; detach its instances before deleting a symbol they use".into()); }
+            /* Symbols are shared across the site, as Figma components are reused across a file: an instance may point at
+               a symbol in another svg on any page (the exporter and the canvas copy symbols from other pages into a
+               hidden svg, so the reference resolves). */
+            let shared = site_symbols(site);
+            if refs.uses.iter().any(|id| !refs.symbols.contains(id) && !shared.contains(id)) { return Err("a use element must point at a symbol in this site; detach its instances before deleting a symbol they use".into()); }
         }
         if refs.arts.iter().any(|id| !refs.symbols.contains(id)) { return Err("a brush must use artwork from a symbol inside the same svg".into()); }
     }
