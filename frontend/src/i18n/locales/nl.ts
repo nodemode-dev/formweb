@@ -1906,4 +1906,7 @@ export default [
   "Selecteer een of meer gesloten vormen om de tekst in te koppelen.",
   "Deze vormen zijn al gekoppeld.",
   "Deze tekst in vlak is niet gekoppeld.",
+  "Levende verf maken",
+  "Levende verf uitvouwen",
+  "Levende verf vrijgeven",
 ] as readonly string[];

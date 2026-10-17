@@ -1906,4 +1906,7 @@ export default [
   "Markera en eller flera slutna former som texten ska länkas in i.",
   "De här formerna finns redan i länken.",
   "Den här områdestexten är inte länkad.",
+  "Skapa levande färg",
+  "Utvidga levande färg",
+  "Frigör levande färg",
 ] as readonly string[];

@@ -16,6 +16,7 @@ import { liveOf } from './live';
 import { FREEFORM_LIMIT, SPREAD_MIN, freeformGradient, readFreeform, sourceBox, stopsOf, turnHue, writeStops, type FreeformSpec, type FreeformStop } from './freeform';
 import { openFreeformStop } from './pathdialogs';
 import { readArea } from './areatype';
+import { paintFill, readLivePaint, type LivePaintSpec } from './livepaint';
 import { readWarp, warpBox, type WarpSpec } from './warp';
 import { readWidth, widthCommands } from './stroke';
 import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variableOutline, type WidthPoint } from './widthprofile';
@@ -576,6 +577,22 @@ export class Extras {
     await this.h.commit(r.cmds);
   }
 
+  makeLivePaint?: (at: Pt, color: string) => Promise<void>;
+
+  private livePaintState(): { group: string; spec: LivePaintSpec; sources: Record<string, string>[]; f: Frame } | null {
+    const site = this.h.site();
+    for (const id of this.h.selection()) {
+      const found = liveOf(site, id);
+      if (found?.kind !== 'livepaint') continue;
+      const spec = readLivePaint(site.nodes[found.group]?.attrs['data-fw-livepaint']);
+      const sources = spec ? spec.src.map(s => site.nodes[s]?.attrs).filter((a): a is Record<string, string> => !!a) : [];
+      const svg = svgOf(site, found.group);
+      const f = svg ? this.h.frame(svg) : undefined;
+      if (spec && f && sources.length === spec.src.length) return { group: found.group, spec, sources, f };
+    }
+    return null;
+  }
+
   private async paintFace(p: Pt, edge: boolean): Promise<void> {
     const paint = this.h.paint();
     const sources = this.shapes();
@@ -587,9 +604,20 @@ export class Extras {
       await this.h.commit([updateAttrs(hit.id, { stroke: color, 'stroke-width': String(Math.max(1, shape?.paint.strokeWidth ?? 1)) })], sources.map(s => s.id));
       return;
     }
+    if (paint.fill === 'none') { this.h.notify('Choose a fill color first.'); return; }
+    const lp = this.livePaintState();
+    if (lp) {
+      const fills = paintFill(lp.spec, lp.sources, this.local(lp.f, p), paint.fill);
+      if (fills) await this.h.commit([updateAttrs(lp.group, { 'data-fw-livepaint': JSON.stringify({ ...lp.spec, fills, sig: '00000000' }) })]);
+      return;
+    }
+    if (this.makeLivePaint && this.shapes().length >= 2) {
+      const svg = this.h.activeSvg();
+      const f = svg ? this.h.frame(svg) : undefined;
+      if (f) { await this.makeLivePaint(this.local(f, p), paint.fill); return; }
+    }
     const ready = this.ensurePieces();
     if (!ready) { this.h.notify('Select two or more overlapping paths, then use the Live Paint Bucket.'); return; }
-    if (paint.fill === 'none') { this.h.notify('Choose a fill color first.'); return; }
     const i = hitPiece(this.pieces, this.local(ready.f, p));
     if (i < 0) return;
     const piece = this.pieces[i].subs;

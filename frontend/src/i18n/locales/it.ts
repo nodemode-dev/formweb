@@ -1906,4 +1906,7 @@ export default [
   "Seleziona una o più forme chiuse in cui concatenare il testo.",
   "Queste forme fanno già parte della concatenazione.",
   "Questo testo in area non è concatenato.",
+  "Crea pittura dinamica",
+  "Espandi pittura dinamica",
+  "Svincola pittura dinamica",
 ] as readonly string[];

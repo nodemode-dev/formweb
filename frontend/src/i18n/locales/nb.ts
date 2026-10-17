@@ -1906,4 +1906,7 @@ export default [
   "Velg én eller flere lukkede former som teksten skal kjedes inn i.",
   "Disse formene er allerede i kjeden.",
   "Denne områdeteksten er ikke kjedet.",
+  "Lag levende maling",
+  "Utvid levende maling",
+  "Frigjør levende maling",
 ] as readonly string[];

@@ -1906,4 +1906,7 @@ export default [
   "Vyberte jeden nebo více uzavřených tvarů, do kterých se má text propojit.",
   "Tyto tvary už jsou v propojení.",
   "Tento text v oblasti není propojený.",
+  "Vytvořit živou malbu",
+  "Rozdělit živou malbu",
+  "Uvolnit živou malbu",
 ] as readonly string[];

@@ -1906,4 +1906,7 @@ export default [
   "Zaznacz jeden lub więcej zamkniętych kształtów, do których ma przepływać tekst.",
   "Te kształty są już w połączeniu.",
   "Ten tekst w obszarze nie jest połączony.",
+  "Utwórz aktywne malowanie",
+  "Rozszerz aktywne malowanie",
+  "Zwolnij aktywne malowanie",
 ] as readonly string[];

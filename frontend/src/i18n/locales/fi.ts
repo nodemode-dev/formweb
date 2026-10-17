@@ -1906,4 +1906,7 @@ export default [
   "Valitse yksi tai useampi suljettu muoto, johon teksti ketjutetaan.",
   "Nämä muodot ovat jo ketjussa.",
   "Tätä aluetekstiä ei ole ketjutettu.",
+  "Luo elävä maalaus",
+  "Laajenna elävä maalaus",
+  "Vapauta elävä maalaus",
 ] as readonly string[];

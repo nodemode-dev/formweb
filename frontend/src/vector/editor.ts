@@ -117,6 +117,7 @@ export class Editor {
     this.overlay = new Overlay(ctx.canvas.shell);
     this.extras = new Extras(this.host());
     this.ops = new Ops(this.host(), () => this.extras.exit());
+    this.extras.makeLivePaint = (at, color) => this.ops.livePaint({ at, color });
     this.picker = new Picker(this.host());
     this.puppet = new Puppet(this.host());
     this.reshape = new Reshape(this.host());

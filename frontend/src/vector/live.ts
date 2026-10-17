@@ -5,6 +5,7 @@ import { applyCorners, renderPath } from './corners';
 import { brushOutputs, brushSig, needsArt, readBrush, spineOf, spinePoint, spineTangent } from './brush';
 import { blendSub, compose, matchSubs, repeatMatrices, rotation, translation, type Mat } from './distort';
 import { freeformGradient, freeformOutputs, freeformSamples, freeformSig, readFreeform } from './freeform';
+import { livePaintOutputs, livePaintSig, readLivePaint, type LivePaintFill } from './livepaint';
 import { decodeModel, dist, parsePath, pathBounds, type Box, type Pt, type SubPath } from './geometry';
 import { colorToHex } from './gradient';
 import { freshId, geometryAttrs, moveNode, paintOf, parentOf, refOf, removeNode, updateAttrs } from './store';
@@ -19,7 +20,7 @@ export interface BlendSpec { v: 1; a: string; b: string; mid: string[]; spine: s
 export type CompoundOp = 'unite' | 'minus-front' | 'intersect' | 'exclude' | 'divide' | 'outline';
 export interface CompoundSpec { v: 1; op: CompoundOp; src: string[]; sig: string }
 export interface EffectSpec { v: 1; fx: 'pathfinder'; op: PathfinderOp; sig: string }
-export type LiveKind = 'blend' | 'repeat' | 'brush' | 'stroke' | 'compound' | 'warp' | 'effect' | 'freeform';
+export type LiveKind = 'blend' | 'repeat' | 'brush' | 'stroke' | 'compound' | 'warp' | 'effect' | 'freeform' | 'livepaint';
 export const PF_OPS: PathfinderOp[] = ['unite', 'minus-front', 'intersect', 'exclude', 'divide', 'trim', 'merge', 'crop', 'minus-back', 'outline'];
 export const blendIds =(s: Pick<BlendSpec, 'a' | 'b' | 'mid'>): string[] => [s.a, ...s.mid, s.b];
 export interface RepeatSpec { v: 1; kind: RepeatKind; src: string[]; count: number; radius: number; cols: number; rows: number; gx: number; gy: number; angle: number; brick: 'none' | 'row' | 'column'; offset: number; sig: string }
@@ -286,7 +287,7 @@ export function compoundAttrs(site: Site, ids: string[], op: CompoundOp): { attr
 
 function containerCommands(site: Site, taken: Set<string>, group: string, kind: LiveKind, list: Attrs[], index: number): Command[] {
   const id = freshId(site, taken, 'live');
-  const names = { blend: ['Blend steps', 'Blend step'], repeat: ['Repeat copies', 'Repeat copy'], brush: ['Brush strokes', 'Brush stroke'], stroke: ['Stroke parts', 'Stroke part'], compound: ['Compound result', 'Compound shape'], warp: ['Envelope result', 'Envelope path'], effect: ['Effect result', 'Effect shape'], freeform: ['Freeform gradient', 'Freeform stop'] }[kind];
+  const names = { blend: ['Blend steps', 'Blend step'], repeat: ['Repeat copies', 'Repeat copy'], brush: ['Brush strokes', 'Brush stroke'], stroke: ['Stroke parts', 'Stroke part'], compound: ['Compound result', 'Compound shape'], warp: ['Envelope result', 'Envelope path'], effect: ['Effect result', 'Effect shape'], freeform: ['Freeform gradient', 'Freeform stop'], livepaint: ['Live Paint faces', 'Live Paint face'] }[kind];
   const cmds: Command[] = [{ command: 'node.add', params: { parent: group, node: { id, tag: 'g', name: names[0], attrs: { 'data-fw-live': kind } } } }];
   for (const attrs of list) {
     const pid = freshId(site, taken, 'path');
@@ -313,12 +314,12 @@ function refresh(view: View, taken: Set<string>, site: Site, group: string, kind
 }
 
 export function liveFixes(site: Site, cmds: Command[]): Command[] {
-  const groups: { id: string }[] = Object.values(site.nodes).filter(n => n.tag === 'g' && (n.attrs['data-fw-blend'] || n.attrs['data-fw-repeat'] || n.attrs['data-fw-brush'] || n.attrs['data-fw-stroke'] || n.attrs['data-fw-compound'] || n.attrs['data-fw-warp'] || n.attrs['data-fw-effect'] || n.attrs['data-fw-freeform']));
-  /* A freeform gradient is made in the same batch as its group, so new groups are checked too. */
+  const groups: { id: string }[] = Object.values(site.nodes).filter(n => n.tag === 'g' && (n.attrs['data-fw-blend'] || n.attrs['data-fw-repeat'] || n.attrs['data-fw-brush'] || n.attrs['data-fw-stroke'] || n.attrs['data-fw-compound'] || n.attrs['data-fw-warp'] || n.attrs['data-fw-effect'] || n.attrs['data-fw-freeform'] || n.attrs['data-fw-livepaint']));
+  /* Freeform gradients and Live Paint groups are made in the same batch as their group, so new groups are checked too. */
   const added = cmds.flatMap(c => { const node = c.command === 'node.add' ? (c.params as { node?: { id?: string; tag?: string } }).node : undefined; return node?.tag === 'g' && node.id && !site.nodes[node.id] ? [node.id] : []; });
   if (!groups.length && !added.length) return [];
   const view = viewOf(site, cmds);
-  for (const id of added) if (view.attrs(id)?.['data-fw-freeform']) groups.push({ id });
+  for (const id of added) if (view.attrs(id)?.['data-fw-freeform'] || view.attrs(id)?.['data-fw-livepaint']) groups.push({ id });
   const taken = new Set<string>();
   const out: Command[] = [];
   for (const g of groups) {
@@ -329,6 +330,24 @@ export function liveFixes(site: Site, cmds: Command[]): Command[] {
     const rest = kids.filter(id => id !== live);
     const blend = readBlend(gattrs['data-fw-blend']), repeat = readRepeat(gattrs['data-fw-repeat']), brush = readBrush(gattrs['data-fw-brush']), fx = readStroke(gattrs['data-fw-stroke']), compound = readCompound(gattrs['data-fw-compound']), warp = readWarp(gattrs['data-fw-warp']), effect = readEffect(gattrs['data-fw-effect']);
     const ok = (id: string): boolean => view.alive(id) && rest.includes(id) && view.tag(id) === 'path';
+    const lp = readLivePaint(gattrs['data-fw-livepaint']);
+    if (lp) {
+      const alive = lp.src.map((id, i) => ({ id, i, of: lp.of[i] })).filter(s => ok(s.id));
+      if (alive.length < 2) {
+        out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-livepaint': null }), ...alive.map(s => updateAttrs(s.id, { fill: s.of || null })));
+        continue;
+      }
+      const src = alive.map(s => s.id), of = alive.map(s => s.of);
+      /* A deleted source takes its bit out of every face signature. */
+      const remap = (sig: number): number => alive.reduce((acc, s, k) => (sig & (1 << s.i) ? acc | (1 << k) : acc), 0);
+      const fills: LivePaintFill[] = src.length === lp.src.length ? lp.fills : lp.fills.map(f => [remap(f[0]), f[1], f[2], f[3]] as LivePaintFill).filter(f => f[0] > 0);
+      const attrs = src.map(id => view.attrs(id)!);
+      if (livePaintSig({ src, fills }, attrs) === lp.sig && live && src.length === lp.src.length) continue;
+      const made = livePaintOutputs(attrs, fills);
+      const next = { v: 1, src, fills: made.fills, of, sig: livePaintSig({ src, fills: made.fills }, attrs) };
+      out.push(...refresh(view, taken, site, g.id, 'livepaint', live, made.outputs, rest.length), updateAttrs(g.id, { 'data-fw-livepaint': JSON.stringify(next) }));
+      continue;
+    }
     const ff = readFreeform(gattrs['data-fw-freeform']);
     if (ff) {
       if (!ok(ff.src) || ![...ff.grads, ...(ff.sg ?? [])].every(id => view.alive(id) && view.tag(id) === 'radialGradient')) { out.push(...(live ? [removeNode(live)] : []), updateAttrs(g.id, { 'data-fw-freeform': null })); continue; }
@@ -449,6 +468,7 @@ export function liveOf(site: Site, id: string): { group: string; kind: LiveKind 
     if (node.tag === 'g' && node.attrs['data-fw-effect']) return { group: node.id, kind: 'effect' };
     if (node.tag === 'g' && node.attrs['data-fw-compound']) return { group: node.id, kind: 'compound' };
     if (node.tag === 'g' && node.attrs['data-fw-freeform']) return { group: node.id, kind: 'freeform' };
+    if (node.tag === 'g' && node.attrs['data-fw-livepaint']) return { group: node.id, kind: 'livepaint' };
     if (node.tag === 'svg') return undefined;
     current = parentOf(site, current);
   }
@@ -460,13 +480,15 @@ export function liveSources(site: Site, group: string): string[] {
   const blend = node && readBlend(node.attrs['data-fw-blend']), repeat = node && readRepeat(node.attrs['data-fw-repeat']), brush = node && readBrush(node.attrs['data-fw-brush']), fx = node && readStroke(node.attrs['data-fw-stroke']), compound = node && readCompound(node.attrs['data-fw-compound']), warp = node && readWarp(node.attrs['data-fw-warp']);
   const effect = node && readEffect(node.attrs['data-fw-effect']), ff = node && readFreeform(node.attrs['data-fw-freeform']);
   if (ff) return [ff.src];
+  const lps = node && readLivePaint(node.attrs['data-fw-livepaint']);
+  if (lps) return lps.src;
   return effect ?node.children.filter(id => site.nodes[id]?.tag === 'path' && !site.nodes[id].attrs['data-fw-live']) : compound ? compound.src : blend ? blendIds(blend) : brush ? [brush.src] : fx ? [fx.src] : repeat ? repeat.src : warp ? warpIds(warp) : [];
 }
 
 export function liveCopyOwner(site: Site, id: string): string | undefined {
   const holder = parentOf(site, id);
   const above = holder && site.nodes[holder]?.attrs['data-fw-live'] ? parentOf(site, holder) : undefined;
-  return above && (site.nodes[above]?.attrs['data-fw-blend'] || site.nodes[above]?.attrs['data-fw-repeat'] || site.nodes[above]?.attrs['data-fw-brush'] || site.nodes[above]?.attrs['data-fw-stroke'] || site.nodes[above]?.attrs['data-fw-compound'] || site.nodes[above]?.attrs['data-fw-warp'] || site.nodes[above]?.attrs['data-fw-effect'] || site.nodes[above]?.attrs['data-fw-freeform']) ? above : undefined;
+  return above && (site.nodes[above]?.attrs['data-fw-blend'] || site.nodes[above]?.attrs['data-fw-repeat'] || site.nodes[above]?.attrs['data-fw-brush'] || site.nodes[above]?.attrs['data-fw-stroke'] || site.nodes[above]?.attrs['data-fw-compound'] || site.nodes[above]?.attrs['data-fw-warp'] || site.nodes[above]?.attrs['data-fw-effect'] || site.nodes[above]?.attrs['data-fw-freeform'] || site.nodes[above]?.attrs['data-fw-livepaint']) ? above : undefined;
 }
 
 export function expandCommands(site: Site, group: string): Command[] {
@@ -494,7 +516,7 @@ export function expandCommands(site: Site, group: string): Command[] {
   const wide = body && widthSpec(body.attrs['data-fw-width']);
   if (fx && body) cmds.push(body.attrs.fill === 'none' ? removeNode(fx.src) : updateAttrs(fx.src, { stroke: 'none', 'stroke-opacity': null, ...(wide ? { 'data-fw-width': null } : {}) }));
   if (fx && body && wide && body.attrs.fill !== 'none' && site.nodes[wide.outline]) cmds.push(removeNode(wide.outline));
-  cmds.push(updateAttrs(group, { 'data-fw-blend': null, 'data-fw-repeat': null, 'data-fw-brush': null, 'data-fw-stroke': null, 'data-fw-warp': null, 'data-fw-freeform': null }));
+  cmds.push(updateAttrs(group, { 'data-fw-blend': null, 'data-fw-repeat': null, 'data-fw-brush': null, 'data-fw-stroke': null, 'data-fw-warp': null, 'data-fw-freeform': null, 'data-fw-livepaint': null }));
   return cmds;
 }
 
@@ -520,6 +542,8 @@ export function releaseCommands(site: Site, group: string): { cmds: Command[]; s
   if (fx && site.nodes[fx.src]) cmds.push(updateAttrs(fx.src, { 'stroke-opacity': null, 'stroke-dasharray': fx.mode === 'preserve' && fx.dash.length ? fx.dash.join(' ') : null }));
   const wide = fx && site.nodes[fx.src] && widthSpec(site.nodes[fx.src].attrs['data-fw-width']);
   if (wide && site.nodes[wide.outline]) cmds.push(updateAttrs(wide.outline, { opacity: null }));
+  const lpSpec = readLivePaint(g.attrs['data-fw-livepaint']);
+  lpSpec?.src.forEach((id, i) => { if (site.nodes[id]) cmds.push(updateAttrs(id, { fill: lpSpec.of[i] || null })); });
   const ffSpec = readFreeform(g.attrs['data-fw-freeform']);
   for (const id of [...(ffSpec?.grads ?? []), ...(ffSpec?.sg ?? [])]) if (site.nodes[id]) cmds.push(removeNode(id));
   const keep = g.children.filter(id => id !== live);

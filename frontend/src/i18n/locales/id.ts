@@ -1906,4 +1906,7 @@ export default [
   "Pilih satu atau beberapa bentuk tertutup untuk merangkai teks.",
   "Bentuk ini sudah ada dalam rangkaian.",
   "Teks area ini tidak dirangkai.",
+  "Buat Live Paint",
+  "Bentangkan Live Paint",
+  "Lepaskan Live Paint",
 ] as readonly string[];

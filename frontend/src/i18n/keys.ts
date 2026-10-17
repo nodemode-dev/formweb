@@ -1906,4 +1906,7 @@ export const KEYS: readonly string[] = [
   "Select one or more closed shapes to thread the text into.",
   "These shapes are already in the thread.",
   "This area type is not threaded.",
+  "Make Live Paint",
+  "Expand Live Paint",
+  "Release Live Paint",
 ];

@@ -1906,4 +1906,7 @@ export default [
   "Sélectionnez une ou plusieurs formes fermées dans lesquelles chaîner le texte.",
   "Ces formes font déjà partie de la chaîne.",
   "Ce texte captif n'est pas chaîné.",
+  "Créer un groupe de peinture dynamique",
+  "Développer la peinture dynamique",
+  "Annuler la peinture dynamique",
 ] as readonly string[];

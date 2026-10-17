@@ -6,6 +6,7 @@ import {
 import { applyCorners } from './corners';
 import { distortSubs, warpSubs, type DistortOptions, type WarpOptions } from './distort';
 import { defaultStops, sourceBox, writeStops } from './freeform';
+import { initialFills, LIVE_PAINT_SOURCES, paintFill } from './livepaint';
 import { editGradient, setPaintKind, withAngle, type Gradient, type Target } from './gradient';
 import type { Host } from './host';
 import type { PathfinderOp } from './boolean';
@@ -151,7 +152,7 @@ export class Ops {
   }
 
   async expandLive(): Promise<void> {
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp') ?? this.liveSelected('effect') ?? this.liveSelected('freeform');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp') ?? this.liveSelected('effect') ?? this.liveSelected('freeform') ?? this.liveSelected('livepaint');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     const site = this.h.site();
     const holder = site.nodes[group].children.find(id => site.nodes[id]?.attrs['data-fw-live']);
@@ -161,11 +162,27 @@ export class Ops {
   async releaseLive(): Promise<void> {
     const fxGroup = this.liveSelected('effect');
     if (fxGroup) { await this.removeEffect(); return; }
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp') ?? this.liveSelected('freeform');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp') ?? this.liveSelected('freeform') ?? this.liveSelected('livepaint');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     const made = releaseCommands(this.h.site(), group);
     this.leave();
     await this.run(made.cmds, made.sources);
+  }
+
+  /* Object > Live Paint > Make: the selected paths become the sources of a live group; each face starts with the
+     fill of the topmost source over it and the sources keep only their strokes. `extra` adds a painted face. */
+  async livePaint(extra?: { at: [number, number]; color: string }): Promise<void> {
+    const site = this.h.site();
+    const ids = this.ordered().slice(0, LIVE_PAINT_SOURCES).map(s => s.id);
+    if (ids.length < 2) { this.h.notify('Select two or more paths first.'); return; }
+    if (ids.some(id => liveOf(site, id))) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
+    if (new Set(ids.map(id => this.h.parentOf(id))).size !== 1 || !this.h.parentOf(ids[0])) { this.h.notify('Live Paint needs paths that sit in the same group.'); return; }
+    const sources = ids.map(id => site.nodes[id].attrs);
+    let fills = initialFills(sources);
+    const spec0 = { v: 1 as const, src: ids, fills, of: sources.map(a => a.fill ?? ''), sig: '00000000' };
+    if (extra) fills = paintFill(spec0, sources, extra.at, extra.color) ?? fills;
+    const grouped = groupCommands(this.h, ids, 'Live Paint', { 'data-fw-livepaint': JSON.stringify({ ...spec0, fills }) });
+    if (grouped) await this.run([...grouped.cmds, ...ids.map(id => updateAttrs(id, { fill: 'none' }))], ids);
   }
 
   /* Freeform gradient, Points mode: the selected path becomes the source of a live group with five stops. */

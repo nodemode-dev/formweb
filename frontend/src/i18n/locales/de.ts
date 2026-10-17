@@ -1906,4 +1906,7 @@ export default [
   "Wählen Sie eine oder mehrere geschlossene Formen aus, in die der Text fließen soll.",
   "Diese Formen sind bereits verkettet.",
   "Dieser Flächentext ist nicht verkettet.",
+  "Interaktive Malgruppe erstellen",
+  "Interaktive Malgruppe umwandeln",
+  "Interaktive Malgruppe zurückwandeln",
 ] as readonly string[];

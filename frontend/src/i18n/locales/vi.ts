@@ -1906,4 +1906,7 @@ export default [
   "Hãy chọn một hoặc nhiều hình khép kín để văn bản chảy vào.",
   "Các hình này đã nằm trong luồng.",
   "Văn bản vùng này chưa được nối luồng.",
+  "Tạo Live Paint",
+  "Mở rộng Live Paint",
+  "Gỡ Live Paint",
 ] as readonly string[];

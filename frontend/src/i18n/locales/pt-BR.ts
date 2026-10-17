@@ -1906,4 +1906,7 @@ export default [
   "Selecione uma ou mais formas fechadas para encadear o texto.",
   "Essas formas já estão no encadeamento.",
   "Este texto de área não está encadeado.",
+  "Criar Pintura em tempo real",
+  "Expandir Pintura em tempo real",
+  "Liberar Pintura em tempo real",
 ] as readonly string[];

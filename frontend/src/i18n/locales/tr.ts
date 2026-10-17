@@ -1906,4 +1906,7 @@ export default [
   "Metnin akacağı bir veya daha fazla kapalı şekil seçin.",
   "Bu şekiller zaten bağlantıda.",
   "Bu alan metni bağlı değil.",
+  "Canlı Boya oluştur",
+  "Canlı Boyayı genişlet",
+  "Canlı Boyayı serbest bırak",
 ] as readonly string[];

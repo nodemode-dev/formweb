@@ -1906,4 +1906,7 @@ export default [
   "Jelöljön ki egy vagy több zárt alakzatot, amelybe a szöveg fűzhető.",
   "Ezek az alakzatok már az összefűzés részei.",
   "Ez a területszöveg nincs összefűzve.",
+  "Élő festés létrehozása",
+  "Élő festés kibontása",
+  "Élő festés feloldása",
 ] as readonly string[];

@@ -1906,4 +1906,7 @@ export default [
   "Seleccione una o más formas cerradas en las que enlazar el texto.",
   "Estas formas ya están en el enlace.",
   "Este texto de área no está enlazado.",
+  "Crear pintura interactiva",
+  "Expandir pintura interactiva",
+  "Liberar pintura interactiva",
 ] as readonly string[];
