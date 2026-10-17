@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.12.1",
- "previous": "0.12.0",
+ "version": "0.12.2",
+ "previous": "0.12.1",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
  "release_note": "Clipping masks (FW-081) and Shape Builder (FW-087) move to Full against Figma: Use as mask added and Alt-click subtract driven.",
@@ -7980,6 +7980,13 @@
    "same_as": "0.11.9",
    "moved": {},
    "note": "Typing into area type on the canvas. No grade change, 116 of 134."
+  },
+  {
+   "version": "0.12.1",
+   "date": "2026-10-17",
+   "same_as": "0.12.0",
+   "moved": {},
+   "note": "Targets set to Framer, Figma, Webflow and Canva; Figma lane added, Adobe Express dropped. No FormWeb grade change, 116 of 134."
   }
  ],
  "changes": [

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.2 · 2026-10-17
+
+- Use as mask, the way Figma does it: select two or more paths and the bottom one masks the paths above it. Run it again on masked content to remove the mask.
+- Clipping masks and Shape Builder now count as Full against Figma. Shape Builder's Alt-click to remove a region was checked in the browser, alongside drag to merge.
+
 ## 0.12.1 · 2026-10-17
 
 - The comparison page now measures FormWeb against Framer, Figma, Webflow and Canva only. Figma was graded on all 134 rows from official Figma pages (38 Full, 60 Partial, 36 None, with the pages cited), and Adobe Express was removed. FormWeb's own grades are unchanged.
