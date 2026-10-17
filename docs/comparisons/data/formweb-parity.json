@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.13.1",
- "previous": "0.13.0",
+ "version": "0.13.2",
+ "previous": "0.13.1",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Starter sites in New site (FW-186) Full: three multi-page starter sites with linked navigation, beside the sections and starter pages. 123 of 144.",
+ "release_note": "Scroll and pointer effects (FW-185) Full: parallax, scroll transform, mouse parallax, marquee and cursor follow, off under reduced motion. 124 of 144.",
  "lanes": [
   [
    "m",
@@ -7255,9 +7255,9 @@
    "conf": "vendor",
    "added": "0.12.8",
    "m": [
-    "none",
-    "v0.12.8 code search: interactions offer hover, press, in-view reveal and timelines (FW-027, FW-028, FW-030); nothing is driven continuously by scroll position or pointer movement.",
-    "Scroll scrubbing, parallax, marquee and cursor effects not built."
+    "full",
+    "v0.13.2: the Content inspector's Scroll and pointer effect section sets Parallax, Scroll transform (opacity, rise and scale scrubbed by scroll), Mouse parallax, Marquee or Cursor follow with a strength; the exported runtime (also in Preview) drives them. Driven in Chromium under CPU 4x on an export: each effect moved while scrolling and moving the pointer, the marquee looped with a hidden copy and paused on hover, the cursor dot followed; with reduced motion nothing moved. The inspector set, cleared and undid an effect with no layout shifts.",
+    "Scroll transform is one fixed recipe rather than chosen properties and ranges; no pinning, typewriter or draggable as Figma and Webflow offer; effects do not play on the canvas, only in Preview and the published site."
    ],
    "fr": ["partial", "Scroll Speed gives layer parallax; cursor effects and scroll scrubbing were not found in the pages read.", ["F39"], "documented"],
    "wf": ["full", "Interactions with GSAP support scroll scrub, pinning and mouse move triggers with velocity and stagger.", ["W38"], "documented"],
@@ -8268,6 +8268,13 @@
    "same_as": "0.12.9",
    "moved": {"FW-186": "partial"},
    "note": "Prebuilt sections and starter pages: Partial, 122.5 of 144."
+  },
+  {
+   "version": "0.13.1",
+   "date": "2026-10-17",
+   "same_as": "0.13.0",
+   "moved": {"FW-186": "full"},
+   "note": "Starter sites in New site: prebuilt sections and templates Full, 123 of 144."
   }
  ],
  "changes": [
@@ -8292,7 +8299,7 @@
    "Partial: no per-option counts, no recorded editor flow for several tabs, nested lists not filtered by parent item, element-level superscript only, no live form POST"
   ]
  ],
- "closed_note": "Still open: the six v0.12.8 rows that are not built (FW-179 to FW-182, FW-184, FW-185) and annotations in image export (FW-150); hosting, payments and AI images (FW-050, FW-063, FW-071) wait on real provider accounts.",
+ "closed_note": "Still open: the five v0.12.8 rows that are not built (FW-179 to FW-182, FW-184) and annotations in image export (FW-150); hosting, payments and AI images (FW-050, FW-063, FW-071) wait on real provider accounts.",
  "platform": [
   [
    "What it is",
@@ -8413,7 +8420,7 @@
   "eyebrow": "FormWeb · Framer, Figma, Webflow and Canva alternative · Apache-2.0",
   "dek": "144 researched capabilities, measured against Framer, Figma, Webflow and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation (Framer, Webflow and Canva fetched on 10, 11 and 17 October 2026, Figma on 17 October 2026 across every row), so their scores are lower bounds rather than proof of absence. Framer, Webflow and Canva were not graded on the FormWeb-side rows added from v0.5.7 to v0.10.6, so their tiles undercount those; the ten rows added at v0.12.8 are graded in every lane.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0), 14 more checked against Canva (v0.3.0), FormWeb-side targets added from v0.7.0 on, and ten rows researched from the four products' own documentation at v0.12.8; the Figma lane was graded across all rows on 17 October 2026",
-  "changes": "v0.13.1 adds starter sites to New site: a business site, a product launch and a portfolio, each made of pages and sections with linked navigation, in one undo step. With the v0.13.0 sections and starter pages, FW-186 moves from Partial to Full, and the score from 122.5 to 123 of 144.",
+  "changes": "v0.13.2 adds scroll and pointer effects: parallax, scroll transform, mouse parallax, marquee and cursor follow, set per element in the Content inspector and run by the exported site, off for visitors who ask for reduced motion. FW-185 moves from None to Full, and the score from 123 to 124 of 144.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
