@@ -63,7 +63,7 @@ type Gesture =
   | { kind: 'marquee'; start: Pt; current: Pt; shift: boolean; click?: string }
   | { kind: 'pathmove'; start: Pt; base: Map<string, SubPath[]>; svg?: string; moved: boolean }
   | { kind: 'usemove'; id: string; start: Pt; x: number; y: number; nx: number; ny: number; moved: boolean }
-  | { kind: 'board'; start: Pt; current: Pt; svg: string | null; base: [number, number]; others: { id: string; base: [number, number] }[] }
+  | { kind: 'board'; start: Pt; current: Pt; svg: string | null; base: [number, number]; others: { id: string; base: [number, number] }[]; marquee?: boolean }
   | { kind: 'boardsize'; svg: string; handle: number; start: Pt; box: [number, number, number, number]; left: number; top: number; vb: [number, number, number, number]; next: [number, number, number, number] | null; shift: boolean; alt: boolean };
 
 const BOARD_HANDLES: [number, number][] = [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]];
@@ -204,6 +204,7 @@ export class Editor {
   }
 
   refresh(): void {
+    this.holdNudges();
     this.sync();
     const site = this.site();
     for (const key of [...this.anchors]) if (!site.nodes[key.split('|')[0]]) this.anchors.delete(key);
@@ -367,7 +368,8 @@ export class Editor {
     const g = this.gesture;
     if (g?.kind === 'shape') scene.draft = formatPath(applyCorners(this.shapeSubs(g.start, g.current, g.alt, g.shift)));
     if (g?.kind === 'paint' && g.pts.length > 1) scene.draft = formatPath(tool === 'blob' ? blobOutline(polyPath(g.pts, false), this.blobScreenSize()) : [polyPath(g.pts, false)]);
-    if (g?.kind === 'board' && !g.svg) scene.draft = formatPath([rectPath(Math.min(g.start[0], g.current[0]), Math.min(g.start[1], g.current[1]), Math.abs(g.current[0] - g.start[0]), Math.abs(g.current[1] - g.start[1]))]);
+    if (g?.kind === 'board' && g.marquee) scene.marquee = { x: g.start[0], y: g.start[1], w: g.current[0] - g.start[0], h: g.current[1] - g.start[1] };
+    else if (g?.kind === 'board' && !g.svg) scene.draft = formatPath([rectPath(Math.min(g.start[0], g.current[0]), Math.min(g.start[1], g.current[1]), Math.abs(g.current[0] - g.start[0]), Math.abs(g.current[1] - g.start[1]))]);
     if (g?.kind === 'marquee') scene.marquee = { x: g.start[0], y: g.start[1], w: g.current[0] - g.start[0], h: g.current[1] - g.start[1] };
     this.extras.decorate(scene);
     if (tool === 'artboard') this.decorateBoard(scene);
@@ -1134,7 +1136,7 @@ export class Editor {
 
   private key(event: KeyboardEvent): void {
     const target = event.target as Element | null;
-    if (target?.closest('input, textarea, select, [contenteditable=true]') || event.ctrlKey || event.metaKey || this.busy) return;
+    if (target?.closest('input, textarea, select, [contenteditable=true]') || event.ctrlKey || event.metaKey || (this.busy && !(this.tool === 'artboard' && NUDGE_KEYS.has(event.key)))) return;
     try { state(); } catch { return; }
     if (event.key === 'Escape' && this.globalEdit.active) { this.globalEdit.stop(); event.preventDefault(); return; }
     if (this.tool === null) {
@@ -1160,6 +1162,10 @@ export class Editor {
       const refs = this.selectedRefs();
       if (refs.length) { this.deleteRefs(refs); event.preventDefault(); event.stopPropagation(); }
       return;
+    }
+    if (NUDGE_KEYS.has(event.key) && this.tool === 'artboard' && !this.gesture) {
+      const step = event.shiftKey ? 10 : 1;
+      if (this.nudgeBoards(event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0, event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0)) { event.preventDefault(); event.stopPropagation(); return; }
     }
     if (NUDGE_KEYS.has(event.key) && this.anchors.size) {
       const step = event.shiftKey ? 10 : 1;
@@ -1348,13 +1354,70 @@ export class Editor {
     const together = !!svg && set.length > 1 && set.includes(svg);
     if (!together) this.boardPicks.clear();
     const others = together ? set.filter(id => id !== svg).map(id => ({ id, base: baseOf(id) })) : [];
-    this.gesture = { kind: 'board', start: p, current: p, svg, base: svg ? baseOf(svg) : [0, 0], others };
+    this.gesture = { kind: 'board', start: p, current: p, svg, base: svg ? baseOf(svg) : [0, 0], others, marquee: !svg && shift };
     this.render();
+  }
+
+  /* Shift-drag on empty canvas with the Artboard tool: select every artboard the box touches. */
+  private marqueeBoards(a: Pt, b: Pt): void {
+    const x0 = Math.min(a[0], b[0]), x1 = Math.max(a[0], b[0]), y0 = Math.min(a[1], b[1]), y1 = Math.max(a[1], b[1]);
+    const hit = boards(this.site()).map(bd => bd.id).filter(id => { const r = this.element(id)?.getBoundingClientRect(); return !!r && r.left <= x1 && r.right >= x0 && r.top <= y1 && r.bottom >= y0; });
+    this.boardPicks.clear();
+    hit.slice(1).forEach(id => this.boardPicks.add(id));
+    if (hit[0]) this.ctx.select(hit[0]);
+    this.render();
+    this.emit();
+  }
+
+  /* Arrow keys with the Artboard tool move the selected artboards 1 px, or 10 px with Shift (the editor's nudge steps).
+     The canvas element is moved at once so repeated keys build on each other before the engine answers. */
+  private nudgeBoards(dx: number, dy: number): boolean {
+    const chosen = this.selectedBoards();
+    if (!chosen.length) return false;
+    const r2 = (v: number): number => Math.round(v * 100) / 100;
+    for (const id of chosen) {
+      const el = this.element(id) as SVGSVGElement | null;
+      const node = this.site().nodes[id];
+      const held = this.boardNudge.get(id);
+      const left = parseFloat(held?.left || el?.style.left || node?.styles.left || '0') || 0, top = parseFloat(held?.top || el?.style.top || node?.styles.top || '0') || 0;
+      const next = { left: `${r2(left + dx)}px`, top: `${r2(top + dy)}px` };
+      if (el) { el.style.left = next.left; el.style.top = next.top; }
+      this.boardNudge.set(id, next);
+    }
+    window.clearTimeout(this.nudgeTimer);
+    this.nudgeTimer = window.setTimeout(() => { void this.flushNudge(); }, 300);
+    this.render();
+    return true;
+  }
+
+  /* One commit per burst of arrow keys; positions still waiting are put back after each engine update (in a
+     microtask, after the canvas has applied the state and before paint), so an older answer never shows. */
+  private boardNudge = new Map<string, { left: string; top: string }>();
+  private nudgeTimer = 0;
+
+  private async flushNudge(): Promise<void> {
+    if (!this.boardNudge.size) return;
+    if (this.busy) { this.nudgeTimer = window.setTimeout(() => { void this.flushNudge(); }, 100); return; }
+    const sent = [...this.boardNudge.entries()].filter(([id]) => this.site().nodes[id]);
+    const ok = await this.commit(sent.map(([id, styles]) => ({ command: 'node.update', params: { id, patch: { styles: { ...styles } } } })));
+    for (const [id, styles] of sent) { const now = this.boardNudge.get(id); if (!ok || (now && now.left === styles.left && now.top === styles.top)) this.boardNudge.delete(id); }
+    if (!ok) this.refresh();
+  }
+
+  private holdNudges(): void {
+    if (!this.boardNudge.size) return;
+    queueMicrotask(() => {
+      for (const [id, styles] of this.boardNudge) {
+        const el = this.element(id) as SVGSVGElement | null;
+        if (el && (el.style.left !== styles.left || el.style.top !== styles.top)) { el.style.left = styles.left; el.style.top = styles.top; }
+      }
+    });
   }
 
   private async finishBoard(g: Extract<Gesture, { kind: 'board' }>, p: Pt): Promise<void> {
     const dx = p[0] - g.start[0], dy = p[1] - g.start[1];
     const r2 = (v: number): number => Math.round(v * 100) / 100;
+    if (g.marquee) { this.marqueeBoards(g.start, p); return; }
     if (g.svg) {
       if (Math.hypot(dx, dy) < 3 * this.px()) { this.boardPicks.clear(); this.ctx.select(g.svg); this.render(); return; }
       const moved = [{ id: g.svg, base: g.base }, ...g.others];
