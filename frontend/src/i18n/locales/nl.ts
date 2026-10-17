@@ -1912,4 +1912,6 @@ export default [
   "Koppeling verwijderen",
   "Klik op een gesloten vorm om de tekst daarin voort te zetten, of op een lege plek voor een nieuwe vorm. Esc annuleert.",
   "Selectie uit koppeling vrijgeven",
+  "Gebruiken als masker",
+  "Selecteer twee of meer paden. Het onderste wordt het masker.",
 ] as readonly string[];

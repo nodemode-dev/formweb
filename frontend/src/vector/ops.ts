@@ -50,12 +50,12 @@ export class Ops {
     await this.run(cmds, ids);
   }
 
-  async makeMask(kind: 'clip' | 'mask'): Promise<void> {
+  async makeMask(kind: 'clip' | 'mask', from: 'top' | 'bottom' = 'top'): Promise<void> {
     const ids = this.shapes().map(s => s.id);
     const svg = this.h.activeSvg();
     const order = svg ? pathIds(this.h.site(), svg) : [];
     ids.sort((a, b) => order.indexOf(a) - order.indexOf(b));
-    await this.run(makeMaskCommands(this.h, kind, { ...this.maskDefaults }), ids.slice(0, -1));
+    await this.run(makeMaskCommands(this.h, kind, { ...this.maskDefaults }, from), from === 'bottom' ? ids.slice(1) : ids.slice(0, -1));
   }
 
   maskState(): MaskOptions {

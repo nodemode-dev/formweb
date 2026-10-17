@@ -1912,4 +1912,6 @@ export default [
   "Hapus rangkaian",
   "Klik bentuk tertutup untuk melanjutkan teks di dalamnya, atau klik tempat kosong untuk bentuk baru. Esc membatalkan.",
   "Lepaskan pilihan dari rangkaian",
+  "Gunakan sebagai mask",
+  "Pilih dua jalur atau lebih. Jalur paling bawah menjadi mask.",
 ] as readonly string[];

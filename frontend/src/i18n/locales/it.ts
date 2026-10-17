@@ -1912,4 +1912,6 @@ export default [
   "Rimuovi concatenazione",
   "Fai clic su una forma chiusa per continuarvi il testo, oppure su uno spazio vuoto per una nuova forma. Esc annulla.",
   "Svincola selezione dalla concatenazione",
+  "Usa come maschera",
+  "Seleziona due o più tracciati. Quello in basso diventa la maschera.",
 ] as readonly string[];

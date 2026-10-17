@@ -1912,4 +1912,6 @@ export default [
   "Fjern kædning",
   "Klik på en lukket form for at fortsætte teksten i den, eller klik på et tomt sted for en ny form. Esc annullerer.",
   "Frigør markering fra kæden",
+  "Brug som maske",
+  "Vælg to eller flere stier. Den nederste bliver masken.",
 ] as readonly string[];

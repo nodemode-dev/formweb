@@ -156,15 +156,17 @@ export function maskOptionCommands(h: Host, next: MaskOptions): Command[] {
   return cmds;
 }
 
-export function makeMaskCommands(h: Host, kind: 'clip' | 'mask', options: MaskOptions = { clip: true, invert: false }): Command[] {
+/* `from` picks the mask shape: 'top' is Illustrator's Make Clipping Mask (the topmost selected path clips the rest);
+   'bottom' is Figma's Use as mask (the bottom layer masks the selected layers above it). */
+export function makeMaskCommands(h: Host, kind: 'clip' | 'mask', options: MaskOptions = { clip: true, invert: false }, from: 'top' | 'bottom' = 'top'): Command[] {
   const site = h.site();
   const svg = h.activeSvg();
   const ids = h.selection().filter(id => site.nodes[id]?.tag === 'path');
-  if (!svg || ids.length < 2) { h.notify('Select two or more paths. The top one becomes the mask.'); return []; }
+  if (!svg || ids.length < 2) { h.notify(from === 'bottom' ? 'Select two or more paths. The bottom one becomes the mask.' : 'Select two or more paths. The top one becomes the mask.'); return []; }
   const order = pathIds(site, svg);
   ids.sort((a, b) => order.indexOf(a) - order.indexOf(b));
-  const top = ids[ids.length - 1];
-  const contents = ids.slice(0, -1);
+  const top = from === 'bottom' ? ids[0] : ids[ids.length - 1];
+  const contents = from === 'bottom' ? ids.slice(1) : ids.slice(0, -1);
   const source = site.nodes[top];
   const defId = freshId(site, new Set(), kind === 'clip' ? 'clip' : 'mask');
   const childId = freshId(site, new Set([defId]), 'maskpath');

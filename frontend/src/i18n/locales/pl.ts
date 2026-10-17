@@ -1912,4 +1912,6 @@ export default [
   "Usuń połączenie",
   "Kliknij zamknięty kształt, aby kontynuować w nim tekst, lub puste miejsce, aby utworzyć nowy kształt. Esc anuluje.",
   "Zwolnij zaznaczenie z połączenia",
+  "Użyj jako maski",
+  "Zaznacz co najmniej dwie ścieżki. Najniższa stanie się maską.",
 ] as readonly string[];

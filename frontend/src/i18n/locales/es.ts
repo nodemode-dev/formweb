@@ -1912,4 +1912,6 @@ export default [
   "Quitar enlace",
   "Haga clic en una forma cerrada para continuar el texto en ella, o en un espacio vacío para una forma nueva. Esc cancela.",
   "Liberar selección del enlace",
+  "Usar como máscara",
+  "Seleccione dos o más trazados. El inferior se convierte en la máscara.",
 ] as readonly string[];

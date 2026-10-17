@@ -1912,4 +1912,6 @@ export default [
   "Bağlantıyı kaldır",
   "Metni içinde sürdürmek için kapalı bir şekle veya yeni bir şekil için boş bir yere tıklayın. Esc iptal eder.",
   "Seçimi bağlantıdan serbest bırak",
+  "Maske olarak kullan",
+  "İki veya daha fazla yol seçin. En alttaki maske olur.",
 ] as readonly string[];

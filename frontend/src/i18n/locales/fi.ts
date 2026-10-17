@@ -1912,4 +1912,6 @@ export default [
   "Poista ketjutus",
   "Napsauta suljettua muotoa jatkaaksesi tekstiä siinä tai tyhjää kohtaa uutta muotoa varten. Esc peruuttaa.",
   "Vapauta valinta ketjusta",
+  "Käytä maskina",
+  "Valitse kaksi tai useampi polku. Alimmasta tulee maski.",
 ] as readonly string[];

@@ -1912,4 +1912,6 @@ export default [
   "Ta bort länkning",
   "Klicka på en sluten form för att fortsätta texten i den, eller på en tom plats för en ny form. Esc avbryter.",
   "Frigör markeringen från länken",
+  "Använd som mask",
+  "Markera två eller fler banor. Den nedersta blir masken.",
 ] as readonly string[];

@@ -1912,4 +1912,6 @@ export default [
   "Supprimer le chaînage",
   "Cliquez sur une forme fermée pour y poursuivre le texte, ou sur un espace vide pour une nouvelle forme. Échap annule.",
   "Libérer la sélection du chaînage",
+  "Utiliser comme masque",
+  "Sélectionnez au moins deux tracés. Celui du dessous devient le masque.",
 ] as readonly string[];

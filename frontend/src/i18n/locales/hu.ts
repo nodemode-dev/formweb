@@ -1912,4 +1912,6 @@ export default [
   "Összefűzés eltávolítása",
   "Kattintson egy zárt alakzatra, hogy abban folytatódjon a szöveg, vagy egy üres helyre új alakzathoz. Az Esc megszakítja.",
   "Kijelölés feloldása az összefűzésből",
+  "Használat maszkként",
+  "Jelöljön ki két vagy több útvonalat. A legalsó lesz a maszk.",
 ] as readonly string[];

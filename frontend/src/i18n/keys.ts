@@ -1912,4 +1912,6 @@ export const KEYS: readonly string[] = [
   "Remove threading",
   "Click a closed shape to continue the text in it, or click an empty spot for a new shape. Esc cancels.",
   "Release selection from thread",
+  "Use as mask",
+  "Select two or more paths. The bottom one becomes the mask.",
 ];

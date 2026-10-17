@@ -1912,4 +1912,6 @@ export default [
   "Verkettung entfernen",
   "Klicken Sie auf eine geschlossene Form, um den Text darin fortzusetzen, oder auf eine leere Stelle für eine neue Form. Esc bricht ab.",
   "Auswahl aus Verkettung lösen",
+  "Als Maske verwenden",
+  "Wählen Sie zwei oder mehr Pfade aus. Der unterste wird zur Maske.",
 ] as readonly string[];

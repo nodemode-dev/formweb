@@ -112,6 +112,9 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.group', label: 'Group', menu: MENU, keys: 'Mod+G', group: 6, run: () => { void editor.ops.group(); }, enabled: hasPair },
     { id: 'vector.ungroup', label: 'Ungroup', menu: MENU, keys: 'Mod+Shift+G', group: 6, run: () => { void editor.ops.ungroup(); }, enabled: hasShape },
     { id: 'vector.clip.make', label: 'Make clipping mask', menu: MENU, keys: 'Mod+7', group: 6, run: () => { void editor.ops.makeMask('clip'); }, enabled: hasPair },
+    /* Figma's Use as mask: the bottom selected layer masks the layers above it; run again on masked content to
+       remove the mask. No default key: Figma's Ctrl+Alt+M is Make opacity mask here. */
+    { id: 'vector.mask.use', label: 'Use as mask', menu: MENU, group: 6, run: () => { if (hasPair()) void editor.ops.makeMask('clip', 'bottom'); else void editor.ops.releaseMask(); }, enabled: hasShape },
     { id: 'vector.clip.release', label: 'Release clipping or opacity mask', menu: MENU, keys: 'Mod+Alt+7', group: 6, run: () => { void editor.ops.releaseMask(); }, enabled: hasShape },
     { id: 'vector.mask.make', label: 'Make opacity mask', menu: MENU, keys: 'Mod+Alt+M', group: 6, run: () => { void editor.ops.makeMask('mask'); }, enabled: hasPair },
     { id: 'vector.isolate.exit', label: 'Exit isolation mode', menu: MENU, group: 6, run: () => editor.extras.exit(), enabled: () => editor.extras.iso !== null },

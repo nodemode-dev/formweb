@@ -1912,4 +1912,6 @@ export default [
   "Remover encadeamento",
   "Clique em uma forma fechada para continuar o texto nela, ou em um espaço vazio para uma nova forma. Esc cancela.",
   "Liberar seleção do encadeamento",
+  "Usar como máscara",
+  "Selecione dois ou mais caminhos. O de baixo se torna a máscara.",
 ] as readonly string[];

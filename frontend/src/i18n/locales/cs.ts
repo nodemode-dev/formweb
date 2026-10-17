@@ -1912,4 +1912,6 @@ export default [
   "Odstranit propojení",
   "Klepněte na uzavřený tvar, do kterého má text pokračovat, nebo na prázdné místo pro nový tvar. Esc ruší.",
   "Uvolnit výběr z propojení",
+  "Použít jako masku",
+  "Vyberte dvě nebo více cest. Spodní se stane maskou.",
 ] as readonly string[];

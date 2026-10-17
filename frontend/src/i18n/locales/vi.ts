@@ -1912,4 +1912,6 @@ export default [
   "Xóa nối luồng",
   "Bấm vào một hình khép kín để văn bản chảy tiếp vào đó, hoặc bấm vào chỗ trống để tạo hình mới. Esc để hủy.",
   "Gỡ vùng chọn khỏi luồng",
+  "Dùng làm mặt nạ",
+  "Hãy chọn hai đường dẫn trở lên. Đường dưới cùng sẽ thành mặt nạ.",
 ] as readonly string[];
