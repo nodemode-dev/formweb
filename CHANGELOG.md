@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.9 · 2026-10-17
+
+- Add your own code to the page head and body, the way Framer and Webflow do: Page settings has a new Custom code section for the whole site or just the open page, with slots for the head, the start of the body and the end of the body. Use it for analytics tags, fonts or a chat widget. The code goes into exported and published pages exactly as typed and does not run on the canvas.
+
 ## 0.12.8 · 2026-10-17
 
 - The comparison page has ten new rows drawn from Framer's, Figma's, Webflow's and Canva's own documentation: custom head and body code, site search, page transitions, light and dark modes that follow the device, editor plugins, fixed and sticky positioning, scheduled publishing, scroll and pointer effects, prebuilt sections and templates, and importing designs from another tool.
