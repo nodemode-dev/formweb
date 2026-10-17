@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.2 · 2026-10-17
+
+- Scroll and pointer effects, like Figma Sites and Webflow: pick an element and, in the Content panel, choose Parallax, Scroll transform, Mouse parallax, Marquee or Cursor follow, with a strength. They play in Preview and on your published site; visitors who ask their device for reduced motion see the page without movement.
+
 ## 0.13.1 · 2026-10-17
 
 - Start a whole site from a template: New site now has a Start from choice with a Business site, a Product launch and a Portfolio. Each arrives with its pages and sections already linked in the navigation, ready to edit, and one undo takes you back to an empty site.
