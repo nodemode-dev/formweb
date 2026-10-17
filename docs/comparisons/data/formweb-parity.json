@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.12.3",
- "previous": "0.12.2",
+ "version": "0.12.4",
+ "previous": "0.12.3",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
  "release_note": "Print PDF export (FW-151) moves from None to Partial, level with Figma: a vector PDF export without bleed.",
@@ -7994,6 +7994,13 @@
    "same_as": "0.12.1",
    "moved": {"FW-081": "full", "FW-087": "full"},
    "note": "Use as mask and Shape Builder subtract: clipping masks and Shape Builder Full against Figma, 117 of 134."
+  },
+  {
+   "version": "0.12.3",
+   "date": "2026-10-17",
+   "same_as": "0.12.2",
+   "moved": {"FW-090": "full"},
+   "note": "Snapping at Figma's level: smart guides and snapping Full, 117.5 of 134."
   }
  ],
  "changes": [

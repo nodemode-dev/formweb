@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.4 · 2026-10-17
+
+- Export a drawing as a vector PDF: tick PDF in Export for Screens to get a one-page PDF with the shapes, masks, transparency and text as editable vectors. Text is set in Helvetica, gradients use their first colour, and images and filters are left out.
+- Older comparison pages now live in the planning sidecar; the repository keeps only the current one.
+
 ## 0.12.3 · 2026-10-17
 
 - Snapping matches Figma: shapes now snap to the corners and edge middles of other objects as well as their centres and points.
