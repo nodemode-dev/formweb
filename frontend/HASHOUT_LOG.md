@@ -1,5 +1,12 @@
 # Frontend context map
 
+## Prebuilt sections and starter pages · v0.13.0 (2026-10-17)
+
+`features/sections.ts` (new): `SECTIONS` (nine specs: nav, hero, features, testimonial, pricing, faq, cta, contact, footer), `STARTERS` (landing, pricing, contact as lists of section ids) and `sectionCommands(id, parent, fresh)`, which flattens a spec into `node.add` commands, parents first, with fresh ids and a `mobile` breakpoint where a spec sets one. Styles inherit color and use a translucent neutral border so a section fits light or dark sites. `main.ts` Insert pane: Sections and Starter pages grids (`data-section`, `data-starter`), `insertSection` (finds the selection's top-level ancestor under the page root and adds a `node.move` to place the new section after it) and `insertStarter` (`page.add` with caller-chosen page and root ids, then every section, unique slug by suffix). Both send one `commands()` batch, so one undo step.
+
+- **Source basis:** Framer Updates "Inserting Sections" and Help "Using templates", Webflow Updates "Build faster with prebuilt layouts", Figma Sites "Insert blocks, embeds, webpages, and design libraries into a site".
+- **Driven (CPU 4x, 400 ms latency, cache off):** nine sections inserted in sequence after the selection; undo removed one whole; starter pages made /landing and /landing-2; undo removed the second. The only layout shift was the breadcrumb resizing to the new page name when the starter page opened.
+
 ## Custom code in head and body · v0.12.9 (2026-10-17)
 
 `main.ts` Page pane, after Search & metadata: `codeSection` with `codeScope` (Whole site or Page) and three `codeAreas` (`data-field` `code.head`, `code.bodyStart`, `code.bodyEnd`). `fillCustomCode` fills them through `value()` (skips the focused area, so typing is never overwritten) and runs in `update`; `saveCustomCode` merges into a copy of the `code` group (keeping `components` and `instances`), drops emptied slots and empty maps, and sends one `extension.set`. The engine validates (`formweb-model` `custom_code`), prunes and copies `pageCode` with pages, and the advanced exporter writes the slots. `styles/app.css` `.fw-code-area`: monospace, no wrap.
