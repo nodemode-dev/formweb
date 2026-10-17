@@ -1,5 +1,12 @@
 # Frontend context map
 
+## Scroll and pointer effects · v0.13.2 (2026-10-17)
+
+`main.ts` Content pane, above Interaction: `effectSection` with `effectKind` (`data-field` `effect.kind`) and `effectSpeed` (`effect.speed`), patching the node attributes `data-fw-effect` and `data-fw-effect-speed` (None sends `null` for both); `update` fills them through `value()` and disables Strength without an effect. The motion itself is in the exporter: `native/crates/formweb-export/src/effects.js` (`EFFECTS_RUNTIME`), appended to `assets/runtime.js` by both exporters, so Preview and published sites run it and the canvas does not.
+
+- **Source basis:** Figma Sites "Add interactions to an element" (scroll parallax, scroll transform, mouse parallax, marquee, cursor), Webflow Help "Glossary for Interactions with GSAP" (scroll scrub, mouse move), Framer Academy "Parallax with Scroll Speed".
+- **Driven (CPU 4x, 400 ms latency, cache off):** inspector set, cleared and undid an effect, no layout shifts; exported test page: all five effects moved, reduced motion stopped them.
+
 ## Starter sites · v0.13.1 (2026-10-17)
 
 `features/sections.ts`: `STARTER_SITES` (business, product, portfolio; pages as section lists) and an optional `links` argument to `sectionCommands` that swaps the navigation bar's links for real page links. `main.ts` New site dialog: `newStarter` select (`data-field` `new.starter`, Blank first); `performDialogAction` sends `/api/new` with `blank: true` when a starter is chosen, then `starterSiteCommands` (rename Home, fill its root, `page.add` with caller-chosen ids for the rest, every section) as one batch. The engine's `formweb_model::blank` is what makes the empty root possible: the sample's component source cannot be removed.
