@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.11.7",
- "previous": "0.11.6",
+ "version": "0.11.8",
+ "previous": "0.11.7",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Live Paint (FW-172) stays Partial with per-edge strokes added.",
@@ -7952,6 +7952,13 @@
    "same_as": "0.11.5",
    "moved": {},
    "note": "Threaded text ports and Remove Threading. No grade change, 116 of 134."
+  },
+  {
+   "version": "0.11.7",
+   "date": "2026-10-17",
+   "same_as": "0.11.6",
+   "moved": {},
+   "note": "Release Selection from a text thread. No grade change, 116 of 134."
   }
  ],
  "changes": [

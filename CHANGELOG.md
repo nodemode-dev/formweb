@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.8 · 2026-10-17
+
+- Live Paint edges: with a Live Paint group selected, Shift-click with the Live Paint Bucket strokes just the edge you click (the part of a path between two crossings) with the current stroke colour and weight, and painting with no stroke removes that edge. Edge colours stay put when you move or reshape the paths, and Release Live Paint gives the paths their own strokes back.
+
 ## 0.11.7 · 2026-10-17
 
 - Release selection from thread takes the selected shapes out of a text thread. The shapes stay, their text goes, and the words carry on into the next shape. Releasing the first shape makes the next one the start of the thread.
