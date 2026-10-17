@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.13.0 · 2026-10-17
+
+- Build pages faster with ready-made sections, like Framer, Webflow and Figma offer: the Insert panel now has a navigation bar, hero, feature grid, testimonial, pricing, FAQ, call to action, contact form and footer. Each goes in after the section you have selected, and you edit it like anything else.
+- Starter pages add a whole landing, pricing or contact page with its sections in one click. Every insert can be undone in one step.
+
 ## 0.12.9 · 2026-10-17
 
 - Add your own code to the page head and body, the way Framer and Webflow do: Page settings has a new Custom code section for the whole site or just the open page, with slots for the head, the start of the body and the end of the body. Use it for analytics tags, fonts or a chat widget. The code goes into exported and published pages exactly as typed and does not run on the canvas.
