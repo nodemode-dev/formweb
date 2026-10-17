@@ -59,6 +59,7 @@
 .fw-vo-x[data-c="trail"] { stroke-dasharray: calc(4px * var(--fw-vo-px)) calc(3px * var(--fw-vo-px)); }
 .fw-vo-x[data-c="eraser"] { stroke: var(--danger); opacity: .35; stroke-linecap: round; stroke-linejoin: round; }
 .fw-vo-x[data-c="region-hover"] { fill: var(--accent-wash); }
+.fw-v-areaedit { position: absolute; box-sizing: border-box; margin: 0; z-index: calc(var(--z-raised) + 2); resize: none; overflow: auto; border: 1px solid var(--accent-color); border-radius: 0; outline: none; caret-color: var(--accent-color); white-space: pre-wrap; overflow-wrap: break-word; scrollbar-width: thin; }
 .fw-vo-x[data-c="edge-halo"] { stroke: var(--bg-primary); stroke-width: calc(7px * var(--fw-vo-px)); stroke-linecap: round; stroke-linejoin: round; }
 .fw-vo-x[data-c="edge-hover"] { stroke: var(--accent-color); stroke-width: calc(3px * var(--fw-vo-px)); stroke-linecap: round; stroke-linejoin: round; }
 .fw-vo-x[data-c="region-pick"] { fill: var(--accent-soft); stroke-width: calc(2px * var(--fw-vo-px)); }

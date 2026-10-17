@@ -26,6 +26,7 @@ import { Overlay, type ExtraItem, type Scene, type SceneAnchor, type SceneHandle
 import { alignFixes, widthFixes } from './stroke';
 import { typeFixes } from './typepath';
 import { areaFixes, areaTextFor } from './areatype';
+import { AreaTextEditor } from './areaedit';
 import { ViewAids } from './view';
 import { liveCopyOwner, liveFixes, liveSources } from './live';
 import { parseTransform, symbolPaths, usesOf } from './symbols';
@@ -83,6 +84,7 @@ export class Editor {
   readonly picker: Picker;
   readonly puppet: Puppet;
   readonly reshape: Reshape;
+  readonly areaEdit: AreaTextEditor;
   readonly globalEdit: GlobalEdit;
   readonly view: ViewAids;
   tool: ToolId | null = null;
@@ -121,6 +123,7 @@ export class Editor {
     this.picker = new Picker(this.host());
     this.puppet = new Puppet(this.host());
     this.reshape = new Reshape(this.host());
+    this.areaEdit = new AreaTextEditor(this.host(), ctx.canvas.shell);
     this.globalEdit = new GlobalEdit(this.host());
     this.view = new ViewAids(this.host(), ctx.canvas.shell);
     this.extras.aids = this.view.source;
@@ -464,6 +467,8 @@ export class Editor {
   }
 
   private down(event: PointerEvent): void {
+    /* The canvas keeps focus from moving on pointerdown, so typing into area type ends here rather than on blur. */
+    if (this.areaEdit.active()) this.areaEdit.close(true);
     if (this.tool !== null && event.button === 0) event.preventDefault();
     if (this.busy || this.tool === null || event.button !== 0) return;
     const target = (event.target as Element).closest('[data-role]');
@@ -710,6 +715,11 @@ export class Editor {
     if (this.tool && GRID_TOOLS.has(this.tool)) { openGridOptions(this.tool); return; }
     if (this.tool === 'blob') { openBlobOptions(); return; }
     if (target?.getAttribute('data-role') === 'x-wpt') { this.extras.openWidthDialog(Number(target.getAttribute('data-i') ?? '-1')); return; }
+    /* Double-clicking area type with a selection tool types into it on the canvas. */
+    if ((this.tool === 'select' || this.tool === 'direct') && !this.pen) {
+      const hit = this.pickPath(this.pt(event));
+      if (hit && areaTextFor(this.site(), hit.id) && this.areaEdit.open(hit.id)) return;
+    }
     if (this.tool === 'select' && !this.pen) {
       const hit = this.pickPath(this.pt(event));
       const group = hit?.kind === 'path' ? outerGroup(this.site(), hit.id, this.extras.iso) : undefined;
