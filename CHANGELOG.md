@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.1 · 2026-10-17
+
+- Start a whole site from a template: New site now has a Start from choice with a Business site, a Product launch and a Portfolio. Each arrives with its pages and sections already linked in the navigation, ready to edit, and one undo takes you back to an empty site.
+
 ## 0.13.0 · 2026-10-17
 
 - Build pages faster with ready-made sections, like Framer, Webflow and Figma offer: the Insert panel now has a navigation bar, hero, feature grid, testimonial, pricing, FAQ, call to action, contact form and footer. Each goes in after the section you have selected, and you edit it like anything else.
