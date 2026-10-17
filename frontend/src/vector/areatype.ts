@@ -1,6 +1,7 @@
-import type { Command } from '../types';
+import type { Command, Site } from '../types';
 import { flattenSub } from './edit';
-import { fmt, pathBounds, type Pt, type SubPath } from './geometry';
+import { fmt, parsePath, pathBounds, type Pt, type SubPath } from './geometry';
+import { freshId, removeNode, updateAttrs } from './store';
 
 export type AreaAlign = 'left' | 'center' | 'right';
 
@@ -104,10 +105,61 @@ export function measurer(o: AreaOptions): (s: string) => number {
   return s => ctx.measureText(s).width;
 }
 
-export function areaCommands(parent: string, index: number, textId: string, lineIds: string[], lines: AreaLine[], o: AreaOptions): Command[] {
+/* Live area type: the text keeps its source shape and options in data-fw-area, and areaFixes lays the lines out
+   again in the same commit whenever the shape's geometry changes. */
+export interface AreaSpec { v: 1; src: string; text: string; leading: number; align: AreaAlign; inset: number; columns: number; gutter: number }
+
+const ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+export function areaAttr(src: string, o: AreaOptions): string {
+  const spec: AreaSpec = { v: 1, src, text: o.text, leading: o.leading, align: o.align, inset: o.inset, columns: o.columns, gutter: o.gutter };
+  return JSON.stringify(spec);
+}
+
+export function readArea(raw: string | undefined): AreaSpec | null {
+  if (!raw) return null;
+  try {
+    const c = JSON.parse(raw) as Partial<AreaSpec>;
+    const n = (v: unknown, lo: number, hi: number): v is number => typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi;
+    if (c.v !== 1 || typeof c.src !== 'string' || !ID.test(c.src) || typeof c.text !== 'string' || c.text.length > 20000 || !n(c.leading, 1, 10000)
+      || (c.align !== 'left' && c.align !== 'center' && c.align !== 'right') || !n(c.inset, 0, 10000) || !n(c.columns, 1, 12) || !n(c.gutter, 0, 10000)) return null;
+    return { v: 1, src: c.src, text: c.text, leading: c.leading, align: c.align, inset: c.inset, columns: c.columns, gutter: c.gutter };
+  } catch { return null; }
+}
+
+export function areaFixes(site: Site, cmds: Command[]): Command[] {
+  const removed = new Set(cmds.filter(c => c.command === 'node.remove').map(c => (c.params as { id: string }).id));
+  const patched = new Map<string, Record<string, string | null>>();
+  for (const c of cmds) {
+    if (c.command !== 'node.update') continue;
+    const params = c.params as { id: string; patch?: { attrs?: Record<string, string | null> } };
+    if (site.nodes[params.id]?.tag === 'path' && params.patch?.attrs && 'd' in params.patch.attrs) patched.set(params.id, { ...patched.get(params.id), ...params.patch.attrs });
+  }
+  if (!patched.size && !removed.size) return [];
+  const out: Command[] = [];
+  const taken = new Set<string>();
+  for (const t of Object.values(site.nodes)) {
+    if (t.tag !== 'text' || removed.has(t.id)) continue;
+    const spec = readArea(t.attrs['data-fw-area']);
+    if (!spec) continue;
+    if (removed.has(spec.src) || !site.nodes[spec.src]) { out.push(updateAttrs(t.id, { 'data-fw-area': null })); continue; }
+    const patch = patched.get(spec.src);
+    if (!patch) continue;
+    const d = patch.d ?? site.nodes[spec.src].attrs.d;
+    if (!d) continue;
+    const size = parseFloat(t.attrs['font-size'] ?? '16');
+    const o: AreaOptions = { text: spec.text, size: Number.isFinite(size) && size > 0 ? size : 16, leading: spec.leading, family: t.attrs['font-family'] ?? 'system-ui, sans-serif', weight: t.attrs['font-weight'] ?? '400', color: t.attrs.fill ?? '#1f1f1f', align: spec.align, inset: spec.inset, columns: spec.columns, gutter: spec.gutter };
+    const { lines } = layoutArea(parsePath(d), o, measurer(o));
+    out.push(...t.children.map(id => removeNode(id)));
+    lines.forEach(line => out.push({ command: 'node.add', params: { parent: t.id, node: { id: freshId(site, taken, 'tspan'), tag: 'tspan', name: 'Line', text: line.text, attrs: { x: fmt(line.x), y: fmt(line.y) } } } }));
+  }
+  return out;
+}
+
+export function areaCommands(parent: string, index: number, textId: string, lineIds: string[], lines: AreaLine[], o: AreaOptions, src?: string): Command[] {
   const anchor = o.align === 'center' ? 'middle' : o.align === 'right' ? 'end' : 'start';
   const cmds: Command[] = [
-    { command: 'node.add', params: { parent, node: { id: textId, tag: 'text', name: 'Area type', attrs: { 'font-size': fmt(o.size), 'font-family': o.family, 'font-weight': o.weight, fill: o.color, 'text-anchor': anchor } } } },
+    { command: 'node.add', params: { parent, node: { id: textId, tag: 'text', name: 'Area type', attrs: { 'font-size': fmt(o.size), 'font-family': o.family, 'font-weight': o.weight, fill: o.color, 'text-anchor': anchor, ...(src ? { 'data-fw-area': areaAttr(src, o) } : {}) } } } },
     { command: 'node.move', params: { id: textId, parent, index } }
   ];
   lines.forEach((line, i) => cmds.push({ command: 'node.add', params: { parent: textId, node: { id: lineIds[i], tag: 'tspan', name: 'Line', text: line.text, attrs: { x: fmt(line.x), y: fmt(line.y) } } } }));

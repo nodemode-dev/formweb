@@ -25,6 +25,7 @@ import { Puppet, Reshape } from './puppet';
 import { Overlay, type ExtraItem, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
 import { alignFixes, widthFixes } from './stroke';
 import { typeFixes } from './typepath';
+import { areaFixes } from './areatype';
 import { ViewAids } from './view';
 import { liveCopyOwner, liveFixes, liveSources } from './live';
 import { parseTransform, symbolPaths, usesOf } from './symbols';
@@ -401,7 +402,7 @@ export class Editor {
     if (!cmds.length) { this.endDrafts(); return false; }
     const before = this.site();
     cmds = [...cmds, ...this.globalEdit.mirror(before, cmds)];
-    cmds = [...cmds, ...alignFixes(before, cmds), ...widthFixes(before, cmds), ...typeFixes(before, cmds)];
+    cmds = [...cmds, ...alignFixes(before, cmds), ...widthFixes(before, cmds), ...typeFixes(before, cmds), ...areaFixes(before, cmds)];
     cmds = [...cmds, ...liveFixes(before, cmds)];
     this.busy = true;
     const touched = [...this.drafts.keys()];

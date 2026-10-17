@@ -27,7 +27,7 @@ pub fn attr_allowed(tag: &str, name: &str) -> bool {
         || (tag == "stop" && matches!(name, "offset" | "stop-color" | "stop-opacity"))
         || (tag == "clipPath" && name == "clipPathUnits")
         || (tag == "mask" && matches!(name, "maskUnits" | "maskContentUnits" | "x" | "y"))
-        || (tag == "text" && matches!(name, "x" | "y" | "dy" | "font-size" | "font-family" | "font-weight" | "letter-spacing" | "text-anchor"))
+        || (tag == "text" && matches!(name, "x" | "y" | "dy" | "font-size" | "font-family" | "font-weight" | "letter-spacing" | "text-anchor" | "data-fw-area"))
         || (tag == "textPath" && matches!(name, "startOffset" | "dy"))
         || (tag == "use" && matches!(name, "x" | "y" | "width" | "height"))
         || (tag == "pattern" && matches!(name, "x" | "y" | "width" | "height" | "patternUnits" | "patternTransform" | "data-fw-pattern"))
@@ -213,6 +213,7 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-warp" => value.len() <= 120_000 && serde_json::from_str::<Value>(value).map(|v| warp_config(&v)).unwrap_or(false),
         "data-fw-compound" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| compound_config(&v)).unwrap_or(false),
         "visibility" => matches!(value, "hidden" | "visible"),
+        "data-fw-area" => tag == "text" && value.len() <= 120_000 && serde_json::from_str::<Value>(value).map(|v| area_config(&v)).unwrap_or(false),
         "data-fw-pattern" => tag == "pattern" && value.len() <= 512 && serde_json::from_str::<Value>(value).map(|v| pattern_config(&v)).unwrap_or(false),
         "data-fw-guides" => tag == "svg" && value.len() <= DATA_LIMIT && serde_json::from_str::<Value>(value).map(|v| guides_config(&v)).unwrap_or(false),
         "data-fw-stroke" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| stroke_config(&v)).unwrap_or(false),
@@ -384,6 +385,17 @@ fn mesh_ok(map: &serde_json::Map<String, Value>) -> bool {
     let (Some(rows), Some(cols)) = (grid("rows"), grid("cols")) else { return false };
     let Some(points) = map.get("mesh").and_then(Value::as_array) else { return false };
     points.len() as u64 == (rows + 1) * (cols + 1) * 2 && points.iter().all(|v| v.as_f64().map(|n| n.is_finite() && (-10.0..=10.0).contains(&n)).unwrap_or(false))
+}
+
+fn area_config(value: &Value) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    let number = |key: &str, lo: f64, hi: f64| map.get(key).and_then(Value::as_f64).map(|n| n.is_finite() && n >= lo && n <= hi).unwrap_or(false);
+    map.len() == 8
+        && map.get("v").and_then(Value::as_u64) == Some(1)
+        && map.get("src").and_then(Value::as_str).map(ref_id).unwrap_or(false)
+        && map.get("text").and_then(Value::as_str).map(|s| s.chars().count() <= 20_000).unwrap_or(false)
+        && map.get("align").and_then(Value::as_str).map(|s| matches!(s, "left" | "center" | "right")).unwrap_or(false)
+        && number("leading", 1.0, 10_000.0) && number("inset", 0.0, 10_000.0) && number("columns", 1.0, 12.0) && number("gutter", 0.0, 10_000.0)
 }
 
 fn pattern_config(value: &Value) -> bool {

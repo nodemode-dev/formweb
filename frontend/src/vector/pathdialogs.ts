@@ -507,7 +507,7 @@ class AreaTypeDialog {
     const parent = host.parentOf(shape.id) ?? shape.svg;
     const index = site.nodes[parent].children.indexOf(shape.id) + 1;
     if (overflow) host.notify(tn(overflow, 'Overflow: {0} word did not fit in the shape.', 'Overflow: {0} words did not fit in the shape.'));
-    void host.commit(areaCommands(parent, index, textId, lineIds, lines, areaOptions), [shape.id]);
+    void host.commit(areaCommands(parent, index, textId, lineIds, lines, areaOptions, shape.id), [shape.id]);
   }
 }
 
