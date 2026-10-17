@@ -1876,4 +1876,8 @@ export const KEYS: readonly string[] = [
   "All artboards on this page ({0})",
   "File name prefix",
   "No artboards on this page to export.",
+  "Freeform gradient",
+  "Spread (%)",
+  "Freeform Gradient Stop",
+  "Click inside the shape to add a stop. Drag a stop outside the shape or press Backspace to remove it.",
 ];

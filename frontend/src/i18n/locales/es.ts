@@ -1876,4 +1876,8 @@ export default [
   "Todas las mesas de trabajo de esta página ({0})",
   "Prefijo del nombre de archivo",
   "No hay mesas de trabajo para exportar en esta página.",
+  "Degradado de forma libre",
+  "Extensión (%)",
+  "Parada de degradado de forma libre",
+  "Haga clic dentro de la forma para añadir una parada. Arrastre una parada fuera de la forma o pulse Retroceso para eliminarla.",
 ] as readonly string[];

@@ -13,6 +13,8 @@ import { snapAids, snapLocal, type AidSource, type Guide } from './snap';
 import { addPath, freshId, moveNode, pathIds, removeNode, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
 import { matrixText, parseTransform, useFrame } from './symbols';
 import { liveOf } from './live';
+import { FREEFORM_LIMIT, SPREAD_MIN, freeformGradient, readFreeform, sourceBox, stopsOf, turnHue, writeStops, type FreeformSpec, type FreeformStop } from './freeform';
+import { openFreeformStop } from './pathdialogs';
 import { readWarp, warpBox, type WarpSpec } from './warp';
 import { readWidth, widthCommands } from './stroke';
 import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variableOutline, type WidthPoint } from './widthprofile';
@@ -33,7 +35,10 @@ type Gesture =
   | { kind: 'grad'; mode: 'p0' | 'p1' | 'stop' | 'draw'; id: string; idx: number; next: Gradient | null; start: Pt }
   | { kind: 'tf'; i: number; base: Map<string, SubPath[]>; box: Box; per: Map<string, Mat>; svg: string; quad?: Quad; out?: Map<string, SubPath[]> }
   | { kind: 'use'; id: string; i: number; svg: string; t: Mat; corners: Pt[]; centre: Pt; next?: Mat }
-  | { kind: 'mesh'; idx: number; mesh: number[]; moved: boolean };
+  | { kind: 'mesh'; idx: number; mesh: number[]; moved: boolean }
+  | { kind: 'ff'; mode: 'move' | 'spread'; group: string; idx: number; stops: FreeformStop[]; moved: boolean };
+
+interface FreeformState { group: string; spec: FreeformSpec; src: Record<string, string>; box: Box; f: Frame; svg: string }
 
 const HANDLE_FRACTIONS: Pt[] = [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]];
 
@@ -48,6 +53,7 @@ export class Extras {
   iso: string | null = null;
   target: Target = 'fill';
   stop = 0;
+  ffStop = 0;
   private gesture: Gesture | null = null;
   private guides: { svg: string; list: Guide[] } = { svg: '', list: [] };
   aids: AidSource | undefined;
@@ -110,6 +116,7 @@ export class Extras {
       this.stop = index;
       return this.startGradient('stop', index, p);
     }
+    if (role === 'x-ffs' || role === 'x-ffr') return this.startFreeform(role === 'x-ffs' ? 'move' : 'spread', index);
     if (role === 'x-wpt') return this.startWidthPoint(index, event.altKey);
     if (role === 'x-tbracket') return this.startTypeBracket();
     if (role === 'x-tf') return this.startTransform(index);
@@ -152,6 +159,7 @@ export class Extras {
     else if (g.kind === 'tf') this.dragTransform(g, p, event);
     else if (g.kind === 'use') this.dragUseHandle(g, p, event);
     else if (g.kind === 'mesh') this.dragMesh(g, p);
+    else if (g.kind === 'ff') this.dragFreeform(g, p);
     this.h.render();
     return true;
   }
@@ -169,6 +177,7 @@ export class Extras {
     else if (g.kind === 'tf') void this.finishTransform(g);
     else if (g.kind === 'use') void this.finishUse(g);
     else if (g.kind === 'mesh') void this.finishMesh(g);
+    else if (g.kind === 'ff') void this.finishFreeform(g);
     this.h.render();
     return true;
   }
@@ -392,6 +401,8 @@ export class Extras {
   }
 
   private downGradient(p: Pt): boolean {
+    const ff = this.ffState();
+    if (ff && this.addFreeformStop(ff, p)) return true;
     const shape = this.shape();
     const hit = this.h.pick(p);
     if (hit?.kind === 'path' && (!shape || hit.id !== shape.id) && !this.h.selection().includes(hit.id)) { this.h.setSelection([hit.id]); return true; }
@@ -804,6 +815,7 @@ export class Extras {
   }
 
   private decorateGradient(items: ExtraItem[], g: Gesture | null): void {
+    if (this.decorateFreeform(items, g)) return;
     const current = this.currentGradient();
     const live = g?.kind === 'grad' && g.next ? g.next : current?.found.gradient;
     const shape = this.shape();
@@ -820,6 +832,127 @@ export class Extras {
       items.push({ kind: 'circle', x: at[0], y: at[1], r: 6, cls: i === this.stop ? 'gstop-on' : 'gstop', role: 'x-gstop', i, fill: s.color });
     });
     items.push({ kind: 'circle', x: a[0], y: a[1], r: 3, cls: 'gend', role: 'x-gstart', i: 0 }, { kind: 'circle', x: b[0], y: b[1], r: 3, cls: 'gend', role: 'x-gend', i: 1 });
+  }
+
+  /* Freeform gradient stops with the Gradient tool: drag to move, drag the ring handle for spread, click inside
+     the shape to add, drag outside or press Backspace to remove, double-click for colour and spread. */
+  private ffState(): FreeformState | null {
+    const site = this.h.site();
+    for (const id of this.h.selection()) {
+      const found = liveOf(site, id);
+      if (found?.kind !== 'freeform') continue;
+      const spec = readFreeform(site.nodes[found.group]?.attrs['data-fw-freeform']);
+      const src = spec ? site.nodes[spec.src]?.attrs : undefined;
+      const box = src ? sourceBox(src) : null;
+      const svg = svgOf(site, found.group);
+      const f = svg ? this.h.frame(svg) : undefined;
+      if (spec && src && box && svg && f) return { group: found.group, spec, src, box, f, svg };
+    }
+    return null;
+  }
+
+  private ffPoint(s: FreeformState, x: number, y: number): Pt { return this.h.toShell(s.f, [s.box.x + x * s.box.w, s.box.y + y * s.box.h]); }
+
+  private ffLocal(s: FreeformState, p: Pt): Pt { const l = this.local(s.f, p); return [(l[0] - s.box.x) / s.box.w, (l[1] - s.box.y) / s.box.h]; }
+
+  private async writeFreeform(s: FreeformState, stops: FreeformStop[]): Promise<void> {
+    await this.h.commit(writeStops(this.h.site(), s.svg, s.group, s.spec, stops, s.src));
+  }
+
+  private ffClick = { idx: -1, at: 0 };
+
+  private startFreeform(mode: 'move' | 'spread', idx: number): boolean {
+    const s = this.ffState();
+    const stops = s ? stopsOf(s.spec) : [];
+    if (!s || !stops[idx]) return false;
+    const now = performance.now();
+    const twice = mode === 'move' && this.ffClick.idx === idx && now - this.ffClick.at < 450;
+    this.ffClick = { idx: mode === 'move' ? idx : -1, at: twice ? 0 : now };
+    this.ffStop = idx;
+    if (twice && mode === 'move') {
+      openFreeformStop(stops[idx].c, stops[idx].s, (color, spread) => {
+        const cur = this.ffState();
+        const list = cur ? stopsOf(cur.spec) : [];
+        if (!cur || !list[idx]) return;
+        list[idx] = { ...list[idx], c: color, s: spread };
+        void this.writeFreeform(cur, list);
+      });
+      this.h.render();
+      return true;
+    }
+    this.gesture = { kind: 'ff', mode, group: s.group, idx, stops, moved: false };
+    this.h.render();
+    return true;
+  }
+
+  private dragFreeform(g: Extract<Gesture, { kind: 'ff' }>, p: Pt): void {
+    const s = this.ffState();
+    const stop = g.stops[g.idx];
+    if (!s || s.group !== g.group || !stop) return;
+    const at = this.ffLocal(s, p);
+    if (g.mode === 'move') { stop.x = at[0]; stop.y = at[1]; }
+    else stop.s = Math.max(SPREAD_MIN, Math.min(1, Math.hypot((at[0] - stop.x) * s.box.w, (at[1] - stop.y) * s.box.h) / Math.hypot(s.box.w, s.box.h)));
+    g.moved = true;
+    const clamp01 = (v: number): number => Math.max(0, Math.min(1, v));
+    const made = freeformGradient(s.src, { pts: g.stops.map(st => [clamp01(st.x), clamp01(st.y), st.s]), cols: g.stops.map(st => st.c) }, g.idx);
+    const el = stop.grad ? this.h.element(stop.grad) : null;
+    if (made && el) for (const [name, value] of Object.entries(made.attrs)) if (value !== null && el.getAttribute(name) !== value) el.setAttribute(name, value);
+  }
+
+  private async finishFreeform(g: Extract<Gesture, { kind: 'ff' }>): Promise<void> {
+    const s = this.ffState();
+    const stop = g.stops[g.idx];
+    if (!s || s.group !== g.group || !stop || !g.moved) return;
+    const outside = g.mode === 'move' && (stop.x < -0.02 || stop.x > 1.02 || stop.y < -0.02 || stop.y > 1.02);
+    if (outside && g.stops.length > 1) { g.stops.splice(g.idx, 1); this.ffStop = Math.max(0, g.idx - 1); }
+    else if (outside) this.h.notify('A freeform gradient keeps at least one stop.');
+    await this.writeFreeform(s, g.stops);
+  }
+
+  private addFreeformStop(s: FreeformState, p: Pt): boolean {
+    const at = this.ffLocal(s, p);
+    if (at[0] < 0 || at[0] > 1 || at[1] < 0 || at[1] > 1) return false;
+    const hit = this.h.pick(p);
+    if (!hit || liveOf(this.h.site(), hit.id)?.group !== s.group) return false;
+    const stops = stopsOf(s.spec);
+    if (stops.length >= FREEFORM_LIMIT) { this.h.notify(`A freeform gradient holds at most ${FREEFORM_LIMIT} stops.`); return true; }
+    const gap = (st: FreeformStop): number => Math.hypot(st.x - at[0], st.y - at[1]);
+    const near = stops.reduce((best, st, i) => (gap(st) < gap(stops[best]) ? i : best), 0);
+    stops.push({ grad: null, x: at[0], y: at[1], s: stops[near].s, c: turnHue(stops[near].c, 40) });
+    this.ffStop = stops.length - 1;
+    void this.writeFreeform(s, stops);
+    return true;
+  }
+
+  deleteFreeformStop(): boolean {
+    if (this.h.tool() !== 'gradient') return false;
+    const s = this.ffState();
+    if (!s) return false;
+    const stops = stopsOf(s.spec);
+    if (stops.length <= 1) { this.h.notify('A freeform gradient keeps at least one stop.'); return true; }
+    const idx = Math.min(this.ffStop, stops.length - 1);
+    stops.splice(idx, 1);
+    this.ffStop = Math.max(0, idx - 1);
+    void this.writeFreeform(s, stops);
+    return true;
+  }
+
+  private decorateFreeform(items: ExtraItem[], g: Gesture | null): boolean {
+    const s = this.ffState();
+    if (!s) return false;
+    const stops = g?.kind === 'ff' && g.group === s.group ? g.stops : stopsOf(s.spec);
+    const diag = Math.hypot(s.box.w, s.box.h);
+    stops.forEach((st, i) => {
+      const c = this.ffPoint(s, st.x, st.y);
+      if (i === this.ffStop) {
+        const edge = this.h.toShell(s.f, [s.box.x + st.x * s.box.w + Math.max(1, st.s * diag), s.box.y + st.y * s.box.h]);
+        const r = dist(c, edge);
+        items.push({ kind: 'path', d: `M${c[0] - r} ${c[1]}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0`, cls: 'gring' });
+        items.push({ kind: 'circle', x: edge[0], y: edge[1], r: 4, cls: 'gend', role: 'x-ffr', i });
+      }
+      items.push({ kind: 'circle', x: c[0], y: c[1], r: 6, cls: i === this.ffStop ? 'gstop-on' : 'gstop', role: 'x-ffs', i, fill: st.c });
+    });
+    return true;
   }
 
   private decorateTransform(items: ExtraItem[]): void {

@@ -6,7 +6,7 @@ const SHARED: &[&str] = &[
     "fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset",
     "fill-rule", "fill-opacity", "stroke-opacity", "transform", "vector-effect", "opacity", "data-fw-vector",
     "clip-path", "mask", "paint-order", "clip-rule", "data-fw-align", "data-fw-weight", "data-fw-width", "data-fw-mask", "data-fw-type",
-    "data-fw-blend", "data-fw-repeat", "data-fw-live", "data-fw-brush", "data-fw-brushdef", "data-fw-stroke", "data-fw-compound", "visibility", "data-fw-warp", "data-fw-effect",
+    "data-fw-blend", "data-fw-repeat", "data-fw-live", "data-fw-brush", "data-fw-brushdef", "data-fw-stroke", "data-fw-compound", "visibility", "data-fw-warp", "data-fw-effect", "data-fw-freeform",
 ];
 const DATA_LIMIT: usize = 262_144;
 
@@ -136,14 +136,15 @@ fn check_live(node: &Node, site: &Site) -> Result<(), String> {
     let compound = node.attrs.get("data-fw-compound");
     let warp = node.attrs.get("data-fw-warp");
     let effect = node.attrs.get("data-fw-effect");
-    if (blend.is_some() || repeat.is_some() || brush.is_some() || stroke.is_some() || compound.is_some() || warp.is_some() || effect.is_some()) && node.tag != "g" { return Err("live blends, repeats, brushes, stroke options, compound shapes, envelopes and effects live on a group".into()); }
-    if [blend, repeat, brush, stroke, compound, warp, effect].iter().filter(|v| v.is_some()).count() > 1 { return Err("a group can be only one of a blend, a repeat, a brush or stroke options".into()); }
+    let freeform = node.attrs.get("data-fw-freeform");
+    if (blend.is_some() || repeat.is_some() || brush.is_some() || stroke.is_some() || compound.is_some() || warp.is_some() || effect.is_some() || freeform.is_some()) && node.tag != "g" { return Err("live blends, repeats, brushes, stroke options, compound shapes, envelopes, effects and freeform gradients live on a group".into()); }
+    if [blend, repeat, brush, stroke, compound, warp, effect, freeform].iter().filter(|v| v.is_some()).count() > 1 { return Err("a group can be only one of a blend, a repeat, a brush or stroke options".into()); }
     let kids: Vec<&Node> = node.children.iter().filter_map(|id| site.nodes.get(id)).collect();
     let mut live = 0;
     for child in &kids {
         let Some(kind) = child.attrs.get("data-fw-live") else { continue };
         live += 1;
-        let owned = match kind.as_str() { "blend" => blend.is_some(), "repeat" => repeat.is_some(), "brush" => brush.is_some(), "stroke" => stroke.is_some(), "compound" => compound.is_some(), "warp" => warp.is_some(), "effect" => effect.is_some(), _ => false };
+        let owned = match kind.as_str() { "blend" => blend.is_some(), "repeat" => repeat.is_some(), "brush" => brush.is_some(), "stroke" => stroke.is_some(), "compound" => compound.is_some(), "warp" => warp.is_some(), "effect" => effect.is_some(), "freeform" => freeform.is_some(), _ => false };
         let paths_only = child.children.iter().filter_map(|id| site.nodes.get(id)).all(|n| n.tag == "path");
         if !owned || child.tag != "g" || !paths_only { return Err("live copies must sit in a locked group inside their blend or repeat".into()); }
     }
@@ -177,6 +178,10 @@ fn check_live(node: &Node, site: &Site) -> Result<(), String> {
         if !env.is_empty() { ids.push(env); }
         if ids.is_empty() || !ids.iter().all(|id| source(id)) { return Err("an envelope must name its source paths inside its group".into()); }
     }
+    if let Some(raw) = freeform {
+        let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-freeform".to_string())?;
+        if !value.get("src").and_then(Value::as_str).map(|id| source(id)).unwrap_or(false) { return Err("a freeform gradient must name its source path inside its group".into()); }
+    }
     if effect.is_some() && kids.iter().filter(|k| k.tag == "path" && !k.attrs.contains_key("data-fw-live")).count() < 2 { return Err("a Pathfinder effect needs two or more paths inside its group".into()); }
     if let Some(raw) = repeat {
         let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-repeat".to_string())?;
@@ -202,7 +207,8 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-type" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| type_config(&v)).unwrap_or(false),
         "data-fw-blend" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| blend_config(&v)).unwrap_or(false),
         "data-fw-repeat" => value.len() <= 2048 && serde_json::from_str::<Value>(value).map(|v| repeat_config(&v)).unwrap_or(false),
-        "data-fw-live" => matches!(value, "blend" | "repeat" | "brush" | "stroke" | "compound" | "warp" | "effect"),
+        "data-fw-live" => matches!(value, "blend" | "repeat" | "brush" | "stroke" | "compound" | "warp" | "effect" | "freeform"),
+        "data-fw-freeform" => value.len() <= 4096 && serde_json::from_str::<Value>(value).map(|v| freeform_config(&v)).unwrap_or(false),
         "data-fw-effect" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| effect_config(&v)).unwrap_or(false),
         "data-fw-warp" => value.len() <= 120_000 && serde_json::from_str::<Value>(value).map(|v| warp_config(&v)).unwrap_or(false),
         "data-fw-compound" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| compound_config(&v)).unwrap_or(false),
@@ -377,6 +383,24 @@ fn mesh_ok(map: &serde_json::Map<String, Value>) -> bool {
     let (Some(rows), Some(cols)) = (grid("rows"), grid("cols")) else { return false };
     let Some(points) = map.get("mesh").and_then(Value::as_array) else { return false };
     points.len() as u64 == (rows + 1) * (cols + 1) * 2 && points.iter().all(|v| v.as_f64().map(|n| n.is_finite() && (-10.0..=10.0).contains(&n)).unwrap_or(false))
+}
+
+fn freeform_config(value: &Value) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    let list = |key: &str| map.get(key).and_then(Value::as_array).cloned().unwrap_or_default();
+    let (grads, pts, cols) = (list("grads"), list("pts"), list("cols"));
+    let ids: Vec<&str> = grads.iter().filter_map(Value::as_str).collect();
+    let unique: BTreeSet<&str> = ids.iter().copied().collect();
+    let unit = |v: &Value, lo: f64| v.as_f64().map(|n| n.is_finite() && n >= lo && n <= 1.0).unwrap_or(false);
+    let point = |p: &Value| p.as_array().map(|a| a.len() == 3 && unit(&a[0], 0.0) && unit(&a[1], 0.0) && unit(&a[2], 0.02)).unwrap_or(false);
+    let color = |c: &Value| c.as_str().map(|s| s.len() == 7 && s.starts_with('#') && s[1..].bytes().all(|b| b.is_ascii_hexdigit())).unwrap_or(false);
+    map.len() == 6
+        && map.get("v").and_then(Value::as_u64) == Some(1)
+        && map.get("src").and_then(Value::as_str).map(ref_id).unwrap_or(false)
+        && !ids.is_empty() && ids.len() <= 20 && ids.len() == grads.len() && unique.len() == ids.len() && ids.iter().all(|id| ref_id(id))
+        && pts.len() == ids.len() && pts.iter().all(point)
+        && cols.len() == ids.len() && cols.iter().all(color)
+        && sig_ok(map)
 }
 
 fn effect_config(value: &Value) -> bool {

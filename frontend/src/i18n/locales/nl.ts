@@ -1876,4 +1876,8 @@ export default [
   "Alle tekengebieden op deze pagina ({0})",
   "Voorvoegsel voor bestandsnaam",
   "Er zijn geen tekengebieden om te exporteren op deze pagina.",
+  "Vrije-vormverloop",
+  "Spreiding (%)",
+  "Punt van vrije-vormverloop",
+  "Klik binnen de vorm om een punt toe te voegen. Sleep een punt buiten de vorm of druk op Backspace om het te verwijderen.",
 ] as readonly string[];

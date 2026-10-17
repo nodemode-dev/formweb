@@ -1876,4 +1876,8 @@ export default [
   "Az oldal összes rajztáblája ({0})",
   "Fájlnév-előtag",
   "Ezen az oldalon nincs exportálható rajztábla.",
+  "Szabad formájú színátmenet",
+  "Szórás (%)",
+  "Szabad formájú színátmenet pontja",
+  "Pont hozzáadásához kattintson az alakzaton belül. Pont eltávolításához húzza ki az alakzatból, vagy nyomja meg a Backspace billentyűt.",
 ] as readonly string[];

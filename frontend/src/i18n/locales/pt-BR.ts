@@ -1876,4 +1876,8 @@ export default [
   "Todas as pranchetas desta página ({0})",
   "Prefixo do nome do arquivo",
   "Não há pranchetas para exportar nesta página.",
+  "Gradiente de forma livre",
+  "Espalhamento (%)",
+  "Ponto do gradiente de forma livre",
+  "Clique dentro da forma para adicionar um ponto. Arraste um ponto para fora da forma ou pressione Backspace para removê-lo.",
 ] as readonly string[];

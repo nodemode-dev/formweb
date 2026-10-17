@@ -1150,6 +1150,7 @@ export class Editor {
     if (this.tool === 'blob' && (event.key === '[' || event.key === ']')) { const size = stepBlobSize(event.key === ']'); this.notify(t('Blob Brush size: {0}', [String(size)])); event.preventDefault(); return; }
     if ((event.key === 'Backspace' || event.key === 'Delete')) {
       if (this.pen) { this.pen.nodes.pop(); if (!this.pen.nodes.length) this.pen = null; this.render(); event.preventDefault(); event.stopPropagation(); return; }
+      if (this.extras.deleteFreeformStop()) { event.preventDefault(); event.stopPropagation(); return; }
       const refs = this.selectedRefs();
       if (refs.length) { this.deleteRefs(refs); event.preventDefault(); event.stopPropagation(); }
       return;

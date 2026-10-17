@@ -497,3 +497,37 @@ class AreaTypeDialog {
 
 let areaDialog: AreaTypeDialog | undefined;
 export const openAreaType = (host: Host): void => { (areaDialog ??= new AreaTypeDialog()).open(host); };
+
+/* Freeform gradient stop: colour and spread, opened by double-clicking a stop with the Gradient tool. */
+
+class FreeformStopDialog {
+  private dialog: Shell | null = null;
+  private color = element('input', 'fw-v-color');
+  private spread = numberField(t('Spread (%)'), 2, 100);
+  private apply: ((color: string, spread: number) => void) | null = null;
+
+  private build(): Shell {
+    this.color.type = 'color';
+    const field = element('div', 'field');
+    field.append(element('span', 'field-label', t('Color')), this.color);
+    return shell(t('Freeform Gradient Stop'), [field, this.spread.field, element('p', 'fw-v-note', t('Click inside the shape to add a stop. Drag a stop outside the shape or press Backspace to remove it.'))], () => this.submit());
+  }
+
+  open(color: string, spread: number, apply: (color: string, spread: number) => void): void {
+    this.dialog = this.dialog ?? this.build();
+    this.apply = apply;
+    this.color.value = color;
+    this.spread.input.value = String(Math.round(spread * 100));
+    this.dialog.open(this.spread.input);
+  }
+
+  private submit(): void {
+    const n = parseFloat(this.spread.input.value);
+    const spread = Number.isFinite(n) ? Math.max(2, Math.min(100, n)) / 100 : 0.5;
+    this.apply?.(this.color.value, spread);
+    this.dialog?.close();
+  }
+}
+
+let stopDialog: FreeformStopDialog | undefined;
+export const openFreeformStop = (color: string, spread: number, apply: (color: string, spread: number) => void): void => { (stopDialog ??= new FreeformStopDialog()).open(color, spread, apply); };

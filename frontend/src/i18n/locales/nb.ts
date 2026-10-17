@@ -1876,4 +1876,8 @@ export default [
   "Alle tegnebrett på denne siden ({0})",
   "Prefiks for filnavn",
   "Det finnes ingen tegnebrett å eksportere på denne siden.",
+  "Frihåndsovergang",
+  "Spredning (%)",
+  "Fargepunkt i frihåndsovergang",
+  "Klikk inne i figuren for å legge til et punkt. Dra et punkt ut av figuren eller trykk Backspace for å fjerne det.",
 ] as readonly string[];

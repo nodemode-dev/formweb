@@ -1876,4 +1876,8 @@ export default [
   "Bu sayfadaki tüm çalışma yüzeyleri ({0})",
   "Dosya adı öneki",
   "Bu sayfada dışa aktarılacak çalışma yüzeyi yok.",
+  "Serbest biçimli degrade",
+  "Yayılma (%)",
+  "Serbest biçimli degrade noktası",
+  "Nokta eklemek için şeklin içine tıklayın. Bir noktayı kaldırmak için şeklin dışına sürükleyin veya Backspace tuşuna basın.",
 ] as readonly string[];

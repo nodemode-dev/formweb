@@ -1876,4 +1876,8 @@ export default [
   "Tất cả bảng vẽ trên trang này ({0})",
   "Tiền tố tên tệp",
   "Không có bảng vẽ nào để xuất trên trang này.",
+  "Chuyển màu tự do",
+  "Độ lan (%)",
+  "Điểm chuyển màu tự do",
+  "Nhấp vào bên trong hình để thêm điểm. Kéo một điểm ra ngoài hình hoặc nhấn Backspace để xóa điểm đó.",
 ] as readonly string[];

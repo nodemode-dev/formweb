@@ -1,7 +1,7 @@
 import { element, text, value } from '../ui/dom';
 import { t, tn } from '../i18n';
 import type { AlignMode, AlignTo, DistributeMode, RepeatParams } from './arrange';
-import { readBlend, readRepeat, type BlendMode } from './live';
+import { liveOf, readBlend, readRepeat, type BlendMode } from './live';
 import { BrushSections } from './brushpanel';
 import type { TfMode } from './freetransform';
 import { symbolsIn } from './symbols';
@@ -60,7 +60,7 @@ interface StopRow { root: HTMLElement; color: HTMLInputElement; offset: HTMLInpu
 export class ExtraSections {
   readonly sections: HTMLElement[] = [];
   private target: ReturnType<typeof segment<Target>>;
-  private kind: ReturnType<typeof segment<'solid' | 'linear' | 'radial'>>;
+  private kind: ReturnType<typeof segment<'solid' | 'linear' | 'radial' | 'freeform'>>;
   private spread: ReturnType<typeof segment<'pad' | 'reflect' | 'repeat'>>;
   private angle: HTMLInputElement;
   private bar = element('div', 'fw-v-gradbar');
@@ -104,7 +104,7 @@ export class ExtraSections {
 
     const gradient = section('Gradient', true);
     this.target = segment<Target>([{ id: 'fill', label: 'Fill' }, { id: 'stroke', label: 'Stroke' }], id => { extras.target = id; editor.emit(); editor.render(); });
-    this.kind = segment<'solid' | 'linear' | 'radial'>([{ id: 'solid', label: 'Solid' }, { id: 'linear', label: 'Linear' }, { id: 'radial', label: 'Radial' }], id => { void ops.paintKind(extras.target, id); });
+    this.kind = segment<'solid' | 'linear' | 'radial' | 'freeform'>([{ id: 'solid', label: 'Solid' }, { id: 'linear', label: 'Linear' }, { id: 'radial', label: 'Radial' }, { id: 'freeform', label: 'Freeform' }], id => { void (id === 'freeform' ? ops.freeform() : ops.paintKind(extras.target, id)); });
     this.spread = segment<'pad' | 'reflect' | 'repeat'>([{ id: 'pad', label: 'Pad' }, { id: 'reflect', label: 'Reflect' }, { id: 'repeat', label: 'Repeat' }], id => { void ops.gradient(extras.target, g => { g.spread = id; }); });
     this.angle = numberInput(-360, 360, 1, n => { void ops.gradientAngle(extras.target, n); });
     for (let i = 0; i < STOP_ROWS; i++) {
@@ -411,7 +411,9 @@ export class ExtraSections {
     const shape = e.selection.map(id => e.shapeOf(id)).find(s => !!s);
     const found = shape ? readFor(e.host(), shape, extras.target) : undefined;
     const g = found?.gradient;
-    this.kind.set(g ? g.kind : 'solid');
+    let freeform = false;
+    try { const site = e.host().site(); freeform = e.selection.some(id => liveOf(site, id)?.kind === 'freeform'); } catch { freeform = false; }
+    this.kind.set(freeform ? 'freeform' : g ? g.kind : 'solid');
     this.spread.set(g ? g.spread : 'pad');
     this.angle.disabled = !g || g.kind !== 'linear';
     if (g) value(this.angle, String(Math.round(angleOf(g))));

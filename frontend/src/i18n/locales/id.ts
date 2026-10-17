@@ -1876,4 +1876,8 @@ export default [
   "Semua artboard di halaman ini ({0})",
   "Awalan nama file",
   "Tidak ada artboard untuk diekspor di halaman ini.",
+  "Gradien bentuk bebas",
+  "Sebaran (%)",
+  "Titik gradien bentuk bebas",
+  "Klik di dalam bentuk untuk menambahkan titik. Seret titik ke luar bentuk atau tekan Backspace untuk menghapusnya.",
 ] as readonly string[];

@@ -1876,4 +1876,8 @@ export default [
   "Tous les plans de travail de cette page ({0})",
   "Préfixe des noms de fichier",
   "Aucun plan de travail à exporter sur cette page.",
+  "Dégradé de forme libre",
+  "Étendue (%)",
+  "Point de dégradé de forme libre",
+  "Cliquez dans la forme pour ajouter un point. Faites glisser un point hors de la forme ou appuyez sur Retour arrière pour le supprimer.",
 ] as readonly string[];

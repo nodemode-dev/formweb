@@ -1876,4 +1876,8 @@ export default [
   "Wszystkie obszary robocze tej strony ({0})",
   "Prefiks nazwy pliku",
   "Na tej stronie nie ma obszarów roboczych do eksportu.",
+  "Gradient dowolny",
+  "Rozproszenie (%)",
+  "Punkt gradientu dowolnego",
+  "Kliknij wewnątrz kształtu, aby dodać punkt. Przeciągnij punkt poza kształt lub naciśnij Backspace, aby go usunąć.",
 ] as readonly string[];

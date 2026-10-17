@@ -1876,4 +1876,8 @@ export default [
   "Alle tegnebrætter på denne side ({0})",
   "Præfiks til filnavn",
   "Der er ingen tegnebrætter at eksportere på denne side.",
+  "Frihåndsovergang",
+  "Spredning (%)",
+  "Farvepunkt i frihåndsovergang",
+  "Klik inde i figuren for at tilføje et punkt. Træk et punkt ud af figuren, eller tryk på Backspace for at fjerne det.",
 ] as readonly string[];

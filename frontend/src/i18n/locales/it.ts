@@ -1876,4 +1876,8 @@ export default [
   "Tutte le tavole da disegno di questa pagina ({0})",
   "Prefisso del nome file",
   "Nessuna tavola da disegno da esportare in questa pagina.",
+  "Sfumatura a forma libera",
+  "Diffusione (%)",
+  "Punto della sfumatura a forma libera",
+  "Fai clic all'interno della forma per aggiungere un punto. Trascina un punto fuori dalla forma o premi Backspace per rimuoverlo.",
 ] as readonly string[];

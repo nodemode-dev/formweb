@@ -1876,4 +1876,8 @@ export default [
   "Kaikki tämän sivun piirtoalueet ({0})",
   "Tiedostonimen etuliite",
   "Tällä sivulla ei ole vietäviä piirtoalueita.",
+  "Vapaamuotoinen liukuväri",
+  "Levitys (%)",
+  "Vapaamuotoisen liukuvärin piste",
+  "Lisää piste napsauttamalla muodon sisällä. Poista piste vetämällä se muodon ulkopuolelle tai painamalla askelpalautinta.",
 ] as readonly string[];

@@ -1876,4 +1876,8 @@ export default [
   "Všechna kreslicí plátna na této stránce ({0})",
   "Předpona názvu souboru",
   "Na této stránce nejsou žádná kreslicí plátna k exportu.",
+  "Volný přechod",
+  "Rozptyl (%)",
+  "Bod volného přechodu",
+  "Kliknutím do tvaru přidáte bod. Bod odstraníte přetažením mimo tvar nebo klávesou Backspace.",
 ] as readonly string[];

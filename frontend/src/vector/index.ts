@@ -93,6 +93,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.path.objects-on-path', label: 'Attach objects to path', menu: MENU, group: 4, mutates: true, run: () => { const cmds = objectsOnPathCommands(editor.host()); if (cmds.length) void editor.commit(cmds); }, enabled: hasPair },
     { id: 'vector.type.area', label: 'Area type...', menu: MENU, group: 7, mutates: true, run: () => openAreaType(editor.host()), enabled: hasShape },
     { id: 'vector.pattern.make', label: 'Make pattern...', menu: MENU, group: 7, run: () => openPattern(editor.host()), enabled: hasPair },
+    { id: 'vector.gradient.freeform', label: 'Freeform gradient', menu: MENU, group: 7, mutates: true, run: () => { void editor.ops.freeform(); }, enabled: hasShape },
     { id: 'vector.effect.tweak', label: 'Tweak...', menu: MENU, group: 7, run: () => openTweak(editor.host()), enabled: hasShape },
     { id: 'vector.path.simplify', label: 'Simplify path', menu: MENU, group: 4, run: () => editor.runPathOp('simplify', 1), enabled: hasShape },
     { id: 'vector.path.offset', label: 'Offset path', menu: MENU, group: 4, run: () => editor.runPathOp('offset', 8), enabled: hasShape },

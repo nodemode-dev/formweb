@@ -5,12 +5,13 @@ import {
 } from './arrange';
 import { applyCorners } from './corners';
 import { distortSubs, warpSubs, type DistortOptions, type WarpOptions } from './distort';
+import { defaultStops, sourceBox, writeStops } from './freeform';
 import { editGradient, setPaintKind, withAngle, type Gradient, type Target } from './gradient';
 import type { Host } from './host';
 import type { PathfinderOp } from './boolean';
 import { blendAttrs, compoundAttrs, effectAttrs, expandCommands, liveContainer, liveOf, readBlend, readRepeat, releaseCommands, removeEffectCommands, repeatAttrs, type BlendMode, type CompoundOp, type LiveKind } from './live';
 import { rememberEach, rememberTransform } from './select';
-import { pathIds, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
+import { pathIds, refOf, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
 import { breakCommands, defineCommands, placeCommands } from './symbols';
 import { presetCommands, readWidth, widthCommands } from './stroke';
 import { strokeCommands, strokeModelOf } from './strokecmd';
@@ -150,7 +151,7 @@ export class Ops {
   }
 
   async expandLive(): Promise<void> {
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp') ?? this.liveSelected('effect');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp') ?? this.liveSelected('effect') ?? this.liveSelected('freeform');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     const site = this.h.site();
     const holder = site.nodes[group].children.find(id => site.nodes[id]?.attrs['data-fw-live']);
@@ -160,11 +161,28 @@ export class Ops {
   async releaseLive(): Promise<void> {
     const fxGroup = this.liveSelected('effect');
     if (fxGroup) { await this.removeEffect(); return; }
-    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp');
+    const group = this.liveSelected('blend') ?? this.liveSelected('repeat') ?? this.liveSelected('brush') ?? this.liveSelected('stroke') ?? this.liveSelected('compound') ?? this.liveSelected('warp') ?? this.liveSelected('freeform');
     if (!group) { this.h.notify('Select a live blend or repeat first.'); return; }
     const made = releaseCommands(this.h.site(), group);
     this.leave();
     await this.run(made.cmds, made.sources);
+  }
+
+  /* Freeform gradient, Points mode: the selected path becomes the source of a live group with five stops. */
+  async freeform(): Promise<void> {
+    const site = this.h.site();
+    const shape = this.shapes()[0];
+    if (!shape) { this.h.notify('Select a path first.'); return; }
+    const owner = liveOf(site, shape.id);
+    if (owner?.kind === 'freeform') { this.h.notify('This path already has a freeform gradient.'); return; }
+    if (owner) { this.h.notify('This path already belongs to a live blend or repeat.'); return; }
+    const src = site.nodes[shape.id].attrs;
+    if (!sourceBox(src)) { this.h.notify('A freeform gradient needs a path with width and height.'); return; }
+    const grouped = groupCommands(this.h, [shape.id], 'Freeform gradient');
+    if (!grouped) return;
+    const fill = src.fill && !refOf(src.fill) && src.fill !== 'none' ? src.fill : '#f97316';
+    const stops = writeStops(site, shape.svg, grouped.group, { v: 1, src: shape.id, grads: [], pts: [], cols: [], sig: '00000000' }, defaultStops(fill), src);
+    await this.run([...grouped.cmds, ...stops], [shape.id]);
   }
 
   async defineSymbol(name: string): Promise<void> {

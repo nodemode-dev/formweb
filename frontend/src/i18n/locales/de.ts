@@ -1876,4 +1876,8 @@ export default [
   "Alle Zeichenflächen dieser Seite ({0})",
   "Präfix für Dateinamen",
   "Auf dieser Seite gibt es keine Zeichenflächen zum Exportieren.",
+  "Freihandverlauf",
+  "Ausbreitung (%)",
+  "Freihandverlauf-Farbpunkt",
+  "Klicken Sie in die Form, um einen Farbpunkt hinzuzufügen. Ziehen Sie einen Farbpunkt aus der Form heraus oder drücken Sie die Rücktaste, um ihn zu entfernen.",
 ] as readonly string[];

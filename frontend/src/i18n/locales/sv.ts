@@ -1876,4 +1876,8 @@ export default [
   "Alla ritytor på den här sidan ({0})",
   "Prefix för filnamn",
   "Det finns inga ritytor att exportera på den här sidan.",
+  "Frihandsövertoning",
+  "Spridning (%)",
+  "Punkt i frihandsövertoning",
+  "Klicka inuti formen för att lägga till en punkt. Dra en punkt utanför formen eller tryck på Backsteg för att ta bort den.",
 ] as readonly string[];
