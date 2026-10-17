@@ -1,5 +1,12 @@
 # Frontend context map
 
+## Shift and Alt on artboard handles · v0.10.5 (2026-10-17)
+
+Edits in `vector/editor.ts` only: the `boardsize` gesture carries `shift` and `alt`, refreshed from each pointer move; `boardSize` is rewritten as one computation: the dragged sides change by the pointer delta (twice with Alt), Shift keeps the starting width to height ratio (an edge handle drives the other side from its own, a corner follows the larger relative change), and the box is placed against the opposite side, or around the starting center with Alt or for the free axis of an edge handle. Minimum 1 px per side.
+
+- **Source basis:** Shift keeps proportions from Logos by Nick ("Resize the artboard in Illustrator") and SoftwareHow; Alt or Option from the center from Logos by Nick only (single source, flagged).
+- **Driven (CPU 4x, 400 ms latency, slow network, cache off), artboard 200 by 140 on screen with a rectangle inside:** Shift on the bottom-right corner, 60 by 10: 260 by 182 (ratio kept); Alt on the same corner, 30 by 20: 260 by 180 with the corner moved to 441, 316 (centered); plain right edge, 40: 240 by 140; Shift on the bottom edge, 20: 229 by 160 centered horizontally. The rectangle stayed at [521,376,80,60] each time; undo between runs restored the start. No layout shifts, no page errors.
+
 ## Artboard resize handles · v0.10.4 (2026-10-17)
 
 Edits in `vector/editor.ts` only: Gesture `boardsize`; `BOARD_HANDLES` (eight handles, corners and edge midpoints); `render()` calls new `decorateBoard` when the Artboard tool is active; `down()` routes role `x-abh` to new `downBoardHandle` (the `x-` prefix is what gives overlay circles pointer events in `vector.css`; `Extras.down` ignores the unknown role and returns false); `move()` and `up()` route to new `dragBoardHandle` and `finishBoardHandle`; new `selectedBoard`, `boardSize`, `boardAttrs`; `ExtraItem` type imported from the overlay.

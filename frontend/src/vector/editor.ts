@@ -64,7 +64,7 @@ type Gesture =
   | { kind: 'pathmove'; start: Pt; base: Map<string, SubPath[]>; svg?: string; moved: boolean }
   | { kind: 'usemove'; id: string; start: Pt; x: number; y: number; nx: number; ny: number; moved: boolean }
   | { kind: 'board'; start: Pt; current: Pt; svg: string | null; base: [number, number] }
-  | { kind: 'boardsize'; svg: string; handle: number; start: Pt; box: [number, number, number, number]; left: number; top: number; vb: [number, number, number, number]; next: [number, number, number, number] | null };
+  | { kind: 'boardsize'; svg: string; handle: number; start: Pt; box: [number, number, number, number]; left: number; top: number; vb: [number, number, number, number]; next: [number, number, number, number] | null; shift: boolean; alt: boolean };
 
 const BOARD_HANDLES: [number, number][] = [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]];
 
@@ -791,7 +791,7 @@ export class Editor {
       return;
     }
     if (g.kind === 'paint') { if (dist(g.pts[g.pts.length - 1], p) > 1.5 * this.px()) { g.pts.push(p); this.render(); } return; }
-    if (g.kind === 'boardsize') { this.dragBoardHandle(g, p); this.render(); return; }
+    if (g.kind === 'boardsize') { g.shift = event.shiftKey; g.alt = event.altKey; this.dragBoardHandle(g, p); this.render(); return; }
     if (g.kind === 'board') {
       g.current = p;
       const el = g.svg ? this.element(g.svg) as SVGSVGElement | null : null;
@@ -1248,17 +1248,27 @@ export class Editor {
     const w = parseFloat(node.attrs.width ?? '') || r.width, h = parseFloat(node.attrs.height ?? '') || r.height;
     const vbRaw = (node.attrs.viewBox ?? '').split(/[\s,]+/).map(Number);
     const vb: [number, number, number, number] = vbRaw.length === 4 && vbRaw.every(Number.isFinite) && vbRaw[2] > 0 && vbRaw[3] > 0 ? [vbRaw[0], vbRaw[1], vbRaw[2], vbRaw[3]] : [0, 0, w, h];
-    this.gesture = { kind: 'boardsize', svg, handle, start: p, box: [r.left, r.top, r.width, r.height], left: parseFloat(node.styles.left ?? '0') || 0, top: parseFloat(node.styles.top ?? '0') || 0, vb, next: null };
+    this.gesture = { kind: 'boardsize', svg, handle, start: p, box: [r.left, r.top, r.width, r.height], left: parseFloat(node.styles.left ?? '0') || 0, top: parseFloat(node.styles.top ?? '0') || 0, vb, next: null, shift: false, alt: false };
     this.render();
   }
 
   private boardSize(g: Extract<Gesture, { kind: 'boardsize' }>, p: Pt): { x0: number; y0: number; x1: number; y1: number } {
     const [fx, fy] = BOARD_HANDLES[g.handle];
     const dx = p[0] - g.start[0], dy = p[1] - g.start[1];
-    let x0 = g.box[0], y0 = g.box[1], x1 = g.box[0] + g.box[2], y1 = g.box[1] + g.box[3];
-    if (fx === 0) x0 = Math.min(x0 + dx, x1 - 1); else if (fx === 1) x1 = Math.max(x1 + dx, x0 + 1);
-    if (fy === 0) y0 = Math.min(y0 + dy, y1 - 1); else if (fy === 1) y1 = Math.max(y1 + dy, y0 + 1);
-    return { x0, y0, x1, y1 };
+    const both = g.alt ? 2 : 1;
+    let w = Math.max(1, g.box[2] + (fx === 0 ? -dx : fx === 1 ? dx : 0) * both);
+    let h = Math.max(1, g.box[3] + (fy === 0 ? -dy : fy === 1 ? dy : 0) * both);
+    if (g.shift && g.box[2] > 0 && g.box[3] > 0) {
+      const ratio = g.box[2] / g.box[3];
+      if (fx === 0.5) w = h * ratio;
+      else if (fy === 0.5) h = w / ratio;
+      else if (w / g.box[2] >= h / g.box[3]) h = w / ratio;
+      else w = h * ratio;
+    }
+    const cx = g.box[0] + g.box[2] / 2, cy = g.box[1] + g.box[3] / 2;
+    const x0 = g.alt || fx === 0.5 ? cx - w / 2 : fx === 0 ? g.box[0] + g.box[2] - w : g.box[0];
+    const y0 = g.alt || fy === 0.5 ? cy - h / 2 : fy === 0 ? g.box[1] + g.box[3] - h : g.box[1];
+    return { x0, y0, x1: x0 + w, y1: y0 + h };
   }
 
   private boardAttrs(g: Extract<Gesture, { kind: 'boardsize' }>, b: { x0: number; y0: number; x1: number; y1: number }): { attrs: Record<string, string>; styles: Record<string, string> } {
