@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.7 · 2026-10-17
+
+- Release selection from thread takes the selected shapes out of a text thread. The shapes stay, their text goes, and the words carry on into the next shape. Releasing the first shape makes the next one the start of the thread.
+
 ## 0.11.6 · 2026-10-17
 
 - Threaded text has in and out ports: select area type to see a port at the top left and bottom right of each of its shapes, joined by thread lines, with a red plus on the last out port when words are left over. Click an out port, then click a closed shape to continue the text in it, or an empty spot to add a copy of the shape there; Esc cancels. Double-click a port to break the thread there.

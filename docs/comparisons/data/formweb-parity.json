@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.11.6",
- "previous": "0.11.5",
+ "version": "0.11.7",
+ "previous": "0.11.6",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Area type (FW-175) stays Partial with Release Selection for single shapes in a thread added.",
@@ -7945,6 +7945,13 @@
    "same_as": "0.11.4",
    "moved": {},
    "note": "Live Live Paint groups. No grade change, 116 of 134."
+  },
+  {
+   "version": "0.11.6",
+   "date": "2026-10-17",
+   "same_as": "0.11.5",
+   "moved": {},
+   "note": "Threaded text ports and Remove Threading. No grade change, 116 of 134."
   }
  ],
  "changes": [
