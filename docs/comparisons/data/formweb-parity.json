@@ -4,7 +4,7 @@
  "previous": "0.10.5",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Freeform gradients (FW-177) added as Partial: Points mode with stops to add, move, spread, recolour and remove on the canvas; no Lines mode.",
+ "release_note": "Freeform gradients (FW-177) stays Partial with Lines mode added: stops joined by a line carry their colour along it.",
  "lanes": [
   [
    "m",
@@ -7055,8 +7055,8 @@
    "added": "0.10.6",
    "m": [
     "partial",
-    "v0.10.6: driven in Chromium under CPU 4x and slow network. Freeform in the Gradient panel made a live group with five stops; with the Gradient tool a stop moved by dragging, a click inside added a sixth, Backspace removed it, the ring handle set the spread, dragging a stop outside removed it, and a double-click opened colour and spread. Editing the source path refreshed the stops, the export kept them, and each action was one undo step.",
-    "Points mode only (no Lines mode), no opacity per stop or several stops selected at once; rendered as layered radial gradients, so later stops cover earlier ones and the blend is close to Illustrator's but not the same."
+    "v0.10.6: driven in Chromium under CPU 4x and slow network. Freeform in the Gradient panel made a live group with five stops; with the Gradient tool a stop moved by dragging, a click inside added a sixth, Backspace removed it, the ring handle set the spread, dragging a stop outside removed it, and a double-click opened colour and spread. Editing the source path refreshed the stops, the export kept them, and each action was one undo step. v0.10.7: Lines mode drew two lines of stops with the colour running along each line; moving or removing a line stop updated the line, Escape ended a line, and Points mode made free stops again.",
+    "Straight line segments only, no joining an existing stop to a line, no opacity per stop or several stops selected at once; rendered as layered radial gradients, so later stops cover earlier ones and the blend is close to Illustrator's but not the same; many line samples slow the editor."
    ],
    "fr": [
     "none",
