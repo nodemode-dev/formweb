@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.10.5",
- "previous": "0.10.4",
+ "version": "0.10.6",
+ "previous": "0.10.5",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Freeform gradients (FW-177) added as Partial: Points mode with stops to add, move, spread, recolour and remove on the canvas; no Lines mode.",
@@ -7868,6 +7868,13 @@
    "same_as": "0.10.3",
    "moved": {},
    "note": "Artboard resize handles on the canvas. No grade change, 115.5 of 133."
+  },
+  {
+   "version": "0.10.5",
+   "date": "2026-10-17",
+   "same_as": "0.10.4",
+   "moved": {},
+   "note": "Shift and Alt on artboard handles. No grade change, 115.5 of 133."
   }
  ],
  "changes": [

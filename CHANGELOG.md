@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.6 · 2026-10-17
+
+- Freeform gradients: choose Freeform in the Gradient panel to color a shape with stops you place anywhere inside it. With the Gradient tool (G), drag a stop to move it, drag its ring to change how far its color spreads, click inside the shape to add a stop, and drag a stop outside or press Backspace to remove it. Double-click a stop to change its color and spread. Lines mode is not available yet.
+- Fix: making a live object that creates its group in the same step is now a single undo step.
+
 ## 0.10.5 · 2026-10-17
 
 - Artboard handles: hold Shift to keep the artboard's proportions and Alt (Option on Mac) to resize it from its center. The artwork still stays where it is.
