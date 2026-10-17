@@ -1891,4 +1891,10 @@ export default [
   "De gauche à droite",
   "De droite à gauche",
   "Aucun plan de travail à réorganiser sur cette page.",
+  "Hexagone par colonne",
+  "Hexagone par ligne",
+  "Modifier le motif...",
+  "Mettre à jour le motif",
+  "Sélectionnez une forme remplie d'un motif.",
+  "Modifie le motif de la forme sélectionnée ; toutes les formes qui l'utilisent sont mises à jour.",
 ] as readonly string[];

@@ -1891,4 +1891,10 @@ export default [
   "Kiri ke kanan",
   "Kanan ke kiri",
   "Tidak ada artboard untuk diatur ulang di halaman ini.",
+  "Heksagon per kolom",
+  "Heksagon per baris",
+  "Edit pola...",
+  "Perbarui pola",
+  "Pilih bentuk yang diisi pola.",
+  "Mengubah pola bentuk yang dipilih; semua bentuk yang memakainya ikut diperbarui.",
 ] as readonly string[];

@@ -1891,4 +1891,10 @@ export default [
   "Zleva doprava",
   "Zprava doleva",
   "Na této stránce nejsou žádná kreslicí plátna k uspořádání.",
+  "Šestiúhelníky po sloupcích",
+  "Šestiúhelníky po řádcích",
+  "Upravit vzorek...",
+  "Aktualizovat vzorek",
+  "Vyberte tvar vyplněný vzorkem.",
+  "Změní vzorek vybraného tvaru; aktualizují se všechny tvary, které ho používají.",
 ] as readonly string[];

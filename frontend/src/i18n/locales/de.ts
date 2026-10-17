@@ -1891,4 +1891,10 @@ export default [
   "Von links nach rechts",
   "Von rechts nach links",
   "Auf dieser Seite gibt es keine Zeichenflächen zum Neuanordnen.",
+  "Hex nach Spalte",
+  "Hex nach Zeile",
+  "Muster bearbeiten ...",
+  "Muster aktualisieren",
+  "Wählen Sie eine mit einem Muster gefüllte Form aus.",
+  "Ändert das Muster der ausgewählten Form; alle Formen mit diesem Muster werden aktualisiert.",
 ] as readonly string[];

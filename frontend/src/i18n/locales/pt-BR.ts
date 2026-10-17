@@ -1891,4 +1891,10 @@ export default [
   "Da esquerda para a direita",
   "Da direita para a esquerda",
   "Não há pranchetas para reorganizar nesta página.",
+  "Hexágono por coluna",
+  "Hexágono por linha",
+  "Editar padrão...",
+  "Atualizar padrão",
+  "Selecione uma forma preenchida com um padrão.",
+  "Altera o padrão da forma selecionada; todas as formas que o usam são atualizadas.",
 ] as readonly string[];

@@ -1051,8 +1051,9 @@ function update(next: EditorState): void {
   function walk(id: string, depth: number): void {
     const item = site.nodes[id];
     if (!item) return;
-    layers.push({ node: item, depth });
+    /* Paint definitions (patterns and gradients) are not layers; listing them made each new one push the rows below it. */
     if (item.tag === 'pattern' || item.tag === 'linearGradient' || item.tag === 'radialGradient') return;
+    layers.push({ node: item, depth });
     item.children.forEach(child => { if (site.nodes[child]?.tag !== 'tspan') walk(child, depth + 1); });
   }
   walk(page.root, 0);

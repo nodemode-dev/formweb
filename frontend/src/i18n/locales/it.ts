@@ -1891,4 +1891,10 @@ export default [
   "Da sinistra a destra",
   "Da destra a sinistra",
   "Nessuna tavola da disegno da ridisporre in questa pagina.",
+  "Esagono per colonna",
+  "Esagono per riga",
+  "Modifica pattern...",
+  "Aggiorna pattern",
+  "Seleziona una forma riempita con un pattern.",
+  "Modifica il pattern della forma selezionata; tutte le forme che lo usano vengono aggiornate.",
 ] as readonly string[];

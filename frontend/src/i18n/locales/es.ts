@@ -1891,4 +1891,10 @@ export default [
   "De izquierda a derecha",
   "De derecha a izquierda",
   "No hay mesas de trabajo para reorganizar en esta página.",
+  "Hexágono por columna",
+  "Hexágono por fila",
+  "Editar motivo...",
+  "Actualizar motivo",
+  "Seleccione una forma rellena con un motivo.",
+  "Cambia el motivo de la forma seleccionada; se actualizan todas las formas que lo usan.",
 ] as readonly string[];

@@ -1891,4 +1891,10 @@ export default [
   "Trái sang phải",
   "Phải sang trái",
   "Không có bảng vẽ nào để sắp xếp lại trên trang này.",
+  "Lục giác theo cột",
+  "Lục giác theo hàng",
+  "Sửa mẫu tô...",
+  "Cập nhật mẫu tô",
+  "Hãy chọn một hình được tô bằng mẫu.",
+  "Thay đổi mẫu tô của hình đã chọn; mọi hình dùng mẫu này đều được cập nhật.",
 ] as readonly string[];

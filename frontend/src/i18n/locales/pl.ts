@@ -1891,4 +1891,10 @@ export default [
   "Od lewej do prawej",
   "Od prawej do lewej",
   "Na tej stronie nie ma obszarów roboczych do rozmieszczenia.",
+  "Sześciokąt kolumnami",
+  "Sześciokąt wierszami",
+  "Edytuj wzorek...",
+  "Aktualizuj wzorek",
+  "Zaznacz kształt wypełniony wzorkiem.",
+  "Zmienia wzorek zaznaczonego kształtu; aktualizowane są wszystkie kształty, które go używają.",
 ] as readonly string[];

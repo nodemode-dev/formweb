@@ -1891,4 +1891,10 @@ export default [
   "Vänster till höger",
   "Höger till vänster",
   "Det finns inga ritytor att ordna om på den här sidan.",
+  "Sexhörning per kolumn",
+  "Sexhörning per rad",
+  "Redigera mönster...",
+  "Uppdatera mönster",
+  "Markera en form som är fylld med ett mönster.",
+  "Ändrar mönstret för den markerade formen; alla former som använder det uppdateras.",
 ] as readonly string[];

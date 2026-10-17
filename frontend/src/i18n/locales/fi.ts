@@ -1891,4 +1891,10 @@ export default [
   "Vasemmalta oikealle",
   "Oikealta vasemmalle",
   "Tällä sivulla ei ole järjestettäviä piirtoalueita.",
+  "Kuusikulmio sarakkeittain",
+  "Kuusikulmio riveittäin",
+  "Muokkaa kuviota...",
+  "Päivitä kuvio",
+  "Valitse kuviolla täytetty muoto.",
+  "Muuttaa valitun muodon kuviota; kaikki sitä käyttävät muodot päivittyvät.",
 ] as readonly string[];

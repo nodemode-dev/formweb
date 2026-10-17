@@ -1891,4 +1891,10 @@ export const KEYS: readonly string[] = [
   "Left to right",
   "Right to left",
   "No artboards on this page to rearrange.",
+  "Hex by Column",
+  "Hex by Row",
+  "Edit pattern...",
+  "Update pattern",
+  "Select a shape filled with a pattern.",
+  "Changes the pattern of the selected shape; every shape using it updates.",
 ];

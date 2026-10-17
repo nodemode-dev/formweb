@@ -1891,4 +1891,10 @@ export default [
   "Balról jobbra",
   "Jobbról balra",
   "Ezen az oldalon nincs átrendezhető rajztábla.",
+  "Hatszög oszloponként",
+  "Hatszög soronként",
+  "Minta szerkesztése...",
+  "Minta frissítése",
+  "Jelöljön ki egy mintával kitöltött alakzatot.",
+  "Módosítja a kijelölt alakzat mintáját; az összes ezt használó alakzat frissül.",
 ] as readonly string[];

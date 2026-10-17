@@ -1891,4 +1891,10 @@ export default [
   "Van links naar rechts",
   "Van rechts naar links",
   "Er zijn geen tekengebieden om te herschikken op deze pagina.",
+  "Zeshoek per kolom",
+  "Zeshoek per rij",
+  "Patroon bewerken...",
+  "Patroon bijwerken",
+  "Selecteer een vorm die met een patroon is gevuld.",
+  "Wijzigt het patroon van de geselecteerde vorm; alle vormen die het gebruiken worden bijgewerkt.",
 ] as readonly string[];

@@ -30,7 +30,7 @@ pub fn attr_allowed(tag: &str, name: &str) -> bool {
         || (tag == "text" && matches!(name, "x" | "y" | "dy" | "font-size" | "font-family" | "font-weight" | "letter-spacing" | "text-anchor"))
         || (tag == "textPath" && matches!(name, "startOffset" | "dy"))
         || (tag == "use" && matches!(name, "x" | "y" | "width" | "height"))
-        || (tag == "pattern" && matches!(name, "x" | "y" | "width" | "height" | "patternUnits" | "patternTransform"))
+        || (tag == "pattern" && matches!(name, "x" | "y" | "width" | "height" | "patternUnits" | "patternTransform" | "data-fw-pattern"))
         || (tag == "tspan" && matches!(name, "x" | "y" | "dx" | "dy"))
 }
 
@@ -213,6 +213,7 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "data-fw-warp" => value.len() <= 120_000 && serde_json::from_str::<Value>(value).map(|v| warp_config(&v)).unwrap_or(false),
         "data-fw-compound" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| compound_config(&v)).unwrap_or(false),
         "visibility" => matches!(value, "hidden" | "visible"),
+        "data-fw-pattern" => tag == "pattern" && value.len() <= 512 && serde_json::from_str::<Value>(value).map(|v| pattern_config(&v)).unwrap_or(false),
         "data-fw-guides" => tag == "svg" && value.len() <= DATA_LIMIT && serde_json::from_str::<Value>(value).map(|v| guides_config(&v)).unwrap_or(false),
         "data-fw-stroke" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| stroke_config(&v)).unwrap_or(false),
         "data-fw-brush" => value.len() <= 1024 && serde_json::from_str::<Value>(value).map(|v| brush_config(&v, true)).unwrap_or(false),
@@ -383,6 +384,18 @@ fn mesh_ok(map: &serde_json::Map<String, Value>) -> bool {
     let (Some(rows), Some(cols)) = (grid("rows"), grid("cols")) else { return false };
     let Some(points) = map.get("mesh").and_then(Value::as_array) else { return false };
     points.len() as u64 == (rows + 1) * (cols + 1) * 2 && points.iter().all(|v| v.as_f64().map(|n| n.is_finite() && (-10.0..=10.0).contains(&n)).unwrap_or(false))
+}
+
+fn pattern_config(value: &Value) -> bool {
+    let Some(map) = value.as_object() else { return false };
+    let number = |key: &str, lo: f64, hi: f64| map.get(key).and_then(Value::as_f64).map(|n| n.is_finite() && n >= lo && n <= hi).unwrap_or(false);
+    map.len() == 8
+        && map.get("v").and_then(Value::as_u64) == Some(1)
+        && map.get("tile").and_then(Value::as_str).map(|s| matches!(s, "grid" | "brick-row" | "brick-column" | "hex-row" | "hex-column")).unwrap_or(false)
+        && number("offset", 0.0, 1.0)
+        && map.get("sizeToArt").map(Value::is_boolean).unwrap_or(false)
+        && number("width", 0.0, 1e7) && number("height", 0.0, 1e7)
+        && number("hSpace", -1e7, 1e7) && number("vSpace", -1e7, 1e7)
 }
 
 fn freeform_config(value: &Value) -> bool {

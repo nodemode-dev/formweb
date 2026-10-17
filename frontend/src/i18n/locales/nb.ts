@@ -1891,4 +1891,10 @@ export default [
   "Venstre mot høyre",
   "Høyre mot venstre",
   "Det finnes ingen tegnebrett å omorganisere på denne siden.",
+  "Sekskant etter kolonne",
+  "Sekskant etter rad",
+  "Rediger mønster...",
+  "Oppdater mønster",
+  "Velg en figur fylt med et mønster.",
+  "Endrer mønsteret til den valgte figuren; alle figurer som bruker det, oppdateres.",
 ] as readonly string[];

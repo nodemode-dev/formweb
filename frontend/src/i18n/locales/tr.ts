@@ -1891,4 +1891,10 @@ export default [
   "Soldan sağa",
   "Sağdan sola",
   "Bu sayfada yeniden düzenlenecek çalışma yüzeyi yok.",
+  "Sütuna göre altıgen",
+  "Satıra göre altıgen",
+  "Deseni düzenle...",
+  "Deseni güncelle",
+  "Desenle doldurulmuş bir şekil seçin.",
+  "Seçili şeklin desenini değiştirir; onu kullanan tüm şekiller güncellenir.",
 ] as readonly string[];
