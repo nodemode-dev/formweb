@@ -4,7 +4,7 @@
  "previous": "0.12.5",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Symbols (FW-156) Full against Figma's components: shared across the whole site, in the editor and in exported pages.",
+ "release_note": "Variable width strokes (FW-088) Full against Figma: width profiles and the Width tool on closed shapes.",
  "lanes": [
   [
    "m",
@@ -5694,9 +5694,9 @@
    "conf": "vendor",
    "added": "0.7.0",
    "m": [
-    "partial",
-    "Width tool (Shift+W) and presets store data-fw-width and generate a filled outline path kept in sync by widthFixes. v0.7.1 QA drove it in Chromium and fixed two defects found there: a second preset never applied, and outlines ignored interior points on straight lines (variableOutline now densifies by arc length). Reviewed at v0.7.1: works on open paths after the fixes, stays Partial.",
-    "Closed paths give two rings; the outline is a generated path, not a live stroke."
+    "full",
+    "Width tool (Shift+W) and presets store data-fw-width and generate a filled outline path kept in sync by widthFixes. v0.7.1 QA drove it in Chromium and fixed two defects found there: a second preset never applied, and outlines ignored interior points on straight lines (variableOutline now densifies by arc length). v0.12.7, against Figma's width profiles and Variable width tool (supported on rectangles, ellipses and polygons per Figma Help): presets apply to closed shapes as a hollow band (outer ring plus reversed inner ring), and picking a wide stroke selects its path. Driven under CPU 4x and slow network: Bulge on a rectangle and Taper both on an ellipse rendered as varying bands; the Width tool added a point on the closed rectangle (3 to 4), undo back to 3.",
+    "The band is a generated filled path kept in sync with the source rather than a native SVG stroke, so it exports as a shape; preset names differ from Figma's (Wedge, Taper, Quarter taper, Eye, Mirrored taper)."
    ],
    "fr": [
     "none",
