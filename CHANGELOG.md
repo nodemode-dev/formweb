@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.4 · 2026-10-17
+
+- Resize artboards on the canvas: with the Artboard tool, the selected artboard shows eight handles; drag any of them to resize from that edge or corner. The artwork inside stays exactly where it is.
+
 ## 0.10.3 · 2026-10-16
 
 - Artboard tool (Shift+O): drag on an empty part of the page to draw a new artboard exactly there, or drag an artboard to move it. Click an artboard to select it. Resize it from Window > Artboards.

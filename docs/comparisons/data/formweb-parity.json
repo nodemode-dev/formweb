@@ -1,8 +1,8 @@
 {
  "product": "FormWeb",
- "version": "0.10.3",
- "previous": "0.10.2",
- "date": "2026-10-16",
+ "version": "0.10.4",
+ "previous": "0.10.3",
+ "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Multiple artboards (FW-176) stays Partial with another gap closed: artboards resize with handles on the canvas, keeping the art in place.",
  "lanes": [
@@ -7814,6 +7814,13 @@
    "same_as": "0.10.1",
    "moved": {},
    "note": "Export for Screens exports all artboards on a page. No grade change, 115.5 of 133."
+  },
+  {
+   "version": "0.10.3",
+   "date": "2026-10-16",
+   "same_as": "0.10.2",
+   "moved": {},
+   "note": "Artboard tool draws and moves artboards. No grade change, 115.5 of 133."
   }
  ],
  "changes": [
