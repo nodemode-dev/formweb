@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.2 · 2026-10-17
+
+- Area type now reflows: move or reshape the shape that holds the text and the lines are laid out again to fit, in the same undo step. Area type placed before this version stays as it was placed.
+
 ## 0.11.1 · 2026-10-17
 
 - Patterns: Pattern Options now offers Hex by Column and Hex by Row, which stagger the tiles in a honeycomb layout.
