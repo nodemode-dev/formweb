@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.11.2",
- "previous": "0.11.1",
+ "version": "0.11.3",
+ "previous": "0.11.2",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Area type (FW-175) stays Partial with Edit area type added: placed text can be reworded and restyled in its shape.",
@@ -7917,6 +7917,13 @@
    "same_as": "0.11.0",
    "moved": {},
    "note": "Hex pattern tiles and Edit pattern. No grade change, 116 of 134."
+  },
+  {
+   "version": "0.11.2",
+   "date": "2026-10-17",
+   "same_as": "0.11.1",
+   "moved": {},
+   "note": "Live area type reflow. No grade change, 116 of 134."
   }
  ],
  "changes": [

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.3 · 2026-10-17
+
+- Edit area type: select area type (or the shape holding it) and choose Edit area type to change the words, font, size, alignment or columns. The text is laid out again in the same shape, and one undo puts it back.
+
 ## 0.11.2 · 2026-10-17
 
 - Area type now reflows: move or reshape the shape that holds the text and the lines are laid out again to fit, in the same undo step. Area type placed before this version stays as it was placed.
