@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.3 · 2026-10-17
+
+- Snapping matches Figma: shapes now snap to the corners and edge middles of other objects as well as their centres and points.
+- Hold Control while drawing or dragging to turn snapping off for that moment.
+- New Snap to pixel grid setting (off by default) puts shapes on whole pixels.
+
 ## 0.12.2 · 2026-10-17
 
 - Use as mask, the way Figma does it: select two or more paths and the bottom one masks the paths above it. Run it again on masked content to remove the mask.
