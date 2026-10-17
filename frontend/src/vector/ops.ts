@@ -13,7 +13,7 @@ import type { PathfinderOp } from './boolean';
 import { blendAttrs, compoundAttrs, effectAttrs, expandCommands, liveContainer, liveOf, readBlend, readRepeat, releaseCommands, removeEffectCommands, repeatAttrs, type BlendMode, type CompoundOp, type LiveKind } from './live';
 import { rememberEach, rememberTransform } from './select';
 import { pathIds, refOf, svgOf, updateAttrs, updateGeometry, type Shape } from './store';
-import { breakCommands, defineCommands, placeCommands } from './symbols';
+import { breakCommands, defineCommands, pageRootOf, placeCommands } from './symbols';
 import { presetCommands, readWidth, widthCommands } from './stroke';
 import { strokeCommands, strokeModelOf } from './strokecmd';
 import type { StrokeModel } from './strokefx';
@@ -219,7 +219,8 @@ export class Ops {
     const uses = this.h.selection().filter(id => site.nodes[id]?.tag === 'use');
     if (!target || target.tag !== 'symbol' || !svg) return;
     if (!uses.length) { this.h.notify('Select a symbol instance first.'); return; }
-    if (uses.some(id => svgOf(site, id) !== svgOf(site, symbol))) { this.h.notify('Select something in the svg that holds this symbol first.'); return; }
+    const home = pageRootOf(site, symbol);
+    if (uses.some(id => svgOf(site, id) !== svgOf(site, symbol) && pageRootOf(site, id) !== home)) { this.h.notify('Select something in the svg that holds this symbol first.'); return; }
     await this.run(uses.map(id => updateAttrs(id, { href: `#${target.attrs.id}` })), uses);
   }
 

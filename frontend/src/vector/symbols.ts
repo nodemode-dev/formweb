@@ -27,6 +27,19 @@ export function symbolsIn(site: Site, svg: string | undefined): SymbolInfo[] {
   return svg ? symbolNodes(site, svg).filter(node => !node.attrs['data-fw-brushdef']).map(node => ({ id: node.id, name: node.name || node.id })) : [];
 }
 
+/* Symbols are shared across a page (Figma reuses components across a file): the page root holding `id`, and every
+   symbol under it. Falls back to the node's own svg when it is on no page. */
+export function pageRootOf(site: Site, id: string): string | undefined {
+  const holds = (at: string, depth: number): boolean => at === id || (depth < 100 && (site.nodes[at]?.children ?? []).some(c => holds(c, depth + 1)));
+  return site.pages.find(p => holds(p.root, 0))?.root;
+}
+
+export function symbolsOnPage(site: Site, svg: string | undefined): SymbolInfo[] {
+  if (!svg) return [];
+  const root = pageRootOf(site, svg);
+  return root ? symbolNodes(site, root).filter(node => !node.attrs['data-fw-brushdef']).map(node => ({ id: node.id, name: node.name || node.id })) : symbolsIn(site, svg);
+}
+
 export function usesOf(site: Site, svg: string, symbol: string): string[] {
   const id = site.nodes[symbol]?.attrs.id;
   const out: string[] = [];
@@ -43,7 +56,10 @@ export function usesOf(site: Site, svg: string, symbol: string): string[] {
 export function symbolOfUse(site: Site, useId: string): SiteNode | undefined {
   const use = site.nodes[useId];
   const svg = use && use.tag === 'use' ? svgOf(site, useId) : undefined;
-  return svg && use ? symbolNodes(site, svg).find(node => `#${node.attrs.id}` === use.attrs.href) : undefined;
+  if (!svg || !use) return undefined;
+  const local = symbolNodes(site, svg).find(node => `#${node.attrs.id}` === use.attrs.href);
+  const root = local ? undefined : pageRootOf(site, svg);
+  return local ?? (root ? symbolNodes(site, root).find(node => `#${node.attrs.id}` === use.attrs.href) : undefined);
 }
 
 export function symbolBox(site: Site, symbol: string): Box | null {
@@ -109,7 +125,7 @@ export function placeCommands(h: Host, symbol: string): { cmds: Command[]; use: 
   const node = site.nodes[symbol];
   if (!svg || !node || node.tag !== 'symbol') return null;
   const owner = svgOf(site, symbol);
-  if (owner !== svg) { h.notify('Select something in the svg that holds this symbol first.'); return null; }
+  if (owner !== svg && (!owner || pageRootOf(site, owner) !== pageRootOf(site, svg))) { h.notify('Select something in the svg that holds this symbol first.'); return null; }
   const box = symbolBox(site, symbol);
   const count = usesOf(site, svg, symbol).length;
   const step = (box ? box.w : 40) + 16;

@@ -72,6 +72,22 @@ fn holds_use(site: &Site, node: &Node, depth: usize) -> bool {
     depth > 64 || node.children.iter().filter_map(|id| site.nodes.get(id)).any(|child| child.tag == "use" || holds_use(site, child, depth + 1))
 }
 
+/// Symbol ids defined anywhere under the page root that holds `svg_id` (empty when the svg is on no page).
+fn page_symbols(site: &Site, svg_id: &str) -> BTreeSet<String> {
+    fn holds(site: &Site, id: &str, target: &str, depth: usize) -> bool {
+        id == target || (depth < 100 && site.nodes.get(id).map(|n| n.children.iter().any(|c| holds(site, c, target, depth + 1))).unwrap_or(false))
+    }
+    fn collect(site: &Site, id: &str, out: &mut BTreeSet<String>, depth: usize) {
+        let Some(node) = site.nodes.get(id) else { return };
+        if depth > 100 { return; }
+        if node.tag == "symbol" { if let Some(sid) = node.attrs.get("id") { out.insert(sid.clone()); } }
+        for child in &node.children { collect(site, child, out, depth + 1); }
+    }
+    let mut out = BTreeSet::new();
+    if let Some(page) = site.pages.iter().find(|p| holds(site, &p.root, svg_id, 0)) { collect(site, &page.root, &mut out, 0); }
+    out
+}
+
 fn url_target(value: &str) -> Option<&str> {
     value.strip_prefix("url(#").and_then(|rest| rest.strip_suffix(')'))
 }
@@ -121,7 +137,12 @@ pub fn check_node(node: &Node, site: &Site) -> Result<(), String> {
         scan(site, node, 0, &mut refs)?;
         if refs.used.iter().any(|id| !refs.defined.contains(id)) { return Err("paint, clip and mask references must point at definitions inside the same svg".into()); }
         if refs.hrefs.iter().any(|id| !refs.paths.contains(id)) { return Err("text on a path must reference a path inside the same svg".into()); }
-        if refs.uses.iter().any(|id| !refs.symbols.contains(id)) { return Err("a use element must point at a symbol inside the same svg".into()); }
+        if refs.uses.iter().any(|id| !refs.symbols.contains(id)) {
+            /* Symbols are shared across a page, as Figma components are reused across a file: an instance may point at
+               a symbol defined in another svg on the same page (inline svgs share the page's id space). */
+            let shared = page_symbols(site, &node.id);
+            if refs.uses.iter().any(|id| !refs.symbols.contains(id) && !shared.contains(id)) { return Err("a use element must point at a symbol on the same page; detach its instances before deleting a symbol they use".into()); }
+        }
         if refs.arts.iter().any(|id| !refs.symbols.contains(id)) { return Err("a brush must use artwork from a symbol inside the same svg".into()); }
     }
     if vector_parent { check_live(node, site)?; }

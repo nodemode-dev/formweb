@@ -4,7 +4,7 @@ import type { AlignMode, AlignTo, DistributeMode, RepeatParams } from './arrange
 import { liveOf, readBlend, readRepeat, type BlendMode } from './live';
 import { BrushSections } from './brushpanel';
 import type { TfMode } from './freetransform';
-import { symbolsIn } from './symbols';
+import { symbolsOnPage } from './symbols';
 import { WARP_PRESETS, type DistortKind, type WarpOptions, type WarpPreset } from './distort';
 import { readWarp } from './warp';
 import { openMeshDialog } from './meshdialog';
@@ -465,8 +465,8 @@ export class ExtraSections {
     text(this.guideNote, extras.snapping ? 'Smart guides are on.' : 'Smart guides are off.');
     try { this.syncLive(); } catch { text(this.liveNote, ''); }
     try { this.syncWarp(); } catch { text(this.liveNote, ''); }
-    let listed: ReturnType<typeof symbolsIn> = [];
-    try { listed = symbolsIn(e.site(), e.panelSvg()); } catch { listed = []; }
+    let listed: ReturnType<typeof symbolsOnPage> = [];
+    try { listed = symbolsOnPage(e.site(), e.panelSvg()); } catch { listed = []; }
     this.symbolIds = listed.map(s => s.id);
     this.symbolRows.forEach((r, i) => {
       const item = listed[i];
