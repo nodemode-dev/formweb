@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.4 · 2026-10-17
+
+- Threaded text: select area type and one or more other closed shapes, then choose Thread text. Words that do not fit flow on into the next shape, and everything reflows when a shape changes. A small boxed plus marks text that still does not fit. Release threaded text pulls all the words back into the first shape.
+
 ## 0.11.3 · 2026-10-17
 
 - Edit area type: select area type (or the shape holding it) and choose Edit area type to change the words, font, size, alignment or columns. The text is laid out again in the same shape, and one undo puts it back.
