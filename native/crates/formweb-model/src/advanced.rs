@@ -81,7 +81,9 @@ pub fn validate_extensions(site: &Site) -> Result<(), String> {
     Ok(())
 }
 pub fn digest(value:&str)->String { use sha2::{Digest,Sha256};Sha256::digest(value.as_bytes()).iter().map(|byte|format!("{byte:02x}")).collect() }
-fn code(site:&Site,value:&Value)->Result<(),String>{keys(value,&["components","instances"])?;
+// Custom head and body code (FW-178): raw HTML written into exported pages, site-wide and per page, each slot capped at 50,000 bytes.
+fn custom_code(value:Option<&Value>)->Result<(),String>{let Some(value)=value else{return Ok(())};object(value)?;keys(value,&["head","bodyStart","bodyEnd"])?;for key in ["head","bodyStart","bodyEnd"]{text(value,key,50000)?;}Ok(())}
+fn code(site:&Site,value:&Value)->Result<(),String>{keys(value,&["components","instances","siteCode","pageCode"])?;custom_code(value.get("siteCode"))?;for(id,data)in maps(value,"pageCode")?{page(site,id)?;custom_code(Some(data))?;}
     for(id,component)in maps(value,"components")?{if !identifier(id){return Err("invalid code component id".into());}keys(component,&["enabled","language","source","sourceDigest","builtDigest","javascript","props"])?;
         if component.get("enabled").and_then(Value::as_bool)!=Some(true)||!["typescript","javascript"].contains(&string(component,"language")?){return Err("code component requires explicit opt-in and supported language".into());}
         let source=string(component,"source")?;let js=string(component,"javascript")?;
