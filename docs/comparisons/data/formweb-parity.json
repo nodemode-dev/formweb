@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.12.8",
- "previous": "0.12.7",
+ "version": "0.12.9",
+ "previous": "0.12.8",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Ten new rows (FW-178 to FW-187) researched from Framer, Figma, Webflow and Canva documentation and graded in all five lanes: fixed and sticky positioning Full, design import Partial, eight not built. 121 of 144.",
+ "release_note": "Custom code in head and body (FW-178) Full: site-wide and per-page slots in Page settings, written into exported pages. 122 of 144.",
  "lanes": [
   [
    "m",
@@ -7122,9 +7122,9 @@
    "conf": "vendor",
    "added": "0.12.8",
    "m": [
-    "none",
-    "v0.12.8 code search found no head or body code setting in site or page settings; exported pages carry only the head tags the engine writes itself.",
-    "Site-wide and per-page head and body code, and how it is kept out of the editor canvas, not built."
+    "full",
+    "v0.12.9: Page settings has a Custom code section for the whole site or the open page, with head, body start and body end slots (the code group's siteCode and pageCode, 50,000 bytes each, validated against real pages). Driven in Chromium under CPU 4x and 400 ms latency: typed a site head tag and a page body-end script, switched scope, cleared and undid a slot, no layout shifts. In the exported site both scripts ran, page code only on its own page, a page style and banner landed only on /two, and removing a page pruned its code.",
+    "No run-once or every-visit choice like Framer's and no syntax check; the code is written verbatim, so broken markup breaks the exported page."
    ],
    "fr": ["full", "Project Settings Custom Code places code in the head or body, for all pages or chosen pages, run once or on every visit.", ["F30"], "documented"],
    "wf": ["full", "Site settings take head and footer code and page settings take per-page code, up to 50,000 characters each.", ["W30"], "documented"],
@@ -8247,6 +8247,13 @@
    "same_as": "0.12.6",
    "moved": {"FW-088": "full"},
    "note": "Variable width strokes on closed shapes: Full against Figma, 119.5 of 134."
+  },
+  {
+   "version": "0.12.8",
+   "date": "2026-10-17",
+   "same_as": "0.12.7",
+   "moved": {"FW-178": "none", "FW-179": "none", "FW-180": "none", "FW-181": "none", "FW-182": "none", "FW-183": "full", "FW-184": "none", "FW-185": "none", "FW-186": "none", "FW-187": "partial"},
+   "note": "Ten rows researched from the four targets' documentation, 121 of 144."
   }
  ],
  "changes": [
@@ -8271,7 +8278,7 @@
    "Partial: no per-option counts, no recorded editor flow for several tabs, nested lists not filtered by parent item, element-level superscript only, no live form POST"
   ]
  ],
- "closed_note": "Still open: the eight v0.12.8 rows that are not built (FW-178 to FW-182, FW-184 to FW-186) and annotations in image export (FW-150); hosting, payments and AI images (FW-050, FW-063, FW-071) wait on real provider accounts.",
+ "closed_note": "Still open: the seven v0.12.8 rows that are not built (FW-179 to FW-182, FW-184 to FW-186) and annotations in image export (FW-150); hosting, payments and AI images (FW-050, FW-063, FW-071) wait on real provider accounts.",
  "platform": [
   [
    "What it is",
@@ -8392,7 +8399,7 @@
   "eyebrow": "FormWeb · Framer, Figma, Webflow and Canva alternative · Apache-2.0",
   "dek": "144 researched capabilities, measured against Framer, Figma, Webflow and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation (Framer, Webflow and Canva fetched on 10, 11 and 17 October 2026, Figma on 17 October 2026 across every row), so their scores are lower bounds rather than proof of absence. Framer, Webflow and Canva were not graded on the FormWeb-side rows added from v0.5.7 to v0.10.6, so their tiles undercount those; the ten rows added at v0.12.8 are graded in every lane.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0), 14 more checked against Canva (v0.3.0), FormWeb-side targets added from v0.7.0 on, and ten rows researched from the four products' own documentation at v0.12.8; the Figma lane was graded across all rows on 17 October 2026",
-  "changes": "v0.12.8 adds ten rows researched from Framer's, Figma's, Webflow's and Canva's own documentation, each graded in all five lanes. FormWeb is Full on fixed and sticky positioning (checked in the export) and Partial on design import (SVG, with frame clipping lost); custom head and body code, site search, page transitions, device-following light and dark modes, editor plugins, scheduled publishing, scroll and pointer effects, and prebuilt sections are not built yet. The score moves from 119.5 of 134 to 121 of 144.",
+  "changes": "v0.12.9 builds the first of the rows added in v0.12.8: custom code in the page head and body, for the whole site and for each page, edited in Page settings and written into exported and published pages. FW-178 moves from None to Full, and the score from 121 to 122 of 144.",
   "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
