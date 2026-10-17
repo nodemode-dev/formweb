@@ -1,7 +1,7 @@
 {
  "product": "FormWeb",
- "version": "0.11.8",
- "previous": "0.11.7",
+ "version": "0.11.9",
+ "previous": "0.11.8",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
  "release_note": "Live Paint (FW-172) stays Partial with the edge highlight and a clean Expand of painted edges added.",
@@ -7959,6 +7959,13 @@
    "same_as": "0.11.6",
    "moved": {},
    "note": "Release Selection from a text thread. No grade change, 116 of 134."
+  },
+  {
+   "version": "0.11.8",
+   "date": "2026-10-17",
+   "same_as": "0.11.7",
+   "moved": {},
+   "note": "Per-edge Live Paint strokes. No grade change, 116 of 134."
   }
  ],
  "changes": [

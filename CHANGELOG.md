@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.9 · 2026-10-17
+
+- Holding Shift with the Live Paint Bucket over a Live Paint group now highlights the edge a click would stroke.
+- Expand Live Paint on a group with painted edges now leaves just the filled faces and stroked edges, without the original paths hiding underneath.
+- The "Click a closed shape to continue the text" notice for threaded text now goes away once you link a shape or press Esc.
+
 ## 0.11.8 · 2026-10-17
 
 - Live Paint edges: with a Live Paint group selected, Shift-click with the Live Paint Bucket strokes just the edge you click (the part of a path between two crossings) with the current stroke colour and weight, and painting with no stroke removes that edge. Edge colours stay put when you move or reshape the paths, and Release Live Paint gives the paths their own strokes back.
