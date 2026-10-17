@@ -3,6 +3,7 @@ import { element, text } from '../ui/dom';
 import type { Host } from './host';
 import { svgOf } from './store';
 import { boards } from './artboards';
+import { svgToPdf } from './pdfexport';
 
 /**
  * Export for Screens: the edited SVG (or only the selected shapes) as PNG, JPG, WebP and clean SVG at several scales.
@@ -10,13 +11,16 @@ import { boards } from './artboards';
  * drawn through an Image from a Blob URL onto a canvas, and each file is handed to the browser as a download.
  */
 
-type Format = 'png' | 'jpg' | 'webp' | 'svg';
+type Format = 'png' | 'jpg' | 'webp' | 'svg' | 'pdf';
 const FORMATS: { id: Format; label: string; mime: string }[] = [
   { id: 'png', label: 'PNG', mime: 'image/png' },
   { id: 'jpg', label: 'JPG', mime: 'image/jpeg' },
   { id: 'webp', label: 'WebP', mime: 'image/webp' },
-  { id: 'svg', label: 'SVG', mime: 'image/svg+xml' }
+  { id: 'svg', label: 'SVG', mime: 'image/svg+xml' },
+  { id: 'pdf', label: 'PDF', mime: 'application/pdf' }
 ];
+/* Formats written once at 1x, whatever scales are ticked. */
+const VECTOR = new Set<Format>(['svg', 'pdf']);
 const SCALES: { scale: number; suffix: string }[] = [
   { scale: 0.5, suffix: '@0.5x' }, { scale: 1, suffix: '' }, { scale: 2, suffix: '@2x' }, { scale: 3, suffix: '@3x' }, { scale: 4, suffix: '@4x' }
 ];
@@ -35,7 +39,7 @@ export interface ExportOptions {
   jpgBackground: string;
 }
 
-interface Source { markup: (px: number) => string; width: number; height: number }
+interface Source { markup: (px: number) => string; width: number; height: number; live: SVGSVGElement; vb: number[]; wanted?: Set<string> }
 
 const numeric = (value: string | null): number => { const n = parseFloat(value ?? ''); return Number.isFinite(n) && n > 0 && !/%$/.test(value ?? '') ? n : 0; };
 
@@ -57,6 +61,7 @@ export function buildSource(host: Host, svgId: string, selectionOnly: boolean): 
   const baseW = numeric(live.getAttribute('width')) || rect.width || vb[2];
   const baseH = numeric(live.getAttribute('height')) || rect.height || vb[3];
   let width = baseW, height = baseH;
+  let wanted: Set<string> | undefined;
   const clone = live.cloneNode(true) as SVGSVGElement;
 
   if (selectionOnly) {
@@ -83,12 +88,13 @@ export function buildSource(host: Host, svgId: string, selectionOnly: boolean): 
     vb = [x0, y0, x1 - x0, y1 - y0];
     width = Math.max(1, (x1 - x0) * unit);
     height = Math.max(1, (y1 - y0) * unit);
-    const wanted = new Set(chosen);
+    wanted = new Set(chosen);
+    const keep = wanted;
     const prune = (node: Element): boolean => {
       let holds = false;
       for (const child of Array.from(node.children)) {
         const id = child.getAttribute('data-fw-id') ?? '';
-        if (wanted.has(id)) { holds = true; continue; }
+        if (keep.has(id)) { holds = true; continue; }
         if (KEEP.has(child.localName.toLowerCase())) continue;
         if (prune(child)) { holds = true; continue; }
         child.remove();
@@ -109,7 +115,7 @@ export function buildSource(host: Host, svgId: string, selectionOnly: boolean): 
   clone.setAttribute('viewBox', vb.map(v => Math.round(v * 1000) / 1000).join(' '));
   const round = (v: number): string => String(Math.round(v * 100) / 100);
   return {
-    width, height,
+    width, height, live, vb, wanted,
     markup: px => {
       clone.setAttribute('width', round(width * px));
       clone.setAttribute('height', round(height * px));
@@ -128,7 +134,7 @@ function loadImage(markup: string): Promise<{ img: HTMLImageElement; release: ()
   });
 }
 
-async function rasterize(source: Source, scale: number, format: Exclude<Format, 'svg'>, options: ExportOptions): Promise<Blob> {
+async function rasterize(source: Source, scale: number, format: Exclude<Format, 'svg' | 'pdf'>, options: ExportOptions): Promise<Blob> {
   const w = Math.max(1, Math.round(source.width * scale)), h = Math.max(1, Math.round(source.height * scale));
   if (w > MAX_SIDE || h > MAX_SIDE) throw new Error(t('{0}x is too large: {1} px is the longest side allowed.', [scale, MAX_SIDE]));
   const { img, release } = await loadImage(source.markup(scale));
@@ -168,6 +174,10 @@ async function queueFiles(source: Source, base: string, options: ExportOptions, 
   for (const format of options.formats) {
     if (format === 'svg') {
       queue.push({ blob: new Blob([source.markup(1)], { type: 'image/svg+xml' }), name: `${base}.svg` });
+      continue;
+    }
+    if (format === 'pdf') {
+      queue.push({ blob: svgToPdf(source), name: `${base}.pdf` });
       continue;
     }
     for (const { scale, suffix } of options.scales) queue.push({ blob: await rasterize(source, scale, format, options), name: `${base}${safeName(suffix)}.${format}` });
@@ -333,7 +343,7 @@ class ExportDialog {
     if (!host || (!this.svg && !this.scope.all.checked)) return;
     const formats = FORMATS.map(f => f.id).filter(id => this.formats.get(id)?.checked);
     const scales = this.scales.filter(s => s.on.checked).map(s => ({ scale: s.scale, suffix: s.suffix.value.trim() }));
-    const raster = formats.some(f => f !== 'svg');
+    const raster = formats.some(f => !VECTOR.has(f));
     if (!formats.length) { this.status.textContent = t('Choose at least one format.'); return; }
     if (raster && !scales.length) { this.status.textContent = t('Choose at least one scale.'); return; }
     if (new Set(scales.map(s => safeName(s.suffix))).size !== scales.length) { this.status.textContent = t('Each scale needs a different suffix.'); return; }
