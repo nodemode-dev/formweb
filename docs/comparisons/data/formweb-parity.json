@@ -4,7 +4,7 @@
  "previous": "0.10.9",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Webflow, Adobe Express and Canva",
- "release_note": "Multiple artboards (FW-176) stays Partial with two more gaps closed: artboard reordering and Rearrange All Artboards.",
+ "release_note": "Pattern swatches and Pattern Options (FW-174) stays Partial with two gaps closed: Hex tiles and editing an existing pattern's options.",
  "lanes": [
   [
    "m",
@@ -6935,8 +6935,8 @@
    "added": "0.9.7",
    "m": [
     "partial",
-    "v0.9.7: driven in Chromium under CPU 4x and slow network. A circle as tile art and a rectangle selected last, Brick by Row at 1/2 with 10 spacing: the svg pattern had the computed tile size and three offset copies, the rectangle drew offset rows of circles in the canvas and in the export, and one undo removed pattern and fill.",
-    "No Pattern Editing mode or later edits to a pattern; no Swatches panel (one pattern per use); no Hex tiles; Brick by Column is FormWeb's mirror of Brick by Row; live effects on the art are not copied into the tile."
+    "v0.9.7: driven in Chromium under CPU 4x and slow network. A circle as tile art and a rectangle selected last, Brick by Row at 1/2 with 10 spacing: the svg pattern had the computed tile size and three offset copies, the rectangle drew offset rows of circles in the canvas and in the export, and one undo removed pattern and fill. v0.11.1: Hex by Row made a staggered pattern, Edit pattern reopened its stored options and switched it to Hex by Column in place (same pattern id), one undo step each.",
+    "No on-canvas Pattern Editing mode (new art means a new pattern); no Swatches panel (one pattern per use); hex spacing is FormWeb's hexagon packing and the art is not clipped to a hexagon; Brick by Column is FormWeb's mirror of Brick by Row; live effects on the art are not copied into the tile."
    ],
    "fr": [
     "none",
