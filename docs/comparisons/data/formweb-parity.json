@@ -4,7 +4,7 @@
  "previous": "0.12.2",
  "date": "2026-10-17",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Smart guides and snapping (FW-090) move to Full against Figma: edge snapping, Control to suspend and Snap to pixel grid.",
+ "release_note": "Print PDF export (FW-151) moves from None to Partial, level with Figma: a vector PDF export without bleed.",
  "lanes": [
   [
    "m",
@@ -5334,9 +5334,9 @@
    "conf": "vendor",
    "added": "0.7.0",
    "m": [
-    "none",
-    "Not built: no PDF writer or print engine exists offline in the toolchain and none was added. Reviewed at v0.7.1: no change; BUILD_NOTES records no print PDF with bleed.",
-    "Would need a headless browser or a PDF library."
+    "partial",
+    "v0.12.4: Export for Screens writes a one-page vector PDF 1.7 at 1x from a dependency-free writer (paths, clips, opacity, symbols, text in Helvetica), matching what Figma Help documents for its PDF export (vector graphics and text in a fixed layout, 1x only, PDF 1.7). Driven under CPU 4x and slow network: a drawing with a mask and area type exported as PDF and PNG; qpdf found no errors, pdfinfo read 1 page in PDF 1.7, pypdf extracted the text, and the Poppler render matched the PNG side by side.",
+    "No bleed or crop marks (Figma documents none either); gradients fall back to their first stop colour; images, masks and filters are not carried; text is set in Helvetica rather than the drawing's font; one drawing per file."
    ],
    "fr": [
     "none",
