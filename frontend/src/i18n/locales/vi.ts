@@ -1900,4 +1900,10 @@ export default [
   "Sửa văn bản vùng...",
   "Cập nhật văn bản",
   "Hãy chọn văn bản vùng hoặc hình chứa nó.",
+  "Nối luồng văn bản",
+  "Gỡ luồng văn bản",
+  "Hãy chọn văn bản vùng và các hình khép kín để nối luồng vào.",
+  "Hãy chọn một hoặc nhiều hình khép kín để văn bản chảy vào.",
+  "Các hình này đã nằm trong luồng.",
+  "Văn bản vùng này chưa được nối luồng.",
 ] as readonly string[];

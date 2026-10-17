@@ -1900,4 +1900,10 @@ export default [
   "Edit teks area...",
   "Perbarui teks",
   "Pilih teks area atau bentuk yang memuatnya.",
+  "Rangkai teks",
+  "Lepaskan teks berangkai",
+  "Pilih teks area dan bentuk tertutup tempat teks akan dirangkai.",
+  "Pilih satu atau beberapa bentuk tertutup untuk merangkai teks.",
+  "Bentuk ini sudah ada dalam rangkaian.",
+  "Teks area ini tidak dirangkai.",
 ] as readonly string[];

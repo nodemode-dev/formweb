@@ -65,6 +65,7 @@
 .fw-vo-x[data-c="guide-x"], .fw-vo-x[data-c="guide-y"], .fw-vo-x[data-c="guide-angle"] { stroke: var(--ok); stroke-width: calc(1px * var(--fw-vo-px)); }
 .fw-vo-x[data-c="guide-angle"] { stroke-dasharray: calc(3px * var(--fw-vo-px)) calc(3px * var(--fw-vo-px)); }
 .fw-vo-x[data-c="snap"] { stroke: var(--ok); }
+.fw-vo-x[data-c="overflow"] { fill: var(--bg-primary); stroke: var(--danger); stroke-width: calc(1.5px * var(--fw-vo-px)); }
 .fw-vo-x[data-c="gline"], .fw-vo-x[data-c="gring"], .fw-vo-x[data-c="tbox"] { stroke: var(--accent-color); }
 .fw-vo-x[data-c="gstop"], .fw-vo-x[data-c="gstop-on"] { fill: var(--bg-primary); stroke: var(--text-primary); stroke-width: calc(1.5px * var(--fw-vo-px)); cursor: ew-resize; }
 .fw-vo-x[data-c="gstop-on"] { stroke: var(--accent-color); stroke-width: calc(2.5px * var(--fw-vo-px)); }

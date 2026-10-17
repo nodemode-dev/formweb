@@ -15,6 +15,7 @@ import { matrixText, parseTransform, useFrame } from './symbols';
 import { liveOf } from './live';
 import { FREEFORM_LIMIT, SPREAD_MIN, freeformGradient, readFreeform, sourceBox, stopsOf, turnHue, writeStops, type FreeformSpec, type FreeformStop } from './freeform';
 import { openFreeformStop } from './pathdialogs';
+import { readArea } from './areatype';
 import { readWarp, warpBox, type WarpSpec } from './warp';
 import { readWidth, widthCommands } from './stroke';
 import { insertWidth, nearestParam, pointAtParam, setPointWidth, sidesAt, variableOutline, type WidthPoint } from './widthprofile';
@@ -627,7 +628,7 @@ export class Extras {
       });
     }
     if (tool === 'width') this.decorateWidth(items, g);
-    if (tool === 'select' || tool === 'direct') { this.decorateType(items, g); this.decorateUse(items, g); }
+    if (tool === 'select' || tool === 'direct') { this.decorateType(items, g); this.decorateUse(items, g); this.decorateOverflow(items); }
     if (tool === 'direct') this.decorateMesh(items, g);
     if (tool === 'gradient') this.decorateGradient(items, g);
     if (tool === 'transform') this.decorateTransform(items);
@@ -835,6 +836,24 @@ export class Extras {
       items.push({ kind: 'circle', x: at[0], y: at[1], r: 6, cls: i === this.stop ? 'gstop-on' : 'gstop', role: 'x-gstop', i, fill: s.color });
     });
     items.push({ kind: 'circle', x: a[0], y: a[1], r: 3, cls: 'gend', role: 'x-gstart', i: 0 }, { kind: 'circle', x: b[0], y: b[1], r: 3, cls: 'gend', role: 'x-gend', i: 1 });
+  }
+
+  /* Area type with words left over: a plus in a box at the bottom right of the last shape in its thread (the out port
+     plus sign). */
+  private decorateOverflow(items: ExtraItem[]): void {
+    const site = this.h.site();
+    for (const n of Object.values(site.nodes)) {
+      if (n.tag !== 'text' || !n.attrs['data-fw-area']) continue;
+      const spec = readArea(n.attrs['data-fw-area']);
+      if (!spec?.over) continue;
+      const last = spec.chain?.length ? spec.chain[spec.chain.length - 1][0] : spec.src;
+      const shape = this.h.shape(last);
+      const f = shape ? this.h.frame(shape.svg) : undefined;
+      const box = shape ? pathBounds(shape.subs) : null;
+      if (!f || !box) continue;
+      const [x, y] = this.h.toShell(f, [box.x + box.w, box.y + box.h]);
+      items.push({ kind: 'path', d: `M${x - 5} ${y - 5}h10v10h-10ZM${x - 3} ${y}h6M${x} ${y - 3}v6`, cls: 'overflow' });
+    }
   }
 
   /* Freeform gradient stops with the Gradient tool: drag to move, drag the ring handle for spread, click inside

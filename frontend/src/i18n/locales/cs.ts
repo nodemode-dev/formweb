@@ -1900,4 +1900,10 @@ export default [
   "Upravit text v oblasti...",
   "Aktualizovat text",
   "Vyberte text v oblasti nebo tvar, který ho obsahuje.",
+  "Propojit text",
+  "Uvolnit propojený text",
+  "Vyberte text v oblasti a uzavřené tvary, do kterých ho chcete propojit.",
+  "Vyberte jeden nebo více uzavřených tvarů, do kterých se má text propojit.",
+  "Tyto tvary už jsou v propojení.",
+  "Tento text v oblasti není propojený.",
 ] as readonly string[];

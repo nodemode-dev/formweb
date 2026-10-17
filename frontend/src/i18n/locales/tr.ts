@@ -1900,4 +1900,10 @@ export default [
   "Alan metnini düzenle...",
   "Metni güncelle",
   "Alan metnini veya onu içeren şekli seçin.",
+  "Metni bağla",
+  "Bağlı metni serbest bırak",
+  "Alan metnini ve içine akacağı kapalı şekilleri seçin.",
+  "Metnin akacağı bir veya daha fazla kapalı şekil seçin.",
+  "Bu şekiller zaten bağlantıda.",
+  "Bu alan metni bağlı değil.",
 ] as readonly string[];

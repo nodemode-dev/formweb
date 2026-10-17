@@ -1900,4 +1900,10 @@ export default [
   "Editar texto de área...",
   "Actualizar texto",
   "Seleccione el texto de área o la forma que lo contiene.",
+  "Enlazar texto",
+  "Liberar texto enlazado",
+  "Seleccione el texto de área y las formas cerradas en las que quiere enlazarlo.",
+  "Seleccione una o más formas cerradas en las que enlazar el texto.",
+  "Estas formas ya están en el enlace.",
+  "Este texto de área no está enlazado.",
 ] as readonly string[];

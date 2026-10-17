@@ -511,7 +511,7 @@ class AreaTypeDialog {
       const src = spec ? host.shape(spec.src) : undefined;
       this.editing = null;
       if (!text || !spec || !src || !areaOptions.text.trim()) return;
-      const made = areaEditCommands(site, text, spec.src, applyCorners(src.subs), areaOptions);
+      const made = areaEditCommands(site, text, spec, areaOptions);
       if (!made.lines) { host.notify(t('The text does not fit in this shape.')); return; }
       if (made.overflow) host.notify(tn(made.overflow, 'Overflow: {0} word did not fit in the shape.', 'Overflow: {0} words did not fit in the shape.'));
       void host.commit(made.cmds, [spec.src]);
@@ -528,7 +528,7 @@ class AreaTypeDialog {
     const parent = host.parentOf(shape.id) ?? shape.svg;
     const index = site.nodes[parent].children.indexOf(shape.id) + 1;
     if (overflow) host.notify(tn(overflow, 'Overflow: {0} word did not fit in the shape.', 'Overflow: {0} words did not fit in the shape.'));
-    void host.commit(areaCommands(parent, index, textId, lineIds, lines, areaOptions, shape.id), [shape.id]);
+    void host.commit(areaCommands(parent, index, textId, lineIds, lines, areaOptions, shape.id, overflow), [shape.id]);
   }
 }
 

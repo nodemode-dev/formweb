@@ -1900,4 +1900,10 @@ export default [
   "Flächentext bearbeiten ...",
   "Text aktualisieren",
   "Wählen Sie Flächentext oder die Form aus, die ihn enthält.",
+  "Text verketten",
+  "Verketteten Text zurückwandeln",
+  "Wählen Sie Flächentext und die geschlossenen Formen aus, in die er fließen soll.",
+  "Wählen Sie eine oder mehrere geschlossene Formen aus, in die der Text fließen soll.",
+  "Diese Formen sind bereits verkettet.",
+  "Dieser Flächentext ist nicht verkettet.",
 ] as readonly string[];

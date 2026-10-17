@@ -1900,4 +1900,10 @@ export const KEYS: readonly string[] = [
   "Edit area type...",
   "Update text",
   "Select area type or the shape that holds it.",
+  "Thread text",
+  "Release threaded text",
+  "Select area type and the closed shapes to thread it into.",
+  "Select one or more closed shapes to thread the text into.",
+  "These shapes are already in the thread.",
+  "This area type is not threaded.",
 ];

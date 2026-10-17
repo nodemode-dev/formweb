@@ -1900,4 +1900,10 @@ export default [
   "Modifier le texte captif...",
   "Mettre à jour le texte",
   "Sélectionnez le texte captif ou la forme qui le contient.",
+  "Chaîner le texte",
+  "Libérer le texte chaîné",
+  "Sélectionnez le texte captif et les formes fermées dans lesquelles le chaîner.",
+  "Sélectionnez une ou plusieurs formes fermées dans lesquelles chaîner le texte.",
+  "Ces formes font déjà partie de la chaîne.",
+  "Ce texte captif n'est pas chaîné.",
 ] as readonly string[];

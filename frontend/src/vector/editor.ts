@@ -25,7 +25,7 @@ import { Puppet, Reshape } from './puppet';
 import { Overlay, type ExtraItem, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
 import { alignFixes, widthFixes } from './stroke';
 import { typeFixes } from './typepath';
-import { areaFixes } from './areatype';
+import { areaFixes, areaTextFor } from './areatype';
 import { ViewAids } from './view';
 import { liveCopyOwner, liveFixes, liveSources } from './live';
 import { parseTransform, symbolPaths, usesOf } from './symbols';
@@ -1160,6 +1160,7 @@ export class Editor {
     if ((event.key === 'Backspace' || event.key === 'Delete')) {
       if (this.pen) { this.pen.nodes.pop(); if (!this.pen.nodes.length) this.pen = null; this.render(); event.preventDefault(); event.stopPropagation(); return; }
       if (this.extras.deleteFreeformStop()) { event.preventDefault(); event.stopPropagation(); return; }
+      if (this.deleteAreaShapes()) { event.preventDefault(); event.stopPropagation(); return; }
       const refs = this.selectedRefs();
       if (refs.length) { this.deleteRefs(refs); event.preventDefault(); event.stopPropagation(); }
       return;
@@ -1324,6 +1325,16 @@ export class Editor {
     const { attrs, styles } = this.boardAttrs(g, b);
     const ok = await this.commit([{ command: 'node.update', params: { id: g.svg, patch: { attrs, styles } } }]);
     if (!ok) this.refresh();
+  }
+
+  /* Shapes that hold area type are deleted through the editor, so the text is threaded again in the same undo step
+     (the shell's Delete would remove them without the area fix). */
+  private deleteAreaShapes(): boolean {
+    const site = this.site();
+    const ids = this.selection.filter(id => site.nodes[id]?.tag === 'path' && !!areaTextFor(site, id));
+    if (!ids.length) return false;
+    void this.commit(ids.map(id => removeNode(id)));
+    return true;
   }
 
   private selectedBoards(): string[] {

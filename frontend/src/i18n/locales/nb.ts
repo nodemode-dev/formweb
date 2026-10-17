@@ -1900,4 +1900,10 @@ export default [
   "Rediger områdetekst...",
   "Oppdater tekst",
   "Velg områdetekst eller formen som inneholder den.",
+  "Kjed tekst",
+  "Frigjør kjedet tekst",
+  "Velg områdetekst og de lukkede formene den skal kjedes inn i.",
+  "Velg én eller flere lukkede former som teksten skal kjedes inn i.",
+  "Disse formene er allerede i kjeden.",
+  "Denne områdeteksten er ikke kjedet.",
 ] as readonly string[];

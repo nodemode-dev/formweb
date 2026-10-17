@@ -1900,4 +1900,10 @@ export default [
   "Edytuj tekst w obszarze...",
   "Aktualizuj tekst",
   "Zaznacz tekst w obszarze lub kształt, który go zawiera.",
+  "Połącz tekst",
+  "Zwolnij połączony tekst",
+  "Zaznacz tekst w obszarze i zamknięte kształty, do których ma przepływać.",
+  "Zaznacz jeden lub więcej zamkniętych kształtów, do których ma przepływać tekst.",
+  "Te kształty są już w połączeniu.",
+  "Ten tekst w obszarze nie jest połączony.",
 ] as readonly string[];

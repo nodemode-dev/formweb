@@ -1900,4 +1900,10 @@ export default [
   "Modifica testo in area...",
   "Aggiorna testo",
   "Seleziona il testo in area o la forma che lo contiene.",
+  "Concatena testo",
+  "Svincola testo concatenato",
+  "Seleziona il testo in area e le forme chiuse in cui concatenarlo.",
+  "Seleziona una o più forme chiuse in cui concatenare il testo.",
+  "Queste forme fanno già parte della concatenazione.",
+  "Questo testo in area non è concatenato.",
 ] as readonly string[];

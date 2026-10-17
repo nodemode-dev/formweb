@@ -13,7 +13,8 @@ import { runTrace } from './tracepanel';
 import { addAnchorCommands, divideBelowCommands, removeAnchorCommands } from './pathcmds';
 import { openExportScreens, pageArtboards } from './exportscreens';
 import { openAreaType, openCleanUp, openPattern, openRearrange, openSplitGrid, openTweak } from './pathdialogs';
-import { areaTextFor } from './areatype';
+import { areaTextFor, releaseThreadCommands, threadSelection } from './areatype';
+import { t } from '../i18n';
 import { objectsOnPathCommands } from './objectsonpath';
 import { ArtboardsPanel } from './artboards';
 import { viewCommands } from './view';
@@ -94,6 +95,8 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.path.objects-on-path', label: 'Attach objects to path', menu: MENU, group: 4, mutates: true, run: () => { const cmds = objectsOnPathCommands(editor.host()); if (cmds.length) void editor.commit(cmds); }, enabled: hasPair },
     { id: 'vector.type.area', label: 'Area type...', menu: MENU, group: 7, mutates: true, run: () => openAreaType(editor.host()), enabled: hasShape },
     { id: 'vector.type.area-edit', label: 'Edit area type...', menu: MENU, group: 7, mutates: true, run: () => openAreaType(editor.host(), true), enabled: () => { try { const h = editor.host(); return !!areaTextFor(h.site(), h.primary()); } catch { return false; } } },
+    { id: 'vector.type.thread', label: 'Thread text', menu: MENU, group: 7, mutates: true, run: () => { const h = editor.host(); const made = threadSelection(h); if (typeof made === 'string') h.notify(t(made)); else void editor.commit(made); }, enabled: () => { try { return editor.host().selection().length >= 2; } catch { return false; } } },
+    { id: 'vector.type.thread-release', label: 'Release threaded text', menu: MENU, group: 7, mutates: true, run: () => { const h = editor.host(); const found = areaTextFor(h.site(), h.primary()); const cmds = found ? releaseThreadCommands(h.site(), found.text, found.spec) : []; if (cmds.length) void editor.commit(cmds); else h.notify(t('This area type is not threaded.')); }, enabled: () => { try { const h = editor.host(); return !!areaTextFor(h.site(), h.primary())?.spec.chain?.length; } catch { return false; } } },
     { id: 'vector.pattern.make', label: 'Make pattern...', menu: MENU, group: 7, run: () => openPattern(editor.host()), enabled: hasPair },
     { id: 'vector.pattern.edit', label: 'Edit pattern...', menu: MENU, group: 7, mutates: true, run: () => openPattern(editor.host(), true), enabled: hasShape },
     { id: 'vector.gradient.freeform', label: 'Freeform gradient', menu: MENU, group: 7, mutates: true, run: () => { void editor.ops.freeform(); }, enabled: hasShape },

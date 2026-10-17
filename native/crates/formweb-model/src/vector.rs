@@ -390,7 +390,10 @@ fn mesh_ok(map: &serde_json::Map<String, Value>) -> bool {
 fn area_config(value: &Value) -> bool {
     let Some(map) = value.as_object() else { return false };
     let number = |key: &str, lo: f64, hi: f64| map.get(key).and_then(Value::as_f64).map(|n| n.is_finite() && n >= lo && n <= hi).unwrap_or(false);
-    map.len() == 8
+    let chain_ok = map.get("chain").map(|v| v.as_array().map(|a| a.len() <= 20 && a.iter().all(|l| l.as_array().map(|p| p.len() == 2 && p.iter().all(|id| id.as_str().map(ref_id).unwrap_or(false))).unwrap_or(false))).unwrap_or(false)).unwrap_or(true);
+    let over_ok = map.get("over").map(|v| v.as_u64().map(|n| n <= 100_000).unwrap_or(false)).unwrap_or(true);
+    map.len() == 8 + usize::from(map.contains_key("chain")) + usize::from(map.contains_key("over"))
+        && chain_ok && over_ok
         && map.get("v").and_then(Value::as_u64) == Some(1)
         && map.get("src").and_then(Value::as_str).map(ref_id).unwrap_or(false)
         && map.get("text").and_then(Value::as_str).map(|s| s.chars().count() <= 20_000).unwrap_or(false)

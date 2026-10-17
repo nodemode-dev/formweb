@@ -1900,4 +1900,10 @@ export default [
   "Redigera områdestext...",
   "Uppdatera text",
   "Markera områdestext eller formen som innehåller den.",
+  "Länka text",
+  "Frigör länkad text",
+  "Markera områdestext och de slutna former som den ska länkas in i.",
+  "Markera en eller flera slutna former som texten ska länkas in i.",
+  "De här formerna finns redan i länken.",
+  "Den här områdestexten är inte länkad.",
 ] as readonly string[];

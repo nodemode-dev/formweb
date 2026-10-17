@@ -1900,4 +1900,10 @@ export default [
   "Editar texto de área...",
   "Atualizar texto",
   "Selecione o texto de área ou a forma que o contém.",
+  "Encadear texto",
+  "Liberar texto encadeado",
+  "Selecione o texto de área e as formas fechadas em que deseja encadeá-lo.",
+  "Selecione uma ou mais formas fechadas para encadear o texto.",
+  "Essas formas já estão no encadeamento.",
+  "Este texto de área não está encadeado.",
 ] as readonly string[];

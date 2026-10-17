@@ -1900,4 +1900,10 @@ export default [
   "Rediger områdetekst...",
   "Opdater tekst",
   "Vælg områdetekst eller den form, der indeholder den.",
+  "Kæd tekst",
+  "Frigør kædet tekst",
+  "Vælg områdetekst og de lukkede former, den skal kædes ind i.",
+  "Vælg en eller flere lukkede former, som teksten skal kædes ind i.",
+  "Disse former er allerede i kæden.",
+  "Denne områdetekst er ikke kædet.",
 ] as readonly string[];

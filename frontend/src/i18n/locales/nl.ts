@@ -1900,4 +1900,10 @@ export default [
   "Tekst in vlak bewerken...",
   "Tekst bijwerken",
   "Selecteer tekst in vlak of de vorm die deze bevat.",
+  "Tekst koppelen",
+  "Gekoppelde tekst vrijgeven",
+  "Selecteer tekst in vlak en de gesloten vormen waarin u die wilt koppelen.",
+  "Selecteer een of meer gesloten vormen om de tekst in te koppelen.",
+  "Deze vormen zijn al gekoppeld.",
+  "Deze tekst in vlak is niet gekoppeld.",
 ] as readonly string[];

@@ -1900,4 +1900,10 @@ export default [
   "Muokkaa aluetekstiä...",
   "Päivitä teksti",
   "Valitse aluetekstiä tai muoto, joka sisältää sen.",
+  "Ketjuta teksti",
+  "Vapauta ketjutettu teksti",
+  "Valitse alueteksti ja suljetut muodot, joihin se ketjutetaan.",
+  "Valitse yksi tai useampi suljettu muoto, johon teksti ketjutetaan.",
+  "Nämä muodot ovat jo ketjussa.",
+  "Tätä aluetekstiä ei ole ketjutettu.",
 ] as readonly string[];

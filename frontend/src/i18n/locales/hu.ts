@@ -1900,4 +1900,10 @@ export default [
   "Területszöveg szerkesztése...",
   "Szöveg frissítése",
   "Jelölje ki a területszöveget vagy az azt tartalmazó alakzatot.",
+  "Szöveg összefűzése",
+  "Összefűzött szöveg feloldása",
+  "Jelölje ki a területszöveget és a zárt alakzatokat, amelyekbe fűzni szeretné.",
+  "Jelöljön ki egy vagy több zárt alakzatot, amelybe a szöveg fűzhető.",
+  "Ezek az alakzatok már az összefűzés részei.",
+  "Ez a területszöveg nincs összefűzve.",
 ] as readonly string[];

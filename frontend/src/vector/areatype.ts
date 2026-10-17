@@ -1,6 +1,7 @@
 import type { Command, Site, SiteNode } from '../types';
 import { flattenSub } from './edit';
 import { fmt, parsePath, pathBounds, type Pt, type SubPath } from './geometry';
+import type { Host } from './host';
 import { freshId, removeNode, updateAttrs } from './store';
 
 export type AreaAlign = 'left' | 'center' | 'right';
@@ -48,12 +49,12 @@ function tokens(text: string): Token[] {
   return out;
 }
 
-export function layoutArea(subs: SubPath[], o: AreaOptions, measure: (s: string) => number): { lines: AreaLine[]; overflow: number } {
+export function layoutArea(subs: SubPath[], o: AreaOptions, measure: (s: string) => number): { lines: AreaLine[]; overflow: number; rest: string } {
   const box = pathBounds(subs);
   const polys = subs.filter(s => s.closed).map(s => flattenSub(s, 0.25)).filter(p => p.length > 2);
   const queue = tokens(o.text);
   const lines: AreaLine[] = [];
-  if (!box || !polys.length) return { lines, overflow: queue.filter(t => 'word' in t).length };
+  if (!box || !polys.length) return { lines, overflow: queue.filter(t => 'word' in t).length, rest: o.text };
   const columns = Math.max(1, Math.min(12, Math.round(o.columns)));
   const colW = (box.w - 2 * o.inset - o.gutter * (columns - 1)) / columns;
   const space = measure(' ');
@@ -95,7 +96,10 @@ export function layoutArea(subs: SubPath[], o: AreaOptions, measure: (s: string)
       lines.push({ x, y, text });
     }
   }
-  return { lines, overflow: queue.slice(q).filter(t => 'word' in t).length };
+  const left = queue.slice(q);
+  let rest = '';
+  for (const tok of left) rest += 'para' in tok ? '\n' : rest && !rest.endsWith('\n') ? ` ${tok.word}` : tok.word;
+  return { lines, overflow: left.filter(t => 'word' in t).length, rest };
 }
 
 export function measurer(o: AreaOptions): (s: string) => number {
@@ -107,12 +111,13 @@ export function measurer(o: AreaOptions): (s: string) => number {
 
 /* Live area type: the text keeps its source shape and options in data-fw-area, and areaFixes lays the lines out
    again in the same commit whenever the shape's geometry changes. */
-export interface AreaSpec { v: 1; src: string; text: string; leading: number; align: AreaAlign; inset: number; columns: number; gutter: number }
+export interface AreaSpec { v: 1; src: string; text: string; leading: number; align: AreaAlign; inset: number; columns: number; gutter: number; chain?: [string, string][]; over?: number }
 
 const ID = /^[A-Za-z0-9_-]{1,64}$/;
+export const THREAD_LIMIT = 20;
 
-export function areaAttr(src: string, o: AreaOptions): string {
-  const spec: AreaSpec = { v: 1, src, text: o.text, leading: o.leading, align: o.align, inset: o.inset, columns: o.columns, gutter: o.gutter };
+export function areaAttr(src: string, o: AreaOptions, chain?: [string, string][], over?: number): string {
+  const spec: AreaSpec = { v: 1, src, text: o.text, leading: o.leading, align: o.align, inset: o.inset, columns: o.columns, gutter: o.gutter, ...(chain?.length ? { chain } : {}), ...(over ? { over } : {}) };
   return JSON.stringify(spec);
 }
 
@@ -123,20 +128,92 @@ export function readArea(raw: string | undefined): AreaSpec | null {
     const n = (v: unknown, lo: number, hi: number): v is number => typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi;
     if (c.v !== 1 || typeof c.src !== 'string' || !ID.test(c.src) || typeof c.text !== 'string' || c.text.length > 20000 || !n(c.leading, 1, 10000)
       || (c.align !== 'left' && c.align !== 'center' && c.align !== 'right') || !n(c.inset, 0, 10000) || !n(c.columns, 1, 12) || !n(c.gutter, 0, 10000)) return null;
-    return { v: 1, src: c.src, text: c.text, leading: c.leading, align: c.align, inset: c.inset, columns: c.columns, gutter: c.gutter };
+    const chain = c.chain;
+    if (chain !== undefined && (!Array.isArray(chain) || chain.length > THREAD_LIMIT || !chain.every(l => Array.isArray(l) && l.length === 2 && l.every(id => typeof id === 'string' && ID.test(id))))) return null;
+    if (c.over !== undefined && !(Number.isInteger(c.over) && c.over >= 0 && c.over <= 100000)) return null;
+    return { v: 1, src: c.src, text: c.text, leading: c.leading, align: c.align, inset: c.inset, columns: c.columns, gutter: c.gutter, ...(chain?.length ? { chain } : {}), ...(c.over ? { over: c.over } : {}) };
   } catch { return null; }
+}
+
+/* Threaded text: the words flow through the first shape and then each linked shape in order; whatever is left
+   after the last one is the overflow, kept in the spec so the canvas can mark it. */
+export function relayoutChain(site: Site, text: SiteNode, spec: AreaSpec, o: AreaOptions, subsOf: (id: string) => SubPath[] | null, chain: [string, string][] = spec.chain ?? []): { cmds: Command[]; overflow: number; lines: number } {
+  const taken = new Set<string>();
+  const measure = measurer(o);
+  const cmds: Command[] = [];
+  let remaining = o.text;
+  let total = 0;
+  for (const [shapeId, textId] of [[spec.src, text.id] as [string, string], ...chain]) {
+    cmds.push(...(site.nodes[textId]?.children ?? []).map(id => removeNode(id)));
+    const subs = subsOf(shapeId);
+    if (!subs || !remaining.trim()) continue;
+    const res = layoutArea(subs, { ...o, text: remaining }, measure);
+    res.lines.forEach(line => cmds.push({ command: 'node.add', params: { parent: textId, node: { id: freshId(site, taken, 'tspan'), tag: 'tspan', name: 'Line', text: line.text, attrs: { x: fmt(line.x), y: fmt(line.y) } } } }));
+    total += res.lines.length;
+    remaining = res.rest;
+  }
+  const overflow = remaining.split(/\s+/).filter(Boolean).length;
+  cmds.push(updateAttrs(text.id, { 'data-fw-area': areaAttr(spec.src, o, chain, overflow) }));
+  return { cmds, overflow, lines: total };
+}
+
+const fontAttrs = (o: AreaOptions): Record<string, string> => ({ 'font-size': fmt(o.size), 'font-family': o.family, 'font-weight': o.weight, fill: o.color, 'text-anchor': o.align === 'center' ? 'middle' : o.align === 'right' ? 'end' : 'start' });
+
+const shapeSubs = (site: Site, patched?: Map<string, Record<string, string | null>>) => (id: string): SubPath[] | null => {
+  const d = patched?.get(id)?.d ?? site.nodes[id]?.attrs.d;
+  return d ? parsePath(d) : null;
+};
+
+/* Type > Threaded Text > Create: link the area type to more closed shapes, in the order given. Each new shape gets
+   an empty text after it with the same font; the words are laid out again through the whole thread. */
+export function threadCommands(site: Site, text: SiteNode, spec: AreaSpec, shapes: { id: string; parent: string; index: number }[]): Command[] | null {
+  const chain: [string, string][] = [...(spec.chain ?? [])];
+  const used = new Set([spec.src, ...chain.map(l => l[0])]);
+  const o = areaOptionsOf(text, spec);
+  const taken = new Set<string>();
+  const cmds: Command[] = [];
+  for (const s of shapes) {
+    if (used.has(s.id) || chain.length >= THREAD_LIMIT) continue;
+    const id = freshId(site, taken, 'text');
+    cmds.push({ command: 'node.add', params: { parent: s.parent, node: { id, tag: 'text', name: 'Threaded type', attrs: fontAttrs(o) } } }, { command: 'node.move', params: { id, parent: s.parent, index: s.index } });
+    chain.push([s.id, id]);
+    used.add(s.id);
+  }
+  if (!cmds.length) return null;
+  return [...cmds, ...relayoutChain(site, text, spec, o, shapeSubs(site), chain).cmds];
+}
+
+/* Thread from the selection: the selected area type (or its shape) plus the other selected closed paths, in
+   selection order. */
+export function threadSelection(h: Host): Command[] | string {
+  const site = h.site();
+  const ids = h.selection();
+  const found = ids.map(id => areaTextFor(site, id)).find(Boolean);
+  if (!found) return 'Select area type and the closed shapes to thread it into.';
+  const own = new Set([found.spec.src, found.text.id, ...(found.spec.chain ?? []).flat()]);
+  const shapes = ids.filter(id => !own.has(id)).map(id => h.shape(id)).filter((s): s is NonNullable<ReturnType<Host['shape']>> => !!s && s.subs.some(sp => sp.closed));
+  if (!shapes.length) return 'Select one or more closed shapes to thread the text into.';
+  const placed = shapes.map(s => { const parent = h.parentOf(s.id) ?? s.svg; return { id: s.id, parent, index: site.nodes[parent].children.indexOf(s.id) + 1 }; });
+  return threadCommands(site, found.text, found.spec, placed) ?? 'These shapes are already in the thread.';
+}
+
+/* Release: the linked texts are removed and the words roll back into the first shape. */
+export function releaseThreadCommands(site: Site, text: SiteNode, spec: AreaSpec): Command[] {
+  if (!spec.chain?.length) return [];
+  const o = areaOptionsOf(text, spec);
+  return [...spec.chain.filter(([, t]) => site.nodes[t]).map(([, t]) => removeNode(t)), ...relayoutChain(site, text, spec, o, shapeSubs(site), []).cmds];
 }
 
 /* The live area text for a selected text, line or source shape. */
 export function areaTextFor(site: Site, id: string): { text: SiteNode; spec: AreaSpec } | null {
   let node = site.nodes[id];
   if (node?.tag === 'tspan') node = Object.values(site.nodes).find(n => n.children.includes(id)) ?? node;
-  if (node?.tag === 'text') { const spec = readArea(node.attrs['data-fw-area']); return spec ? { text: node, spec } : null; }
-  if (node?.tag !== 'path') return null;
+  if (node?.tag === 'text') { const spec = readArea(node.attrs['data-fw-area']); if (spec) return { text: node, spec }; }
+  if (node?.tag !== 'path' && node?.tag !== 'text') return null;
   for (const n of Object.values(site.nodes)) {
     if (n.tag !== 'text') continue;
     const spec = readArea(n.attrs['data-fw-area']);
-    if (spec?.src === id) return { text: n, spec };
+    if (spec && (spec.src === node.id || spec.chain?.some(([s, t]) => s === node.id || t === node.id))) return { text: n, spec };
   }
   return null;
 }
@@ -147,16 +224,10 @@ export function areaOptionsOf(text: SiteNode, spec: AreaSpec): AreaOptions {
 }
 
 /* Editing placed area type: new text and options, laid out again in the same shape, one undo step. */
-export function areaEditCommands(site: Site, text: SiteNode, src: string, subs: SubPath[], o: AreaOptions): { cmds: Command[]; overflow: number; lines: number } {
-  const { lines, overflow } = layoutArea(subs, o, measurer(o));
-  const taken = new Set<string>();
-  const anchor = o.align === 'center' ? 'middle' : o.align === 'right' ? 'end' : 'start';
-  const cmds: Command[] = [
-    updateAttrs(text.id, { 'font-size': fmt(o.size), 'font-family': o.family, 'font-weight': o.weight, fill: o.color, 'text-anchor': anchor, 'data-fw-area': areaAttr(src, o) }),
-    ...text.children.map(id => removeNode(id)),
-  ];
-  lines.forEach(line => cmds.push({ command: 'node.add', params: { parent: text.id, node: { id: freshId(site, taken, 'tspan'), tag: 'tspan', name: 'Line', text: line.text, attrs: { x: fmt(line.x), y: fmt(line.y) } } } }));
-  return { cmds, overflow, lines: lines.length };
+export function areaEditCommands(site: Site, text: SiteNode, spec: AreaSpec, o: AreaOptions): { cmds: Command[]; overflow: number; lines: number } {
+  const font = fontAttrs(o);
+  const made = relayoutChain(site, text, spec, o, shapeSubs(site));
+  return { ...made, cmds: [updateAttrs(text.id, font), ...(spec.chain ?? []).filter(([, t]) => site.nodes[t]).map(([, t]) => updateAttrs(t, font)), ...made.cmds] };
 }
 
 export function areaFixes(site: Site, cmds: Command[]): Command[] {
@@ -167,31 +238,33 @@ export function areaFixes(site: Site, cmds: Command[]): Command[] {
     const params = c.params as { id: string; patch?: { attrs?: Record<string, string | null> } };
     if (site.nodes[params.id]?.tag === 'path' && params.patch?.attrs && 'd' in params.patch.attrs) patched.set(params.id, { ...patched.get(params.id), ...params.patch.attrs });
   }
-  if (!patched.size && !removed.size) return [];
+  /* A command that rewrites a text's spec has already laid it out; links whose shape or text is gone (also after a
+     change made outside the editor, through reconcile) are dropped and the words flow again. */
+  const respecced = new Set(cmds.filter(c => c.command === 'node.update' && ((c.params as { patch?: { attrs?: Record<string, unknown> } }).patch?.attrs ?? {})['data-fw-area'] !== undefined).map(c => (c.params as { id: string }).id));
   const out: Command[] = [];
-  const taken = new Set<string>();
   for (const t of Object.values(site.nodes)) {
-    if (t.tag !== 'text' || removed.has(t.id)) continue;
+    if (t.tag !== 'text' || removed.has(t.id) || respecced.has(t.id) || !t.attrs['data-fw-area']) continue;
     const spec = readArea(t.attrs['data-fw-area']);
     if (!spec) continue;
-    if (removed.has(spec.src) || !site.nodes[spec.src]) { out.push(updateAttrs(t.id, { 'data-fw-area': null })); continue; }
-    const patch = patched.get(spec.src);
-    if (!patch) continue;
-    const d = patch.d ?? site.nodes[spec.src].attrs.d;
-    if (!d) continue;
-    const size = parseFloat(t.attrs['font-size'] ?? '16');
-    const o: AreaOptions = { text: spec.text, size: Number.isFinite(size) && size > 0 ? size : 16, leading: spec.leading, family: t.attrs['font-family'] ?? 'system-ui, sans-serif', weight: t.attrs['font-weight'] ?? '400', color: t.attrs.fill ?? '#1f1f1f', align: spec.align, inset: spec.inset, columns: spec.columns, gutter: spec.gutter };
-    const { lines } = layoutArea(parsePath(d), o, measurer(o));
-    out.push(...t.children.map(id => removeNode(id)));
-    lines.forEach(line => out.push({ command: 'node.add', params: { parent: t.id, node: { id: freshId(site, taken, 'tspan'), tag: 'tspan', name: 'Line', text: line.text, attrs: { x: fmt(line.x), y: fmt(line.y) } } } }));
+    const links = spec.chain ?? [];
+    if (removed.has(spec.src) || !site.nodes[spec.src]) {
+      out.push(updateAttrs(t.id, { 'data-fw-area': null }));
+      continue;
+    }
+    const kept = links.filter(([s, x]) => site.nodes[s] && !removed.has(s) && site.nodes[x] && !removed.has(x));
+    for (const [s, x] of links) if (!kept.some(l => l[1] === x) && site.nodes[x] && !removed.has(x) && (removed.has(s) || !site.nodes[s])) out.push(removeNode(x));
+    const touched = patched.has(spec.src) || links.some(([s]) => patched.has(s)) || kept.length !== links.length;
+    if (!touched) continue;
+    const made = relayoutChain(site, t, spec, areaOptionsOf(t, spec), shapeSubs(site, patched), kept);
+    out.push(...made.cmds.filter(c => !(c.command === 'node.remove' && removed.has((c.params as { id: string }).id))));
   }
   return out;
 }
 
-export function areaCommands(parent: string, index: number, textId: string, lineIds: string[], lines: AreaLine[], o: AreaOptions, src?: string): Command[] {
+export function areaCommands(parent: string, index: number, textId: string, lineIds: string[], lines: AreaLine[], o: AreaOptions, src?: string, over = 0): Command[] {
   const anchor = o.align === 'center' ? 'middle' : o.align === 'right' ? 'end' : 'start';
   const cmds: Command[] = [
-    { command: 'node.add', params: { parent, node: { id: textId, tag: 'text', name: 'Area type', attrs: { 'font-size': fmt(o.size), 'font-family': o.family, 'font-weight': o.weight, fill: o.color, 'text-anchor': anchor, ...(src ? { 'data-fw-area': areaAttr(src, o) } : {}) } } } },
+    { command: 'node.add', params: { parent, node: { id: textId, tag: 'text', name: 'Area type', attrs: { 'font-size': fmt(o.size), 'font-family': o.family, 'font-weight': o.weight, fill: o.color, 'text-anchor': anchor, ...(src ? { 'data-fw-area': areaAttr(src, o, undefined, over) } : {}) } } } },
     { command: 'node.move', params: { id: textId, parent, index } }
   ];
   lines.forEach((line, i) => cmds.push({ command: 'node.add', params: { parent: textId, node: { id: lineIds[i], tag: 'tspan', name: 'Line', text: line.text, attrs: { x: fmt(line.x), y: fmt(line.y) } } } }));
