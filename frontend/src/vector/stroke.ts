@@ -138,6 +138,13 @@ export function widthCommands(site: Site, shape: Shape, points: WidthPoint[]): C
   return cmds;
 }
 
+/* The path whose variable-width outline `id` is, so picking the drawn stroke picks the path it belongs to. */
+export function widthOwner(site: Site, id: string): string | undefined {
+  const node = site.nodes[id];
+  if (!node || node.tag !== 'path' || node.name !== 'Width outline') return undefined;
+  return Object.values(site.nodes).find(n => n.tag === 'path' && n.attrs['data-fw-width'] && readWidth(n)?.outline === id)?.id;
+}
+
 export function presetCommands(site: Site, shape: Shape, preset: WidthPreset): Command[] {
   return widthCommands(site, shape, widthPreset(preset, Math.max(1, shape.paint.strokeWidth)));
 }

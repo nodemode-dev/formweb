@@ -346,7 +346,9 @@ export class Ops {
   }
 
   async widthPreset(preset: WidthPreset): Promise<void> {
-    const shapes = this.shapes().filter(s => s.subs[0] && !s.subs[0].closed || preset === 'uniform');
+    /* Closed shapes take width profiles too (Figma lists rectangles, ellipses and polygons as supported): the profile
+       runs once around the outline from its first anchor, and the outline is drawn as a ring. */
+    const shapes = this.shapes().filter(s => !!s.subs[0]);
     await this.run(shapes.flatMap(s => presetCommands(this.h.site(), s, preset)));
   }
 

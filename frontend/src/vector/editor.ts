@@ -23,7 +23,7 @@ import { PICK_TOOLS, Picker, rememberMove } from './select';
 import { GlobalEdit } from './globaledit';
 import { Puppet, Reshape } from './puppet';
 import { Overlay, type ExtraItem, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
-import { alignFixes, widthFixes } from './stroke';
+import { alignFixes, widthFixes, widthOwner } from './stroke';
 import { typeFixes } from './typepath';
 import { areaFixes, areaTextFor } from './areatype';
 import { AreaTextEditor } from './areaedit';
@@ -437,7 +437,8 @@ export class Editor {
     for (const el of doc.elementsFromPoint(p[0], p[1])) {
       const raw = (el as HTMLElement).dataset?.fwId;
       const owner = raw && this.site().nodes[raw] ? liveCopyOwner(this.site(), raw) : undefined;
-      const id = owner ? liveSources(this.site(), owner)[0] : raw;
+      const picked = owner ? liveSources(this.site(), owner)[0] : raw;
+      const id = picked ? widthOwner(this.site(), picked) ?? picked : picked;
       if (!id || !this.site().nodes[id]) continue;
       const tag = this.site().nodes[id].tag;
       if (iso && tag === 'path' && !pathIds(this.site(), iso).includes(id)) continue;
