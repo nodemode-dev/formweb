@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.9 · 2026-10-17
+
+- Artboards: with the Artboard tool, hold Shift and drag a box on empty canvas to select every artboard it touches. Arrow keys move the selected artboards by 1 px, or 10 px with Shift; a burst of key presses is one undo step.
+
 ## 0.10.8 · 2026-10-17
 
 - Move several artboards at once: with the Artboard tool, Shift-click artboards to select more than one (Shift-click a selected one to drop it), then drag any of them to move them all together. One undo puts them all back.
