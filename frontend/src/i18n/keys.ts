@@ -1931,4 +1931,9 @@ export const KEYS: readonly string[] = [
   "Pricing page",
   "Contact page",
   "Sections insert after the selected section. Starter pages add a new page with its sections. Every insert is one undo step.",
+  "Start from",
+  "Blank",
+  "Business site",
+  "Product launch",
+  "Portfolio",
 ];

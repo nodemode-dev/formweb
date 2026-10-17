@@ -1931,4 +1931,9 @@ export default [
   "Página de precios",
   "Página de contacto",
   "Las secciones se insertan después de la sección seleccionada. Las páginas de inicio rápido añaden una página nueva con sus secciones. Cada inserción es un solo paso de deshacer.",
+  "Empezar desde",
+  "En blanco",
+  "Sitio de empresa",
+  "Lanzamiento de producto",
+  "Portafolio",
 ] as readonly string[];

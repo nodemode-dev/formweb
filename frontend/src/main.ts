@@ -20,7 +20,7 @@ import { StockLibrary } from './features/stock-library';
 import { AiWriter, SiteGenerator } from './features/ai-writer';
 import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
-import { SECTIONS, STARTERS, sectionCommands, type Command } from './features/sections';
+import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
 import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 
@@ -778,7 +778,26 @@ function dialogPane(id: string): HTMLElement {
 
 const newPane = dialogPane('new');
 const newName = input('My website');
-newPane.append(element('p', 'empty-note', 'Start a new site in the Rust engine. Save your current project before creating a new one.'), field('Site name', newName));
+const newStarter = select([{ id: '', name: 'Blank' }, ...STARTER_SITES.map(entry => ({ id: entry.id, name: entry.label }))]);
+newStarter.dataset.field = 'new.starter';
+newPane.append(element('p', 'empty-note', 'Start a new site in the Rust engine. Save your current project before creating a new one.'), field('Site name', newName), field('Start from', newStarter));
+// Starter site (FW-186): one batch after the blank site exists, so a single undo returns to the blank site.
+function starterSiteCommands(id: string): { commands: Command[]; first: string } {
+  const site = STARTER_SITES.find(entry => entry.id === id);
+  if (!site) return { commands: [], first: '' };
+  const home = state().site.pages[0];
+  const links = site.pages.slice(1).map(page => ({ text: page.name, href: page.slug }));
+  const list: Command[] = [{ command: 'page.update', params: { id: home.id, patch: { name: site.pages[0].name } } }];
+  site.pages.forEach((page, index) => {
+    let root = home.root;
+    if (index > 0) {
+      root = uuid('page-root');
+      list.push({ command: 'page.add', params: { name: page.name, slug: page.slug, id: uuid('page'), root } });
+    }
+    for (const section of page.sections) list.push(...sectionCommands(section, root, uuid, links).commands);
+  });
+  return { commands: list, first: home.id };
+}
 const pageDialogPane = dialogPane('page');
 const newPageName = input('About');
 const newPageSlug = input('/about');
@@ -1392,7 +1411,8 @@ function closeDialog(): void {
 }
 async function performDialogAction(): Promise<void> {
   if (dialogMode === 'new') {
-    await replace('/api/new', { name: newName.value.trim() || 'Untitled website' });
+    await replace('/api/new', { name: newName.value.trim() || 'Untitled website', ...(newStarter.value ? { blank: true } : {}) });
+    if (newStarter.value) await commands(starterSiteCommands(newStarter.value).commands);
     pageId = state().site.pages[0].id;
     selectedId = state().site.pages[0].root;
     update(state());

@@ -1931,4 +1931,9 @@ export default [
   "Halaman harga",
   "Halaman kontak",
   "Bagian disisipkan setelah bagian yang dipilih. Halaman awal menambahkan halaman baru beserta bagiannya. Setiap sisipan dapat dibatalkan dalam satu langkah.",
+  "Mulai dari",
+  "Kosong",
+  "Situs bisnis",
+  "Peluncuran produk",
+  "Portofolio",
 ] as readonly string[];

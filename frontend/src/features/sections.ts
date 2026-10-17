@@ -92,10 +92,27 @@ export const STARTERS: { id: string; label: string; slug: string; sections: stri
   { id: 'contact', label: 'Contact page', slug: '/contact', sections: ['nav', 'contact', 'footer'] }
 ];
 
-/** node.add commands for one section under `parent`, parents first; returns the commands and the section's root id. */
-export function sectionCommands(id: string, parent: string, fresh: (tag: string) => string): { commands: Command[]; root: string } {
-  const entry = SECTIONS.find(item => item.id === id);
-  if (!entry) throw new Error(`Unknown section ${id}`);
+/** Starter sites for the New site dialog: every page is a list of sections, and the navigation bar links the pages. */
+export const STARTER_SITES: { id: string; label: string; pages: { name: string; slug: string; sections: string[] }[] }[] = [
+  { id: 'business', label: 'Business site', pages: [
+    { name: 'Home', slug: '/', sections: ['nav', 'hero', 'features', 'testimonial', 'cta', 'footer'] },
+    { name: 'Pricing', slug: '/pricing', sections: ['nav', 'pricing', 'faq', 'footer'] },
+    { name: 'Contact', slug: '/contact', sections: ['nav', 'contact', 'footer'] }] },
+  { id: 'product', label: 'Product launch', pages: [
+    { name: 'Home', slug: '/', sections: ['nav', 'hero', 'features', 'pricing', 'faq', 'cta', 'footer'] },
+    { name: 'Contact', slug: '/contact', sections: ['nav', 'contact', 'footer'] }] },
+  { id: 'portfolio', label: 'Portfolio', pages: [
+    { name: 'Home', slug: '/', sections: ['nav', 'hero', 'features', 'testimonial', 'footer'] },
+    { name: 'About', slug: '/about', sections: ['nav', 'hero', 'cta', 'footer'] },
+    { name: 'Contact', slug: '/contact', sections: ['nav', 'contact', 'footer'] }] }
+];
+
+/** node.add commands for one section under `parent`, parents first; returns the commands and the section's root id.
+ *  `links` replaces the navigation bar's links with real page links (starter sites). */
+export function sectionCommands(id: string, parent: string, fresh: (tag: string) => string, links?: { text: string; href: string }[]): { commands: Command[]; root: string } {
+  const found = SECTIONS.find(item => item.id === id);
+  if (!found) throw new Error(`Unknown section ${id}`);
+  const entry = id === 'nav' && links ? { ...found, spec: { ...found.spec, children: [found.spec.children![0], { ...found.spec.children![1], children: links.map(item => ({ tag: 'a', name: 'Link', text: item.text, styles: { color: 'inherit', 'text-decoration': 'none' }, attrs: { href: item.href } })) }] } } : found;
   const commands: Command[] = [];
   const walk = (spec: Spec, under: string): string => {
     const node: SiteNode = { id: fresh(spec.tag), tag: spec.tag, name: spec.name, text: spec.text || '', children: [], attrs: { ...(spec.attrs || {}) }, styles: { ...(spec.styles || {}) }, breakpoints: spec.mobile ? { mobile: { ...spec.mobile } } : {} };

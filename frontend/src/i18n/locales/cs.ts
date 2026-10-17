@@ -1931,4 +1931,9 @@ export default [
   "Stránka s ceníkem",
   "Kontaktní stránka",
   "Sekce se vkládají za vybranou sekci. Úvodní stránky přidají novou stránku s jejími sekcemi. Každé vložení se vrátí jedním krokem zpět.",
+  "Začít od",
+  "Prázdný",
+  "Firemní web",
+  "Uvedení produktu",
+  "Portfolio",
 ] as readonly string[];

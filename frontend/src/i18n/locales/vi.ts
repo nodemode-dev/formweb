@@ -1931,4 +1931,9 @@ export default [
   "Trang bảng giá",
   "Trang liên hệ",
   "Các phần được chèn sau phần đang chọn. Trang khởi đầu thêm một trang mới cùng các phần của nó. Mỗi lần chèn hoàn tác được trong một bước.",
+  "Bắt đầu từ",
+  "Trống",
+  "Trang web doanh nghiệp",
+  "Ra mắt sản phẩm",
+  "Hồ sơ năng lực",
 ] as readonly string[];

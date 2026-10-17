@@ -1931,4 +1931,9 @@ export default [
   "Prisside",
   "Kontaktside",
   "Sektioner indsættes efter den valgte sektion. Startsider tilføjer en ny side med dens sektioner. Hver indsættelse er ét fortryd-trin.",
+  "Start fra",
+  "Tom",
+  "Virksomhedswebsted",
+  "Produktlancering",
+  "Portefølje",
 ] as readonly string[];

@@ -1931,4 +1931,9 @@ export default [
   "Strona cennika",
   "Strona kontaktowa",
   "Sekcje są wstawiane po zaznaczonej sekcji. Strony startowe dodają nową stronę z jej sekcjami. Każde wstawienie cofa się jednym krokiem.",
+  "Zacznij od",
+  "Pusta",
+  "Witryna firmowa",
+  "Premiera produktu",
+  "Portfolio",
 ] as readonly string[];

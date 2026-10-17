@@ -1931,4 +1931,9 @@ export default [
   "Pagina dei prezzi",
   "Pagina dei contatti",
   "Le sezioni vengono inserite dopo la sezione selezionata. Le pagine di partenza aggiungono una nuova pagina con le sue sezioni. Ogni inserimento si annulla in un solo passaggio.",
+  "Parti da",
+  "Vuoto",
+  "Sito aziendale",
+  "Lancio di prodotto",
+  "Portfolio",
 ] as readonly string[];

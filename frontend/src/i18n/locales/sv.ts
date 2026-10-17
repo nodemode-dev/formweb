@@ -1931,4 +1931,9 @@ export default [
   "Prissida",
   "Kontaktsida",
   "Sektioner infogas efter den valda sektionen. Startsidor lägger till en ny sida med dess sektioner. Varje infogning ångras i ett steg.",
+  "Börja från",
+  "Tom",
+  "Företagswebbplats",
+  "Produktlansering",
+  "Portfolio",
 ] as readonly string[];

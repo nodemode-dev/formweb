@@ -1931,4 +1931,9 @@ export default [
   "Prijspagina",
   "Contactpagina",
   "Secties worden na de geselecteerde sectie ingevoegd. Startpagina’s voegen een nieuwe pagina met haar secties toe. Elke invoeging is één stap ongedaan maken.",
+  "Beginnen met",
+  "Leeg",
+  "Bedrijfssite",
+  "Productlancering",
+  "Portfolio",
 ] as readonly string[];

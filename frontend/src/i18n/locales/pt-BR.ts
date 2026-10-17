@@ -1931,4 +1931,9 @@ export default [
   "Página de preços",
   "Página de contato",
   "As seções são inseridas após a seção selecionada. As páginas iniciais adicionam uma nova página com suas seções. Cada inserção é uma única etapa de desfazer.",
+  "Começar com",
+  "Em branco",
+  "Site empresarial",
+  "Lançamento de produto",
+  "Portfólio",
 ] as readonly string[];

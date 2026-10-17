@@ -1931,4 +1931,9 @@ export default [
   "Árak oldal",
   "Kapcsolat oldal",
   "A szakaszok a kijelölt szakasz után kerülnek. A kezdőoldalak új oldalt adnak hozzá a szakaszaival. Minden beszúrás egy lépésben visszavonható.",
+  "Kiindulás",
+  "Üres",
+  "Céges webhely",
+  "Termékbevezetés",
+  "Portfólió",
 ] as readonly string[];

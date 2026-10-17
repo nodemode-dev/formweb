@@ -1931,4 +1931,9 @@ export default [
   "Fiyat sayfası",
   "İletişim sayfası",
   "Bölümler seçili bölümden sonra eklenir. Başlangıç sayfaları bölümleriyle birlikte yeni bir sayfa ekler. Her ekleme tek adımda geri alınır.",
+  "Başlangıç",
+  "Boş",
+  "Kurumsal site",
+  "Ürün lansmanı",
+  "Portföy",
 ] as readonly string[];

@@ -1931,4 +1931,9 @@ export default [
   "Hinnastosivu",
   "Yhteystietosivu",
   "Osiot lisätään valitun osion jälkeen. Aloitussivut lisäävät uuden sivun osioineen. Jokainen lisäys kumotaan yhdellä vaiheella.",
+  "Aloituspohja",
+  "Tyhjä",
+  "Yrityssivusto",
+  "Tuotelanseeraus",
+  "Portfolio",
 ] as readonly string[];

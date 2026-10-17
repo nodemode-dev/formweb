@@ -1931,4 +1931,9 @@ export default [
   "Page de tarifs",
   "Page de contact",
   "Les sections s’insèrent après la section sélectionnée. Les pages de départ ajoutent une nouvelle page avec ses sections. Chaque insertion s’annule en une seule fois.",
+  "Partir de",
+  "Vierge",
+  "Site d’entreprise",
+  "Lancement de produit",
+  "Portfolio",
 ] as readonly string[];

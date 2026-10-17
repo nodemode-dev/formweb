@@ -1931,4 +1931,9 @@ export default [
   "Preisseite",
   "Kontaktseite",
   "Abschnitte werden nach dem ausgewählten Abschnitt eingefügt. Startseiten-Vorlagen fügen eine neue Seite mit ihren Abschnitten hinzu. Jedes Einfügen ist ein Rückgängig-Schritt.",
+  "Beginnen mit",
+  "Leer",
+  "Unternehmenswebsite",
+  "Produktlaunch",
+  "Portfolio",
 ] as readonly string[];
