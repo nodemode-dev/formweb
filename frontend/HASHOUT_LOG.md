@@ -1,5 +1,14 @@
 # Frontend context map
 
+## Artboard resize handles · v0.10.4 (2026-10-17)
+
+Edits in `vector/editor.ts` only: Gesture `boardsize`; `BOARD_HANDLES` (eight handles, corners and edge midpoints); `render()` calls new `decorateBoard` when the Artboard tool is active; `down()` routes role `x-abh` to new `downBoardHandle` (the `x-` prefix is what gives overlay circles pointer events in `vector.css`; `Extras.down` ignores the unknown role and returns false); `move()` and `up()` route to new `dragBoardHandle` and `finishBoardHandle`; new `selectedBoard`, `boardSize`, `boardAttrs`; `ExtraItem` type imported from the overlay.
+
+- **Source basis:** the keyboard cheat sheet read for v0.10.3 ("drag and re-size artboards" in artboard mode) and Dummies ("Resize by dragging the handles", read for v0.10.1). Resizing an artboard does not scale its art (Dummies: Width and Height resize the artboard; the art stays).
+- **Behavior:** handles show on the selected artboard (an `svg` selected in the editor) while the Artboard tool is active, drawn with the existing `thandle` style. Dragging moves the matching edges in canvas coordinates (minimum 1 px); the preview writes `width`, `height`, `viewBox`, `left` and `top` on the canvas element and the same values are committed in one `node.update` on release (a failed commit refreshes). The viewBox origin and size change at the artboard's units per pixel, so the art keeps its place and size on the page.
+- **Driven (CPU 4x, 400 ms latency, slow network, cache off):** artboard drawn with Shift+O, a rectangle drawn inside it, artboard clicked: 8 handles at its corners and edges; bottom-right dragged 60 by 40 screen px: the frame went from 200 by 140 to 260 by 180 on screen, mid-drag equal to the committed size, `0 0 419.15 290.17`; top-left dragged 30 by 20: frame 230 by 160 at the new corner, viewBox origin `48.36 32.24`, left and top moved by the same canvas amount; the rectangle stayed at screen box [521,376,80,60] throughout; two undos restored `0 0 322.42 225.69` and the original screen box. No layout shifts, no page errors.
+- **Not built:** Shift to keep proportions, Alt to resize from the center, resize cursors per handle, handles on several artboards at once.
+
 ## Artboard tool · v0.10.3 (2026-10-16)
 
 Edits in `vector/editor.ts` (Gesture `board`; ToolId `artboard` on Shift+O in `SHIFT_KEYS`; no anchor points shown; `down()` routes to new `downBoard`, `move()` previews, `up()` to new `finishBoard`; the draft draws the new rectangle; new `boardAt` hit-tests artboards by the canvas element's bounding box), `vector/panel.ts` (tool appended last), `vector/icons.ts` (`artboard`), `vector/index.ts`, `commands/catalogue.ts`. No new strings ("Artboard" comes from the vendored formvis tables).

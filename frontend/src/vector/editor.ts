@@ -22,7 +22,7 @@ import { Ops } from './ops';
 import { PICK_TOOLS, Picker, rememberMove } from './select';
 import { GlobalEdit } from './globaledit';
 import { Puppet, Reshape } from './puppet';
-import { Overlay, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
+import { Overlay, type ExtraItem, type Scene, type SceneAnchor, type SceneHandle, type SceneWidget } from './overlay';
 import { alignFixes, widthFixes } from './stroke';
 import { typeFixes } from './typepath';
 import { ViewAids } from './view';
@@ -63,7 +63,10 @@ type Gesture =
   | { kind: 'marquee'; start: Pt; current: Pt; shift: boolean; click?: string }
   | { kind: 'pathmove'; start: Pt; base: Map<string, SubPath[]>; svg?: string; moved: boolean }
   | { kind: 'usemove'; id: string; start: Pt; x: number; y: number; nx: number; ny: number; moved: boolean }
-  | { kind: 'board'; start: Pt; current: Pt; svg: string | null; base: [number, number] };
+  | { kind: 'board'; start: Pt; current: Pt; svg: string | null; base: [number, number] }
+  | { kind: 'boardsize'; svg: string; handle: number; start: Pt; box: [number, number, number, number]; left: number; top: number; vb: [number, number, number, number]; next: [number, number, number, number] | null };
+
+const BOARD_HANDLES: [number, number][] = [[0, 0], [0.5, 0], [1, 0], [1, 0.5], [1, 1], [0.5, 1], [0, 1], [0, 0.5]];
 
 const HIT = 7;
 const TYPES: CornerType[] = ['round', 'inverted', 'chamfer'];
@@ -365,6 +368,7 @@ export class Editor {
     if (g?.kind === 'board' && !g.svg) scene.draft = formatPath([rectPath(Math.min(g.start[0], g.current[0]), Math.min(g.start[1], g.current[1]), Math.abs(g.current[0] - g.start[0]), Math.abs(g.current[1] - g.start[1]))]);
     if (g?.kind === 'marquee') scene.marquee = { x: g.start[0], y: g.start[1], w: g.current[0] - g.start[0], h: g.current[1] - g.start[1] };
     this.extras.decorate(scene);
+    if (tool === 'artboard') this.decorateBoard(scene);
     this.picker.decorate(scene);
     this.puppet.decorate(scene);
     this.globalEdit.decorate(scene);
@@ -473,6 +477,7 @@ export class Editor {
     if (role === 'handle') { this.startHandle(index); return; }
     if (role === 'anchor') { this.downAnchor(index, event, p); return; }
     if (tool === 'pen' || tool === 'curvature') { this.downPen(p, event); return; }
+    if (tool === 'artboard' && role === 'x-abh') { this.downBoardHandle(index, p); return; }
     if (tool === 'artboard') { this.downBoard(p); return; }
     if (tool === 'paintbrush' || tool === 'pencil' || tool === 'blob') { this.gesture = { kind: 'paint', pts: [p], join: tool === 'pencil' ? pencilJoin(this.host(), p, HIT * this.px()) : undefined }; this.render(); return; }
     if (GRID_TOOLS.has(tool) || tool === 'rect' || tool === 'ellipse' || tool === 'polygon' || tool === 'star' || tool === 'line' || tool === 'arc' || tool === 'spiral') {
@@ -786,6 +791,7 @@ export class Editor {
       return;
     }
     if (g.kind === 'paint') { if (dist(g.pts[g.pts.length - 1], p) > 1.5 * this.px()) { g.pts.push(p); this.render(); } return; }
+    if (g.kind === 'boardsize') { this.dragBoardHandle(g, p); this.render(); return; }
     if (g.kind === 'board') {
       g.current = p;
       const el = g.svg ? this.element(g.svg) as SVGSVGElement | null : null;
@@ -975,6 +981,7 @@ export class Editor {
       return;
     }
     if (g.kind === 'board') { void this.finishBoard(g, p); return; }
+    if (g.kind === 'boardsize') { void this.finishBoardHandle(g); return; }
     if (g.kind === 'shape') {
       if (dist(g.start, p) > 3 * this.px() && GRID_TOOLS.has(this.tool)) { void this.commitGrid(this.tool, g.start, event.shiftKey ? p : g.current, event.altKey, event.shiftKey); return; }
       if (dist(g.start, p) > 3 * this.px()) {
@@ -1216,6 +1223,73 @@ export class Editor {
       if (r && p[0] >= r.left && p[0] <= r.right && p[1] >= r.top && p[1] <= r.bottom) return b.id;
     }
     return null;
+  }
+
+  private selectedBoard(): string | null {
+    try { const id = this.ctx.getSelected(); return this.site().nodes[id]?.tag === 'svg' ? id : null; } catch { return null; }
+  }
+
+  private decorateBoard(scene: Scene): void {
+    const id = this.selectedBoard();
+    const g = this.gesture;
+    const r = id ? this.element(id)?.getBoundingClientRect() : undefined;
+    if (!id || !r) return;
+    const box = g?.kind === 'boardsize' && g.next ? g.next : [r.left, r.top, r.width, r.height];
+    const items: ExtraItem[] = BOARD_HANDLES.map(([fx, fy], i) => ({ kind: 'circle', x: box[0] + fx * box[2], y: box[1] + fy * box[3], r: 4.5, cls: 'thandle', role: 'x-abh', i }));
+    scene.extras = [...(scene.extras ?? []), ...items];
+  }
+
+  private downBoardHandle(handle: number, p: Pt): void {
+    const svg = this.selectedBoard();
+    const el = svg ? this.element(svg) : null;
+    const node = svg ? this.site().nodes[svg] : undefined;
+    if (!svg || !el || !node || handle < 0 || handle >= BOARD_HANDLES.length) return;
+    const r = el.getBoundingClientRect();
+    const w = parseFloat(node.attrs.width ?? '') || r.width, h = parseFloat(node.attrs.height ?? '') || r.height;
+    const vbRaw = (node.attrs.viewBox ?? '').split(/[\s,]+/).map(Number);
+    const vb: [number, number, number, number] = vbRaw.length === 4 && vbRaw.every(Number.isFinite) && vbRaw[2] > 0 && vbRaw[3] > 0 ? [vbRaw[0], vbRaw[1], vbRaw[2], vbRaw[3]] : [0, 0, w, h];
+    this.gesture = { kind: 'boardsize', svg, handle, start: p, box: [r.left, r.top, r.width, r.height], left: parseFloat(node.styles.left ?? '0') || 0, top: parseFloat(node.styles.top ?? '0') || 0, vb, next: null };
+    this.render();
+  }
+
+  private boardSize(g: Extract<Gesture, { kind: 'boardsize' }>, p: Pt): { x0: number; y0: number; x1: number; y1: number } {
+    const [fx, fy] = BOARD_HANDLES[g.handle];
+    const dx = p[0] - g.start[0], dy = p[1] - g.start[1];
+    let x0 = g.box[0], y0 = g.box[1], x1 = g.box[0] + g.box[2], y1 = g.box[1] + g.box[3];
+    if (fx === 0) x0 = Math.min(x0 + dx, x1 - 1); else if (fx === 1) x1 = Math.max(x1 + dx, x0 + 1);
+    if (fy === 0) y0 = Math.min(y0 + dy, y1 - 1); else if (fy === 1) y1 = Math.max(y1 + dy, y0 + 1);
+    return { x0, y0, x1, y1 };
+  }
+
+  private boardAttrs(g: Extract<Gesture, { kind: 'boardsize' }>, b: { x0: number; y0: number; x1: number; y1: number }): { attrs: Record<string, string>; styles: Record<string, string> } {
+    const r2 = (v: number): string => String(Math.round(v * 100) / 100);
+    const ux = g.vb[2] / (g.box[2] || 1), uy = g.vb[3] / (g.box[3] || 1);
+    const sx = (parseFloat(this.site().nodes[g.svg]?.attrs.width ?? '') || g.box[2]) / (g.box[2] || 1);
+    const sy = (parseFloat(this.site().nodes[g.svg]?.attrs.height ?? '') || g.box[3]) / (g.box[3] || 1);
+    const w = b.x1 - b.x0, h = b.y1 - b.y0;
+    return {
+      attrs: { width: r2(w * sx), height: r2(h * sy), viewBox: `${r2(g.vb[0] + (b.x0 - g.box[0]) * ux)} ${r2(g.vb[1] + (b.y0 - g.box[1]) * uy)} ${r2(w * ux)} ${r2(h * uy)}` },
+      styles: { left: `${r2(g.left + (b.x0 - g.box[0]) * sx)}px`, top: `${r2(g.top + (b.y0 - g.box[1]) * sy)}px` }
+    };
+  }
+
+  private dragBoardHandle(g: Extract<Gesture, { kind: 'boardsize' }>, p: Pt): void {
+    const b = this.boardSize(g, p);
+    g.next = [b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0];
+    const el = this.element(g.svg) as SVGSVGElement | null;
+    if (!el) return;
+    const { attrs, styles } = this.boardAttrs(g, b);
+    for (const [k, v] of Object.entries(attrs)) if (el.getAttribute(k) !== v) el.setAttribute(k, v);
+    if (el.style.left !== styles.left) el.style.left = styles.left;
+    if (el.style.top !== styles.top) el.style.top = styles.top;
+  }
+
+  private async finishBoardHandle(g: Extract<Gesture, { kind: 'boardsize' }>): Promise<void> {
+    if (!g.next) { this.render(); return; }
+    const b = { x0: g.next[0], y0: g.next[1], x1: g.next[0] + g.next[2], y1: g.next[1] + g.next[3] };
+    const { attrs, styles } = this.boardAttrs(g, b);
+    const ok = await this.commit([{ command: 'node.update', params: { id: g.svg, patch: { attrs, styles } } }]);
+    if (!ok) this.refresh();
   }
 
   private downBoard(p: Pt): void {
