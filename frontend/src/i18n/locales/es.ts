@@ -1911,4 +1911,5 @@ export default [
   "Liberar pintura interactiva",
   "Quitar enlace",
   "Haga clic en una forma cerrada para continuar el texto en ella, o en un espacio vacío para una forma nueva. Esc cancela.",
+  "Liberar selección del enlace",
 ] as readonly string[];

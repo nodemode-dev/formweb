@@ -1911,4 +1911,5 @@ export default [
   "Frigjør levende maling",
   "Fjern kjeding",
   "Klikk på en lukket form for å fortsette teksten i den, eller klikk på et tomt sted for en ny form. Esc avbryter.",
+  "Frigjør utvalget fra kjeden",
 ] as readonly string[];

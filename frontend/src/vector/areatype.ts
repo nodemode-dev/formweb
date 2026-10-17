@@ -185,6 +185,22 @@ export function threadCommands(site: Site, text: SiteNode, spec: AreaSpec, shape
   return [...cmds, ...relayoutChain(site, text, spec, o, shapeSubs(site, fresh), chain).cmds];
 }
 
+/* Type > Threaded Text > Release Selection: the picked shapes leave the thread with their outlines kept and their
+   text removed, and the words flow on into the next shape. When the first shape is picked, the first remaining
+   linked shape takes over the spec. */
+export function releaseSelectionCommands(site: Site, text: SiteNode, spec: AreaSpec, picked: Set<string>): Command[] {
+  const links: [string, string][] = [[spec.src, text.id], ...(spec.chain ?? [])];
+  const kept = links.filter(([s, t]) => !picked.has(s) && !picked.has(t) && site.nodes[s] && site.nodes[t]);
+  if (kept.length === links.length || !kept.length) return [];
+  const gone = links.filter(l => !kept.includes(l)).map(([, t]) => t).filter(t => site.nodes[t]);
+  const [[src, head], ...rest] = kept;
+  const lead = site.nodes[head];
+  const o = areaOptionsOf(text, spec);
+  const cmds: Command[] = gone.map(t => removeNode(t));
+  if (head !== text.id) cmds.push({ command: 'node.update', params: { id: head, patch: { name: 'Area type' } } });
+  return [...cmds, ...relayoutChain(site, lead, { ...spec, src }, o, shapeSubs(site), rest).cmds];
+}
+
 /* The shapes of a thread in reading order: the first shape, then each linked shape. */
 export function threadShapes(spec: AreaSpec): string[] { return [spec.src, ...(spec.chain ?? []).map(l => l[0])]; }
 

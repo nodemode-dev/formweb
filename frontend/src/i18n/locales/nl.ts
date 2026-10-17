@@ -1911,4 +1911,5 @@ export default [
   "Levende verf vrijgeven",
   "Koppeling verwijderen",
   "Klik op een gesloten vorm om de tekst daarin voort te zetten, of op een lege plek voor een nieuwe vorm. Esc annuleert.",
+  "Selectie uit koppeling vrijgeven",
 ] as readonly string[];

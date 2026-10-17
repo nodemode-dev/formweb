@@ -1911,4 +1911,5 @@ export default [
   "Annuler la peinture dynamique",
   "Supprimer le chaînage",
   "Cliquez sur une forme fermée pour y poursuivre le texte, ou sur un espace vide pour une nouvelle forme. Échap annule.",
+  "Libérer la sélection du chaînage",
 ] as readonly string[];

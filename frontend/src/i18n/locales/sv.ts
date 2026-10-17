@@ -1911,4 +1911,5 @@ export default [
   "Frigör levande färg",
   "Ta bort länkning",
   "Klicka på en sluten form för att fortsätta texten i den, eller på en tom plats för en ny form. Esc avbryter.",
+  "Frigör markeringen från länken",
 ] as readonly string[];

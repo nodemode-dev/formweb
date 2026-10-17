@@ -1911,4 +1911,5 @@ export default [
   "Canlı Boyayı serbest bırak",
   "Bağlantıyı kaldır",
   "Metni içinde sürdürmek için kapalı bir şekle veya yeni bir şekil için boş bir yere tıklayın. Esc iptal eder.",
+  "Seçimi bağlantıdan serbest bırak",
 ] as readonly string[];

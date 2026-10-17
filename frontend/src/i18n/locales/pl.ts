@@ -1911,4 +1911,5 @@ export default [
   "Zwolnij aktywne malowanie",
   "Usuń połączenie",
   "Kliknij zamknięty kształt, aby kontynuować w nim tekst, lub puste miejsce, aby utworzyć nowy kształt. Esc anuluje.",
+  "Zwolnij zaznaczenie z połączenia",
 ] as readonly string[];

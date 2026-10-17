@@ -1911,4 +1911,5 @@ export const KEYS: readonly string[] = [
   "Release Live Paint",
   "Remove threading",
   "Click a closed shape to continue the text in it, or click an empty spot for a new shape. Esc cancels.",
+  "Release selection from thread",
 ];

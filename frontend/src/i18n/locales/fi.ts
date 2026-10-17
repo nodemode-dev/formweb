@@ -1911,4 +1911,5 @@ export default [
   "Vapauta elävä maalaus",
   "Poista ketjutus",
   "Napsauta suljettua muotoa jatkaaksesi tekstiä siinä tai tyhjää kohtaa uutta muotoa varten. Esc peruuttaa.",
+  "Vapauta valinta ketjusta",
 ] as readonly string[];

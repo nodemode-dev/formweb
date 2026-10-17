@@ -1911,4 +1911,5 @@ export default [
   "Uvolnit živou malbu",
   "Odstranit propojení",
   "Klepněte na uzavřený tvar, do kterého má text pokračovat, nebo na prázdné místo pro nový tvar. Esc ruší.",
+  "Uvolnit výběr z propojení",
 ] as readonly string[];

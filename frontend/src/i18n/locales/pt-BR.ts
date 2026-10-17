@@ -1911,4 +1911,5 @@ export default [
   "Liberar Pintura em tempo real",
   "Remover encadeamento",
   "Clique em uma forma fechada para continuar o texto nela, ou em um espaço vazio para uma nova forma. Esc cancela.",
+  "Liberar seleção do encadeamento",
 ] as readonly string[];

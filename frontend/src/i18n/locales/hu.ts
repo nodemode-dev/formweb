@@ -1911,4 +1911,5 @@ export default [
   "Élő festés feloldása",
   "Összefűzés eltávolítása",
   "Kattintson egy zárt alakzatra, hogy abban folytatódjon a szöveg, vagy egy üres helyre új alakzathoz. Az Esc megszakítja.",
+  "Kijelölés feloldása az összefűzésből",
 ] as readonly string[];
