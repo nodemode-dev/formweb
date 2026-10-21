@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.13.3 · 2026-10-20
+
+- New app icon in the Form family style: a page being edited on the dark family tile, with a hero block and two cards in the family spectrum, the hero selected with corner handles and a floating pointer. The title bar mark matches.
+
 ## 0.13.2 · 2026-10-17
 
 - Scroll and pointer effects, like Figma Sites and Webflow: pick an element and, in the Content panel, choose Parallax, Scroll transform, Mouse parallax, Marquee or Cursor follow, with a strength. They play in Preview and on your published site; visitors who ask their device for reduced motion see the page without movement.
