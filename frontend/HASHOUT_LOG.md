@@ -1,5 +1,9 @@
 # Frontend context map
 
+## App icon and brand mark · v0.13.3 (2026-10-20)
+
+`ui/shell.ts` `BRAND_MARK` and the app icon set (`src-tauri/icons/`, `assets/formweb_icon.svg`) move from the orange outline window to the Form family construction: the dark tile with bloom, rim and drop shadow, and the family spectrum (#3A7BFF, #9A5CFF, #FF4F7A, #FFAE2B). The icon is a page being edited: a dark glass browser window with spectrum dots in its bar, a hero block and two cards as raised glossy tiles sharing one diagonal gradient, the hero selected with white corner handles, and form.md's kite pointer (4.8 units per grid step, two-layer shadow) on the bottom right handle. The macOS .icns uses the 824 px tile inside a 1024 canvas with a 100 px margin; the .ico and PNGs are full bleed. `BRAND_MARK` is drawn at 18 px, so it keeps only the tile, window and three gradient blocks, with no filters; its gradient ids are prefixed `fwm-` and it is mounted once, in the title bar brand.
+
 ## Scroll and pointer effects · v0.13.2 (2026-10-17)
 
 `main.ts` Content pane, above Interaction: `effectSection` with `effectKind` (`data-field` `effect.kind`) and `effectSpeed` (`effect.speed`), patching the node attributes `data-fw-effect` and `data-fw-effect-speed` (None sends `null` for both); `update` fills them through `value()` and disables Strength without an effect. The motion itself is in the exporter: `native/crates/formweb-export/src/effects.js` (`EFFECTS_RUNTIME`), appended to `assets/runtime.js` by both exporters, so Preview and published sites run it and the canvas does not.
