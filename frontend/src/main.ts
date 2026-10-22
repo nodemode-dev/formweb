@@ -10,6 +10,7 @@ import { NativeMenus, desktopMac, menusInWindow, setMenusInWindow, wantsNativeMe
 import { installKeymap } from './commands/keymap';
 import { startCatalogue } from './commands/catalogue';
 import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/layout';
+import { HomeScreen, homePref, setHomePref } from './ui/home';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
@@ -1074,7 +1075,13 @@ const languageSelect = select(languages().map(([id, name]) => ({ id, name })));
 languageSelect.dataset.noI18n = '';
 languageSelect.value = language();
 languageSelect.addEventListener('change', () => { if (isLang(languageSelect.value)) void setLanguage(languageSelect.value); });
-settingsPane.append(field('Editor theme', themeSelect), field('Editor language', languageSelect), element('p', 'empty-note', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.'), field('Server access token', authToken), element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`));
+const autoShowHome = element('input');
+autoShowHome.type = 'checkbox';
+autoShowHome.checked = homePref();
+autoShowHome.addEventListener('change', () => setHomePref(autoShowHome.checked));
+const autoShowHomeLabel = element('label', 'checkbox-field');
+autoShowHomeLabel.append(autoShowHome, element('span', '', 'Show the Home screen at launch'));
+settingsPane.append(field('Editor theme', themeSelect), field('Editor language', languageSelect), autoShowHomeLabel, element('p', 'empty-note', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.'), field('Server access token', authToken), element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`));
 const helpPane = dialogPane('help');
 const helpGrid = element('div', 'help-grid');
 for (const [heading, paragraph] of [
@@ -1432,13 +1439,16 @@ function closeDialog(): void {
   dialogMode = '';
   lastFocus?.focus();
 }
+async function createSite(name: string, starter: string): Promise<void> {
+  await replace('/api/new', { name, ...(starter ? { blank: true } : {}) });
+  if (starter) await commands(starterSiteCommands(starter).commands);
+  pageId = state().site.pages[0].id;
+  selectedId = state().site.pages[0].root;
+  update(state());
+}
 async function performDialogAction(): Promise<void> {
   if (dialogMode === 'new') {
-    await replace('/api/new', { name: newName.value.trim() || 'Untitled website', ...(newStarter.value ? { blank: true } : {}) });
-    if (newStarter.value) await commands(starterSiteCommands(newStarter.value).commands);
-    pageId = state().site.pages[0].id;
-    selectedId = state().site.pages[0].root;
-    update(state());
+    await createSite(newName.value.trim() || 'Untitled website', newStarter.value);
     closeDialog();
     status('New site created.');
   } else if (dialogMode === 'page') {
@@ -1781,6 +1791,31 @@ function usePreset(id: string): void {
   setSidebar(preset.sidebar);
 }
 subscribe(update);
+const home = new HomeScreen(app, {
+  files: {
+    list: async () => (await request<{ projects: { id: string; name: string; updatedAt: string }[] }>('/api/projects')).projects.map(project => ({ key: project.id, name: project.name, kind: 'FWEB', size: 0, when: Date.parse(project.updatedAt) || 0 })),
+    open: item => void run(async () => {
+      await replace(`/api/projects/${encodeURIComponent(item.key)}/open`, {});
+      home.dismiss();
+      status('Project opened.');
+    })
+  },
+  templates: STARTER_SITES.map(entry => ({ id: entry.id, name: entry.label, pages: entry.pages.length })),
+  run: id => { runCommand(id); },
+  create: id => void run(async () => {
+    await createSite(id ? STARTER_SITES.find(entry => entry.id === id)?.label || 'Untitled website' : 'Untitled website', id);
+    home.dismiss();
+    status('New site created.');
+  })
+});
+subscribe(next => home.sync(next.site.id));
+const brandButton = brand;
+brandButton.setAttribute('role', 'button');
+brandButton.tabIndex = 0;
+brandButton.setAttribute('aria-label', 'Home');
+brandButton.title = 'Home';
+brandButton.addEventListener('click', () => home.show());
+brandButton.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); home.show(); } });
 workspaceSelect.value = layout.preset;
 setInspector(layout.presetInfo().inspector);
 setSidebar(layout.presetInfo().sidebar);

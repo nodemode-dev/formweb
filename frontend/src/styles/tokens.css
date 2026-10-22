@@ -86,6 +86,7 @@
   --ctl-lg: 36px;
   --ctl-xl: 40px;
   --control-height: var(--ctl);
+  --titlebar-h: 40px;
   --z-base: 0;
   --z-raised: 100;
   --z-sticky: 200;
