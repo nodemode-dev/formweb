@@ -18,6 +18,7 @@ use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_dialog::DialogExt;
 
 mod render;
+mod reveal;
 
 const PORT: u16 = 8240;
 const FALLBACK_LOGICAL: (f64, f64) = (1440.0, 900.0);
@@ -134,23 +135,31 @@ fn open_editor(handle: &tauri::AppHandle) {
             ((size.width as f64 / scale) * SCREEN_FRACTION, (size.height as f64 / scale) * SCREEN_FRACTION)
         })
         .unwrap_or(FALLBACK_LOGICAL);
-    let _ = WebviewWindowBuilder::new(handle, "main", WebviewUrl::External(url))
+    match WebviewWindowBuilder::new(handle, "main", WebviewUrl::External(url))
         .title("formweb")
         .inner_size(width, height)
         .min_inner_size(MIN_LOGICAL.0, MIN_LOGICAL.1)
         .center()
-        .build();
+        .visible(reveal::BUILD_VISIBLE)
+        .background_color(reveal::BACKGROUND)
+        .build()
+    {
+        Ok(window) => reveal::conceal(&window),
+        Err(_) => reveal::close_splash(handle),
+    }
 }
 
 fn main() {
+    reveal::mark_launch();
     #[cfg(unix)]
     watch_signals();
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(Service(Mutex::new(None)))
-        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff])
+        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready])
         .setup(|app| {
+            reveal::round_splash(app.handle());
             let handle = app.handle().clone();
             std::thread::spawn(move || {
                 if !healthy() {
@@ -164,10 +173,12 @@ fn main() {
                             SERVICE_GROUP.store(child.id() as i32, std::sync::atomic::Ordering::SeqCst);
                             handle.state::<Service>().0.lock().unwrap().replace(child); }
                         Some(Err(error)) => {
+                            reveal::close_splash(&handle);
                             handle.dialog().message(format!("FormWeb could not start its local service: {error}")).blocking_show();
                             std::process::exit(1);
                         }
                         None => {
+                            reveal::close_splash(&handle);
                             handle.dialog().message("FormWeb could not find its folder. Start it with ./formweb serve, or set FORMWEB_ROOT, then open the app again.").blocking_show();
                             std::process::exit(1);
                         }
@@ -176,6 +187,7 @@ fn main() {
                     while !healthy() {
                         if Instant::now() > deadline {
                             stop_service(&handle);
+                            reveal::close_splash(&handle);
                             handle.dialog().message("The FormWeb service did not answer within 60 seconds. Run ./formweb doctor in the FormWeb folder.").blocking_show();
                             std::process::exit(1);
                         }

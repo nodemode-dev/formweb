@@ -1,14 +1,29 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "formweb",
-  "version": "0.13.3",
+  "version": "0.14.0",
   "identifier": "ai.nodemode.formweb",
   "build": {
     "frontendDist": "../frontend/dist"
   },
   "app": {
     "withGlobalTauri": true,
-    "windows": [],
+    "windows": [
+      {
+        "label": "splash",
+        "title": "FormWeb",
+        "url": "splash.html",
+        "width": 360,
+        "height": 200,
+        "resizable": false,
+        "decorations": false,
+        "center": true,
+        "transparent": true,
+        "shadow": false,
+        "visible": false
+      }
+    ],
+    "macOSPrivateApi": true,
     "security": {
       "csp": null
     }
