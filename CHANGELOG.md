@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.0 · 2026-10-22
+
+- macOS: the editor window uses the overlay title bar with the traffic lights centred in a 38 px row, and the top bar leaves them room and drags the window.
+- macOS: the menus also live in the system menu bar (About, Settings on Cmd+comma, Hide, Quit, then File to Help); View > Menus in Window keeps them in the window instead. Undo and Redo work inside text fields from the menu bar.
+- All 28 Form family themes, so a theme picked in another form app shows the same here.
+
 ## 0.14.0 · 2026-10-22
 
 - The desktop app starts like the rest of the Form family: a rounded splash card with the FormWeb icon, Starting FormWeb and a loading bar while the service starts; the editor window stays hidden until its page has painted and then appears whole, at least 2.6 s after launch.
