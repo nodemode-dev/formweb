@@ -6,6 +6,7 @@ import { icon, type Icon } from './ui/icons';
 import { THEMES, applyTheme, readChoice, setTheme } from './ui/themes';
 import { BRAND_MARK, CommandSearch, Menubar, exposeToAgents, registerCommands, runCommand, setRunner } from './ui/shell';
 import { commands as commandRegistry } from './commands/registry';
+import { NativeMenus, desktopMac, menusInWindow, setMenusInWindow, wantsNativeMenus } from './ui/native-menu';
 import { installKeymap } from './commands/keymap';
 import { startCatalogue } from './commands/catalogue';
 import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/layout';
@@ -1724,6 +1725,7 @@ registerCommands([
   { id: 'view.refresh', label: 'Refresh compiled preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: ['Mod+K'], global: true, group: 2, run: () => commandSearch.show() },
+  { id: 'view.menus-in-window', label: 'Menus in Window', menu: 'View', group: 2, enabled: desktopMac, checked: menusInWindow, run: () => { const on = !menusInWindow(); setMenusInWindow(on); status(on ? 'The menus stay in the window from the next start.' : 'The menus go to the menu bar from the next start.'); } },
   { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => toggleLeft('pages'), checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
   { id: 'window.insert', label: 'Insert', menu: 'Window', run: () => toggleLeft('insert'), checked: () => activeSidebar === 'insert' && layout.state.left === 'open' },
   { id: 'window.design', label: 'Design inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('design'); }, checked: () => activeInspector === 'design' && layout.state.right === 'open' },
@@ -1752,6 +1754,11 @@ const wishlist = installWishlist({ state, commands: batch => commands(batch), se
 registerCommands(wishlist.commands);
 subscribe(() => wishlist.refresh());
 menubar.build();
+if (wantsNativeMenus()) {
+  const nativeMenus = new NativeMenus(commandRegistry, ['File', 'Edit', 'Insert', 'Page', 'Arrange', 'Vector', 'CMS', 'View', 'Window', 'Help']);
+  void nativeMenus.build().catch(() => undefined);
+  subscribe(() => nativeMenus.refresh());
+}
 startPageTranslator();
 exposeToAgents();
 installKeymap(commandRegistry, () => !!lastState && !featureStudio.opened);

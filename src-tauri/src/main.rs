@@ -19,6 +19,7 @@ use tauri_plugin_dialog::DialogExt;
 
 mod render;
 mod reveal;
+mod text_edit;
 mod traffic_lights;
 
 const PORT: u16 = 8240;
@@ -180,7 +181,7 @@ fn main() {
                 traffic_lights::place(window);
             }
         })
-        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready, traffic_lights::set_window_title])
+        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready, traffic_lights::set_window_title, text_edit::text_edit])
         .setup(|app| {
             reveal::round_splash(app.handle());
             let handle = app.handle().clone();
