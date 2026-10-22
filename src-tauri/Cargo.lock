@@ -934,9 +934,11 @@ dependencies = [
 
 [[package]]
 name = "formweb"
-version = "0.13.3"
+version = "0.14.0"
 dependencies = [
  "formweb-render",
+ "objc2",
+ "objc2-app-kit",
  "serde",
  "serde_json",
  "tauri",

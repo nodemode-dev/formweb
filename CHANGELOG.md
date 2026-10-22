@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.14.0 · 2026-10-22
+
+- The desktop app starts like the rest of the Form family: a rounded splash card with the FormWeb icon, Starting FormWeb and a loading bar while the service starts; the editor window stays hidden until its page has painted and then appears whole, at least 2.6 s after launch.
+- The owner's icon is used everywhere: the master render is kept as `assets/formweb_icon_macos.png`, and the editor's title-bar mark is now that icon instead of a simplified drawing.
+
 ## 0.13.3 · 2026-10-20
 
 - New app icon in the Form family style: a page being edited on the dark family tile, with a hero block and two cards in the family spectrum, the hero selected with corner handles and a floating pointer. The title bar mark matches.
