@@ -6,7 +6,18 @@ export function element<K extends keyof HTMLElementTagNameMap>(tag: K, className
 }
 export function revealApp(): void {
   if (document.body.classList.contains('app-ready')) return;
-  requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.add('app-ready')));
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.body.classList.add('app-ready');
+    const tauri = (window as unknown as { __TAURI__?: { core?: { invoke(command: string): Promise<unknown> } } }).__TAURI__;
+    if (!tauri?.core) return;
+    requestAnimationFrame(() => {
+      try {
+        void tauri.core?.invoke('app_ready').catch(() => undefined);
+      } catch {
+        return;
+      }
+    });
+  }));
 }
 export function text(node: HTMLElement, value: string): void {
   if (node.textContent !== value) node.textContent = value;

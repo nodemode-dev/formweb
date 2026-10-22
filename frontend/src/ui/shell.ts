@@ -24,7 +24,7 @@ export function registerCommands(list: CommandDef[]): void {
 export function commandList(): Command[] { return commands.all(); }
 export function runCommand(id: string, params?: Record<string, unknown>): boolean { return commands.run(id, params); }
 
-export const BRAND_MARK = '<svg class="fw-mark" width="18" height="18" viewBox="0 0 128 128" fill="none" role="img" aria-label="formweb"><defs><linearGradient id="fwm-g" gradientUnits="userSpaceOnUse" x1="22" y1="104" x2="106" y2="26"><stop offset="0" stop-color="#3A7BFF"/><stop offset=".32" stop-color="#9A5CFF"/><stop offset=".64" stop-color="#FF4F7A"/><stop offset="1" stop-color="#FFAE2B"/></linearGradient><linearGradient id="fwm-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#24212B"/><stop offset="1" stop-color="#0B0A0E"/></linearGradient></defs><rect width="128" height="128" rx="29" fill="url(#fwm-bg)"/><rect x="20" y="24" width="88" height="80" rx="9" fill="#2E2A35"/><rect x="27" y="40" width="74" height="28" rx="5" fill="url(#fwm-g)"/><rect x="27" y="73" width="35" height="24" rx="5" fill="url(#fwm-g)"/><rect x="66" y="73" width="35" height="24" rx="5" fill="url(#fwm-g)"/></svg>';
+export const BRAND_MARK = '<img class="fw-mark" src="/formweb-logo.png" width="18" height="18" alt="formweb" draggable="false">';
 
 interface MenuView { name: string; button: HTMLButtonElement; popup: HTMLElement; rows: { row: HTMLButtonElement; item: Command }[] }
 

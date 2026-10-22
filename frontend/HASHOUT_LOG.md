@@ -1009,3 +1009,11 @@ Strict TypeScript/Vite compilation passed during implementation. Root owns final
 - logged: v0.2.0 · 2026-10-10
 
 Semantic HTTP 409 errors now preserve the service reason; only an explicit stale/revision conflict refreshes engine state and requests a reviewed retry. This keeps library digest acknowledgement and branch/translation-state failures actionable. The inspector recognizes an advanced CMS binding or list, shows its actual collection/field and reserves its legacy controls while providing a Studio edit action. A dedicated saved-main list/open workflow completes branch review and merge from Studio; merge includes the reviewed revision. These are direct edits of read regions, followed by strict production compilation. Final asset names are communicated to root for browser verification.
+
+### Splash card, reveal handshake and the app icon in the page
+
+- refers-to: `public/splash.html`; `public/formweb-logo.png`; `src/ui/dom.ts` :: revealApp; `src/ui/shell.ts` :: BRAND_MARK; `index.html` :: preload; `../src-tauri/src/reveal.rs`; `../src-tauri/src/main.rs` :: open_editor, setup; `../src-tauri/tauri.conf.json` :: splash window
+- kind: rationale
+- logged: v0.14.0 · 2026-10-22
+
+The Form family boot sequence from formvis 1.96.4. The desktop shell now opens a 360 by 200 rounded splash (transparent, no shadow, built hidden, masked to 16 px natively on macOS, then shown) with the FormWeb icon, Starting FormWeb and a bar that fills over 2.6 s, while the service starts. The editor window is built hidden (macOS: on screen at alpha 0 so its web view keeps painting) on a #0a0a0a background and is shown at max(2.6 s from launch, the page's first paint), with a 20 s fallback; the bar completes in 220 ms and the splash closes. `revealApp()` keeps its two frames to `body.app-ready` and, in the desktop app, calls `app_ready` one frame later. Service failures close the splash before their dialog. No overlay title bar yet: the page has no 38 px title row for the traffic lights, which belongs to the title bar port. `BRAND_MARK` was a simplified drawing of the icon; it is now the owner's icon (`formweb-logo.png`, the 256 px rounded tile of `assets/formweb_icon_macos.png`) at the same 18 px box, preloaded so it paints with the shell.
