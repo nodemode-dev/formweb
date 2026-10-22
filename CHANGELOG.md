@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.0 · 2026-10-22
+
+- A Home screen like the rest of the Form family: navigation (Start, Recent, Projects), a greeting, a start card for websites, the starter sites as tiles, and your projects with filter, sort and grid or list view. It shows at launch (Settings can turn that off) and the brand mark returns to it.
+
 ## 0.15.0 · 2026-10-22
 
 - macOS: the editor window uses the overlay title bar with the traffic lights centred in a 38 px row, and the top bar leaves them room and drags the window.
