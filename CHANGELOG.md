@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.0 · 2026-10-22
+
+- Settings opens the Form family's Preferences dialog: a floating rail of sections (General, Interface, Plugins) that folds to icons, foldable section cards in one scrolling pane, and Reset All Preferences in General.
+
 ## 0.16.0 · 2026-10-22
 
 - A Home screen like the rest of the Form family: navigation (Start, Recent, Projects), a greeting, a start card for websites, the starter sites as tiles, and your projects with filter, sort and grid or list view. It shows at launch (Settings can turn that off) and the brand mark returns to it.
