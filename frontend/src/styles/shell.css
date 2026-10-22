@@ -1,4 +1,6 @@
 .topbar { display: grid; grid-template-columns: auto minmax(0, max-content) minmax(0, 1fr) auto auto; align-items: center; column-gap: var(--space-3); padding: 0 var(--space-3); background: linear-gradient(to bottom, var(--surface-2), var(--surface-1)); border-bottom: 1px solid var(--line-0); min-width: 0; user-select: none; }
+:root.has-overlay-titlebar #app { grid-template-rows: 38px 40px minmax(0, 1fr) 28px; }
+:root.has-overlay-titlebar .topbar { padding-left: 78px; }
 .brand { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--accent-color); }
 .brand .fw-mark { display: block; flex: none; }
 .brand-name { color: var(--text-primary); font-size: var(--fs-13); font-weight: 600; letter-spacing: 0.2px; }

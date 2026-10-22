@@ -57,6 +57,7 @@ fn show_main<R: Runtime>(app: &tauri::AppHandle<R>) {
         set_seen(&main, true);
         let _ = main.show();
         let _ = main.set_focus();
+        crate::traffic_lights::place(&main.as_ref().window());
     }
     close_splash(app);
 }

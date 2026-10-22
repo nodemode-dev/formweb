@@ -19,6 +19,7 @@ use tauri_plugin_dialog::DialogExt;
 
 mod render;
 mod reveal;
+mod traffic_lights;
 
 const PORT: u16 = 8240;
 const FALLBACK_LOGICAL: (f64, f64) = (1440.0, 900.0);
@@ -135,16 +136,25 @@ fn open_editor(handle: &tauri::AppHandle) {
             ((size.width as f64 / scale) * SCREEN_FRACTION, (size.height as f64 / scale) * SCREEN_FRACTION)
         })
         .unwrap_or(FALLBACK_LOGICAL);
-    match WebviewWindowBuilder::new(handle, "main", WebviewUrl::External(url))
+    let builder = WebviewWindowBuilder::new(handle, "main", WebviewUrl::External(url))
         .title("formweb")
         .inner_size(width, height)
         .min_inner_size(MIN_LOGICAL.0, MIN_LOGICAL.1)
         .center()
         .visible(reveal::BUILD_VISIBLE)
-        .background_color(reveal::BACKGROUND)
-        .build()
-    {
-        Ok(window) => reveal::conceal(&window),
+        .background_color(reveal::BACKGROUND);
+    #[cfg(target_os = "macos")]
+    let builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay).hidden_title(true);
+    let builder = builder.on_page_load(|window, payload| {
+        if matches!(payload.event(), tauri::webview::PageLoadEvent::Finished) {
+            traffic_lights::place(&window.as_ref().window());
+        }
+    });
+    match builder.build() {
+        Ok(window) => {
+            reveal::conceal(&window);
+            traffic_lights::place(&window.as_ref().window());
+        }
         Err(_) => reveal::close_splash(handle),
     }
 }
@@ -157,7 +167,20 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(Service(Mutex::new(None)))
-        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready])
+        .on_window_event(|window, event| {
+            if window.label() == "main"
+                && matches!(
+                    event,
+                    tauri::WindowEvent::Resized(_)
+                        | tauri::WindowEvent::Focused(_)
+                        | tauri::WindowEvent::ThemeChanged(_)
+                        | tauri::WindowEvent::ScaleFactorChanged { .. }
+                )
+            {
+                traffic_lights::place(window);
+            }
+        })
+        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready, traffic_lights::set_window_title])
         .setup(|app| {
             reveal::round_splash(app.handle());
             let handle = app.handle().clone();

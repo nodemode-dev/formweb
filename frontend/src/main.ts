@@ -188,7 +188,11 @@ previewButton.setAttribute('aria-label', previewButton.title);
 const publishButton = button('Publish', 'arrow', undefined, 'primary');
 publishButton.dataset.cmd = 'file.publish';
 topActions.append(previewButton, refreshPreviewButton, publishButton);
-topbar.append(brand, menubar.element, element('div'), titleTools, topActions);
+const topbarGap = element('div');
+topbar.append(brand, menubar.element, topbarGap, titleTools, topActions);
+if (document.documentElement.classList.contains('has-overlay-titlebar')) {
+  for (const part of [topbar, brand, topbarGap, titleTools, topActions]) part.setAttribute('data-tauri-drag-region', '');
+}
 
 const toolbar = element('div', 'toolbar');
 const projectIdentity = element('div', 'project-identity');

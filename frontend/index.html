@@ -12,6 +12,9 @@
     body.app-ready #app { visibility: visible; }
   </style>
   <script>
+    if (/Mac/.test(navigator.platform) && '__TAURI_INTERNALS__' in window) document.documentElement.classList.add('has-overlay-titlebar');
+  </script>
+  <script>
 (function () {
   var LIGHT = { 'light': 1, 'sand': 1 };
   var PROFILES = {
