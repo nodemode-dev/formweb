@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.1 · 2026-10-22
+
+- Releases are built by formcompiler (`nodemode-ai/formcompiler`), the release pipeline for every form* app. FormWeb's own GitHub Actions only run the checks, now also on `compile_vX.Y.Z` branches, and a desktop release, when FormWeb ships one, starts when such a branch is pushed and is published on formcompiler's release page as `formweb-vX.Y.Z`. No change to the app itself.
+
 ## 0.17.0 · 2026-10-22
 
 - Settings opens the Form family's Preferences dialog: a floating rail of sections (General, Interface, Plugins) that folds to icons, foldable section cards in one scrolling pane, and Reset All Preferences in General.
