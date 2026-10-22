@@ -1033,3 +1033,11 @@ On macOS the editor window now uses the overlay title bar with a hidden title, a
 - logged: v0.15.0 · 2026-10-22
 
 On macOS in the desktop app the window's menus also become the system menu bar, built from the same registry the in-window `Menubar` reads (each command's `menu` and `sep`), with `@tauri-apps/api/menu` loaded only there: an app submenu (About formweb, Settings with Cmd+comma from `edit.settings`, Hide, Quit), then File to Help with accelerators converted from each command's first key, check items for commands with `checked`, and Cut, Copy, Paste and Select All appended to Edit. Enabled and checked states refresh 150 ms after input and on engine state. Undo and Redo go to a focused text field through `text_edit` (the family module, AppKit first responder) instead of the site history. Once the bar is built, `has-native-menus` collapses the in-window menu bar to zero width so the title bar's other groups stay where they are. View > Menus in Window (`formweb.menusInWindow`) keeps the menus in the window from the next start. @tauri-apps/api is Apache-2.0 OR MIT, pinned to the shell's tauri 2.12.3. Not run on macOS here; checked: tsc, cargo check, and in headless Chromium the in-window bar collapses to 0 px with the tools and actions unmoved.
+
+### The family's 28 themes
+
+- refers-to: `src/ui/themes.ts` :: THEMES; `index.html` :: theme-boot PROFILES, LIGHT
+- kind: rationale
+- logged: v0.15.0 · 2026-10-22
+
+The theme choice is shared across the Form family on one device (`nodemode_ui_settings`), and formvis offers 28 themes; formweb had 15, so a theme picked in formvis such as Pro Dark or Soft Light fell back to Studio here. The 13 missing profiles (90s, Duck, Pro Dark, Pro Medium Gray, Pro Light Gray, Pro Light, Classic, Solarized Dark, Adwaita Light and Dark, Breeze Dark, Soft Light and Dark) are added with formvis's values to both tables, which must stay equal, and the light ones to the boot script's LIGHT map so `data-theme` is right before first paint. Checked in headless Chromium: with the store set to pro-dark, soft-light and nineties, `--bg-primary` is already #1f1f1f, #e8ebef and #c0c0c0 at the first script turn and unchanged after start, with the right light or dark mode.
