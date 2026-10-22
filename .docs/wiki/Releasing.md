@@ -14,6 +14,6 @@ Before the final version commit, build all three layers, inspect actual editor b
 
 Verify clean Git status, commit identity `nodemode-ai <mackin@nodemode.ai>`, branch and tag, and `git fsck`. Re-extract the source archive into a temporary folder and confirm `.git`, executable launchers, all source/config files and the sidecar's document inventory.
 
-The local release process does not push a Git remote, create a GitHub release or deploy a website. GitHub CI builds source when the owner publishes the repository. The manual wiki workflow is separate and requires an initialized wiki target.
+The local release process does not push a Git remote, create a GitHub release or deploy a website. FormWeb's own GitHub Actions only run the checks, on main, on pull requests and on `compile_vX.Y.Z` branches; they never build installable packages or create releases. The manual wiki workflow is separate and requires an initialized wiki target.
 
-Native macOS, Windows and Linux desktop packages are not part of this browser release. Adding a desktop shell later requires its own build and distribution verification.
+Native macOS, Windows and Linux desktop packages are not part of this browser release. When FormWeb ships them, formcompiler (`nodemode-ai/formcompiler`), the release pipeline for every form* app, builds them: push a branch `compile_vX.Y.Z` cut from the version bump commit on main, and formcompiler picks it up on its next 8-hourly watch run (or at once when its watch is run by hand), builds once CI has passed on that commit, and drafts `formweb-vX.Y.Z` on its own release page for the owner to publish. Signing secrets live only in formcompiler. The first such build still needs its own distribution verification.
