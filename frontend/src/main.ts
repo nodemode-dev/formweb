@@ -1081,7 +1081,178 @@ autoShowHome.checked = homePref();
 autoShowHome.addEventListener('change', () => setHomePref(autoShowHome.checked));
 const autoShowHomeLabel = element('label', 'checkbox-field');
 autoShowHomeLabel.append(autoShowHome, element('span', '', 'Show the Home screen at launch'));
-settingsPane.append(field('Editor theme', themeSelect), field('Editor language', languageSelect), autoShowHomeLabel, element('p', 'empty-note', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.'), field('Server access token', authToken), element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`));
+const prefsIcons: Record<string, Icon> = { General: 'pfGeneral', Interface: 'pfInterface', Plugins: 'pfPlugins' };
+const prefsPages = element('div', 'fw-prefs-pages');
+const prefsNav = element('div', 'fw-prefs-nav');
+prefsNav.setAttribute('role', 'tablist');
+const prefsSections = new Map<string, HTMLElement>();
+let prefsCurrent = '';
+let prefsSpyRaf = 0;
+let prefsWireRaf = 0;
+let prefsSpyMuted = 0;
+let prefsWireD = '';
+let prefsPortY = -1;
+function prefsGroup(label: string, ...content: HTMLElement[]): HTMLElement {
+  const group = element('section', 'fw-prefs-group');
+  group.append(element('h3', 'fw-prefs-label', label), ...content);
+  return group;
+}
+function prefsAdd(name: string, ...content: HTMLElement[]): void {
+  const tab = element('button', 'fw-prefs-railtab');
+  tab.type = 'button';
+  tab.setAttribute('role', 'tab');
+  tab.dataset.section = name;
+  tab.title = name;
+  const tabIcon = element('span', 'fw-prefs-tabicon');
+  tabIcon.append(icon(prefsIcons[name]));
+  tab.append(tabIcon, element('span', 'fw-prefs-tablabel', name));
+  tab.addEventListener('click', () => { prefsMark(name); prefsScrollTo(name, 'smooth'); });
+  prefsNav.append(tab);
+  const sec = element('section', 'fw-prefs-sec');
+  sec.dataset.section = name;
+  const head = element('button', 'fw-prefs-sechead');
+  head.type = 'button';
+  head.setAttribute('aria-expanded', 'true');
+  const secIcon = element('span', 'fw-prefs-secicon');
+  secIcon.append(icon(prefsIcons[name]));
+  const chev = element('span', 'fw-prefs-chev');
+  chev.append(icon('chevronDown'));
+  head.append(secIcon, element('span', 'fw-prefs-seclabel', name), chev);
+  head.addEventListener('click', () => prefsFold(name));
+  const body = element('div', 'fw-prefs-secbody');
+  body.append(...content);
+  sec.append(head, body);
+  prefsPages.append(sec);
+  prefsSections.set(name, sec);
+}
+function prefsMark(name: string): void {
+  if (prefsCurrent === name) return;
+  prefsCurrent = name;
+  for (const [key, sec] of prefsSections) sec.classList.toggle('is-current', key === name);
+  for (const tab of Array.from(prefsNav.children) as HTMLElement[]) {
+    const on = tab.dataset.section === name;
+    tab.classList.toggle('is-active', on);
+    tab.setAttribute('aria-selected', String(on));
+  }
+  prefsQueueWire();
+}
+function prefsScrollTo(name: string, behavior: ScrollBehavior): void {
+  const sec = prefsSections.get(name);
+  if (!sec) return;
+  if (sec.classList.contains('is-folded')) prefsFold(name);
+  const top = sec.getBoundingClientRect().top - prefsPages.getBoundingClientRect().top + prefsPages.scrollTop - 12;
+  prefsSpyMuted = performance.now() + 700;
+  prefsPages.scrollTo({ top, behavior });
+}
+function prefsFold(name: string): void {
+  const sec = prefsSections.get(name);
+  if (!sec) return;
+  const folded = !sec.classList.contains('is-folded');
+  sec.classList.toggle('is-folded', folded);
+  (sec.querySelector('.fw-prefs-secbody') as HTMLElement).hidden = folded;
+  (sec.querySelector('.fw-prefs-sechead') as HTMLElement).setAttribute('aria-expanded', String(!folded));
+  prefsQueueWire();
+  prefsQueueSpy();
+}
+function prefsQueueSpy(): void {
+  if (prefsSpyRaf) return;
+  prefsSpyRaf = requestAnimationFrame(() => {
+    prefsSpyRaf = 0;
+    if (!prefsPages.clientHeight || performance.now() < prefsSpyMuted) return;
+    const edge = prefsPages.getBoundingClientRect().top + 24;
+    const names = Array.from(prefsSections.keys());
+    let best = '';
+    let bestD = Infinity;
+    if (prefsPages.scrollHeight > prefsPages.clientHeight + 4 && prefsPages.scrollTop + prefsPages.clientHeight >= prefsPages.scrollHeight - 2) best = names[names.length - 1] || '';
+    else for (const [key, sec] of prefsSections) {
+      const top = sec.getBoundingClientRect().top;
+      const d = top <= edge ? edge - top : top - edge + 100000;
+      if (d < bestD) { bestD = d; best = key; }
+    }
+    if (best) prefsMark(best);
+  });
+}
+function prefsQueueWire(): void {
+  if (prefsWireRaf) return;
+  prefsWireRaf = requestAnimationFrame(() => { prefsWireRaf = 0; prefsDrawWire(); });
+}
+function prefsDrawWire(): void {
+  if (scrim.hidden || dialogMode !== 'settings') return;
+  const F = dialog.getBoundingClientRect();
+  const tab = prefsNav.querySelector<HTMLElement>('.fw-prefs-railtab.is-active');
+  if (!F.width || !tab) return;
+  const N = prefsNav.getBoundingClientRect();
+  let T = tab.getBoundingClientRect();
+  if (T.top < N.top || T.bottom > N.bottom) {
+    prefsNav.scrollTop += T.top < N.top ? T.top - N.top - 6 : T.bottom - N.bottom + 6;
+    T = tab.getBoundingClientRect();
+  }
+  const R = prefsRail.getBoundingClientRect();
+  const H = dialogHead.getBoundingClientRect();
+  const portY = Math.round(H.bottom - F.top);
+  const sx = Math.round(T.right - F.left);
+  const ty = Math.round(T.top - F.top + T.height / 2);
+  const rr = R.right - F.left;
+  const trunk = Math.round(rr - rr * 0.45);
+  const dy = portY - ty;
+  const r = 10;
+  const dir = dy > 0 ? 1 : -1;
+  const d = Math.abs(dy) < 2 * r ? `M ${sx} ${ty} H ${trunk} V ${portY} H -7` : `M ${sx} ${ty} H ${trunk - r} a ${r} ${r} 0 0 ${dir > 0 ? 1 : 0} ${r} ${dir * r} V ${portY - dir * r} a ${r} ${r} 0 0 ${dir > 0 ? 0 : 1} ${r} ${dir * r} H -7`;
+  if (d !== prefsWireD) { prefsWireD = d; prefsWireShade.setAttribute('d', d); prefsWireLine.setAttribute('d', d); }
+  if (portY !== prefsPortY) { prefsPortY = portY; prefsPort.style.transform = `translateY(${portY}px)`; }
+}
+const PREFS_RAIL_KEY = 'formweb.prefsRailCollapsed';
+let prefsCollapsed = false;
+try { prefsCollapsed = localStorage.getItem(PREFS_RAIL_KEY) === '1'; } catch { prefsCollapsed = false; }
+const prefsFoldButton = element('button', 'fw-prefs-fold');
+prefsFoldButton.type = 'button';
+prefsFoldButton.append(icon('pfFold'));
+function paintPrefsRail(): void {
+  dialog.classList.toggle('is-rail-collapsed', prefsCollapsed);
+  prefsFoldButton.title = prefsCollapsed ? 'Expand tabs' : 'Collapse tabs';
+  prefsFoldButton.setAttribute('aria-label', prefsFoldButton.title);
+  prefsFoldButton.setAttribute('aria-expanded', String(!prefsCollapsed));
+}
+prefsFoldButton.addEventListener('click', () => {
+  prefsCollapsed = !prefsCollapsed;
+  try { localStorage.setItem(PREFS_RAIL_KEY, prefsCollapsed ? '1' : '0'); } catch { }
+  paintPrefsRail();
+  prefsQueueWire();
+});
+paintPrefsRail();
+const prefsRail = element('div', 'fw-prefs-rail');
+prefsRail.append(prefsNav, prefsFoldButton);
+const prefsWire = element('span', 'fw-prefs-wirebox');
+prefsWire.innerHTML = '<svg class="fw-prefs-wire" aria-hidden="true"><path class="fw-prefs-wire-shade"></path><path class="fw-prefs-wire-line"></path></svg>';
+const prefsWireShade = prefsWire.querySelector('.fw-prefs-wire-shade') as SVGPathElement;
+const prefsWireLine = prefsWire.querySelector('.fw-prefs-wire-line') as SVGPathElement;
+const prefsPort = element('span', 'fw-prefs-port');
+prefsPort.setAttribute('aria-hidden', 'true');
+const prefsHeadIcon = element('span', 'fw-prefs-headicon');
+prefsHeadIcon.append(icon('gear'));
+dialogHead.prepend(prefsHeadIcon);
+dialog.append(prefsRail, prefsWire, prefsPort);
+prefsPages.addEventListener('scroll', prefsQueueSpy, { passive: true });
+new ResizeObserver(prefsQueueWire).observe(dialog);
+window.addEventListener('resize', prefsQueueWire);
+const resetPrefs = button('Reset All Preferences...', 'trash', undefined, 'fw-prefs-danger');
+const resetNote = element('p', 'micro', 'Every FormWeb preference on this device goes back to its default and the editor reloads. Your sites and projects are kept.');
+const resetConfirm = button('Reset', undefined, () => {
+  try { for (const key of Object.keys(localStorage)) if (key.startsWith('formweb.')) localStorage.removeItem(key); } catch { }
+  location.reload();
+}, 'fw-prefs-danger');
+const resetCancel = button('Cancel', undefined, () => { resetRow.hidden = true; resetPrefs.hidden = false; });
+const resetRow = element('div', 'fw-prefs-confirm');
+resetRow.hidden = true;
+resetRow.append(resetNote, resetConfirm, resetCancel);
+resetPrefs.addEventListener('click', () => { resetPrefs.hidden = true; resetRow.hidden = false; });
+const tokenNote = element('p', 'micro', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.');
+const endpointNote = element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`);
+prefsAdd('General', prefsGroup('Startup', autoShowHomeLabel), prefsGroup('Reset', resetPrefs, resetRow));
+prefsAdd('Interface', prefsGroup('Theme', field('Editor theme', themeSelect)), prefsGroup('Language', field('Editor language', languageSelect)));
+prefsAdd('Plugins', prefsGroup('Server access', tokenNote, field('Server access token', authToken), endpointNote));
+settingsPane.append(prefsPages);
+prefsMark('General');
 const helpPane = dialogPane('help');
 const helpGrid = element('div', 'help-grid');
 for (const [heading, paragraph] of [
@@ -1405,7 +1576,7 @@ function openDialog(id: string): void {
   if (!lastState && !['settings', 'help'].includes(id)) return;
   if (scrim.hidden) lastFocus = document.activeElement as HTMLElement;
   dialogMode = id;
-  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', team: 'Team libraries', background: 'Remove background', stock: 'Stock library', 'generate-site': 'Generate pages from a description', audit: 'SEO & accessibility audit', settings: 'Workspace settings', help: 'Using FormWeb', 'delete-page': 'Delete page' };
+  const titles: Record<string, string> = { new: 'New website', page: 'Add page', bulk: 'Bulk create pages from CSV', embed: 'Embed media', qr: 'QR code', projects: 'Your projects', publish: 'Publish locally', cms: 'Content collections', locales: 'Localization', tokens: 'Design system tokens', brand: 'Brand kit', team: 'Team libraries', background: 'Remove background', stock: 'Stock library', 'generate-site': 'Generate pages from a description', audit: 'SEO & accessibility audit', settings: 'Preferences', help: 'Using FormWeb', 'delete-page': 'Delete page' };
   text(dialogTitle, titles[id] || id);
   panes.forEach((pane, key) => { pane.hidden = key !== id; });
   const primaryLabels: Record<string, string> = { new: 'Create site', page: 'Add page', bulk: 'Create pages', embed: 'Insert embed', qr: 'Download', publish: 'Publish version', cms: 'Save item', locales: 'Save translations', settings: 'Save & reconnect', 'delete-page': 'Delete page' };
@@ -1413,8 +1584,13 @@ function openDialog(id: string): void {
   dialogPrimary.disabled = false;
   text(dialogPrimary.querySelector('span')!, primaryLabels[id] || 'Apply');
   dialogPrimary.classList.toggle('danger', id === 'delete-page');
+  dialogPrimary.classList.toggle('primary', id !== 'settings');
+  dialogCancel.classList.toggle('primary', id === 'settings');
+  text(dialogCancel.querySelector('span')!, id === 'settings' ? 'Done' : 'Close');
+  dialog.classList.toggle('fw-prefs-dlg', id === 'settings');
   text(dialogStatus, '');
   scrim.hidden = false;
+  if (id === 'settings') { prefsPages.scrollTop = 0; prefsQueueWire(); }
   if (id === 'projects') void run(updateProjects);
   if (id === 'cms') { updateCms(); fillCmsItem(); }
   if (id === 'locales') { localeEditing = locale; updateLocales(); fillLocale(); }
