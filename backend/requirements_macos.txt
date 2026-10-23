@@ -1,7 +1,7 @@
-fastapi
-uvicorn[standard]
-mcp
-python-dotenv
-segno
-pillow
-pypdf
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+mcp==2.3.0
+python-dotenv==1.2.4
+segno==1.6.6
+pillow==12.3.0
+pypdf==6.20.0

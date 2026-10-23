@@ -111,11 +111,25 @@ Direct pinned requirements are FastAPI, Uvicorn with its standard extras, the of
 
 Pip 25.0.1 is installer tooling under MIT, not an application runtime dependency. Its top-level license was retained, but the virtual environment and pip implementation are not shipped in the source archive.
 
-Backend texts live under `legal/third-party/python/<distribution>-<version>/`. httptools includes vendor HTTP parser and llhttp notices, retained in their supplied nested paths. cryptography supplies Apache and BSD texts, both retained. typing_extensions supplies the PSF license text. uvloop's supplied Apache and MIT texts are both retained. The full set of native libraries embedded inside Python wheels was not separately reverse-engineered; a later frozen sidecar or binary release requires another packaging audit.
+Backend texts live under `legal/third-party/python/<distribution>-<version>/`. httptools includes vendor HTTP parser and llhttp notices, retained in their supplied nested paths. cryptography supplies Apache and BSD texts, both retained. typing_extensions supplies the PSF license text. uvloop's supplied Apache and MIT texts are both retained.
 
-## GPU renderer and desktop shell (optional native builds)
+### Frozen engine in the desktop app
 
-`native/crates/formweb-render` and `src-tauri` are optional: neither is part of `./formweb install`, and neither ships a binary in the source archive. Each has its own `Cargo.lock`. Direct dependencies, read from `cargo metadata` on 2026-10-11:
+`./build_app` freezes the backend with PyInstaller (`setup/freeze_backend`, one file, `formweb-engine`) and ships it as the app's sidecar, so everything below is distributed inside the installers and AppImage. A fresh install of `backend/requirements.txt` on 2026-10-23 resolved the same distributions as the table above, under the same licences (a few transitive versions moved: httpx2 and httpcore2 2.16.0, pydantic 2.14.1, pydantic_core 2.50.1, pycparser 3.12, starlette 1.9.0, truststore 0.10.5, websockets 17.3). pyinstaller itself is build tooling and is not frozen in.
+
+| Component | Licence | Notes |
+| --- | --- | --- |
+| CPython runtime and standard library | PSF-2.0 | frozen by PyInstaller |
+| PyInstaller bootloader | GPL-2.0-or-later with the PyInstaller bootloader exception | the exception permits distributing the bootloader with a frozen program under any licence |
+| Libraries inside the Pillow wheel | libjpeg, libpng, libtiff, libwebp, libavif, OpenJPEG, Little CMS, HarfBuzz, Brotli, zstd, xz, libxcb: permissive (see the wheel's LICENSE); FreeType 2.14.3 used under the FreeType License | Portions of this software are copyright (c) 2026 The FreeType Project (www.freetype.org). All rights reserved. |
+| OpenSSL 3 inside the cryptography wheel | Apache-2.0 | bundled by the wheel |
+| libuv inside the uvloop wheel | MIT | bundled by the wheel |
+| libffi inside the cffi wheel | MIT | bundled by the wheel |
+| llhttp inside the httptools wheel | MIT | texts retained under `legal/third-party/python/httptools-0.9.0/` |
+
+## GPU renderer and desktop shell
+
+`native/crates/formweb-render` and `src-tauri` are not part of `./formweb install` and ship no binary in the source archive, but the release build (`./build_app`, the installers and AppImage) compiles and ships the desktop shell, and the shell links the renderer (`formweb-render` is a path dependency of `src-tauri`). Both are therefore distributed and covered by the distributed-build rules. Each has its own `Cargo.lock`. Direct dependencies, read from `cargo metadata` on 2026-10-11:
 
 | Package | Version | License expression | Used by |
 | --- | --- | --- | --- |
@@ -130,7 +144,18 @@ Backend texts live under `legal/third-party/python/<distribution>-<version>/`. h
 | tauri-plugin-dialog | 2.8.2 | Apache-2.0 OR MIT | desktop shell |
 | serde, serde_json | 1.0.229, 1.0.154 | MIT OR Apache-2.0 | desktop shell |
 
-The shell's full resolution is 483 registry packages, overwhelmingly MIT and/or Apache-2.0 (also Zlib, Unlicense OR MIT, and Unicode-3.0 for the ICU data crates). Five are MPL-2.0 (cssparser, cssparser-macros, dtoa-short, option-ext and selectors, pulled in by Tauri's tooling); they are used unmodified. On Linux the shell links the system WebKitGTK and GTK libraries (LGPL), which are not bundled. Their license texts are not yet copied into `legal/third-party/`: that audit is required before any packaged desktop release, alongside the frozen backend sidecar audit noted above.
+The shell's full resolution is 483 registry packages, overwhelmingly MIT and/or Apache-2.0 (also Zlib, Unlicense OR MIT, and Unicode-3.0 for the ICU data crates). Five are MPL-2.0 (cssparser, cssparser-macros, dtoa-short, option-ext and selectors, pulled in by Tauri's tooling); cssparser-macros is a proc-macro that runs only at build time, and the other four are linked unmodified (see the table below). The Linux AppImage carries the build machine's WebKitGTK, GTK and GLib (LGPL-2.1-or-later) as separate shared libraries, taken unmodified from the build system's distribution packages; they are linked dynamically and can be replaced, and their source is available from that distribution (for Ubuntu, the webkit2gtk, gtk+3.0 and glib2.0 source packages). The .deb and .rpm use the system's own copies.
+
+### Desktop shell: crates under other licences
+
+Tauri links these crates unedited (no `[patch]` and no vendored copy):
+
+| Crate | Licence | Why it is there |
+| --- | --- | --- |
+| cssparser, selectors, dtoa-short, option-ext | MPL-2.0 | Tauri's HTML handling (tauri-utils); used unmodified, source at crates.io |
+| r-efi | MIT OR Apache-2.0 OR LGPL-2.1-or-later | used under MIT |
+
+The shell's lock contains neither `ring` nor `webpki-roots` (no updater), so they are not listed. The installers carry this file, NOTICE.md and `legal/third-party/` as bundled resources.
 
 ## Bundled content: stock icons
 
