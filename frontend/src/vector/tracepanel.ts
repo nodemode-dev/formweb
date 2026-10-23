@@ -78,7 +78,7 @@ export class TraceSection {
 
   constructor(private editor: Editor) {
     active = this;
-    const sec = section('Image Trace', false);
+    const sec = section('Trace Image', false);
     this.root = sec.root;
     const o = this.options;
     this.source.title = 'Source image';
@@ -299,7 +299,7 @@ export class TraceSection {
       params: {
         parent,
         node: {
-          id: svgId, tag: 'svg', name: 'Image Trace',
+          id: svgId, tag: 'svg', name: 'Traced image',
           attrs: { viewBox: `0 0 ${result.width} ${result.height}`, width: String(round(width)), height: String(round(height)), preserveAspectRatio: 'none' },
           styles: { position: 'absolute', left: `${round(left)}px`, top: `${round(top)}px`, overflow: 'hidden' }
         }

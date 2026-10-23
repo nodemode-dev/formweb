@@ -157,7 +157,7 @@ fn check_live(node: &Node, site: &Site) -> Result<(), String> {
     let effect = node.attrs.get("data-fw-effect");
     let freeform = node.attrs.get("data-fw-freeform");
     let livepaint = node.attrs.get("data-fw-livepaint");
-    if (blend.is_some() || repeat.is_some() || brush.is_some() || stroke.is_some() || compound.is_some() || warp.is_some() || effect.is_some() || freeform.is_some() || livepaint.is_some()) && node.tag != "g" { return Err("live blends, repeats, brushes, stroke options, compound shapes, envelopes, effects, freeform gradients and Live Paint live on a group".into()); }
+    if (blend.is_some() || repeat.is_some() || brush.is_some() || stroke.is_some() || compound.is_some() || warp.is_some() || effect.is_some() || freeform.is_some() || livepaint.is_some()) && node.tag != "g" { return Err("live blends, repeats, brushes, stroke options, compound shapes, envelopes, effects, freeform gradients and Fill Regions live on a group".into()); }
     if [blend, repeat, brush, stroke, compound, warp, effect, freeform, livepaint].iter().filter(|v| v.is_some()).count() > 1 { return Err("a group can be only one of a blend, a repeat, a brush or stroke options".into()); }
     let kids: Vec<&Node> = node.children.iter().filter_map(|id| site.nodes.get(id)).collect();
     let mut live = 0;
@@ -201,7 +201,7 @@ fn check_live(node: &Node, site: &Site) -> Result<(), String> {
     if let Some(raw) = livepaint {
         let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-livepaint".to_string())?;
         let ids: Vec<&str> = value.get("src").and_then(Value::as_array).map(|list| list.iter().filter_map(Value::as_str).collect()).unwrap_or_default();
-        if ids.len() < 2 || !ids.iter().all(|id| source(id)) { return Err("a Live Paint group must name its paths inside its group".into()); }
+        if ids.len() < 2 || !ids.iter().all(|id| source(id)) { return Err("a Fill Regions group must name its paths inside its group".into()); }
     }
     if let Some(raw) = freeform {
         let value: Value = serde_json::from_str(raw).map_err(|_| "invalid vector attribute data-fw-freeform".to_string())?;

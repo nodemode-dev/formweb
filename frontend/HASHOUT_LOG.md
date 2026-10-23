@@ -1,5 +1,9 @@
 # Frontend context map
 
+## The vector tools in FormWeb's own names · v0.17.2 (2026-10-23)
+
+Labels only: Shape Crafter (was the panel, tool and hint wording of the shape-merging tool), Trace Image, Pin Warp, the Fill Regions Bucket and Make, Expand and Release Fill Regions. Command ids (`vector.livepaint.*`, `vector.live-paint-bucket`, `vector.puppet`, `vector.trace`), tool ids, icons and the saved `data-fw-livepaint` attribute are unchanged, so saved sites, shortcuts and agent scripts still work. New groups and faces are named Fill Regions and Fill region; the traced svg is named Traced image. The 9 keys were renamed in place in `i18n/keys.ts`, and the line at the same index was edited by hand in each of the 23 positional locale tables, with translations that avoid the other product's localized names. The family tables in `i18n/family/` still hold a shared Puppet Warp entry that FormWeb no longer looks up; it is left for the family-wide pass.
+
 ## App icon and brand mark · v0.13.3 (2026-10-20)
 
 `ui/shell.ts` `BRAND_MARK` and the app icon set (`src-tauri/icons/`, `assets/formweb_icon.svg`) move from the orange outline window to the Form family construction: the dark tile with bloom, rim and drop shadow, and the family spectrum (#3A7BFF, #9A5CFF, #FF4F7A, #FFAE2B). The icon is a page being edited: a dark glass browser window with spectrum dots in its bar, a hero block and two cards as raised glossy tiles sharing one diagonal gradient, the hero selected with white corner handles, and form.md's kite pointer (4.8 units per grid step, two-layer shadow) on the bottom right handle. The macOS .icns uses the 824 px tile inside a 1024 canvas with a 100 px margin; the .ico and PNGs are full bleed. `BRAND_MARK` is drawn at 18 px, so it keeps only the tile, window and three gradient blocks, with no filters; its gradient ids are prefixed `fwm-` and it is mounted once, in the title bar brand.

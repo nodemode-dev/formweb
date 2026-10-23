@@ -176,12 +176,12 @@ export class Ops {
     const ids = this.ordered().slice(0, LIVE_PAINT_SOURCES).map(s => s.id);
     if (ids.length < 2) { this.h.notify('Select two or more paths first.'); return; }
     if (ids.some(id => liveOf(site, id))) { this.h.notify('These paths already belong to a live blend or repeat.'); return; }
-    if (new Set(ids.map(id => this.h.parentOf(id))).size !== 1 || !this.h.parentOf(ids[0])) { this.h.notify('Live Paint needs paths that sit in the same group.'); return; }
+    if (new Set(ids.map(id => this.h.parentOf(id))).size !== 1 || !this.h.parentOf(ids[0])) { this.h.notify('Fill Regions needs paths that sit in the same group.'); return; }
     const sources = ids.map(id => site.nodes[id].attrs);
     let fills = initialFills(sources);
     const spec0 = { v: 1 as const, src: ids, fills, of: sources.map(a => a.fill ?? ''), sig: '00000000' };
     if (extra) fills = paintFill(spec0, sources, extra.at, extra.color) ?? fills;
-    const grouped = groupCommands(this.h, ids, 'Live Paint', { 'data-fw-livepaint': JSON.stringify({ ...spec0, fills }) });
+    const grouped = groupCommands(this.h, ids, 'Fill Regions', { 'data-fw-livepaint': JSON.stringify({ ...spec0, fills }) });
     if (grouped) await this.run([...grouped.cmds, ...ids.map(id => updateAttrs(id, { fill: 'none' }))], ids);
   }
 

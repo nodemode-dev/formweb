@@ -321,7 +321,7 @@ export class Extras {
   }
 
   private startBuilder(p: Pt, alt: boolean): boolean {
-    if (!this.ensurePieces()) { this.h.notify('Select two or more overlapping paths, then use the Shape Builder.'); return true; }
+    if (!this.ensurePieces()) { this.h.notify('Select two or more overlapping paths, then use the Shape Crafter.'); return true; }
     if (this.splitStroke && !alt && this.splitAt(p)) return true;
     const i = this.hitBuilder(p);
     const picks = new Set<number>(i >= 0 ? [i] : []);
@@ -635,7 +635,7 @@ export class Extras {
          and weight (no stroke removes it). The first painted edge moves every source stroke onto the edges. */
       const { spec, sources: attrs, f } = group;
       const edges = paintEdge(spec, attrs, this.local(f, p), paint.stroke, paint.strokeWidth || 1, (6 * this.h.px()) / f.sx);
-      if (!edges) { this.h.notify('Click closer to an edge of the Live Paint group.'); return; }
+      if (!edges) { this.h.notify('Click closer to an edge of the Fill Regions group.'); return; }
       const os = spec.os ?? (spec.edges ? undefined : attrs.map(strokeMemo));
       const cmds = [updateAttrs(group.group, { 'data-fw-livepaint': JSON.stringify({ ...spec, edges, ...(os ? { os } : {}), sig: '00000000' }) })];
       if (!spec.edges) spec.src.forEach(id => cmds.push(updateAttrs(id, { stroke: 'none' })));
@@ -663,7 +663,7 @@ export class Extras {
       if (f) { await this.makeLivePaint(this.local(f, p), paint.fill); return; }
     }
     const ready = this.ensurePieces();
-    if (!ready) { this.h.notify('Select two or more overlapping paths, then use the Live Paint Bucket.'); return; }
+    if (!ready) { this.h.notify('Select two or more overlapping paths, then use the Fill Regions Bucket.'); return; }
     const i = hitPiece(this.pieces, this.local(ready.f, p));
     if (i < 0) return;
     const piece = this.pieces[i].subs;
@@ -680,7 +680,7 @@ export class Extras {
     const parent = this.h.parentOf(lowest.id) ?? svg;
     const index = site.nodes[parent].children.indexOf(lowest.id);
     const id = freshId(site, new Set<string>(), 'path');
-    await this.h.commit([addPath(parent, id, piece, { ...paint, stroke: 'none', align: 'center', fillRule: 'nonzero' }, 'Live Paint face'), moveNode(id, parent, Math.max(0, index))], keep);
+    await this.h.commit([addPath(parent, id, piece, { ...paint, stroke: 'none', align: 'center', fillRule: 'nonzero' }, 'Fill region'), moveNode(id, parent, Math.max(0, index))], keep);
   }
 
   decorate(scene: Scene): void {

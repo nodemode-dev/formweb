@@ -119,9 +119,9 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.mask.make', label: 'Make opacity mask', menu: MENU, keys: 'Mod+Alt+M', group: 6, run: () => { void editor.ops.makeMask('mask'); }, enabled: hasPair },
     { id: 'vector.isolate.exit', label: 'Exit isolation mode', menu: MENU, group: 6, run: () => editor.extras.exit(), enabled: () => editor.extras.iso !== null },
     { id: 'vector.blend', label: 'Blend selected paths', menu: MENU, keys: 'Mod+Alt+B', group: 7, run: () => { void editor.ops.blend({ mode: 'steps', steps: 5, distance: 20 }); }, enabled: () => hasPair() || !!editor.ops.liveSelected('blend') },
-    { id: 'vector.livepaint.make', label: 'Make Live Paint', menu: MENU, group: 7, mutates: true, run: () => { void editor.ops.livePaint(); }, enabled: hasPair },
-    { id: 'vector.livepaint.expand', label: 'Expand Live Paint', menu: MENU, group: 7, mutates: true, run: () => { void editor.ops.expandLive(); }, enabled: () => !!editor.ops.liveSelected('livepaint') },
-    { id: 'vector.livepaint.release', label: 'Release Live Paint', menu: MENU, group: 7, mutates: true, run: () => { void editor.ops.releaseLive(); }, enabled: () => !!editor.ops.liveSelected('livepaint') },
+    { id: 'vector.livepaint.make', label: 'Make Fill Regions', menu: MENU, group: 7, mutates: true, run: () => { void editor.ops.livePaint(); }, enabled: hasPair },
+    { id: 'vector.livepaint.expand', label: 'Expand Fill Regions', menu: MENU, group: 7, mutates: true, run: () => { void editor.ops.expandLive(); }, enabled: () => !!editor.ops.liveSelected('livepaint') },
+    { id: 'vector.livepaint.release', label: 'Release Fill Regions', menu: MENU, group: 7, mutates: true, run: () => { void editor.ops.releaseLive(); }, enabled: () => !!editor.ops.liveSelected('livepaint') },
     { id: 'vector.blend.expand', label: 'Expand blend or repeat', menu: MENU, group: 7, run: () => { void editor.ops.expandLive(); }, enabled: () => !!(editor.ops.liveSelected('blend') ?? editor.ops.liveSelected('repeat')) },
     { id: 'vector.blend.release', label: 'Release blend or repeat', menu: MENU, group: 7, run: () => { void editor.ops.releaseLive(); }, enabled: () => !!(editor.ops.liveSelected('blend') ?? editor.ops.liveSelected('repeat')) },
     { id: 'vector.brush.remove', label: 'Remove brush', menu: MENU, group: 7, run: () => { void editor.ops.releaseLive(); }, enabled: () => !!editor.ops.liveSelected('brush') },
@@ -146,7 +146,7 @@ export function installVector(ctx: VectorContext, options: { shortcuts?: boolean
     { id: 'vector.artboards.rearrange', label: 'Rearrange All Artboards', menu: MENU, group: 7, mutates: true, run: () => openRearrange(editor.host(), ctx.pageRoot()) },
     ...viewCommands(editor.view, () => editor.tool !== null, () => editor.render()),
     { id: 'vector.svg.import', label: 'Import SVG...', menu: MENU, group: 5, run: () => panel.pickFile() },
-    { id: 'vector.trace', label: 'Image Trace', menu: MENU, keys: 'Mod+Alt+Shift+T', group: 5, run: () => runTrace() },
+    { id: 'vector.trace', label: 'Trace Image', menu: MENU, keys: 'Mod+Alt+Shift+T', group: 5, run: () => runTrace() },
     { id: 'vector.export-screens', label: 'Export for Screens...', menu: MENU, keys: 'Mod+Alt+E', group: 5, run: () => openExportScreens(editor.host()), enabled: () => { try { return !!editor.activeSvg() || pageArtboards(editor.host()).length > 0; } catch { return false; } } },
     { id: 'vector.svg.export',label: 'Export selection as SVG', menu: MENU, group: 5, run: () => panel.download(), enabled: () => !!ctx.getSelected() }
   ];

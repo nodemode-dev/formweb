@@ -35,17 +35,17 @@ export const TOOLS: ToolDef[] = [
   { id: 'pgrid', label: 'Polar Grid', icon: 'pgrid', keys: '' },
   { id: 'knife', label: 'Knife', icon: 'knife', keys: 'K' },
   { id: 'eraser', label: 'Eraser', icon: 'eraser', keys: 'Shift+E' },
-  { id: 'shapebuilder', label: 'Shape Builder', icon: 'shapebuilder', keys: 'Shift+M' },
+  { id: 'shapebuilder', label: 'Shape Crafter', icon: 'shapebuilder', keys: 'Shift+M' },
   { id: 'width', label: 'Width', icon: 'width', keys: 'Shift+W' },
   { id: 'gradient', label: 'Gradient', icon: 'gradient', keys: 'G' },
   { id: 'transform', label: 'Free Transform', icon: 'transform', keys: 'E' },
   { id: 'lasso', label: 'Lasso', icon: 'lasso', keys: 'Q' },
   { id: 'wand', label: 'Magic Wand', icon: 'wand', keys: 'Y' },
   { id: 'eyedropper', label: 'Eyedropper', icon: 'eyedropper', keys: 'I' },
-  { id: 'puppet', label: 'Puppet Warp', icon: 'puppet', keys: '' },
+  { id: 'puppet', label: 'Pin Warp', icon: 'puppet', keys: '' },
   { id: 'reshape', label: 'Reshape', icon: 'reshape', keys: '' },
   { id: 'blob', label: 'Blob Brush', icon: 'blob', keys: 'Shift+B' },
-  { id: 'livepaint', label: 'Live Paint Bucket', icon: 'bucket', keys: '' },
+  { id: 'livepaint', label: 'Fill Regions Bucket', icon: 'bucket', keys: '' },
   { id: 'artboard', label: 'Artboard', icon: 'artboard', keys: 'Shift+O' }
 ];
 

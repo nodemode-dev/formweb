@@ -358,7 +358,7 @@ export class ExtraSections {
       button('Set type on path', 'Place text along the selected path', () => { void ops.textOnPath(collect()); }, 'type'),
       element('p', 'fw-v-note', 'Drag the round bracket at the middle of the text along the path to move it, or across the path to flip it.'));
 
-    const builder = section('Shape Builder', false);
+    const builder = section('Shape Crafter', false);
     const gapPick = { value: 'off' };
     const gapCustom = num(5, 0.1, 500, 0.5);
     const gapSeg = segment<string>([{ id: 'off', label: 'Off' }, { id: '3', label: '3' }, { id: '6', label: '6' }, { id: '12', label: '12' }, { id: 'custom', label: 'Custom' }], id => {

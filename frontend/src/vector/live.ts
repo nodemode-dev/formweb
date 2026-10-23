@@ -287,7 +287,7 @@ export function compoundAttrs(site: Site, ids: string[], op: CompoundOp): { attr
 
 function containerCommands(site: Site, taken: Set<string>, group: string, kind: LiveKind, list: Attrs[], index: number): Command[] {
   const id = freshId(site, taken, 'live');
-  const names = { blend: ['Blend steps', 'Blend step'], repeat: ['Repeat copies', 'Repeat copy'], brush: ['Brush strokes', 'Brush stroke'], stroke: ['Stroke parts', 'Stroke part'], compound: ['Compound result', 'Compound shape'], warp: ['Envelope result', 'Envelope path'], effect: ['Effect result', 'Effect shape'], freeform: ['Freeform gradient', 'Freeform stop'], livepaint: ['Live Paint faces', 'Live Paint face'] }[kind];
+  const names = { blend: ['Blend steps', 'Blend step'], repeat: ['Repeat copies', 'Repeat copy'], brush: ['Brush strokes', 'Brush stroke'], stroke: ['Stroke parts', 'Stroke part'], compound: ['Compound result', 'Compound shape'], warp: ['Envelope result', 'Envelope path'], effect: ['Effect result', 'Effect shape'], freeform: ['Freeform gradient', 'Freeform stop'], livepaint: ['Fill regions', 'Fill region'] }[kind];
   const cmds: Command[] = [{ command: 'node.add', params: { parent: group, node: { id, tag: 'g', name: names[0], attrs: { 'data-fw-live': kind } } } }];
   for (const attrs of list) {
     const pid = freshId(site, taken, 'path');
