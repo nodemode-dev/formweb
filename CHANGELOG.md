@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.17.2 · 2026-10-23
+
+- The vector tools carry FormWeb's own names in every language: Shape Crafter, Trace Image, Pin Warp, and the Fill Regions Bucket with Make, Expand and Release Fill Regions. Command ids and saved sites are unchanged.
+- NOTICE.md and the README carry a trademark notice for the products FormWeb was researched against.
+
 ## 0.17.1 · 2026-10-22
 
 - Releases are built by formcompiler (`nodemode-ai/formcompiler`), the release pipeline for every form* app. FormWeb's own GitHub Actions only run the checks, now also on `compile_vX.Y.Z` branches, and a desktop release, when FormWeb ships one, starts when such a branch is pushed and is published on formcompiler's release page as `formweb-vX.Y.Z`. No change to the app itself.
