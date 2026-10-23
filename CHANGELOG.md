@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.17.3 · 2026-10-23
+
+- The desktop app carries FormWeb's licence, LICENSES.md, NOTICE.md and the third-party licence texts. LICENSES.md now covers what the desktop build ships: the frozen engine (Python runtime, PyInstaller bootloader and the libraries inside its wheels), the shell's crates under other licences and the Linux AppImage's LGPL libraries.
+- The macOS backend requirements are pinned to the same versions as the other platforms.
+
 ## 0.17.2 · 2026-10-23
 
 - The vector tools carry FormWeb's own names in every language: Shape Crafter, Trace Image, Pin Warp, and the Fill Regions Bucket with Make, Expand and Release Fill Regions. Command ids and saved sites are unchanged.

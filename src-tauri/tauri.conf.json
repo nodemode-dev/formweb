@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "formweb",
-  "version": "0.17.2",
+  "version": "0.17.3",
   "identifier": "ai.nodemode.formweb",
   "build": {
     "frontendDist": "../frontend/dist"
