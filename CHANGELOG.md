@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.0 · 2026-10-23
+
+- Breakpoints keep working as before (per-breakpoint styles, editing per breakpoint, `breakpoint.set` and `breakpoint.remove`), but the editing canvas now always draws and edits the breakpoint picked from the list. Typing a width only resizes the frame, and a quiet hint appears when the width is outside the picked breakpoint's range. The stage header names the profile being edited.
+- Preview is now the Live responsive preview: it shows the exported HTML and CSS at the typed width in a sandboxed frame, so the browser's own media queries switch the breakpoints as you change the width. It updates in place without flashing. Command ids are unchanged.
+- Six labels added in every language.
+
 ## 0.17.3 · 2026-10-23
 
 - The desktop app carries FormWeb's licence, LICENSES.md, NOTICE.md and the third-party licence texts. LICENSES.md now covers what the desktop build ships: the frozen engine (Python runtime, PyInstaller bootloader and the libraries inside its wheels), the shell's crates under other licences and the Linux AppImage's LGPL libraries.
