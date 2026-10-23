@@ -1945,4 +1945,10 @@ export default [
   "Hiệu ứng",
   "Cường độ",
   "Chạy trong bản xem trước và trên trang đã xuất bản, không chạy trên canvas. Khách truy cập yêu cầu giảm chuyển động sẽ không thấy chuyển động.",
+  "Xem trước responsive trực tiếp",
+  "Làm mới bản xem trước responsive trực tiếp",
+  "Bật hoặc tắt bản xem trước responsive trực tiếp: trang đã xuất ở chiều rộng đã nhập, nơi chính trình duyệt chuyển điểm ngắt.",
+  "Làm mới bản xem trước responsive trực tiếp.",
+  "Đang chỉnh sửa {0}",
+  "Chiều rộng nằm ngoài điểm ngắt này. Hãy dùng bản xem trước responsive trực tiếp để xem sự chuyển đổi.",
 ] as readonly string[];

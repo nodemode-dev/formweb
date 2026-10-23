@@ -17,7 +17,7 @@ export class RuntimePreview {
 
   constructor(private stage: HTMLElement, private design: HTMLElement, private notify: (message: string, error?: boolean) => void) {
     this.outer.hidden = true;
-    this.label.append(element('span', '', 'Compiled runtime'), element('span'));
+    this.label.append(element('span', '', 'Live responsive preview'), element('span'));
     for (let index = 0; index < 2; index++) {
       const frame = element('iframe', 'canvas-frame');
       frame.title = `Compiled website preview ${index + 1}`;
@@ -75,7 +75,7 @@ export class RuntimePreview {
       this.shownKey = key;
       this.outer.hidden = false;
       this.design.hidden = true;
-      text(this.label.children[0] as HTMLElement, `Compiled runtime · ${target.locale.toUpperCase()} · rev ${result.revision}`);
+      text(this.label.children[0] as HTMLElement, `Live responsive preview · ${target.locale.toUpperCase()} · rev ${result.revision}`);
       this.fit();
       this.notify('Runtime preview uses the compiled site, including forms, interactions and integrations.');
     } catch (error) {

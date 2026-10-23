@@ -1945,4 +1945,10 @@ export default [
   "Effekt",
   "Stärke",
   "Läuft in der Vorschau und auf der veröffentlichten Website, nicht auf der Arbeitsfläche. Wer reduzierte Bewegung wünscht, sieht keine Bewegung.",
+  "Responsive Live-Vorschau",
+  "Responsive Live-Vorschau aktualisieren",
+  "Responsive Live-Vorschau ein- oder ausschalten: die exportierte Website in der eingegebenen Breite, in der der Browser die Breakpoints selbst umschaltet.",
+  "Die responsive Live-Vorschau aktualisieren.",
+  "Bearbeitung: {0}",
+  "Die Breite liegt außerhalb dieses Breakpoints. Mit der responsiven Live-Vorschau siehst du den Wechsel.",
 ] as readonly string[];

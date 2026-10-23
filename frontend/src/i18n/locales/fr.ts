@@ -1945,4 +1945,10 @@ export default [
   "Effet",
   "Intensité",
   "S’exécute dans l’aperçu et sur le site publié, pas sur le canevas. Les visiteurs qui demandent moins d’animations ne voient aucun mouvement.",
+  "Aperçu responsive en direct",
+  "Actualiser l'aperçu responsive en direct",
+  "Activer ou désactiver l'aperçu responsive en direct : le site exporté à la largeur saisie, où le navigateur change lui-même de point d'arrêt.",
+  "Actualiser l'aperçu responsive en direct.",
+  "Modification de {0}",
+  "La largeur est en dehors de ce point d'arrêt. Utilisez l'aperçu responsive en direct pour voir le changement.",
 ] as readonly string[];

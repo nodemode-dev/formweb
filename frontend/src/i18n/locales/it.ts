@@ -1945,4 +1945,10 @@ export default [
   "Effetto",
   "Intensità",
   "Funziona nell’anteprima e sul sito pubblicato, non sulla tela. Chi chiede movimento ridotto non vede alcun movimento.",
+  "Anteprima responsive dal vivo",
+  "Aggiorna l'anteprima responsive dal vivo",
+  "Attiva o disattiva l'anteprima responsive dal vivo: il sito esportato alla larghezza digitata, dove è il browser a cambiare i breakpoint.",
+  "Aggiorna l'anteprima responsive dal vivo.",
+  "Modifica di {0}",
+  "La larghezza è fuori da questo breakpoint. Usa l'anteprima responsive dal vivo per vedere il cambio.",
 ] as readonly string[];

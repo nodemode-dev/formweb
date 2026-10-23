@@ -1945,4 +1945,10 @@ export const KEYS: readonly string[] = [
   "Effect",
   "Strength",
   "Runs in Preview and on the published site, not on the canvas. Visitors who ask for reduced motion see no movement.",
+  "Live responsive preview",
+  "Refresh live responsive preview",
+  "Toggle the live responsive preview: the exported site at the typed width, where the browser switches breakpoints itself.",
+  "Refresh the live responsive preview.",
+  "Editing {0}",
+  "Width is outside this breakpoint. Use the live responsive preview to see the switch.",
 ];

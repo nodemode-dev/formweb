@@ -1945,4 +1945,10 @@ export default [
   "Efeito",
   "Intensidade",
   "Funciona na prévia e no site publicado, não na tela. Quem pede movimento reduzido não vê movimento.",
+  "Pré-visualização responsiva ao vivo",
+  "Atualizar a pré-visualização responsiva ao vivo",
+  "Ativar ou desativar a pré-visualização responsiva ao vivo: o site exportado na largura digitada, em que o próprio navegador troca os pontos de quebra.",
+  "Atualizar a pré-visualização responsiva ao vivo.",
+  "Editando {0}",
+  "A largura está fora deste ponto de quebra. Use a pré-visualização responsiva ao vivo para ver a troca.",
 ] as readonly string[];

@@ -1945,4 +1945,10 @@ export default [
   "Efecto",
   "Intensidad",
   "Funciona en la vista previa y en el sitio publicado, no en el lienzo. Quien pida movimiento reducido no verá movimiento.",
+  "Vista previa responsive en vivo",
+  "Actualizar la vista previa responsive en vivo",
+  "Activar o desactivar la vista previa responsive en vivo: el sitio exportado con el ancho escrito, donde el propio navegador cambia los puntos de interrupción.",
+  "Actualizar la vista previa responsive en vivo.",
+  "Editando {0}",
+  "El ancho queda fuera de este punto de interrupción. Usa la vista previa responsive en vivo para ver el cambio.",
 ] as readonly string[];

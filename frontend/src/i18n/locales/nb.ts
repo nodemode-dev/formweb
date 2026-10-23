@@ -1945,4 +1945,10 @@ export default [
   "Effekt",
   "Styrke",
   "Kjører i forhåndsvisningen og på det publiserte nettstedet, ikke på lerretet. Besøkende som ber om redusert bevegelse, ser ingen bevegelse.",
+  "Responsiv direkteforhåndsvisning",
+  "Oppdater responsiv direkteforhåndsvisning",
+  "Slå den responsive direkteforhåndsvisningen av eller på: det eksporterte nettstedet i den skrevne bredden, der nettleseren selv bytter bruddpunkt.",
+  "Oppdater den responsive direkteforhåndsvisningen.",
+  "Redigerer {0}",
+  "Bredden er utenfor dette bruddpunktet. Bruk den responsive direkteforhåndsvisningen for å se byttet.",
 ] as readonly string[];

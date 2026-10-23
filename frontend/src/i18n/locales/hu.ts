@@ -1945,4 +1945,10 @@ export default [
   "Effektus",
   "Erősség",
   "Az előnézetben és a közzétett webhelyen fut, a vásznon nem. A csökkentett mozgást kérő látogatók nem látnak mozgást.",
+  "Élő reszponzív előnézet",
+  "Élő reszponzív előnézet frissítése",
+  "Az élő reszponzív előnézet be- vagy kikapcsolása: az exportált webhely a beírt szélességben, ahol a töréspontokat maga a böngésző váltja.",
+  "Az élő reszponzív előnézet frissítése.",
+  "Szerkesztés: {0}",
+  "A szélesség ezen a törésponton kívül esik. A váltást az élő reszponzív előnézetben láthatod.",
 ] as readonly string[];

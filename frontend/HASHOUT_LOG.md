@@ -1063,3 +1063,11 @@ The editor always has a site, so there is no empty start state: Home is built be
 - logged: v0.17.0 · 2026-10-22
 
 The settings dialog keeps the shared modal and takes formvis's Preferences shell: a floating rail of icon tabs left of the frame (collapse remembered in `formweb.prefsRailCollapsed`), one scrolling pane of foldable section cards holding titled group cards, a scroll spy, an SVG wire from the active tab to a port on the header divider, a head icon, a bordered close button and a Done footer (Save & reconnect stays beside it for the server token). Everything is built once at startup; openDialog only toggles `fw-prefs-dlg`, the title and the button labels, and the wire path and port are written only when they change. Sections use formvis names: General (Show the Home screen at launch, Reset All Preferences), Interface (theme, language), Plugins (server access token and endpoint note). Reset clears every `formweb.` key after an in-place confirm and reloads; the shared theme blob and the underscore keys are untouched. The menu label stays Settings; the dialog title is Preferences. New strings are not in the locale tables yet and show in English.
+
+### Editing canvas draws the picked breakpoint; live responsive preview
+
+- refers-to: `src/ui/canvas.ts` :: render, patch; `src/main.ts` :: update, viewportReadout, viewportHint; `src/features/runtime-preview.ts`
+- kind: decision
+- logged: v0.18.0 · 2026-10-23
+
+`Canvas.render` takes the picked breakpoint id and cascades the base styles plus the overrides of every breakpoint at least as wide as the picked one; the canvas width no longer selects anything, so typing a width only resizes the frame. The stage header names the profile being edited and shows a quiet hint (visibility toggled, text always present, so nothing shifts) when the typed width lies outside that profile. The existing compiled preview is the Live responsive preview: it renders the exported CSS in the sandboxed double-buffered iframes, is not recompiled when only the width changes, and so the browser's media queries do the switching. Command ids are unchanged; six labels were appended to keys.ts and every locale.

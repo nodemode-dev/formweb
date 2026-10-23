@@ -1945,4 +1945,10 @@ export default [
   "Tehoste",
   "Voimakkuus",
   "Toimii esikatselussa ja julkaistulla sivustolla, ei piirtoalueella. Vähemmän liikettä pyytävät kävijät eivät näe liikettä.",
+  "Responsiivinen live-esikatselu",
+  "Päivitä responsiivinen live-esikatselu",
+  "Näytä tai piilota responsiivinen live-esikatselu: viety sivusto kirjoitetulla leveydellä, jossa selain vaihtaa rikkomiskohtaa itse.",
+  "Päivitä responsiivinen live-esikatselu.",
+  "Muokataan: {0}",
+  "Leveys on tämän rikkomiskohdan ulkopuolella. Näet vaihdon responsiivisessa live-esikatselussa.",
 ] as readonly string[];

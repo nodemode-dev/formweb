@@ -1945,4 +1945,10 @@ export default [
   "Effekt",
   "Styrka",
   "Körs i förhandsvisningen och på den publicerade webbplatsen, inte på arbetsytan. Besökare som ber om minskad rörelse ser ingen rörelse.",
+  "Responsiv liveförhandsvisning",
+  "Uppdatera responsiv liveförhandsvisning",
+  "Slå på eller av den responsiva liveförhandsvisningen: den exporterade webbplatsen i den angivna bredden, där webbläsaren själv byter brytpunkt.",
+  "Uppdatera den responsiva liveförhandsvisningen.",
+  "Redigerar {0}",
+  "Bredden ligger utanför denna brytpunkt. Använd den responsiva liveförhandsvisningen för att se bytet.",
 ] as readonly string[];

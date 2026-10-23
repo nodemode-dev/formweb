@@ -1945,4 +1945,10 @@ export default [
   "Efekt",
   "Siła",
   "Działa w podglądzie i na opublikowanej witrynie, nie na kanwie. Odwiedzający, którzy proszą o ograniczenie ruchu, nie widzą ruchu.",
+  "Responsywny podgląd na żywo",
+  "Odśwież responsywny podgląd na żywo",
+  "Włącz lub wyłącz responsywny podgląd na żywo: wyeksportowana witryna we wpisanej szerokości, w której punkty przerwania przełącza sama przeglądarka.",
+  "Odśwież responsywny podgląd na żywo.",
+  "Edycja: {0}",
+  "Szerokość wykracza poza ten punkt przerwania. Użyj responsywnego podglądu na żywo, aby zobaczyć przełączenie.",
 ] as readonly string[];

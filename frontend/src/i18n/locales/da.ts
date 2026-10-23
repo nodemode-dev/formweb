@@ -1945,4 +1945,10 @@ export default [
   "Effekt",
   "Styrke",
   "Kører i forhåndsvisningen og på det publicerede websted, ikke på lærredet. Besøgende, der beder om reduceret bevægelse, ser ingen bevægelse.",
+  "Responsiv liveforhåndsvisning",
+  "Opdater responsiv liveforhåndsvisning",
+  "Slå den responsive liveforhåndsvisning til eller fra: det eksporterede websted i den indtastede bredde, hvor browseren selv skifter brudpunkt.",
+  "Opdater den responsive liveforhåndsvisning.",
+  "Redigerer {0}",
+  "Bredden ligger uden for dette brudpunkt. Brug den responsive liveforhåndsvisning for at se skiftet.",
 ] as readonly string[];

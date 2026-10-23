@@ -1945,4 +1945,10 @@ export default [
   "Efek",
   "Kekuatan",
   "Berjalan di pratinjau dan di situs yang dipublikasikan, tidak di kanvas. Pengunjung yang meminta gerakan dikurangi tidak melihat gerakan.",
+  "Pratinjau responsif langsung",
+  "Segarkan pratinjau responsif langsung",
+  "Aktifkan atau nonaktifkan pratinjau responsif langsung: situs yang diekspor pada lebar yang diketik, tempat peramban sendiri yang mengganti titik henti.",
+  "Segarkan pratinjau responsif langsung.",
+  "Mengedit {0}",
+  "Lebar berada di luar titik henti ini. Gunakan pratinjau responsif langsung untuk melihat pergantiannya.",
 ] as readonly string[];

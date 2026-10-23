@@ -46,7 +46,7 @@ export class Canvas {
   private textNodes = new Map<string, HTMLSpanElement>();
   private imageSources = new Map<string, string>();
   private scopes = new Map<string, Record<string, string>>();
-  private last?: { site: Site; page: Page; selected: string; width: number; locale: string; preview: boolean };
+  private last?: { site: Site; page: Page; selected: string; width: number; locale: string; preview: boolean; scope: string };
   private scale = 1;
   private height = 860;
   private width = 1280;
@@ -71,7 +71,7 @@ export class Canvas {
       this.frame.addEventListener('load', () => {
         this.doc = this.frame.contentDocument || undefined;
         if (this.doc) this.bindEvents(this.doc);
-        if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview);
+        if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
         resolve();
       }, { once: true });
     });
@@ -81,8 +81,9 @@ export class Canvas {
 
   async loaded(): Promise<void> { return this.ready; }
 
-  render(site: Site, page: Page, selected: string, width: number, locale: string, preview: boolean): void {
-    this.last = { site, page, selected, width, locale, preview };
+  // The width only sizes the frame. The styles drawn are those of `scope`, the breakpoint the person picked from the list; the width is never used to choose them.
+  render(site: Site, page: Page, selected: string, width: number, locale: string, preview: boolean, scope: string): void {
+    this.last = { site, page, selected, width, locale, preview, scope };
     this.width = width;
     if (!this.doc) return;
     this.doc.body.toggleAttribute('data-preview', preview);
@@ -91,7 +92,7 @@ export class Canvas {
       if (safeStyle(name.replace(/^--/, ''), content)) this.doc.documentElement.style.setProperty(name.startsWith('--') ? name : '--' + name, content);
     }
     const visited = new Set<string>();
-    const root = this.patch(site, page.root, selected, width, locale, visited);
+    const root = this.patch(site, page.root, selected, scope, locale, visited);
     if (root && root.parentNode !== this.doc.body) this.doc.body.append(root);
     const pageIds = new Set<string>();
     const collect = (id: string): void => {
@@ -158,7 +159,7 @@ export class Canvas {
     this.foreignHost.replaceChildren(defs);
   }
 
-  private patch(site: Site, id: string, selected: string, width: number, locale: string, visited: Set<string>, context?: ItemContext, skipRepeat = false): HTMLElement | undefined {
+  private patch(site: Site, id: string, selected: string, scope: string, locale: string, visited: Set<string>, context?: ItemContext, skipRepeat = false): HTMLElement | undefined {
     const data = site.nodes[id];
     if (!this.doc || !data) return;
     const suffix = context?.suffix || '';
@@ -182,7 +183,7 @@ export class Canvas {
         const segment = `-${collection.id}-${item.id}`;
         const ids = { ...context?.ids };
         for (const htmlId of subtreeIds(site, id)) ids[htmlId] = (ids[htmlId] || htmlId) + segment;
-        const child = this.patch(site, id, selected, width, locale, visited, { collection: collection.id, item, ids, suffix: suffix + segment }, true);
+        const child = this.patch(site, id, selected, scope, locale, visited, { collection: collection.id, item, ids, suffix: suffix + segment }, true);
         if (!child) continue;
         const desired: ChildNode | null = previous ? previous.nextSibling : list.firstChild;
         if (child !== desired) list.insertBefore(child, desired);
@@ -247,7 +248,8 @@ export class Canvas {
     }
     this.attrs.set(key, nextAttrs);
     const effective = { ...data.styles };
-    const matching = [...site.breakpoints].filter(breakpoint => breakpoint.maxWidth === 100000 || width <= breakpoint.maxWidth).sort((a, b) => b.maxWidth - a.maxWidth);
+    const picked = site.breakpoints.find(breakpoint => breakpoint.id === scope);
+    const matching = [...site.breakpoints].filter(breakpoint => breakpoint.maxWidth === 100000 || (picked !== undefined && breakpoint.maxWidth >= picked.maxWidth)).sort((a, b) => b.maxWidth - a.maxWidth);
     matching.forEach(breakpoint => Object.assign(effective, data.breakpoints?.[breakpoint.id]));
     const nextStyles = new Set<string>();
     for (const [name, content] of Object.entries(effective)) {
@@ -275,7 +277,7 @@ export class Canvas {
       } else if (textNode.parentNode === node && textNode.contentEditable !== 'true') textNode.remove();
       let previous: ChildNode | null = textNode.parentNode === node ? textNode : null;
       for (const childId of data.children) {
-        const child = this.patch(site, childId, selected, width, locale, visited, context);
+        const child = this.patch(site, childId, selected, scope, locale, visited, context);
         if (!child) continue;
         const desired: ChildNode | null = previous ? previous.nextSibling : node.firstChild;
         if (child !== desired) node.insertBefore(child, desired);

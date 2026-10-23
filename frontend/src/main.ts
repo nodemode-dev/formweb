@@ -184,8 +184,8 @@ async function toggleAgents(): Promise<void> {
 const agentsButton = button('Agents off', 'bolt', toggleAgents, 'quiet');
 const previewButton = button('Preview', 'eye', undefined, 'quiet');
 previewButton.dataset.cmd = 'view.preview';
-const refreshPreviewButton = iconButton('Refresh compiled runtime preview', 'redo', undefined, 'view.refresh');
-previewButton.title = 'Compiled preview';
+const refreshPreviewButton = iconButton('Refresh live responsive preview', 'redo', undefined, 'view.refresh');
+previewButton.title = 'Live responsive preview';
 previewButton.setAttribute('aria-label', previewButton.title);
 const publishButton = button('Publish', 'arrow', undefined, 'primary');
 publishButton.dataset.cmd = 'file.publish';
@@ -343,10 +343,12 @@ const stageHead = element('div', 'stage-head');
 const pageName = element('span', '', 'Home');
 pageName.dataset.noI18n = '';
 const pagePath = element('span', 'stage-path', '/');
-const viewportReadout = element('span', 'viewport-readout', 'Desktop / 1280 px');
+const viewportReadout = element('span', 'viewport-readout', 'Editing Desktop · 1280 px');
+const viewportHint = element('span', 'viewport-hint', 'Width is outside this breakpoint. Use the live responsive preview to see the switch.');
+viewportHint.dataset.on = 'false';
 const selectionPath = element('nav', 'fw-crumbs');
 selectionPath.setAttribute('aria-label', 'Selection path');
-stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, selectionPath, viewportReadout);
+stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, selectionPath, viewportHint, viewportReadout);
 const stage = element('div', 'stage');
 stagePanel.append(stageHead, stage, terminalDock.element);
 const canvas = new Canvas(stage, selectNode, (id, next) => void run(async () => {
@@ -1326,7 +1328,12 @@ function update(next: EditorState): void {
     crumb.classList.toggle('is-current', current);
     if (current) crumb.setAttribute('aria-current', 'true'); else crumb.removeAttribute('aria-current');
   });
-  text(viewportReadout, `${breakpoint[0].toUpperCase() + breakpoint.slice(1)} / ${widths[breakpoint]} px`);
+  const pickedBreakpoint = site.breakpoints.find(item => item.id === breakpoint);
+  text(viewportReadout, t('Editing {0}', [`${pickedBreakpoint?.name || breakpoint} · ${widths[breakpoint]} px`]));
+  // Quiet hint only: the typed width never changes which breakpoint's styles are drawn or edited.
+  const narrower = site.breakpoints.filter(item => item.maxWidth < (pickedBreakpoint?.maxWidth ?? 0)).reduce((top, item) => Math.max(top, item.maxWidth), 0);
+  const outside = !!pickedBreakpoint && (widths[breakpoint] > pickedBreakpoint.maxWidth || widths[breakpoint] <= narrower);
+  viewportHint.dataset.on = String(outside);
   value(viewportSize, String(widths[breakpoint]));
   undoButton.disabled = !next.canUndo;
   redoButton.disabled = !next.canRedo;
@@ -1457,7 +1464,7 @@ function update(next: EditorState): void {
   faviconClear.disabled = !favicon && !site.settings.faviconDark;
   updatePasswordState();
   if (passwordGatesFor !== site.id) void loadPasswordGates().catch(() => undefined);
-  canvas.render(site, page, selectedId, widths[breakpoint], locale, false);
+  canvas.render(site, page, selectedId, widths[breakpoint], locale, false, breakpoint);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
   if (dialogMode === 'cms') updateCms();
   if (dialogMode === 'locales') updateLocales();
@@ -1907,8 +1914,8 @@ registerCommands([
   { id: 'view.desktop', label: 'Desktop', menu: 'View', run: () => setBreakpoint('desktop'), checked: () => breakpoint === 'desktop', enabled: ready },
   { id: 'view.tablet', label: 'Tablet', menu: 'View', run: () => setBreakpoint('tablet'), checked: () => breakpoint === 'tablet', enabled: ready },
   { id: 'view.mobile', label: 'Mobile', menu: 'View', run: () => setBreakpoint('mobile'), checked: () => breakpoint === 'mobile', enabled: ready },
-  { id: 'view.preview', label: 'Compiled preview', menu: 'View', group: 1, run: () => { preview = !preview; update(state()); }, checked: () => preview, enabled: ready },
-  { id: 'view.refresh', label: 'Refresh compiled preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
+  { id: 'view.preview', label: 'Live responsive preview', menu: 'View', group: 1, run: () => { preview = !preview; update(state()); }, checked: () => preview, enabled: ready },
+  { id: 'view.refresh', label: 'Refresh live responsive preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: ['Mod+K'], global: true, group: 2, run: () => commandSearch.show() },
   { id: 'view.menus-in-window', label: 'Menus in Window', menu: 'View', group: 2, enabled: desktopMac, checked: menusInWindow, run: () => { const on = !menusInWindow(); setMenusInWindow(on); status(on ? 'The menus stay in the window from the next start.' : 'The menus go to the menu bar from the next start.'); } },

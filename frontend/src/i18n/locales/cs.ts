@@ -1945,4 +1945,10 @@ export default [
   "Efekt",
   "Síla",
   "Běží v náhledu a na publikovaném webu, ne na plátně. Návštěvníci, kteří žádají omezení pohybu, žádný pohyb neuvidí.",
+  "Živý responzivní náhled",
+  "Obnovit živý responzivní náhled",
+  "Zapnout nebo vypnout živý responzivní náhled: exportovaný web při zadané šířce, kde zlomové body přepíná samotný prohlížeč.",
+  "Obnovit živý responzivní náhled.",
+  "Úpravy: {0}",
+  "Šířka je mimo tento zlomový bod. Přepnutí uvidíte v živém responzivním náhledu.",
 ] as readonly string[];

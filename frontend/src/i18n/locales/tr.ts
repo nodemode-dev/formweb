@@ -1945,4 +1945,10 @@ export default [
   "Efekt",
   "Güç",
   "Önizlemede ve yayımlanan sitede çalışır, tuvalde çalışmaz. Azaltılmış hareket isteyen ziyaretçiler hareket görmez.",
+  "Canlı duyarlı önizleme",
+  "Canlı duyarlı önizlemeyi yenile",
+  "Canlı duyarlı önizlemeyi aç veya kapat: dışa aktarılan site yazılan genişlikte görünür ve kesme noktalarını tarayıcının kendisi değiştirir.",
+  "Canlı duyarlı önizlemeyi yenile.",
+  "Düzenleniyor: {0}",
+  "Genişlik bu kesme noktasının dışında. Geçişi görmek için canlı duyarlı önizlemeyi kullanın.",
 ] as readonly string[];

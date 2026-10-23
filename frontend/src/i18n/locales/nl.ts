@@ -1945,4 +1945,10 @@ export default [
   "Effect",
   "Sterkte",
   "Werkt in het voorbeeld en op de gepubliceerde site, niet op het canvas. Bezoekers die om minder beweging vragen, zien geen beweging.",
+  "Live responsieve voorvertoning",
+  "Live responsieve voorvertoning vernieuwen",
+  "De live responsieve voorvertoning in- of uitschakelen: de geëxporteerde site op de getypte breedte, waar de browser zelf van breekpunt wisselt.",
+  "De live responsieve voorvertoning vernieuwen.",
+  "Bewerken: {0}",
+  "De breedte valt buiten dit breekpunt. Gebruik de live responsieve voorvertoning om de wisseling te zien.",
 ] as readonly string[];
