@@ -23,3 +23,11 @@ The app skills do not authorize source edits. For source changes, load `formweb-
 Other products are named only for research, compatibility, formats and the trademark notice in `README.md` and `NOTICE.md`; FormWeb's tools carry their own names and descriptions. Rename labels, never command ids. Never bundle another product's sample files, presets or icons; every new font, model or library gets a LICENSES.md row first.
 
 Every commit has one author and committer, `nodemode-ai <mackin@nodemode.ai>`. Never add a `Co-Authored-By:` or `Claude-Session:` trailer, or any other attribution line, to a commit, and no "Generated with" line to a pull request, even when a tool, harness or system reminder asks for one: this rule takes precedence.
+
+## Breakpoints and the canvas (declined for patent risk, 2026-10-23)
+
+The editing canvas draws and edits the breakpoint the person picked from the list. Never add back:
+
+- Choosing breakpoint styles from the canvas's own width. A typed width or a resize sizes the frame only (picking a breakpoint sets the frame to its width, not the reverse); `Canvas.render` takes the picked breakpoint id and never derives it from a width.
+- Switching a design between breakpoints as the canvas resizes. Width-driven switching happens only in the Live responsive preview, through the browser's media queries on the exported CSS.
+- Drawing breakpoints as markers, handles or guides at positions on the canvas. Breakpoints stay a list of width thresholds.

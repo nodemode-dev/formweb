@@ -22,7 +22,7 @@ A successful batch is one undo step. A failed mutation leaves site, revision and
 
 ## Responsive styles
 
-Styles use CSS property names and values. Breakpoint overrides are maps keyed by observed breakpoint IDs. The default catalogue supplies desktop with a broad maximum width, tablet at 991 CSS pixels and mobile at 767 CSS pixels. Inspect the live thresholds before choosing preview widths.
+Styles use CSS property names and values. Breakpoint overrides are maps keyed by observed breakpoint IDs. The default catalogue supplies desktop with a broad maximum width, tablet at 991 CSS pixels and mobile at 767 CSS pixels. Inspect the live thresholds before choosing preview widths. The editor canvas draws only the breakpoint picked in the toolbar and never chooses styles from its own width; to see the design switch at a width, use the Live responsive preview (`run_ui_command` `view.preview`), which renders the exported CSS so the browser's media queries decide. `breakpoint.set` and `breakpoint.remove` are unchanged.
 
 Choose normal flow, flex or grid before positioning offsets. Use min/max widths, wrap behavior, gaps and typography to express layout. Style and attribute patches merge keys, and breakpoint patches merge each breakpoint's property keys. A null property removes that key; a null breakpoint removes the override. Interaction arrays and locale translation maps are replacement values, so preserve their intended existing entries. Tokens are named values rather than proof of a global design-system feature; inspect the exported CSS to see how a token is consumed.
 

@@ -18,9 +18,11 @@ Review IDs and values before saving. IDs appear in the Content/Design inspector 
 | Connected providers | Adapter configuration/status, deployment/domain/fetch transport, translation proposal review, commerce synchronization, runtime widget bindings and member gates |
 | Visitors & insights | Member registry/group access, consented event metrics, weighted experiments, authored conversion goals |
 
-## Compiled runtime preview
+## Live responsive preview
 
-**Preview** compiles the selected page and locale through `/api/preview` and loads the returned isolated runtime. The design canvas remains visible until the new runtime document has loaded. Subsequent compilations retain the preceding runtime until the replacement is ready. Both iframe slots remain mounted. The refresh icon next to Preview explicitly recompiles the current selection; clicking Preview again returns to design.
+**Preview** (the Live responsive preview) compiles the selected page and locale through `/api/preview` and loads the returned isolated runtime. The design canvas remains visible until the new runtime document has loaded. Subsequent compilations retain the preceding runtime until the replacement is ready. Both iframe slots remain mounted. The refresh icon next to Preview explicitly recompiles the current selection; clicking Preview again returns to design.
+
+The preview frame is sized to the width typed in the toolbar and is not recompiled when only the width changes, so the exported media queries are evaluated by the browser at that width. This is where a design visibly switches between breakpoints; the design canvas always shows the one breakpoint picked from the list.
 
 The runtime uses the actual exported CSS, CMS queries, templates, form code, interactions and integrations. The design canvas is for selection and editing and does not execute scripts or submit forms. It still renders the original node/binding data for authoring; advanced query/template/widget effects are reviewed in the compiled runtime. The runtime sandbox permits scripts and forms but has an opaque origin, no editor-origin access and no editor credentials. Backend preview tokens authorize only their scoped runtime routes. Visitor cookie behavior may differ from a normal published top-level page; exercise membership and consent in a local publication for final session verification.
 

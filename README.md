@@ -11,7 +11,7 @@ FormWeb is the Form family's visual website builder, researched against Framer &
 
 ## Highlights
 
-- **Pages & layout.** Nested semantic elements, page duplication, flex/grid placement, custom breakpoints & compiled runtime preview.
+- **Pages & layout.** Nested semantic elements, page duplication, flex/grid placement, custom breakpoints & a live responsive preview of the exported site.
 - **Design systems.** Typed tokens, linked text presets, component properties/variants/slots, override reset, detachment & reviewed pinned libraries.
 - **Content.** Typed relations, selected bindings, CMS detail routes, queries/pagination/empty states, exact CSV round trips & localized content/media/routes.
 - **Output & behavior.** Portable HTML/CSS/runtime ZIPs, owned raster assets, reciprocal language links, JSON-LD, timelines, conditions, accessible overlays & isolated code components.
