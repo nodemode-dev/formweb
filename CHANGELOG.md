@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.18.1 · 2026-10-24
+
+- The copyright holder in LICENSE, NOTICE.md, LICENSES.md and the README is NodeAgentc, Inc.
+- The Home screen credit and the title bar brand's tooltip read "by nodemode.ai".
+
 ## 0.18.0 · 2026-10-23
 
 - Breakpoints keep working as before (per-breakpoint styles, editing per breakpoint, `breakpoint.set` and `breakpoint.remove`), but the editing canvas now always draws and edits the breakpoint picked from the list. Typing a width only resizes the frame, and a quiet hint appears when the width is outside the picked breakpoint's range. The stage header names the profile being edited.
