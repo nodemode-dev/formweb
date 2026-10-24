@@ -1,6 +1,6 @@
 # FormWeb licenses and dependency inventory
 
-FormWeb's original source and repository art are licensed under Apache-2.0. Copyright 2026 nodemode-ai. The root LICENSE applies to this original work. Third-party packages retain their own licenses, copyright notices and terms; they are not relicensed by FormWeb.
+FormWeb's original source and repository art are licensed under Apache-2.0. Copyright 2026 NodeAgentc, Inc. The root LICENSE applies to this original work. Third-party packages retain their own licenses, copyright notices and terms; they are not relicensed by FormWeb.
 
 This inventory was read from the actual installed package metadata and lockfiles on 2026-10-10. Unmodified upstream license and notice texts are retained in `legal/third-party/`. Installation obtains dependency implementations from their registries; the source archive excludes `node_modules`, `venv`, native build output and generated frontend output.
 

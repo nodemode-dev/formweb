@@ -119,6 +119,6 @@ The `.git` records real coherent commits authored & committed by `nodemode-ai <m
 
 ## Licensing
 
-Apache-2.0; see LICENSE, NOTICE.md & LICENSES.md. Vendor documentation was researched as primary evidence; proprietary vendor code/assets are not bundled.
+Apache-2.0. Copyright 2026 NodeAgentc, Inc.; see LICENSE, NOTICE.md & LICENSES.md. Vendor documentation was researched as primary evidence; proprietary vendor code/assets are not bundled.
 
 Framer is a trademark of Framer B.V. Webflow is a trademark of Webflow, Inc. Adobe and Illustrator are either registered trademarks or trademarks of Adobe in the United States and/or other countries. They are named only to describe what FormWeb was researched against; FormWeb is not affiliated with or endorsed by them, and its tools carry their own names.

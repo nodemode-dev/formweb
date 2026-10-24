@@ -1,6 +1,6 @@
 # Notices
 
-FormWeb · Copyright 2026 nodemode-ai. Licensed under Apache-2.0, see LICENSE.
+FormWeb · Copyright 2026 NodeAgentc, Inc. Licensed under Apache-2.0, see LICENSE.
 
 FormDesign v0.19.0 and FormPath v0.23.0, supplied by the owner, were studied as read-only family architecture references. Their documents, source trees and git histories are not included in this new repository. The Apache license text is preserved from the supplied family repository. New identity SVG and starter website content are original to this build.
 
