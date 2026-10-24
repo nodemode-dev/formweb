@@ -170,7 +170,7 @@ const topbar = element('header', 'topbar');
 const brand = element('div', 'brand');
 brand.innerHTML = BRAND_MARK;
 brand.append(element('span', 'brand-name', 'formweb'));
-brand.title = 'formweb by NodeMode';
+brand.title = 'formweb by nodemode.ai';
 const menubar = new Menubar(['File', 'Edit', 'Insert', 'Page', 'Arrange', 'Vector', 'CMS', 'View', 'Window', 'Help'], overlay);
 const titleTools = element('div', 'fw-title-tools');
 const topActions = element('div', 'top-actions');

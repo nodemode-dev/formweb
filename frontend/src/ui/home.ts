@@ -56,7 +56,7 @@ export class HomeScreen {
     const formats = FORMATS.map(f => `<span class="fw-home-format">${f}</span>`).join('');
     const tiles = [{ id: '', name: 'Blank site', pages: 1 }, ...d.templates].map(t => `<button class="fw-home-size" type="button" data-template="${t.id}"><span class="fw-home-size-box"><span style="aspect-ratio: 4 / 3"></span></span><span class="fw-home-size-name">${t.name}</span><span class="fw-home-size-meta">${t.pages} ${t.pages === 1 ? 'page' : 'pages'}</span></button>`).join('');
     this.root.innerHTML = `<nav class="fw-home-nav" aria-label="Home">
-      <div class="fw-home-brand">formweb <span>by NodeMode</span></div>
+      <div class="fw-home-brand">formweb <span>by nodemode.ai</span></div>
       ${navItem('start', 'image', 'Start')}${navItem('recent', 'history', 'Recent')}${navItem('projects', 'folder', 'Projects')}
       <div class="fw-home-nav-sep"></div>
       <div class="fw-home-nav-title">Create</div>
