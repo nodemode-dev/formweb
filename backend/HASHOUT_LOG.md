@@ -1,5 +1,13 @@
 # Backend context
 
+## Cross-site requests with no Origin · v0.18.2 (2026-10-25)
+
+`app/main.py` `LocalAccess`. The family agent-stack standard, rule G4 (`AGENT_STACK_STANDARD.md` v0.2.0, owner decision D4, ledger FB-035, formai_dev sidecar). The middleware let a request with no Origin through once its Host was an exact loopback name, so a web page could make the engine answer a GET by pointing an `<img>` or a link at `http://127.0.0.1:<port>/...`: browsers send no Origin on those, and any GET route with a side effect would run.
+
+The rule: a request that carries no Origin is refused with 403 "Cross-site requests are not allowed." when `Sec-Fetch-Site` is `cross-site` (trimmed, case-insensitive), except on the paths `LocalAccess` already treats as public (`public`: the form submit route `/api/forms/<site>/<form>`, `/api/runtime/`, the commerce webhook, and `/published/`, `/sites/` and `/preview/`). Those are meant to be reached by pages on other sites and are gated by their own tokens, signatures or content; the exception is left as it was. A request that carries an Origin is decided by the existing Origin rule alone. `same-site` stays allowed on purpose: a dev window on `localhost:5240` loading straight from `localhost:8240` is same-site, and no outside page can be same-site with localhost. The CLI, `setup/mcp_stdio.py` and Claude Code's MCP client send neither header and pass. The middleware is `http` only; browsers always send an Origin on a websocket.
+
+Checked on the running engine (port 9126) at `/api/health`: no Origin with `cross-site` and with `  Cross-Site ` 403; `same-site`, `same-origin`, `none`, no header, and `cross-site` with the dev Origin `http://localhost:5240` 200; a foreign Host 421 and `Origin: http://evil.example` 403 as before; `/api/system` cross-site 403; `/published/x/` cross-site 404 (the public path, not refused). In Chromium, a page served from `http://127.0.0.2:9903` with an `<img>` and a clicked link pointing at `/api/health` got 403 for both, shown in the engine log. The built window served by the engine (`FORMWEB_FRONTEND_DIST`) in Chromium at 4x CPU and slow network, two shift runs and one throttle run: layout shift 0, no errors, no refusals from the window (7 refusals in the log before and after, all from the probes). With `FORMWEB_AGENTS=1`, `POST /mcp` initialize with no Origin 200 and the same call marked cross-site 403; `setup/mcp_stdio.py` initializes and lists 87 tools.
+
 ## tspan in the asset cleaner · v0.9.9 (2026-10-16)
 
 `app/assets.py`: `tspan` joins `SVG_TAGS` and `dx` joins `SVG_ATTRS`, mirroring the model and canvas for area type lines. Values still pass `SVG_VALUE` (no colon, so no scheme). compileall passed; not driven with a tspan-bearing SVG.

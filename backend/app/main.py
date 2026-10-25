@@ -56,6 +56,8 @@ class LocalAccess:
                 raise EngineError('This service accepts exact loopback hostnames only.', 421)
             if origin is not None and origin not in ORIGINS and not (origin == 'null' and verified_preview):
                 raise EngineError('Origin is not allowed.', 403)
+            if origin is None and not public and headers.get('sec-fetch-site', '').strip().lower() == 'cross-site':
+                raise EngineError('Cross-site requests are not allowed.', 403)
             if path == '/mcp' and not (studio.agents_enabled or claude_code.valid_token(headers.get(claude_code.INAPP_HEADER.lower(), ''))):
                 raise EngineError('Agents are disabled. Enable Agents in the editor or set FORMWEB_AGENTS=1.', 403)
             if control and scope['method'] != 'OPTIONS':
