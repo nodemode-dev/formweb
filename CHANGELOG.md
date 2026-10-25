@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.2 · 2026-10-25
+
+- A web page can no longer reach the engine through an image or a link: a request that carries no Origin is refused when the browser labels it Sec-Fetch-Site cross-site. Published sites, previews, the runtime, public form submits and the commerce webhook stay reachable from other sites, as before.
+
 ## 0.18.1 · 2026-10-24
 
 - The copyright holder in LICENSE, NOTICE.md, LICENSES.md and the README is NodeAgentc, Inc.
