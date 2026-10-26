@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.4 · 2026-10-26
+
+- The repository now has a test suite that runs in CI: the local guard (hosts, origins, cross-site requests, websocket), the MCP contract and its token, the `.fweb` round trip and the release profiles in `backend/tests`, and the document engine (validation, undo and redo, static compile and its links, breakpoint cascade, the JSON-lines protocol) in `native/crates/*/tests`. The CI frontend job also audits the packages.
+
 ## 0.18.3 · 2026-10-26
 
 - The desktop app and the GPU renderer are built with their symbols kept, since macOS builds fail on a stripped binary.
