@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Splash logo no longer jumps · v0.18.5 (2026-10-26)
+
+`public/splash.html` centred the logo, the line and the bar together, so a paint that landed after the logo but before the rest centred the logo alone and moved it about 27 px when the rest arrived (layout shift, about 1 load in 6 to 10). The body now starts at a fixed `padding-top: calc(50vh - 64px)` and the line has a fixed 16 px height, so the logo's position no longer depends on later siblings; the group sits where it did, within half a pixel. Verified with a server that sends the page up to the line, waits 1 s, then sends the rest: shift 1.05e-4 before, 0 after.
+
 ## The vector tools in FormWeb's own names · v0.17.2 (2026-10-23)
 
 Labels only: Shape Crafter (was the panel, tool and hint wording of the shape-merging tool), Trace Image, Pin Warp, the Fill Regions Bucket and Make, Expand and Release Fill Regions. Command ids (`vector.livepaint.*`, `vector.live-paint-bucket`, `vector.puppet`, `vector.trace`), tool ids, icons and the saved `data-fw-livepaint` attribute are unchanged, so saved sites, shortcuts and agent scripts still work. New groups and faces are named Fill Regions and Fill region; the traced svg is named Traced image. The 9 keys were renamed in place in `i18n/keys.ts`, and the line at the same index was edited by hand in each of the 23 positional locale tables, with translations that avoid the other product's localized names. The family tables in `i18n/family/` still hold a shared Puppet Warp entry that FormWeb no longer looks up; it is left for the family-wide pass.
