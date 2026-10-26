@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.3 · 2026-10-26
+
+- The desktop app and the GPU renderer are built with their symbols kept, since macOS builds fail on a stripped binary.
+
 ## 0.18.2 · 2026-10-25
 
 - A web page can no longer reach the engine through an image or a link: a request that carries no Origin is refused when the browser labels it Sec-Fetch-Site cross-site. Published sites, previews, the runtime, public form submits and the commerce webhook stay reachable from other sites, as before.
