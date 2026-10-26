@@ -30,6 +30,9 @@ jobs:
           workspaces: native
       - name: Install dependencies
         run: ./formweb install
+      - name: Audit frontend packages
+        working-directory: frontend
+        run: npm audit --audit-level=low
       - name: Build the Rust engine and frontend
         run: ./formweb build
       - name: Check Python syntax and skill mirrors
@@ -41,3 +44,29 @@ jobs:
           for file in formweb formweb_oc_install backend/oc_install backend/boot_backend frontend/oc_install frontend/boot_frontend setup/lib.sh setup/install setup/install_core setup/install_backend setup/install_frontend setup/boot setup/boot_backend setup/boot_frontend setup/build setup/serve setup/doctor; do
             bash -n "$file"
           done
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-test.txt
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: native
+      - name: Rust tests and the engine binary
+        working-directory: native
+        run: |
+          cargo test --release --locked
+          cargo build --release --locked -p formweb-core
+      - name: Engine and test dependencies
+        run: pip install -r backend/requirements.txt -r backend/requirements-test.txt
+      - name: Family layers and app tests
+        working-directory: backend
+        run: python -m pytest tests -q -p no:cacheprovider
