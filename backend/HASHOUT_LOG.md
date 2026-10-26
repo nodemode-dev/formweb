@@ -1,5 +1,9 @@
 # Backend context
 
+## Tests · v0.18.4 (2026-10-26)
+
+`backend/tests` (pytest, `requirements-test.txt`) holds the family layers and FormWeb's P1: `conftest.py` builds the app against a temporary data folder and HOME, with `FORMWEB_CORE_BIN` pointing at the built `formweb-core` (CI builds it first). Differences from the family template: a foreign Host answers 421, not 403; there is no `engine.json` and no consent policy, so F2 covers the Agents gate (`/mcp` refused while Agents are off, the in-app token opens it) and F3 finds the engine through `FORMWEB_PORT` for the stdio relay; the websocket is `/api/terminal` and closes 4403 after sending an error message; the window origins are the five dev and loopback ones, with no `tauri://` origins because the shell loads the window from the engine itself. Websocket tests send an explicit loopback Host, since TestClient's default Host fails the loopback check before Origin is read. The bearer tests boot a second engine with `FORMWEB_AUTH_TOKEN`. F6 saves, loads and saves the `.fweb` envelope; the checkpoint `revision` is the one field excluded from the equality, because restoring raises it by design.
+
 ## Cross-site requests with no Origin · v0.18.2 (2026-10-25)
 
 `app/main.py` `LocalAccess`. The family agent-stack standard, rule G4 (`AGENT_STACK_STANDARD.md` v0.2.0, owner decision D4, ledger FB-035, formai_dev sidecar). The middleware let a request with no Origin through once its Host was an exact loopback name, so a web page could make the engine answer a GET by pointing an `<img>` or a link at `http://127.0.0.1:<port>/...`: browsers send no Origin on those, and any GET route with a side effect would run.

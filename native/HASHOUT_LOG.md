@@ -1,0 +1,5 @@
+# Native context
+
+## Engine tests · v0.18.4 (2026-10-26)
+
+Integration tests beside the crates, run with `cargo test --release --locked` in `native/` (the workspace excludes `formweb-render`). `formweb-model/tests/validation.rs` builds invalid trees from the starter site (missing, doubly parented and orphaned nodes, cycles, depth over 100, unsupported tags, unsafe URLs and styles, unknown breakpoints, the 8 MiB limit, CMS field types). `formweb-engine/tests/engine.rs` drives `Engine` through the command ids: undo and redo restore the exact site, a batch is one step and atomic, refused commands leave the site alone, revision conflicts, checkpoint restore in a fresh engine. `formweb-export/tests/compile.rs` compiles a three-page fixture and resolves every `href` against the exported file list, and checks the media blocks come widest to narrowest. `formweb-core/tests/protocol.rs` runs the real binary over its JSON-lines protocol. The one existing test module in `formweb-model/src/vector.rs` is unchanged.
