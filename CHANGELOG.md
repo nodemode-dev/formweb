@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.5 · 2026-10-26
+
+- The built window now has a smoke test in CI: it loads under a slow CPU and network with no console error, no failed or refused request and no layout shift. It found one shift, on the splash screen: the logo jumped when the rest of the splash arrived, and it is now fixed in place.
+
 ## 0.18.4 · 2026-10-26
 
 - The repository now has a test suite that runs in CI: the local guard (hosts, origins, cross-site requests, websocket), the MCP contract and its token, the `.fweb` round trip and the release profiles in `backend/tests`, and the document engine (validation, undo and redo, static compile and its links, breakpoint cascade, the JSON-lines protocol) in `native/crates/*/tests`. The CI frontend job also audits the packages.
