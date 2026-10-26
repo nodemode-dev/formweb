@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Window smoke (F7) · v0.18.5 (2026-10-26)
+
+`tests/window/test_window.py` (pytest, Playwright 1.63.0) starts the engine on a free port against an empty data folder, home and agent folder, serving `frontend/dist`, and opens `/` and `/splash.html` at 4x CPU slowdown and a slow network: a title, no request refused (403) or failed, no console or page error, layout shift 0 after load, a bounded 15 s idle wait (its timeout is ignored, because the window holds the `/api/events` stream open) and a 3 s settle. Requests are no longer watched once the measurement is taken, so closing the browser does not count the aborted stream. Needs `FORMWEB_CORE_BIN` (or `native/target/release/formweb-core`) and `npm run build`.
+
 ## Splash logo no longer jumps · v0.18.5 (2026-10-26)
 
 `public/splash.html` centred the logo, the line and the bar together, so a paint that landed after the logo but before the rest centred the logo alone and moved it about 27 px when the rest arrived (layout shift, about 1 load in 6 to 10). The body now starts at a fixed `padding-top: calc(50vh - 64px)` and the line has a fixed 16 px height, so the logo's position no longer depends on later siblings; the group sits where it did, within half a pixel. Verified with a server that sends the page up to the line, waits 1 s, then sends the rest: shift 1.05e-4 before, 0 after.
