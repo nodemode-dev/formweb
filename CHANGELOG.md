@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.6 · 2026-10-31
+
+- The Windows desktop app no longer opens to a blank window on PCs where an installer set the `.js` file type to `text/plain` in the registry: the engine now serves scripts and stylesheets with their real types.
+
 ## 0.18.5 · 2026-10-26
 
 - The built window now has a smoke test in CI: it loads under a slow CPU and network with no console error, no failed or refused request and no layout shift. It found one shift, on the splash screen: the logo jumped when the rest of the splash arrived, and it is now fixed in place.
