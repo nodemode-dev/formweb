@@ -1,5 +1,6 @@
 import asyncio
 import json
+import mimetypes
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,10 @@ from .service import safe_export_path, studio
 from .terminal import router as terminal_router
 from .vector_routes import router as vector_router
 from .workflows import load_native
+
+mimetypes.add_type("text/javascript", ".js")
+mimetypes.add_type("text/javascript", ".mjs")
+mimetypes.add_type("text/css", ".css")
 
 
 
