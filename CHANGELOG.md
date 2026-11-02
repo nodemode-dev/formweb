@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.7 · 2026-11-02
+
+- On Linux and Windows the window no longer shifts a few pixels a moment after it opens: it now appears once its bundled Inter font has loaded, instead of opening in a fallback font and resizing every label when Inter arrives. macOS was never affected, since it uses its own system font.
+
 ## 0.18.6 · 2026-10-31
 
 - The Windows desktop app no longer opens to a blank window on PCs where an installer set the `.js` file type to `text/plain` in the registry: the engine now serves scripts and stylesheets with their real types.
