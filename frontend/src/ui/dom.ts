@@ -4,7 +4,22 @@ export function element<K extends keyof HTMLElementTagNameMap>(tag: K, className
   node.textContent = text;
   return node;
 }
+const UI_FACES = ['400 13px Inter', '500 13px Inter', '600 13px Inter', '400 12px "JetBrains Mono"'];
+const FONT_WAIT_MS = 4000;
+let uiFaces: Promise<unknown> | null = null;
+function loadUiFaces(): Promise<unknown> {
+  uiFaces ??= Promise.race([
+    Promise.allSettled(UI_FACES.map(face => document.fonts.load(face))),
+    new Promise(resolve => setTimeout(resolve, FONT_WAIT_MS)),
+  ]);
+  return uiFaces;
+}
+void loadUiFaces();
 export function revealApp(): void {
+  if (document.body.classList.contains('app-ready')) return;
+  void loadUiFaces().then(showApp);
+}
+function showApp(): void {
   if (document.body.classList.contains('app-ready')) return;
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.body.classList.add('app-ready');

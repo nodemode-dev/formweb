@@ -1079,3 +1079,11 @@ The settings dialog keeps the shared modal and takes formvis's Preferences shell
 - logged: v0.18.0 · 2026-10-23
 
 `Canvas.render` takes the picked breakpoint id and cascades the base styles plus the overrides of every breakpoint at least as wide as the picked one; the canvas width no longer selects anything, so typing a width only resizes the frame. The stage header names the profile being edited and shows a quiet hint (visibility toggled, text always present, so nothing shifts) when the typed width lies outside that profile. The existing compiled preview is the Live responsive preview: it renders the exported CSS in the sandboxed double-buffered iframes, is not recompiled when only the width changes, and so the browser's media queries do the switching. Command ids are unchanged; six labels were appended to keys.ts and every locale.
+
+### The window waits for its bundled fonts before it is revealed
+
+- refers-to: `src/ui/dom.ts` :: revealApp, loadUiFaces; `src/styles/fonts.css`
+- kind: bug
+- logged: v0.18.7 · 2026-11-02
+
+The UI font stack starts with the Apple system faces, so on macOS the bundled Inter is never used and nothing moves. On Linux and Windows Inter is the face in use, and fontsource declares it with `font-display: swap`: the window was revealed in the fallback face and every label changed width when Inter arrived, about 8 s into the throttled window smoke. CI measured 0.031 on main (menubar, title tools, Home hero actions, the inspector section); a Linux container reproduced 0.09 to 0.10 every run while macOS read 0 every run. `revealApp` now loads Inter 400, 500 and 600 and JetBrains Mono 400 (started when `dom.ts` is imported) and adds `app-ready` only once they have settled, capped at 4 s so a failed font never keeps the window hidden. To reproduce, run `frontend/tests/window` inside `mcr.microsoft.com/playwright/python:v1.63.0-noble` with a Linux `formweb-core`; a Mac does not show it.
