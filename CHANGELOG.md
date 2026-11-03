@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.18.8 · 2026-11-03
+
+- The unified v3 app icon replaces the old one in the desktop app, the splash and the README.
+- The compiled app is named FormWeb: the bundle product name and the window title.
+- The repo is now co-owned by gbarnai in CODEOWNERS.
+
 ## 0.18.7 · 2026-11-02
 
 - On Linux and Windows the window no longer shifts a few pixels a moment after it opens: it now appears once its bundled Inter font has loaded, instead of opening in a fallback font and resizing every label when Inter arrives. macOS was never affected, since it uses its own system font.
