@@ -138,7 +138,7 @@ fn open_editor(handle: &tauri::AppHandle) {
         })
         .unwrap_or(FALLBACK_LOGICAL);
     let builder = WebviewWindowBuilder::new(handle, "main", WebviewUrl::External(url))
-        .title("formweb")
+        .title("FormWeb")
         .inner_size(width, height)
         .min_inner_size(MIN_LOGICAL.0, MIN_LOGICAL.1)
         .center()
