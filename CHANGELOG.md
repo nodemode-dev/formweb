@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.18.9 · 2026-11-04
+
+- The README is rewritten to the Form family layout with real screenshots of the editor, and the old README icon svg is removed.
+
 ## 0.18.8 · 2026-11-03
 
 - The unified v3 app icon replaces the old one in the desktop app, the splash and the README.
