@@ -1,124 +1,172 @@
-<p align="center"><img src="assets/formweb_icon.svg" width="96" alt="FormWeb"></p>
-<h1 align="center">formweb</h1>
-<p align="center"><b>Visual website authoring for people & their agents.</b></p>
-<p align="center"><img src="https://img.shields.io/badge/version-0.18.7-f97316" alt="version 0.18.7"> <img src="https://img.shields.io/badge/TypeScript-7-3178c6" alt="TypeScript 7"> <img src="https://img.shields.io/badge/Python-3.12-3776ab" alt="Python 3.12"> <img src="https://img.shields.io/badge/Rust-stable-b7410e" alt="Rust stable"> <img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="Apache 2.0"></p>
+<p align="center">
+  <img src="assets/app-icon/formweb-256.png" width="128" height="128" alt="FormWeb icon: a dark window with a gradient page layout and a selection cursor">
+</p>
 
-## What it is
+<h1 align="center">FormWeb</h1>
 
-FormWeb is the Form family's visual website builder, researched against Framer & Webflow. One Rust engine owns the editable site, validation, history & static compilation. The TypeScript editor & MCP clients operate that same document through FastAPI, w/o needing a browser to keep agent edits alive.
+<p align="center">
+  <b>Website building; a visual editor for the Form family.</b><br>
+  Pages, design systems, a CMS, a vector editor and static export,<br>
+  driven by you or by your agents. Local-first, no account.
+</p>
 
-**Stack.** Vanilla TypeScript 7 + Vite 8 · Python 3.12 + FastAPI · Rust workspace · official Python MCP SDK. The desktop app builds locally with `./build_app`; no prebuilt binary is included in this release.
+<p align="center">
+  <img alt="version 0.18.9" src="https://img.shields.io/badge/version-0.18.9-eef0f4?style=flat-square">
+  <img alt="TypeScript 7" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
+  <img alt="Rust engine" src="https://img.shields.io/badge/Rust-engine-b7410e?style=flat-square">
+  <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/macOS%20%C2%B7%20Linux%20%C2%B7%20Windows-native-2f7bf5?style=flat-square">
+  <img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-3a3a3a?style=flat-square">
+  <img alt="Status: pre-launch" src="https://img.shields.io/badge/status-pre--launch-d69e2e?style=flat-square">
+</p>
 
-## Highlights
+<p align="center">
+  <a href="https://formweb.formai.studio/"><b>Download FormWeb on formai.studio</b></a> ·
+  <a href="https://github.com/nodemode-dev/formcompiler/releases?q=formweb-v&expanded=true">Latest release</a> ·
+  <a href="#run-it-from-source">Run it from source</a>
+</p>
 
-- **Pages & layout.** Nested semantic elements, page duplication, flex/grid placement, custom breakpoints & a live responsive preview of the exported site.
-- **Design systems.** Typed tokens, linked text presets, component properties/variants/slots, override reset, detachment & reviewed pinned libraries.
-- **Content.** Typed relations, selected bindings, CMS detail routes, queries/pagination/empty states, exact CSV round trips & localized content/media/routes.
-- **Output & behavior.** Portable HTML/CSS/runtime ZIPs, owned raster assets, reciprocal language links, JSON-LD, timelines, conditions, accessible overlays & isolated code components.
-- **Projects & teams.** SQLite autosave, portable `.fweb` history/assets, isolated review branches, comments, roles, presence & attributed operations.
-- **Publishing & forms.** Immutable local releases, promotion/rollback, redirects, inbox/retention, constraints, tracking & durable signed webhook delivery.
-- **Connected services.** Configurable deployment/domain, translation, fetch & commerce adapters; separate visitor membership, consented analytics & experiments. Provider credentials stay on the server.
-- **Agent dock (v0.6).** Terminal tabs, a Claude button that starts your Claude Code already connected to this editor's MCP tools, and a Chat pane that streams Claude's answers & tool calls. Mod+J toggles it, and it works before Agents is switched on for outside clients.
-- **Desktop app (v0.6).** `./build_app` (`build_app.bat`) checks, installs, builds, freezes the engine & runs the Tauri build in one command. The app carries its own engine, runs w/o the FormWeb folder & keeps data in `~/FormWeb`.
-- **Vector editing (v0.6 & v0.7).** Pen, Curvature, shape & Pathfinder tools, Live Corners (round, inverted or chamfer on any single anchor, non-destructive), then the full vector set: gradients, clipping & opacity masks, stroke align, knife & eraser, groups w/ isolation, Shape Crafter, Fill Regions, Trace Image, Pin Warp, width tool, align & distribute, smart guides, transforms, blend, repeat, warp & distort and type on a path. Paths are `svg`/`path` elements the engine validates & exports, so agents author them too.
-- **Command registry (v0.7).** Every menu item, toolbar button & shortcut runs through one registry w/ real bindings (Mod+K search, Mod+Z, Mod+Shift+Z, Mod+S, Delete, tool letters), also from inside the canvas. Agents list & run window commands w/ an Allow or Deny prompt for risky ones.
-- **26 languages (v0.7).** The editor switches live, w/o reload, from Settings > Editor language, English by default. Your content, layer names & page names are never translated. `./formweb i18n check` guards the tables.
-- **Creative CMS & forms (v0.7).** Published-site filters & sorting for collection lists, a collection slider, tables, collection folders & manual ordering, real superscript & subscript, default layout gap & padding, multi-step forms w/ file uploads & validation presets, and eight more pre-publish accessibility checks.
-- **Agents & evidence.** Real official-SDK MCP, shared role checks & revision authority. Start w/ the [agent quick start](docs/AGENT_QUICKSTART.md), the [four-vendor comparison](docs/comparisons/) (`FormWeb-Parity_v[version].html`, with every release's score) & the [consolidated matrix](docs/comparisons/FormAI-Parity-Matrix-consolidated.html). Research, audits & verification records ship in the release's planning sidecar.
+<br>
 
-## Quick Start
+<p align="center">
+  <img src="docs/images/formweb-hero.png" alt="FormWeb editing a travel landing page: layers on the left, the page on the canvas, and the properties of the selected photo on the right" width="100%">
+  <br>
+  <sub>A small travel site open in the editor: layers, canvas and properties.</sub>
+</p>
 
-Requirements: Node 22.12 or newer, Python 3.12 or newer, Rust stable/Cargo & git. The release zip already includes its real `.git`; extract `formweb/` before running.
+<p align="center">
+  <a href="#features">Features</a> ·
+  <a href="#everything-in-the-box">In the box</a> ·
+  <a href="#built-for-agents">Agents</a> ·
+  <a href="#under-the-hood">Under the hood</a> ·
+  <a href="#download">Download</a> ·
+  <a href="#run-it-from-source">Run from source</a>
+</p>
 
-### macOS & Linux
+<br>
 
-```bash
+<table>
+  <tr>
+    <td width="25%" valign="top"><h3>One engine</h3>A Rust engine owns the site, validation, history and static compilation, so every client edits the same document.</td>
+    <td width="25%" valign="top"><h3>Real CMS</h3>Typed collections, bindings, detail routes, queries and exact CSV round trips live beside your pages.</td>
+    <td width="25%" valign="top"><h3>Static export</h3>Compile portable HTML, CSS and runtime ZIPs, or publish local releases with promotion and rollback.</td>
+    <td width="25%" valign="top"><h3>Agent-ready</h3>The same document is open to an MCP server and a command line, and agent edits show on the canvas at once.</td>
+  </tr>
+</table>
+
+## Features
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/images/formweb-responsive.png" alt="The travel page at the mobile breakpoint with the layer tree and the selected button's mobile overrides" width="100%">
+      <br><sub>The same page at 390 px, editing a mobile override.</sub>
+      <h3>Responsive by breakpoint</h3>Switch between desktop, tablet and mobile and edit each override in place.
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/images/formweb-audit.png" alt="The SEO and accessibility audit dialog listing warnings over the editor" width="100%">
+      <br><sub>The audit lists issues you can jump straight to.</sub>
+      <h3>SEO and accessibility audit</h3>Check meta descriptions, base URL and text contrast before you publish.
+    </td>
+  </tr>
+</table>
+
+## Everything in the box
+
+<table>
+  <tr>
+    <td width="33%" valign="top"><h4>Authoring</h4>Pages and layers · Flex and grid layout · Custom breakpoints · Design tokens · Components with variants and slots · Pen and shape tools · Pathfinder · Trace Image</td>
+    <td width="33%" valign="top"><h4>Content and delivery</h4>CMS collections · Forms and inbox · Localized content and routes · JSON-LD · Redirects · Local releases · Signed webhooks · Review branches and comments</td>
+    <td width="33%" valign="top"><h4>Formats</h4>Opens: <code>.fweb</code>, CSV, SVG, PNG, JPEG, WebP, GIF · Saves: HTML, CSS, JSON, ZIP · Native: <code>.fweb</code></td>
+  </tr>
+</table>
+
+The editor runs in 26 languages, switched live from Settings.
+
+## Built for agents
+
+One MCP server and one command line reach the same running document as the editor.
+
+```sh
+./formweb run --list                              # list the engine commands
+./formweb run node.update id=headline 'patch={"text":"Hello"}'   # edit the open site
+./formweb agents sync --check                     # check the skill mirrors for drift
+./formweb mcp                                     # MCP server on stdio for Claude Code, Codex and Cursor
+```
+
+`.mcp.json`, `.codex/config.toml` and `.cursor/mcp.json` are already wired in this repo. Start with the [agent quick start](docs/AGENT_QUICKSTART.md) and [`AGENTS.md`](AGENTS.md).
+
+## Under the hood
+
+- **Rust engine:** atomic commands, revisions, undo and redo, component propagation and the static compiler.
+- **Python service:** FastAPI bridge for persistence, forms, local releases, HTTP and the official-SDK MCP server.
+- **Vanilla TypeScript:** a Vite editor with one command registry behind every menu, button and shortcut.
+- **Local data:** SQLite autosave and portable `.fweb` projects with history and assets.
+- **Tested:** backend tests in `backend/tests` and engine tests in `native/crates/*/tests`, run in CI.
+
+## Download
+
+| Platform | Download | Release |
+|---|---|---|
+| macOS | [Download FormWeb for macOS](https://formai.studio/get/formweb/macos) | [FormWeb releases on FormCompiler](https://github.com/nodemode-dev/formcompiler/releases?q=formweb-v&expanded=true) |
+| Windows | [Download FormWeb for Windows](https://formai.studio/get/formweb/windows) | [FormWeb releases on FormCompiler](https://github.com/nodemode-dev/formcompiler/releases?q=formweb-v&expanded=true) |
+| Linux | [Download FormWeb for Linux](https://formai.studio/get/formweb/linux) | [FormWeb releases on FormCompiler](https://github.com/nodemode-dev/formcompiler/releases?q=formweb-v&expanded=true) |
+
+All FormWeb builds are compiled and released from [FormCompiler](https://github.com/nodemode-dev/formcompiler); this repo holds the source.
+
+## Run it from source
+
+Prefer it in your browser, or want to contribute? Run the web UI straight from this repo.
+
+**Requires:** Node 22.12 or newer, Python 3.12 or newer, Rust stable and git.
+
+```sh
+git clone git@github.com:nodemode-dev/formweb.git
 cd formweb
-./formweb install
-./formweb boot
+./formweb install   # builds the Rust engine, installs the backend venv and frontend packages
+./formweb boot      # web UI at http://localhost:5240, API at http://127.0.0.1:8240
 ```
 
-Open http://localhost:5240. For the compiled editor:
+`./formweb build` then `./formweb serve` runs the compiled editor on http://127.0.0.1:8240. `./formweb doctor` checks your setup, and `./build_app` builds the desktop app.
 
-```bash
-./formweb build
-./formweb serve
-```
+On Windows use `formweb.bat install` and `formweb.bat boot`. The MCP endpoint is http://127.0.0.1:8240/mcp once Agents is enabled.
 
-Then open http://127.0.0.1:8240. `./formweb help` lists commands; `./formweb doctor` checks the local setup.
+Settings live in `backend/.env` (see `backend/.env.example`): `FORMWEB_DATA_DIR`, `FORMWEB_CORE_BIN`, `FORMWEB_AGENTS`, `FORMWEB_AUTH_TOKEN`, `FORMWEB_PORT` and `FORMWEB_ORIGINS`.
 
-### Desktop app
+> [!IMPORTANT]
+> **Status:** pre-launch. The Windows launchers and native desktop bundles are unverified, and provider adapters need server credentials. See the [Studio guide](docs/ADVANCED_GUIDE.md).
 
-```bash
-./build_app            # macOS and Linux; build_app.bat on Windows
-```
+**Contributing:** branch from `main`, keep changes to source here, and leave packaging and releases to formcompiler. See [`.docs/BRANCHING.md`](.docs/BRANCHING.md) and [`AGENTS.md`](AGENTS.md).
 
-One command checks the tools, installs, builds, freezes the engine into the app and runs the Tauri build (`--install`, `--open`, `--clean`; log in `build_app.log`). The app runs on its own, keeps your data in `~/FormWeb`, and its agent dock (Mod+J) starts your installed Claude Code already connected to FormWeb's tools.
+## Repository
 
-### Windows
+| Path | What it is |
+|---|---|
+| `native/crates/` | Rust model, engine, exporter, core process and GPU renderer |
+| `backend/app/` | Process bridge, persistence, forms, local releases, HTTP and MCP |
+| `frontend/src/` | The editor: canvas, layers, inspector and commands |
+| `src-tauri/` | The desktop shell |
+| `setup/` | Install, build, doctor, stdio proxy and skill mirroring |
+| `docs/` | Manual, guides and parity comparisons |
 
-```bat
-cd formweb
-formweb.bat install
-formweb.bat boot
-```
+Docs: [`.docs/wiki`](.docs/wiki) · Agents: [`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md) · Contributing: [`.docs/BRANCHING.md`](.docs/BRANCHING.md)
 
-Windows launchers are supplied but have not been run on Windows in this build. For MCP clients on Windows, use an absolute path to `formweb.bat` as described in the [agent guide](.docs/wiki/Agents-and-MCP.md).
+<br>
 
-| Service | URL | Purpose |
-| --- | --- | --- |
-| Editor dev | http://localhost:5240 | Vite, loopback only, strict port |
-| API / compiled editor | http://127.0.0.1:8240 | FastAPI, authoritative engine service |
-| Preview | http://localhost:5241 | Vite production preview |
-| MCP HTTP | http://127.0.0.1:8240/mcp | Agents must be enabled |
+---
 
-## Configuration
+## Maintainers
 
-Copy `backend/.env.example` to `backend/.env` when configuration is needed. Merge only the required provider names from `backend/.env.providers.example`; see [signed delivery](docs/SERVICE_DELIVERY.md) & [code builds](docs/CODE_COMPONENTS.md). Restart after changing server settings. Never commit credentials.
+| Maintainer | Role |
+|---|---|
+| [@nodemode-ai](https://github.com/nodemode-ai) | Owner |
+| [@gbarnai](https://github.com/gbarnai) | Co-owner |
 
-| Variable | Purpose |
-| --- | --- |
-| FORMWEB_DATA_DIR | Local SQLite, project/export & publication storage |
-| FORMWEB_CORE_BIN | Path to compiled Rust executable |
-| FORMWEB_AGENTS | Initial agent-access setting |
-| FORMWEB_AUTH_TOKEN | Optional bearer protection for API/MCP |
-| FORMWEB_PORT | Backend port; match proxy/client configuration when changing |
-| FORMWEB_ORIGINS | Exact allowed local browser origins |
-| VITE_API_BASE | Optional API base in frontend/.env; use the same-origin proxy when token auth is enabled |
+Code owners are set in [`.github/CODEOWNERS`](.github/CODEOWNERS).
 
-## Architecture
+## License
 
-| Path | Owns |
-| --- | --- |
-| native/crates/formweb-model | Document schema & whole-document validation |
-| native/crates/formweb-engine | Atomic commands, revisions, component propagation & history |
-| native/crates/formweb-export | Semantic HTML/CSS/runtime compiler & audit |
-| native/crates/formweb-core | JSON-lines engine process |
-| backend/app | Process bridge, persistence, forms, local releases, HTTP & MCP |
-| frontend/src | Stable keyed editor DOM, canvas & workflow controls |
-| setup | Installation, build, diagnostics, stdio proxy & skill mirroring |
-| .claude/skills/formweb-harness | Application-operation skill pack |
-| .agents/skills/formweb-harness | Byte-identical portable mirror |
-| docs & .docs/wiki | Manual, research, parity, verification & subsystem contracts |
+FormWeb is licensed under the Apache License 2.0 ([`LICENSE`](LICENSE), SPDX `Apache-2.0`). Copyright 2026 NodeAgentc, Inc. Third-party notices: [`NOTICE.md`](NOTICE.md), [`LICENSES.md`](LICENSES.md).
 
-## Limits
+<sub>Screenshot content: CC0 photos from Poly Haven, cropped.</sub>
 
-The advanced Studio covers authoring, runtime, collaboration & service workflows described in the [Studio guide](docs/ADVANCED_GUIDE.md). Provider adapters require configured server credentials; fixture observations do not establish live domain/TLS/CDN operation or completed payments. Hosted checkout delegates payment, shipping & taxes to the configured provider. Gated content requires the authorizing backend & is rejected from public static exports. Exported forms require a reachable service. Windows, native desktop bundles & automatic skill activation remain unverified. Versioned parity records distinguish implemented workflows from these operational boundaries.
-
-## Development
-
-Work on `main` for this supplied build; use reviewed topic branches after publishing. See [.docs/BRANCHING.md](.docs/BRANCHING.md), [manual](docs/MANUAL.md) & [wiki](.docs/wiki/Home.md). Read the matching planning sidecar first when continuing. Route app-operation requests through the harness director; source development follows AGENTS.md.
-
-The `.git` records real coherent commits authored & committed by `nodemode-ai <mackin@nodemode.ai>`. No sibling git history was imported. The version commit closes the release series.
-
-## Contributors
-
-| Contributor | Role |
-| --- | --- |
-| nodemode-ai | Owner & author |
-
-## Licensing
-
-Apache-2.0. Copyright 2026 NodeAgentc, Inc.; see LICENSE, NOTICE.md & LICENSES.md. Vendor documentation was researched as primary evidence; proprietary vendor code/assets are not bundled.
-
-Framer is a trademark of Framer B.V. Webflow is a trademark of Webflow, Inc. Adobe and Illustrator are either registered trademarks or trademarks of Adobe in the United States and/or other countries. They are named only to describe what FormWeb was researched against; FormWeb is not affiliated with or endorsed by them, and its tools carry their own names.
+<sub>Framer is a trademark of Framer B.V. Webflow is a trademark of Webflow, Inc. Adobe and Illustrator are trademarks of Adobe. They are named only to describe what FormWeb was researched against; FormWeb is not affiliated with or endorsed by them.</sub>
