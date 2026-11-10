@@ -1,6 +1,7 @@
 import json
+from html import escape
 from pathlib import PurePosixPath
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote
 
 from fastapi import APIRouter, Request
 from jsonschema import Draft202012Validator
@@ -180,6 +181,19 @@ def exported_file(root, path):
     return target
 
 
+def missing_page(page, base, request):
+    """The served copy of a site's 404 page: a base tag at its folder so relative URLs work from any missing path, and
+    fragment-only links pointed at the request's own address so they scroll instead of leaving for the 404 folder."""
+    raw = request.scope.get('raw_path')
+    own = raw.decode('latin-1') if raw else quote(request.url.path)
+    own = own.split('?', 1)[0].split('#', 1)[0]
+    if request.scope.get('query_string'):
+        own += '?' + request.scope['query_string'].decode('latin-1')
+    own = escape(own, quote=True)
+    html = page.read_text(encoding='utf-8').replace('href="#', 'href="' + own + '#')
+    return html.replace('<head>', '<head><base href="' + escape(base, quote=True) + '">', 1)
+
+
 async def serve_release(slug, version, path, request, active=False):
     release = studio.releases.release(slug, version)
     root = (DATA_DIR / 'publications' / slug / version).resolve()
@@ -212,8 +226,7 @@ async def serve_release(slug, version, path, request, active=False):
         # The root 404.html is written for a host at the base URL's path, not this release prefix, so the release serves the
         # page's own 404/index.html, whose relative URLs work from any missing path through a base tag at its folder.
         base = ('/sites/' + slug if active else '/published/' + slug + '/' + version) + '/404/'
-        html = page.read_text(encoding='utf-8').replace('<head>', '<head><base href="' + base + '">', 1)
-        return Response(html, status_code=404, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
+        return Response(missing_page(page, base, request), status_code=404, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
     gated = visitor_gate(request, root, release['site'], path)
     if target.suffix == '.html' and not path.startswith('assets/'):
         # FW-078: password gates are checked here, in the serving adapter, before any page bytes leave.
@@ -274,8 +287,14 @@ async def preview_file(token: str, path: str, request: Request):
         if target.startswith('/'):
             target = '/preview/' + token + target
         return RedirectResponse(target, status_code=status, headers={'Cache-Control': 'private, no-store'})
-    target = exported_file(root, path)
     headers = {'Cache-Control': 'private, no-store', 'Content-Security-Policy': 'sandbox allow-scripts allow-forms allow-popups'}
+    try:
+        target = exported_file(root, path)
+    except EngineError as error:
+        page = root / '404' / 'index.html'
+        if error.status != 404 or not (root / '404.html').is_file() or not page.is_file():
+            raise
+        return Response(missing_page(page, '/preview/' + token + '/404/', request), status_code=404, media_type='text/html', headers=headers)
     if path.startswith('assets/components/') and path.endswith('.html'):
         headers['Content-Security-Policy'] = "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'"
     return FileResponse(target, headers=headers)
