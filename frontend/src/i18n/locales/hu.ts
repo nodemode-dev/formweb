@@ -2509,4 +2509,5 @@ export default [
   "{n} erőforrás túl nagy a beágyazáshoz, ezért csak ebbe a FormWebbe illeszthető be.",
   "Egy erőforrás túl nagy a beágyazáshoz, ezért csak ezen a számítógépen illeszthető be.",
   "{n} erőforrás túl nagy a beágyazáshoz, ezért csak ezen a számítógépen illeszthető be.",
+  "A 404-es oldal a stílusait és oldalait a /-ről hivatkozza, mert az alap-URL még mindig example.com. Állítsd az alap-URL-t a webhely nyilvános címére, mielőtt egy almappában közzéteszed.",
 ] as readonly string[];

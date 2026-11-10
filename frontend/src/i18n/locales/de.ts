@@ -2509,4 +2509,5 @@ export default [
   "{n} Assets sind zu groß zum Einbetten und lassen sich nur in diesem FormWeb einfügen.",
   "Ein Asset ist zu groß zum Einbetten und lässt sich nur auf diesem Computer einfügen.",
   "{n} Assets sind zu groß zum Einbetten und lassen sich nur auf diesem Computer einfügen.",
+  "Die 404-Seite verlinkt ihre Stile und Seiten ab /, weil die Basis-URL noch example.com ist. Lege die Basis-URL auf die öffentliche Adresse der Website fest, bevor du sie in einem Unterpfad bereitstellst.",
 ] as readonly string[];

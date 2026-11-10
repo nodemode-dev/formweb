@@ -2509,4 +2509,5 @@ export default [
   "Počet obrázků příliš velkých na vložení do kopie: {n}. Půjdou vložit jen v tomto FormWebu.",
   "Jeden obrázek je příliš velký na vložení do kopie a půjde vložit jen v tomto počítači.",
   "Počet obrázků příliš velkých na vložení do kopie: {n}. Půjdou vložit jen v tomto počítači.",
+  "Stránka 404 odkazuje na své styly a stránky od /, protože základní URL je stále example.com. Nastavte základní URL na veřejnou adresu webu, než jej nasadíte do podsložky.",
 ] as readonly string[];

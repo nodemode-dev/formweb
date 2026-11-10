@@ -2509,4 +2509,5 @@ export default [
   "{n} aset terlalu besar untuk disematkan dan hanya bisa ditempel di FormWeb ini.",
   "Satu aset terlalu besar untuk disematkan dan hanya bisa ditempel di komputer ini.",
   "{n} aset terlalu besar untuk disematkan dan hanya bisa ditempel di komputer ini.",
+  "Halaman 404 menautkan gaya dan halamannya dari / karena URL dasar masih example.com. Atur URL dasar ke alamat publik situs sebelum Anda men-deploy-nya di bawah sebuah path.",
 ] as readonly string[];

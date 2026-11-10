@@ -2509,4 +2509,5 @@ export default [
   "{n} tài nguyên quá lớn để nhúng và chỉ có thể dán trong FormWeb này.",
   "Một tài nguyên quá lớn để nhúng và chỉ có thể dán trên máy tính này.",
   "{n} tài nguyên quá lớn để nhúng và chỉ có thể dán trên máy tính này.",
+  "Trang 404 liên kết kiểu dáng và các trang từ / vì URL cơ sở vẫn là example.com. Hãy đặt URL cơ sở thành địa chỉ công khai của trang web trước khi bạn triển khai nó dưới một đường dẫn con.",
 ] as readonly string[];

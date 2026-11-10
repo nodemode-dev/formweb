@@ -2509,4 +2509,5 @@ export default [
   "{n} resurser är för stora för att bäddas in och kan bara klistras in i den här FormWeb.",
   "En resurs är för stor för att bäddas in och kan bara klistras in på den här datorn.",
   "{n} resurser är för stora för att bäddas in och kan bara klistras in på den här datorn.",
+  "404-sidan länkar sina stilar och sidor från / eftersom bas-URL:en fortfarande är example.com. Ange webbplatsens publika adress som bas-URL innan du publicerar den i en undermapp.",
 ] as readonly string[];

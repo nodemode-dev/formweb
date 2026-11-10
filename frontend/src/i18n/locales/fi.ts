@@ -2509,4 +2509,5 @@ export default [
   "{n} resurssia on liian suuria upotettaviksi, ja ne voidaan liittää vain tähän FormWebiin.",
   "Yksi resurssi on liian suuri upotettavaksi, ja se voidaan liittää vain tällä tietokoneella.",
   "{n} resurssia on liian suuria upotettaviksi, ja ne voidaan liittää vain tällä tietokoneella.",
+  "404-sivu linkittää tyylinsä ja sivunsa juuresta /, koska perus-URL on yhä example.com. Aseta perus-URL sivuston julkiseksi osoitteeksi, ennen kuin julkaiset sivuston polun alla.",
 ] as readonly string[];
