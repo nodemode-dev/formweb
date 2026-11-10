@@ -1,5 +1,15 @@
 # Backend context
 
+## Warnings on send, and clips that serve every paste · v0.19.9 (2026-11-10)
+
+The executor spec is `TURN_J_SPEC.md` in the 0.19.9 planning sidecar.
+
+`handoff.py` `send_to_formpublisher` keeps the manifest from `studio.export_zip` and answers `warnings` (the export's own warning strings, as `/api/export` and `export_site` give them) on both the live and the inbox answer; nothing else in the answer changed. The MCP `send_to_formpublisher` tool returns the API's JSON through `_send`, so it carries the same list, and its description says so. The editor reads the list for the 404 base URL sentence (`frontend/HASHOUT_LOG.md`).
+
+Clips (`clips.py`) were checked with real requests and need no change: a clip is an in-memory entry purged only by expiry or the 16-clip cap, so one clip served two pastes into one installation and one into another, and kept answering until it expires.
+
+Checked: `backend/venv/bin/python -m pytest -q` (115 pass, none added). A live send to a lab FormPublisher engine and an inbox send under `/tmp` both answered the 404 base URL sentence for a site with a 404 page on example.com and an empty list once the base URL was set; MCP answered the same; `/root/FormPublisher` was never created. The director's run pasted one clip into one backend twice and into a third once, each storing the 3 MiB image and the 20 MiB video.
+
 ## The 404 page under every address, and clip copies for agents · v0.19.8 (2026-11-10)
 
 The executor spec is `TURN_I_SPEC.md` in the 0.19.8 planning sidecar.

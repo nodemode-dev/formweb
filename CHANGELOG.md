@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.9 · 2026-11-10
+
+- The page inspector's Whole site section has a Base URL field for the site's public address, which canonical links, the sitemap and the root `404.html` use.
+- The 404 base URL warning on Export and on Send to FormPublisher now carries Set the base URL, which opens that field.
+- Send to FormPublisher answers with the export's warnings, through the API, the agent tool and the editor's status line, so agents see the same warnings as people.
+- The audit's base URL warning now also catches `https://example.com/` and a site whose base URL was removed.
+- A large copy's link serves every paste while it lives, into this FormWeb or another one on the same computer.
+- Every new string is in all 26 languages.
+
 ## 0.19.8 · 2026-11-10
 
 - The not-found page of a published site keeps its links on the page: Skip to content and links to a section of the page scroll where they should instead of opening the 404 folder.

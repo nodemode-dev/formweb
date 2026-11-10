@@ -1,5 +1,13 @@
 # Frontend context map
 
+## The Base URL field and the status action · v0.19.9 (2026-11-10)
+
+`main.ts`: the page pane's Whole site section starts with a Base URL field made by `addInspectorInput` (key `site.baseUrl`), filled from state through `inspectorValues`, so `value()` never overwrites it while focused; a change sends `site.update {patch: {settings: {baseUrl}}}` with trailing slashes trimmed, and the engine's http(s) refusal reaches the status line through `run`. `openBaseUrlField()` opens the right dock, shows the page inspector, scrolls the field into view without a jump and focuses it. `status(message, error, action?)` writes `statusActionRun` and a `button.status-action` that sits hidden in the status bar between the message and the revision; the next status without an action hides it again. `NOT_FOUND_BASE_KEY` holds the 404 sentence; `notFoundBaseWarning(warned?)` tests the editor's state for Export and the answer's `warnings` for Send, and `baseUrlAction` adds Set the base URL when the sentence is shown. Three keys appended to `i18n/keys.ts` (2514 in all) and the 23 array locales.
+
+`styles/app.css`: the status bar has four columns (`244px minmax(0, 1fr) auto auto`, and `216px 1fr auto auto` under 1100 px); the action takes column 3 and the revision is pinned to column 4, so a hidden action never lets the revision move (it jumped 12 px before the pin, caught by W1's check).
+
+Checked: with the CPU throttled 4x in headless Chrome, export showed the sentence and the action, the action focused the field, a typed address saved without trailing slashes and the next export carried no sentence, a bad address showed the engine's refusal, a focused field kept its text across an outside change, and Send showed the action only while the warning held; CLS 0 at every step, the bar 28 px. The director's run showed the same in German (Basis-URL festlegen). `npx tsc --noEmit`, `npm run build` and the window checks pass.
+
 ## The base URL warning for the 404 page · v0.19.8 (2026-11-10)
 
 `main.ts`: `notFoundBaseWarning()` sits above `exportSite` and returns a leading space plus one `t()` sentence when the site has a page whose slug, trimmed of `/`, is `404` and `site.settings.baseUrl` (trailing slashes trimmed, unset counted as the placeholder) is `https://example.com`; otherwise an empty string. `exportSite` and both status calls in `sendToFormPublisher` append it to their existing status text, so no element is added and nothing moves. One key appended to `i18n/keys.ts` (2511 in all) and to the 23 array locales; es-MX and fr-CA need no override.
