@@ -25,12 +25,14 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     files.extend(crate::sections::files(site));
     let mut asset_access:BTreeMap<String,BTreeSet<String>>=BTreeMap::new();
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n");
-    // A page routed at /404 is rendered a second time as a root 404.html with an empty prefix (its stylesheet is the page's own, already written).
+    // A page routed at /404 is rendered a second time as a root 404.html (its stylesheet is the page's own, already written).
+    // Hosts serve that file at any missing path, so its URLs start at the base URL's path ("/" or "/repo/"), never relative.
+    let root_prefix=base.split_once("://").and_then(|(_,rest)|rest.find('/').map(|i|format!("{}/",&rest[i..]))).unwrap_or_else(||"/".to_string());
     let not_found=routes.iter().position(|r|r.locale==site.default_locale&&r.item.is_none()&&r.slug.trim_matches('/')=="404");
     let jobs:Vec<(usize,bool)>=(0..routes.len()).map(|i|(i,false)).chain(not_found.map(|i|(i,true))).collect();
     for (route_index,copy) in jobs {
         let route=&routes[route_index];
-        let prefix = if copy { String::new() } else { route.prefix() };
+        let prefix = if copy { root_prefix.clone() } else { route.prefix() };
         let css_path=format!("assets/pages/{route_index}.css");
         if !copy { files.push(json!({"path":css_path,"content":crate::route_styles::render(site,&route.page.root)})); }
         let links = routing::links(site, route, &routes);

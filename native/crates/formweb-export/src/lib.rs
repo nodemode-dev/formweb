@@ -66,13 +66,15 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     files.push(json!({"path":"assets/runtime.js", "content":format!("{RUNTIME}{}{EFFECTS_RUNTIME}", embed::GATE_RUNTIME)}));
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
     let mut route_manifest = vec![];
-    // A page routed at /404 is rendered once more as a root 404.html with an empty prefix, outside routes.json and the sitemap.
+    // A page routed at /404 is rendered once more as a root 404.html, outside routes.json and the sitemap. Hosts serve it at
+    // any missing path, so its URLs start at the base URL's path ("/" or "/repo/"), never relative.
+    let root_prefix = base.split_once("://").and_then(|(_, rest)| rest.find('/').map(|i| format!("{}/", &rest[i..]))).unwrap_or_else(|| "/".to_string());
     let not_found = site.pages.iter().filter(|p| p.slug.trim_matches('/') == "404").take(1).map(|p| (p, true));
     for (page, copy) in site.pages.iter().map(|p| (p, false)).chain(not_found) {
         let route = page.slug.trim_matches('/');
         let path = if copy { "404.html".into() } else if route.is_empty() { "index.html".into() } else { format!("{route}/index.html") };
         if !copy { route_manifest.push(json!({"path": path, "page": page.id, "locale": locale, "item": Value::Null, "stylesheet": "assets/site.css"})); }
-        let prefix = if copy { String::new() } else { "../".repeat(if route.is_empty() { 0 } else { route.split('/').count() }) };
+        let prefix = if copy { root_prefix.clone() } else { "../".repeat(if route.is_empty() { 0 } else { route.split('/').count() }) };
         let canonical = if route.is_empty() { format!("{base}/") } else { format!("{base}/{route}/") };
         let mut interactions = vec![];
         let mut render = Renderer { site, locale, forms, prefix: &prefix, warnings: &mut warnings, interactions: &mut interactions, budget: 250000, links: None };

@@ -198,8 +198,8 @@ async def serve_release(slug, version, path, request, active=False):
     try:
         target = exported_file(root, path)
     except EngineError as error:
-        page = root / '404.html'
-        if error.status != 404 or not page.is_file():
+        page = root / '404' / 'index.html'
+        if error.status != 404 or not (root / '404.html').is_file() or not page.is_file():
             raise
         # The 404 page is site content: it passes the same visitor and password gates as its own page, else the plain 404 stands.
         try:
@@ -209,8 +209,9 @@ async def serve_release(slug, version, path, request, active=False):
             raise error
         if gate and not studio.passwords.unlocked(request, gate):
             raise error
-        # The root 404.html uses root-relative URLs, so a base tag keeps its styles working from any missing path.
-        base = ('/sites/' + slug if active else '/published/' + slug + '/' + version) + '/'
+        # The root 404.html is written for a host at the base URL's path, not this release prefix, so the release serves the
+        # page's own 404/index.html, whose relative URLs work from any missing path through a base tag at its folder.
+        base = ('/sites/' + slug if active else '/published/' + slug + '/' + version) + '/404/'
         html = page.read_text(encoding='utf-8').replace('<head>', '<head><base href="' + base + '">', 1)
         return Response(html, status_code=404, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
     gated = visitor_gate(request, root, release['site'], path)
