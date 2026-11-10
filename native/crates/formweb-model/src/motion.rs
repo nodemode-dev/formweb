@@ -104,7 +104,7 @@ fn scene(site: &Site, root: &Value, id: &str, value: &Value) -> Result<(), Strin
     let stage = target(site, value, "stage")?;
     if stage == id || !members.contains(stage) { return Err("scene stage must be inside the scene".into()); }
     required(value, "length", 100.0, 2000.0)?;
-    if let Some(offset) = value.get("offset") { if !typed_value("length", offset) { return Err("scene offset must be a length".into()); } }
+    if let Some(offset) = value.get("offset") { if !typed_value("length", offset) && !offset.as_str().map(crate::css::offset_expression).unwrap_or(false) { return Err("scene offset must be a length, var(--token) or a calc() of lengths and tokens".into()); } }
     number(value, "smoothing", 0.0, 2000.0)?; number(value, "reducedAt", 0.0, 1.0)?; flag(value, "progressVar")?;
     for track in array(value, "tracks", 1, 50)? {
         keys(track, &["node", "keyframes", "easing"])?;

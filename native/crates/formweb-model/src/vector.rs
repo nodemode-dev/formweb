@@ -11,15 +11,25 @@ const SHARED: &[&str] = &[
 const DATA_LIMIT: usize = 262_144;
 
 pub fn is_tag(tag: &str) -> bool {
-    matches!(tag, "svg" | "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "stop" | "clipPath" | "mask" | "text" | "textPath" | "symbol" | "use" | "pattern" | "tspan")
+    matches!(tag, "svg" | "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "stop" | "clipPath" | "mask" | "text" | "textPath" | "symbol" | "use" | "pattern" | "tspan" | "rect" | "circle" | "ellipse" | "line" | "polyline" | "polygon")
+}
+
+fn shape(tag: &str) -> bool {
+    matches!(tag, "rect" | "circle" | "ellipse" | "line" | "polyline" | "polygon")
 }
 
 pub fn attr_allowed(tag: &str, name: &str) -> bool {
     if !is_tag(tag) {
         return false;
     }
-    let drawn = matches!(tag, "svg" | "g" | "path" | "text" | "textPath" | "symbol" | "use");
+    let drawn = matches!(tag, "svg" | "g" | "path" | "text" | "textPath" | "symbol" | "use") || shape(tag);
     (drawn && SHARED.contains(&name))
+        || (tag == "svg" && name == "focusable")
+        || (tag == "rect" && matches!(name, "x" | "y" | "width" | "height" | "rx" | "ry"))
+        || (tag == "circle" && matches!(name, "cx" | "cy" | "r"))
+        || (tag == "ellipse" && matches!(name, "cx" | "cy" | "rx" | "ry"))
+        || (tag == "line" && matches!(name, "x1" | "y1" | "x2" | "y2"))
+        || (matches!(tag, "polyline" | "polygon") && name == "points")
         || (tag == "path" && name == "d")
         || (tag == "svg" && matches!(name, "viewBox" | "preserveAspectRatio" | "data-fw-guides"))
         || (tag == "linearGradient" && matches!(name, "x1" | "y1" | "x2" | "y2" | "gradientUnits" | "gradientTransform" | "spreadMethod"))
@@ -40,13 +50,13 @@ pub fn max_len(tag: &str, name: &str) -> usize {
 
 fn child_ok(parent: &str, child: &str) -> bool {
     match parent {
-        "svg" | "g" => matches!(child, "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "clipPath" | "mask" | "text" | "use" | "pattern"),
+        "svg" | "g" => matches!(child, "g" | "path" | "defs" | "linearGradient" | "radialGradient" | "clipPath" | "mask" | "text" | "use" | "pattern") || shape(child),
         "defs" => matches!(child, "linearGradient" | "radialGradient" | "clipPath" | "mask" | "symbol" | "pattern"),
-        "pattern" => matches!(child, "g" | "path"),
-        "symbol" => matches!(child, "g" | "path" | "text"),
+        "pattern" => matches!(child, "g" | "path") || shape(child),
+        "symbol" => matches!(child, "g" | "path" | "text") || shape(child),
         "linearGradient" | "radialGradient" => child == "stop",
-        "clipPath" => child == "path",
-        "mask" => matches!(child, "g" | "path"),
+        "clipPath" => child == "path" || shape(child),
+        "mask" => matches!(child, "g" | "path") || shape(child),
         "text" => matches!(child, "textPath" | "tspan"),
         _ => false,
     }
@@ -248,6 +258,10 @@ pub fn check_attr(tag: &str, name: &str, value: &str) -> Result<(), String> {
         "id" if tag == "symbol" => ref_id(value),
         "href" if tag == "use" => value.strip_prefix('#').map(ref_id).unwrap_or(false),
         "dy" => number_in(value, -2000.0, 2000.0),
+        "focusable" => tag == "svg" && matches!(value, "true" | "false" | "auto"),
+        "points" => matches!(tag, "polyline" | "polygon") && value.len() <= 10000 && list(value, 2, 2000, -1e6, 1e6) && value.split([' ', ',']).filter(|p| !p.is_empty()).count() % 2 == 0,
+        "r" | "rx" | "ry" if shape(tag) => length(value),
+        "width" | "height" if tag == "rect" => length(value),
         "x1" | "y1" | "x2" | "y2" | "cx" | "cy" | "r" | "fx" | "fy" | "x" | "y" if tag != "svg" => coordinate(value),
         "width" | "height" if tag == "mask" || tag == "use" => coordinate(value),
         "gradientUnits" | "clipPathUnits" | "maskUnits" | "maskContentUnits" => matches!(value, "userSpaceOnUse" | "objectBoundingBox"),
