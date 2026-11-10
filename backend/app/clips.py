@@ -1,7 +1,7 @@
 """Clip links (TURN_H_SPEC Phase 24, W3).
 
 A copy made with `clip: true` keeps the assets that are too big to ride in the clipboard behind a short-lived link on this
-backend. `GET /api/clips/<token>/<asset id>` answers one listed asset while the clip lives (15 minutes, kept in memory as
+backend. `GET /api/clips/<token>/<asset id>` answers one listed asset while the clip lives (15 minutes by default, FORMWEB_CLIP_SECONDS sets 10 to 3600 seconds; kept in memory as
 paths into the asset store, so no bytes are copied). The token is 32 random bytes in hex and is the only credential; every
 other case answers the same 404. The paste side fetches only through `fetch_clip_assets`, which accepts a loopback origin
 with a numeric port and the exact path `/api/clips/<token>`, follows no redirects and caps every read."""
@@ -16,12 +16,11 @@ from fastapi import APIRouter
 from starlette.responses import FileResponse
 
 from .assets import ASSET_NAME, MIME_TYPES, SIZE_LIMITS
-from .config import MAX_IMAGE_BYTES, PORT
+from .config import CLIP_SECONDS, MAX_IMAGE_BYTES, PORT
 from .engine import EngineError
 
 router = APIRouter()
 
-CLIP_SECONDS = 15 * 60
 MAX_LIVE_CLIPS = 16
 MAX_CLIP_BYTES = 512 * 1024 * 1024
 FETCH_TIMEOUT = 10
