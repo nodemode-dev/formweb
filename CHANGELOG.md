@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.4 · 2026-11-10
+
+- Edit > Duplicate element (Mod+D) and a Duplicate item in the layers context menu copy an element with everything attached to it: motion, scripts, code sections, page components, variable bindings and translations, under new ids, in one undo step. Agents get the same through the new `node.duplicate` command.
+- Duplicating a page now also copies its scripts, code sections and variable inputs and outputs, which were dropped before.
+- Page components can have a light-theme poster. Exported sites show the poster that matches the visitor's theme on the first frame with no layout shift, the canvas shows it while the Design system dialog previews the light theme, and the components inspector can set or clear it. 20 of the 21 library components now have one; scripted-desktop and physics-deck also have corrected dark posters.
+- Projects with large videos can be saved: a project too big for the 64 MiB `.fweb` file is saved as a zip `.fweb` (version 2) of up to 512 MiB, and File > Import opens both kinds. Smaller projects still save as before, so earlier FormWeb and FormPublisher releases open them.
+- Send to FormPublisher finds FormPublisher on whatever port its desktop app started, through the `engine.json` file FormPublisher 0.1.4 writes in its data folder.
+- Every new string is in all 26 languages.
+
 ## 0.19.3 · 2026-11-10
 
 - File > Send to FormPublisher exports the open site and hands it to FormPublisher: live when it is running (the status line names the new revision), or into its inbox folder when it is not, with the site name beside the zip so it arrives as a revision of the same site. `FORMWEB_FORMPUBLISHER_URL` points it elsewhere.
