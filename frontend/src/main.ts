@@ -1523,15 +1523,21 @@ async function downloadProject(): Promise<void> {
   await download('/api/project-file', state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '.fweb');
   status('Editable .fweb project downloaded.');
 }
+function notFoundBaseWarning(): string {
+  const site = state().site;
+  const base = (site.settings.baseUrl ?? 'https://example.com').replace(/\/+$/, '');
+  if (base !== 'https://example.com' || !site.pages.some(page => page.slug.replace(/^\/+|\/+$/g, '') === '404')) return '';
+  return ' ' + t("The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.");
+}
 async function exportSite(): Promise<void> {
   await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
-  status(`Static site exported for ${locale}.`);
+  status(`Static site exported for ${locale}.${notFoundBaseWarning()}`);
 }
 async function sendToFormPublisher(): Promise<void> {
   try {
     const sent = await request<{ delivered: 'live' | 'inbox'; site?: string; revision?: string; path?: string }>(`/api/handoff/formpublisher?locale=${encodeURIComponent(locale)}`, {});
-    if (sent.delivered === 'live') status(t('Sent to FormPublisher: {0} is now at revision {1}.', [state().site.name, sent.revision ?? '']));
-    else status(t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [sent.path ?? '']));
+    if (sent.delivered === 'live') status(t('Sent to FormPublisher: {0} is now at revision {1}.', [state().site.name, sent.revision ?? '']) + notFoundBaseWarning());
+    else status(t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [sent.path ?? '']) + notFoundBaseWarning());
   } catch (error) {
     status(t('Could not send to FormPublisher: {0}', [error instanceof Error ? error.message : String(error)]), true);
   }
