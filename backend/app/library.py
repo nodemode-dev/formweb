@@ -214,9 +214,15 @@ def preset_commands(site: dict, data: dict, font_sources: dict, mode: str = 'mis
 
 def page_commands(site: dict, data: dict, root: str, mode: str = 'missing') -> list[dict]:
     """Root styles from the preset's `page` map, skipping properties a designer already set when mode is "missing"."""
-    current = ((site.get('nodes') or {}).get(root) or {}).get('styles') or {}
+    node = (site.get('nodes') or {}).get(root) or {}
+    current = node.get('styles') or {}
     styles = {k: v for k, v in (data.get('page') or {}).items() if mode == 'all' or k not in current}
-    return [{'command': 'node.update', 'params': {'id': root, 'patch': {'styles': styles}}}] if styles else []
+    # pageBreakpoints: root values per breakpoint, for example the taller two-row header bar on phones (--bar-h).
+    have = node.get('breakpoints') or {}
+    merged = {name: {**(have.get(name) or {}), **{k: v for k, v in values.items() if mode == 'all' or k not in (have.get(name) or {})}}
+              for name, values in (data.get('pageBreakpoints') or {}).items()}
+    patch = {**({'styles': styles} if styles else {}), **({'breakpoints': {**have, **merged}} if any(merged.get(n) != have.get(n) for n in merged) else {})}
+    return [{'command': 'node.update', 'params': {'id': root, 'patch': patch}}] if patch else []
 
 
 def component_group(site: dict, records: dict) -> dict | None:
