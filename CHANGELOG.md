@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.20.2 · 2026-11-10
+
+- When FormWeb starts, it removes temporary files a crash or a killed paste left in its data folder more than 10 minutes earlier. It touches nothing else, and logs one line when it removed any.
+- The Remove background dialog no longer jumps when it opens: its note and its picture keep their place while the image loads.
+- A message that arrives in a dialog footer no longer moves anything, because the footer always keeps room for two lines.
+- Copies only renumber an id ending that an earlier copy added. Your own ids such as `x-copy-5` or `step-page-2` now get the copy's ending added instead of being renumbered.
+
 ## 0.20.1 · 2026-11-10
 
 - Pasting a large copy that travels by clip link writes its images and videos straight to disk while they arrive, and stores them only once the paste succeeds, so a 300 MiB copy no longer needs 300 MiB of memory.
