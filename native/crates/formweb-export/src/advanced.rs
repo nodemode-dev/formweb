@@ -20,7 +20,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     let mut warnings = BTreeSet::new();
     if base == "https://example.com" { warnings.insert("Set the public base URL before deploying canonical URLs and sitemap".to_string()); }
     if gated { warnings.insert("Private routes require backend membership authorization before serving; editable source JSON is omitted".into()); }
-    let mut files = vec![json!({"path":"assets/site.css","content":crate::route_styles::base(site)}),json!({"path":"assets/runtime.js","content":format!("{}{}{}{}",include_str!("runtime.js"),crate::wishlist::SCRIPT,crate::embed::GATE_RUNTIME,crate::EFFECTS_RUNTIME)})];
+    let mut files = vec![json!({"path":"assets/site.css","content":crate::route_styles::base(site)}),json!({"path":"assets/runtime.js","content":format!("{}{}{}{}{}",include_str!("runtime.js"),crate::wishlist::SCRIPT,crate::embed::GATE_RUNTIME,crate::EFFECTS_RUNTIME,motion_runtime(site))})];
     files.extend(code::files(site)?);
     let mut asset_access:BTreeMap<String,BTreeSet<String>>=BTreeMap::new();
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n");
@@ -46,7 +46,8 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         if let Some(token) = forms.split("/preview/").nth(1) { context["previewToken"]=json!(token.split('/').next().unwrap_or("")); }
         let config = crate::scope::configuration(site,&route.page.root,records,context,&links,&prefix);
         let code = custom_code(site,&route.page.id);
-        let html = format!("<!doctype html>\n<html lang=\"{}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{}</title><meta name=\"description\" content=\"{}\"><link rel=\"canonical\" href=\"{}\"><meta property=\"og:title\" content=\"{}\"><meta property=\"og:description\" content=\"{}\"><meta property=\"og:url\" content=\"{}\"><meta property=\"og:type\" content=\"website\">{}{}{}{}<link rel=\"stylesheet\" href=\"{}{}\"><script src=\"{}assets/runtime.js\" defer></script>{}</head><body>{}<a class=\"fw-skip\" href=\"#fw-main\">Skip to content</a><div id=\"fw-main\" tabindex=\"-1\">{}</div><script type=\"application/json\" id=\"fw-config\">{}</script>{}</body></html>\n",escape(&route.locale),escape(&title),escape(&description),escape(&canonical),escape(&title),escape(&description),escape(&canonical),robots,alternates,json_ld,crate::icons(site,&prefix),prefix,css_path,prefix,code[0],code[1],body,json_script(&config),code[2]);
+        let boot = boot_script(site);
+        let html = format!("<!doctype html>\n<html lang=\"{}\"><head><meta charset=\"utf-8\">{}<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{}</title><meta name=\"description\" content=\"{}\"><link rel=\"canonical\" href=\"{}\"><meta property=\"og:title\" content=\"{}\"><meta property=\"og:description\" content=\"{}\"><meta property=\"og:url\" content=\"{}\"><meta property=\"og:type\" content=\"website\">{}{}{}{}<link rel=\"stylesheet\" href=\"{}{}\"><script src=\"{}assets/runtime.js\" defer></script>{}</head><body>{}<a class=\"fw-skip\" href=\"#fw-main\">Skip to content</a><div id=\"fw-main\" tabindex=\"-1\">{}</div><script type=\"application/json\" id=\"fw-config\">{}</script>{}</body></html>\n",escape(&route.locale),boot,escape(&title),escape(&description),escape(&canonical),escape(&title),escape(&description),escape(&canonical),robots,alternates,json_ld,crate::icons(site,&prefix),prefix,css_path,prefix,code[0],code[1],body,json_script(&config),code[2]);
         asset_access.entry(css_path.clone()).or_default().insert(route.page.id.clone());
         if let Some(components)=site.extensions.get("code").and_then(|v|v.get("components")).and_then(Value::as_object){for id in components.keys(){if body.contains(&format!("data-fw-code=\"{id}\"")){asset_access.entry(format!("assets/components/{id}.html")).or_default().insert(route.page.id.clone());}}}
         files.push(json!({"path":route.path(),"content":html}));
@@ -81,7 +82,104 @@ pub fn styles(site:&Site)->String {
     if let Some(nodes)=site.extensions.get("behaviors").and_then(|v|v.get("nodes")).and_then(Value::as_object) {
         for(id,node)in nodes { if let Some(states)=node.get("states").and_then(Value::as_object) { for(state,styles)in states { let pseudo=match state.as_str(){"hover"=>":hover","focus"=>":focus-within","press"=>"[data-fw-press]",_=>continue};css.push_str(&format!("[data-fw-node=\"{id}\"]{pseudo}{{"));if let Some(styles)=styles.as_object(){for(key,value)in styles{if let Some(value)=value.as_str(){css.push_str(&format!("{key}:{value};"));}}}css.push_str("}\n"); } } }
     }
+    css.push_str(&design_css(site));
+    css.push_str(&motion_css(site));
     css
+}
+pub fn motion_runtime(site:&Site)->String { if site.extensions.contains_key("motion") { format!("{}{}",include_str!("motion.js"),include_str!("interact.js")) } else { String::new() } }
+pub fn boot_script(site:&Site)->String {
+    let themes=site.extensions.get("design").and_then(|v|v.get("themes"));let motion=site.extensions.contains_key("motion");
+    if themes.is_none()&&!motion { return String::new(); }
+    let mut script=String::from("<script>(function(){var d=document.documentElement;");
+    if let Some(themes)=themes {
+        let default=themes.get("default").and_then(Value::as_str).unwrap_or("dark");let follow=themes.get("followSystem").and_then(Value::as_bool).unwrap_or(false);
+        script.push_str(&format!("var t=\"{default}\",s=null;try{{s=localStorage.getItem(\"fw-theme-{}\")}}catch(e){{}}if(s===\"dark\"||s===\"light\"){{t=s}}else if({follow}&&window.matchMedia){{t=matchMedia(\"(prefers-color-scheme: light)\").matches?\"light\":\"dark\"}}d.setAttribute(\"data-theme\",t);",site.id));
+    }
+    if motion { script.push_str("d.classList.add(window.matchMedia&&matchMedia(\"(prefers-reduced-motion: reduce)\").matches?\"fw-r\":\"fw-m\");"); }
+    script.push_str("})();</script>");
+    script
+}
+fn design_css(site:&Site)->String {
+    let mut css=String::new();
+    let Some(design)=site.extensions.get("design") else{return css};
+    if let Some(properties)=design.get("properties").and_then(Value::as_object) { for(name,property)in properties {
+        let syntax=property.get("syntax").and_then(Value::as_str).unwrap_or("*");let initial=property.get("initial").and_then(Value::as_str).map(|v|format!(";initial-value:{v}")).unwrap_or_default();
+        css.push_str(&format!("@property --{name}{{syntax:'{syntax}';inherits:{}{initial}}}\n",property.get("inherits").and_then(Value::as_bool).unwrap_or(false)));
+    } }
+    let themes=design.get("themes");
+    if let Some(themes)=themes {
+        let default=themes.get("default").and_then(Value::as_str).unwrap_or("dark");let other=if default=="dark"{"light"}else{"dark"};
+        if let Some(values)=themes.get("values").and_then(|v|v.get(other)).and_then(Value::as_object) {
+            let kept:String=values.iter().filter(|(name,_)|site.tokens.keys().any(|k|k.trim_start_matches("--")==name.trim_start_matches("--"))).filter_map(|(name,value)|value.as_str().map(|v|format!("--{}:{v};",name.trim_start_matches("--")))).collect();
+            if !kept.is_empty() { css.push_str(&format!("html[data-theme=\"{other}\"]{{{kept}}}\n")); }
+        }
+    }
+    if themes.is_some()||site.nodes.values().any(|n|n.attrs.contains_key("data-fw-theme-only")) {
+        let default=themes.and_then(|t|t.get("default")).and_then(Value::as_str).unwrap_or("dark");
+        css.push_str(&format!("html[data-theme=\"dark\"] [data-fw-theme-only=\"light\"],html[data-theme=\"light\"] [data-fw-theme-only=\"dark\"]{{display:none!important}}html:not([data-theme]) [data-fw-theme-only]:not([data-fw-theme-only=\"{default}\"]){{display:none!important}}\n"));
+    }
+    if let Some(fonts)=design.get("fonts").and_then(Value::as_object) { for font in fonts.values() {
+        let text=|key:&str,fallback:&'static str|font.get(key).and_then(Value::as_str).unwrap_or(fallback).to_string();
+        css.push_str(&format!("@font-face{{font-family:\"{}\";src:url(\"{}\") format(\"woff2\");font-weight:{};font-style:{};font-display:{}}}\n",text("family",""),text("src",""),text("weight","400"),text("style","normal"),text("display","swap")));
+    } }
+    css
+}
+fn motion_entries<'a>(site:&'a Site,kind:&str)->Vec<(&'a String,&'a Value)> { site.extensions.get("motion").and_then(|g|g.get(kind)).and_then(Value::as_object).map(|m|m.iter().filter(|(id,_)|site.nodes.contains_key(*id)).collect()).unwrap_or_default() }
+fn declarations(styles:Option<&Value>)->String { styles.and_then(Value::as_object).map(|m|m.iter().filter_map(|(k,v)|v.as_str().map(|v|format!("{k}:{v};"))).collect()).unwrap_or_default() }
+fn frame_state(frames:Option<&Value>,at:f64)->String {
+    let list=frames.and_then(Value::as_array);
+    let best=list.into_iter().flatten().filter_map(|f|Some((f.get("at")?.as_f64()?,f))).min_by(|a,b|(a.0-at).abs().partial_cmp(&(b.0-at).abs()).unwrap_or(std::cmp::Ordering::Equal).then(b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal)));
+    declarations(best.and_then(|(_,f)|f.get("styles")))
+}
+fn motion_css(site:&Site)->String {
+    let mut css=String::new();
+    for(id,reveal)in motion_entries(site,"reveals") {
+        let rule=declarations(reveal.get("from"));
+        if !rule.is_empty() { css.push_str(&format!("html.fw-m [data-fw-node=\"{id}\"]{}:not([data-fw-in]){{{rule}}}\n",if reveal.get("children").and_then(Value::as_bool)==Some(true){">*"}else{""})); }
+    }
+    for(id,scene)in motion_entries(site,"scenes") {
+        let offset=scene.get("offset").and_then(Value::as_str).map(|o|if o=="0"{"0px"}else{o}).unwrap_or("0px");let length=scene.get("length").and_then(Value::as_f64).unwrap_or(300.0);let reduced=scene.get("reducedAt").and_then(Value::as_f64).unwrap_or(1.0);
+        css.push_str(&format!("[data-fw-node=\"{id}\"]{{position:relative;height:{length}svh}}\n"));
+        if let Some(stage)=scene.get("stage").and_then(Value::as_str) { css.push_str(&format!("[data-fw-node=\"{stage}\"]{{position:sticky;top:{offset};height:calc(100svh - {offset});overflow:clip}}\n")); }
+        let targets:Vec<(String,&Value)>=scene.get("tracks").and_then(Value::as_array).into_iter().flatten().filter_map(|t|Some((format!("[data-fw-node=\"{}\"]",t.get("node")?.as_str()?),t.get("keyframes")?))).chain(scene.get("distribute").and_then(Value::as_array).into_iter().flatten().filter_map(|d|Some((format!("[data-fw-node=\"{}\"]>*",d.get("parent")?.as_str()?),d.get("keyframes")?)))).collect();
+        for(selector,frames)in targets {
+            let start=frame_state(Some(frames),0.0);let end=frame_state(Some(frames),reduced);
+            if !start.is_empty() { css.push_str(&format!("html.fw-m {selector}{{{start}}}\n")); }
+            if !end.is_empty() { css.push_str(&format!("html.fw-r {selector}{{{end}}}\n")); }
+        }
+    }
+    for(id,entry)in motion_entries(site,"loops") { if entry.get("type").and_then(Value::as_str)==Some("marquee") { css.push_str(&format!("[data-fw-node=\"{id}\"]{{overflow:clip}}\n")); } }
+    for(id,_)in motion_entries(site,"drag") { css.push_str(&format!("[data-fw-node=\"{id}\"]{{touch-action:none}}\n")); }
+    for(id,_)in motion_entries(site,"counters") { css.push_str(&format!("[data-fw-node=\"{id}\"]{{font-variant-numeric:tabular-nums}}\n")); }
+    for panel in accordion_panels(site).keys() {
+        css.push_str(&format!("[data-fw-node=\"{panel}\"]{{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}}\n[data-fw-node=\"{panel}\"]>*{{min-height:0;overflow:hidden}}\n[data-fw-node=\"{panel}\"][data-fw-open]{{grid-template-rows:1fr}}\nhtml.fw-r [data-fw-node=\"{panel}\"]{{transition:none}}\n"));
+    }
+    css
+}
+fn accordion_panels(site:&Site)->BTreeMap<String,bool> {
+    let mut panels=BTreeMap::new();
+    for(_,entry)in motion_entries(site,"disclosure") {
+        if entry.get("type").and_then(Value::as_str)!=Some("accordion") { continue; }
+        let initial=entry.get("initial").and_then(Value::as_u64);
+        for(index,item)in entry.get("items").and_then(Value::as_array).into_iter().flatten().enumerate() { if let Some(panel)=item.get("panel").and_then(Value::as_str).filter(|p|site.nodes.contains_key(*p)) { panels.insert(panel.to_string(),initial==Some(index as u64)); } }
+    }
+    panels
+}
+pub fn initially_open(site:&Site,node:&Node)->bool { accordion_panels(site).get(&node.id).copied().unwrap_or(false) }
+pub fn wraps_panel(site:&Site,node:&Node)->bool { site.extensions.contains_key("motion")&&accordion_panels(site).contains_key(&node.id) }
+pub fn initially_hidden(site:&Site,node:&Node)->bool { motion_entries(site,"disclosure").into_iter().filter(|(_,e)|e.get("type").and_then(Value::as_str)==Some("tabs")).any(|(_,e)|{let initial=e.get("initial").and_then(Value::as_u64).unwrap_or(0);e.get("items").and_then(Value::as_array).into_iter().flatten().enumerate().any(|(i,item)|i as u64!=initial&&item.get("panel").and_then(Value::as_str)==Some(node.id.as_str()))}) }
+pub fn wraps_track(site:&Site,node:&Node)->bool { site.extensions.get("motion").and_then(|g|g.get("loops")).and_then(|l|l.get(&node.id)).and_then(|l|l.get("type")).and_then(Value::as_str)==Some("marquee") }
+pub fn text_html(site:&Site,node:&Node,text:&str)->String {
+    let kind=site.extensions.get("motion").and_then(|g|g.get("text")).and_then(|t|t.get(&node.id));
+    let Some(kind)=kind else{return escape(text)};
+    let ty=kind.get("type").and_then(Value::as_str).unwrap_or("");
+    if !["split","typewriter"].contains(&ty)||text.is_empty() { return escape(text); }
+    let chars=ty=="typewriter"||kind.get("by").and_then(Value::as_str)==Some("chars");
+    let mut out=String::new();let mut word=String::new();
+    let flush=|word:&mut String,out:&mut String|{ if word.is_empty(){return;} out.push_str("<span class=\"fw-w\" style=\"display:inline-block\">"); if chars { for c in word.chars() { out.push_str(&format!("<span class=\"fw-c\" style=\"display:inline-block\">{}</span>",escape(&c.to_string()))); } } else { out.push_str(&escape(word)); } out.push_str("</span>"); word.clear(); };
+    for c in text.chars() { if c.is_whitespace() { flush(&mut word,&mut out); out.push_str(&escape(&c.to_string())); } else { word.push(c); } }
+    flush(&mut word,&mut out);
+    out
 }
 pub fn attrs(site:&Site,node:&Node,locale:&str,attrs:&mut Strings) {
     if let Some(url)=site.extensions.get("localization").and_then(|v|v.get("assets")).and_then(|v|v.get(&node.id)).and_then(|v|v.get(locale)).and_then(Value::as_str) { attrs.insert(if node.tag=="video"{"poster"}else{"src"}.into(),url.into()); }

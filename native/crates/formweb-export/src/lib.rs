@@ -220,6 +220,8 @@ impl Renderer<'_> {
             if target == "text" { text = content; } else if content.is_empty() { attrs.remove(&target); } else { attrs.insert(target, content); }
         }
         advanced::attrs(self.site, node, self.locale, &mut attrs);
+        if advanced::initially_open(self.site, node) { attrs.insert("data-fw-open".into(), String::new()); }
+        if advanced::initially_hidden(self.site, node) { attrs.insert("hidden".into(), String::new()); }
         let suffix = context.map(|c|c.suffix).unwrap_or("");
         let runtime_id = format!("{}{suffix}", node.id);
         if let Some(context) = context {
@@ -278,7 +280,15 @@ impl Renderer<'_> {
         if void_tag(&node.tag) { result.push_str(&field_error); return Ok(result); }
         if let Some(frame) = code::render(self.site, &node.id, self.prefix)? { result.push_str(&frame); }
         else if let Some(frame) = embed::render(self.site, node) { result.push_str(&frame); }
-        else { result.push_str(&wishlist::step_heading(node)); result.push_str(&escape(&text)); for child in &node.children { result.push_str(&self.node(child, context, None)?); } }
+        else {
+            let (panel, track) = (advanced::wraps_panel(self.site, node), advanced::wraps_track(self.site, node));
+            if panel { result.push_str("<div data-fw-inner>"); }
+            result.push_str(&wishlist::step_heading(node)); result.push_str(&advanced::text_html(self.site, node, &text));
+            if track { result.push_str("<div class=\"fw-track\" style=\"display:flex;width:max-content\">"); }
+            for child in &node.children { result.push_str(&self.node(child, context, None)?); }
+            if track { result.push_str("</div>"); }
+            if panel { result.push_str("</div>"); }
+        }
         result.push_str(&advanced::widget(self.site,node));
         if node.tag == "form" { result.push_str(&advanced::form_extra(self.site,node)); result.push_str("<p class=\"fw-form-status\" data-fw-form-status aria-live=\"polite\"></p>"); }
         result.push_str(&format!("</{}>", node.tag));
