@@ -25,10 +25,14 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     files.extend(crate::sections::files(site));
     let mut asset_access:BTreeMap<String,BTreeSet<String>>=BTreeMap::new();
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n");
-    for (route_index,route) in routes.iter().enumerate() {
-        let prefix = route.prefix();
+    // A page routed at /404 is rendered a second time as a root 404.html with an empty prefix (its stylesheet is the page's own, already written).
+    let not_found=routes.iter().position(|r|r.locale==site.default_locale&&r.item.is_none()&&r.slug.trim_matches('/')=="404");
+    let jobs:Vec<(usize,bool)>=(0..routes.len()).map(|i|(i,false)).chain(not_found.map(|i|(i,true))).collect();
+    for (route_index,copy) in jobs {
+        let route=&routes[route_index];
+        let prefix = if copy { String::new() } else { route.prefix() };
         let css_path=format!("assets/pages/{route_index}.css");
-        files.push(json!({"path":css_path,"content":crate::route_styles::render(site,&route.page.root)}));
+        if !copy { files.push(json!({"path":css_path,"content":crate::route_styles::render(site,&route.page.root)})); }
         let links = routing::links(site, route, &routes);
         let mut records = vec![];
         let mut renderer = Renderer { site, locale:&route.locale,forms,prefix:&prefix,warnings:&mut warnings,interactions:&mut records,budget:250000,links:Some(&links) };
@@ -52,8 +56,8 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         asset_access.entry(css_path.clone()).or_default().insert(route.page.id.clone());
         if let Some(components)=site.extensions.get("code").and_then(|v|v.get("components")).and_then(Value::as_object){for id in components.keys(){if body.contains(&format!("data-fw-code=\"{id}\"")){asset_access.entry(format!("assets/components/{id}.html")).or_default().insert(route.page.id.clone());}if body.contains(&format!("data-fw-component=\"{id}\"")){asset_access.entry(format!("assets/components/{id}.js")).or_default().insert(route.page.id.clone());}}}
         for node in crate::sections::used(site){if body.contains(&format!("assets/sections/{node}.js")){asset_access.entry(format!("assets/sections/{node}.js")).or_default().insert(route.page.id.clone());}}
-        files.push(json!({"path":route.path(),"content":html}));
-        if !route.page.seo.noindex {
+        files.push(json!({"path":if copy{"404.html".to_string()}else{route.path()},"content":html}));
+        if !copy&&!route.page.seo.noindex {
             sitemap.push_str(&format!("<url><loc>{}</loc>",escape(&canonical)));
             for alternate in routes.iter().filter(|r|r.page.id==route.page.id&&r.item.as_ref().map(|i|&i.id)==route.item.as_ref().map(|i|&i.id)) { sitemap.push_str(&format!("<xhtml:link rel=\"alternate\" hreflang=\"{}\" href=\"{}\"/>",escape(&alternate.locale),escape(&alternate.canonical(base)))); }
             sitemap.push_str("</url>\n");

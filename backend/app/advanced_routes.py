@@ -195,7 +195,24 @@ async def serve_release(slug, version, path, request, active=False):
         entry = studio.releases.entry_path(release['site'], root)
         prefix = '/sites/' + slug if active else '/published/' + slug + '/' + version
         return RedirectResponse(prefix + '/' + entry, status_code=302, headers={'Cache-Control': 'private, no-store'})
-    target = exported_file(root, path)
+    try:
+        target = exported_file(root, path)
+    except EngineError as error:
+        page = root / '404.html'
+        if error.status != 404 or not page.is_file():
+            raise
+        # The 404 page is site content: it passes the same visitor and password gates as its own page, else the plain 404 stands.
+        try:
+            visitor_gate(request, root, release['site'], '404/index.html')
+            gate = studio.passwords.gate_for(release['site']['id'], canonical_route(root, release['site'], '404/index.html'))
+        except EngineError:
+            raise error
+        if gate and not studio.passwords.unlocked(request, gate):
+            raise error
+        # The root 404.html uses root-relative URLs, so a base tag keeps its styles working from any missing path.
+        base = ('/sites/' + slug if active else '/published/' + slug + '/' + version) + '/'
+        html = page.read_text(encoding='utf-8').replace('<head>', '<head><base href="' + base + '">', 1)
+        return Response(html, status_code=404, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
     gated = visitor_gate(request, root, release['site'], path)
     if target.suffix == '.html' and not path.startswith('assets/'):
         # FW-078: password gates are checked here, in the serving adapter, before any page bytes leave.

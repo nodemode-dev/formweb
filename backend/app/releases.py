@@ -176,6 +176,7 @@ class Releases:
         if not isinstance(rows, list):
             raise EngineError('Release redirect manifest is invalid.', 409)
         mapping = {}
+        splats = {}
         for row in rows:
             if not isinstance(row, dict):
                 continue
@@ -183,15 +184,35 @@ class Releases:
             target = row.get('to', row.get('target'))
             status = row.get('status', 301)
             if isinstance(source, str) and isinstance(target, str) and status in (301, 302, 307, 308):
-                mapping[source.rstrip('/') or '/'] = (target, status)
+                if source.endswith('/*'):
+                    splats[source[:-2].rstrip('/')] = (target, status)
+                else:
+                    mapping[source.rstrip('/') or '/'] = (target, status)
+
+        def lookup(current):
+            # Exact paths first, then the longest splat prefix, filling :splat with the rest of the path.
+            if current in mapping:
+                return mapping[current]
+            best = None
+            for base in splats:
+                if current.startswith(base + '/') and (best is None or len(base) > len(best)):
+                    best = base
+            if best is None:
+                return None
+            target, status = splats[best]
+            return target.replace(':splat', current[len(best) + 1:].lstrip('/\\')), status
+
         source = ('/' + path.lstrip('/')).rstrip('/') or '/'
         seen = set()
-        while source in mapping:
+        while True:
+            hit = lookup(source)
+            if hit is None:
+                break
             if source in seen:
                 raise EngineError('Release redirects contain a cycle.', 409)
             seen.add(source)
-            target, status = mapping[source]
-            if source == ('/' + path.lstrip('/')).rstrip('/') or source == '/' and not path:
+            target, status = hit
+            if len(seen) == 1:
                 first = (target, status)
             if target.startswith(('https://', 'http://')):
                 return first
