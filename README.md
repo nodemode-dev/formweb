@@ -117,7 +117,7 @@ One MCP server and one command line reach the same running document as the edito
 ./formweb library insert formcut-proxy-monitor tint=#ff9a3c   # insert one, re-cast, as one undo step
 ```
 
-Agents can also start a blank site, set native motion and variables, build and place page components, insert, re-cast and import library sections, and send the site to FormPublisher, with 14 authoring tools described in [docs/ADVANCED_SCHEMA.md](docs/ADVANCED_SCHEMA.md).
+Agents can also start a blank site, set native motion and variables, build and place page components, insert, re-cast and import library sections, and send the site to FormPublisher, with 14 authoring tools, plus `copy_element` and `paste_element` (103 MCP tools in all), described in [docs/ADVANCED_SCHEMA.md](docs/ADVANCED_SCHEMA.md).
 
 `.mcp.json`, `.codex/config.toml` and `.cursor/mcp.json` are already wired in this repo. Start with the [agent quick start](docs/AGENT_QUICKSTART.md) and [`AGENTS.md`](AGENTS.md).
 
@@ -127,7 +127,7 @@ Agents can also start a blank site, set native motion and variables, build and p
 - **Python service:** FastAPI bridge for persistence, forms, local releases, HTTP and the official-SDK MCP server.
 - **Vanilla TypeScript:** a Vite editor with one command registry behind every menu, button and shortcut.
 - **Local data:** SQLite autosave and portable `.fweb` projects with history and assets; projects over 64 MiB save as a version 2 zip.
-- **Editing:** Edit > Duplicate element copies an element with its motion, code and variables; code components can carry a light-theme poster.
+- **Editing:** Edit > Copy, Cut and Paste element (`Mod+C`, `Mod+X`, `Mod+V`) move an element with its motion, code, variables and pictures between pages and sites, Edit > Duplicate element (`Mod+D`, or `Shift+Mod+D` always) copies it in place, and agents do the same with `copy_element` and `paste_element`; code components can carry a light-theme poster.
 - **Tested:** backend tests in `backend/tests` and engine tests in `native/crates/*/tests`, run in CI.
 
 ## Download
