@@ -1,5 +1,11 @@
 # Frontend context map
 
+## Large copies by clip link · v0.19.7 (2026-11-10)
+
+`main.ts`, copy and paste helper region: `copyFragment` posts `{node, embed: true, clip: true}`, writes the whole fragment with `embedded` and `clip` to the clipboard, and returns `{behind, left}` (assets behind the clip, and `notEmbedded` minus those). `behindClipNote` and `copyNote` sit beside `notEmbeddedNote`; Copy and Cut use `copyNote`, with "this computer" sentences for assets behind the clip and the 0.19.6 "this FormWeb" sentences for assets not carried. `pasteFragmentText` sends `clip` beside `embedded` in the `/api/paste` body. Two keys added to `i18n/keys.ts` and all locales.
+
+Checked in headless Chrome with two tabs on 8704 and 8714 and real Ctrl+C and Ctrl+V: a 3 MiB PNG and a 20 MiB video (images are capped at 8 MiB, so the large asset was a video) gave a 4.0 MB clipboard text, the same size as 0.19.6 gave while losing the video; both assets arrived in the other installation; with 8704 stopped the status showed the 409 naming the video and no asset was stored. CLS 0, no page errors.
+
 ## Copies that paste in another FormWeb · v0.19.6 (2026-11-10)
 
 `main.ts`, copy and paste helper region: `copyFragment` posts `{node, embed: true}` and returns how many assets are in `notEmbedded`; `notEmbeddedNote(count)` appends one of two keyed sentences (one asset, or `{n}` assets) to the Copy and Cut statuses. `pasteFragmentText` lifts `embedded` out of the clipboard fragment and sends it beside the bare fragment in the `/api/paste` body. A 409 already reached the status through `request()`; it now names the assets the other FormWeb lacks. Two keys added to `i18n/keys.ts` and all locales.
