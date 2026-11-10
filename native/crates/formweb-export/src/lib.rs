@@ -229,7 +229,7 @@ impl Renderer<'_> {
         }
         advanced::attrs(self.site, node, self.locale, &mut attrs);
         let page_host = code::page_host(self.site, &node.id)?;
-        if let Some((component, _)) = &page_host { attrs.insert("data-fw-component".into(), component.clone()); }
+        if let Some((component, _, _)) = &page_host { attrs.insert("data-fw-component".into(), component.clone()); }
         let section = sections::spec(self.site, &node.id);
         if advanced::initially_open(self.site, node) { attrs.insert("data-fw-open".into(), String::new()); }
         if advanced::initially_hidden(self.site, node) { attrs.insert("hidden".into(), String::new()); }
@@ -289,7 +289,11 @@ impl Renderer<'_> {
             node.attrs.get("name").map(|name|format!("<span class=\"fw-field-error\" data-fw-error=\"{}\" aria-live=\"polite\"></span>",escape(name))).unwrap_or_default()
         } else { String::new() };
         if void_tag(&node.tag) { result.push_str(&field_error); return Ok(result); }
-        if let Some((_, Some(poster))) = &page_host { result.push_str(&format!("<img data-fw-poster src=\"{}\" alt=\"\" decoding=\"async\">", escape(poster))); }
+        if let Some((_, Some(poster), light)) = &page_host {
+            if let Some(light) = light {
+                result.push_str(&format!("<img data-fw-poster data-fw-theme-only=\"dark\" src=\"{}\" alt=\"\" decoding=\"async\"><img data-fw-poster data-fw-theme-only=\"light\" src=\"{}\" alt=\"\" decoding=\"async\">", escape(poster), escape(light)));
+            } else { result.push_str(&format!("<img data-fw-poster src=\"{}\" alt=\"\" decoding=\"async\">", escape(poster))); }
+        }
         if let Some(section) = section { result.push_str(sections::html(section)); }
         else if let Some(frame) = code::render(self.site, &node.id, self.prefix)? { result.push_str(&frame); }
         else if let Some(frame) = embed::render(self.site, node) { result.push_str(&frame); }

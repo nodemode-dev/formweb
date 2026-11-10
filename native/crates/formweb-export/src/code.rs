@@ -23,13 +23,24 @@ pub fn files(site: &Site) -> Result<Vec<Value>, String> {
     }
     Ok(output)
 }
-pub fn page_host(site: &Site, node: &str) -> Result<Option<(String, Option<String>)>, String> {
+fn light_poster(site: &Site, definition: &Value) -> Option<String> {
+    site.extensions.get("design").and_then(|v| v.get("themes"))?;
+    definition.get("posterLight").and_then(Value::as_str).filter(|p| !p.is_empty()).map(str::to_string)
+}
+pub fn has_light_posters(site: &Site) -> bool {
+    let Some(group) = site.extensions.get("code") else { return false };
+    let Some(instances) = group.get("instances").and_then(Value::as_object) else { return false };
+    instances.iter().any(|(node, instance)| site.nodes.contains_key(node) && instance.get("component").and_then(Value::as_str).and_then(|id| group.get("components")?.get(id)).map(|c| c.get("mode").and_then(Value::as_str) == Some("page") && c.get("enabled").and_then(Value::as_bool) == Some(true) && c.get("poster").and_then(Value::as_str).map_or(false, |p| !p.is_empty()) && light_poster(site, c).is_some()).unwrap_or(false))
+}
+pub fn page_host(site: &Site, node: &str) -> Result<Option<(String, Option<String>, Option<String>)>, String> {
     let Some(instance) = site.extensions.get("code").and_then(|v| v.get("instances")).and_then(|v| v.get(node)) else { return Ok(None); };
     let component = instance.get("component").and_then(Value::as_str).ok_or("code component instance missing id")?;
     let definition = site.extensions.get("code").and_then(|v| v.get("components")).and_then(|v| v.get(component)).ok_or("code component not found")?;
     if definition.get("mode").and_then(Value::as_str) != Some("page") { return Ok(None); }
     if definition.get("enabled").and_then(Value::as_bool) != Some(true) { return Err("code component is not explicitly enabled".into()); }
-    Ok(Some((component.to_string(), definition.get("poster").and_then(Value::as_str).filter(|p| !p.is_empty()).map(str::to_string))))
+    let dark = definition.get("poster").and_then(Value::as_str).filter(|p| !p.is_empty()).map(str::to_string);
+    let light = if dark.is_some() { light_poster(site, definition) } else { None };
+    Ok(Some((component.to_string(), dark, light)))
 }
 pub fn uses_page(site: &Site) -> bool {
     let Some(group) = site.extensions.get("code") else { return false };
