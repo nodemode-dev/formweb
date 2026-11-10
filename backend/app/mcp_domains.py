@@ -35,6 +35,7 @@ COMMAND_DOCS = {
     'node.update': '{id, patch:{tag?, text?, attrs?, styles?, breakpoints?, interactions?, binding?}} merges keys; null removes one',
     'node.remove': '{id} removes the element and its subtree',
     'node.duplicate': '{id, parent?, index?} copies the element subtree with fresh IDs and every attached motion, code and variables entry; placed right after the original unless parent and index are given; refuses a page root, a node inside a linked component instance and subtrees over 2,000 nodes',
+    'node.paste': '{fragment, parent?, index?} inserts a fragment from copy_element (or POST /api/fragment) under fresh IDs, last under parent unless index is given, with its motion, code and variables entries and the page components the site lacks; refuses another format or version, a fragment over 2,000 nodes and one carrying linked component instances. Prefer the paste_element tool, which also checks the assets exist and claims them for the project',
     'node.move': '{id, parent, index?} reparents or reorders',
     'page.add': '{name, slug, id?, root?} creates a page with its own root; pass new ids to fill the root in the same batch',
     'page.update': '{id, patch:{name?, slug?, seo?}}',
@@ -87,7 +88,7 @@ COMMAND_DOCS = {
 }
 
 DOMAINS = [
-    ('edit_nodes', 'Edit elements', 'Add, change, move or remove elements (sections, text, images, buttons, forms) on a page. Use for most visual edits.', ['node.add', 'node.update', 'node.move', 'node.remove', 'node.duplicate']),
+    ('edit_nodes', 'Edit elements', 'Add, change, move or remove elements (sections, text, images, buttons, forms) on a page. Use for most visual edits.', ['node.add', 'node.update', 'node.move', 'node.remove', 'node.duplicate', 'node.paste']),
     ('edit_pages', 'Edit pages', 'Create, rename, re-slug, duplicate, bulk-create from data, or remove pages, and set page SEO.', ['page.add', 'page.update', 'page.duplicate', 'page.bulk', 'page.remove']),
     ('edit_styles', 'Edit design system', 'Change design tokens, text presets and responsive breakpoints shared across the site.', ['token.set', 'token.define', 'textpreset.set', 'textpreset.apply', 'breakpoint.set', 'breakpoint.remove']),
     ('edit_components', 'Edit components', 'Create reusable components, insert linked instances, set props, variants and slots, or work with pinned libraries.', ['component.create', 'component.insert', 'component.configure', 'component.props', 'component.variant', 'component.reset', 'component.slot', 'component.detach', 'library.import', 'library.update', 'library.detach']),
