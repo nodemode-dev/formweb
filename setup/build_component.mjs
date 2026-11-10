@@ -15,8 +15,11 @@ for await (const chunk of process.stdin) {
 let workspace;
 try {
   const input = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  if (input.enabled !== true || !['typescript', 'javascript'].includes(input.language) || typeof input.source !== 'string' || Buffer.byteLength(input.source, 'utf8') > 131072 || !input.source.trim()) throw new Error('An explicitly enabled JavaScript or TypeScript component source of at most 128 KiB is required.');
-  if (Object.keys(input).some(key => !['enabled', 'language', 'source', 'props'].includes(key))) throw new Error('Unsupported component build field.');
+  if (input.mode !== undefined && !['isolated', 'page'].includes(input.mode)) throw new Error('Component mode must be isolated or page.');
+  const page = input.mode === 'page';
+  const sourceCap = page ? 262144 : 131072;
+  if (input.enabled !== true || !['typescript', 'javascript'].includes(input.language) || typeof input.source !== 'string' || Buffer.byteLength(input.source, 'utf8') > sourceCap || !input.source.trim()) throw new Error(`An explicitly enabled JavaScript or TypeScript component source of at most ${sourceCap / 1024} KiB is required.`);
+  if (Object.keys(input).some(key => !['enabled', 'language', 'source', 'props', 'mode'].includes(key))) throw new Error('Unsupported component build field.');
   const props = input.props ?? {};
   if (!props || typeof props !== 'object' || Array.isArray(props) || Object.keys(props).length > 64) throw new Error('Props must be an object with at most 64 descriptors.');
   const types = { string: 'string', number: 'number', boolean: 'boolean', json: 'unknown' };
@@ -28,7 +31,9 @@ try {
   }
   workspace = await mkdtemp(join(tmpdir(), 'formweb-component-'));
   const sourcePath = join(workspace, 'component.ts');
-  const contract = '\ntype FormWebComponentProps = {' + fields.join('; ') + '};\nconst formwebMountContract: (root: HTMLElement, props: FormWebComponentProps) => void = mount;\nexport { formwebMountContract };\n';
+  const context = 'interface FormWebComponentContext { host: HTMLElement; id: string; readonly reduced: boolean; theme(): "dark" | "light"; onTheme(fn: (mode: "dark" | "light") => void): () => void; token(name: string): string; asset(path: string): string; progress(scene?: string): number; onProgress(fn: (p: number) => void, scene?: string): () => void; onFrame(fn: (now: number) => void): () => void; visible(): boolean; onVisible(fn: (v: boolean) => void): () => void; size(): { width: number; height: number }; onResize(fn: (s: { width: number; height: number }) => void): () => void; variable(name: string): unknown; onVariable(name: string, fn: (v: unknown) => void): () => void; ready(): void }\n';
+  const signature = page ? '(root: HTMLElement, props: FormWebComponentProps, ctx: FormWebComponentContext) => unknown' : '(root: HTMLElement, props: FormWebComponentProps) => void';
+  const contract = '\ntype FormWebComponentProps = {' + fields.join('; ') + '};\n' + (page ? context : '') + 'const formwebMountContract: ' + signature + ' = mount;\nexport { formwebMountContract };\n';
   await writeFile(sourcePath, input.source + contract);
   await writeFile(join(workspace, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ES2022', moduleResolution: 'bundler', strict: true, noImplicitAny: input.language === 'typescript', noEmitOnError: true, isolatedModules: true, noResolve: true, types: [], typeRoots: [], lib: ['ES2022', 'DOM'], rootDir: workspace, outDir: join(workspace, 'out'), skipLibCheck: true, declaration: false, sourceMap: false }, files: [sourcePath] }));
   const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -50,7 +55,8 @@ try {
     process.exitCode = 1;
   } else {
     const javascript = await readFile(join(workspace, 'out', 'component.js'), 'utf8');
-    if (Buffer.byteLength(javascript, 'utf8') > 262144) throw new Error('Compiled component exceeds 256 KiB.');
+    const builtCap = page ? 524288 : 262144;
+    if (Buffer.byteLength(javascript, 'utf8') > builtCap) throw new Error(`Compiled component exceeds ${builtCap / 1024} KiB.`);
     const digest = value => createHash('sha256').update(value, 'utf8').digest('hex');
     process.stdout.write(JSON.stringify({ ok: true, component: { enabled: true, language: input.language, source: input.source, props, sourceDigest: digest(input.source), builtDigest: digest(javascript), javascript }, diagnostics: [] }) + '\n');
   }
