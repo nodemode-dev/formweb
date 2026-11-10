@@ -2507,4 +2507,6 @@ export default [
   "Salli pääsy leikepöydälle liittääksesi elementin tai liitä näppäimistöllä sivulla.",
   "Yksi resurssi on liian suuri upotettavaksi, ja se voidaan liittää vain tähän FormWebiin.",
   "{n} resurssia on liian suuria upotettaviksi, ja ne voidaan liittää vain tähän FormWebiin.",
+  "Yksi resurssi on liian suuri upotettavaksi, ja se voidaan liittää vain tällä tietokoneella.",
+  "{n} resurssia on liian suuria upotettaviksi, ja ne voidaan liittää vain tällä tietokoneella.",
 ] as readonly string[];

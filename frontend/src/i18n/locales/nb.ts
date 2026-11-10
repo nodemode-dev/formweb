@@ -2507,4 +2507,6 @@ export default [
   "Tillat tilgang til utklippstavlen for å lime inn et element, eller lim inn med tastaturet på siden.",
   "Én ressurs er for stor til å bygges inn og kan bare limes inn i denne FormWeb.",
   "{n} ressurser er for store til å bygges inn og kan bare limes inn i denne FormWeb.",
+  "Én ressurs er for stor til å bygges inn og kan bare limes inn på denne datamaskinen.",
+  "{n} ressurser er for store til å bygges inn og kan bare limes inn på denne datamaskinen.",
 ] as readonly string[];

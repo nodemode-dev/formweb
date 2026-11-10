@@ -2507,4 +2507,6 @@ export default [
   "Povolte přístup ke schránce a vložte prvek, nebo vložte pomocí klávesnice na stránce.",
   "Jeden obrázek je příliš velký na vložení do kopie a půjde vložit jen v tomto FormWebu.",
   "Počet obrázků příliš velkých na vložení do kopie: {n}. Půjdou vložit jen v tomto FormWebu.",
+  "Jeden obrázek je příliš velký na vložení do kopie a půjde vložit jen v tomto počítači.",
+  "Počet obrázků příliš velkých na vložení do kopie: {n}. Půjdou vložit jen v tomto počítači.",
 ] as readonly string[];

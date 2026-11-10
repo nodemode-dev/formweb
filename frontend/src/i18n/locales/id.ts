@@ -2507,4 +2507,6 @@ export default [
   "Izinkan akses papan klip untuk menempel elemen, atau tempel dengan keyboard di halaman.",
   "Satu aset terlalu besar untuk disematkan dan hanya bisa ditempel di FormWeb ini.",
   "{n} aset terlalu besar untuk disematkan dan hanya bisa ditempel di FormWeb ini.",
+  "Satu aset terlalu besar untuk disematkan dan hanya bisa ditempel di komputer ini.",
+  "{n} aset terlalu besar untuk disematkan dan hanya bisa ditempel di komputer ini.",
 ] as readonly string[];

@@ -2507,4 +2507,6 @@ export default [
   "Engedélyezd a vágólap elérését az elem beillesztéséhez, vagy illessz be billentyűzettel az oldalon.",
   "Egy erőforrás túl nagy a beágyazáshoz, ezért csak ebbe a FormWebbe illeszthető be.",
   "{n} erőforrás túl nagy a beágyazáshoz, ezért csak ebbe a FormWebbe illeszthető be.",
+  "Egy erőforrás túl nagy a beágyazáshoz, ezért csak ezen a számítógépen illeszthető be.",
+  "{n} erőforrás túl nagy a beágyazáshoz, ezért csak ezen a számítógépen illeszthető be.",
 ] as readonly string[];

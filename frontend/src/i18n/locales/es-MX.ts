@@ -72,4 +72,6 @@ export default {
   "A page-not-found screen that searches the site and prints the closest pages on a receipt you can pull down to tear.": "Una pantalla de página no encontrada que busca en el sitio e imprime las páginas más cercanas en un recibo que puedes jalar hacia abajo para rasgar.",
   "Sent to FormPublisher: {0} is now at revision {1}.": "Se envió a FormPublisher: {0} ya está en la revisión {1}.",
   "Could not send to FormPublisher: {0}": "No se pudo enviar a FormPublisher: {0}",
+  "One asset is too large to embed and will only paste on this computer.": "Un recurso es demasiado grande para incrustarlo y solo se podrá pegar en esta computadora.",
+  "{n} assets are too large to embed and will only paste on this computer.": "{n} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en esta computadora.",
 } as Record<string, string>;

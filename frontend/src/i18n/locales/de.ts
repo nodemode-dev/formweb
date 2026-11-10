@@ -2507,4 +2507,6 @@ export default [
   "Erlaube den Zugriff auf die Zwischenablage, um ein Element einzufügen, oder füge mit der Tastatur in der Seite ein.",
   "Ein Asset ist zu groß zum Einbetten und lässt sich nur in diesem FormWeb einfügen.",
   "{n} Assets sind zu groß zum Einbetten und lassen sich nur in diesem FormWeb einfügen.",
+  "Ein Asset ist zu groß zum Einbetten und lässt sich nur auf diesem Computer einfügen.",
+  "{n} Assets sind zu groß zum Einbetten und lassen sich nur auf diesem Computer einfügen.",
 ] as readonly string[];

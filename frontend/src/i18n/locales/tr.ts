@@ -2507,4 +2507,6 @@ export default [
   "Bir öğeyi yapıştırmak için pano erişimine izin verin veya sayfada klavyeyle yapıştırın.",
   "Bir varlık gömülemeyecek kadar büyük ve yalnızca bu FormWeb içine yapıştırılabilir.",
   "{n} varlık gömülemeyecek kadar büyük ve yalnızca bu FormWeb içine yapıştırılabilir.",
+  "Bir varlık gömülemeyecek kadar büyük ve yalnızca bu bilgisayara yapıştırılabilir.",
+  "{n} varlık gömülemeyecek kadar büyük ve yalnızca bu bilgisayara yapıştırılabilir.",
 ] as readonly string[];
