@@ -2,10 +2,11 @@ use crate::advanced::{keys, maps, node, object, string, subtree, typed_value};
 use crate::{identifier, safe_style, Site};
 use serde_json::Value;
 
-pub const KINDS: &[&str] = &["reveals", "scenes", "loops", "counters", "text", "drag", "pointer", "disclosure", "actions"];
+pub const KINDS: &[&str] = &["reveals", "scenes", "loops", "counters", "text", "drag", "pointer", "disclosure", "actions", "scripts"];
 const SAFE: &[&str] = &["opacity", "transform", "translate", "scale", "rotate", "filter", "backdrop-filter", "clip-path", "color", "background-color", "border-color", "box-shadow"];
 const EASINGS: &[&str] = &["linear", "ease", "ease-in", "ease-out", "ease-in-out"];
-const TRIGGERS: &[&str] = &["click", "hover", "submit", "change", "load", "view"];
+const TRIGGERS: &[&str] = &["click", "hover", "submit", "change", "load", "view", "input"];
+const SCRIPT_TRIGGERS: &[&str] = &["submit", "click", "load", "view", "change"];
 
 fn number(value: &Value, key: &str, min: f64, max: f64) -> Result<Option<f64>, String> {
     match value.get(key) {
@@ -97,7 +98,7 @@ fn reveal(value: &Value) -> Result<(), String> {
     Ok(())
 }
 
-fn scene(site: &Site, id: &str, value: &Value) -> Result<(), String> {
+fn scene(site: &Site, root: &Value, id: &str, value: &Value) -> Result<(), String> {
     keys(value, &["stage", "length", "offset", "smoothing", "tracks", "distribute", "markers", "reducedAt", "progressVar"])?;
     let members = subtree(site, id);
     let stage = target(site, value, "stage")?;
@@ -125,7 +126,7 @@ fn scene(site: &Site, id: &str, value: &Value) -> Result<(), String> {
         for marker in array(value, "markers", 0, 50)? {
             keys(marker, &["at", "action"])?;
             required(marker, "at", 0.0, 1.0)?;
-            action(site, marker.get("action").ok_or("marker action required")?, false)?;
+            action(site, root, marker.get("action").ok_or("marker action required")?, false)?;
         }
     }
     Ok(())
@@ -236,8 +237,51 @@ fn disclosure(site: &Site, value: &Value) -> Result<(), String> {
     Ok(())
 }
 
-fn action(site: &Site, value: &Value, trigger: bool) -> Result<(), String> {
-    keys(value, &["trigger", "action", "text", "from", "feedback", "duration", "to", "progress", "easing", "command", "target"])?;
+fn hidden_template<'a>(site: &Site, value: &'a Value, key: &str) -> Result<&'a str, String> {
+    let id = target(site, value, key)?;
+    if !site.nodes[id].attrs.contains_key("hidden") { return Err(format!("{key} node must carry the hidden attribute")); }
+    Ok(id)
+}
+
+fn set_variable(site: &Site, value: &Value) -> Result<(), String> {
+    let name = string(value, "variable")?;
+    if !crate::variables::valid_name(name) { return Err("invalid variable name".into()); }
+    let group = site.extensions.get("variables");
+    match (value.get("value"), value.get("formula")) {
+        (Some(literal), None) => {
+            let kind = match group {
+                Some(group) => Some(group.get("values").and_then(|v| v.get(name)).ok_or("set-variable needs a variable value name")?.get("type").and_then(Value::as_str).unwrap_or("")),
+                None => None,
+            };
+            let valid = match (kind, literal) {
+                (Some("number"), v) | (None, v @ Value::Number(_)) => v.as_f64().map(f64::is_finite).unwrap_or(false),
+                (Some("text"), Value::String(s)) | (None, Value::String(s)) => s.chars().count() <= 2000,
+                (Some("boolean"), Value::Bool(_)) | (None, Value::Bool(_)) => true,
+                _ => false,
+            };
+            if !valid { return Err("set-variable value does not match the variable type".into()); }
+        }
+        (None, Some(source)) => {
+            if let Some(group) = group { if group.get("values").and_then(|v| v.get(name)).is_none() { return Err("set-variable needs a variable value name".into()); } }
+            crate::variables::check_formula(source.as_str().ok_or("formula must be text")?, group)?;
+        }
+        _ => return Err("set-variable needs exactly one of value or formula".into()),
+    }
+    Ok(())
+}
+
+fn search(site: &Site, value: &Value) -> Result<(), String> {
+    if site.nodes[target(site, value, "input")?].tag != "input" { return Err("search input must be an input element".into()); }
+    target(site, value, "results")?;
+    hidden_template(site, value, "template")?;
+    integer(value, "limit", 1.0, 50.0)?;
+    reference(site, value, "empty")?;
+    flag(value, "fromParam")?;
+    Ok(())
+}
+
+fn action(site: &Site, root: &Value, value: &Value, trigger: bool) -> Result<(), String> {
+    keys(value, &["trigger", "action", "text", "from", "feedback", "duration", "to", "progress", "easing", "command", "target", "variable", "value", "formula", "input", "results", "template", "limit", "empty", "fromParam", "script"])?;
     if trigger { if !TRIGGERS.contains(&string(value, "trigger")?) { return Err("invalid action trigger".into()); } } else if value.get("trigger").is_some() { return Err("marker actions take no trigger".into()); }
     integer(value, "duration", 0.0, 60000.0)?; easing(value)?;
     match string(value, "action")? {
@@ -254,15 +298,99 @@ fn action(site: &Site, value: &Value, trigger: bool) -> Result<(), String> {
         }
         "lightbox" => { if site.nodes[target(site, value, "target")?].tag != "img" { return Err("lightbox target must be an image".into()); } }
         "toggle-theme" => {}
+        "set-variable" => set_variable(site, value)?,
+        "search" => search(site, value)?,
+        "play" => { let script = string(value, "script")?; if root.get("scripts").and_then(|s| s.get(script)).is_none() { return Err("play needs an existing script".into()); } }
         _ => return Err("invalid motion action".into()),
     }
     Ok(())
 }
 
-fn actions(site: &Site, value: &Value) -> Result<(), String> {
+fn actions(site: &Site, root: &Value, value: &Value) -> Result<(), String> {
     let list = value.as_array().ok_or("actions must be an array")?;
     if list.len() > 20 { return Err("too many actions on one node".into()); }
-    for entry in list { action(site, entry, true)?; }
+    for entry in list { action(site, root, entry, true)?; }
+    Ok(())
+}
+
+fn step_target(site: &Site, aliases: &[String], step: &Value, key: &str) -> Result<(), String> {
+    let name = string(step, key)?;
+    match name.strip_prefix('@') {
+        Some(alias) => if aliases.iter().any(|a| a == alias) { Ok(()) } else { Err(format!("alias {name} is not defined by an earlier append")) },
+        None => node(site, name),
+    }
+}
+
+fn step_text(step: &Value, key: &str, required: bool) -> Result<(), String> {
+    match step.get(key) {
+        None if !required => Ok(()),
+        Some(Value::String(s)) if s.chars().count() <= 4000 => Ok(()),
+        _ => Err(format!("{key} must be text up to 4000 characters")),
+    }
+}
+
+fn class_list(step: &Value, key: &str) -> Result<(), String> {
+    let Some(list) = step.get(key) else { return Ok(()) };
+    let list = list.as_array().filter(|l| l.len() <= 32).ok_or_else(|| format!("{key} must be a list of up to 32 class names"))?;
+    if list.iter().all(|c| c.as_str().map(identifier).unwrap_or(false)) { Ok(()) } else { Err(format!("{key} holds invalid class names")) }
+}
+
+fn step(site: &Site, root: &Value, aliases: &mut Vec<String>, value: &Value) -> Result<(), String> {
+    match string(value, "type")? {
+        "append" => {
+            keys(value, &["type", "template", "into", "as", "text"])?;
+            hidden_template(site, value, "template")?;
+            step_target(site, aliases, value, "into")?;
+            step_text(value, "text", false)?;
+            if let Some(alias) = value.get("as") {
+                let alias = alias.as_str().filter(|a| identifier(a)).ok_or("invalid alias")?;
+                if aliases.iter().any(|a| a == alias) { return Err("alias is defined twice".into()); }
+                aliases.push(alias.to_string());
+            }
+        }
+        "clear" | "press" | "focus" => { keys(value, &["type", "target"])?; step_target(site, aliases, value, "target")?; }
+        "wait" => { keys(value, &["type", "ms"])?; required(value, "ms", 0.0, 60000.0)?; }
+        "stream" => {
+            keys(value, &["type", "target", "text", "speed", "by"])?;
+            step_target(site, aliases, value, "target")?; step_text(value, "text", true)?;
+            number(value, "speed", 1.0, 2000.0)?; choice(value, "by", &["chars", "words"])?;
+        }
+        "type" => {
+            keys(value, &["type", "target", "text", "speed"])?;
+            step_target(site, aliases, value, "target")?; step_text(value, "text", true)?;
+            number(value, "speed", 1.0, 2000.0)?;
+        }
+        "class" => { keys(value, &["type", "target", "add", "remove"])?; step_target(site, aliases, value, "target")?; class_list(value, "add")?; class_list(value, "remove")?; }
+        "pointer" => {
+            keys(value, &["type", "target", "to", "duration", "easing"])?;
+            step_target(site, aliases, value, "target")?; step_target(site, aliases, value, "to")?;
+            number(value, "duration", 0.0, 10000.0)?; easing(value)?;
+        }
+        "scroll" => {
+            keys(value, &["type", "target", "to"])?;
+            step_target(site, aliases, value, "target")?;
+            if !["start", "end"].contains(&string(value, "to")?) { step_target(site, aliases, value, "to")?; }
+        }
+        "action" => {
+            keys(value, &["type", "action"])?;
+            let inner = value.get("action").ok_or("step action required")?;
+            if string(inner, "action")? == "play" { return Err("a script step cannot play a script".into()); }
+            action(site, root, inner, false)?;
+        }
+        _ => return Err("invalid script step".into()),
+    }
+    Ok(())
+}
+
+fn script(site: &Site, root: &Value, id: &str, value: &Value) -> Result<(), String> {
+    keys(value, &["trigger", "once", "restart", "reset", "loop", "loopDelay", "steps"])?;
+    let trigger = choice(value, "trigger", SCRIPT_TRIGGERS)?.ok_or("script trigger required")?;
+    if trigger == "submit" && site.nodes[id].tag != "form" { return Err("a submit script needs a form node".into()); }
+    flag(value, "once")?; flag(value, "restart")?; flag(value, "reset")?;
+    if flag(value, "loop")?.unwrap_or(false) && !["load", "view"].contains(&trigger) { return Err("only load and view scripts can loop".into()); }
+    integer(value, "loopDelay", 0.0, 60000.0)?;
+    let mut aliases = Vec::new();
+    for entry in array(value, "steps", 1, 100)? { step(site, root, &mut aliases, entry)?; }
     Ok(())
 }
 
@@ -277,14 +405,15 @@ pub fn validate(site: &Site, value: &Value) -> Result<(), String> {
             node(site, id)?;
             match *kind {
                 "reveals" => reveal(entry)?,
-                "scenes" => scene(site, id, entry)?,
+                "scenes" => scene(site, value, id, entry)?,
                 "loops" => loop_entry(entry)?,
                 "counters" => counter(entry)?,
                 "text" => text_entry(site, id, entry)?,
                 "drag" => drag(site, entry)?,
                 "pointer" => pointer(site, entry)?,
                 "disclosure" => disclosure(site, entry)?,
-                _ => actions(site, entry)?,
+                "scripts" => script(site, value, id, entry)?,
+                _ => actions(site, value, entry)?,
             }
         }
     }

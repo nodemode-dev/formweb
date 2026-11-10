@@ -64,6 +64,14 @@ pub fn apply(site:&mut Site,command:&str,params:&Value)->Result<(),String>{
         "motion.set"=>{let kind=string(params,"kind")?;let id=string(params,"node")?;if !formweb_model::motion::KINDS.contains(&kind){return Err("unknown motion kind".into());}if !site.nodes.contains_key(id){return Err("motion references unknown node".into());}set_path(site,"motion",kind,id,params.get("value").ok_or("motion value required")?.clone())?;formweb_model::motion::validate(site,&site.extensions["motion"])?;}
         "motion.remove"=>{let kind=string(params,"kind")?;let id=string(params,"node")?;if !formweb_model::motion::KINDS.contains(&kind){return Err("unknown motion kind".into());}let group=site.extensions.get_mut("motion").and_then(Value::as_object_mut).ok_or("no motion group")?;let map=group.get_mut(kind).and_then(Value::as_object_mut).ok_or("unknown motion entry")?;map.remove(id).ok_or("unknown motion entry")?;if map.is_empty(){group.remove(kind);}if group.is_empty(){site.extensions.remove("motion");}}
         "design.set"=>{let key=string(params,"key")?;if !["properties","themes","fonts"].contains(&key){return Err("design.set key must be properties, themes or fonts".into());}let value=params.get("value").ok_or("design value required")?.clone();if value.is_null(){if let Some(design)=site.extensions.get_mut("design").and_then(Value::as_object_mut){design.remove(key);}}else{group(site,"design").as_object_mut().ok_or("design must be object")?.insert(key.into(),value);}formweb_model::advanced::validate_extensions(site)?;}
+        "motion.track"=>motion_track(site,params)?,
+        "variables.set"=>{let kind=string(params,"kind")?;if !VARIABLE_KINDS.contains(&kind){return Err("unknown variables kind".into());}set_path(site,"variables",kind,string(params,"name")?,params.get("value").ok_or("variables value required")?.clone())?;formweb_model::advanced::validate_extensions(site)?;}
+        "variables.remove"=>{let kind=string(params,"kind")?;if !VARIABLE_KINDS.contains(&kind){return Err("unknown variables kind".into());}drop_entry(site,"variables",kind,string(params,"name")?)?;formweb_model::advanced::validate_extensions(site)?;}
+        "code.instance.set"=>{set_path(site,"code","instances",string(params,"node")?,params.get("value").ok_or("code instance value required")?.clone())?;formweb_model::advanced::validate_extensions(site)?;}
+        "code.instance.remove"=>{drop_entry(site,"code","instances",string(params,"node")?)?;formweb_model::advanced::validate_extensions(site)?;}
+        "code.section.set"=>{set_path(site,"code","sections",string(params,"node")?,params.get("value").ok_or("code section value required")?.clone())?;formweb_model::advanced::validate_extensions(site)?;}
+        "code.section.remove"=>{drop_entry(site,"code","sections",string(params,"node")?)?;formweb_model::advanced::validate_extensions(site)?;}
+        "code.sections.allow"=>{let enabled=params.get("enabled").and_then(Value::as_bool).ok_or("enabled must be a boolean")?;group(site,"code").as_object_mut().ok_or("code must be object")?.insert("allowSections".into(),json!(enabled));formweb_model::advanced::validate_extensions(site)?;}
         "library.import"=>library_import(site,params)?,"library.update"=>library_update(site,params)?,
         "library.detach"=>{let id=string(params,"id")?;group(site,"libraries").get_mut("packages").and_then(Value::as_object_mut).ok_or("no library pins")?.remove(id).ok_or("unknown library pin")?;}
         _=>crate::wishlist::apply(site,command,params)?,
@@ -99,12 +107,12 @@ pub fn synchronize(site:&mut Site)->Result<(),String>{
     for root in roots{if site.nodes.contains_key(&root){materialize(site,&root)?;}}Ok(())
 }
 fn sync_node(site:&mut Site,source:&str,root:&str,component:&str,map:&mut BTreeMap<String,String>,kept:&mut BTreeSet<String>)->Result<String,String>{let original=site.nodes.get(source).ok_or("missing component source")?.clone();if original.component_source_id.is_some(){return Err("nested linked source requires explicit detach before configuring outer source".into());}let id=if let Some(id)=map.get(source){id.clone()}else{let id=fresh_id(site,"instance");let mut n=original.clone();n.id=id.clone();n.children.clear();n.component_source_id=Some(source.into());n.component_id=None;n.overrides.clear();site.nodes.insert(id.clone(),n);map.insert(source.into(),id.clone());id};kept.insert(id.clone());let children=if let Some(slotted)=formweb_model::advanced::slot_nodes(site,root,source){for node in &slotted{kept.extend(descendants(site,node)?);}slotted}else{let mut children=vec![];for child in original.children{children.push(sync_node(site,&child,root,component,map,kept)?);}children};let n=site.nodes.get_mut(&id).unwrap();n.children=children;n.component_source_id=Some(source.into());n.component_id=if id==root{Some(component.into())}else{None};Ok(id)}
-fn prune(site:&mut Site){let node_ids:BTreeSet<_>=site.nodes.keys().cloned().collect();let page_ids:BTreeSet<_>=site.pages.iter().map(|p|p.id.clone()).collect();for(group_name,field)in [("cms","bindings"),("cms","lists"),("behaviors","nodes"),("forms","forms"),("code","instances"),("integrations","widgets"),("components","instances"),("design","applications"),("localization","assets")] {if let Some(map)=site.extensions.get_mut(group_name).and_then(|g|g.get_mut(field)).and_then(Value::as_object_mut){map.retain(|id,_|node_ids.contains(id));}}for(group_name,field)in [("cms","templates"),("seo","pages"),("localization","pageSlugs"),("code","pageCode")] {if let Some(map)=site.extensions.get_mut(group_name).and_then(|g|g.get_mut(field)).and_then(Value::as_object_mut){map.retain(|id,_|page_ids.contains(id));}}}
+fn prune(site:&mut Site){let node_ids:BTreeSet<_>=site.nodes.keys().cloned().collect();let page_ids:BTreeSet<_>=site.pages.iter().map(|p|p.id.clone()).collect();for(group_name,field)in [("cms","bindings"),("cms","lists"),("behaviors","nodes"),("forms","forms"),("code","instances"),("integrations","widgets"),("components","instances"),("design","applications"),("localization","assets"),("variables","inputs"),("variables","outputs"),("code","sections")] {if let Some(map)=site.extensions.get_mut(group_name).and_then(|g|g.get_mut(field)).and_then(Value::as_object_mut){map.retain(|id,_|node_ids.contains(id));}}for(group_name,field)in [("cms","templates"),("seo","pages"),("localization","pageSlugs"),("code","pageCode")] {if let Some(map)=site.extensions.get_mut(group_name).and_then(|g|g.get_mut(field)).and_then(Value::as_object_mut){map.retain(|id,_|page_ids.contains(id));}}}
 fn prune_motion(site:&mut Site){
     let Some(mut data)=site.extensions.get("motion").cloned() else{return};
     let has=|id:&str|site.nodes.contains_key(id);
     let ok=|v:Option<&Value>|v.and_then(Value::as_str).map(has).unwrap_or(false);
-    let action_ok=|a:Option<&Value>|a.map(|a|["from","to","target"].iter().all(|k|a.get(*k).map(|v|ok(Some(v))).unwrap_or(true))).unwrap_or(false);
+    let action_ok=|a:Option<&Value>|a.map(|a|["from","to","target","input","results","template","empty"].iter().all(|k|a.get(*k).map(|v|ok(Some(v))).unwrap_or(true))).unwrap_or(false);
     let Some(groups)=data.as_object_mut() else{return};
     for kind in formweb_model::motion::KINDS{if let Some(map)=groups.get_mut(*kind).and_then(Value::as_object_mut){map.retain(|id,_|has(id));}}
     if let Some(map)=groups.get_mut("scenes").and_then(Value::as_object_mut){
@@ -142,9 +150,49 @@ fn prune_motion(site:&mut Site){
         for id in dead{map.remove(&id);}
     }
     if let Some(map)=groups.get_mut("actions").and_then(Value::as_object_mut){for list in map.values_mut(){if let Some(list)=list.as_array_mut(){list.retain(|a|action_ok(Some(a)));}}map.retain(|_,list|list.as_array().map(|l|!l.is_empty()).unwrap_or(false));}
+    if let Some(map)=groups.get_mut("scripts").and_then(Value::as_object_mut){
+        map.retain(|id,script|has(id)&&!script.get("steps").and_then(Value::as_array).map(|steps|steps.iter().any(|step|names_removed(site,step))).unwrap_or(false));
+    }
     site.extensions.insert("motion".into(),data);
 }
 
+const VARIABLE_KINDS:&[&str]=&["values","tables","formulas","inputs","outputs"];
+fn drop_entry(site:&mut Site,group_name:&str,map:&str,id:&str)->Result<(),String>{
+    let g=site.extensions.get_mut(group_name).and_then(Value::as_object_mut).ok_or("unknown entry")?;
+    let m=g.get_mut(map).and_then(Value::as_object_mut).ok_or("unknown entry")?;
+    m.remove(id).ok_or("unknown entry")?;
+    if m.is_empty(){g.remove(map);}
+    if g.is_empty(){site.extensions.remove(group_name);}
+    Ok(())
+}
+fn motion_track(site:&mut Site,params:&Value)->Result<(),String>{
+    let scene=string(params,"scene")?;
+    let list=match params.get("list"){None|Some(Value::Null)=>"tracks",Some(v)=>v.as_str().ok_or("list must be tracks or distribute")?};
+    if !["tracks","distribute"].contains(&list){return Err("list must be tracks or distribute".into());}
+    let index=params.get("index").and_then(Value::as_u64).and_then(|n|usize::try_from(n).ok()).ok_or("index must be a nonnegative integer")?;
+    let track=params.get("track").ok_or("track is required")?.clone();
+    if !track.is_null()&&!track.is_object(){return Err("track must be an object or null".into());}
+    let entry=site.extensions.get_mut("motion").and_then(|g|g.get_mut("scenes")).and_then(|m|m.get_mut(scene)).and_then(Value::as_object_mut).ok_or("unknown scene")?;
+    let items=entry.entry(list).or_insert_with(||json!([])).as_array_mut().ok_or("scene list must be an array")?;
+    if index>items.len(){return Err("index is outside the list".into());}
+    if track.is_null(){if index==items.len(){return Err("index is outside the list".into());}items.remove(index);}
+    else if index==items.len(){items.push(track);}
+    else{items[index]=track;}
+    if items.is_empty()&&list=="distribute"{entry.remove(list);}
+    formweb_model::motion::validate(site,&site.extensions["motion"])
+}
+fn names_removed(site:&Site,step:&Value)->bool{
+    let missing=|v:Option<&Value>|v.and_then(Value::as_str).map(|id|!id.starts_with('@')&&!site.nodes.contains_key(id)).unwrap_or(false);
+    let step_type=step.get("type").and_then(Value::as_str).unwrap_or("");
+    for key in ["target","template","into","from","input","results","empty"]{if missing(step.get(key)){return true;}}
+    if step_type=="pointer"&&missing(step.get("to")){return true;}
+    if step_type=="scroll"&&step.get("to").and_then(Value::as_str).map(|to|!["start","end"].contains(&to)&&missing(step.get("to"))).unwrap_or(false){return true;}
+    if let Some(text)=step.get("text").and_then(Value::as_str){let mut rest=text;while let Some(at)=rest.find("{input:"){rest=&rest[at+7..];if let Some(end)=rest.find('}'){if !site.nodes.contains_key(&rest[..end]){return true;}}}}
+    if let Some(action)=step.get("action").filter(|a|a.is_object()){
+        for key in ["from","to","target","input","results","template","empty"]{if missing(action.get(key)){return true;}}
+    }
+    false
+}
 fn namespace(pin:&str,name:&str)->Result<String,String>{let value=format!("lib-{pin}-{}",name.trim_start_matches("--"));if !formweb_model::identifier(&value){return Err("library namespace exceeds identifier limit".into());}Ok(value)}
 fn rewrite_tokens(value:&mut Value,tokens:&Strings){match value{Value::String(s)=>for(old,new)in tokens{*s=s.replace(&format!("var(--{})",old.trim_start_matches("--")),&format!("var(--{new})")).replace(&format!("var(--{},",old.trim_start_matches("--")),&format!("var(--{new},"));},Value::Array(values)=>for value in values{rewrite_tokens(value,tokens)},Value::Object(values)=>for value in values.values_mut(){rewrite_tokens(value,tokens)},_=>{}}}
 fn prepare_library(document:&Site,pin:&str,chosen:&[String])->Result<(Site,Strings,Strings),String>{validate(document)?;if document.extensions.contains_key("libraries"){return Err("nested library snapshots unsupported".into());}if chosen.is_empty()||chosen.len()>100{return Err("library import needs 1 to 100 components".into());}let mut owned=BTreeSet::new();for component in chosen{let component=document.components.get(component).ok_or("unknown library component")?;for node in descendants(document,&component.root)?{if !owned.insert(node){return Err("library components cannot have overlapping source trees".into());}}}
