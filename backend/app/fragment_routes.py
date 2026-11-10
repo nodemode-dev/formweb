@@ -5,11 +5,13 @@
 names is in this FormWeb's asset store (missing ones are named in a 409 and nothing changes), runs the core's
 `node.paste` command through the same mutate path as the editor (one undo step, permissions, attribution, revision),
 and then makes the current project an owner of the assets, the way an upload does."""
+import base64
+import binascii
 import json
 
 from fastapi import APIRouter, Request
 
-from .assets import ASSET_NAME, ASSET_REF, asset_path, own_asset, visible_assets
+from .assets import ASSET_NAME, ASSET_REF, asset_path, check_declared, ingest_declared, own_asset, visible_assets
 from .engine import EngineError
 from .service import studio
 
@@ -17,7 +19,8 @@ router = APIRouter()
 
 FORMAT = 'com.nodemode.formweb.fragment'
 VERSION = 1
-MAX_PASTE_BYTES = 8 * 1024 * 1024
+MAX_PASTE_BYTES = 32 * 1024 * 1024
+MAX_EMBED_BYTES = 16 * 1024 * 1024  # raw asset bytes a copy may carry; the base64 form stays under the paste cap
 MAX_NODES = 2000
 
 
@@ -71,19 +74,44 @@ def _check(fragment) -> list[str]:
     return _asset_names(fragment)
 
 
-async def fragment_of(node):
-    """The fragment of one element's subtree (read permission); shared by the route and the MCP tool."""
+async def fragment_of(node, embed=False):
+    """The fragment of one element's subtree (read permission); shared by the route and the MCP tool.
+    With embed, `embedded` maps asset ids to base64 bytes (smallest first, 16 MiB of raw bytes in all) and `notEmbedded` lists the rest."""
     studio.access.authorize('read')
     if not isinstance(node, str) or not 1 <= len(node) <= 160:
         raise EngineError('node must be an element id.', 400)
-    return await studio.engine.request('fragment', {'id': node})
+    fragment = await studio.engine.request('fragment', {'id': node})
+    if embed is True and isinstance(fragment, dict):
+        visible = visible_assets(studio)
+        sized = []
+        left = []
+        for name in _asset_names(fragment):
+            try:
+                path = asset_path(name)
+            except EngineError:
+                left.append(name)
+                continue
+            if name in visible:
+                sized.append((path.stat().st_size, name, path))
+            else:
+                left.append(name)
+        embedded: dict = {}
+        total = 0
+        for size, name, path in sorted(sized, key=lambda item: item[0]):
+            if total + size > MAX_EMBED_BYTES:
+                left.append(name)
+                continue
+            total += size
+            embedded[name] = base64.b64encode(path.read_bytes()).decode('ascii')
+        fragment = {**fragment, 'embedded': embedded, 'notEmbedded': left}
+    return fragment
 
 
 @router.post('/api/fragment')
 async def make_fragment(request: Request):
     studio.access.authorize('read')
     body = await _body(request, 64 * 1024)
-    return await fragment_of(body.get('node'))
+    return await fragment_of(body.get('node'), body.get('embed') is True)
 
 
 @router.post('/api/paste')
@@ -97,17 +125,39 @@ async def paste_body(body: dict):
     studio.access.authorize('edit')
     fragment = body.get('fragment')
     names = _check(fragment)
+    embedded = body.get('embedded')
+    if embedded is None:
+        embedded = fragment.get('embedded')
+    if embedded is None:
+        embedded = {}
+    if not isinstance(embedded, dict):
+        raise EngineError('embedded must map asset ids to base64 bytes.', 400)
+    if 'embedded' in fragment or 'notEmbedded' in fragment:
+        fragment = {key: value for key, value in fragment.items() if key not in ('embedded', 'notEmbedded')}
     missing = []
+    adopt: dict = {}
     visible = visible_assets(studio) if names else set()
     for name in names:
         try:
             asset_path(name)
+            present = True
         except EngineError:
+            present = False
+        # An asset this identity cannot already see reads as missing, so a known hash cannot claim another project's file.
+        if present and name in visible:
+            continue
+        carried = embedded.get(name)
+        if carried is None:
             missing.append(name)
             continue
-        # An asset this identity cannot already see reads as missing, so a known hash cannot claim another project's file.
-        if name not in visible:
-            missing.append(name)
+        try:
+            data = base64.b64decode(carried, validate=True) if isinstance(carried, str) else None
+        except (binascii.Error, ValueError):
+            data = None
+        if data is None:
+            raise EngineError('Embedded bytes for ' + name + ' are not valid base64.', 400)
+        check_declared(name, data)  # digest, size by type, magic bytes, mime: possession is proved before anything is stored
+        adopt[name] = data
     if missing:
         raise EngineError('This FormWeb does not have these assets: ' + ', '.join(missing) + '. Nothing was pasted.', 409)
     params: dict = {'fragment': fragment}
@@ -124,6 +174,8 @@ async def paste_body(body: dict):
     if body.get('expectedRevision') is not None:
         payload['expectedRevision'] = body['expectedRevision']
     result = await studio.mutate('exec', payload)
+    for name, data in adopt.items():
+        ingest_declared(name, data)
     for name in names:
         own_asset(studio, name)
     studio.access.record('node.paste', {'assets': len(names)})

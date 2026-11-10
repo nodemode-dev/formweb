@@ -21,7 +21,7 @@ from .chat import router as chat_router
 from .commands_mirror import router as commands_router
 from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_ARCHIVE_BYTES, MAX_PROJECT_FILE_BYTES, MAX_VIDEO_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
-from .fragment_routes import router as fragment_router
+from .fragment_routes import MAX_PASTE_BYTES, router as fragment_router
 from .handoff import router as handoff_router
 from .library_routes import router as library_router
 from .mcp_server import mcp, mcp_app
@@ -76,7 +76,7 @@ class LocalAccess:
             if control and scope['method'] != 'OPTIONS':
                 identity = studio.access.authenticate(headers, mcp=path == '/mcp')
             archive_load = path == '/api/load' and headers.get('content-type', '').split(';', 1)[0].strip().lower() == 'application/zip'
-            maximum = MAX_PROJECT_ARCHIVE_BYTES if archive_load else MAX_PROJECT_FILE_BYTES if path in ('/api/load', '/mcp') else MAX_VIDEO_BYTES if path == '/api/assets' and scope['method'] == 'POST' else MAX_DOCUMENT_BYTES
+            maximum = MAX_PROJECT_ARCHIVE_BYTES if archive_load else MAX_PROJECT_FILE_BYTES if path in ('/api/load', '/mcp') else MAX_VIDEO_BYTES if path == '/api/assets' and scope['method'] == 'POST' else MAX_PASTE_BYTES if path == '/api/paste' else MAX_DOCUMENT_BYTES
             length = headers.get('content-length', '')
             if length and (not length.isdecimal() or int(length) > maximum):
                 raise EngineError('Request body exceeds the configured size limit.', 413)
