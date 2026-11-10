@@ -12,7 +12,7 @@ Review IDs and values before saving. IDs appear in the Content/Design inspector 
 | Components & libraries | Properties, variants, slots, override reset, detach, immutable library save/review/import/update, isolated code compilation |
 | CMS & content | Create/update schemas and relations, selected bindings, list query/pagination/empty state, item templates, localized/archive items, exact CSV export/import |
 | Motion & forms | Pointer/keyboard states, conditional actions, timelines, overlays, browser field constraints, tracking, submit success/error/redirect states |
-| Localization & SEO | All-locale output, translated page routes/media, site origin, metadata templates, JSON-LD, robots rules |
+| Localization & SEO | All-locale output, translated page routes/media, base URL (Base URL and SEO settings), metadata templates, JSON-LD, robots rules |
 | Publishing & delivery | Inbox/CSV/retention, signed delivery destinations/outbox/retry, immutable releases/promote/rollback, redirect manifest |
 | Review & access | Branch capture/open/review/merge conflicts, comments/resolution, presence, identities/roles, attributed activity, saved-project deletion |
 | Connected providers | Adapter configuration/status, deployment/domain/fetch transport, translation proposal review, commerce synchronization, runtime widget bindings and member gates |

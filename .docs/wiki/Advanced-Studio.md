@@ -26,7 +26,7 @@ The browser renders the latest camelCase Rust state; it does not reconstruct a s
 | Responsive design | page.duplicate, breakpoint.set/remove, token.define, textpreset.set/apply and node.update CSS patches |
 | Linked components | component.configure/props/reset/variant/slot/detach; library import/update/detach through reviewed service snapshots |
 | CMS | collection.create/update, cms.binding/query/localize/upsert; cms templates/localized group |
-| Localization/SEO | localization pageSlugs/assets/allLocales; seo pages/robots/redirects; site.update baseUrl |
+| Localization/SEO | localization pageSlugs/assets/allLocales; seo pages/robots/redirects; site.update baseUrl (null removes it; an empty string is refused) |
 | Runtime | behaviors nodes/states/conditions/actions/timelines/overlays; forms constraints/tracking/messages/redirect |
 | Integrations/code | Public integrations widgets/gates/experiments; digest-validated code definitions/instances |
 
