@@ -2,7 +2,7 @@
 
 `POST /api/handoff/formpublisher` exports the open site exactly like `GET /api/export`, then posts the zip to
 FormPublisher's `POST /api/receive/formweb`. When FormPublisher does not answer, the zip is written atomically into its
-inbox folder, which it imports the next time it runs. Returns `{delivered: "live"|"inbox", site?, revision?, path?}`."""
+inbox folder, which it imports the next time it runs. Returns `{delivered: "live"|"inbox", site?, revision?, path?, warnings}` (warnings: the export's own)."""
 import asyncio
 import json
 import os
@@ -111,7 +111,8 @@ async def send_to_formpublisher(locale: str | None = None):
     state = await studio.state()
     name = str(state['site'].get('name') or 'Site')
     project = studio.access.project_key()
-    data, _manifest = await studio.export_zip(locale)
+    data, manifest = await studio.export_zip(locale)
+    warnings = [str(w) for w in (manifest.get('warnings') or [])] if isinstance(manifest, dict) else []
     headers = {
         'Content-Type': 'application/zip',
         'X-FormWeb-Version': VERSION,
@@ -120,6 +121,6 @@ async def send_to_formpublisher(locale: str | None = None):
     }
     receipt = await asyncio.to_thread(_post, publisher_url(), data, headers)
     if receipt is not None:
-        return {'delivered': 'live', 'site': receipt.get('site'), 'revision': receipt.get('revision')}
+        return {'delivered': 'live', 'site': receipt.get('site'), 'revision': receipt.get('revision'), 'warnings': warnings}
     path = await asyncio.to_thread(_to_inbox, data, name, str(project))
-    return {'delivered': 'inbox', 'path': str(path)}
+    return {'delivered': 'inbox', 'path': str(path), 'warnings': warnings}
