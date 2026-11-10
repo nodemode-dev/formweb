@@ -16,6 +16,7 @@ if exist dist-engine rmdir /s /q dist-engine
   --distpath dist-engine --workpath build\pyinstaller --specpath build\pyinstaller --paths "%ROOT%\backend" ^
   --add-data "%ROOT%\frontend\dist;frontend_dist" ^
   --add-data "%ROOT%\backend\app\stock;app\stock" ^
+  --add-data "%ROOT%\library;library" ^
   --add-binary "%ROOT%\native\target\release\formweb-core.exe;bin" ^
   --collect-submodules app --collect-submodules uvicorn --collect-data mcp --exclude-module mcp.cli --hidden-import winpty ^
   "%ROOT%\backend\formweb_engine.py" || exit /b 1

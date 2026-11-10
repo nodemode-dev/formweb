@@ -46,6 +46,8 @@ jobs:
         run: |
           backend/venv/bin/python -m compileall -q backend/app setup
           ./formweb agents sync --check
+      - name: Check the section library and its compiled components
+        run: ./formweb library check && ./formweb library build --check
       - name: Check shell syntax
         run: |
           for file in formweb formweb_oc_install backend/oc_install backend/boot_backend frontend/oc_install frontend/boot_frontend setup/lib.sh setup/install setup/install_core setup/install_backend setup/install_frontend setup/boot setup/boot_backend setup/boot_frontend setup/build setup/serve setup/doctor; do

@@ -18,6 +18,7 @@ from .chat import router as chat_router
 from .commands_mirror import router as commands_router
 from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_FILE_BYTES, MAX_VIDEO_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
+from .library_routes import router as library_router
 from .mcp_server import mcp, mcp_app
 from .providers.routes import router as provider_router
 from .service import safe_export_path, studio
@@ -115,6 +116,7 @@ app.include_router(terminal_router)
 app.include_router(chat_router)
 app.include_router(commands_router)
 app.include_router(vector_router)
+app.include_router(library_router)
 
 
 @app.get('/api/terminal/status')

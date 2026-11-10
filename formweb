@@ -18,6 +18,7 @@ case "$cmd" in
   agents) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/agents.py "$@" ;;
   comparisons) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/comparisons.py "$@" ;;
   run) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/run.py "$@" ;;
+  library) source setup/lib.sh; exec "$FORMWEB_PYTHON" setup/library_tool.py "$@" ;;
   i18n) source setup/lib.sh; [ "${1:-check}" = check ] && { [ $# -eq 0 ] || shift; exec "$FORMWEB_PYTHON" setup/i18n_check.py "$@"; }; fw_say 'usage: ./formweb i18n check [--json]' >&2; exit 2 ;;
   render) source setup/lib.sh
     bin="native/crates/formweb-render/target/release/formweb-render"
@@ -53,6 +54,8 @@ Usage: ./formweb COMMAND
   comparisons build   render the family-format page from docs/comparisons/data (--check, --json)
   comparisons embed  add the release comparison to the matrix (--check, --json)
   run COMMAND [k=v]   apply one engine command to the open site (--list, --json)
+  library check       validate the section library: components, templates, presets, starters (--json)
+  library build       compile library components into library/build (--check reports drift only)
   render probe        GPU renderer: adapter and budget; also thumb IN OUT, diff A B OUT (JSON)
   desktop             open the Tauri desktop shell (starts ./formweb serve if needed)
   build-app           build the desktop app start to finish (same as ./build_app, or desktop build)
