@@ -1,4 +1,5 @@
 """./formweb library check | build [--check] [--root DIR] [--json]
+./formweb library list | insert ID [k=v] | preset ID [--all] | starter ID [k=v]   (running API; see setup/library_cli.py)
 
 check  validates every component manifest and source, section template, preset and starter under library/.
 build  compiles every page component with setup/build_component.mjs into library/build/components/<id>.json, the
@@ -243,6 +244,10 @@ def dumps(record: dict) -> str:
 
 
 def main() -> int:
+    if sys.argv[1:2] and sys.argv[1] in ('list', 'insert', 'preset', 'starter'):  # over the running API: setup/library_cli.py
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from library_cli import main as api_main
+        return api_main(sys.argv[1:])
     parser = argparse.ArgumentParser(prog='./formweb library', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('action', choices=('check', 'build'))
     parser.add_argument('--check', action='store_true', help='build: compare with the files on disk and change nothing')
