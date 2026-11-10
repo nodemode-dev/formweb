@@ -95,7 +95,10 @@ pub fn motion_runtime(site:&Site)->String {
     if motion.is_some() { out.push_str(include_str!("motion.js")); }
     if motion.is_some()||variables { out.push_str(include_str!("interact.js")); }
     if variables { out.push_str(include_str!("variables.js")); }
-    let played=site.nodes.keys().any(|id|site.extensions.get("behaviors").and_then(|v|v.get("nodes")).and_then(|v|v.get(id)).and_then(|n|n.get("actions")).and_then(Value::as_array).map(|a|a.iter().any(|x|matches!(x.get("action").and_then(Value::as_str),Some("search"|"play")))).unwrap_or(false));
+    let plays=|a:&Value|a.as_array().map(|a|a.iter().any(|x|matches!(x.get("action").and_then(Value::as_str),Some("search"|"play")))).unwrap_or(false);
+    // Search and play actions live in motion.actions (0.19.1) as well as in behaviors; either one needs play.js.
+    let played=site.nodes.keys().any(|id|site.extensions.get("behaviors").and_then(|v|v.get("nodes")).and_then(|v|v.get(id)).and_then(|n|n.get("actions")).map(plays).unwrap_or(false))
+        ||motion.and_then(|g|g.get("actions")).and_then(Value::as_object).map(|m|m.values().any(plays)).unwrap_or(false);
     if motion.and_then(|g|g.get("scripts")).is_some()||played { out.push_str(include_str!("play.js")); }
     if code::uses_page(site) { out.push_str(include_str!("components.js")); }
     out

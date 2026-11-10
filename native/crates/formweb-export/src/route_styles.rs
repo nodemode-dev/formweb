@@ -15,6 +15,20 @@ pub fn render(site: &Site, root: &str) -> String {
     if let Some(motion)=scoped.extensions.get("motion") { values.push(motion.to_string()); }
     if let Some(themes)=scoped.extensions.get("design").and_then(|v|v.get("themes")) { values.push(themes.to_string()); }
     if let Some(components)=scoped.extensions.get("components").and_then(|v|v.get("definitions")).and_then(serde_json::Value::as_object) { let used:BTreeSet<_>=scoped.nodes.values().filter_map(|node|node.component_id.as_ref()).collect();for(id,definition)in components{if used.contains(id){values.push(definition.to_string());}} }
+    // Page components and code sections read tokens from their own CSS and script, which no node style mentions.
+    if let Some(code)=scoped.extensions.get("code") {
+        for (host, instance) in code.get("instances").and_then(serde_json::Value::as_object).into_iter().flatten() {
+            if !ids.contains(host) { continue; }
+            values.push(instance.to_string());
+            if let Some(definition)=instance.get("component").and_then(serde_json::Value::as_str).and_then(|id|code.get("components")?.get(id)) {
+                values.push(definition.get("source").and_then(serde_json::Value::as_str).unwrap_or("").to_string());
+                values.push(definition.get("props").map(|p|p.to_string()).unwrap_or_default());
+            }
+        }
+        for (host, section) in code.get("sections").and_then(serde_json::Value::as_object).into_iter().flatten() {
+            if ids.contains(host) { for key in ["css","js","html"] { values.push(section.get(key).and_then(serde_json::Value::as_str).unwrap_or("").to_string()); } }
+        }
+    }
     while let Some(value) = values.pop() {
         let mut tail = value.as_str();
         while let Some(index) = tail.find("var(--") {
