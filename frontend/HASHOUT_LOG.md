@@ -1,5 +1,13 @@
 # Frontend context map
 
+## Copy, cut and paste elements · v0.19.5 (2026-11-10)
+
+The executor spec is `TURN_F_SPEC.md` in the 0.19.5 planning sidecar.
+
+`commands/registry.ts` gives `Command` an optional `native?: () => boolean`, and `commands/keymap.ts` returns before running a command whose `native()` is true, so the browser keeps the key. `main.ts`: `edit.copy` (Mod+C), `edit.cut` (Mod+X) and `edit.paste` (Mod+V) sit in Edit group 1, and the layers context menu now builds four rows (Copy, Cut, Paste, Duplicate). Copy posts `/api/fragment` and writes `JSON.stringify(fragment)` with `navigator.clipboard.writeText`; Cut is copy then `node.remove`, so only the removal is an undo step. Paste's key is left to the browser (`native: () => true`) because the `paste` event carries the text with no clipboard permission and works in Safari; a document `paste` listener ignores inputs, textareas, contenteditable, `.xterm`, `[data-no-keys]`, open dialogs and any text that is not a fragment of version 1, and posts the rest to `/api/paste` with parent the selection's parent and index after it (or last in the page root), then selects the pasted root (`result.root`, else the new child). The Edit menu and context menu items read the clipboard with `readText` and, when the browser refuses, say how to allow it or to paste with the keyboard. Copy and Cut use `panelTextSelected` as their `native()`, so with text selected outside the stage the browser copies that text; inputs, text editing and code views were already excluded by the `TYPING` guard. `edit.duplicate` takes `['Mod+D', 'Shift+Mod+D']` and reads `window.event.shiftKey` in its run: with Shift held it always duplicates, otherwise it still runs Transform again first while that command is enabled (a vector tool, a last transform and a shape). 13 English keys were appended to `keys.ts`; the two clipboard help messages name no platform key.
+
+Checked: `npm run build`. In headless Chrome with clipboard permissions, Ctrl+C and Ctrl+V pasted an element with a reveal after another and selected it on the same page, another page and a new site, one undo each; Ctrl+X then paste moved it; plain text pasted nothing; Ctrl+C with panel text selected copied the text; Shift+Ctrl+D duplicated; no layout shift and no page errors. Not run: Shift+Mod+D while a vector transform is repeatable (checked by reading the run function), and the 409 message in the browser.
+
 ## Duplicate element, light posters and version 2 imports · v0.19.4 (2026-11-10)
 
 The executor spec is `TURN_E_SPEC.md` in the 0.19.4 planning sidecar.

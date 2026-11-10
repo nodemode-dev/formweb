@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.5 · 2026-11-10
+
+- Copy, cut and paste elements: Edit > Copy element, Cut element and Paste element (Mod+C, Mod+X, Mod+V) and the layers context menu move an element with its motion, scripts, code sections, page components, variables and translations through the system clipboard, within a page, to another page or into another site on the same FormWeb. Text copy and paste in fields and panels keep working as before. Agents get `copy_element` and `paste_element` (103 MCP tools) and the `node.paste` command.
+- Pasting into a site that lacks a page component or variable adds it; where the site already has a different one under the same name, the site's own is kept and the paste says so. Assets must already be on this FormWeb and visible to the person pasting.
+- Copies no longer lose an entry when an element's id matches a field name (for example an element called `stage` inside a scroll scene).
+- Duplicate element also takes Shift+Mod+D, which always duplicates, so the vector editor (where Mod+D repeats the last transform) has a key for it.
+- Large `.fweb` projects load faster (0.15 s instead of 0.26 to 0.73 s for a 74 MiB project), with each asset read once and lower peak memory, and FormWeb keeps answering while they load.
+- Every new string is in all 26 languages.
+
 ## 0.19.4 · 2026-11-10
 
 - Edit > Duplicate element (Mod+D) and a Duplicate item in the layers context menu copy an element with everything attached to it: motion, scripts, code sections, page components, variable bindings and translations, under new ids, in one undo step. Agents get the same through the new `node.duplicate` command.
