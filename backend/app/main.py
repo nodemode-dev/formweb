@@ -21,6 +21,7 @@ from .chat import router as chat_router
 from .commands_mirror import router as commands_router
 from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_ARCHIVE_BYTES, MAX_PROJECT_FILE_BYTES, MAX_VIDEO_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
+from .fragment_routes import router as fragment_router
 from .handoff import router as handoff_router
 from .library_routes import router as library_router
 from .mcp_server import mcp, mcp_app
@@ -123,6 +124,7 @@ app.include_router(commands_router)
 app.include_router(vector_router)
 app.include_router(library_router)
 app.include_router(handoff_router)
+app.include_router(fragment_router)
 
 
 @app.get('/api/terminal/status')
@@ -628,6 +630,7 @@ async def load_archive(first: bytes, chunks):
     folder.mkdir(parents=True, exist_ok=True)
     handle, temporary = tempfile.mkstemp(prefix='load-', suffix='.fweb', dir=folder)
     target = Path(temporary)
+    staged = {}
     try:
         total = 0
         with os.fdopen(handle, 'wb') as spool:
@@ -641,10 +644,12 @@ async def load_archive(first: bytes, chunks):
                 spool.write(chunk)
         if total > MAX_PROJECT_ARCHIVE_BYTES:
             raise EngineError('Project archive exceeds the 512 MiB limit.', 413)
-        native = await asyncio.to_thread(read_project_archive, target)
-        return await load_native(native, target)
+        native = await asyncio.to_thread(read_project_archive, target, staged)
+        return await load_native(native, target, staged)
     finally:
         target.unlink(missing_ok=True)
+        for left in list(staged.values()):
+            left.unlink(missing_ok=True)
 
 
 @app.get('/api/project-file')

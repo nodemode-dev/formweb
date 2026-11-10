@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 from .assets import restore_archive_assets, restore_project_assets
@@ -8,7 +9,7 @@ from .engine import EngineError
 from .service import studio
 
 
-async def load_native(native, archive=None):
+async def load_native(native, archive=None, staged=None):
     studio.access.authorize('edit')
     if not isinstance(native, dict) or not isinstance(native.get('site'), dict):
         raise EngineError('Native project requires a site object.')
@@ -33,7 +34,7 @@ async def load_native(native, archive=None):
     if archive is None:
         restore_project_assets(native)
     else:
-        restore_archive_assets(archive, native)
+        await asyncio.to_thread(restore_archive_assets, archive, native, staged)
     return await studio.mutate('restore', {'checkpoint': checkpoint}) if checkpoint else await studio.mutate('load', {'site': native['site']})
 
 
