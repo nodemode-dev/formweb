@@ -1952,22 +1952,25 @@ function panelTextSelected(): boolean {
   const selection = window.getSelection();
   return !!selection && !selection.isCollapsed && selection.toString().trim() !== '' && !stage.contains(selection.anchorNode);
 }
-async function copyFragment(): Promise<void> {
-  const fragment = await request<Record<string, unknown>>('/api/fragment', { node: currentNode().id });
+// Returns how many assets were too large to embed (they paste only on this FormWeb).
+async function copyFragment(): Promise<number> {
+  const fragment = await request<Record<string, unknown>>('/api/fragment', { node: currentNode().id, embed: true });
   if (!navigator.clipboard?.writeText) throw new Error('This browser does not allow writing to the clipboard here.');
   await navigator.clipboard.writeText(JSON.stringify(fragment));
+  return Array.isArray(fragment.notEmbedded) ? fragment.notEmbedded.length : 0;
 }
+const notEmbeddedNote = (count: number): string => count === 1 ? ' ' + t('One asset is too large to embed and will only paste on this FormWeb.') : count > 1 ? ' ' + t('{n} assets are too large to embed and will only paste on this FormWeb.').replace('{n}', String(count)) : '';
 async function copySelection(): Promise<void> {
   if (!canDuplicate()) return;
-  await copyFragment();
-  status('Element copied.');
+  const left = await copyFragment();
+  status('Element copied.' + notEmbeddedNote(left));
 }
 async function cutSelection(): Promise<void> {
   if (!canDuplicate()) return;
   const id = currentNode().id;
-  await copyFragment();
+  const left = await copyFragment();
   await command('node.remove', { id });
-  status('Element cut. Paste puts it back; Undo restores it in place.');
+  status('Element cut. Paste puts it back; Undo restores it in place.' + notEmbeddedNote(left));
 }
 async function pasteFragmentText(raw: string): Promise<boolean> {
   const fragment = parseFragment(raw);
@@ -1976,7 +1979,9 @@ async function pasteFragmentText(raw: string): Promise<boolean> {
   const selected = currentNode();
   const owner = selected.id === currentPage().root ? undefined : parentOf(selected.id);
   const parentId = owner ? owner.id : currentPage().root;
-  const body: Record<string, unknown> = { fragment, parent: parentId };
+  const { embedded, ...bare } = fragment;
+  const body: Record<string, unknown> = { fragment: bare, parent: parentId };
+  if (embedded && typeof embedded === 'object') body.embedded = embedded;
   if (owner) body.index = owner.children.indexOf(selected.id) + 1;
   const result = await libraryMutate<{ state?: EditorState; root?: string }>('/api/paste', body);
   const next = 'site' in result ? (result as unknown as EditorState) : result.state ? accept(result.state) : state();
