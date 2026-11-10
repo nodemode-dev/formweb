@@ -24,16 +24,40 @@ router = APIRouter()
 
 DEFAULT_URL = 'http://127.0.0.1:8280'
 TIMEOUT_SECONDS = 8
+HEALTH_TIMEOUT_SECONDS = 1.5
+
+
+def publisher_home() -> Path:
+    env = os.getenv('FORMPUBLISHER_HOME', '').strip()
+    return Path(env).expanduser() if env else Path.home() / 'FormPublisher'
+
+
+def _engine_file_url() -> str | None:
+    """The loopback URL named by FormPublisher's engine.json, only when that port answers as FormPublisher."""
+    try:
+        info = json.loads((publisher_home() / 'engine.json').read_text(encoding='utf-8'))
+        port = info.get('port') if isinstance(info, dict) else None
+        if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535:
+            return None
+        url = f'http://127.0.0.1:{port}'
+        with urllib.request.urlopen(url + '/api/health', timeout=HEALTH_TIMEOUT_SECONDS) as response:
+            health = json.loads(response.read(65536).decode('utf-8') or '{}')
+    except (OSError, ValueError, urllib.error.URLError, socket.timeout):
+        return None
+    if isinstance(health, dict) and str(health.get('app') or '').lower() == 'formpublisher':
+        return url
+    return None
 
 
 def publisher_url() -> str:
-    return (os.getenv('FORMWEB_FORMPUBLISHER_URL', '').strip() or DEFAULT_URL).rstrip('/')
+    explicit = os.getenv('FORMWEB_FORMPUBLISHER_URL', '').strip()
+    if explicit:
+        return explicit.rstrip('/')
+    return _engine_file_url() or DEFAULT_URL
 
 
 def inbox_folder() -> Path:
-    env = os.getenv('FORMPUBLISHER_HOME', '').strip()
-    base = Path(env).expanduser() if env else Path.home() / 'FormPublisher'
-    return base / 'inbox'
+    return publisher_home() / 'inbox'
 
 
 def _post(url: str, data: bytes, headers: dict[str, str]) -> dict | None:
