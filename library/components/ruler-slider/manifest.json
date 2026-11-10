@@ -59,6 +59,7 @@
     "odometers": "Array of {node, source, prefix, decimals, grouping, big}. node is the id of a native output node, source the variable to roll. The digits roll in a layer over the node and its own text hides. big draws the dollar sign and the cents small."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formbench-support"],
   "fallback": "The ruler is a real range input on top of the drawn ticks, so it works from the keyboard and without animation. Readout nodes keep their native text when the component does not run. With reduced motion ticks, needle and digits jump with no transition.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formbench-support (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

@@ -52,6 +52,7 @@
     "styles": "Names of the three style buttons, in order: Soft, Crisp and Glow filters."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formmorpheus-prompt"],
   "fallback": "Without mix-blend-mode or filter support the frame plays a plain brighten-in instead of the threshold chain. Under reduced motion a frame appears at once and the page still dims for an instant.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formmorpheus-prompt (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

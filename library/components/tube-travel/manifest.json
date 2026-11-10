@@ -85,6 +85,7 @@
     "shareVariable": "Boolean variable the component clears on Escape, outside clicks and when a shot opens; a native popover binds to it."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formvfx-vortex"],
   "fallback": "The poster shows the tube at rest. Without 3D transforms the shots are listed as buttons, and with reduced motion the tube settles at once with a short fade.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formvfx-vortex (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

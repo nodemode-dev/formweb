@@ -60,6 +60,7 @@
     "labels": "Object of button and dialog texts: loose, tidy, tidyLayout, fit, fitAll, zoomOut, zoomIn, close, viewer, previous, next, capture, local, tags."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formref-pinboard"],
   "fallback": "The poster shows the loose board at rest. Reduced motion draws the settled layout at once, runs no coasting or tilt, and keeps every control usable.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formref-pinboard (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

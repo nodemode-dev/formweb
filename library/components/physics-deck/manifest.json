@@ -65,6 +65,7 @@
     "finMeta": "Small caption above the closing title."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formdeck-deckhand"],
   "fallback": "With reduced motion the deck draws three settled states by scroll position (pile, grid, one slide) and runs no physics; cards stay flippable by click or keyboard.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formdeck-deckhand (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

@@ -99,6 +99,7 @@
     "footRight": "{n} is replaced by the seconds held, as two digits."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formpath-knockout"],
   "fallback": "Without 2D canvas the artboard stays blank; with reduced motion the story snaps between its start, rinse and finished states as the page scrolls, and every control stays usable.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formpath-knockout (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

@@ -24,6 +24,7 @@
     "parallax": "How far the nearest specks slide with the pointer, in pixels. 0 turns the pointer drift off."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["format-prompt"],
   "fallback": "Nothing is drawn with reduced motion or without canvas: the hero keeps its picture and veil, which is what the original shows.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/format-prompt (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

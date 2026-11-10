@@ -37,6 +37,7 @@
     "accent": "Colour of the counter progress line and the plate type label."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formmorpheus-filmstrip"],
   "fallback": "Without scripting the host stays empty. With reduced motion the strip is drawn at its settled end: the last plate opened into the video poster with the replay button, and no clip autoplays.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formmorpheus-filmstrip (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
