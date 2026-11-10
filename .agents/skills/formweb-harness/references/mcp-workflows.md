@@ -51,6 +51,20 @@ Trigger: "Save my FormWeb contact page and publish a local preview so I can chec
 
 Result: an editable saved project and verified local publication. This does not deploy to an external domain or configure email delivery.
 
+## Workflow 4: assemble a page from the library and animate it
+
+Trigger: "Build a product landing page for my app with an animated hero, a pricing calculator and a footer."
+
+1. `get_site`: retain the revision, page and root IDs. `tools/list`: note whether `library_list`, `library_insert`, `motion_set` and `variables_set` exist (0.19.3). If not, use `apply_commands` for motion and variables and the REST library routes (load `sub-skills/library/SUB-SKILL.md`).
+2. `library_list`: choose sections by category, product and tags. Read each section's `fields`.
+3. `library_insert` once per section with `parent`, `index` and `values` (tint, product name, copy, links) for the named app. Each call is one undo step; read `warnings`. Optionally `library_apply_starter` for a whole multi-page site, or `library_apply_preset` with mode `all` only if the user wants the preset to replace their tokens.
+4. Add what the library lacks with `motion_set`, `motion_track` and `variables_set` (older: `motion.set`, `motion.track`, `variables.set` in `apply_commands`), chosen by `sub-skills/motion-director/SUB-SKILL.md`. Related variable entries go in one `apply_commands` batch.
+5. `component_build_install` and `component_instance_set` only for a page component no library entry covers (`sub-skills/components-builder/SUB-SKILL.md`).
+6. `audit_site`, `export_site`, then open the export at the planned widths and at reduced motion. Motion and page components never run on the canvas.
+7. `save_project`. Delivery to FormPublisher, where the server offers `send_to_formpublisher`, is a separate step the user must ask for; it sends the same export and reports `delivered` as `live` or `inbox`.
+
+Result: a saved site made of editable library sections, with warnings, final revision and observed preview evidence reported.
+
 ## Open and history operations
 
 Use `list_projects` to find a requested project ID, then `open_project` with `project_id`. Preserve current work first when needed. Call `get_site` after opening to inspect the loaded result.
