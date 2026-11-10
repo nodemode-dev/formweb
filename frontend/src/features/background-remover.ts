@@ -84,6 +84,7 @@ export class BackgroundRemover {
     tools.append(this.method, this.find, this.modes, brush, soft);
     this.view.setAttribute('aria-label', 'Cut-out preview. Paint to erase or restore parts of the picture.');
     this.view.tabIndex = 0;
+    this.view.dataset.loaded = 'false';
     this.stage.append(this.view, this.busy);
     this.applyButton = this.button('Apply cut-out', 'background.apply', () => this.apply(), 'primary');
     this.restoreButton = this.button('Restore original', 'background.restore-original', () => this.restoreOriginal());
@@ -109,6 +110,7 @@ export class BackgroundRemover {
     this.target = target;
     this.hasMask = false;
     this.restoreButton.hidden = !target.original;
+    this.view.dataset.loaded = 'false';
     this.setReady(false);
     this.setBusy('Loading the picture...');
     const [status, blob] = await Promise.all([this.hooks.status(), this.hooks.image(target.original || target.src)]);
@@ -128,6 +130,7 @@ export class BackgroundRemover {
     matte.fillStyle = '#fff';
     matte.fillRect(0, 0, width, height);
     this.view.style.aspectRatio = `${width} / ${height}`;
+    this.view.dataset.loaded = 'true';
     this.draw();
     if (status.available) await this.detect();
     else this.setBusy('');
