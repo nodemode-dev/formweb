@@ -1,9 +1,12 @@
 import base64
 import hashlib
 import json
+import logging
 import os
 import re
+import stat
 import tempfile
+import time
 import zipfile
 import zlib
 from pathlib import Path, PurePosixPath
@@ -35,6 +38,42 @@ VECTOR_MODEL = 'data-fw-vector'  # editable anchor model written by the vector e
 VECTOR_MODEL_LIMIT = 262144
 VECTOR_GUIDES = 'data-fw-guides'  # ruler guides kept on the svg element by the vector editor; numbers only, at most 200
 SVG_VALUE = re.compile(r'^[A-Za-z0-9 .,#%()+\-/]*$')  # no colon: no scheme (javascript:, data:) can appear in any value
+
+
+STALE_TEMPORARY_SECONDS = 600
+# Each temporary file the backend itself creates in the data folder: (folder, exact name pattern). A crash can leave these behind.
+TEMPORARY_PATTERNS = (
+    ('assets', re.compile(r'^\.stage-[A-Za-z0-9_]{8}\.part$')),
+    ('tmp', re.compile(r'^project-[A-Za-z0-9_]{8}\.fweb$')),
+    ('tmp', re.compile(r'^load-[A-Za-z0-9_]{8}\.fweb$')),
+    ('projects', re.compile(r'^\.pending-[0-9a-f]{32}$')),
+)
+
+
+def sweep_stale_temporaries(now: float | None = None) -> int:
+    """Remove regular files matching TEMPORARY_PATTERNS, each in its own folder, last changed more than 10 minutes ago; symlinks and directories are never touched or followed. Returns how many were removed."""
+    moment = time.time() if now is None else now
+    removed = 0
+    for folder, pattern in TEMPORARY_PATTERNS:
+        try:
+            names = os.listdir(DATA_DIR / folder)
+        except OSError:
+            continue
+        for name in names:
+            if not pattern.fullmatch(name):
+                continue
+            path = DATA_DIR / folder / name
+            try:
+                info = path.lstat()
+                if not stat.S_ISREG(info.st_mode) or moment - info.st_mtime <= STALE_TEMPORARY_SECONDS:
+                    continue
+                path.unlink()
+                removed += 1
+            except OSError:
+                continue
+    if removed:
+        logging.getLogger('uvicorn.error').info('Removed %d stale temporary file%s from the data folder.', removed, '' if removed == 1 else 's')
+    return removed
 
 
 def asset_path(name: str):
