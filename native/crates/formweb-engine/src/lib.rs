@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 mod advanced;
 mod wishlist;
 
-pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "collection.update", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo", "page.duplicate", "node.duplicate", "breakpoint.set", "breakpoint.remove", "extension.set", "extension.remove", "token.define", "textpreset.set", "textpreset.apply", "component.detach", "component.configure", "component.props", "component.reset", "component.variant", "component.slot", "library.import", "library.update", "library.detach", "cms.query", "cms.binding", "cms.localize", "cms.replace", "site.replace", "page.bulk", "table.insert", "table.row.add", "table.row.remove", "table.col.add", "table.col.remove", "cms.reorder", "cms.move", "cms.folder", "cms.list", "slider.create", "layout.convert", "text.script", "form.steps", "motion.set", "motion.remove", "design.set", "motion.track", "variables.set", "variables.remove", "code.instance.set", "code.instance.remove", "code.section.set", "code.section.remove", "code.sections.allow"];
+pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "collection.update", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo", "page.duplicate", "node.duplicate", "breakpoint.set", "breakpoint.remove", "extension.set", "extension.remove", "token.define", "textpreset.set", "textpreset.apply", "component.detach", "component.configure", "component.props", "component.reset", "component.variant", "component.slot", "library.import", "library.update", "library.detach", "cms.query", "cms.binding", "cms.localize", "cms.replace", "site.replace", "page.bulk", "table.insert", "table.row.add", "table.row.remove", "table.col.add", "table.col.remove", "cms.reorder", "cms.move", "cms.folder", "cms.list", "slider.create", "layout.convert", "text.script", "form.steps", "motion.set", "motion.remove", "design.set", "motion.track", "variables.set", "variables.remove", "code.instance.set", "code.instance.remove", "code.section.set", "code.section.remove", "code.sections.allow", "node.paste"];
 
 pub struct Engine {
     pub site: Site,
@@ -41,6 +41,11 @@ impl Engine {
         total+=self.undo.iter().chain(&self.redo).map(|site|serde_json::to_vec(site).map(|v|v.len()).unwrap_or(0)).sum::<usize>();
         while total>31*1024*1024&&!self.undo.is_empty(){total-=serde_json::to_vec(&self.undo.remove(0)).map(|v|v.len()).unwrap_or(0);}
         while total>31*1024*1024&&!self.redo.is_empty(){total-=serde_json::to_vec(&self.redo.remove(0)).map(|v|v.len()).unwrap_or(0);}
+    }
+
+    /// Read-only: a self-contained fragment of one element's subtree (see `advanced::fragment`).
+    pub fn fragment(&self, id: &str) -> Result<Value, String> {
+        advanced::fragment(&self.site, id)
     }
 
     pub fn state(&self) -> Value {
@@ -107,6 +112,7 @@ impl Engine {
         // Linked components need their instances materialized between commands; any other batch synchronizes once at
         // its end, which leaves the same document and keeps a whole starter site inside the engine's request limit.
         let stepwise = commands.iter().any(|entry| entry.get("command").and_then(Value::as_str).map(|c| c.starts_with("component.")).unwrap_or(false));
+        advanced::clear_warnings();
         formweb_model::advanced::defer_extension_checks(true);
         let applied = (|| -> Result<(), String> {
             for entry in commands {
@@ -132,7 +138,10 @@ impl Engine {
             self.revision += 1;
         }
         self.trim_history();
-        Ok(self.state())
+        let mut state = self.state();
+        let warnings = advanced::take_warnings();
+        if !warnings.is_empty() { state["warnings"] = json!(warnings); }
+        Ok(state)
     }
 }
 

@@ -12,6 +12,7 @@ fn dispatch(engine: &mut Engine, method: &str, params: &Value) -> Result<Value, 
     match method {
         "hello" => Ok(json!({"version":env!("CARGO_PKG_VERSION"),"engine":"rust","schemaVersion":1,"commands":COMMANDS})),
         "state" => Ok(engine.state()),
+        "fragment" => engine.fragment(params.get("id").and_then(Value::as_str).ok_or("id must be a string")?),
         "new" => {
             let name = params.get("name").map(|v|v.as_str().ok_or("name must be a string")).transpose()?.unwrap_or("Untitled website");
             let blank = params.get("blank").map(|v|v.as_bool().ok_or("blank must be a boolean")).transpose()?.unwrap_or(false);
