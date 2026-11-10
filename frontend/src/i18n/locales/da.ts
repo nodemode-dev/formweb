@@ -2510,4 +2510,7 @@ export default [
   "Et billede er for stort til at blive indlejret og kan kun indsættes på denne computer.",
   "{n} billeder er for store til at blive indlejret og kan kun indsættes på denne computer.",
   "404-siden henter sine typografier og sider fra /, fordi basis-URL'en stadig er example.com. Angiv basis-URL'en til webstedets offentlige adresse, før du udgiver det i en undermappe.",
+  "Basis-URL",
+  "Webstedets offentlige adresse. Kanoniske links, sitemappet og 404.html i roden bruger den. Agenter: site.update med settings.baseUrl.",
+  "Angiv basis-URL'en",
 ] as readonly string[];

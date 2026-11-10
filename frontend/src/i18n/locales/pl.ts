@@ -2510,4 +2510,7 @@ export default [
   "Jeden zasób jest zbyt duży, aby go osadzić, i można go wkleić tylko na tym komputerze.",
   "Liczba zasobów zbyt dużych, aby je osadzić: {n}. Można je wkleić tylko na tym komputerze.",
   "Strona 404 łączy swoje style i strony od /, ponieważ bazowy adres URL to nadal example.com. Ustaw bazowy adres URL na publiczny adres witryny, zanim opublikujesz ją w podkatalogu.",
+  "Bazowy adres URL",
+  "Publiczny adres witryny. Korzystają z niego linki kanoniczne, mapa witryny i główny plik 404.html. Agenci: site.update z settings.baseUrl.",
+  "Ustaw bazowy adres URL",
 ] as readonly string[];

@@ -2510,4 +2510,7 @@ export default [
   "Une ressource est trop volumineuse pour être intégrée et ne pourra être collée que sur cet ordinateur.",
   "{n} ressources sont trop volumineuses pour être intégrées et ne pourront être collées que sur cet ordinateur.",
   "La page 404 charge ses styles et ses pages depuis / parce que l’URL de base est toujours example.com. Définissez l’URL de base sur l’adresse publique du site avant de le déployer dans un sous-dossier.",
+  "URL de base",
+  "L’adresse publique du site. Les liens canoniques, le sitemap et le 404.html à la racine l’utilisent. Agents : site.update avec settings.baseUrl.",
+  "Définir l’URL de base",
 ] as readonly string[];

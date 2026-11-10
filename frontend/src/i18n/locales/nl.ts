@@ -2510,4 +2510,7 @@ export default [
   "Eén asset is te groot om in te sluiten en kan alleen op deze computer worden geplakt.",
   "{n} assets zijn te groot om in te sluiten en kunnen alleen op deze computer worden geplakt.",
   "De 404-pagina verwijst voor zijn stijlen en pagina's naar / omdat de basis-URL nog steeds example.com is. Stel de basis-URL in op het openbare adres van de site voordat je die in een submap publiceert.",
+  "Basis-URL",
+  "Het openbare adres van de site. Canonieke links, de sitemap en de 404.html in de hoofdmap gebruiken het. Agents: site.update met settings.baseUrl.",
+  "Basis-URL instellen",
 ] as readonly string[];

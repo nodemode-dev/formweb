@@ -2510,4 +2510,7 @@ export const KEYS: readonly string[] = [
   "One asset is too large to embed and will only paste on this computer.",
   "{n} assets are too large to embed and will only paste on this computer.",
   "The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.",
+  "Base URL",
+  "The site's public address. Canonical links, the sitemap and the root 404.html use it. Agents: site.update with settings.baseUrl.",
+  "Set the base URL",
 ];
