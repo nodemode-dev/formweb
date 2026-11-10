@@ -61,7 +61,7 @@ Trigger: "Build a product landing page for my app with an animated hero, a prici
 4. Add what the library lacks with `motion_set`, `motion_track` and `variables_set` (older: `motion.set`, `motion.track`, `variables.set` in `apply_commands`), chosen by `sub-skills/motion-director/SUB-SKILL.md`. Related variable entries go in one `apply_commands` batch.
 5. `component_build_install` and `component_instance_set` only for a page component no library entry covers (`sub-skills/components-builder/SUB-SKILL.md`).
 6. `audit_site`, `export_site`, then open the export at the planned widths and at reduced motion. Motion and page components never run on the canvas.
-7. `save_project`. Delivery to FormPublisher, where the server offers `send_to_formpublisher`, is a separate step the user must ask for; it sends the same export and reports `delivered` as `live` or `inbox`.
+7. `save_project`. Delivery to FormPublisher, where the server offers `send_to_formpublisher`, is a separate step the user must ask for; it sends the same export and reports `delivered` as `live` or `inbox` with the export's `warnings`.
 
 Result: a saved site made of editable library sections, with warnings, final revision and observed preview evidence reported.
 
