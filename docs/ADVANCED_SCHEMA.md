@@ -37,9 +37,17 @@ The whole serialized site is limited to 8 MiB and its extensions to 4 MiB. The e
 | `library.import` | `{id,name,version,site,parent,components?:[sourceComponentID]}` | Imports a pinned snapshot's selected component sources, namespaced tokens/breakpoints, definitions, forms and strings. |
 | `library.update` | `{id,version,site}` | Applies a new explicit pin, preserves source node identity and instance overrides, and rejects conflicting local source/definition/token/breakpoint edits. |
 | `library.detach` | `{id}` | Removes provenance while keeping the local authored sources and instances. |
-| `motion.set` | `{kind,node,value}` | Upserts one entry of the `motion` group. `kind` is reveals, scenes, loops, counters, text, drag, pointer, disclosure or actions; the entry is validated at once, so a bad value fails the command. |
+| `motion.set` | `{kind,node,value}` | Upserts one entry of the `motion` group. `kind` is reveals, scenes, loops, counters, text, drag, pointer, disclosure, actions or scripts; the entry is validated at once, so a bad value fails the command. |
 | `motion.remove` | `{kind,node}` | Deletes one motion entry; removing the last one clears the group. |
+| `motion.track` | `{scene,list,index,track}` | Edits one entry of a scene's `tracks` (default) or `distribute` list (`list` is `"tracks"` or `"distribute"`). `index` runs from 0 to the list length: an object replaces the entry, or appends when `index` equals the length; `track: null` removes the entry. The whole scene is validated afterwards, and a failing change leaves the document untouched and returns the validator's message. |
 | `design.set` | `{key,value}` | Replaces `properties`, `themes` or `fonts` inside `design`, leaving tokens, text presets and applications untouched. |
+| `variables.set` | `{kind,name,value}` | Upserts one entry of the `variables` group. `kind` is values, tables, formulas, inputs or outputs; for inputs and outputs `name` is the node ID. The resulting group is validated, and a failure leaves the document unchanged. |
+| `variables.remove` | `{kind,name}` | Deletes one entry of the `variables` group, subject to the same validation. Removing a value or formula that another entry still uses fails. |
+| `code.instance.set` | `{node,value}` | Upserts a code component instance `{component,props}` on a node, validated against the component's props. |
+| `code.instance.remove` | `{node}` | Removes the instance on a node. |
+| `code.section.set` | `{node,value}` | Upserts a code section on a childless node. Requires `code.allowSections`. |
+| `code.section.remove` | `{node}` | Removes the code section on a node. |
+| `code.sections.allow` | `{enabled}` | Sets `code.allowSections`. Disabling fails while any section exists. |
 
 Field groups for overrides and reset are text, styles, attrs, breakpoints and interactions. Source structure add/move/remove propagates to linked instances. Nested linked component definitions require detaching the nested content before defining the outer source. Independent linked instances can exist inside supplied slot subtrees.
 
@@ -88,10 +96,116 @@ Collection fields use `{name,type,required?,collection?}`. Supported types are t
 
 `design` also accepts `properties`, `themes` and `fonts` (0.19.0). Properties are `{name:{syntax,inherits,initial}}` for registered custom properties, compiled to `@property`; syntax is `<number>`, `<integer>`, `<length>`, `<percentage>`, `<length-percentage>`, `<color>`, `<angle>`, `<time>` or `*`. Themes are `{default:"dark"|"light",followSystem?,values?:{dark?,light?}}`; every value key must be an existing token, `site.tokens` hold the default mode, and export writes the other mode as `html[data-theme="..."]` overrides plus a blocking head script that picks the saved choice, then the system preference when `followSystem`, then the default. A node with `data-fw-theme-only="dark"` or `"light"` shows only in that theme. Fonts are `{id:{family,src,weight?,style?,display?}}` with an owned `/api/assets/<sha>.woff2` or https source, at most 16, exported as `@font-face` with a preload link; display defaults to optional.
 
-`motion` (0.19.0) holds nine maps keyed by existing node IDs: `reveals` `{from,duration?,delay?,stagger?,children?,easing?,threshold?,rootMargin?,once?,trigger:"view"|"load"}`; `scenes` `{stage,length(100..2000 svh),offset?,smoothing?,tracks:[{node,keyframes:[{at,styles}],easing?}],distribute?:[{parent,stagger,keyframes}],markers?:[{at,action}],reducedAt?,progressVar?}`; `loops` `{type:"marquee"|"spin"|"float"|"keyframes",...}`; `counters` `{to,from?,duration?,decimals?,trigger?,odometer?}`; `text` `{type:"split"|"typewriter"|"ghost",...}`; `drag` `{axis?,bounds?,inertia?,friction?,restitution?,rotate?,keyboard?,flip?:{back}}`; `pointer` `{type:"tilt"|"follow"|"proximity",...}`; `disclosure` `{type:"accordion"|"tabs"|"filter",items|chips,...}`; and `actions` arrays of `{trigger,action,...}` with actions copy, scroll-to, media, lightbox and toggle-theme. Keyframes and from-states take motion-safe properties only (opacity, transform, translate, scale, rotate, filter, backdrop-filter, clip-path, colours, box-shadow and custom properties), so motion never moves layout. Easing adds `spring(stiffness,damping)`. Scene keyframes start at 0, end at 1 and ascend; tracks and distribute parents must sit inside the scene. The group holds at most 2,000 entries. Removing a node prunes every entry that keys on it or points at it. Export appends `motion.js` and `interact.js` to the runtime only for sites that use motion; reduced motion shows each scene's `reducedAt` state and runs no animation.
+`motion` (0.19.0, ten maps from 0.19.1) holds maps keyed by existing node IDs: `reveals` `{from,duration?,delay?,stagger?,children?,easing?,threshold?,rootMargin?,once?,trigger:"view"|"load"}`; `scenes` `{stage,length(100..2000 svh),offset?,smoothing?,tracks:[{node,keyframes:[{at,styles}],easing?}],distribute?:[{parent,stagger,keyframes}],markers?:[{at,action}],reducedAt?,progressVar?}`; `loops` `{type:"marquee"|"spin"|"float"|"keyframes",...}`; `counters` `{to,from?,duration?,decimals?,trigger?,odometer?}`; `text` `{type:"split"|"typewriter"|"ghost",...}`; `drag` `{axis?,bounds?,inertia?,friction?,restitution?,rotate?,keyboard?,flip?:{back}}`; `pointer` `{type:"tilt"|"follow"|"proximity",...}`; `disclosure` `{type:"accordion"|"tabs"|"filter",items|chips,...}`; and `actions` arrays of `{trigger,action,...}` with actions copy, scroll-to, media, lightbox, toggle-theme, set-variable, search and play; and `scripts` (see Motion scripts below). Triggers are click, hover, submit, change, load, view and input. Keyframes and from-states take motion-safe properties only (opacity, transform, translate, scale, rotate, filter, backdrop-filter, clip-path, colours, box-shadow and custom properties), so motion never moves layout. Easing adds `spring(stiffness,damping)`. Scene keyframes start at 0, end at 1 and ascend; tracks and distribute parents must sit inside the scene. The group holds at most 2,000 entries. Removing a node prunes every entry that keys on it or points at it. Edit a single scene track with `motion.track` instead of replacing the scene. Export appends `motion.js` and `interact.js` to the runtime only for sites that use motion (`interact.js` also when `variables` exists), then `variables.js`, `play.js` and `components.js` only when used; reduced motion shows each scene's `reducedAt` state and runs no animation.
 
 `forms` accepts `{forms:{formNodeID:{successRedirect?,successMessage?,errorMessage?,tracking?,constraints?}}}`. Tracking maps generated hidden field names to query keys; matching authored controls must be hidden inputs. Constraints map existing enabled descendant field names to `{required?,pattern?,min?,max?,minLength?,maxLength?}`. Bounds are ordered and patterns are bounded with backreferences, lookarounds and common nested repetition forms excluded. Backend intake performs its own supported-field validation.
 
 `integrations` accepts `{endpointBase?,widgets?,experiments?,gates?}`. Endpoint bases are HTTPS or exact loopback HTTP without userinfo. Widgets are keyed by existing node IDs and contain `{type,source?,product?,group?,field?}`. Types are fetch, product, cart, checkout, member-login, member-gate and analytics-consent. Experiments are `{name:{variants:[{id,weight}],event}}` with 2 to 8 uniquely named positive-weight variants. Gates are `{route,groups:[group]}` arrays. Limits are 256 widgets, 32 experiments and 128 gates; descriptors carry identifiers, never provider secrets.
 
-`code` accepts components and instances. Components are `{id:{enabled:true,language:"typescript"|"javascript",source,sourceDigest,builtDigest,javascript,props}}`. Sources are limited to 128 KiB, compiled JavaScript to 256 KiB, and both SHA-256 digests are verified against the actual strings. Dependency imports are excluded; the backend build pipeline supplies compiled output. Props are `{name:{type:"string"|"number"|"boolean"|"json",required?,default?}}`. Instances are `{nodeID:{component:id,props:{}}}` with typed required values. Export uses isolated opt-in iframe execution.
+`code` accepts components, instances, `allowSections` and `sections`. Components are `{id:{enabled:true,language:"typescript"|"javascript",source,sourceDigest,builtDigest,javascript,props,mode?,poster?}}`. Sources are limited to 128 KiB, compiled JavaScript to 256 KiB (page mode: 256 KiB and 512 KiB), and both SHA-256 digests are verified against the actual strings. Dependency imports are excluded in both modes; the backend build pipeline supplies compiled output. Props are `{name:{type:"string"|"number"|"boolean"|"json"|"color"|"asset",required?,default?}}`. Instances are `{nodeID:{component:id,props:{}}}` with typed required values. Isolated components export as opt-in iframes; page components and sections are described below.
+
+## Motion scripts and site search (0.19.1)
+
+`motion.scripts` is keyed by the trigger node: `{trigger,once?,restart?,reset?,loop?,loopDelay?,steps}`. `trigger` is submit (the node is a form and its default submission is prevented), click, load, view or change. At most 50 scripts and 100 steps each; texts at most 4,000 characters; `wait.ms` 0 to 60,000; `speed` 1 to 2,000 characters or words per second; `duration` 0 to 10,000; `loopDelay` 0 to 60,000. The 2,000 entry total of `motion` covers scripts too.
+
+| Step | Fields | Behavior |
+| --- | --- | --- |
+| `append` | `template,into,as?,text?` | Clones a node that carries the `hidden` attribute (validated) into `into` as its last child, removes `hidden` and every `id` in the clone, marks it `data-fw-clone`, and sets its text when `text` is given (the deepest first element with text, else the clone). `as` names the clone as `@alias` for later steps. |
+| `stream` | `target,text,speed?,by?` | Reveals text into the target by `chars` (default) or `words`. |
+| `type` | `target,text,speed?` | Types into an input or textarea value and dispatches `input` events, so bound variables update. |
+| `clear` | `target` | Empties an input value or an element's text. |
+| `wait` | `ms` | Pauses the script. |
+| `class` | `target,add?,remove?` | Adds and removes class names (identifiers). |
+| `pointer` | `target,to,duration?,easing?` | Moves an absolutely positioned target so its top-left lands on the centre of `to`, with `translate` only. |
+| `press` | `target` | Sets `data-fw-pressed` for 160 ms. |
+| `scroll` | `target,to` | Scrolls the container to `start`, `end` or a node ID into view. |
+| `focus` | `target` | Focuses the target without scrolling. |
+| `action` | `action` | Runs one motion action object (no `trigger`) through the shared action runner. |
+
+Targets are node IDs on the page or `@alias`. Text tokens `{input:<node>}` (that input's value) and `{var:<name>}` (a variable's formatted text) are inserted as text, never HTML; anything else is literal. `once` runs the script once per page view; `restart` lets a new trigger stop the running run, otherwise triggers during a run are ignored; `reset` removes the clones the previous run made first; `loop` repeats after `loopDelay` (load and view triggers only). Under reduced motion `stream` and `type` complete at once and `pointer` jumps; waits stay. The action `{"action":"play","script":"<key>"}` runs a script from any action trigger. A form that triggers a `submit` script and has no `forms` entry is exported without `action`, `method` and the form status line, so the forms runtime never posts it.
+
+New actions in `motion.actions`: `set-variable` `{variable,value}` or `{variable,formula}` (`value` must match the variable's type; `formula` is an expression validated by the formula grammar), `search` and `play` `{script}`. Trigger `input` fires on the element's `input` event for every action.
+
+Site search is the action `{"trigger":"input","action":"search","input":"q","results":"results-list","template":"result-tpl","limit":8,"empty":"no-results","fromParam":true}`. `input` is a text input node, `results` a container, `template` a node with `hidden` on the page, `limit` 1 to 50 (default 8), `empty` an optional node whose `hidden` is removed when a non-empty query has no results, and `fromParam` seeds the input from `?from=` on load (the path's words split on `/`, `-`, `_`, `.`). A result clone fills `[data-fw-slot="title"]`, `[data-fw-slot="path"]` and `[data-fw-slot="excerpt"]` text and sets `href` on `[data-fw-slot="link"]`.
+
+When any page has a `search` action, export writes `search-index.json` at the export root: an array in route order of `{path,locale,title,headings,text}`. `path` is relative to the export root (`""` for home, `"about/"`), `headings` holds up to 50 h1 to h3 texts, `text` the first 400 characters of visible text with whitespace collapsed. The runtime fetches it once on first focus or input (or on load when `fromParam` has a value). Queries are lowercased, diacritics removed and split on non letters and digits. Per token the best match counts in title (weight 3), headings (2) and text (1): exact word 1.0, word prefix 0.8, in-order subsequence inside a word of 3 or more characters 0.4. Scores add, zero scores drop, ties sort by path.
+
+Runtime action handlers register on `globalThis.__formwebActions`; `interact.js` falls back to it for unknown actions, and `play.js` (scripts and search) is appended only when scripts or `search` or `play` actions exist.
+
+## Variables and formulas (0.19.1)
+
+`variables` is an extension group of optional objects `values`, `tables`, `formulas`, `inputs` and `outputs`; unknown keys are rejected everywhere.
+
+```json
+{
+  "values": {
+    "seats": {"type": "number", "initial": 12, "min": 1, "max": 500, "step": 1, "cssVar": true},
+    "plan": {"type": "text", "initial": "team", "options": ["solo", "team", "studio"]},
+    "annual": {"type": "boolean", "initial": false, "cssVar": true}
+  },
+  "tables": {"price": {"solo": 12, "team": 29, "studio": 59}},
+  "formulas": {"monthly": "seats * lookup(price, plan)", "yearly": "round(monthly * 12 * if(annual, 0.8, 1), 0)"},
+  "inputs": {"seats-range": {"variable": "seats", "event": "input"}, "plan-select": {"variable": "plan"}},
+  "outputs": {"monthly-out": {"from": "monthly", "decimals": 0, "prefix": "$", "suffix": "/mo", "grouping": true, "reserve": 7}}
+}
+```
+
+Limits: names match `^[A-Za-z_][A-Za-z0-9_]{0,63}$`, are unique across values, tables and formulas, and are not a function name, `true` or `false`. At most 200 values, 50 tables (500 entries each, keys up to 64 characters, values finite numbers or strings up to 200 characters), 200 formulas (2,000 bytes each), 500 inputs and 500 outputs.
+
+- Number values: finite `initial`; optional finite `min`, `max`, `step` with `min <= initial <= max` and `step > 0`. Text values: `initial` up to 2,000 characters; optional `options` (1 to 100 strings up to 200 characters) that contain `initial`. Boolean values: boolean `initial`. `cssVar` (number and boolean only) writes `--fw-v-<name>` on `<html>`.
+- Inputs are keyed by an existing `input`, `select` or `textarea` node; `variable` names a value, not a formula; `event` is `input` (default) or `change`. Range and number inputs parse as numbers, checkboxes give booleans, and all inputs bound to one value stay in sync.
+- Outputs are keyed by an existing node; `from` names a value or formula; `decimals` 0 to 10 (default 0); `prefix` and `suffix` up to 32 characters; `grouping` (default false); `reserve` 1 to 64 characters of minimum width (default: the formatted initial value's length plus 2).
+- Formulas reference only known names, use tables only as the first argument of `lookup` or as arguments of `sum`, have no cycles, and are at most 512 tokens long with at most 64 levels of nesting.
+
+Grammar, lowest to highest precedence:
+
+```
+or     := and ( "||" and )*
+and    := cmp ( "&&" cmp )*
+cmp    := add ( ( "==" | "!=" | "<" | "<=" | ">" | ">=" ) add )?
+add    := mul ( ( "+" | "-" ) mul )*
+mul    := unary ( ( "*" | "/" | "%" ) unary )*
+unary  := ( "-" | "!" ) unary | pow
+pow    := atom ( "^" unary )?
+atom   := number | string | name | call | "(" or ")"
+```
+
+Strings are double quoted without `"` or `\`, up to 200 characters. Functions: `min`, `max` (one or more arguments), `round(x)` and `round(x, digits)` (digits 0 to 10), `floor`, `ceil`, `abs`, `clamp(x, lo, hi)`, `sum(a, ...)` (a table argument adds its numeric entries), `lookup(table, key)` and `lookup(table, key, fallback)` (key converted to text; missing key gives `fallback`, default 0) and `if(cond, a, b)`.
+
+Semantics: values are numbers, text or booleans. Arithmetic turns booleans into 1 and 0 and text into a number by trimming and parsing a decimal literal, else 0. Two texts compare as text, anything else as numbers. `&&`, `||`, `!` and `if` use truthiness: 0, empty text and false are false. `%` takes the sign of the dividend, `^` is right-associative, division or remainder by 0 gives 0, and any non-finite result becomes 0. A number converts to text without a decimal point when an integer, otherwise with up to 10 decimals and trailing zeros removed.
+
+Output formatting rounds half away from zero to `decimals` (`sign(x) * floor(|x| * 10^d + 0.5) / 10^d`), then writes exactly `decimals` digits with `.` as the decimal point, `,` thousands groups when `grouping`, then `prefix` and `suffix`. The Rust exporter and the JavaScript runtime produce identical strings.
+
+Export pre-renders every output with its formatted initial value, gives it `font-variant-numeric:tabular-nums` and `min-width:<reserve>ch` (plus `display:inline-block` for inline tags), sets `value` or `checked` on bound inputs from the initial value (and `min`, `max`, `step` from a number value when the node has none), and writes the `--fw-v-*` properties from the head boot script, so first paint already shows final numbers. The runtime `variables.js` parses and evaluates formulas without `eval`, writes an output only when its string changed, and exposes `globalThis.__formwebVariables = {get(name), set(name, value), subscribe(name, fn)}`. `node.remove` prunes inputs, outputs, scripts and search actions that name the removed node.
+
+## Page components and code sections (0.19.1)
+
+A code component gains `mode`, `poster` and two prop types. `mode` is `"isolated"` (default, an iframe) or `"page"` (runs in the page with full access; use it only for trusted code). `poster` is an owned asset path `/api/assets/<64 hex>.(png|jpg|jpeg|webp|gif|svg)`. The `color` prop is a 3, 4, 6 or 8 digit hex colour, an `rgb(`, `rgba(`, `hsl(` or `hsla(` function with digits, commas, spaces, dots, `%` and `/` only, or `var(--name)`; the `asset` prop is an owned asset path.
+
+A page component module exports `mount(root, props, ctx)` and may return nothing, a cleanup function or `{update(props), destroy()}`. `root` is a `div[data-fw-layer]` that the runtime creates inside the host with `position:absolute;inset:0`, so the component never changes the host's size.
+
+```ts
+interface ComponentContext {
+  host: HTMLElement; id: string; reduced: boolean;
+  theme(): 'dark' | 'light'; onTheme(fn: (mode: 'dark' | 'light') => void): () => void;
+  token(name: string): string;
+  asset(path: string): string;
+  progress(scene?: string): number;
+  onProgress(fn: (p: number) => void, scene?: string): () => void;
+  onFrame(fn: (now: number) => void): () => void;
+  visible(): boolean; onVisible(fn: (v: boolean) => void): () => void;
+  size(): { width: number; height: number }; onResize(fn: (s: { width: number; height: number }) => void): () => void;
+  variable(name: string): unknown; onVariable(name: string, fn: (v: unknown) => void): () => void;
+  ready(): void;
+}
+```
+
+`token(name)` reads the computed `--name` on `:root`; `asset(path)` maps an `/api/assets/<file>` prop value to its exported URL; `progress` and `onProgress` follow the nearest enclosing scene by default and return 0 without the motion group; `onFrame` is the shared loop, paused when hidden; `ready()` marks the first frame drawn and hides the poster.
+
+Export writes each enabled page component used on any page to `assets/components/<id>.js` with its compiled JavaScript unchanged. The host renders as the node's own element with `data-fw-component="<id>"` and, with a poster, a first child `<img data-fw-poster src alt="" decoding="async">`; route CSS keeps the host `position:relative` and the poster `display:block;width:100%;height:100%;object-fit:cover`. The page config holds `components.page = {host: {component, props}}` with asset props rewritten to exported URLs, and page instances render no iframe. `components.js` imports a module once when its host comes within one viewport, calls `mount`, and on `ready()` sets the poster to `visibility:hidden` so its box stays. An error keeps the poster, sets `data-fw-error` on the host and never logs a console error. Page instances are drawn on the canvas as the poster (or a dashed "Component" placeholder) and never run there.
+
+Code sections need `code.allowSections: true`. A section is `code.sections.<node> = {enabled,html?,css?,js?,module?,poster?}` with `html` up to 512 KiB, `css` 256 KiB, `js` 512 KiB, `module` boolean and `poster` an owned image path. The host node must have no children. Export renders the host's open tag, `html` raw and the close tag; appends `css` to that route's page stylesheet; and, when `js` exists, writes `assets/sections/<node>.js` and loads it with `<script src defer>` right after the host. A classic script is wrapped as `(function(host){ ...js... })(document.querySelector('[data-fw-node="<node>"]'))`; with `module: true` it is a module with the prelude `const host=document.querySelector(...)` and `type="module"`. Section code never runs on the canvas. The editor's Import HTML file moves `<style>` contents to `css`, inline `<script>` contents to `js` and the remaining body markup to `html`; external scripts and stylesheets stay in `html`.
+
+Preview responses under `/preview/<token>/` carry `Content-Security-Policy: sandbox allow-scripts allow-forms allow-popups`, and `/api/` or `/mcp` requests with `Origin: null` (or `Sec-Fetch-Site: cross-site`) are refused with 403 unless they come from a verified preview runtime or forms path, so a page component cannot reach the editor API.
+
+SVG assets: `POST /api/assets` accepts `image/svg+xml` up to 2 MiB when it parses as XML with an `svg` root and contains no `<!DOCTYPE`, `<!ENTITY`, `script`, `foreignObject`, `iframe`, `embed` or `object` elements, no attribute starting with `on`, no `javascript:`, no `href` or `xlink:href` value that does not start with `#`, no `@import`, and no `url(` other than `url(#`. It is stored as `<sha256>.svg`, served as `image/svg+xml` with a locked-down Content-Security-Policy, carried in the `.fweb` envelope and bundled into exports like other images.
