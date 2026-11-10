@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.0 · 2026-11-09
+
+- Pages can move: scroll scenes pin a stage while the visitor scrolls and drive any element's opacity, transforms, filters, clip path and colours through keyframes, with smoothing, staggered children and markers that fire actions. Reveals, marquees, spins and keyframe loops, counters, split-text and typewriter reveals, and ghost-typed placeholders join them, all authored as data with `motion.set` and run by one small runtime in exported pages only. Reduced motion shows each scene's settled state.
+- Visitors can drag and throw cards with inertia, flip them, tilt panels and follow a preview under the pointer; accordions, tabs with a sliding indicator and filter chips work from the keyboard; buttons can copy text, scroll to a point in a scene, play and pause video, open a picture in a lightbox and switch the theme.
+- Sites get light and dark themes: a second value for any token, a theme the visitor picks or the system's, and elements shown in one theme only. The theme is set before the first frame, so nothing flashes.
+- Video (MP4 and WebM up to 64 MiB) and WOFF2 fonts (up to 4 MiB) upload, preview, save in `.fweb` files and bundle into exports. Fonts are preloaded and use `font-display: optional` by default.
+- The editor gains Transform 3D, Effects (blend modes, clip paths, gradient masks, filters), Media (video options, srcset, sizes, decoding, fetch priority), Themes and Fonts, a Video card in Insert, and a Dark and Light switch for the canvas. Every new string is in all 26 languages.
+- Exported pages built with every new feature report no console errors and no layout shift in dark and light, at 390 px, and under a 4x slower CPU and network.
+
 ## 0.18.9 · 2026-11-04
 
 - The README is rewritten to the Form family layout with real screenshots of the editor, and the old README icon svg is removed.
