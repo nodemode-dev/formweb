@@ -1,5 +1,9 @@
 # Frontend context map
 
+## Base URL help, and the footer button in every dialog · v0.20.1 (2026-11-10)
+
+`main.ts` and `i18n/keys.ts`: the Base URL field's help in the page inspector ends with "Leave it empty to keep the https://example.com placeholder." (the grey placeholder was already there). The Turn K footer status button was checked in all 19 dialogs.
+
 ## Status actions in dialogs, clearing the Base URL, and one name · v0.20.0 (2026-11-10)
 
 `main.ts`: `status()` also writes its action into `dialogStatusAction`, a text button in the dialog footer between the status and Close, and sets the footer status's `title` to the full message; `openDialog` hides the button whenever a dialog opens, so a stale button never sits beside an empty message; the footer button closes the dialog and then runs the action through `run`, so Set the base URL reaches the field behind it. The Base URL field sends `baseUrl: trimmed || null`, so emptying it removes the setting. `styles/app.css`: `.dialog-status` is clamped to two lines (`-webkit-line-clamp: 2`, `min-width: 0`) and `.dialog-footer` keeps its 56 px; W1 first raised every footer to 72 px to fit a three-line warning, and the director replaced that with the clamp, since the full text stays in the title and the status bar. `.dialog-status-action` matches `.status-action`. `features/authoring.ts`: the `seo-origin` template is titled Base URL and SEO settings and its description names the base URL. Two keys appended to `i18n/keys.ts` (2516 in all) and the 23 array locales, plus one fr-CA override; the old Site origin keys stay unused.

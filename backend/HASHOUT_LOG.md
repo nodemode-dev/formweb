@@ -1,5 +1,11 @@
 # Backend context
 
+## Clip pastes that stream to disk · v0.20.1 (2026-11-10)
+
+`clips.py`, `fragment_routes.py` and `assets.py` `check_declared_file`: a paste fetches each clip asset straight into a staged `.stage-*.part` file in the asset folder with a running sha256, checks it like embedded bytes (digest, the type's size limit, magic bytes, svg checks; files over 8 MiB are judged from their first bytes) and stores the files only after `node.paste` succeeds; every refusal removes the staged files. The 409 for missing assets and embedded base64 assets are unchanged.
+
+Checked: a 300 MiB clip raised the destination's peak memory by 365 MiB in 0.20.0 and by 2 MiB now.
+
 ## A clip lifetime setting, and an unset base URL · v0.20.0 (2026-11-10)
 
 The executor spec is `TURN_K_SPEC.md` in the 0.20.0 planning sidecar (planned as 0.19.10; `tests/test_f4_versions.py` keeps the patch number to one digit, so the release is 0.20.0).

@@ -1,5 +1,9 @@
 # Native context
 
+## Copies of copies keep short ids, and copies keep their behaviors · v0.20.1 (2026-11-10)
+
+`formweb-engine/src/advanced.rs`: a copy (paste, `node.duplicate`, `page.duplicate`) replaces an HTML id ending the engine added earlier (`-copy-N` or `-page-N`) with its own instead of appending another, when the result is free in the site; otherwise it appends as before. Author ids such as `step-copy` or `hero-2` are never shortened; an author id that itself ends in `-copy-N` or `-page-N` is renumbered like an engine one. Behavior timeline and overlay ids get the same swap on their leading `copy-N-`. Links inside the copy (label `for`, `aria-labelledby`, `href="#id"`, node interactions and behavior actions with a `#id` url) follow to the copy's own ids. Also fixed: copying a node used to drop its `behaviors.nodes` entry (its button actions); copies now keep it, pointed at the copy.
+
 ## The audit's base URL test · v0.19.9 (2026-11-10)
 
 The executor spec is `TURN_J_SPEC.md` in the 0.19.9 planning sidecar.
