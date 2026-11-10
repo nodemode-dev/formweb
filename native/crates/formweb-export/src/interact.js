@@ -446,9 +446,14 @@
       case 'media': media(step, el); break;
       case 'lightbox': out = lightbox(step, el); break;
       case 'toggle-theme': theme(); break;
+      default: {
+        const handler = globalThis.__formwebActions && globalThis.__formwebActions[step.action];
+        if (handler) out = handler(step, el, ctx);
+      }
     }
     if (out && out.catch) out.catch(() => {});
   };
+  globalThis.__formwebRun = run;
 
   const bind = (el, step) => {
     const go = ctx => run(step, el, ctx || {});
@@ -458,6 +463,7 @@
       case 'click': press(el, e => { if (e.type === 'click' && el.matches('a,button')) e.preventDefault(); go(); }); break;
       case 'hover': el.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') go(); }); break;
       case 'change': el.addEventListener('change', () => go({ value: el.value })); break;
+      case 'input': el.addEventListener('input', () => go({ value: el.value })); break;
       case 'submit': {
         const form = el.matches('form') ? el : el.closest('form') || el.querySelector('form');
         if (form) form.addEventListener('submit', e => { e.preventDefault(); const field = form.querySelector('input:not([type=submit]):not([type=button]),textarea,select'); go({ value: field ? field.value : '' }); });
