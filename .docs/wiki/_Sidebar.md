@@ -8,6 +8,7 @@
 
 - [[Engine]]
 - [[Advanced-Studio]]
+- [[Library]]
 - [[Agents-and-MCP]]
 - [[Languages]]
 - [[Project-Format]]

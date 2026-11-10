@@ -51,6 +51,18 @@ Export collection CSV, edit its typed values, then upload it through Import coll
 
 Locales stores node text and page metadata dictionaries. Studio > Localization & SEO adds translated page routes/media, all-locale output, site origin, metadata templates, JSON-LD and robots rules. CMS items can have translated values, slug and status. Connected providers can propose translations for explicit review at an expected revision. Missing translations still need editorial review.
 
+## Library
+
+The Library tab in the left rail holds finished sections, design presets and starter sites. It has three views: Sections, Kits and Import HTML.
+
+Sections shows category chips (Product site, Scroll story, Portfolio hero, Prompt hero, Support, Not found, Chrome), a search field that matches name, tags, product and description, and a grid of cards with a thumbnail, the name and a badge when the section uses a page component. Select a card to open its detail in place: a larger thumbnail, a description, the fields you can re-cast before inserting (a colour field with a swatch for the tint, text, links, pictures) and Insert section. Insert places the section after the selected top-level section, or at the end of the page, as one undo step, and selects its root. Inserting the same section twice gives two independent copies. A note under the button warns when a section shares variables with one already on the site.
+
+An inserted section is built from your site's tokens and text presets, so changing a token restyles it. Inserting also adds only what the site is missing from the section's preset (tokens, light values, the font, text presets, root styles) and never overwrites your own values.
+
+Kits lists presets and starters. Apply preset sets every value the preset defines, including ones you changed, and is one undo step. Use starter asks for a product name and a tint, then adds the starter's pages and sections in one step; the first page replaces an empty home page.
+
+Import HTML turns a pasted page, or an `.html` file you pick, plus optional CSS into one code section on the page. Code sections must be allowed for the site, which Import HTML turns on. Relative pictures and scripts in the pasted page are not brought along, and the section does not run on the canvas, so open Preview to see it. [The library guide](LIBRARY.md) describes the template format, components, routes and limits.
+
 ## Interactions
 
 The Content inspector edits the first legacy click/hover/scroll interaction while preserving other actions. Studio > Motion & forms adds hover/focus/press styles, query/session visibility conditions, reveal/easing, linked-instance variants, ordered timeline tracks and labeled overlays. Define a referenced timeline or overlay before binding its action. Compiled Preview consumes these same runtime behaviors.

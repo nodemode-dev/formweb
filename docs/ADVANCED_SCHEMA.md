@@ -209,3 +209,25 @@ Code sections need `code.allowSections: true`. A section is `code.sections.<node
 Preview responses under `/preview/<token>/` carry `Content-Security-Policy: sandbox allow-scripts allow-forms allow-popups`, and `/api/` or `/mcp` requests with `Origin: null` (or `Sec-Fetch-Site: cross-site`) are refused with 403 unless they come from a verified preview runtime or forms path, so a page component cannot reach the editor API.
 
 SVG assets: `POST /api/assets` accepts `image/svg+xml` up to 2 MiB when it parses as XML with an `svg` root and contains no `<!DOCTYPE`, `<!ENTITY`, `script`, `foreignObject`, `iframe`, `embed` or `object` elements, no attribute starting with `on`, no `javascript:`, no `href` or `xlink:href` value that does not start with `#`, no `@import`, and no `url(` other than `url(#`. It is stored as `<sha256>.svg`, served as `image/svg+xml` with a locked-down Content-Security-Policy, carried in the `.fweb` envelope and bundled into exports like other images.
+
+## Section library (0.19.2)
+
+The library ships section templates, page components, presets and starters as data under `library/` and expands them into ordinary commands. The full guide is [LIBRARY.md](LIBRARY.md); this section is the contract.
+
+Routes (reads authorize `read`, writes `edit`; each write is one `/api/batch` with the current revision, so one undo step):
+
+| Route | Body | Result |
+| --- | --- | --- |
+| `GET /api/library` | | `{categories, sections, components, presets, starters}` summaries |
+| `GET /api/library/thumbs/{id}.webp` | | thumbnail, `Cache-Control: no-cache` |
+| `GET /api/library/components/{id}/poster.webp` | | component poster, `no-cache` |
+| `POST /api/library/sections/{id}/insert` | `{parent?, index?, values?, page?, updateComponents?}` | `{root, warnings}` plus the batch result |
+| `POST /api/library/presets/{id}/apply` | `{mode?: "all" \| "missing", page?}` | `{changed}` plus the batch result |
+| `POST /api/library/starters/{id}/apply` | `{values?, updateComponents?}` | `{pages, warnings}` plus the batch result |
+| `POST /api/library/import-html` | `{html, css?, name?, parent?, index?, page?}` | `{root, warnings}` plus the batch result |
+
+A section template is `formweb-section` version 1 with the keys `id`, `name`, `category`, `tags`, `product`, `description`, `source`, `preset`, `components`, `fields`, `tree`, `commands`, optional `behaviors` and optional `properties`. A tree node has only `key`, `tag`, `name`, `text`, `attrs`, `styles`, `breakpoints` and `children`; each becomes a `node.add` whose id is `<key>-<suffix>`. Placeholders are `$parent` (the whole string), `@@key@@` (a node id) and `{{field}}` (a field value; the raw value when it is the whole string). Fields have types `text` (400 characters), `longtext` (4,000), `color` (hex), `url`, `asset` and `number`. `commands` run after the tree; `extension.set` and `design.set` are refused in a template. `behaviors` is merged into the `behaviors` group with one `extension.set` at the end of the batch, and `properties` into the registered properties with one `design.set`, each keeping what the site already has. A component manifest is `formweb-component` version 1 whose `props` descriptors carry only `type`, `required` and `default`.
+
+Insert applies the template's preset in mode `missing` (only tokens, light values, fonts, text presets and root styles the site lacks), while the preset route's default mode `all` replaces every value the preset defines. Insert also owns the bundled media the template references as `/api/assets/<sha256>.<ext>` and merges missing built components into the `code` group. Import HTML takes the whole body into one code section, so `html` up to 512 KiB, `css` 256 KiB and `js` 512 KiB apply, and it replaces the formai kit's `reduced`, `onTheme` and `token` helpers with an inline shim.
+
+Export change: the route stylesheet keeps a token only when something on the route references it with `var(--name)`. Page component sources and props, component instances on the route, and code section `html`, `css` and `js` now count as references, so a token that only a component or a code section reads is no longer dropped from the export.

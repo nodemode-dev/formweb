@@ -8,6 +8,10 @@ The compiler emits the checked function as formwebMountContract. Exported compon
 
 Install Node and the frontend dependencies using ./formweb install before building code components. The feature does not add a separate dependency graph or execute package install scripts supplied by component source. Arbitrary remote imports are unavailable under the exported sandbox policy.
 
+## Page mode
+
+A component can also run in the page instead of an iframe (mode `page`, 0.19.1), with a `ctx` object for tokens, scroll scene progress, the theme, variables and a shared frame loop. Page mode runs with full access to the page, so use it only for trusted code. The first-party components that ship with FormWeb are page components: their manifests, the source rules (no dependencies, 256 KiB), the `ctx` API, reduced motion and WebGL fallbacks, posters and the build step are described in [LIBRARY.md](LIBRARY.md), and the contract is in [ADVANCED_SCHEMA.md](ADVANCED_SCHEMA.md).
+
 ## Observed build behavior
 
 The pinned TypeScript 7.0.2 compiler successfully built a typed heading component. A string assigned to a number produced a TypeScript diagnostic, a wrongly typed default was rejected, and an enabled:false request was rejected. The first compiler probe used a removed Classic module-resolution option; the build configuration was corrected to Bundler resolution and the successful run was observed afterward. Exported sandbox rendering is recorded separately in the release verification.
