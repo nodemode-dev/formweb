@@ -25,9 +25,9 @@ export async function request<T>(path: string, body?: unknown, method?: string):
   if (['/api/projects/save', '/api/publish', '/api/audit', '/api/preview'].includes(path) || path.startsWith('/api/libraries') || path.startsWith('/api/cms/') || path.startsWith('/api/branches') || path.startsWith('/api/providers/')) await queue.catch(() => undefined);
   const response = await fetch(apiBase + path, {
     method: method || (body === undefined ? 'GET' : 'POST'),
-    headers: { ...authHeaders(), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+    headers: { ...authHeaders(), ...(body === undefined ? {} : { 'Content-Type': body instanceof Blob ? (body.type || 'application/octet-stream') : 'application/json' }) },
     credentials: 'same-origin',
-    body: body === undefined ? undefined : JSON.stringify(body)
+    body: body === undefined ? undefined : body instanceof Blob ? body : JSON.stringify(body)
   });
   if (!response.ok) {
     let detail = `${response.status} ${response.statusText}`;

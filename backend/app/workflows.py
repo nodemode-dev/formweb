@@ -1,6 +1,6 @@
 import json
 
-from .assets import restore_project_assets
+from .assets import restore_archive_assets, restore_project_assets
 from .authoring_tools import AUTHORING_BY_NAME, dispatch as authoring_dispatch
 from .code_components import build_component
 from .content_services import export_csv, import_csv, import_library, list_libraries, review_library, save_library
@@ -8,11 +8,11 @@ from .engine import EngineError
 from .service import studio
 
 
-async def load_native(native):
+async def load_native(native, archive=None):
     studio.access.authorize('edit')
     if not isinstance(native, dict) or not isinstance(native.get('site'), dict):
         raise EngineError('Native project requires a site object.')
-    if native.get('format', 'com.nodemode.formweb') != 'com.nodemode.formweb' or native.get('version', 1) != 1:
+    if native.get('format', 'com.nodemode.formweb') != 'com.nodemode.formweb' or native.get('version', 1) != (1 if archive is None else 2):
         raise EngineError('Unsupported native project format or version.')
     if len(json.dumps(native).encode()) > 64 * 1024 * 1024:
         raise EngineError('Native project exceeds 64 MiB.', 413)
@@ -30,7 +30,10 @@ async def load_native(native):
         for site in checkpoint['undo'] + checkpoint['redo']:
             if not isinstance(site, dict) or site.get('id') != native['site']['id']:
                 raise EngineError('Native checkpoint history must belong to this project.')
-    restore_project_assets(native)
+    if archive is None:
+        restore_project_assets(native)
+    else:
+        restore_archive_assets(archive, native)
     return await studio.mutate('restore', {'checkpoint': checkpoint}) if checkpoint else await studio.mutate('load', {'site': native['site']})
 
 
