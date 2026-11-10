@@ -89,7 +89,8 @@ pub fn styles(site:&Site)->String {
 pub fn motion_runtime(site:&Site)->String { if site.extensions.contains_key("motion") { format!("{}{}",include_str!("motion.js"),include_str!("interact.js")) } else { String::new() } }
 pub fn boot_script(site:&Site)->String {
     let themes=site.extensions.get("design").and_then(|v|v.get("themes"));let motion=site.extensions.contains_key("motion");
-    if themes.is_none()&&!motion { return String::new(); }
+    let preload:String=site.extensions.get("design").and_then(|d|d.get("fonts")).and_then(Value::as_object).map(|fonts|fonts.values().filter_map(|f|f.get("src").and_then(Value::as_str)).filter(|s|s.ends_with(".woff2")&&safe_url(s)).map(|s|format!("<link rel=\"preload\" as=\"font\" type=\"font/woff2\" href=\"{}\" crossorigin>",escape(s))).collect()).unwrap_or_default();
+    if themes.is_none()&&!motion { return preload; }
     let mut script=String::from("<script>(function(){var d=document.documentElement;");
     if let Some(themes)=themes {
         let default=themes.get("default").and_then(Value::as_str).unwrap_or("dark");let follow=themes.get("followSystem").and_then(Value::as_bool).unwrap_or(false);
@@ -97,6 +98,7 @@ pub fn boot_script(site:&Site)->String {
     }
     if motion { script.push_str("d.classList.add(window.matchMedia&&matchMedia(\"(prefers-reduced-motion: reduce)\").matches?\"fw-r\":\"fw-m\");"); }
     script.push_str("})();</script>");
+    script.push_str(&preload);
     script
 }
 fn design_css(site:&Site)->String {
@@ -120,7 +122,7 @@ fn design_css(site:&Site)->String {
     }
     if let Some(fonts)=design.get("fonts").and_then(Value::as_object) { for font in fonts.values() {
         let text=|key:&str,fallback:&'static str|font.get(key).and_then(Value::as_str).unwrap_or(fallback).to_string();
-        css.push_str(&format!("@font-face{{font-family:\"{}\";src:url(\"{}\") format(\"woff2\");font-weight:{};font-style:{};font-display:{}}}\n",text("family",""),text("src",""),text("weight","400"),text("style","normal"),text("display","swap")));
+        css.push_str(&format!("@font-face{{font-family:\"{}\";src:url(\"{}\") format(\"woff2\");font-weight:{};font-style:{};font-display:{}}}\n",text("family",""),text("src",""),text("weight","400"),text("style","normal"),text("display","optional")));
     } }
     css
 }

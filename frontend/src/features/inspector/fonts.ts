@@ -6,7 +6,7 @@ import { readFonts, type InspectorContext } from './context';
 import type { DesignFont, EditorState } from '../../types';
 
 const STYLES = ['normal', 'italic'];
-const DISPLAYS = ['swap', 'block', 'fallback', 'optional'];
+const DISPLAYS = ['optional', 'swap', 'block', 'fallback'];
 const MAX_FACES = 16;
 
 export interface FontsHandle {
