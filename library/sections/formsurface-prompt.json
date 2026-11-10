@@ -26,7 +26,6 @@
     "attrs": { "aria-labelledby": "@@title@@" },
     "styles": {
       "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
-      "--desk-tokens": "var(--on-ink) var(--z-base) var(--z-raised) var(--z-overlay)",
       "position": "relative",
       "isolation": "isolate",
       "display": "flex",

@@ -52,7 +52,9 @@
                 "styles": {
                   "display": "inline-flex", "align-items": "center", "min-height": "var(--control-h-compact)",
                   "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)",
-                  "letter-spacing": ".14em", "text-transform": "uppercase", "text-decoration": "underline"
+                  "letter-spacing": ".14em", "text-transform": "uppercase", "text-decoration": "underline",
+                  "text-decoration-color": "currentColor", "text-decoration-thickness": "1px", "text-underline-offset": "6px",
+                  "transition": "text-decoration-color .45s var(--ease-out)"
                 }
               }
             ]
@@ -93,7 +95,9 @@
                 "styles": {
                   "display": "inline-flex", "align-items": "center", "min-height": "var(--control-h-compact)", "margin": "0", "padding": "0",
                   "border": "0", "background": "none", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)",
-                  "letter-spacing": ".14em", "text-transform": "uppercase", "cursor": "pointer"
+                  "letter-spacing": ".14em", "text-transform": "uppercase", "cursor": "pointer",
+                  "text-decoration": "underline", "text-decoration-color": "transparent", "text-decoration-thickness": "1px", "text-underline-offset": "6px",
+                  "transition": "text-decoration-color .45s var(--ease-out)"
                 }
               },
               {
@@ -102,7 +106,9 @@
                 "styles": {
                   "display": "inline-flex", "align-items": "center", "min-height": "var(--control-h-compact)", "margin": "0", "padding": "0",
                   "border": "0", "background": "none", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)",
-                  "letter-spacing": ".14em", "text-transform": "uppercase", "cursor": "pointer"
+                  "letter-spacing": ".14em", "text-transform": "uppercase", "cursor": "pointer",
+                  "text-decoration": "underline", "text-decoration-color": "transparent", "text-decoration-thickness": "1px", "text-underline-offset": "6px",
+                  "transition": "text-decoration-color .45s var(--ease-out)"
                 }
               }
             ]
@@ -217,9 +223,9 @@
     { "command": "motion.set", "params": { "kind": "loops", "node": "@@pulse@@", "value": { "type": "keyframes", "duration": 1800, "iterations": "infinite", "easing": "ease-in-out", "keyframes": [ { "at": 0, "styles": { "opacity": "1" } }, { "at": 0.5, "styles": { "opacity": "0.3" } }, { "at": 1, "styles": { "opacity": "1" } } ] } } }
   ],
   "behaviors": {
-    "@@overview@@": { "states": { "hover": { "text-decoration": "underline" } } },
-    "@@aboutBtn@@": { "states": { "hover": { "text-decoration": "underline" } } },
-    "@@contactBtn@@": { "states": { "hover": { "text-decoration": "underline" } } },
+    "@@overview@@": { "states": { "hover": { "text-decoration-color": "currentColor" } } },
+    "@@aboutBtn@@": { "states": { "hover": { "text-decoration-color": "currentColor" } } },
+    "@@contactBtn@@": { "states": { "hover": { "text-decoration-color": "currentColor" } } },
     "@@mailRow@@": { "states": { "hover": { "background": "var(--control-hover)" } } },
     "@@btnGet@@": { "states": { "hover": { "background": "var(--hue)", "color": "var(--on-ink)" } } },
     "@@btnFeat@@": { "states": { "hover": { "background": "var(--ink)", "color": "var(--on-ink)" } } }

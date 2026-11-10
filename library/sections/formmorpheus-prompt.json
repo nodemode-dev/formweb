@@ -28,7 +28,6 @@
       "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
       "--hue-wash": "color-mix(in srgb, var(--hue) 14%, transparent)",
       "--hue-line": "color-mix(in srgb, var(--hue) 42%, transparent)",
-      "--tokens-used": "var(--inset) var(--float) var(--pane) var(--on-ink) var(--edge) var(--edge-strong) var(--ink-faint) var(--ink-soft) var(--bar-veil) var(--z-raised) var(--z-behind) var(--dur) var(--ease-out) var(--fs-s) var(--fs-l)",
       "position": "relative",
       "isolation": "isolate",
       "display": "flex",
@@ -130,7 +129,7 @@
                   "font-weight": "var(--weight-display)",
                   "line-height": "0.96",
                   "letter-spacing": "var(--track-display)",
-                  "max-width": "6.6em"
+                  "max-width": "5.8em"
                 },
                 "breakpoints": { "mobile": { "font-size": "42px", "max-width": "none" } },
                 "children": [
@@ -259,7 +258,7 @@
                         "attrs": { "data-dev": "ratio", "type": "button", "role": "radio", "aria-checked": "true" },
                         "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "height": "36px", "padding": "0 var(--sp-3)", "border": "1px solid var(--edge-strong)", "border-radius": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" },
                         "children": [
-                          { "key": "ra0-s", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 16 16", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "aria-hidden": "true" }, "styles": { "width": "14px", "height": "14px" }, "children": [{ "key": "ra0-r", "tag": "path", "name": "Shape", "attrs": { "d": "M4 3h8v10H4z" }, "styles": {} }] },
+                          { "key": "ra0-s", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 16 16", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "aria-hidden": "true" }, "styles": { "width": "14px", "height": "14px" }, "children": [{ "key": "ra0-r", "tag": "rect", "name": "Shape", "attrs": { "x": "4", "y": "3", "width": "8", "height": "10" }, "styles": {} }] },
                           { "key": "ra0-t", "tag": "span", "name": "Text", "text": "4:5", "attrs": {}, "styles": {} }
                         ]
                       },
@@ -270,7 +269,7 @@
                         "attrs": { "data-dev": "ratio", "type": "button", "role": "radio", "aria-checked": "false" },
                         "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "height": "36px", "padding": "0 var(--sp-3)", "border": "1px solid var(--edge-strong)", "border-radius": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" },
                         "children": [
-                          { "key": "ra1-s", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 16 16", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "aria-hidden": "true" }, "styles": { "width": "14px", "height": "14px" }, "children": [{ "key": "ra1-r", "tag": "path", "name": "Shape", "attrs": { "d": "M3 3h10v10H3z" }, "styles": {} }] },
+                          { "key": "ra1-s", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 16 16", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "aria-hidden": "true" }, "styles": { "width": "14px", "height": "14px" }, "children": [{ "key": "ra1-r", "tag": "rect", "name": "Shape", "attrs": { "x": "3", "y": "3", "width": "10", "height": "10" }, "styles": {} }] },
                           { "key": "ra1-t", "tag": "span", "name": "Text", "text": "1:1", "attrs": {}, "styles": {} }
                         ]
                       },
@@ -281,7 +280,7 @@
                         "attrs": { "data-dev": "ratio", "type": "button", "role": "radio", "aria-checked": "false" },
                         "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "height": "36px", "padding": "0 var(--sp-3)", "border": "1px solid var(--edge-strong)", "border-radius": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" },
                         "children": [
-                          { "key": "ra2-s", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 16 16", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "aria-hidden": "true" }, "styles": { "width": "14px", "height": "14px" }, "children": [{ "key": "ra2-r", "tag": "path", "name": "Shape", "attrs": { "d": "M2 4h12v8H2z" }, "styles": {} }] },
+                          { "key": "ra2-s", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 16 16", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "aria-hidden": "true" }, "styles": { "width": "14px", "height": "14px" }, "children": [{ "key": "ra2-r", "tag": "rect", "name": "Shape", "attrs": { "x": "2", "y": "4", "width": "12", "height": "8" }, "styles": {} }] },
                           { "key": "ra2-t", "tag": "span", "name": "Text", "text": "3:2", "attrs": {}, "styles": {} }
                         ]
                       }
@@ -485,7 +484,7 @@
         "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-5)", "min-height": "92px", "padding": "0 44px", "border-top": "1px solid var(--edge)" },
         "breakpoints": { "tablet": { "padding": "0 var(--gutter)" } },
         "children": [
-          { "key": "sl", "tag": "span", "name": "Strip label", "text": "Recent frames", "attrs": {}, "styles": { "flex": "none", "display": "flex", "align-items": "center", "justify-content": "center", "width": "12px", "height": "92px", "white-space": "nowrap", "transform": "rotate(-90deg)", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.14em", "text-transform": "uppercase" } },
+          { "key": "sl", "tag": "span", "name": "Strip label", "text": "Recent frames", "attrs": {}, "styles": { "flex": "none", "display": "flex", "align-items": "center", "justify-content": "center", "white-space": "nowrap", "writing-mode": "vertical-rl", "transform": "rotate(180deg)", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.14em", "text-transform": "uppercase" } },
           {
             "key": "ths",
             "tag": "div",

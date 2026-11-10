@@ -294,7 +294,7 @@
         "value": {
           "stage": "@@stage@@",
           "length": 440,
-          "offset": "64px",
+          "offset": "var(--bar-h)",
           "smoothing": 143,
           "reducedAt": 0,
           "tracks": [

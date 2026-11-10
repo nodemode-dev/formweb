@@ -200,7 +200,7 @@
         "value": {
           "stage": "@@stage@@",
           "length": 300,
-          "offset": "65px",
+          "offset": "var(--bar-h)",
           "smoothing": 200,
           "reducedAt": 1,
           "tracks": [

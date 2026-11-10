@@ -39,7 +39,7 @@
           "isolation": "isolate",
           "overflow": "hidden"
         },
-        "breakpoints": { "mobile": { "top": "97px", "height": "calc(100svh - 97px)" } },
+        "breakpoints": {},
         "children": [
           {
             "key": "host", "tag": "div", "name": "Orbit canvas",
@@ -158,7 +158,7 @@
                 "key": "chips", "tag": "ul", "name": "Filter chips",
                 "attrs": { "class": "fwc-orbit-chips", "aria-label": "Filter by panel" },
                 "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "var(--sp-2)", "margin": "0 0 var(--sp-4)", "padding": "0", "list-style": "none" },
-                "breakpoints": { "mobile": { "flex-wrap": "nowrap", "overflow-x": "auto", "margin-right": "calc(var(--or-g) * -1)", "padding-right": "var(--or-g)" } },
+                "breakpoints": { "mobile": { "flex-wrap": "nowrap", "overflow-x": "auto", "scrollbar-width": "none", "margin-right": "calc(var(--or-g) * -1)", "padding-right": "var(--or-g)" } },
                 "children": [
                   { "key": "li0", "tag": "li", "name": "Chip", "attrs": {}, "styles": { "padding": "0", "border": "1px solid var(--edge-strong)", "border-radius": "0", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em" }, "breakpoints": {}, "children": [ { "key": "chip0", "tag": "button", "name": "All", "attrs": { "type": "button", "data-or-chip": "all", "aria-pressed": "true" }, "styles": { "display": "block", "padding": "var(--sp-1) var(--sp-3)", "border": "0", "background": "transparent", "color": "var(--or-fg)", "font": "inherit", "letter-spacing": "inherit", "text-transform": "uppercase", "white-space": "nowrap", "cursor": "pointer" }, "breakpoints": {}, "children": [ { "key": "chip0t", "tag": "span", "name": "Label", "text": "All", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "chip0c", "tag": "span", "name": "Count", "text": "28", "attrs": {}, "styles": { "margin-left": "4px", "font-size": "0.8em", "opacity": "0.6" }, "breakpoints": {}, "children": [] } ] } ] },
                   { "key": "li1", "tag": "li", "name": "Chip", "attrs": {}, "styles": { "padding": "0", "border": "1px solid var(--edge-strong)", "border-radius": "0", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em" }, "breakpoints": {}, "children": [ { "key": "chip1", "tag": "button", "name": "Composition", "attrs": { "type": "button", "data-or-chip": "0", "aria-pressed": "false" }, "styles": { "display": "block", "padding": "var(--sp-1) var(--sp-3)", "border": "0", "background": "transparent", "color": "var(--or-fg)", "font": "inherit", "letter-spacing": "inherit", "text-transform": "uppercase", "white-space": "nowrap", "cursor": "pointer" }, "breakpoints": {}, "children": [ { "key": "chip1t", "tag": "span", "name": "Label", "text": "Composition", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "chip1c", "tag": "span", "name": "Count", "text": "5", "attrs": {}, "styles": { "margin-left": "4px", "font-size": "0.8em", "opacity": "0.6" }, "breakpoints": {}, "children": [] } ] } ] },
@@ -202,10 +202,12 @@
     "@@totop@@": { "states": { "hover": { "background": "var(--control)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } }
   },
   "commands": [
-    { "command": "variables.set", "params": { "kind": "values", "name": "orbitFilter", "value": { "type": "text", "initial": "all", "options": ["all", "0", "1", "2", "3", "4", "5", "6", "7"] } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "orbitShuffle", "value": { "type": "number", "initial": 0, "min": 0, "max": 1000000, "step": 1 } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%orbitFilter%%", "value": { "type": "text", "initial": "all", "options": ["all", "0", "1", "2", "3", "4", "5", "6", "7"] } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%orbitShuffle%%", "value": { "type": "number", "initial": 0, "min": 0, "max": 1000000, "step": 1 } } },
     { "command": "code.instance.set", "params": { "node": "@@host@@", "value": { "component": "orbit-constellation", "props": {
       "brandSuffix": "{{name}}",
+      "filterVariable": "%%orbitFilter%%",
+      "shuffleVariable": "%%orbitShuffle%%",
       "series": ["Composition", "Timeline", "Graph Editor", "Effects", "Flowchart", "Project", "Text", "Preview"],
       "sources": {
         "c": { "dark": ["https://media.formai.studio/media/formvfx/ui-comp/57ae465091f3.w1024.webp", "https://media.formai.studio/media/formvfx/ui-comp/57ae465091f3.w2400.webp"], "light": ["https://media.formai.studio/media/formvfx/ui-comp-light/8c7b898a3f0d.w1024.webp", "https://media.formai.studio/media/formvfx/ui-comp-light/8c7b898a3f0d.w2400.webp"], "w": 2400, "h": 1500, "name": "ui-comp", "alt": "The FormVFX composition view with the Graph Editor under it" },
@@ -215,7 +217,7 @@
       "frames": [{"title":"Orb and ring","series":0,"source":"c","x":0.38,"y":0.12,"w":0.24},{"title":"Title text","series":0,"source":"c","x":0.38,"y":0.36,"w":0.24},{"title":"Viewer controls","series":0,"source":"c","x":0.2,"y":0.5,"w":0.24},{"title":"Composition tab","series":0,"source":"c","x":0.2,"y":0.08,"w":0.22},{"title":"Launch Week","series":0,"source":"h","x":0.32,"y":0.2,"w":0.26},{"title":"Layer stack","series":1,"source":"c","x":0,"y":0.5,"w":0.25},{"title":"Time ruler","series":1,"source":"c","x":0.35,"y":0.4,"w":0.3},{"title":"Headline layer","series":1,"source":"h","x":0.4,"y":0.45,"w":0.3},{"title":"Ease curve","series":2,"source":"c","x":0.35,"y":0.55,"w":0.18},{"title":"Interpolation","series":2,"source":"c","x":0.38,"y":0.5,"w":0.25},{"title":"Orb layer","series":2,"source":"c","x":0.05,"y":0.6,"w":0.2},{"title":"Scale value","series":2,"source":"c","x":0.28,"y":0.6,"w":0.2},{"title":"Keyframes","series":2,"source":"c","x":0.34,"y":0.62,"w":0.15},{"title":"Effects list","series":3,"source":"c","x":0.8,"y":0.08,"w":0.2},{"title":"Bounce presets","series":3,"source":"h","x":0.78,"y":0.08,"w":0.22},{"title":"Effect groups","series":3,"source":"c","x":0.8,"y":0.22,"w":0.2},{"title":"Backdrop and Glow","series":4,"source":"f","x":0,"y":0.5,"w":0.25},{"title":"Layer nodes","series":4,"source":"f","x":0.3,"y":0.5,"w":0.25},{"title":"Composition node","series":4,"source":"f","x":0.45,"y":0.5,"w":0.2},{"title":"Project panel","series":5,"source":"c","x":0,"y":0.07,"w":0.22},{"title":"Effect controls","series":5,"source":"h","x":0,"y":0.05,"w":0.25},{"title":"Menus and tools","series":5,"source":"c","x":0,"y":0,"w":0.3},{"title":"Agent button","series":5,"source":"c","x":0.7,"y":0,"w":0.3},{"title":"Launch Week type","series":6,"source":"h","x":0.4,"y":0.3,"w":0.15},{"title":"Animate In","series":6,"source":"h","x":0.8,"y":0.18,"w":0.2},{"title":"Scale Bounce Loop","series":6,"source":"h","x":0.8,"y":0.3,"w":0.2},{"title":"Preview panel","series":7,"source":"c","x":0.8,"y":0.45,"w":0.2},{"title":"RAM preview","series":7,"source":"c","x":0.8,"y":0.55,"w":0.2}]
     } } } },
     { "command": "motion.set", "params": { "kind": "scenes", "node": "@@track@@", "value": {
-      "stage": "@@stage@@", "length": 400, "offset": "65px", "smoothing": 250,
+      "stage": "@@stage@@", "length": 400, "offset": "var(--bar-h)", "smoothing": 250,
       "tracks": [
         { "node": "@@hero@@", "keyframes": [ { "at": 0, "styles": { "opacity": "1", "transform": "translateY(0px)" } }, { "at": 0.03, "styles": { "opacity": "1", "transform": "translateY(0px)" } }, { "at": 0.1, "styles": { "opacity": "0", "transform": "translateY(-40px)" } }, { "at": 1, "styles": { "opacity": "0", "transform": "translateY(-40px)" } } ] },
         { "node": "@@hints@@", "keyframes": [ { "at": 0, "styles": { "opacity": "1" } }, { "at": 0.02, "styles": { "opacity": "1" } }, { "at": 0.06, "styles": { "opacity": "0" } }, { "at": 1, "styles": { "opacity": "0" } } ] },
@@ -234,15 +236,15 @@
     { "command": "motion.set", "params": { "kind": "actions", "node": "@@chap0@@", "value": [ { "trigger": "click", "action": "scroll-to", "to": "@@track@@", "progress": 0, "duration": 2400, "easing": "ease-in-out" } ] } },
     { "command": "motion.set", "params": { "kind": "actions", "node": "@@chap1@@", "value": [ { "trigger": "click", "action": "scroll-to", "to": "@@track@@", "progress": 1, "duration": 2400, "easing": "ease-in-out" } ] } },
     { "command": "motion.set", "params": { "kind": "actions", "node": "@@totop@@", "value": [ { "trigger": "click", "action": "scroll-to", "to": "@@track@@", "progress": 0, "duration": 2400, "easing": "ease-in-out" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@shuffle@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitShuffle", "formula": "orbitShuffle + 1" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip0@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitFilter", "value": "all" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitFilter", "formula": "if(orbitFilter == \"0\", \"all\", \"0\")" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip2@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitFilter", "formula": "if(orbitFilter == \"1\", \"all\", \"1\")" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip3@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitFilter", "formula": "if(orbitFilter == \"2\", \"all\", \"2\")" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip4@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitFilter", "formula": "if(orbitFilter == \"3\", \"all\", \"3\")" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip5@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitFilter", "formula": "if(orbitFilter == \"4\", \"all\", \"4\")" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip6@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitFilter", "formula": "if(orbitFilter == \"5\", \"all\", \"5\")" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip7@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitFilter", "formula": "if(orbitFilter == \"6\", \"all\", \"6\")" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip8@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "orbitFilter", "formula": "if(orbitFilter == \"7\", \"all\", \"7\")" } ] } }
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@shuffle@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitShuffle%%", "formula": "%%orbitShuffle%% + 1" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip0@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitFilter%%", "value": "all" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitFilter%%", "formula": "if(%%orbitFilter%% == \"0\", \"all\", \"0\")" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip2@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitFilter%%", "formula": "if(%%orbitFilter%% == \"1\", \"all\", \"1\")" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip3@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitFilter%%", "formula": "if(%%orbitFilter%% == \"2\", \"all\", \"2\")" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip4@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitFilter%%", "formula": "if(%%orbitFilter%% == \"3\", \"all\", \"3\")" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip5@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitFilter%%", "formula": "if(%%orbitFilter%% == \"4\", \"all\", \"4\")" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip6@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitFilter%%", "formula": "if(%%orbitFilter%% == \"5\", \"all\", \"5\")" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip7@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitFilter%%", "formula": "if(%%orbitFilter%% == \"6\", \"all\", \"6\")" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@chip8@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%orbitFilter%%", "formula": "if(%%orbitFilter%% == \"7\", \"all\", \"7\")" } ] } }
   ]
 }

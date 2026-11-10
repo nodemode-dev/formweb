@@ -25,7 +25,6 @@
     "attrs": {},
     "styles": {
       "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
-      "--fc-uses": "var(--pane) var(--float) var(--control) var(--on-ink) var(--fault) var(--ink-faint) var(--ink-soft) var(--edge-strong) var(--ground) var(--sp-1) var(--sp-2) var(--sp-3) var(--sp-5) var(--sp-7) var(--fs-xs) var(--fs-m) var(--fs-l) var(--fs-xl) var(--fs-2xl) var(--font-ui) var(--font-mono) var(--weight-display) var(--track-display) var(--dur-fast) var(--control-h) var(--control-h-compact) var(--icon-m) var(--z-raised) var(--z-dropdown) var(--z-overlay)",
       "position": "relative",
       "isolation": "isolate",
       "overflow": "hidden",

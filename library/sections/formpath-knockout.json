@@ -29,7 +29,7 @@
       "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
       "margin": "0",
       "padding": "0",
-      "scroll-margin-top": "64px",
+      "scroll-margin-top": "var(--bar-h)",
       "background": "var(--ground)",
       "color": "var(--ink)"
     },
@@ -58,7 +58,7 @@
       "params": {
         "kind": "scenes",
         "node": "@@section@@",
-        "value": { "stage": "@@stage@@", "length": 390, "offset": "64px", "smoothing": 0, "reducedAt": 0, "tracks": [{ "node": "@@stage@@", "keyframes": [{ "at": 0, "styles": { "opacity": "1" } }, { "at": 1, "styles": { "opacity": "1" } }] }] }
+        "value": { "stage": "@@stage@@", "length": 390, "offset": "var(--bar-h)", "smoothing": 0, "reducedAt": 0, "tracks": [{ "node": "@@stage@@", "keyframes": [{ "at": 0, "styles": { "opacity": "1" } }, { "at": 1, "styles": { "opacity": "1" } }] }] }
       }
     },
     {
