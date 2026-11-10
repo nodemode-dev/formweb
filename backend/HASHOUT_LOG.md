@@ -1,5 +1,15 @@
 # Backend context
 
+## Paste between installations · v0.19.6 (2026-11-10)
+
+The executor spec is `TURN_G_SPEC.md` in the 0.19.6 planning sidecar.
+
+`fragment_routes.py`: `fragment_of(node, embed=False)` (route and MCP) adds, with embed, `embedded {id: base64}` for the fragment's assets that exist and this identity can see, smallest first, until the next would pass `MAX_EMBED_BYTES` (16 MiB of raw bytes), and `notEmbedded [ids]` for the rest (too large, missing or not visible). `MAX_PASTE_BYTES` is 32 MiB, and the size middleware in `main.py` uses it for `/api/paste` (it rejected any body over 8 MiB before the route ran). `paste_body` reads `embedded` from the body or from inside the fragment, strips both `embedded` and `notEmbedded` before the engine sees the fragment, and for each named asset: present and visible is used; else embedded bytes pass strict base64 and `assets.check_declared` (id shape, digest equals the id, magic bytes match the id's type, size by type, SVG checks, at least 20 bytes) and are kept in memory; else the asset is missing and the answer is 409 naming it. Every asset is checked before anything is stored; bytes are written with `assets.ingest_declared` (which also confirms the stored id) only after `node.paste` succeeds, then owned by the current project like an upload. New refusals: 400 for a digest mismatch, bad base64, a non-object `embedded` or a truncated image; 415 for a type mismatch; 413 for an oversized asset.
+
+`authoring_tools.py`: `copy_element` gains `embed_assets` (boolean, default false); `paste_element` gains `embedded` and passes it through.
+
+Checked: `backend/venv/bin/python -m pytest -q` (115 pass, none added). Two PNGs copied with embed on 8702 pasted into 8712 and its export bundles both; without embed the paste answers 409 naming both and the revision is unchanged; one embedded and one missing, wrong bytes, bad base64 and non-image bytes each refuse with the store unchanged. A protected server with two bearer identities: one with no role in the asset's project gets 409 without bytes and 200 with them; one with a role there gets 200 without them. A 33.5 MB body answers 413 (Content-Length and chunked). The MCP tools were not called over `/mcp`; their code paths are pass-throughs.
+
 ## Copy and paste routes, and version 2 loads that read once · v0.19.5 (2026-11-10)
 
 The executor spec is `TURN_F_SPEC.md` in the 0.19.5 planning sidecar.

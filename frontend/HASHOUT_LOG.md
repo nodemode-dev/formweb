@@ -1,5 +1,11 @@
 # Frontend context map
 
+## Copies that paste in another FormWeb · v0.19.6 (2026-11-10)
+
+`main.ts`, copy and paste helper region: `copyFragment` posts `{node, embed: true}` and returns how many assets are in `notEmbedded`; `notEmbeddedNote(count)` appends one of two keyed sentences (one asset, or `{n}` assets) to the Copy and Cut statuses. `pasteFragmentText` lifts `embedded` out of the clipboard fragment and sends it beside the bare fragment in the `/api/paste` body. A 409 already reached the status through `request()`; it now names the assets the other FormWeb lacks. Two keys added to `i18n/keys.ts` and all locales.
+
+Checked in headless Chrome with two tabs on 8703 and 8713: an image copied in one installation pastes and renders in the other (naturalWidth 40); Cut puts `embedded` on the clipboard; a fragment naming an asset the target lacks, without bytes, shows the 409 detail in the red status and adds nothing; after a vector Rotate, Mod+D repeats the transform (node count unchanged) and Shift+Mod+D duplicates (node count plus one). CLS 0, no page errors. Not run live: a copy with more than 16 MiB of assets, so the note itself was only checked by reading.
+
 ## Copy, cut and paste elements · v0.19.5 (2026-11-10)
 
 The executor spec is `TURN_F_SPEC.md` in the 0.19.5 planning sidecar.

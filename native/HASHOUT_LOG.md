@@ -1,5 +1,17 @@
 # Native context
 
+## Fragments that keep their look and content · v0.19.6 (2026-11-10)
+
+The executor spec is `TURN_G_SPEC.md` in the 0.19.6 planning sidecar.
+
+Engine (`formweb-engine/src/advanced.rs`; `lib.rs` unchanged): `fragment()` always adds `design {tokens, textPresets, themes}` and `collections`, empty when unused. `fragment_design` finds every `var(--name)` in the copied nodes' JSON and in all their entries (styles, breakpoint styles, motion values and entries), follows tokens whose values name other tokens, and takes each token as `{value, type?}` with its value in every `design.themes` theme (`themes` is `{default, followSystem, values {mode: {token: value}}}`, or `{}` when no theme value is used), plus the text presets named by the nodes' `design.applications` entries. `fragment_collections` takes the CMS collections named by `cms.bindings`, `cms.lists` and the nodes' own `binding.collection` (repeaters), definition and items, at most `COLLECTION_ITEM_CAP` (500) items; a larger one travels as its definition and the fragment gets a top-level `warnings` array. Version stays 1.
+
+`paste_design` and `paste_collections` run just before `import_node`; a fragment without the new keys pastes exactly as before. A missing token goes into `site.tokens` and `design.tokens`; an existing token with a different value keeps the site's and warns. Theme values are added only for tokens that were new or equal, and themes are created from the fragment's `default` and `followSystem` when the site has none; a differing theme value keeps the site's and warns. A text preset with a different definition keeps the site's and warns. A missing collection is added with its items after `validate_collection`; an existing one with a different name or fields is kept, adds no items and warns; with the same fields only missing items are added and a differing item with the same id warns once. Warnings go through the existing thread-local `warn()` list.
+
+Known limits: a collection that a copied collection's field refers to is not carried, and a binding that selects an item of a collection cut to its definition fails validation; in both cases the paste is refused and nothing changes.
+
+Checked: `cargo test --release --locked` (all pass, none added). A section using three tokens, a light theme value, a text preset and a list bound to a three-item collection pasted into a blank site: dark and light screenshots of the two exports are pixel-identical and both list the same items; a destination whose `brand` differs keeps it and warns, while the theme values are still added. The director's cross-app run repeated it between two installations and through FormPublisher's host.
+
 ## Fragments, paste and value-only remapping · v0.19.5 (2026-11-10)
 
 The executor spec is `TURN_F_SPEC.md` in the 0.19.5 planning sidecar.

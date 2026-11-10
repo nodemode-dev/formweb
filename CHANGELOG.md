@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.19.6 · 2026-11-10
+
+- A copied element keeps its look and content in another site: the copy carries the design tokens its styles and motion use (with their light and dark theme values), the text presets applied to it, and the CMS collections its lists and bindings read, with up to 500 items each. Pasting adds what the site lacks; where the site already has a different token, preset, theme value or collection under the same name, the site's own is kept and the paste says so.
+- Copy and paste between two FormWeb installations: Edit > Copy element and Cut element now carry the images and other files the element uses (up to 16 MiB), so a paste in another FormWeb brings them along, checked like an upload. The status says when some were too large to carry. A paste that cannot bring a file names it and changes nothing.
+- Agents: `copy_element` takes `embed_assets` and `paste_element` takes `embedded`; `POST /api/fragment` takes `embed`, and `POST /api/paste` accepts bodies up to 32 MiB.
+- Every new string is in all 26 languages.
+
 ## 0.19.5 · 2026-11-10
 
 - Copy, cut and paste elements: Edit > Copy element, Cut element and Paste element (Mod+C, Mod+X, Mod+V) and the layers context menu move an element with its motion, scripts, code sections, page components, variables and translations through the system clipboard, within a page, to another page or into another site on the same FormWeb. Text copy and paste in fields and panels keep working as before. Agents get `copy_element` and `paste_element` (103 MCP tools) and the `node.paste` command.
