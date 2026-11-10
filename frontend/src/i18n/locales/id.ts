@@ -2505,4 +2505,6 @@ export default [
   "Browser ini tidak mengizinkan penulisan ke papan klip di sini.",
   "Browser ini tidak mengizinkan pembacaan papan klip di sini. Klik di halaman lalu tempel dengan keyboard.",
   "Izinkan akses papan klip untuk menempel elemen, atau tempel dengan keyboard di halaman.",
+  "Satu aset terlalu besar untuk disematkan dan hanya bisa ditempel di FormWeb ini.",
+  "{n} aset terlalu besar untuk disematkan dan hanya bisa ditempel di FormWeb ini.",
 ] as readonly string[];

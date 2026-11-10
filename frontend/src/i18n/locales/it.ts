@@ -2505,4 +2505,6 @@ export default [
   "Questo browser non consente di scrivere negli appunti qui.",
   "Questo browser non consente di leggere gli appunti qui. Fai clic nella pagina e incolla con la tastiera.",
   "Consenti l'accesso agli appunti per incollare un elemento, oppure incolla con la tastiera nella pagina.",
+  "Una risorsa è troppo grande per essere incorporata e si potrà incollare solo in questo FormWeb.",
+  "{n} risorse sono troppo grandi per essere incorporate e si potranno incollare solo in questo FormWeb.",
 ] as readonly string[];

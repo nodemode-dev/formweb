@@ -2505,4 +2505,6 @@ export default [
   "Este navegador no permite escribir en el portapapeles aquí.",
   "Este navegador no permite leer el portapapeles aquí. Haz clic en la página y pega con el teclado.",
   "Permite el acceso al portapapeles para pegar un elemento, o pega con el teclado en la página.",
+  "Un recurso es demasiado grande para incrustarlo y solo se podrá pegar en este FormWeb.",
+  "{n} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en este FormWeb.",
 ] as readonly string[];

@@ -2505,4 +2505,6 @@ export default [
   "Ez a böngésző itt nem engedi a vágólapra írást.",
   "Ez a böngésző itt nem engedi a vágólap olvasását. Kattints az oldalra, és illessz be inkább billentyűzettel.",
   "Engedélyezd a vágólap elérését az elem beillesztéséhez, vagy illessz be billentyűzettel az oldalon.",
+  "Egy erőforrás túl nagy a beágyazáshoz, ezért csak ebbe a FormWebbe illeszthető be.",
+  "{n} erőforrás túl nagy a beágyazáshoz, ezért csak ebbe a FormWebbe illeszthető be.",
 ] as readonly string[];

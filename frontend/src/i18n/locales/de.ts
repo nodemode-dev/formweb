@@ -2505,4 +2505,6 @@ export default [
   "Dieser Browser erlaubt hier kein Schreiben in die Zwischenablage.",
   "Dieser Browser erlaubt hier kein Lesen der Zwischenablage. Klicke in die Seite und füge stattdessen mit der Tastatur ein.",
   "Erlaube den Zugriff auf die Zwischenablage, um ein Element einzufügen, oder füge mit der Tastatur in der Seite ein.",
+  "Ein Asset ist zu groß zum Einbetten und lässt sich nur in diesem FormWeb einfügen.",
+  "{n} Assets sind zu groß zum Einbetten und lassen sich nur in diesem FormWeb einfügen.",
 ] as readonly string[];

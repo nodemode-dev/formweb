@@ -2505,4 +2505,6 @@ export default [
   "Bu tarayıcı burada panoya yazmaya izin vermiyor.",
   "Bu tarayıcı burada panoyu okumaya izin vermiyor. Sayfaya tıklayın ve klavyeyle yapıştırın.",
   "Bir öğeyi yapıştırmak için pano erişimine izin verin veya sayfada klavyeyle yapıştırın.",
+  "Bir varlık gömülemeyecek kadar büyük ve yalnızca bu FormWeb içine yapıştırılabilir.",
+  "{n} varlık gömülemeyecek kadar büyük ve yalnızca bu FormWeb içine yapıştırılabilir.",
 ] as readonly string[];
