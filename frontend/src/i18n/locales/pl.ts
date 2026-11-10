@@ -2515,4 +2515,5 @@ export default [
   "Ustaw bazowy adres URL",
   "Bazowy adres URL i ustawienia SEO",
   "Ustaw bazowy adres URL używany przez linki kanoniczne, mapę witryny, główny plik 404.html i przenośną publikację.",
+  "Zostaw puste, aby zachować tekst zastępczy https://example.com.",
 ] as readonly string[];

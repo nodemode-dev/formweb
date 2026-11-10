@@ -2515,4 +2515,5 @@ export default [
   "Alap-URL beállítása",
   "Alap-URL és SEO-beállítások",
   "Az alap-URL beállítása, amelyet a kanonikus hivatkozások, a webhelytérkép, a gyökér 404.html és a hordozható közzététel használ.",
+  "Hagyja üresen, hogy megmaradjon a https://example.com helyőrző.",
 ] as readonly string[];

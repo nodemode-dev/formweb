@@ -2515,4 +2515,5 @@ export default [
   "Angiv basis-URL'en",
   "Basis-URL og SEO-indstillinger",
   "Angiv den basis-URL, som kanoniske links, sitemappet, 404.html i roden og bærbar udgivelse bruger.",
+  "Lad feltet stå tomt for at beholde pladsholderen https://example.com.",
 ] as readonly string[];

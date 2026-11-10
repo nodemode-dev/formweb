@@ -2515,4 +2515,5 @@ export const KEYS: readonly string[] = [
   "Set the base URL",
   "Base URL and SEO settings",
   "Set the base URL that canonical links, the sitemap, the root 404.html and portable publishing use.",
+  "Leave it empty to keep the https://example.com placeholder.",
 ];
