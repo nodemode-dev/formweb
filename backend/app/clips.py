@@ -6,17 +6,21 @@ paths into the asset store, so no bytes are copied). The token is 32 random byte
 other case answers the same 404. The paste side fetches only through `fetch_clip_assets`, which accepts a loopback origin
 with a numeric port and the exact path `/api/clips/<token>`, follows no redirects and caps every read."""
 import asyncio
+import hashlib
 import http.client
+import os
 import re
 import secrets
+import tempfile
 import time
+from pathlib import Path
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter
 from starlette.responses import FileResponse
 
 from .assets import ASSET_NAME, MIME_TYPES, SIZE_LIMITS
-from .config import CLIP_SECONDS, MAX_IMAGE_BYTES, PORT
+from .config import CLIP_SECONDS, DATA_DIR, MAX_IMAGE_BYTES, PORT
 from .engine import EngineError
 
 router = APIRouter()
@@ -95,54 +99,64 @@ def clip_target(clip) -> tuple[str, int, str]:
 
 
 def _fetch_one(host: str, port: int, token: str, name: str, limit: int, deadline: float):
-    """The bytes of one clip asset, or None for any answer but a plain 200 within the limit. Never follows a redirect."""
+    """One clip asset streamed into a staged file in the asset folder; (path, sha256 hex, size), or None for any answer but a plain 200 within the limit. Never follows a redirect, and no staged file is left on a None."""
+    folder = DATA_DIR / 'assets'
+    folder.mkdir(parents=True, exist_ok=True)
+    handle, temporary = tempfile.mkstemp(prefix='.stage-', suffix='.part', dir=folder)
+    staged = Path(temporary)
+    kept = False
     connection = http.client.HTTPConnection(host, port, timeout=FETCH_TIMEOUT)
     try:
-        connection.request('GET', f'/api/clips/{token}/{name}', headers={'Accept': 'application/octet-stream', 'Connection': 'close'})
-        response = connection.getresponse()
-        if response.status != 200:
-            return None
-        declared = response.getheader('Content-Length', '')
-        if declared and (not declared.isdecimal() or int(declared) > limit):
-            return None
-        data = bytearray()
-        while True:
-            if time.time() > deadline:
+        with os.fdopen(handle, 'wb') as out:
+            connection.request('GET', f'/api/clips/{token}/{name}', headers={'Accept': 'application/octet-stream', 'Connection': 'close'})
+            response = connection.getresponse()
+            if response.status != 200:
                 return None
-            chunk = response.read(min(1024 * 1024, limit + 1 - len(data)))
-            if not chunk:
-                break
-            data.extend(chunk)
-            if len(data) > limit:
+            declared = response.getheader('Content-Length', '')
+            if declared and (not declared.isdecimal() or int(declared) > limit):
                 return None
-        return bytes(data)
+            digest = hashlib.sha256()
+            size = 0
+            while True:
+                if time.time() > deadline:
+                    return None
+                chunk = response.read(min(1024 * 1024, limit + 1 - size))
+                if not chunk:
+                    break
+                size += len(chunk)
+                if size > limit:
+                    return None
+                digest.update(chunk)
+                out.write(chunk)
+        kept = True
+        return staged, digest.hexdigest(), size
     except (OSError, http.client.HTTPException, ValueError):
         return None
     finally:
         connection.close()
+        if not kept:
+            staged.unlink(missing_ok=True)
 
 
-def _fetch_all(host: str, port: int, token: str, names: list, total_limit: int) -> dict:
+def _fetch_all(host: str, port: int, token: str, names: list, total_limit: int, fetched: dict) -> None:
     deadline = time.time() + FETCH_DEADLINE
-    fetched: dict = {}
     spent = 0
     for name in names:
         limit = min(SIZE_LIMITS.get(name.rsplit('.', 1)[1], MAX_IMAGE_BYTES), total_limit - spent)
         if limit <= 0:
             continue
-        data = _fetch_one(host, port, token, name, limit, deadline)
-        if data is not None:
-            fetched[name] = data
-            spent += len(data)
-    return fetched
+        got = _fetch_one(host, port, token, name, limit, deadline)
+        if got is not None:
+            fetched[name] = got
+            spent += got[2]
 
 
-async def fetch_clip_assets(clip, names: list) -> dict:
-    """Fetch the named assets through a validated clip; {name: bytes} holds what arrived, the rest are missing.
-    Only names the clip lists are asked for, and no request is made unless the clip link passes `clip_target`."""
+async def fetch_clip_assets(clip, names: list, fetched: dict) -> None:
+    """Fetch the named assets through a validated clip into staged files; `fetched` is filled in place with {name: (path, sha256, size)} for what arrived, the rest are missing.
+    The caller removes every staged file it was given. Only names the clip lists are asked for, and no request is made unless the clip link passes `clip_target`."""
     host, port, token = clip_target(clip)
     listed = clip.get('ids')
     wanted = [name for name in names if isinstance(listed, list) and name in listed and ASSET_NAME.fullmatch(name)]
     if not wanted:
-        return {}
-    return await asyncio.to_thread(_fetch_all, host, port, token, wanted, MAX_CLIP_BYTES)
+        return
+    await asyncio.to_thread(_fetch_all, host, port, token, wanted, MAX_CLIP_BYTES, fetched)

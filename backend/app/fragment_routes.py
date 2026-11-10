@@ -11,7 +11,7 @@ import json
 
 from fastapi import APIRouter, Request
 
-from .assets import ASSET_NAME, ASSET_REF, SIZE_LIMITS, asset_path, check_declared, ingest_declared, own_asset, visible_assets
+from .assets import ASSET_NAME, ASSET_REF, MIME_TYPES, SIZE_LIMITS, asset_path, check_declared, check_declared_file, ingest_declared, ingest_file, own_asset, visible_assets
 from .clips import MAX_CLIP_BYTES, clip_target, create_clip, fetch_clip_assets
 from .config import MAX_IMAGE_BYTES
 from .engine import EngineError
@@ -140,7 +140,18 @@ async def paste_fragment(request: Request):
 
 
 async def paste_body(body: dict):
-    """Check and paste one fragment as one undo step; shared by the route and the MCP tool."""
+    """Check and paste one fragment as one undo step; shared by the route and the MCP tool.
+    Clip assets stream into staged files that are removed on every way out; the store only receives them after the paste succeeded."""
+    staged: dict = {}
+    try:
+        return await _paste_staged(body, staged)
+    finally:
+        for left in staged.values():
+            left[0].unlink(missing_ok=True)
+        staged.clear()
+
+
+async def _paste_staged(body: dict, staged: dict):
     studio.access.authorize('edit')
     fragment = body.get('fragment')
     names = _check(fragment)
@@ -187,14 +198,14 @@ async def paste_body(body: dict):
         check_declared(name, data)  # digest, size by type, magic bytes, mime: possession is proved before anything is stored
         adopt[name] = data
     if remote:
-        fetched = await fetch_clip_assets(clip, remote)
+        await fetch_clip_assets(clip, remote, staged)
         for name in remote:
-            if name not in fetched:
+            if name not in staged:
                 missing.append(name)
         if not missing:
             for name in remote:
-                check_declared(name, fetched[name])  # same proof as embedded bytes, before anything is stored
-                adopt[name] = fetched[name]
+                path, digest, size = staged[name]
+                check_declared_file(name, path, size, digest)  # same proof as embedded bytes, before anything is stored
     if missing:
         raise EngineError('This FormWeb does not have these assets: ' + ', '.join(missing) + '. Nothing was pasted.', 409)
     params: dict = {'fragment': fragment}
@@ -213,6 +224,10 @@ async def paste_body(body: dict):
     result = await studio.mutate('exec', payload)
     for name, data in adopt.items():
         ingest_declared(name, data)
+    for name, (path, digest, size) in list(staged.items()):
+        stored = ingest_file(path, digest, MIME_TYPES[name.rsplit('.', 1)[1]], name)
+        if stored['id'] != name:
+            raise EngineError('Embedded bytes do not match the asset id ' + name + '.', 400)
     for name in names:
         own_asset(studio, name)
     studio.access.record('node.paste', {'assets': len(names)})

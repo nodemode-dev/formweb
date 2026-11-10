@@ -325,6 +325,25 @@ def check_declared(name: str, data: bytes) -> str:
     return MIME_TYPES[extension]
 
 
+def check_declared_file(name: str, staged: Path, size: int, digest: str) -> str:
+    """check_declared for a staged file whose size and sha256 were counted while it was written; files up to MAX_IMAGE_BYTES are read whole, larger ones are judged from their first bytes."""
+    if not ASSET_NAME.fullmatch(name):
+        raise EngineError('Asset id is not valid: ' + name[:80], 400)
+    if digest != name.split('.', 1)[0]:
+        raise EngineError('Embedded bytes do not match the asset id ' + name + '.', 400)
+    if size <= MAX_IMAGE_BYTES:
+        return check_declared(name, staged.read_bytes())
+    with staged.open('rb') as stream:
+        head = stream.read(64)
+    wanted = name.rsplit('.', 1)[1]
+    extension = sniff_extension(head, MIME_TYPES[wanted])
+    if extension != wanted:
+        raise EngineError('Embedded bytes do not match the type of ' + name + '.', 415)
+    if size > SIZE_LIMITS.get(extension, MAX_IMAGE_BYTES):
+        raise EngineError('Embedded asset is too large: ' + name + '.', 413)
+    return MIME_TYPES[extension]
+
+
 def ingest_declared(name: str, data: bytes) -> dict:
     """Store bytes under the id they declare, after check_declared; the stored id always equals `name`."""
     stored = ingest(data, check_declared(name, data), name)
