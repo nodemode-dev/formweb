@@ -142,6 +142,10 @@ def problems_in(library, lib: Path) -> list[str]:
             bad(where, f'@@{ref}@@ names no node key')
         for ref in sorted(set(library.FIELD_REF.findall(text)) - set(fields)):
             bad(where, '{{' + ref + '}} names no field')
+        declared = {m.group(1) for c in data.get('commands') or [] if isinstance(c, dict) and c.get('command') == 'variables.set'
+                    for m in [library.VAR_REF.fullmatch(str((c.get('params') or {}).get('name', '')))] if m}
+        for ref in sorted(set(library.VAR_REF.findall(text)) - declared):
+            bad(where, f'%%{ref}%% is used but no variables.set declares it')
         used = set()
         for command in data.get('commands') or []:
             name = command.get('command') if isinstance(command, dict) else None
