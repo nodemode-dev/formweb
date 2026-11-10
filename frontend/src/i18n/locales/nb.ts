@@ -2483,4 +2483,13 @@ export default [
   "Sendt til FormPublisher: {0} er nå på revisjon {1}.",
   "FormPublisher kjører ikke. Nettstedet ble lagret i innboksen dens ({0}) og importeres når FormPublisher starter.",
   "Kunne ikke sende til FormPublisher: {0}",
+  "Dupliser",
+  "Dupliser element",
+  "Elementet er duplisert.",
+  "En siderot eller et element i en lenket komponentinstans kan ikke dupliseres",
+  "Plakatbilde for lyst tema",
+  "Last opp lyst plakatbilde",
+  "Fjern lyst plakatbilde",
+  "Laster opp lyst plakatbilde...",
+  "Lyst plakatbilde lagt ved.",
 ] as readonly string[];

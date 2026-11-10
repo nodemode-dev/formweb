@@ -2483,4 +2483,13 @@ export default [
   "Sendt til FormPublisher: {0} er nu på revision {1}.",
   "FormPublisher kører ikke. Websitet blev gemt i dets indbakke ({0}) og importeres, når FormPublisher starter.",
   "Kunne ikke sende til FormPublisher: {0}",
+  "Duplikér",
+  "Duplikér element",
+  "Element duplikeret.",
+  "En sides rod eller et element i en forbundet komponentinstans kan ikke duplikeres",
+  "Plakat til lyst tema",
+  "Upload plakat til lyst tema",
+  "Ryd plakat til lyst tema",
+  "Uploader plakat til lyst tema...",
+  "Plakat til lyst tema tilknyttet.",
 ] as readonly string[];

@@ -2483,4 +2483,13 @@ export default [
   "Elküldve a FormPublishernek: {0} most a(z) {1}. változatnál tart.",
   "A FormPublisher nem fut. A webhely mentve lett a bejövő mappájába ({0}), és a FormPublisher indulásakor importálódik.",
   "Nem sikerült elküldeni a FormPublishernek: {0}",
+  "Kettőzés",
+  "Elem kettőzése",
+  "Az elem kettőzve lett.",
+  "Az oldalgyökér, illetve az összekapcsolt komponenspéldányon belüli elem nem kettőzhető",
+  "Világos téma posztere",
+  "Világos téma posztere feltöltése",
+  "Világos téma posztere törlése",
+  "Világos téma posztere feltöltése folyamatban...",
+  "Világos téma posztere csatolva.",
 ] as readonly string[];

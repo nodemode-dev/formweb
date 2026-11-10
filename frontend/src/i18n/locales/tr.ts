@@ -2483,4 +2483,13 @@ export default [
   "FormPublisher'a gönderildi: {0} şimdi {1}. revizyonda.",
   "FormPublisher çalışmıyor. Site gelen kutusuna ({0}) kaydedildi ve FormPublisher başladığında içe aktarılır.",
   "FormPublisher'a gönderilemedi: {0}",
+  "Çoğalt",
+  "Öğeyi çoğalt",
+  "Öğe çoğaltıldı.",
+  "Sayfa kökü veya bağlı bileşen örneğinin içindeki bir öğe çoğaltılamaz",
+  "Açık tema posteri",
+  "Açık tema posteri yükle",
+  "Açık tema posterini temizle",
+  "Açık tema posteri yükleniyor...",
+  "Açık tema posteri eklendi.",
 ] as readonly string[];

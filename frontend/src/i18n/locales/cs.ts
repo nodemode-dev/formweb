@@ -2483,4 +2483,13 @@ export default [
   "Odesláno do FormPublisher: {0} je nyní v revizi {1}.",
   "FormPublisher neběží. Web byl uložen do jeho doručené složky ({0}) a naimportuje se po spuštění FormPublisher.",
   "Odeslání do FormPublisher se nezdařilo: {0}",
+  "Duplikovat",
+  "Duplikovat prvek",
+  "Prvek byl duplikován.",
+  "Kořen stránky ani prvek uvnitř propojené instance komponenty nelze duplikovat",
+  "Plakát pro světlý motiv",
+  "Nahrát plakát pro světlý motiv",
+  "Vymazat plakát pro světlý motiv",
+  "Nahrávání plakátu pro světlý motiv...",
+  "Plakát pro světlý motiv byl připojen.",
 ] as readonly string[];

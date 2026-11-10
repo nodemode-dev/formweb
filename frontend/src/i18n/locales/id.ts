@@ -2483,4 +2483,13 @@ export default [
   "Terkirim ke FormPublisher: {0} kini berada di revisi {1}.",
   "FormPublisher tidak berjalan. Situs disimpan di kotak masuknya ({0}) dan akan diimpor saat FormPublisher dimulai.",
   "Tidak dapat mengirim ke FormPublisher: {0}",
+  "Duplikat",
+  "Duplikat elemen",
+  "Elemen diduplikasi.",
+  "Root halaman atau elemen di dalam instans komponen tertaut tidak dapat diduplikasi",
+  "Poster tema terang",
+  "Unggah poster tema terang",
+  "Hapus poster tema terang",
+  "Mengunggah poster tema terang...",
+  "Poster tema terang dilampirkan.",
 ] as readonly string[];

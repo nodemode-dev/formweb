@@ -2483,4 +2483,13 @@ export default [
   "Skickat till FormPublisher: {0} är nu på revision {1}.",
   "FormPublisher körs inte. Webbplatsen sparades i dess inkorg ({0}) och importeras när FormPublisher startar.",
   "Det gick inte att skicka till FormPublisher: {0}",
+  "Duplicera",
+  "Duplicera element",
+  "Elementet har duplicerats.",
+  "En sidrot eller ett element i en länkad komponentinstans kan inte dupliceras",
+  "Affisch för ljust tema",
+  "Ladda upp ljus affisch",
+  "Rensa ljus affischbild",
+  "Laddar upp ljus affisch...",
+  "Ljus affisch bifogad.",
 ] as readonly string[];

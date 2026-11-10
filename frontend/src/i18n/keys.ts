@@ -2483,4 +2483,13 @@ export const KEYS: readonly string[] = [
   "Sent to FormPublisher: {0} is now at revision {1}.",
   "FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.",
   "Could not send to FormPublisher: {0}",
+  "Duplicate",
+  "Duplicate element",
+  "Element duplicated.",
+  "A page root or an element inside a linked component instance cannot be duplicated",
+  "Light theme poster",
+  "Upload light poster",
+  "Clear light poster",
+  "Uploading light poster...",
+  "Light poster attached.",
 ];
