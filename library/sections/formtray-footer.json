@@ -1,0 +1,256 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formtray-footer",
+  "name": "FormTray footer",
+  "category": "product-site",
+  "tags": ["footer", "finder", "search", "family"],
+  "product": "formtray",
+  "description": "A footer in FormTray's voice: find any FormAI app by name, and the whole family listed in the groups the launcher uses.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formtray-footer",
+  "preset": "formai-studio",
+  "components": [],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#e08bd8" },
+    "name": { "label": "Product name", "type": "text", "default": "Tray" },
+    "meta": { "label": "Label line", "type": "text", "default": "Launcher / 23 apps / Free" },
+    "heading": { "label": "Heading", "type": "text", "default": "Find an app by name." },
+    "summary": { "label": "Summary", "type": "longtext", "default": "One icon in the Dock opens the whole family. This list is the same registry, grouped the way the launcher groups it." },
+    "placeholder": { "label": "Search placeholder", "type": "text", "default": "For example, FormWav" }
+  },
+  "tree": {
+    "key": "sec",
+    "tag": "section",
+    "name": "Footer finder",
+    "attrs": { "aria-labelledby": "tf-title" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "margin": "0",
+      "padding-top": "var(--sp-9)",
+      "padding-bottom": "var(--sp-8)"
+    },
+    "breakpoints": { "mobile": { "padding-top": "var(--sp-8)", "padding-bottom": "var(--sp-7)" } },
+    "children": [
+      {
+        "key": "wrap", "tag": "div", "name": "Wrap", "attrs": {},
+        "styles": { "box-sizing": "border-box", "width": "100%", "max-width": "var(--page-max)", "margin-left": "auto", "margin-right": "auto", "padding-left": "var(--gutter)", "padding-right": "var(--gutter)" },
+        "breakpoints": {},
+        "children": [
+          {
+            "key": "row", "tag": "div", "name": "Row", "attrs": {},
+            "styles": { "display": "flex", "flex-wrap": "nowrap", "justify-content": "space-between", "align-items": "flex-start", "gap": "var(--sp-7) var(--sp-7)" },
+            "breakpoints": { "tablet": { "flex-direction": "column", "gap": "var(--sp-7)" } },
+            "children": [
+              {
+                "key": "left", "tag": "div", "name": "Finder", "attrs": {},
+                "styles": { "flex": "0 1 21rem", "min-width": "0", "max-width": "100%" },
+                "breakpoints": {},
+                "children": [
+                  {
+                    "key": "lab", "tag": "div", "name": "Label", "attrs": {},
+                    "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-3)", "margin-bottom": "var(--sp-4)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "icon", "tag": "img", "name": "Icon", "attrs": { "src": "/api/assets/3ef4b688a93cca432a5ce9e975120e94fa5d4bd42c1467981f0b708168dcfa0f.webp", "width": "28", "height": "28", "alt": "", "decoding": "async" }, "styles": { "display": "block", "flex": "none", "width": "28px", "height": "28px" }, "breakpoints": {}, "children": [] },
+                      {
+                        "key": "chapter", "tag": "p", "name": "Chapter label", "attrs": {},
+                        "styles": { "margin": "0", "font-size": "var(--fs-l)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-tight)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ch-form", "tag": "span", "name": "Name first part", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                          { "key": "ch-suffix", "tag": "span", "name": "Name second part", "text": "{{name}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                          { "key": "ch-meta", "tag": "span", "name": "Meta", "text": "{{meta}}", "attrs": {}, "styles": { "display": "block", "margin-top": "var(--sp-1)", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "400", "letter-spacing": "0.14em", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  },
+                  { "key": "title", "tag": "h2", "name": "Heading", "text": "{{heading}}", "attrs": { "id": "tf-title" }, "styles": { "margin": "0 0 var(--sp-3)", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "line-height": "1.05", "letter-spacing": "var(--track-display)" }, "breakpoints": {}, "children": [] },
+                  { "key": "sum", "tag": "p", "name": "Summary", "text": "{{summary}}", "attrs": {}, "styles": { "margin": "0 0 var(--sp-5)", "max-width": "36ch", "color": "var(--ink-soft)", "font-size": "var(--fs-m)" }, "breakpoints": {}, "children": [] },
+                  {
+                    "key": "form", "tag": "form", "name": "Finder form", "attrs": {},
+                    "styles": { "position": "relative", "width": "100%", "max-width": "22rem" },
+                    "breakpoints": { "mobile": { "max-width": "none" } },
+                    "children": [
+                      {
+                        "key": "field", "tag": "div", "name": "Field", "attrs": {},
+                        "styles": { "position": "relative" },
+                        "breakpoints": {},
+                        "children": [
+                          {
+                            "key": "q", "tag": "input", "name": "Find field",
+                            "attrs": { "type": "search", "name": "q", "placeholder": "{{placeholder}}", "aria-label": "Find an app by name", "autocomplete": "off" },
+                            "styles": {
+                              "display": "block", "box-sizing": "border-box", "width": "100%", "height": "52px", "margin": "0", "padding-top": "0", "padding-bottom": "0",
+                              "padding-left": "var(--sp-4)", "padding-right": "calc(5rem + var(--sp-3))", "border": "0", "border-radius": "0", "background": "var(--inset)", "color": "var(--ink)",
+                              "font": "inherit", "font-size": "var(--fs-s)", "box-shadow": "inset 0 0 0 1px var(--edge)", "transition": "box-shadow var(--dur-fast) var(--ease-out)"
+                            },
+                            "breakpoints": { "mobile": { "padding-right": "var(--sp-4)" } },
+                            "children": []
+                          },
+                          { "key": "go", "tag": "button", "name": "Find button", "text": "Find", "attrs": { "type": "submit" }, "styles": {}, "breakpoints": { "mobile": { "position": "static", "width": "100%", "margin-top": "12px" } }, "children": [] }
+                        ]
+                      },
+                      { "key": "note", "tag": "p", "name": "Note", "text": "Searches this list only. Nothing is sent.", "attrs": {}, "styles": { "margin": "var(--sp-3) 0 0", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                    ]
+                  },
+                  {
+                    "key": "results", "tag": "div", "name": "Finder results", "attrs": { "role": "status" },
+                    "styles": { "display": "flex", "flex-direction": "column", "gap": "var(--sp-2)", "margin-top": "var(--sp-3)" },
+                    "breakpoints": {}, "children": []
+                  },
+                  {
+                    "key": "hit", "tag": "a", "name": "Result template", "attrs": { "href": "#", "hidden": "", "data-fw-slot": "link" },
+                    "styles": { "margin": "0", "padding": "var(--sp-4)", "background": "var(--pane)", "box-shadow": "inset 0 0 0 1px var(--edge)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)", "text-decoration": "none" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "hit-title", "tag": "span", "name": "Result title", "text": "Title", "attrs": { "data-fw-slot": "title" }, "styles": { "display": "block", "color": "var(--ink)", "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [] },
+                      { "key": "hit-path", "tag": "span", "name": "Result path", "text": "/path", "attrs": { "data-fw-slot": "path" }, "styles": { "display": "block", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" }, "breakpoints": {}, "children": [] }
+                    ]
+                  },
+                  { "key": "none", "tag": "p", "name": "No result", "text": "No app in the family has that name. Try FormWav, FormDeck or Form.md.", "attrs": { "hidden": "", "role": "alert" }, "styles": { "margin": "var(--sp-3) 0 0", "padding": "var(--sp-4)", "background": "var(--pane)", "box-shadow": "inset 0 0 0 1px var(--edge-strong)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" }, "breakpoints": {}, "children": [] },
+                  {
+                    "key": "icons", "tag": "ul", "name": "Elsewhere", "attrs": { "aria-label": "FormTray elsewhere" },
+                    "styles": { "display": "flex", "gap": "var(--sp-5)", "margin": "var(--sp-5) 0 0", "padding": "0", "list-style": "none" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "ic1", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "ic1-a", "tag": "a", "name": "Open source", "attrs": { "href": "https://formai.studio/open-source/", "aria-label": "FormTray is open source" }, "styles": { "display": "inline-flex", "color": "var(--ink-soft)" }, "breakpoints": {}, "children": [ { "key": "ic1-s", "tag": "svg", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "display": "block", "width": "24px", "height": "24px" }, "breakpoints": {}, "children": [ { "key": "ic1-p1", "tag": "path", "attrs": { "d": "M8.5 7L3.5 12l5 5" }, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "ic1-p2", "tag": "path", "attrs": { "d": "M15.5 7l5 5-5 5" }, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "ic1-p3", "tag": "path", "attrs": { "d": "M13.5 5l-3 14" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] } ] },
+                      { "key": "ic2", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "ic2-a", "tag": "a", "name": "On formai.studio", "attrs": { "href": "https://formai.studio/formtray/", "aria-label": "FormTray on formai.studio" }, "styles": { "display": "inline-flex", "color": "var(--ink-soft)" }, "breakpoints": {}, "children": [ { "key": "ic2-s", "tag": "svg", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "display": "block", "width": "24px", "height": "24px" }, "breakpoints": {}, "children": [ { "key": "ic2-p1", "tag": "path", "attrs": { "d": "M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" }, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "ic2-p2", "tag": "path", "attrs": { "d": "M3 12h18" }, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "ic2-p3", "tag": "path", "attrs": { "d": "M12 3c2.4 2.5 3.6 5.5 3.6 9s-1.2 6.5-3.6 9c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3z" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] } ] },
+                      { "key": "ic3", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "ic3-a", "tag": "a", "name": "Download", "attrs": { "href": "https://formai.studio/download/", "aria-label": "Download from FormPortal" }, "styles": { "display": "inline-flex", "color": "var(--ink-soft)" }, "breakpoints": {}, "children": [ { "key": "ic3-s", "tag": "svg", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "display": "block", "width": "24px", "height": "24px" }, "breakpoints": {}, "children": [ { "key": "ic3-p1", "tag": "path", "attrs": { "d": "M12 4v11" }, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "ic3-p2", "tag": "path", "attrs": { "d": "M7.5 11l4.5 4.5 4.5-4.5" }, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "ic3-p3", "tag": "path", "attrs": { "d": "M5 19.5h14" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] } ] }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "cols", "tag": "div", "name": "Link groups", "attrs": {},
+                "styles": { "display": "flex", "flex-wrap": "wrap", "justify-content": "flex-end", "gap": "var(--sp-7) var(--sp-6)", "min-width": "0" },
+                "breakpoints": { "tablet": { "justify-content": "flex-start", "gap": "var(--sp-7) 60px" }, "mobile": { "flex-direction": "column", "gap": "20px" } },
+                "children": [
+                  {
+                    "key": "g1", "tag": "nav", "name": "Instead of Adobe", "attrs": { "aria-label": "Instead of Adobe" }, "styles": { "min-width": "0" }, "breakpoints": {},
+                    "children": [
+                      { "key": "h1", "tag": "p", "name": "Heading", "text": "Instead of Adobe", "attrs": {}, "styles": { "margin": "0 0 var(--sp-3)", "color": "var(--ink)", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)", "letter-spacing": "var(--track-tight)" }, "breakpoints": {}, "children": [] },
+                      { "key": "u1", "tag": "ul", "name": "Links", "attrs": {}, "styles": { "display": "grid", "gap": "var(--sp-2)", "margin": "0", "padding": "0", "list-style": "none" }, "breakpoints": { "mobile": { "gap": "7px" } },
+                        "children": [
+                          { "key": "i-formportal", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formportal", "tag": "a", "attrs": { "href": "https://formai.studio/formportal/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #eef0f4 calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formportal", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formportal", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formportal", "tag": "span", "text": "Portal", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formportal", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formvis", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formvis", "tag": "a", "attrs": { "href": "https://formai.studio/formvis/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #a98bf0 calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formvis", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formvis", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formvis", "tag": "span", "text": "Vis", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formvis", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formlit", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formlit", "tag": "a", "attrs": { "href": "https://formai.studio/formlit/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #5cb8ff calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formlit", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formlit", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formlit", "tag": "span", "text": "Lit", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formlit", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formvfx", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formvfx", "tag": "a", "attrs": { "href": "https://formai.studio/formvfx/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #d86bff calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formvfx", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formvfx", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formvfx", "tag": "span", "text": "VFX", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formvfx", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formencoder", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formencoder", "tag": "a", "attrs": { "href": "https://formai.studio/formencoder/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #f2545b calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formencoder", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formencoder", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formencoder", "tag": "span", "text": "Encoder", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formencoder", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formpdf", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formpdf", "tag": "a", "attrs": { "href": "https://formai.studio/formpdf/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #ff5d7a calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formpdf", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formpdf", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formpdf", "tag": "span", "text": "PDF", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formpdf", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "g2", "tag": "nav", "name": "Instead of the rest", "attrs": { "aria-label": "Instead of the rest" }, "styles": { "min-width": "0" }, "breakpoints": {},
+                    "children": [
+                      { "key": "h2x", "tag": "p", "name": "Heading", "text": "Instead of the rest", "attrs": {}, "styles": { "margin": "0 0 var(--sp-3)", "color": "var(--ink)", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)", "letter-spacing": "var(--track-tight)" }, "breakpoints": {}, "children": [] },
+                      { "key": "u2", "tag": "ul", "name": "Links", "attrs": {}, "styles": { "display": "grid", "gap": "var(--sp-2)", "margin": "0", "padding": "0", "list-style": "none" }, "breakpoints": { "mobile": { "gap": "7px" } },
+                        "children": [
+                          { "key": "i-formcut", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formcut", "tag": "a", "attrs": { "href": "https://formai.studio/formcut/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #ffae2b calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formcut", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formcut", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formcut", "tag": "span", "text": "Cut", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formcut", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formdeck", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formdeck", "tag": "a", "attrs": { "href": "https://formai.studio/formdeck/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #c8ee4f calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formdeck", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formdeck", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formdeck", "tag": "span", "text": "Deck", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formdeck", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formmd", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formmd", "tag": "a", "attrs": { "href": "https://formai.studio/formmd/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #d8d2c4 calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formmd", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formmd", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formmd", "tag": "span", "text": ".md", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formmd", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formwav", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formwav", "tag": "a", "attrs": { "href": "https://formai.studio/formwav/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #1fe5c0 calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formwav", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formwav", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formwav", "tag": "span", "text": "Wav", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formwav", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formtray", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formtray", "tag": "a", "attrs": { "href": "https://formai.studio/formtray/", "aria-current": "page" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #e08bd8 calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formtray", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formtray", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formtray", "tag": "span", "text": "Tray", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formtray", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "g3", "tag": "nav", "name": "Form Originals", "attrs": { "aria-label": "Form Originals" }, "styles": { "min-width": "0" }, "breakpoints": {},
+                    "children": [
+                      { "key": "h3", "tag": "p", "name": "Heading", "text": "Form Originals", "attrs": {}, "styles": { "margin": "0 0 var(--sp-3)", "color": "var(--ink)", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)", "letter-spacing": "var(--track-tight)" }, "breakpoints": {}, "children": [] },
+                      { "key": "u3", "tag": "ul", "name": "Links", "attrs": {}, "styles": { "display": "grid", "gap": "var(--sp-2)", "margin": "0", "padding": "0", "list-style": "none" }, "breakpoints": { "mobile": { "gap": "7px" } },
+                        "children": [
+                          { "key": "i-formmcp", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formmcp", "tag": "a", "attrs": { "href": "https://formai.studio/formmcp/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #9fe7ff calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formmcp", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formmcp", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formmcp", "tag": "span", "text": "MCP", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formmcp", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-formskills", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-formskills", "tag": "a", "attrs": { "href": "https://formai.studio/formskills/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "--hue": "color-mix(in oklab, #ffc069 calc(100% - var(--hue-depth)), #000)", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-formskills", "tag": "span", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "f-formskills", "tag": "span", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "s-formskills", "tag": "span", "text": "Skills", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }, { "key": "b-formskills", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "g4", "tag": "nav", "name": "Resources", "attrs": { "aria-label": "Resources" }, "styles": { "min-width": "0" }, "breakpoints": {},
+                    "children": [
+                      { "key": "h4", "tag": "p", "name": "Heading", "text": "Resources", "attrs": {}, "styles": { "margin": "0 0 var(--sp-3)", "color": "var(--ink)", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)", "letter-spacing": "var(--track-tight)" }, "breakpoints": {}, "children": [] },
+                      { "key": "u4", "tag": "ul", "name": "Links", "attrs": {}, "styles": { "display": "grid", "gap": "var(--sp-2)", "margin": "0", "padding": "0", "list-style": "none" }, "breakpoints": { "mobile": { "gap": "7px" } },
+                        "children": [
+                          { "key": "i-r1", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-r1", "tag": "a", "attrs": { "href": "https://formai.studio/download/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-r1", "tag": "span", "text": "Download", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "b-r1", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-r2", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-r2", "tag": "a", "attrs": { "href": "https://formai.studio/releases/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-r2", "tag": "span", "text": "Releases", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "b-r2", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-r3", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-r3", "tag": "a", "attrs": { "href": "https://formai.studio/docs/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-r3", "tag": "span", "text": "Docs", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "b-r3", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-r4", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-r4", "tag": "a", "attrs": { "href": "https://formai.studio/open-source/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-r4", "tag": "span", "text": "Open source", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "b-r4", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-r5", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-r5", "tag": "a", "attrs": { "href": "https://formai.studio/status/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "display": "inline-block", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "opacity": "0.7", "text-decoration": "none", "transition": "opacity 250ms var(--ease-out)" }, "breakpoints": {}, "children": [ { "key": "w-r5", "tag": "span", "text": "Status", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "b-r5", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] },
+                          { "key": "i-r6", "tag": "li", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [ { "key": "l-r6", "tag": "a", "attrs": { "href": "https://formai.studio/portal/" }, "styles": { "--tf-h": "0", "--tf-d": "500ms", "display": "inline-block", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "600", "letter-spacing": "0.14em", "text-transform": "uppercase", "padding-top": "var(--sp-2)", "text-decoration": "none" }, "breakpoints": {}, "children": [ { "key": "w-r6", "tag": "span", "text": "Get FormPortal", "attrs": {}, "styles": { "position": "relative", "display": "inline-block", "overflow": "hidden", "padding-bottom": "2px" }, "breakpoints": {}, "children": [ { "key": "b-r6", "tag": "span", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "height": "2px", "background": "var(--hue, var(--ink-soft))", "transform": "scaleX(var(--tf-h))", "transform-origin": "calc((1 - var(--tf-h)) * 100%) 50%", "transition": "transform var(--tf-d) var(--ease-out)" }, "breakpoints": {}, "children": [] } ] } ] } ] }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          { "key": "rule", "tag": "div", "name": "Rule", "attrs": { "aria-hidden": "true" }, "styles": { "height": "1px", "margin": "var(--sp-8) 0 var(--sp-6)", "background": "var(--edge)" }, "breakpoints": { "mobile": { "margin": "var(--sp-6) 0 20px" } }, "children": [] },
+          {
+            "key": "credits", "tag": "div", "name": "Credits", "attrs": {},
+            "styles": { "display": "flex", "flex-wrap": "wrap", "justify-content": "space-between", "gap": "var(--sp-4) var(--sp-6)", "margin": "0", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em", "text-transform": "uppercase" },
+            "breakpoints": { "mobile": { "flex-direction": "column", "gap": "20px" } },
+            "children": [
+              { "key": "cr1", "tag": "p", "name": "Credit one", "attrs": {}, "styles": { "margin": "0" }, "breakpoints": {}, "children": [
+                { "key": "cr1-t", "tag": "span", "text": "FormTray 0.10.1, free and ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                { "key": "cr1-a", "tag": "a", "text": "open source", "attrs": { "href": "https://formai.studio/open-source/" }, "styles": { "color": "var(--ink)", "font-weight": "600", "text-decoration": "underline" }, "breakpoints": {}, "children": [] }
+              ] },
+              { "key": "cr2", "tag": "p", "name": "Credit two", "attrs": {}, "styles": { "margin": "0" }, "breakpoints": {}, "children": [
+                { "key": "cr2-t", "tag": "span", "text": "Installs and updates stay in ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                { "key": "cr2-a", "tag": "a", "text": "FormPortal", "attrs": { "href": "https://formai.studio/formportal/" }, "styles": { "color": "var(--ink)", "font-weight": "600", "text-decoration": "underline" }, "breakpoints": {}, "children": [] }
+              ] }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@ch-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@ch-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@go@@", "name": "button" } },
+    { "command": "node.update", "params": { "id": "@@go@@", "patch": { "styles": { "position": "absolute", "top": "3px", "bottom": "3px", "right": "3px", "height": "46px", "border": "0", "cursor": "pointer", "padding-left": "var(--sp-4)", "padding-right": "var(--sp-4)" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formportal@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formportal@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formvis@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formvis@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formlit@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formlit@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formvfx@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formvfx@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formencoder@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formencoder@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formpdf@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formpdf@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formcut@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formcut@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formdeck@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formdeck@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formmd@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formmd@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formwav@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formwav@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formtray@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formtray@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formmcp@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formmcp@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@f-formskills@@", "name": "app-form" } }, { "command": "textpreset.apply", "params": { "id": "@@s-formskills@@", "name": "app-suffix" } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q@@", "value": [ { "trigger": "input", "action": "search", "input": "@@q@@", "results": "@@results@@", "template": "@@hit@@", "limit": 4, "empty": "@@none@@", "fromParam": false } ] } },
+    { "command": "motion.set", "params": { "kind": "scripts", "node": "@@form@@", "value": { "trigger": "submit", "steps": [ { "type": "focus", "target": "@@q@@" } ] } } }
+  ],
+  "behaviors": {
+    "@@q@@": { "states": { "hover": { "box-shadow": "inset 0 0 0 1px var(--edge-strong)" }, "focus": { "outline": "none", "box-shadow": "inset 0 0 0 2px var(--hue)" } } },
+    "@@go@@": { "states": { "hover": { "opacity": "0.88" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@l-formportal@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formvis@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formlit@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formvfx@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formencoder@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formpdf@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formcut@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formdeck@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formmd@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formwav@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formtray@@": { "states": { "hover": { "--tf-h": "1", "--tf-d": "700ms" } } },
+    "@@l-formmcp@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-formskills@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-r1@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-r2@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-r3@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-r4@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-r5@@": { "states": { "hover": { "opacity": "1", "--tf-h": "1", "--tf-d": "700ms" }, "focus": { "opacity": "1" } } },
+    "@@l-r6@@": { "states": { "hover": { "--tf-h": "1", "--tf-d": "700ms" } } },
+    "@@hit@@": { "states": { "hover": { "background": "var(--control)" } } }
+  }
+}

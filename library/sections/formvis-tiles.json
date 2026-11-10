@@ -1,0 +1,211 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formvis-tiles",
+  "name": "FormVis tiles",
+  "category": "scroll-story",
+  "tags": ["tiles", "layers", "scatter", "scroll", "pointer"],
+  "product": "formvis",
+  "description": "A still being relit in FormVis, cut into layers that you can scatter, re-cut and scroll back into a single image.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formvis-tiles",
+  "preset": "formai-studio",
+  "components": ["tile-cut"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#a98bf0" },
+    "name": { "label": "Product name", "type": "text", "default": "Vis" },
+    "mid": { "label": "Top bar label", "type": "text", "default": "Relit, in layers" },
+    "head1": { "label": "Heading line 1", "type": "text", "default": "Cut it into" },
+    "head2": { "label": "Heading line 2", "type": "text", "default": "layers" },
+    "finText": { "label": "Closing text", "type": "longtext", "default": "FormVis saves its own .fvd projects and opens layered PSD and PSB files, so flattening is something you choose at export." },
+    "ctaLabel": { "label": "Button text", "type": "text", "default": "Explore FormVis" },
+    "ctaHref": { "label": "Button link", "type": "url", "default": "https://formai.studio/formvis/" }
+  },
+  "tree": {
+    "key": "section", "tag": "section", "name": "Tiles",
+    "attrs": { "aria-label": "Form{{name}} layer mosaic story" },
+    "styles": { "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)", "scroll-margin-top": "64px", "background": "var(--ground)", "color": "var(--ink)" },
+    "breakpoints": {},
+    "children": [
+      {
+        "key": "stage", "tag": "div", "name": "Stage",
+        "attrs": {},
+        "styles": { "background": "var(--ground)", "container-type": "size", "user-select": "none", "touch-action": "pan-y", "--lt": "0" },
+        "breakpoints": {},
+        "children": [
+          { "key": "host", "tag": "div", "name": "Tiles", "attrs": {}, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "z-index": "var(--z-base)" }, "breakpoints": {}, "children": [] },
+          {
+            "key": "bar", "tag": "div", "name": "Top bar",
+            "attrs": {},
+            "styles": { "position": "absolute", "left": "0", "right": "0", "top": "0", "z-index": "var(--z-field)", "display": "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center", "height": "48px", "padding-left": "var(--gutter)", "padding-right": "var(--gutter)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--footage-ink) calc(var(--lt) * 100%), var(--ink-faint))", "border-bottom": "1px solid color-mix(in srgb, var(--footage-line) calc(var(--lt) * 100%), var(--edge))" },
+            "breakpoints": { "mobile": { "grid-template-columns": "1fr auto" } },
+            "children": [
+              {
+                "key": "bar-name", "tag": "span", "name": "Product name",
+                "attrs": {},
+                "styles": { "font-family": "var(--font-ui)", "font-size": "var(--fs-s)", "letter-spacing": "var(--track-tight)", "text-transform": "none", "font-weight": "var(--weight-strong)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "bar-form", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "inherit" }, "breakpoints": {}, "children": [] },
+                  { "key": "bar-suffix", "tag": "span", "name": "Suffix", "text": "{{name}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              { "key": "bar-mid", "tag": "span", "name": "Label", "text": "{{mid}}", "attrs": {}, "styles": { "justify-self": "center" }, "breakpoints": { "mobile": { "display": "none" } }, "children": [] },
+              {
+                "key": "bar-end", "tag": "span", "name": "Counter",
+                "attrs": {},
+                "styles": { "justify-self": "end", "padding": "var(--sp-1) var(--sp-3)", "border": "1px solid var(--edge)", "border-radius": "var(--radius-pill)", "color": "var(--ink-soft)", "font-variant-numeric": "tabular-nums" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "cut-a", "tag": "span", "name": "Label", "text": "Cuts left ", "attrs": {}, "styles": { "white-space": "pre" }, "breakpoints": {}, "children": [] },
+                  { "key": "cut-n", "tag": "span", "name": "Cuts left", "text": "36", "attrs": { "data-vt-count": "" }, "styles": { "font-weight": "700" }, "breakpoints": {}, "children": [] },
+                  { "key": "cut-b", "tag": "span", "name": "Total", "text": " / 36", "attrs": {}, "styles": { "white-space": "pre" }, "breakpoints": {}, "children": [] }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "head", "tag": "h1", "name": "Heading",
+            "attrs": { "data-vt-sc": "0" },
+            "styles": { "position": "absolute", "left": "44px", "top": "96px", "z-index": "var(--z-raised)", "font-size": "clamp(56px, 7vw, 112px)", "font-weight": "var(--weight-display)", "line-height": "0.92", "letter-spacing": "-0.04em", "text-wrap": "balance", "margin": "0" },
+            "breakpoints": { "mobile": { "left": "16px", "top": "60px", "font-size": "clamp(40px, 11vw, 56px)" } },
+            "children": [
+              {
+                "key": "line1", "tag": "span", "name": "Line 1",
+                "attrs": {},
+                "styles": { "display": "block", "overflow": "hidden", "padding-bottom": "0.14em", "margin-bottom": "-0.14em" },
+                "breakpoints": { "mobile": { "display": "inline-block", "margin-right": "0.22em" } },
+                "children": [ { "key": "ln1", "tag": "span", "name": "Text", "text": "{{head1}}", "attrs": {}, "styles": { "display": "block" }, "breakpoints": {}, "children": [] } ]
+              },
+              {
+                "key": "line2", "tag": "span", "name": "Line 2",
+                "attrs": {},
+                "styles": { "display": "block", "overflow": "hidden", "padding-bottom": "0.14em", "margin-bottom": "-0.14em" },
+                "breakpoints": { "mobile": { "display": "inline-block", "margin-right": "0.22em" } },
+                "children": [ { "key": "ln2", "tag": "span", "name": "Text", "text": "{{head2}}", "attrs": {}, "styles": { "display": "block", "color": "var(--ink-soft)" }, "breakpoints": {}, "children": [] } ]
+              }
+            ]
+          },
+          {
+            "key": "copy", "tag": "div", "name": "Copy",
+            "attrs": { "data-vt-sc": "1" },
+            "styles": { "position": "absolute", "left": "44px", "bottom": "108px", "width": "min(320px, 28vw)", "z-index": "var(--z-raised)" },
+            "breakpoints": { "tablet": { "display": "none" }, "mobile": { "display": "block", "left": "16px", "right": "16px", "bottom": "76px", "width": "auto", "text-align": "center" } },
+            "children": [
+              { "key": "copy-p", "tag": "p", "name": "Copy text", "text": "A still being relit in FormVis, cut into layers and stacked. Click a layer to re-cut it, or move across the pile to slide them apart.", "attrs": { "data-vt-copy": "" }, "styles": { "margin": "0", "font-size": "var(--fs-s)", "line-height": "1.55", "color": "var(--ink-soft)", "min-height": "calc(1.55em * 4)" }, "breakpoints": { "mobile": { "font-size": "12px", "min-height": "calc(1.55em * 3)" } }, "children": [] }
+            ]
+          },
+          {
+            "key": "dockw", "tag": "div", "name": "Buttons",
+            "attrs": { "data-vt-sc": "2" },
+            "styles": { "position": "absolute", "left": "44px", "bottom": "44px", "z-index": "var(--z-raised)" },
+            "breakpoints": { "mobile": { "left": "50%", "bottom": "18px", "translate": "-50% 0" } },
+            "children": [
+              {
+                "key": "dock", "tag": "div", "name": "Dock",
+                "attrs": {},
+                "styles": { "display": "inline-flex", "gap": "var(--sp-2)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "recut", "tag": "button", "name": "Re-cut", "text": "Re-cut layers", "attrs": { "type": "button", "data-vt-recut": "" }, "styles": { "border": "0", "cursor": "pointer", "font-family": "inherit" }, "breakpoints": { "mobile": { "padding-left": "var(--sp-3)", "padding-right": "var(--sp-3)", "letter-spacing": "0.06em", "font-size": "11px" } }, "children": [] },
+                  { "key": "merge", "tag": "button", "name": "Merge down", "text": "Merge down", "attrs": { "type": "button" }, "styles": { "border": "0", "cursor": "pointer", "font-family": "inherit" }, "breakpoints": { "mobile": { "padding-left": "var(--sp-3)", "padding-right": "var(--sp-3)", "letter-spacing": "0.06em", "font-size": "11px" } }, "children": [] }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "fin", "tag": "div", "name": "Closing panel",
+            "attrs": { "data-vt-fin": "" },
+            "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "z-index": "var(--z-raised)", "background": "linear-gradient(to top, var(--shade-strong) 0%, var(--shade-mid) 30%, transparent 58%)", "color": "var(--footage-ink)", "padding": "58px", "display": "flex", "flex-direction": "column", "justify-content": "flex-end", "align-items": "flex-start", "gap": "var(--sp-4)" },
+            "breakpoints": { "mobile": { "padding": "var(--sp-5) var(--sp-4)" } },
+            "children": [
+              {
+                "key": "fin-k", "tag": "p", "name": "Label",
+                "attrs": {},
+                "styles": { "margin": "0", "display": "flex", "align-items": "center", "gap": "var(--sp-2)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "fin-sq", "tag": "span", "name": "Square", "attrs": { "aria-hidden": "true" }, "styles": { "width": "8px", "height": "8px", "background": "var(--footage-hue)", "display": "block" }, "breakpoints": {}, "children": [] },
+                  { "key": "fin-kt", "tag": "span", "name": "Text", "text": "Merge down, or keep the layers", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              {
+                "key": "fin-h", "tag": "h2", "name": "Closing heading",
+                "attrs": {},
+                "styles": { "margin": "0", "font-size": "clamp(52px, 8.4vw, 132px)", "font-weight": "var(--weight-display)", "line-height": "0.94", "letter-spacing": "-0.04em" },
+                "breakpoints": { "mobile": { "font-size": "clamp(40px, 12vw, 56px)" } },
+                "children": [
+                  { "key": "fin-h1", "tag": "span", "name": "Line 1", "text": "One image,", "attrs": {}, "styles": { "display": "block" }, "breakpoints": {}, "children": [] },
+                  { "key": "fin-h2", "tag": "span", "name": "Line 2", "text": "every layer kept", "attrs": {}, "styles": { "display": "block", "color": "var(--footage-soft)" }, "breakpoints": {}, "children": [] }
+                ]
+              },
+              { "key": "fin-p", "tag": "p", "name": "Closing text", "text": "{{finText}}", "attrs": {}, "styles": { "margin": "0", "max-width": "440px", "font-size": "var(--fs-m)", "line-height": "1.55", "color": "var(--footage-soft)" }, "breakpoints": {}, "children": [] },
+              {
+                "key": "fin-acts", "tag": "p", "name": "Actions",
+                "attrs": {},
+                "styles": { "margin": "0", "display": "flex", "flex-wrap": "wrap", "gap": "var(--sp-2)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "back", "tag": "button", "name": "Back to layers", "attrs": { "type": "button", "data-vt-back": "" }, "styles": { "border": "0", "cursor": "pointer", "font-family": "inherit", "color": "var(--footage-ink)", "background": "transparent", "box-shadow": "inset 0 0 0 1px var(--footage-edge)" }, "breakpoints": {},
+                    "children": [
+                      { "key": "back-icon", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "width": "var(--icon-m)", "height": "var(--icon-m)" }, "breakpoints": {},
+                        "children": [
+                          { "key": "back-p1", "tag": "path", "name": "Stem", "attrs": { "d": "M12 19V5" }, "styles": {}, "breakpoints": {}, "children": [] },
+                          { "key": "back-p2", "tag": "path", "name": "Head", "attrs": { "d": "M6 11l6-6 6 6" }, "styles": {}, "breakpoints": {}, "children": [] }
+                        ] },
+                      { "key": "back-t", "tag": "span", "name": "Label", "text": "Back to layers", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                    ] },
+                  { "key": "cta", "tag": "a", "name": "Explore", "attrs": { "href": "{{ctaHref}}" }, "styles": {}, "breakpoints": {}, "children": [ { "key": "cta-t", "tag": "span", "name": "Label", "text": "{{ctaLabel}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] } ] }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@bar-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@bar-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@recut@@", "name": "button-quiet" } },
+    { "command": "textpreset.apply", "params": { "id": "@@merge@@", "name": "button" } },
+    { "command": "textpreset.apply", "params": { "id": "@@back@@", "name": "button-quiet" } },
+    { "command": "textpreset.apply", "params": { "id": "@@cta@@", "name": "button" } },
+    { "command": "node.update", "params": { "id": "@@bar-form@@", "patch": { "styles": { "color": "inherit" } } } },
+    { "command": "node.update", "params": { "id": "@@back@@", "patch": { "styles": { "color": "var(--footage-ink)", "background": "transparent", "box-shadow": "inset 0 0 0 1px var(--footage-edge)" } } } },
+    { "command": "code.instance.set", "params": { "node": "@@host@@", "value": { "component": "tile-cut", "props": {} } } },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "scenes",
+        "node": "@@section@@",
+        "value": {
+          "stage": "@@stage@@",
+          "length": 372,
+          "offset": "64px",
+          "smoothing": 200,
+          "reducedAt": 1,
+          "tracks": [
+            { "node": "@@stage@@", "easing": "ease-in-out", "keyframes": [ { "at": 0, "styles": { "--lt": "0" } }, { "at": 0.74, "styles": { "--lt": "0" } }, { "at": 0.82, "styles": { "--lt": "1" } }, { "at": 1, "styles": { "--lt": "1" } } ] },
+            { "node": "@@head@@", "easing": "linear", "keyframes": [ { "at": 0, "styles": { "opacity": "1", "transform": "translateY(0px)" } }, { "at": 0.03, "styles": { "opacity": "1", "transform": "translateY(0px)" } }, { "at": 0.09, "styles": { "opacity": "0", "transform": "translateY(-20px)" } }, { "at": 1, "styles": { "opacity": "0", "transform": "translateY(-20px)" } } ] },
+            { "node": "@@copy@@", "easing": "linear", "keyframes": [ { "at": 0, "styles": { "opacity": "1", "transform": "translateY(0px)" } }, { "at": 0.042, "styles": { "opacity": "1", "transform": "translateY(0px)" } }, { "at": 0.102, "styles": { "opacity": "0", "transform": "translateY(-20px)" } }, { "at": 1, "styles": { "opacity": "0", "transform": "translateY(-20px)" } } ] },
+            { "node": "@@dockw@@", "easing": "linear", "keyframes": [ { "at": 0, "styles": { "opacity": "1", "transform": "translateY(0px)" } }, { "at": 0.054, "styles": { "opacity": "1", "transform": "translateY(0px)" } }, { "at": 0.114, "styles": { "opacity": "0", "transform": "translateY(-20px)" } }, { "at": 1, "styles": { "opacity": "0", "transform": "translateY(-20px)" } } ] },
+            { "node": "@@fin@@", "easing": "linear", "keyframes": [ { "at": 0, "styles": { "opacity": "0", "translate": "0px 30px" } }, { "at": 0.9, "styles": { "opacity": "0", "translate": "0px 30px" } }, { "at": 0.97, "styles": { "opacity": "1", "translate": "0px 0px" } }, { "at": 1, "styles": { "opacity": "1", "translate": "0px 0px" } } ] }
+          ]
+        }
+      }
+    },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@bar@@", "value": { "from": { "opacity": "0", "transform": "translateY(-8px)" }, "duration": 1000, "delay": 150, "stagger": 80, "children": true, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@ln1@@", "value": { "from": { "transform": "translateY(110%)" }, "duration": 1600, "delay": 350, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@ln2@@", "value": { "from": { "transform": "translateY(110%)" }, "duration": 1600, "delay": 450, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@copy-p@@", "value": { "from": { "opacity": "0", "transform": "translateY(10px)" }, "duration": 1200, "delay": 800, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@dock@@", "value": { "from": { "opacity": "0", "transform": "translateY(10px)" }, "duration": 1200, "delay": 900, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@merge@@", "value": [ { "trigger": "click", "action": "scroll-to", "to": "@@section@@", "progress": 0.48, "duration": 2000, "easing": "ease-in-out" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@back@@", "value": [ { "trigger": "click", "action": "scroll-to", "to": "@@section@@", "progress": 0, "duration": 2400, "easing": "ease-in-out" } ] } }
+  ],
+  "behaviors": {
+    "@@recut@@": { "states": { "hover": { "background": "var(--control-hover)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "3px" } } },
+    "@@merge@@": { "states": { "hover": { "opacity": "0.88" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "3px" } } },
+    "@@back@@": { "states": { "hover": { "background": "var(--footage-glass)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "3px" } } },
+    "@@cta@@": { "states": { "hover": { "opacity": "0.88" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "3px" } } }
+  }
+}

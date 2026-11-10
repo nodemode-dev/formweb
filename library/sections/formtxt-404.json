@@ -1,0 +1,201 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formtxt-404",
+  "name": "FormTxt page not found",
+  "category": "not-found",
+  "tags": ["404", "not found", "search", "receipt", "printer", "tear"],
+  "product": "formtxt",
+  "description": "A page-not-found screen that searches the site and prints the closest pages on a receipt you can pull down to tear.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formtxt-404",
+  "preset": "formai-studio",
+  "components": ["receipt-printer"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#7aa2ff" },
+    "name": { "label": "Product name (after Form)", "type": "text", "default": "Txt" },
+    "kicker": { "label": "Kicker", "type": "text", "default": "Error 404" },
+    "line1": { "label": "Headline line 1", "type": "text", "default": "Page" },
+    "line2": { "label": "Headline line 2", "type": "text", "default": "missing" },
+    "backLink": { "label": "Back link", "type": "url", "default": "https://formai.studio/formtxt/" },
+    "appsLink": { "label": "Second link", "type": "url", "default": "https://formai.studio/apps/" }
+  },
+  "tree": {
+    "key": "section", "tag": "section", "name": "Not found", "attrs": { "aria-labelledby": "@@title@@" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--hue-wash": "color-mix(in srgb, var(--hue) 14%, transparent)",
+      "--hue-line": "color-mix(in srgb, var(--hue) 42%, transparent)",
+      "position": "relative", "display": "block", "box-sizing": "border-box", "overflow": "clip",
+      "min-height": "max(640px, calc(100svh - var(--bar-h)))", "color": "var(--ink)"
+    },
+    "children": [
+      {
+        "key": "inner", "tag": "div", "name": "Layout",
+        "styles": {
+          "box-sizing": "border-box", "display": "grid", "grid-template-columns": "repeat(2, minmax(0, 1fr))", "align-items": "center",
+          "gap": "min(5vw, 80px)", "min-height": "max(640px, calc(100svh - var(--bar-h)))", "width": "100%", "max-width": "var(--page-max)",
+          "margin-left": "auto", "margin-right": "auto", "padding-left": "var(--gutter)", "padding-right": "var(--gutter)",
+          "padding-top": "var(--sp-7)", "padding-bottom": "var(--sp-7)"
+        },
+        "breakpoints": {
+          "mobile": { "grid-template-columns": "minmax(0, 1fr)", "align-items": "start", "padding-bottom": "0" }
+        },
+        "children": [
+          {
+            "key": "copy", "tag": "div", "name": "Copy",
+            "styles": { "display": "grid", "gap": "var(--sp-5)", "justify-items": "start", "max-width": "520px", "min-width": "0" },
+            "children": [
+              {
+                "key": "kicker", "tag": "p", "name": "Kicker", "text": "{{kicker}}",
+                "styles": { "margin": "0", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" }
+              },
+              {
+                "key": "title", "tag": "h1", "name": "Headline",
+                "styles": { "margin": "0", "font-size": "clamp(4rem, 7.6vw, 7rem)", "font-weight": "720", "line-height": "0.92", "letter-spacing": "-0.045em" },
+                "breakpoints": { "mobile": { "font-size": "4rem" } },
+                "children": [
+                  { "key": "l1", "tag": "span", "name": "Line 1", "text": "{{line1}}", "styles": { "display": "block" } },
+                  {
+                    "key": "l2", "tag": "span", "name": "Line 2", "styles": { "display": "block" },
+                    "children": [
+                      { "key": "l2t", "tag": "span", "name": "Line 2 text", "text": "{{line2}}" },
+                      { "key": "dot", "tag": "span", "name": "Dot", "text": ".", "styles": { "color": "var(--hue)" } }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "lead", "tag": "p", "name": "Lead",
+                "styles": { "min-height": "calc(3 * 1.55em)", "margin": "0", "color": "var(--ink-soft)", "font-size": "var(--fs-l)", "line-height": "1.55" },
+                "children": [
+                  { "key": "lf", "tag": "span", "name": "Brand form", "text": "Form", "styles": { "color": "var(--ink)" } },
+                  { "key": "ls", "tag": "span", "name": "Brand suffix", "text": "{{name}}", "styles": { "color": "var(--hue)" } },
+                  { "key": "lt", "tag": "span", "name": "Lead text", "text": " has no page at " },
+                  {
+                    "key": "addr", "tag": "code", "name": "Address", "text": "/formtxt/docs/old-draft/",
+                    "styles": { "padding": "1px 6px", "background": "var(--inset)", "box-shadow": "inset 0 0 0 1px var(--edge)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "0.88em", "word-break": "break-all" }
+                  },
+                  { "key": "le", "tag": "span", "name": "Lead end", "text": ". Search below, or take the closest pages from the receipt." }
+                ]
+              },
+              {
+                "key": "search", "tag": "div", "name": "Search", "attrs": { "role": "search" },
+                "styles": { "display": "grid", "gap": "var(--sp-2)", "width": "100%" },
+                "children": [
+                  {
+                    "key": "label", "tag": "label", "name": "Search label", "text": "Search the site", "attrs": { "for": "@@q@@" },
+                    "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" }
+                  },
+                  {
+                    "key": "box", "tag": "div", "name": "Search box",
+                    "styles": { "display": "flex", "background": "var(--inset)", "box-shadow": "inset 0 0 0 1px var(--edge)", "transition": "box-shadow var(--dur-fast) var(--ease-out)" },
+                    "children": [
+                      {
+                        "key": "q", "tag": "input", "name": "Search field",
+                        "attrs": { "id": "@@q@@", "name": "q", "type": "text", "autocomplete": "off", "placeholder": "Try pages, ribbon or docx" },
+                        "styles": { "flex": "1 1 0", "min-width": "0", "box-sizing": "border-box", "padding": "0 var(--sp-4)", "border": "0", "background": "transparent", "color": "var(--ink)", "font-family": "inherit", "font-size": "var(--fs-m)", "outline": "none" }
+                      },
+                      {
+                        "key": "print", "tag": "button", "name": "Print button", "text": "Print", "attrs": { "type": "button" },
+                        "styles": { "flex": "none", "margin": "3px", "border": "0", "cursor": "pointer", "box-sizing": "border-box" }
+                      }
+                    ]
+                  },
+                  {
+                    "key": "fine", "tag": "p", "name": "Fine print", "text": "The search runs on this page and sends nothing anywhere.",
+                    "styles": { "margin": "0", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em", "text-transform": "uppercase" }
+                  }
+                ]
+              },
+              {
+                "key": "links", "tag": "p", "name": "Links",
+                "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "var(--sp-5)", "margin": "0" },
+                "children": [
+                  {
+                    "key": "back", "tag": "a", "name": "Back link", "attrs": { "href": "{{backLink}}" },
+                    "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-decoration": "none" },
+                    "children": [
+                      { "key": "backt", "tag": "span", "name": "Back text", "text": "Back to Form{{name}}" },
+                      {
+                        "key": "backi", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                        "styles": { "flex": "none", "display": "block", "width": "var(--icon-s)", "height": "var(--icon-s)" },
+                        "children": [
+                          { "key": "backp1", "tag": "path", "attrs": { "d": "M5 12h14" } },
+                          { "key": "backp2", "tag": "path", "attrs": { "d": "M13 6l6 6-6 6" } }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "apps", "tag": "a", "name": "Second link", "attrs": { "href": "{{appsLink}}" },
+                    "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-decoration": "none" },
+                    "children": [
+                      { "key": "appst", "tag": "span", "name": "Second link text", "text": "Every app" },
+                      {
+                        "key": "appsi", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                        "styles": { "flex": "none", "display": "block", "width": "var(--icon-s)", "height": "var(--icon-s)" },
+                        "children": [
+                          { "key": "appsp1", "tag": "path", "attrs": { "d": "M5 12h14" } },
+                          { "key": "appsp2", "tag": "path", "attrs": { "d": "M13 6l6 6-6 6" } }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "desk", "tag": "div", "name": "Desk",
+            "styles": { "position": "relative", "align-self": "start", "min-width": "0" },
+            "children": [
+              {
+                "key": "host", "tag": "div", "name": "Receipt printer",
+                "styles": { "position": "relative", "width": "100%", "height": "calc(4vh + 677px)" },
+                "breakpoints": { "mobile": { "height": "720px" } }
+              },
+              {
+                "key": "results", "tag": "ul", "name": "Search results feed", "attrs": { "hidden": "true" },
+                "styles": { "margin": "0", "padding": "0", "list-style": "none" }
+              },
+              {
+                "key": "tpl", "tag": "li", "name": "Search result template", "attrs": { "hidden": "true" },
+                "styles": { "margin": "0" },
+                "children": [
+                  {
+                    "key": "tpla", "tag": "a", "name": "Result link", "attrs": { "data-fw-slot": "link", "href": "#" },
+                    "children": [
+                      { "key": "tplt", "tag": "span", "name": "Result title", "text": "Title", "attrs": { "data-fw-slot": "title" } },
+                      { "key": "tplp", "tag": "span", "name": "Result path", "text": "/path/", "attrs": { "data-fw-slot": "path" } }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "behaviors": {
+    "@@print@@": { "states": { "hover": { "opacity": "0.88" } } },
+    "@@back@@": { "states": { "hover": { "color": "var(--hue)" } } },
+    "@@apps@@": { "states": { "hover": { "color": "var(--hue)" } } },
+    "@@q@@": { "states": { "focus": { "box-shadow": "0 0 0 3px var(--hue-wash), inset 0 0 0 1px var(--hue-line)" } } }
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@print@@", "name": "button" } },
+    { "command": "code.instance.set", "params": { "node": "@@host@@", "value": { "component": "receipt-printer", "props": {
+      "brandSuffix": "{{name}}",
+      "icon": "/api/assets/a04a922ef078c0a4845f22f21a9080b96d8b6f7f7025e85ee538993eb0ed818f.webp",
+      "searchInput": "@@q@@",
+      "searchButton": "@@print@@",
+      "addressNode": "@@addr@@",
+      "siteResults": "@@results@@"
+    } } } },
+    { "command": "motion.set", "params": { "kind": "scripts", "node": "@@section@@", "value": { "trigger": "load", "once": true, "steps": [ { "type": "wait", "ms": 0 } ] } } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q@@", "value": [
+      { "trigger": "input", "action": "search", "input": "@@q@@", "results": "@@results@@", "template": "@@tpl@@", "limit": 8, "fromParam": true }
+    ] } }
+  ]
+}

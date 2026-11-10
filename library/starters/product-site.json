@@ -1,0 +1,16 @@
+{
+  "format": "formweb-starter",
+  "version": 1,
+  "id": "product-site",
+  "name": "Product site",
+  "description": "A six page product site in the formai.studio style: home, product, about, stories, support and a not found page, with a shared header and footer.",
+  "preset": "formai-studio",
+  "pages": [
+    { "name": "Home", "slug": "/", "sections": ["formai-header", "formcel-foresheet", "formcel-feature-rows", "formdam-capture-wall", "formpromo-use-cases", "formmcp-faq", "formcompiler-cta", "formtray-footer"] },
+    { "name": "Product", "slug": "/product", "sections": ["formai-header", "formcut-feature-rows", "formencoder-how-it-works", "formskills-integrations", "formcompiler-cta", "formtray-footer"] },
+    { "name": "About", "slug": "/about", "sections": ["formai-header", "formslot-timeline", "formbench-figures", "formtray-footer"] },
+    { "name": "Stories", "slug": "/stories", "sections": ["formai-header", "formfabric-stories", "formtray-footer"] },
+    { "name": "Support", "slug": "/support", "sections": ["formai-header", "formbench-support", "formtray-footer"] },
+    { "name": "Not found", "slug": "/404", "sections": ["formai-header", "formtxt-404", "formtray-footer"] }
+  ]
+}

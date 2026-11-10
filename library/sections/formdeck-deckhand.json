@@ -1,0 +1,156 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formdeck-deckhand",
+  "name": "FormDeck deckhand",
+  "category": "scroll-story",
+  "tags": [
+    "deck",
+    "slides",
+    "physics",
+    "drag",
+    "flip",
+    "grid",
+    "scroll"
+  ],
+  "product": "formdeck",
+  "description": "Twelve slides from FormDeck's demos to throw, flip, sort into a grid and present, as you scroll.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formdeck-deckhand",
+  "preset": "formai-studio",
+  "components": [
+    "physics-deck"
+  ],
+  "fields": {
+    "tint": {
+      "label": "Tint",
+      "type": "color",
+      "default": "#c8ee4f"
+    },
+    "name": {
+      "label": "Product name (after Form)",
+      "type": "text",
+      "default": "Deck"
+    },
+    "line1": {
+      "label": "Headline line 1",
+      "type": "text",
+      "default": "Throw them."
+    },
+    "line2": {
+      "label": "Headline line 2",
+      "type": "text",
+      "default": "Sort them."
+    },
+    "line3": {
+      "label": "Headline line 3",
+      "type": "text",
+      "default": "Present."
+    },
+    "finTitle": {
+      "label": "Closing title",
+      "type": "text",
+      "default": "Present."
+    },
+    "finText": {
+      "label": "Closing text",
+      "type": "longtext",
+      "default": "Built from a slide script, presented in FormDeck's slide show. Both demos run in the browser with no install."
+    }
+  },
+  "tree": {
+    "key": "section",
+    "tag": "section",
+    "name": "Deckhand track",
+    "attrs": {
+      "aria-label": "{{name}} deckhand: twelve slides to throw, sort and present"
+    },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--hue-wash": "color-mix(in srgb, var(--hue) 14%, transparent)",
+      "--hue-line": "color-mix(in srgb, var(--hue) 42%, transparent)",
+      "display": "block",
+      "box-sizing": "border-box",
+      "background": "var(--ground)",
+      "color": "var(--ink)"
+    },
+    "children": [
+      {
+        "key": "stage",
+        "tag": "div",
+        "name": "Stage",
+        "styles": {
+          "box-sizing": "border-box",
+          "isolation": "isolate",
+          "min-height": "480px",
+          "background": "var(--ground)",
+          "border-bottom": "1px solid var(--edge)"
+        },
+        "children": [
+          {
+            "key": "host",
+            "tag": "div",
+            "name": "Physics deck",
+            "styles": {
+              "position": "relative",
+              "width": "100%",
+              "height": "100%"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@host@@",
+        "value": {
+          "component": "physics-deck",
+          "props": {
+            "brandSuffix": "{{name}}",
+            "headline": [
+              "{{line1}}",
+              "{{line2}}",
+              "{{line3}}"
+            ],
+            "finTitle": "{{finTitle}}",
+            "finText": "{{finText}}"
+          }
+        }
+      }
+    },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "scenes",
+        "node": "@@section@@",
+        "value": {
+          "stage": "@@stage@@",
+          "length": 430,
+          "offset": "65px",
+          "smoothing": 0,
+          "tracks": [
+            {
+              "node": "@@host@@",
+              "keyframes": [
+                {
+                  "at": 0,
+                  "styles": {
+                    "opacity": "1"
+                  }
+                },
+                {
+                  "at": 1,
+                  "styles": {
+                    "opacity": "1"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

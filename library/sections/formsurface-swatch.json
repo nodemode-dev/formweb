@@ -1,0 +1,324 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formsurface-swatch",
+  "name": "FormSurface swatch",
+  "category": "scroll-story",
+  "tags": ["paint", "webgl", "spray", "swatch", "png", "scroll"],
+  "product": "formsurface",
+  "description": "Spray pigment onto a surface the way FormSurface paints a model, then shrink it into a material card and save it as a PNG.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formsurface-swatch",
+  "preset": "formai-studio",
+  "components": ["paint-sim"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#f58f7c" },
+    "name": { "label": "Product name (tinted part)", "type": "text", "default": "Surface" },
+    "headline": { "label": "Headline (one line per row)", "type": "longtext", "default": "Paint the\nmodel, not UVs" },
+    "heading": { "label": "Chapter heading", "type": "text", "default": "Paint on the model, not on the flat texture." },
+    "summary": { "label": "Chapter summary", "type": "longtext", "default": "The brush hits the mesh in world space and writes into the UV textures, so strokes keep a constant on-screen size and cross UV seams. The finished maps export through templates for glTF, Unreal Engine, Unity, Godot, Blender and more." },
+    "cta": { "label": "Main button text", "type": "text", "default": "Explore FormSurface" },
+    "ctaUrl": { "label": "Main button link", "type": "url", "default": "https://formai.studio/formsurface/" }
+  },
+  "tree": {
+    "key": "section",
+    "tag": "section",
+    "name": "Swatch",
+    "attrs": { "aria-label": "{{name}} swatch" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--hue-wash": "color-mix(in srgb, var(--hue) 14%, transparent)",
+      "--hue-line": "color-mix(in srgb, var(--hue) 42%, transparent)",
+      "--glow-soft": "0 var(--sp-2) var(--sp-6) calc(var(--sp-2) * -1) color-mix(in srgb, var(--hue) 38%, transparent)",
+      "--paint-tokens": "var(--pane) var(--veil) var(--shadow-frame) var(--dur) var(--radius-m) var(--z-behind) var(--z-base) var(--z-overlay)",
+      "position": "relative",
+      "color": "var(--ink)"
+    },
+    "breakpoints": {},
+    "children": [
+      {
+        "key": "track",
+        "tag": "div",
+        "name": "Scroll track",
+        "attrs": {},
+        "styles": {},
+        "breakpoints": {},
+        "children": [
+          {
+            "key": "stage",
+            "tag": "div",
+            "name": "Paint stage",
+            "attrs": {},
+            "styles": {
+              "z-index": "var(--z-raised)",
+              "background": "var(--inset)",
+              "color": "var(--ink)"
+            },
+            "breakpoints": {},
+            "children": []
+          }
+        ]
+      },
+      {
+        "key": "chapter",
+        "tag": "div",
+        "name": "Chapter",
+        "attrs": {},
+        "styles": {
+          "position": "relative",
+          "border-bottom": "1px solid var(--edge)"
+        },
+        "breakpoints": {},
+        "children": [
+          {
+            "key": "wrap",
+            "tag": "div",
+            "name": "Wrap",
+            "attrs": {},
+            "styles": {
+              "position": "relative",
+              "box-sizing": "border-box",
+              "width": "100%",
+              "max-width": "var(--page-max)",
+              "margin-left": "auto",
+              "margin-right": "auto",
+              "padding-left": "var(--gutter)",
+              "padding-right": "var(--gutter)",
+              "border-left": "1px solid var(--edge)",
+              "border-right": "1px solid var(--edge)"
+            },
+            "breakpoints": {},
+            "children": [
+              {
+                "key": "inner",
+                "tag": "div",
+                "name": "Chapter grid",
+                "attrs": {},
+                "styles": {
+                  "display": "grid",
+                  "grid-template-columns": "minmax(0, 1fr) minmax(0, 1.2fr)",
+                  "align-items": "center",
+                  "gap": "var(--sp-8)",
+                  "min-height": "min(50vh, 32rem)",
+                  "padding-top": "var(--sp-6)",
+                  "padding-bottom": "var(--sp-6)"
+                },
+                "breakpoints": { "tablet": { "grid-template-columns": "minmax(0, 1fr)" } },
+                "children": [
+                  {
+                    "key": "copy",
+                    "tag": "div",
+                    "name": "Chapter copy",
+                    "attrs": {},
+                    "styles": {
+                      "display": "grid",
+                      "justify-items": "start",
+                      "gap": "var(--sp-4)"
+                    },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "label",
+                        "tag": "p",
+                        "name": "Chapter label",
+                        "attrs": {},
+                        "styles": {
+                          "margin": "0",
+                          "font-size": "var(--fs-l)",
+                          "font-weight": "var(--weight-display)",
+                          "letter-spacing": "var(--track-tight)"
+                        },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "label-form", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                          { "key": "label-suffix", "tag": "span", "name": "Product", "text": "{{name}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                          {
+                            "key": "label-meta",
+                            "tag": "span",
+                            "name": "Meta",
+                            "text": "3D texture painter / Free",
+                            "attrs": {},
+                            "styles": {
+                              "display": "block",
+                              "margin-top": "var(--sp-1)",
+                              "color": "var(--ink-faint)",
+                              "font-family": "var(--font-mono)",
+                              "font-size": "var(--fs-xs)",
+                              "font-weight": "400",
+                              "letter-spacing": "0.14em",
+                              "text-transform": "uppercase"
+                            },
+                            "breakpoints": {},
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "key": "h2",
+                        "tag": "h2",
+                        "name": "Heading",
+                        "text": "{{heading}}",
+                        "attrs": {},
+                        "styles": {
+                          "margin": "0",
+                          "font-size": "var(--fs-2xl)",
+                          "font-weight": "var(--weight-display)",
+                          "line-height": "1.05",
+                          "letter-spacing": "var(--track-display)"
+                        },
+                        "breakpoints": {},
+                        "children": []
+                      },
+                      {
+                        "key": "sum",
+                        "tag": "p",
+                        "name": "Summary",
+                        "text": "{{summary}}",
+                        "attrs": {},
+                        "styles": {
+                          "margin": "0",
+                          "max-width": "34rem",
+                          "color": "var(--ink-soft)",
+                          "font-size": "var(--fs-l)"
+                        },
+                        "breakpoints": {},
+                        "children": []
+                      },
+                      {
+                        "key": "chips",
+                        "tag": "ul",
+                        "name": "Chips",
+                        "attrs": {},
+                        "styles": {
+                          "display": "flex",
+                          "flex-wrap": "wrap",
+                          "gap": "var(--sp-2)",
+                          "margin": "0",
+                          "padding": "0",
+                          "list-style": "none"
+                        },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "chip-1", "tag": "li", "name": "Chip", "text": "31 blend modes", "attrs": {}, "styles": { "padding": "var(--sp-1) var(--sp-3)", "border": "1px solid var(--hue-line)", "border-radius": "0", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] },
+                          { "key": "chip-2", "tag": "li", "name": "Chip", "text": "PBR export", "attrs": {}, "styles": { "padding": "var(--sp-1) var(--sp-3)", "border": "1px solid var(--hue-line)", "border-radius": "0", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] },
+                          { "key": "chip-3", "tag": "li", "name": "Chip", "text": "Rust and wgpu", "attrs": {}, "styles": { "padding": "var(--sp-1) var(--sp-3)", "border": "1px solid var(--hue-line)", "border-radius": "0", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                        ]
+                      },
+                      {
+                        "key": "actions",
+                        "tag": "p",
+                        "name": "Actions",
+                        "attrs": {},
+                        "styles": {
+                          "display": "flex",
+                          "flex-wrap": "wrap",
+                          "gap": "var(--sp-3)",
+                          "margin": "var(--sp-2) 0 0"
+                        },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "cta", "tag": "a", "name": "Main button", "text": "{{cta}}", "attrs": { "href": "{{ctaUrl}}" }, "styles": {}, "breakpoints": {}, "children": [] },
+                          { "key": "cta2", "tag": "a", "name": "Second button", "text": "Browse every app", "attrs": { "href": "https://formai.studio/apps/" }, "styles": {}, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "shot",
+                    "tag": "figure",
+                    "name": "Screenshot",
+                    "attrs": {},
+                    "styles": {
+                      "margin": "var(--sp-6) 0 0",
+                      "overflow": "hidden",
+                      "border-radius": "var(--radius-l)",
+                      "box-shadow": "var(--shadow-tile), var(--glow-soft)"
+                    },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "shot-dark",
+                        "tag": "img",
+                        "name": "Screenshot dark",
+                        "attrs": {
+                          "data-fw-theme-only": "dark",
+                          "src": "https://media.formai.studio/media/formsurface/ui-viewport/a67b2d698097.w1024.webp",
+                          "srcset": "https://media.formai.studio/media/formsurface/ui-viewport/a67b2d698097.w1024.webp 1024w, https://media.formai.studio/media/formsurface/ui-viewport/a67b2d698097.w2400.webp 2400w",
+                          "sizes": "(max-width: 960px) 100vw, 640px",
+                          "width": "2400",
+                          "height": "1500",
+                          "alt": "FormSurface painting a knot mesh in the 3D viewport, with the brush panel on the right",
+                          "loading": "lazy"
+                        },
+                        "styles": { "display": "block", "width": "100%", "height": "auto" },
+                        "breakpoints": {},
+                        "children": []
+                      },
+                      {
+                        "key": "shot-light",
+                        "tag": "img",
+                        "name": "Screenshot light",
+                        "attrs": {
+                          "data-fw-theme-only": "light",
+                          "src": "https://media.formai.studio/media/formsurface/ui-viewport-light/9e98bb3e5371.w1024.webp",
+                          "srcset": "https://media.formai.studio/media/formsurface/ui-viewport-light/9e98bb3e5371.w1024.webp 1024w, https://media.formai.studio/media/formsurface/ui-viewport-light/9e98bb3e5371.w2400.webp 2400w",
+                          "sizes": "(max-width: 960px) 100vw, 640px",
+                          "width": "2400",
+                          "height": "1500",
+                          "alt": "FormSurface painting a knot mesh in the 3D viewport, with the brush panel on the right",
+                          "loading": "lazy"
+                        },
+                        "styles": { "display": "block", "width": "100%", "height": "auto" },
+                        "breakpoints": {},
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@label-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@label-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@cta@@", "name": "button" } },
+    { "command": "textpreset.apply", "params": { "id": "@@cta2@@", "name": "button-quiet" } },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "scenes",
+        "node": "@@track@@",
+        "value": {
+          "stage": "@@stage@@",
+          "length": 440,
+          "offset": "64px",
+          "smoothing": 143,
+          "reducedAt": 0,
+          "tracks": [
+            { "node": "@@stage@@", "keyframes": [{ "at": 0, "styles": { "opacity": "1" } }, { "at": 1, "styles": { "opacity": "1" } }] }
+          ]
+        }
+      }
+    },
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@stage@@",
+        "value": {
+          "component": "paint-sim",
+          "props": {
+            "brandSuffix": "{{name}}",
+            "headline": "{{headline}}"
+          }
+        }
+      }
+    }
+  ],
+  "behaviors": {
+    "@@cta@@": { "states": { "hover": { "opacity": "0.88" } } },
+    "@@cta2@@": { "states": { "hover": { "background": "var(--control-hover)" } } }
+  }
+}

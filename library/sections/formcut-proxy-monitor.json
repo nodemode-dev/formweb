@@ -1,0 +1,110 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formcut-proxy-monitor",
+  "name": "FormCut proxy monitor",
+  "category": "scroll-story",
+  "tags": ["condensation", "fog", "wipe", "monitor", "scroll", "canvas"],
+  "product": "formcut",
+  "description": "A FormCut monitor that opens on a fogged proxy of a clip, lets you wipe it clear, then sweeps the grade across the frame and pushes through to the export panel.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formcut-proxy-monitor",
+  "preset": "formai-studio",
+  "components": ["fog-wipe-monitor"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#ffae2b" },
+    "name": { "label": "Product name", "type": "text", "default": "FormCut" },
+    "headline": { "label": "Headline", "type": "text", "default": "Wipe the proxy" },
+    "headline_tint": { "label": "Headline, tinted line", "type": "text", "default": "clear" },
+    "intro": { "label": "Hint under the headline", "type": "longtext", "default": "The monitor opens on a soft proxy of clip A002. Drag across the glass to reveal the graded frame underneath. Nothing renders until you wipe." },
+    "export_text": { "label": "Export panel text", "type": "longtext", "default": "Preview and export share one renderer, so the frame you graded is the frame written to the file. H.264, HEVC, AV1 and VP9 render on your own machine, with no upload." },
+    "cta_href": { "label": "Export panel link", "type": "url", "default": "https://formai.studio/formcut/" },
+    "still": { "label": "Clip frame", "type": "asset", "default": "https://media.formai.studio/media/formcut/hero-timeline/fb35ac6cd929.poster.webp" }
+  },
+  "tree": {
+    "key": "section",
+    "tag": "section",
+    "name": "Proxy monitor",
+    "attrs": { "aria-label": "{{name}} proxy monitor" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--footage-hue": "{{tint}}",
+      "position": "relative",
+      "display": "block",
+      "background": "var(--ground)",
+      "color": "var(--ink)",
+      "font-family": "var(--font-ui)"
+    },
+    "children": [
+      {
+        "key": "track",
+        "tag": "div",
+        "name": "Scroll track",
+        "styles": { "position": "relative" },
+        "children": [
+          {
+            "key": "stage",
+            "tag": "div",
+            "name": "Pinned stage",
+            "styles": {
+              "background": "var(--black)",
+              "color": "var(--footage-ink)",
+              "isolation": "isolate"
+            },
+            "children": [
+              {
+                "key": "host",
+                "tag": "div",
+                "name": "Fog wipe monitor",
+                "styles": { "width": "100%", "height": "100%" },
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "scenes",
+        "node": "@@track@@",
+        "value": {
+          "stage": "@@stage@@",
+          "length": 420,
+          "offset": "64px",
+          "smoothing": 200,
+          "tracks": [
+            {
+              "node": "@@host@@",
+              "keyframes": [
+                { "at": 0, "styles": { "opacity": "1" } },
+                { "at": 1, "styles": { "opacity": "1" } }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@host@@",
+        "value": {
+          "component": "fog-wipe-monitor",
+          "props": {
+            "still": "{{still}}",
+            "ariaLabel": "{{name}} clip monitor. Wipe the glass with the pointer, or use the buttons to clear it.",
+            "headlineA": "{{headline}}",
+            "headlineB": "{{headline_tint}}",
+            "hintPointer": "{{intro}}",
+            "finalBody": "{{export_text}}",
+            "finalCta": "About {{name}}",
+            "finalHref": "{{cta_href}}"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formsculpt-viewport",
+  "name": "FormSculpt viewport",
+  "category": "scroll-story",
+  "tags": ["viewport", "webgl", "glyphs", "scroll", "lens"],
+  "product": "formsculpt",
+  "description": "A FormSculpt viewport read back as text, then shaded: scroll to tune the capture in, move to open the shaded view.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formsculpt-viewport",
+  "preset": "formai-studio",
+  "components": ["glyph-lens"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#f7d08a" },
+    "name": { "label": "Product name", "type": "text", "default": "Sculpt" },
+    "lineOne": { "label": "Headline, first line", "type": "text", "default": "Read the mesh" },
+    "lineTwo": { "label": "Headline, second line", "type": "text", "default": "then shade it" },
+    "closeTitle": { "label": "End title", "type": "text", "default": "Shaded" },
+    "closeBody": { "label": "End text", "type": "longtext", "default": "Hand the shaded mesh on through GoF." },
+    "ctaLabel": { "label": "Link text", "type": "text", "default": "About the app" },
+    "ctaHref": { "label": "Link address", "type": "url", "default": "https://formai.studio/formsculpt/" }
+  },
+  "tree": {
+    "key": "section",
+    "tag": "section",
+    "name": "Viewport scroll story",
+    "attrs": { "aria-label": "Form{{name}} viewport, scroll driven" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--hue-wash": "color-mix(in srgb, var(--hue) 14%, transparent)",
+      "--hue-line": "color-mix(in srgb, var(--hue) 42%, transparent)",
+      "--tokens-used": "var(--inset) var(--pane) var(--on-ink) var(--control-hover) var(--prose-max) var(--radius-m) var(--sp-9) var(--z-field)",
+      "background": "var(--ground)",
+      "color": "var(--ink)"
+    },
+    "children": [
+      {
+        "key": "stage",
+        "tag": "div",
+        "name": "Pinned stage",
+        "attrs": {
+          "tabindex": "0",
+          "data-glyph-stage": "",
+          "aria-label": "Form{{name}} viewport read as text. Scroll to tune it in. Left and right arrow keys turn it. Enter sends a pulse."
+        },
+        "styles": {
+          "--fs-edge": "clamp(16px, 2.4vw, 32px)",
+          "--fs-bot": "clamp(24px, 4vw, 56px)",
+          "z-index": "var(--z-base)",
+          "background": "var(--ground)",
+          "cursor": "crosshair",
+          "user-select": "none",
+          "touch-action": "pan-y",
+          "outline-offset": "-2px"
+        },
+        "breakpoints": { "mobile": { "--fs-bot": "20px" } },
+        "children": [
+          {
+            "key": "host",
+            "tag": "div",
+            "name": "Glyph lens",
+            "attrs": {},
+            "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0" }
+          },
+          {
+            "key": "hlw",
+            "tag": "div",
+            "name": "Headline",
+            "attrs": {},
+            "styles": {
+              "position": "absolute",
+              "left": "var(--fs-edge)",
+              "bottom": "var(--fs-bot)",
+              "z-index": "var(--z-raised)",
+              "pointer-events": "none",
+              "will-change": "opacity, transform"
+            },
+            "breakpoints": { "mobile": { "bottom": "128px" } },
+            "children": [
+              {
+                "key": "hl",
+                "tag": "h1",
+                "name": "Headline text",
+                "attrs": {},
+                "styles": {
+                  "margin": "0",
+                  "font-size": "clamp(52px, 8.6vw, 156px)",
+                  "font-weight": "var(--weight-display)",
+                  "letter-spacing": "var(--track-display)",
+                  "line-height": "0.88",
+                  "text-wrap": "balance",
+                  "color": "var(--ink)"
+                },
+                "breakpoints": { "mobile": { "font-size": "clamp(46px, 14vw, 76px)" } },
+                "children": [
+                  {
+                    "key": "l1",
+                    "tag": "span",
+                    "name": "Line one",
+                    "attrs": {},
+                    "styles": { "display": "block", "overflow": "hidden", "padding-bottom": "0.1em", "margin-bottom": "-0.1em" },
+                    "children": [
+                      { "key": "l1t", "tag": "span", "name": "Line one text", "text": "{{lineOne}}", "attrs": {}, "styles": { "display": "block" } }
+                    ]
+                  },
+                  {
+                    "key": "l2",
+                    "tag": "span",
+                    "name": "Line two",
+                    "attrs": {},
+                    "styles": { "display": "block", "overflow": "hidden", "padding-bottom": "0.1em", "margin-bottom": "-0.1em", "color": "var(--hue)" },
+                    "children": [
+                      { "key": "l2t", "tag": "span", "name": "Line two text", "text": "{{lineTwo}}", "attrs": {}, "styles": { "display": "block" } }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "behaviors": {
+    "@@stage@@": { "states": { "focus": { "outline": "2px solid var(--focus)", "outline-offset": "-2px" } } }
+  },
+  "commands": [
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "scenes",
+        "node": "@@section@@",
+        "value": {
+          "stage": "@@stage@@",
+          "length": 420,
+          "offset": "65px",
+          "smoothing": 220,
+          "reducedAt": 0,
+          "tracks": [
+            {
+              "node": "@@l1@@",
+              "easing": "ease-in-out",
+              "keyframes": [
+                { "at": 0, "styles": { "opacity": "1", "translate": "0px 0px" } },
+                { "at": 0.2, "styles": { "opacity": "1", "translate": "0px 0px" } },
+                { "at": 0.3, "styles": { "opacity": "0", "translate": "0px -24px" } },
+                { "at": 1, "styles": { "opacity": "0", "translate": "0px -24px" } }
+              ]
+            },
+            {
+              "node": "@@l2@@",
+              "easing": "ease-in-out",
+              "keyframes": [
+                { "at": 0, "styles": { "opacity": "1", "translate": "0px 0px" } },
+                { "at": 0.22, "styles": { "opacity": "1", "translate": "0px 0px" } },
+                { "at": 0.32, "styles": { "opacity": "0", "translate": "0px -24px" } },
+                { "at": 1, "styles": { "opacity": "0", "translate": "0px -24px" } }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "reveals",
+        "node": "@@l1t@@",
+        "value": { "from": { "transform": "translateY(110%)" }, "duration": 1600, "delay": 500, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" }
+      }
+    },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "reveals",
+        "node": "@@l2t@@",
+        "value": { "from": { "transform": "translateY(110%)" }, "duration": 1600, "delay": 600, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" }
+      }
+    },
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@host@@",
+        "value": {
+          "component": "glyph-lens",
+          "props": {
+            "nameSuffix": "{{name}}",
+            "closeTitle": "{{closeTitle}}",
+            "closeBody": "{{closeBody}}",
+            "ctaLabel": "{{ctaLabel}}",
+            "ctaHref": "{{ctaHref}}"
+          }
+        }
+      }
+    }
+  ]
+}

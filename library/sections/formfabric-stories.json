@@ -1,0 +1,293 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formfabric-stories",
+  "name": "FormFabric stories",
+  "category": "product-site",
+  "tags": ["stories", "cards", "grid", "load-in"],
+  "product": "formfabric",
+  "description": "Six stories from FormFabric, the garment design app, each on a tall card cut from the real window.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formfabric-stories",
+  "preset": "formai-studio",
+  "components": [],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#eda146" },
+    "name": { "label": "Product name after Form", "type": "text", "default": "Fabric" },
+    "meta": { "label": "Label meta", "type": "text", "default": "Stories / Garment design / Free" },
+    "heading": { "label": "Heading", "type": "text", "default": "Garments, made on your machine." },
+    "lead": { "label": "Lead", "type": "longtext", "default": "FormFabric drafts patterns, sews them edge to edge, drapes them with a native cloth solver and exports the result, all on your computer." },
+    "link": { "label": "Card link", "type": "url", "default": "https://formai.studio/formfabric/" },
+    "pic_dark": { "label": "Card picture, dark", "type": "asset", "default": "https://media.formai.studio/media/formfabric/ui-pattern-and-drape-2/f12a7beec6d6.w2400.webp" },
+    "pic_light": { "label": "Card picture, light", "type": "asset", "default": "https://media.formai.studio/media/formfabric/ui-pattern-and-drape-light-2/d550c8f720bd.w2400.webp" }
+  },
+  "tree": {
+    "key": "section", "tag": "section", "name": "Stories", "attrs": { "aria-labelledby": "@@heading@@" },
+    "styles": { "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)", "position": "relative", "padding-top": "var(--sp-9)", "padding-bottom": "var(--sp-9)", "border-bottom": "1px solid var(--edge)" },
+    "breakpoints": { "mobile": { "padding-top": "var(--sp-8)", "padding-bottom": "var(--sp-8)" } },
+    "children": [
+      { "key": "wrap", "tag": "div", "name": "Frame",
+        "styles": { "position": "relative", "width": "100%", "max-width": "var(--page-max)", "margin-left": "auto", "margin-right": "auto", "padding-left": "var(--gutter)", "padding-right": "var(--gutter)", "box-sizing": "border-box", "border-left": "1px solid var(--edge)", "border-right": "1px solid var(--edge)" },
+        "children": [
+          { "key": "mark-l", "tag": "span", "name": "Corner mark left", "attrs": { "aria-hidden": "true" },
+            "styles": { "position": "absolute", "bottom": "calc(var(--sp-2) * -1 - 0.5px)", "left": "calc(var(--sp-2) * -1 - 0.5px)", "width": "calc(var(--sp-4) + 1px)", "height": "calc(var(--sp-4) + 1px)", "background": "linear-gradient(var(--ink-faint), var(--ink-faint)) center / 1px 100% no-repeat, linear-gradient(var(--ink-faint), var(--ink-faint)) center / 100% 1px no-repeat", "pointer-events": "none" } },
+          { "key": "mark-r", "tag": "span", "name": "Corner mark right", "attrs": { "aria-hidden": "true" },
+            "styles": { "position": "absolute", "bottom": "calc(var(--sp-2) * -1 - 0.5px)", "right": "calc(var(--sp-2) * -1 - 0.5px)", "width": "calc(var(--sp-4) + 1px)", "height": "calc(var(--sp-4) + 1px)", "background": "linear-gradient(var(--ink-faint), var(--ink-faint)) center / 1px 100% no-repeat, linear-gradient(var(--ink-faint), var(--ink-faint)) center / 100% 1px no-repeat", "pointer-events": "none" } },
+          { "key": "head", "tag": "header", "name": "Head", "styles": { "display": "grid", "justify-items": "center", "gap": "var(--sp-4)", "margin-bottom": "var(--sp-7)", "text-align": "center" },
+            "children": [
+              { "key": "label", "tag": "p", "name": "Chapter label", "styles": { "margin": "0", "font-size": "var(--fs-l)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-tight)" },
+                "children": [
+                  { "key": "label-form", "tag": "span", "name": "Form", "text": "Form" },
+                  { "key": "label-suffix", "tag": "span", "name": "Product suffix", "text": "{{name}}" },
+                  { "key": "label-meta", "tag": "span", "name": "Chapter meta", "text": "{{meta}}", "styles": { "display": "block", "margin-top": "var(--sp-1)", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "400", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+                ] },
+              { "key": "heading", "tag": "h2", "name": "Heading", "text": "{{heading}}", "styles": { "margin": "0", "line-height": "1.05", "max-width": "18ch", "text-wrap": "balance" } },
+              { "key": "lead", "tag": "p", "name": "Lead", "text": "{{lead}}", "styles": { "margin": "0", "max-width": "44ch", "color": "var(--ink-soft)", "font-size": "var(--fs-l)" } }
+            ] },
+          { "key": "grid", "tag": "ul", "name": "Cards", "styles": { "display": "grid", "grid-template-columns": "repeat(3, minmax(0, 1fr))", "gap": "var(--sp-5)", "margin": "0", "padding": "0", "list-style": "none" },
+            "breakpoints": { "tablet": { "grid-template-columns": "repeat(2, minmax(0, 1fr))", "gap": "var(--sp-5)" }, "mobile": { "grid-template-columns": "minmax(0, 1fr)", "gap": "30px" } },
+            "children": [
+              { "key": "i1", "tag": "li", "name": "Card item", "styles": { "min-width": "0" },
+                "children": [
+                  { "key": "c1", "tag": "a", "name": "Card 1", "attrs": { "href": "{{link}}" },
+                    "styles": { "--ox": "10%", "--z": "1", "--org": "50% 40%", "position": "relative", "display": "block", "height": "580px", "padding": "0", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--inset)", "box-shadow": "inset 0 0 0 1px var(--edge)", "color": "var(--ink)", "text-decoration": "none", "isolation": "isolate", "transition": "transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)" },
+                    "breakpoints": { "mobile": { "height": "410px" } },
+                    "children": [
+                      { "key": "c1-media", "tag": "span", "name": "Media", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "display": "block" },
+                        "children": [
+                          { "key": "c1-md", "tag": "img", "name": "Picture dark", "attrs": { "data-fw-theme-only": "dark", "src": "{{pic_dark}}", "width": "2400", "height": "1272", "alt": "", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } },
+                          { "key": "c1-ml", "tag": "img", "name": "Picture light", "attrs": { "data-fw-theme-only": "light", "src": "{{pic_light}}", "width": "2400", "height": "1272", "alt": "", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } }
+                        ] },
+                      { "key": "c1-shade", "tag": "span", "name": "Shade", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "display": "block", "background": "linear-gradient(to bottom, color-mix(in srgb, var(--ground) 92%, transparent) 0%, color-mix(in srgb, var(--ground) 55%, transparent) 30%, transparent 65%), linear-gradient(to top, color-mix(in srgb, var(--ground) 88%, transparent) 0%, transparent 32%)" } },
+                      { "key": "c1-top", "tag": "span", "name": "Top", "styles": { "position": "absolute", "top": "32px", "left": "32px", "right": "32px", "display": "grid", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "top": "17px", "left": "17px", "right": "17px", "gap": "11px" } },
+                        "children": [
+                          { "key": "c1-tag", "tag": "span", "name": "Tag", "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-3)" },
+                            "children": [
+                              { "key": "c1-ic", "tag": "img", "name": "App icon", "attrs": { "src": "/api/assets/757688e358b02f2d15df5564e3abff82a4c2f8fc50898a7fd0f3404ca59c4182.webp", "width": "24", "height": "24", "alt": "", "decoding": "async" }, "styles": { "display": "block", "width": "24px", "height": "24px" } },
+                              { "key": "c1-lb", "tag": "span", "name": "Story label", "text": "01 / Pattern", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+                            ] },
+                          { "key": "c1-t", "tag": "h3", "name": "Story title", "text": "Draw panels in millimetres, then sew them edge to edge", "styles": { "margin": "0", "color": "var(--ink)", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "line-height": "1.1", "letter-spacing": "var(--track-display)", "text-wrap": "balance" } }
+                        ] },
+                      { "key": "c1-foot", "tag": "span", "name": "Foot", "styles": { "position": "absolute", "left": "32px", "right": "32px", "bottom": "32px", "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "left": "17px", "right": "17px", "bottom": "17px" } },
+                        "children": [
+                          { "key": "c1-cr", "tag": "span", "name": "Credit", "styles": { "display": "grid", "gap": "2px", "min-width": "0", "font-size": "var(--fs-s)", "color": "var(--ink-soft)" },
+                            "children": [
+                              { "key": "c1-crb", "tag": "b", "name": "Credit title", "text": "Flat panels", "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)" } },
+                              { "key": "c1-crs", "tag": "span", "name": "Credit note", "text": "Seams, darts, grain lines, notches" }
+                            ] },
+                          { "key": "c1-go", "tag": "span", "name": "Go", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "inline-flex", "align-items": "center", "justify-content": "center", "width": "52px", "height": "52px", "background": "var(--ink)", "color": "var(--on-ink)" },
+                            "children": [
+                              { "key": "c1-gs", "tag": "svg", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "display": "block", "width": "18px", "height": "18px" },
+                                "children": [ { "key": "c1-gp", "tag": "path", "attrs": { "d": "M5 12h14" } }, { "key": "c1-gq", "tag": "path", "attrs": { "d": "M13 6l6 6-6 6" } } ] }
+                            ] }
+                        ] },
+                      { "key": "c1-sr", "tag": "span", "name": "Screen reader text", "text": "The flat pattern panel in FormFabric with a dress front, its seams, darts and notches", "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } }
+                    ] }
+                ] },
+              { "key": "i2", "tag": "li", "name": "Card item", "styles": { "min-width": "0" },
+                "children": [
+                  { "key": "c2", "tag": "a", "name": "Card 2", "attrs": { "href": "{{link}}" },
+                    "styles": { "--ox": "73%", "--z": "1.1", "--org": "50% 50%", "position": "relative", "display": "block", "height": "580px", "padding": "0", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--inset)", "box-shadow": "inset 0 0 0 1px var(--edge)", "color": "var(--ink)", "text-decoration": "none", "isolation": "isolate", "transition": "transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)" },
+                    "breakpoints": { "mobile": { "height": "410px" } },
+                    "children": [
+                      { "key": "c2-media", "tag": "span", "name": "Media", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "display": "block" },
+                        "children": [
+                          { "key": "c2-md", "tag": "img", "name": "Picture dark", "attrs": { "data-fw-theme-only": "dark", "src": "{{pic_dark}}", "width": "2400", "height": "1272", "alt": "", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } },
+                          { "key": "c2-ml", "tag": "img", "name": "Picture light", "attrs": { "data-fw-theme-only": "light", "src": "{{pic_light}}", "width": "2400", "height": "1272", "alt": "", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } }
+                        ] },
+                      { "key": "c2-shade", "tag": "span", "name": "Shade", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "display": "block", "background": "linear-gradient(to bottom, color-mix(in srgb, var(--ground) 92%, transparent) 0%, color-mix(in srgb, var(--ground) 55%, transparent) 30%, transparent 65%), linear-gradient(to top, color-mix(in srgb, var(--ground) 88%, transparent) 0%, transparent 32%)" } },
+                      { "key": "c2-top", "tag": "span", "name": "Top", "styles": { "position": "absolute", "top": "32px", "left": "32px", "right": "32px", "display": "grid", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "top": "17px", "left": "17px", "right": "17px", "gap": "11px" } },
+                        "children": [
+                          { "key": "c2-tag", "tag": "span", "name": "Tag", "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-3)" },
+                            "children": [
+                              { "key": "c2-ic", "tag": "img", "name": "App icon", "attrs": { "src": "/api/assets/757688e358b02f2d15df5564e3abff82a4c2f8fc50898a7fd0f3404ca59c4182.webp", "width": "24", "height": "24", "alt": "", "decoding": "async" }, "styles": { "display": "block", "width": "24px", "height": "24px" } },
+                              { "key": "c2-lb", "tag": "span", "name": "Story label", "text": "02 / Drape", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+                            ] },
+                          { "key": "c2-t", "tag": "h3", "name": "Story title", "text": "A native solver settles the cloth under gravity, contact and seams", "styles": { "margin": "0", "color": "var(--ink)", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "line-height": "1.1", "letter-spacing": "var(--track-display)", "text-wrap": "balance" } }
+                        ] },
+                      { "key": "c2-foot", "tag": "span", "name": "Foot", "styles": { "position": "absolute", "left": "32px", "right": "32px", "bottom": "32px", "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "left": "17px", "right": "17px", "bottom": "17px" } },
+                        "children": [
+                          { "key": "c2-cr", "tag": "span", "name": "Credit", "styles": { "display": "grid", "gap": "2px", "min-width": "0", "font-size": "var(--fs-s)", "color": "var(--ink-soft)" },
+                            "children": [
+                              { "key": "c2-crb", "tag": "b", "name": "Credit title", "text": "Cloth simulation", "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)" } },
+                              { "key": "c2-crs", "tag": "span", "name": "Credit note", "text": "Fast, Normal, Quality and Final" }
+                            ] },
+                          { "key": "c2-go", "tag": "span", "name": "Go", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "inline-flex", "align-items": "center", "justify-content": "center", "width": "52px", "height": "52px", "background": "var(--ink)", "color": "var(--on-ink)" },
+                            "children": [
+                              { "key": "c2-gs", "tag": "svg", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "display": "block", "width": "18px", "height": "18px" },
+                                "children": [ { "key": "c2-gp", "tag": "path", "attrs": { "d": "M5 12h14" } }, { "key": "c2-gq", "tag": "path", "attrs": { "d": "M13 6l6 6-6 6" } } ] }
+                            ] }
+                        ] },
+                      { "key": "c2-sr", "tag": "span", "name": "Screen reader text", "text": "A dress draped on a body in the FormFabric 3D view", "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } }
+                    ] }
+                ] },
+              { "key": "i3", "tag": "li", "name": "Card item", "styles": { "min-width": "0" },
+                "children": [
+                  { "key": "c3", "tag": "a", "name": "Card 3", "attrs": { "href": "{{link}}" },
+                    "styles": { "--ox": "73%", "--z": "1.7", "--org": "50% 42%", "position": "relative", "display": "block", "height": "580px", "padding": "0", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--inset)", "box-shadow": "inset 0 0 0 1px var(--edge)", "color": "var(--ink)", "text-decoration": "none", "isolation": "isolate", "transition": "transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)" },
+                    "breakpoints": { "mobile": { "height": "410px" } },
+                    "children": [
+                      { "key": "c3-media", "tag": "span", "name": "Media", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "display": "block" },
+                        "children": [
+                          { "key": "c3-md", "tag": "img", "name": "Picture dark", "attrs": { "data-fw-theme-only": "dark", "src": "{{pic_dark}}", "width": "2400", "height": "1272", "alt": "", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } },
+                          { "key": "c3-ml", "tag": "img", "name": "Picture light", "attrs": { "data-fw-theme-only": "light", "src": "{{pic_light}}", "width": "2400", "height": "1272", "alt": "", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } }
+                        ] },
+                      { "key": "c3-shade", "tag": "span", "name": "Shade", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "display": "block", "background": "linear-gradient(to bottom, color-mix(in srgb, var(--ground) 92%, transparent) 0%, color-mix(in srgb, var(--ground) 55%, transparent) 30%, transparent 65%), linear-gradient(to top, color-mix(in srgb, var(--ground) 88%, transparent) 0%, transparent 32%)" } },
+                      { "key": "c3-top", "tag": "span", "name": "Top", "styles": { "position": "absolute", "top": "32px", "left": "32px", "right": "32px", "display": "grid", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "top": "17px", "left": "17px", "right": "17px", "gap": "11px" } },
+                        "children": [
+                          { "key": "c3-tag", "tag": "span", "name": "Tag", "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-3)" },
+                            "children": [
+                              { "key": "c3-ic", "tag": "img", "name": "App icon", "attrs": { "src": "/api/assets/757688e358b02f2d15df5564e3abff82a4c2f8fc50898a7fd0f3404ca59c4182.webp", "width": "24", "height": "24", "alt": "", "decoding": "async" }, "styles": { "display": "block", "width": "24px", "height": "24px" } },
+                              { "key": "c3-lb", "tag": "span", "name": "Story label", "text": "03 / Bodies", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+                            ] },
+                          { "key": "c3-t", "tag": "h3", "name": "Story title", "text": "Drape on a CC0 body and keep the fit as the pattern changes", "styles": { "margin": "0", "color": "var(--ink)", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "line-height": "1.1", "letter-spacing": "var(--track-display)", "text-wrap": "balance" } }
+                        ] },
+                      { "key": "c3-foot", "tag": "span", "name": "Foot", "styles": { "position": "absolute", "left": "32px", "right": "32px", "bottom": "32px", "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "left": "17px", "right": "17px", "bottom": "17px" } },
+                        "children": [
+                          { "key": "c3-cr", "tag": "span", "name": "Credit", "styles": { "display": "grid", "gap": "2px", "min-width": "0", "font-size": "var(--fs-s)", "color": "var(--ink-soft)" },
+                            "children": [
+                              { "key": "c3-crb", "tag": "b", "name": "Credit title", "text": "Real bodies", "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)" } },
+                              { "key": "c3-crs", "tag": "span", "name": "Credit note", "text": "MPFB2 bodies or a Basic Form" }
+                            ] },
+                          { "key": "c3-go", "tag": "span", "name": "Go", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "inline-flex", "align-items": "center", "justify-content": "center", "width": "52px", "height": "52px", "background": "var(--ink)", "color": "var(--on-ink)" },
+                            "children": [
+                              { "key": "c3-gs", "tag": "svg", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "display": "block", "width": "18px", "height": "18px" },
+                                "children": [ { "key": "c3-gp", "tag": "path", "attrs": { "d": "M5 12h14" } }, { "key": "c3-gq", "tag": "path", "attrs": { "d": "M13 6l6 6-6 6" } } ] }
+                            ] }
+                        ] },
+                      { "key": "c3-sr", "tag": "span", "name": "Screen reader text", "text": "A patterned dress fitted on a body in FormFabric", "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } }
+                    ] }
+                ] },
+              { "key": "i4", "tag": "li", "name": "Card item", "styles": { "min-width": "0" },
+                "children": [
+                  { "key": "c4", "tag": "a", "name": "Card 4", "attrs": { "href": "{{link}}" },
+                    "styles": { "--ox": "100%", "--z": "1.7", "--org": "100% 30%", "position": "relative", "display": "block", "height": "580px", "padding": "0", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--inset)", "box-shadow": "inset 0 0 0 1px var(--edge)", "color": "var(--ink)", "text-decoration": "none", "isolation": "isolate", "transition": "transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)" },
+                    "breakpoints": { "mobile": { "height": "410px" } },
+                    "children": [
+                      { "key": "c4-media", "tag": "span", "name": "Media", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "display": "block" },
+                        "children": [
+                          { "key": "c4-md", "tag": "img", "name": "Picture dark", "attrs": { "data-fw-theme-only": "dark", "src": "{{pic_dark}}", "width": "2400", "height": "1272", "alt": "", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } },
+                          { "key": "c4-ml", "tag": "img", "name": "Picture light", "attrs": { "data-fw-theme-only": "light", "src": "{{pic_light}}", "width": "2400", "height": "1272", "alt": "", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } }
+                        ] },
+                      { "key": "c4-shade", "tag": "span", "name": "Shade", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "display": "block", "background": "linear-gradient(to bottom, color-mix(in srgb, var(--ground) 92%, transparent) 0%, color-mix(in srgb, var(--ground) 55%, transparent) 30%, transparent 65%), linear-gradient(to top, color-mix(in srgb, var(--ground) 88%, transparent) 0%, transparent 32%)" } },
+                      { "key": "c4-top", "tag": "span", "name": "Top", "styles": { "position": "absolute", "top": "32px", "left": "32px", "right": "32px", "display": "grid", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "top": "17px", "left": "17px", "right": "17px", "gap": "11px" } },
+                        "children": [
+                          { "key": "c4-tag", "tag": "span", "name": "Tag", "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-3)" },
+                            "children": [
+                              { "key": "c4-ic", "tag": "img", "name": "App icon", "attrs": { "src": "/api/assets/757688e358b02f2d15df5564e3abff82a4c2f8fc50898a7fd0f3404ca59c4182.webp", "width": "24", "height": "24", "alt": "", "decoding": "async" }, "styles": { "display": "block", "width": "24px", "height": "24px" } },
+                              { "key": "c4-lb", "tag": "span", "name": "Story label", "text": "04 / Drafting", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+                            ] },
+                          { "key": "c4-t", "tag": "h3", "name": "Story title", "text": "Set exact numbers for every panel, with seam allowance", "styles": { "margin": "0", "color": "var(--ink)", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "line-height": "1.1", "letter-spacing": "var(--track-display)", "text-wrap": "balance" } }
+                        ] },
+                      { "key": "c4-foot", "tag": "span", "name": "Foot", "styles": { "position": "absolute", "left": "32px", "right": "32px", "bottom": "32px", "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "left": "17px", "right": "17px", "bottom": "17px" } },
+                        "children": [
+                          { "key": "c4-cr", "tag": "span", "name": "Credit", "styles": { "display": "grid", "gap": "2px", "min-width": "0", "font-size": "var(--fs-s)", "color": "var(--ink-soft)" },
+                            "children": [
+                              { "key": "c4-crb", "tag": "b", "name": "Credit title", "text": "Exact drafting", "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)" } },
+                              { "key": "c4-crs", "tag": "span", "name": "Credit note", "text": "Millimetres and numeric input" }
+                            ] },
+                          { "key": "c4-go", "tag": "span", "name": "Go", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "inline-flex", "align-items": "center", "justify-content": "center", "width": "52px", "height": "52px", "background": "var(--ink)", "color": "var(--on-ink)" },
+                            "children": [
+                              { "key": "c4-gs", "tag": "svg", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "display": "block", "width": "18px", "height": "18px" },
+                                "children": [ { "key": "c4-gp", "tag": "path", "attrs": { "d": "M5 12h14" } }, { "key": "c4-gq", "tag": "path", "attrs": { "d": "M13 6l6 6-6 6" } } ] }
+                            ] }
+                        ] },
+                      { "key": "c4-sr", "tag": "span", "name": "Screen reader text", "text": "The FormFabric inspector with the panel name, position, perimeter, area and seam allowance", "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } }
+                    ] }
+                ] },
+              { "key": "i5", "tag": "li", "name": "Card item", "styles": { "min-width": "0" },
+                "children": [
+                  { "key": "c5", "tag": "a", "name": "Card 5", "attrs": { "href": "{{link}}" },
+                    "styles": { "--ox": "100%", "--z": "1.6", "--org": "0% 3%", "position": "relative", "display": "block", "height": "580px", "padding": "0", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--inset)", "box-shadow": "inset 0 0 0 1px var(--edge)", "color": "var(--ink)", "text-decoration": "none", "isolation": "isolate", "transition": "transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)" },
+                    "breakpoints": { "mobile": { "height": "410px" } },
+                    "children": [
+                      { "key": "c5-media", "tag": "span", "name": "Media", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "display": "block" },
+                        "children": [
+                          { "key": "c5-md", "tag": "img", "name": "Picture dark", "attrs": { "data-fw-theme-only": "dark", "src": "{{pic_dark}}", "width": "2400", "height": "1272", "alt": "", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } },
+                          { "key": "c5-ml", "tag": "img", "name": "Picture light", "attrs": { "data-fw-theme-only": "light", "src": "{{pic_light}}", "width": "2400", "height": "1272", "alt": "", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } }
+                        ] },
+                      { "key": "c5-shade", "tag": "span", "name": "Shade", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "display": "block", "background": "linear-gradient(to bottom, color-mix(in srgb, var(--ground) 92%, transparent) 0%, color-mix(in srgb, var(--ground) 55%, transparent) 30%, transparent 65%), linear-gradient(to top, color-mix(in srgb, var(--ground) 88%, transparent) 0%, transparent 32%)" } },
+                      { "key": "c5-top", "tag": "span", "name": "Top", "styles": { "position": "absolute", "top": "32px", "left": "32px", "right": "32px", "display": "grid", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "top": "17px", "left": "17px", "right": "17px", "gap": "11px" } },
+                        "children": [
+                          { "key": "c5-tag", "tag": "span", "name": "Tag", "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-3)" },
+                            "children": [
+                              { "key": "c5-ic", "tag": "img", "name": "App icon", "attrs": { "src": "/api/assets/757688e358b02f2d15df5564e3abff82a4c2f8fc50898a7fd0f3404ca59c4182.webp", "width": "24", "height": "24", "alt": "", "decoding": "async" }, "styles": { "display": "block", "width": "24px", "height": "24px" } },
+                              { "key": "c5-lb", "tag": "span", "name": "Story label", "text": "05 / Output", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+                            ] },
+                          { "key": "c5-t", "tag": "h3", "name": "Story title", "text": "Animate the garment, then export it with UVs and caches", "styles": { "margin": "0", "color": "var(--ink)", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "line-height": "1.1", "letter-spacing": "var(--track-display)", "text-wrap": "balance" } }
+                        ] },
+                      { "key": "c5-foot", "tag": "span", "name": "Foot", "styles": { "position": "absolute", "left": "32px", "right": "32px", "bottom": "32px", "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "left": "17px", "right": "17px", "bottom": "17px" } },
+                        "children": [
+                          { "key": "c5-cr", "tag": "span", "name": "Credit", "styles": { "display": "grid", "gap": "2px", "min-width": "0", "font-size": "var(--fs-s)", "color": "var(--ink-soft)" },
+                            "children": [
+                              { "key": "c5-crb", "tag": "b", "name": "Credit title", "text": "Animation and export", "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)" } },
+                              { "key": "c5-crs", "tag": "span", "name": "Credit note", "text": "OBJ, FBX, glTF, USD, Alembic" }
+                            ] },
+                          { "key": "c5-go", "tag": "span", "name": "Go", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "inline-flex", "align-items": "center", "justify-content": "center", "width": "52px", "height": "52px", "background": "var(--ink)", "color": "var(--on-ink)" },
+                            "children": [
+                              { "key": "c5-gs", "tag": "svg", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "display": "block", "width": "18px", "height": "18px" },
+                                "children": [ { "key": "c5-gp", "tag": "path", "attrs": { "d": "M5 12h14" } }, { "key": "c5-gq", "tag": "path", "attrs": { "d": "M13 6l6 6-6 6" } } ] }
+                            ] }
+                        ] },
+                      { "key": "c5-sr", "tag": "span", "name": "Screen reader text", "text": "The FormFabric workflow tabs Pattern, Sew, Drape, Animate and Render", "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } }
+                    ] }
+                ] },
+              { "key": "i6", "tag": "li", "name": "Card item", "styles": { "min-width": "0" },
+                "children": [
+                  { "key": "c6", "tag": "a", "name": "Card 6", "attrs": { "href": "{{link}}" },
+                    "styles": { "--ox": "60%", "--z": "2", "--org": "40% 12%", "position": "relative", "display": "block", "height": "580px", "padding": "0", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--inset)", "box-shadow": "inset 0 0 0 1px var(--edge)", "color": "var(--ink)", "text-decoration": "none", "isolation": "isolate", "transition": "transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1)" },
+                    "breakpoints": { "mobile": { "height": "410px" } },
+                    "children": [
+                      { "key": "c6-media", "tag": "span", "name": "Media", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "display": "block" },
+                        "children": [
+                          { "key": "c6-md", "tag": "img", "name": "Picture dark", "attrs": { "data-fw-theme-only": "dark", "src": "{{pic_dark}}", "width": "2400", "height": "1272", "alt": "", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } },
+                          { "key": "c6-ml", "tag": "img", "name": "Picture light", "attrs": { "data-fw-theme-only": "light", "src": "{{pic_light}}", "width": "2400", "height": "1272", "alt": "", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "var(--ox) 50%", "transform": "scale(var(--z))", "transform-origin": "var(--org)" } }
+                        ] },
+                      { "key": "c6-shade", "tag": "span", "name": "Shade", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "display": "block", "background": "linear-gradient(to bottom, color-mix(in srgb, var(--ground) 92%, transparent) 0%, color-mix(in srgb, var(--ground) 55%, transparent) 30%, transparent 65%), linear-gradient(to top, color-mix(in srgb, var(--ground) 88%, transparent) 0%, transparent 32%)" } },
+                      { "key": "c6-top", "tag": "span", "name": "Top", "styles": { "position": "absolute", "top": "32px", "left": "32px", "right": "32px", "display": "grid", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "top": "17px", "left": "17px", "right": "17px", "gap": "11px" } },
+                        "children": [
+                          { "key": "c6-tag", "tag": "span", "name": "Tag", "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-3)" },
+                            "children": [
+                              { "key": "c6-ic", "tag": "img", "name": "App icon", "attrs": { "src": "/api/assets/757688e358b02f2d15df5564e3abff82a4c2f8fc50898a7fd0f3404ca59c4182.webp", "width": "24", "height": "24", "alt": "", "decoding": "async" }, "styles": { "display": "block", "width": "24px", "height": "24px" } },
+                              { "key": "c6-lb", "tag": "span", "name": "Story label", "text": "06 / Agents", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+                            ] },
+                          { "key": "c6-t", "tag": "h3", "name": "Story title", "text": "One registry of 255 commands for the window, a script and an agent", "styles": { "margin": "0", "color": "var(--ink)", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "line-height": "1.1", "letter-spacing": "var(--track-display)", "text-wrap": "balance" } }
+                        ] },
+                      { "key": "c6-foot", "tag": "span", "name": "Foot", "styles": { "position": "absolute", "left": "32px", "right": "32px", "bottom": "32px", "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-4)" }, "breakpoints": { "mobile": { "left": "17px", "right": "17px", "bottom": "17px" } },
+                        "children": [
+                          { "key": "c6-cr", "tag": "span", "name": "Credit", "styles": { "display": "grid", "gap": "2px", "min-width": "0", "font-size": "var(--fs-s)", "color": "var(--ink-soft)" },
+                            "children": [
+                              { "key": "c6-crb", "tag": "b", "name": "Credit title", "text": "Built for agents", "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)" } },
+                              { "key": "c6-crs", "tag": "span", "name": "Credit note", "text": "MCP over stdio, one document" }
+                            ] },
+                          { "key": "c6-go", "tag": "span", "name": "Go", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "inline-flex", "align-items": "center", "justify-content": "center", "width": "52px", "height": "52px", "background": "var(--ink)", "color": "var(--on-ink)" },
+                            "children": [
+                              { "key": "c6-gs", "tag": "svg", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "display": "block", "width": "18px", "height": "18px" },
+                                "children": [ { "key": "c6-gp", "tag": "path", "attrs": { "d": "M5 12h14" } }, { "key": "c6-gq", "tag": "path", "attrs": { "d": "M13 6l6 6-6 6" } } ] }
+                            ] }
+                        ] },
+                      { "key": "c6-sr", "tag": "span", "name": "Screen reader text", "text": "The FormFabric drape toolbar with its shading and solver quality controls", "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } }
+                    ] }
+                ] }
+            ] }
+        ] }
+    ]
+  },
+  "behaviors": {
+    "@@c1@@": { "states": { "hover": { "transform": "translateY(-10px)" } } },
+    "@@c2@@": { "states": { "hover": { "transform": "translateY(-10px)" } } },
+    "@@c3@@": { "states": { "hover": { "transform": "translateY(-10px)" } } },
+    "@@c4@@": { "states": { "hover": { "transform": "translateY(-10px)" } } },
+    "@@c5@@": { "states": { "hover": { "transform": "translateY(-10px)" } } },
+    "@@c6@@": { "states": { "hover": { "transform": "translateY(-10px)" } } }
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@heading@@", "name": "heading" } },
+    { "command": "node.update", "params": { "id": "@@heading@@", "patch": { "styles": { "line-height": "1.05", "max-width": "18ch", "text-wrap": "balance" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@label-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@label-suffix@@", "name": "app-suffix" } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@label@@", "value": { "from": { "opacity": "0", "transform": "translateY(65px)" }, "duration": 800, "delay": 300, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@heading@@", "value": { "from": { "opacity": "0", "transform": "translateY(65px)" }, "duration": 800, "delay": 380, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@lead@@", "value": { "from": { "opacity": "0", "transform": "translateY(65px)" }, "duration": 800, "delay": 480, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@grid@@", "value": { "from": { "opacity": "0", "transform": "translateY(65px)" }, "duration": 800, "delay": 650, "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "trigger": "load" } } }
+  ]
+}

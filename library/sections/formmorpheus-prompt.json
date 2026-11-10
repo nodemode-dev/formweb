@@ -1,0 +1,535 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formmorpheus-prompt",
+  "name": "FormMorpheus prompt",
+  "category": "prompt-hero",
+  "tags": ["prompt", "develop", "dim", "strip", "hero"],
+  "product": "formmorpheus",
+  "description": "Type a prompt for a FormMorpheus animation, watch the page dim while a frame develops from its darkest areas, then keep the result in a strip.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formmorpheus-prompt",
+  "preset": "formai-studio",
+  "components": ["develop-frame"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#857cf3" },
+    "name": { "label": "Product name", "type": "text", "default": "Morpheus" },
+    "tag": { "label": "Label after the name", "type": "text", "default": "Animation studio" },
+    "headA": { "label": "Headline, first part", "type": "text", "default": "Say what moves. Watch the frame " },
+    "headB": { "label": "Headline, underlined word", "type": "text", "default": "arrive." },
+    "promptLabel": { "label": "Prompt label", "type": "text", "default": "Your prompt" },
+    "cta": { "label": "Button text", "type": "text", "default": "Animate" }
+  },
+  "tree": {
+    "key": "fm",
+    "tag": "section",
+    "name": "Prompt hero",
+    "attrs": { "data-dev": "scope", "aria-label": "Form{{name}} prompt" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--hue-wash": "color-mix(in srgb, var(--hue) 14%, transparent)",
+      "--hue-line": "color-mix(in srgb, var(--hue) 42%, transparent)",
+      "--tokens-used": "var(--inset) var(--float) var(--pane) var(--on-ink) var(--edge) var(--edge-strong) var(--ink-faint) var(--ink-soft) var(--bar-veil) var(--z-raised) var(--z-behind) var(--dur) var(--ease-out) var(--fs-s) var(--fs-l)",
+      "position": "relative",
+      "isolation": "isolate",
+      "display": "flex",
+      "flex-direction": "column",
+      "min-height": "calc(100svh - var(--bar-h))",
+      "overflow": "clip",
+      "background": "var(--ground)",
+      "color": "var(--ink)"
+    },
+    "children": [
+      {
+        "key": "glow",
+        "tag": "div",
+        "name": "Glow",
+        "attrs": { "data-dev": "glow", "aria-hidden": "true" },
+        "styles": {
+          "position": "absolute",
+          "top": "-240px",
+          "left": "50%",
+          "z-index": "var(--z-behind)",
+          "width": "min(1100px, 90vw)",
+          "height": "560px",
+          "margin-left": "calc(min(1100px, 90vw) / -2)",
+          "border-radius": "50%",
+          "background": "radial-gradient(closest-side, color-mix(in srgb, var(--hue) 38%, transparent), transparent)",
+          "filter": "blur(40px)",
+          "opacity": "0",
+          "pointer-events": "none"
+        }
+      },
+      {
+        "key": "grid",
+        "tag": "div",
+        "name": "Grid",
+        "attrs": {},
+        "styles": {
+          "display": "grid",
+          "flex": "1 1 auto",
+          "grid-template-columns": "1.1fr 1fr",
+          "gap": "clamp(24px, 5vw, 80px)",
+          "align-items": "center",
+          "width": "100%",
+          "max-width": "1240px",
+          "margin-left": "auto",
+          "margin-right": "auto",
+          "padding": "var(--sp-7) 44px"
+        },
+        "breakpoints": {
+          "tablet": { "grid-template-columns": "minmax(0, 1fr)", "padding": "var(--sp-6) var(--gutter)" }
+        },
+        "children": [
+          {
+            "key": "left",
+            "tag": "div",
+            "name": "Left column",
+            "attrs": {},
+            "styles": { "min-width": "0" },
+            "children": [
+              {
+                "key": "kick",
+                "tag": "p",
+                "name": "Kicker",
+                "attrs": {},
+                "styles": {
+                  "display": "flex",
+                  "align-items": "center",
+                  "gap": "var(--sp-3)",
+                  "margin": "0",
+                  "font-family": "var(--font-mono)",
+                  "font-size": "var(--fs-xs)",
+                  "letter-spacing": "0.14em",
+                  "text-transform": "uppercase",
+                  "color": "var(--ink-soft)"
+                },
+                "children": [
+                  { "key": "kick-num", "tag": "b", "name": "Number", "text": "01", "attrs": {}, "styles": { "padding": "2px 8px", "border": "1px solid var(--hue)", "color": "var(--hue)", "font-weight": "500" } },
+                  {
+                    "key": "kick-name",
+                    "tag": "span",
+                    "name": "Product and label",
+                    "attrs": {},
+                    "styles": {},
+                    "children": [
+                      { "key": "name-form", "tag": "span", "name": "Name, first part", "text": "Form", "attrs": {}, "styles": {} },
+                      { "key": "name-suffix", "tag": "span", "name": "Name, tinted part", "text": "{{name}}", "attrs": {}, "styles": {} },
+                      { "key": "kick-tag", "tag": "span", "name": "Label", "text": " / {{tag}}", "attrs": {}, "styles": {} }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "h",
+                "tag": "h1",
+                "name": "Headline",
+                "attrs": {},
+                "styles": {
+                  "margin": "var(--sp-4) 0 var(--sp-6)",
+                  "font-size": "clamp(42px, 6.4vw, 92px)",
+                  "font-weight": "var(--weight-display)",
+                  "line-height": "0.96",
+                  "letter-spacing": "var(--track-display)",
+                  "max-width": "6.6em"
+                },
+                "breakpoints": { "mobile": { "font-size": "42px", "max-width": "none" } },
+                "children": [
+                  { "key": "h-a", "tag": "span", "name": "Headline start", "text": "{{headA}}", "attrs": {}, "styles": {} },
+                  {
+                    "key": "h-em",
+                    "tag": "span",
+                    "name": "Underlined word",
+                    "attrs": {},
+                    "styles": { "position": "relative", "display": "inline-block" },
+                    "children": [
+                      { "key": "h-b", "tag": "span", "name": "Word", "text": "{{headB}}", "attrs": {}, "styles": {} },
+                      {
+                        "key": "h-line",
+                        "tag": "span",
+                        "name": "Underline",
+                        "attrs": { "aria-hidden": "true" },
+                        "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0.02em", "height": "0.07em", "background": "var(--hue)", "transform-origin": "0 50%" }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "form",
+                "tag": "form",
+                "name": "Prompt form",
+                "attrs": { "data-dev": "form", "autocomplete": "off" },
+                "styles": { "display": "flex", "flex-direction": "column", "gap": "var(--sp-4)", "max-width": "560px", "margin": "0" },
+                "children": [
+                  {
+                    "key": "lab",
+                    "tag": "label",
+                    "name": "Prompt label",
+                    "text": "{{promptLabel}}",
+                    "attrs": {},
+                    "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "var(--ink-soft)" }
+                  },
+                  {
+                    "key": "row",
+                    "tag": "div",
+                    "name": "Prompt row",
+                    "attrs": {},
+                    "styles": { "display": "flex", "align-items": "flex-end", "gap": "var(--sp-4)" },
+                    "children": [
+                      {
+                        "key": "input",
+                        "tag": "input",
+                        "name": "Prompt",
+                        "attrs": { "data-dev": "input", "type": "text", "placeholder": "A title writes itself on over a dark stage", "aria-label": "{{promptLabel}}" },
+                        "styles": {
+                          "flex": "1 1 auto",
+                          "min-width": "0",
+                          "height": "44px",
+                          "padding": "0",
+                          "border": "0",
+                          "border-bottom": "1px solid var(--edge-strong)",
+                          "border-radius": "0",
+                          "background": "transparent",
+                          "color": "var(--ink)",
+                          "font-family": "inherit",
+                          "font-size": "var(--fs-l)"
+                        }
+                      },
+                      {
+                        "key": "submit",
+                        "tag": "button",
+                        "name": "Animate button",
+                        "attrs": { "data-dev": "submit", "type": "submit" },
+                        "styles": {
+                          "position": "relative",
+                          "display": "inline-flex",
+                          "align-items": "center",
+                          "gap": "var(--sp-3)",
+                          "flex": "none",
+                          "height": "44px",
+                          "padding": "0 var(--sp-5)",
+                          "border": "0",
+                          "border-radius": "0",
+                          "background": "var(--ink)",
+                          "color": "var(--on-ink)",
+                          "font-family": "var(--font-mono)",
+                          "font-size": "var(--fs-xs)",
+                          "font-weight": "500",
+                          "letter-spacing": "0.14em",
+                          "text-transform": "uppercase",
+                          "cursor": "pointer"
+                        },
+                        "children": [
+                          { "key": "dot", "tag": "span", "name": "Dot", "attrs": { "data-dev": "dot", "aria-hidden": "true" }, "styles": { "display": "block", "width": "8px", "height": "8px", "border-radius": "50%", "background": "currentColor" } },
+                          {
+                            "key": "sw",
+                            "tag": "span",
+                            "name": "Label window",
+                            "attrs": {},
+                            "styles": { "display": "block", "height": "1.2em", "overflow": "hidden", "line-height": "1.2" },
+                            "children": [
+                              {
+                                "key": "swin",
+                                "tag": "span",
+                                "name": "Label slider",
+                                "attrs": { "data-dev": "swin" },
+                                "styles": { "display": "flex", "flex-direction": "column" },
+                                "children": [
+                                  { "key": "sl1", "tag": "span", "name": "Label", "text": "{{cta}}", "attrs": { "data-dev": "sl1" }, "styles": {} },
+                                  { "key": "sl2", "tag": "span", "name": "Label copy", "text": "{{cta}}", "attrs": { "data-dev": "sl2", "aria-hidden": "true" }, "styles": {} }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "ratios",
+                    "tag": "div",
+                    "name": "Aspect ratio",
+                    "attrs": { "role": "radiogroup", "aria-label": "Aspect ratio" },
+                    "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "var(--sp-2)" },
+                    "children": [
+                      {
+                        "key": "ra0",
+                        "tag": "button",
+                        "name": "Ratio 4:5",
+                        "attrs": { "data-dev": "ratio", "type": "button", "role": "radio", "aria-checked": "true" },
+                        "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "height": "36px", "padding": "0 var(--sp-3)", "border": "1px solid var(--edge-strong)", "border-radius": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" },
+                        "children": [
+                          { "key": "ra0-s", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 16 16", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "aria-hidden": "true" }, "styles": { "width": "14px", "height": "14px" }, "children": [{ "key": "ra0-r", "tag": "path", "name": "Shape", "attrs": { "d": "M4 3h8v10H4z" }, "styles": {} }] },
+                          { "key": "ra0-t", "tag": "span", "name": "Text", "text": "4:5", "attrs": {}, "styles": {} }
+                        ]
+                      },
+                      {
+                        "key": "ra1",
+                        "tag": "button",
+                        "name": "Ratio 1:1",
+                        "attrs": { "data-dev": "ratio", "type": "button", "role": "radio", "aria-checked": "false" },
+                        "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "height": "36px", "padding": "0 var(--sp-3)", "border": "1px solid var(--edge-strong)", "border-radius": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" },
+                        "children": [
+                          { "key": "ra1-s", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 16 16", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "aria-hidden": "true" }, "styles": { "width": "14px", "height": "14px" }, "children": [{ "key": "ra1-r", "tag": "path", "name": "Shape", "attrs": { "d": "M3 3h10v10H3z" }, "styles": {} }] },
+                          { "key": "ra1-t", "tag": "span", "name": "Text", "text": "1:1", "attrs": {}, "styles": {} }
+                        ]
+                      },
+                      {
+                        "key": "ra2",
+                        "tag": "button",
+                        "name": "Ratio 3:2",
+                        "attrs": { "data-dev": "ratio", "type": "button", "role": "radio", "aria-checked": "false" },
+                        "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "height": "36px", "padding": "0 var(--sp-3)", "border": "1px solid var(--edge-strong)", "border-radius": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" },
+                        "children": [
+                          { "key": "ra2-s", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 16 16", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "aria-hidden": "true" }, "styles": { "width": "14px", "height": "14px" }, "children": [{ "key": "ra2-r", "tag": "path", "name": "Shape", "attrs": { "d": "M2 4h12v8H2z" }, "styles": {} }] },
+                          { "key": "ra2-t", "tag": "span", "name": "Text", "text": "3:2", "attrs": {}, "styles": {} }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "styles",
+                    "tag": "div",
+                    "name": "Style",
+                    "attrs": { "role": "radiogroup", "aria-label": "Style" },
+                    "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "var(--sp-2)" },
+                    "children": [
+                      { "key": "st0", "tag": "button", "name": "Style Soft", "text": "Soft", "attrs": { "data-dev": "style", "type": "button", "role": "radio", "aria-checked": "true" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "height": "36px", "padding": "0 var(--sp-3)", "border": "1px solid var(--edge-strong)", "border-radius": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" } },
+                      { "key": "st1", "tag": "button", "name": "Style Crisp", "text": "Crisp", "attrs": { "data-dev": "style", "type": "button", "role": "radio", "aria-checked": "false" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "height": "36px", "padding": "0 var(--sp-3)", "border": "1px solid var(--edge-strong)", "border-radius": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" } },
+                      { "key": "st2", "tag": "button", "name": "Style Glow", "text": "Glow", "attrs": { "data-dev": "style", "type": "button", "role": "radio", "aria-checked": "false" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "height": "36px", "padding": "0 var(--sp-3)", "border": "1px solid var(--edge-strong)", "border-radius": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" } }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "ideas",
+                "tag": "div",
+                "name": "Ideas",
+                "attrs": { "aria-label": "Ideas" },
+                "styles": { "display": "flex", "flex-direction": "column", "align-items": "flex-start", "gap": "var(--sp-2)", "margin-top": "var(--sp-6)" },
+                "children": [
+                  {
+                    "key": "id0",
+                    "tag": "button",
+                    "name": "Idea 1",
+                    "attrs": { "data-dev": "idea", "type": "button" },
+                    "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-3)", "padding": "0", "border": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "inherit", "font-size": "var(--fs-m)", "text-align": "left", "cursor": "pointer" },
+                    "children": [
+                      { "key": "id0-s", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "flex": "none", "width": "14px", "height": "14px", "color": "var(--hue)" }, "children": [{ "key": "id0-p", "tag": "path", "name": "Arrow", "attrs": { "d": "M5 12h14M13 6l6 6-6 6" }, "styles": {} }] },
+                      { "key": "id0-t", "tag": "span", "name": "Text", "text": "A title writes itself on over a dark stage", "attrs": { "data-dev": "ideat" }, "styles": {} }
+                    ]
+                  },
+                  {
+                    "key": "id1",
+                    "tag": "button",
+                    "name": "Idea 2",
+                    "attrs": { "data-dev": "idea", "type": "button" },
+                    "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-3)", "padding": "0", "border": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "inherit", "font-size": "var(--fs-m)", "text-align": "left", "cursor": "pointer" },
+                    "children": [
+                      { "key": "id1-s", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "flex": "none", "width": "14px", "height": "14px", "color": "var(--hue)" }, "children": [{ "key": "id1-p", "tag": "path", "name": "Arrow", "attrs": { "d": "M5 12h14M13 6l6 6-6 6" }, "styles": {} }] },
+                      { "key": "id1-t", "tag": "span", "name": "Text", "text": "Onion skins ghosting a hand drawn bouncing ball", "attrs": { "data-dev": "ideat" }, "styles": {} }
+                    ]
+                  },
+                  {
+                    "key": "id2",
+                    "tag": "button",
+                    "name": "Idea 3",
+                    "attrs": { "data-dev": "idea", "type": "button" },
+                    "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-3)", "padding": "0", "border": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "inherit", "font-size": "var(--fs-m)", "text-align": "left", "cursor": "pointer" },
+                    "children": [
+                      { "key": "id2-s", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "flex": "none", "width": "14px", "height": "14px", "color": "var(--hue)" }, "children": [{ "key": "id2-p", "tag": "path", "name": "Arrow", "attrs": { "d": "M5 12h14M13 6l6 6-6 6" }, "styles": {} }] },
+                      { "key": "id2-t", "tag": "span", "name": "Text", "text": "Export the finished movie as a looping GIF", "attrs": { "data-dev": "ideat" }, "styles": {} }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "right",
+            "tag": "div",
+            "name": "Right column",
+            "attrs": {},
+            "styles": { "min-width": "0" },
+            "children": [
+              {
+                "key": "tray",
+                "tag": "div",
+                "name": "Tray",
+                "attrs": { "data-dev": "tray" },
+                "styles": { "position": "relative", "max-width": "480px", "margin-left": "auto", "margin-right": "auto", "padding": "34px", "border": "1px solid var(--edge)", "background": "var(--pane)", "overflow": "hidden" },
+                "children": [
+                  {
+                    "key": "traybg",
+                    "tag": "span",
+                    "name": "Tray shade",
+                    "attrs": { "data-dev": "traybg", "aria-hidden": "true" },
+                    "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "background": "linear-gradient(160deg, color-mix(in oklab, var(--hue) 16%, #030205), #030205)", "opacity": "0" }
+                  },
+                  {
+                    "key": "card",
+                    "tag": "div",
+                    "name": "Frame card",
+                    "attrs": { "data-dev": "card" },
+                    "styles": {
+                      "--ar": "0.8",
+                      "position": "relative",
+                      "z-index": "var(--z-base)",
+                      "width": "min(100%, calc((100svh - 300px) * var(--ar)))",
+                      "min-width": "200px",
+                      "max-height": "calc(100svh - 300px)",
+                      "margin-left": "auto",
+                      "margin-right": "auto",
+                      "aspect-ratio": "var(--ar)",
+                      "padding": "0 0 40px",
+                      "border": "1px solid var(--edge-strong)",
+                      "background": "var(--float)",
+                      "box-shadow": "0 1px 1px rgb(0 0 0 / 0.3), 0 28px 64px -28px rgb(0 0 0 / 0.8)",
+                      "transform": "rotate(-1.5deg)"
+                    },
+                    "breakpoints": { "mobile": { "width": "min(100%, 340px)", "max-height": "none" } },
+                    "children": [
+                      {
+                        "key": "att",
+                        "tag": "p",
+                        "name": "Attached label",
+                        "attrs": { "data-dev": "att", "aria-hidden": "true" },
+                        "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "z-index": "var(--z-raised)", "display": "flex", "align-items": "center", "gap": "var(--sp-2)", "margin": "0", "padding": "4px 8px", "background": "color-mix(in srgb, var(--ground) 80%, transparent)", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "10px", "letter-spacing": "0.14em", "text-transform": "uppercase", "opacity": "0", "pointer-events": "none" },
+                        "children": [
+                          { "key": "att-s", "tag": "svg", "name": "Clip", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round" }, "styles": { "width": "12px", "height": "12px", "color": "var(--hue)" }, "children": [{ "key": "att-p", "tag": "path", "name": "Clip", "attrs": { "d": "M20 11l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8" }, "styles": {} }] },
+                          { "key": "att-t", "tag": "span", "name": "Text", "text": "Frame attached", "attrs": {}, "styles": {} }
+                        ]
+                      },
+                      {
+                        "key": "pic",
+                        "tag": "div",
+                        "name": "Picture",
+                        "attrs": {},
+                        "styles": { "position": "relative", "width": "100%", "height": "100%", "background": "var(--inset)", "overflow": "hidden" },
+                        "children": [
+                          {
+                            "key": "ph",
+                            "tag": "div",
+                            "name": "Blank frame",
+                            "attrs": { "data-dev": "ph" },
+                            "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "display": "flex", "flex-direction": "column", "align-items": "center", "justify-content": "center", "gap": "var(--sp-2)", "background": "repeating-linear-gradient(135deg, transparent 0 10px, var(--edge) 10px 11px)", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-align": "center" },
+                            "children": [
+                              { "key": "ph-b", "tag": "b", "name": "Blank text", "text": "Blank frame", "attrs": {}, "styles": { "color": "var(--ink)", "font-weight": "500" } },
+                              { "key": "ph-l", "tag": "span", "name": "Setting", "text": "4:5 / Soft", "attrs": { "data-dev": "phl" }, "styles": {} }
+                            ]
+                          },
+                          {
+                            "key": "rv",
+                            "tag": "div",
+                            "name": "Developing frame",
+                            "attrs": { "data-dev": "rv", "data-style": "0" },
+                            "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "isolation": "isolate", "background": "#000", "overflow": "hidden", "opacity": "0" },
+                            "children": [
+                              {
+                                "key": "w",
+                                "tag": "div",
+                                "name": "Wobble",
+                                "attrs": { "data-dev": "w" },
+                                "styles": { "position": "absolute", "top": "-2%", "left": "-2%", "right": "-2%", "bottom": "-2%" },
+                                "children": [
+                                  { "key": "base", "tag": "img", "name": "Picture base", "attrs": { "data-dev": "base", "src": "https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w1024.webp", "width": "1024", "height": "640", "alt": "The FormMorpheus Stage showing a spinning gem and the word FORMAI, with the Timeline of tracks below", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "object-fit": "cover" } },
+                                  { "key": "thr", "tag": "img", "name": "Picture threshold", "attrs": { "data-dev": "thr", "src": "https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w1024.webp", "width": "1024", "height": "640", "alt": "", "aria-hidden": "true", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "object-fit": "cover", "mix-blend-mode": "multiply" } }
+                                ]
+                              },
+                              { "key": "cast", "tag": "div", "name": "Tint cast", "attrs": { "data-dev": "cast" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "background": "color-mix(in srgb, var(--hue) 70%, #2a2060)", "mix-blend-mode": "multiply", "pointer-events": "none" } }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "key": "capw",
+                        "tag": "p",
+                        "name": "Caption bar",
+                        "attrs": {},
+                        "styles": { "position": "absolute", "bottom": "0", "left": "0", "right": "0", "height": "40px", "margin": "0", "padding": "0 12px", "border-top": "1px solid var(--edge)", "display": "flex", "align-items": "center", "color": "var(--ink-soft)", "font-size": "var(--fs-s)", "white-space": "nowrap" },
+                        "children": [
+                          { "key": "cap", "tag": "span", "name": "Caption", "attrs": { "data-dev": "cap" }, "styles": { "min-width": "0", "overflow": "hidden", "text-overflow": "ellipsis" } }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "host",
+                    "tag": "div",
+                    "name": "Develop frame",
+                    "attrs": {},
+                    "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "pointer-events": "none" }
+                  }
+                ]
+              },
+              {
+                "key": "stat",
+                "tag": "p",
+                "name": "Status",
+                "attrs": { "role": "status", "aria-live": "polite" },
+                "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-2)", "max-width": "480px", "margin": "var(--sp-4) auto 0", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" },
+                "children": [
+                  { "key": "stati", "tag": "i", "name": "Status dot", "attrs": { "data-dev": "stati" }, "styles": { "display": "block", "flex": "none", "width": "7px", "height": "7px", "border-radius": "50%", "background": "var(--ink-faint)" } },
+                  { "key": "stt", "tag": "span", "name": "Status text", "text": "Waiting for a prompt", "attrs": { "data-dev": "stt" }, "styles": {} }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "strip",
+        "tag": "div",
+        "name": "Strip",
+        "attrs": {},
+        "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-5)", "min-height": "92px", "padding": "0 44px", "border-top": "1px solid var(--edge)" },
+        "breakpoints": { "tablet": { "padding": "0 var(--gutter)" } },
+        "children": [
+          { "key": "sl", "tag": "span", "name": "Strip label", "text": "Recent frames", "attrs": {}, "styles": { "flex": "none", "display": "flex", "align-items": "center", "justify-content": "center", "width": "12px", "height": "92px", "white-space": "nowrap", "transform": "rotate(-90deg)", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.14em", "text-transform": "uppercase" } },
+          {
+            "key": "ths",
+            "tag": "div",
+            "name": "Recent frames",
+            "attrs": { "data-dev": "ths" },
+            "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-4)", "flex": "1 1 auto", "min-width": "0", "padding": "14px 0", "overflow-x": "auto" },
+            "children": [
+              { "key": "empty", "tag": "p", "name": "Empty text", "text": "Finished results collect here", "attrs": { "data-dev": "empty" }, "styles": { "margin": "0", "color": "var(--ink-faint)", "font-size": "var(--fs-s)" } }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "behaviors": {
+    "@@input@@": { "states": { "focus": { "border-color": "var(--hue)", "outline": "none" } } }
+  },
+  "properties": {
+    "ground": { "syntax": "<color>", "inherits": true, "initial": "#0f0e0d" },
+    "inset": { "syntax": "<color>", "inherits": true, "initial": "#0b0a09" },
+    "pane": { "syntax": "<color>", "inherits": true, "initial": "#161412" },
+    "float": { "syntax": "<color>", "inherits": true, "initial": "#1d1a17" },
+    "edge": { "syntax": "<color>", "inherits": true, "initial": "#f3ebe3" },
+    "edge-strong": { "syntax": "<color>", "inherits": true, "initial": "#f3ebe3" },
+    "ink": { "syntax": "<color>", "inherits": true, "initial": "#f3ebe3" },
+    "ink-soft": { "syntax": "<color>", "inherits": true, "initial": "#a39a92" },
+    "ink-faint": { "syntax": "<color>", "inherits": true, "initial": "#857e77" },
+    "on-ink": { "syntax": "<color>", "inherits": true, "initial": "#0f0e0d" },
+    "bar-veil": { "syntax": "<color>", "inherits": true, "initial": "#0f0e0d" }
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@name-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@name-suffix@@", "name": "app-suffix" } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@kick@@", "value": { "from": { "opacity": "0", "transform": "translateY(24px)" }, "duration": 1000, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@h@@", "value": { "from": { "opacity": "0", "transform": "translateY(24px)" }, "duration": 1200, "delay": 250, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@h-line@@", "value": { "from": { "transform": "scaleX(0)" }, "duration": 1000, "delay": 1200, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@form@@", "value": { "from": { "opacity": "0", "transform": "translateY(24px)" }, "duration": 1200, "delay": 400, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@right@@", "value": { "from": { "opacity": "0", "transform": "translateY(24px)" }, "duration": 1200, "delay": 500, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@host@@",
+        "value": { "component": "develop-frame", "props": { "animateLabel": "{{cta}}" } }
+      }
+    }
+  ]
+}

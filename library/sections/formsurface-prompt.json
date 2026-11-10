@@ -1,0 +1,218 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formsurface-prompt",
+  "name": "FormSurface prompt",
+  "category": "prompt-hero",
+  "tags": ["prompt", "desktop", "assistant", "pointer", "windows", "hero"],
+  "product": "formsurface",
+  "description": "Ask a small scripted desk to tidy up, show FormSurface captures, empty the bin or spin a turntable, and watch the pointer do it.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formsurface-prompt",
+  "preset": "formai-studio",
+  "components": ["scripted-desktop"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#f58f7c" },
+    "name": { "label": "Product name (second half)", "type": "text", "default": "Surface" },
+    "tagline": { "label": "Tag line", "type": "text", "default": "3D texture painter" },
+    "headline1": { "label": "Headline, first line", "type": "text", "default": "Ask for a finish." },
+    "headline2": { "label": "Headline, tinted line", "type": "text", "default": "Watch it get done." },
+    "intro": { "label": "Intro", "type": "longtext", "default": "paints on the model itself and exports PBR maps. This desk is a small scripted demo: ask it to tidy up, show captures or spin the turntable." },
+    "link": { "label": "Tag link", "type": "url", "default": "https://formai.studio/formsurface/" }
+  },
+  "tree": {
+    "key": "root",
+    "tag": "section",
+    "name": "Prompt hero",
+    "attrs": { "aria-labelledby": "@@title@@" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--desk-tokens": "var(--on-ink) var(--z-base) var(--z-raised) var(--z-overlay)",
+      "position": "relative",
+      "isolation": "isolate",
+      "display": "flex",
+      "flex-direction": "column",
+      "align-items": "center",
+      "min-height": "max(680px, calc(100svh - var(--bar-h)))",
+      "padding-top": "clamp(24px, 5vh, 56px)",
+      "padding-bottom": "0",
+      "overflow": "clip"
+    },
+    "breakpoints": {},
+    "children": [
+      {
+        "key": "back",
+        "tag": "div",
+        "name": "Backdrop",
+        "attrs": { "aria-hidden": "true" },
+        "styles": { "position": "absolute", "top": "0", "right": "0", "bottom": "0", "left": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "pointer-events": "none" },
+        "children": [
+          {
+            "key": "bgdark",
+            "tag": "img",
+            "name": "Backdrop picture, dark",
+            "attrs": {
+              "data-fw-theme-only": "dark",
+              "src": "https://media.formai.studio/media/formsurface/ui-hero-2/a01bf1b89b46.w2400.webp",
+              "srcset": "https://media.formai.studio/media/formsurface/ui-hero-2/a01bf1b89b46.w1024.webp 1024w, https://media.formai.studio/media/formsurface/ui-hero-2/a01bf1b89b46.w2400.webp 2400w",
+              "sizes": "100vw",
+              "width": "2400",
+              "height": "1500",
+              "alt": "The FormSurface editor with a painted model in the viewport and the layer stack beside it",
+              "decoding": "async"
+            },
+            "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "object-fit": "cover", "opacity": "0.4", "transform-origin": "50% 0" }
+          },
+          {
+            "key": "bglight",
+            "tag": "img",
+            "name": "Backdrop picture, light",
+            "attrs": {
+              "data-fw-theme-only": "light",
+              "src": "https://media.formai.studio/media/formsurface/ui-hero-light-2/6d94ee84ae07.w2400.webp",
+              "srcset": "https://media.formai.studio/media/formsurface/ui-hero-light-2/6d94ee84ae07.w1024.webp 1024w, https://media.formai.studio/media/formsurface/ui-hero-light-2/6d94ee84ae07.w2400.webp 2400w",
+              "sizes": "100vw",
+              "width": "2400",
+              "height": "1500",
+              "alt": "The FormSurface editor in its light theme with a painted model in the viewport and the layer stack beside it",
+              "decoding": "async"
+            },
+            "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "object-fit": "cover", "opacity": "0.4", "transform-origin": "50% 0" }
+          },
+          {
+            "key": "cloud1",
+            "tag": "i",
+            "name": "Cloud 1",
+            "styles": { "position": "absolute", "top": "14%", "width": "560px", "height": "220px", "border-radius": "50%", "background": "radial-gradient(closest-side, color-mix(in srgb, var(--hue) 16%, transparent), transparent)" }
+          },
+          {
+            "key": "cloud2",
+            "tag": "i",
+            "name": "Cloud 2",
+            "styles": { "position": "absolute", "top": "34%", "width": "560px", "height": "220px", "border-radius": "50%", "background": "radial-gradient(closest-side, color-mix(in srgb, var(--hue) 16%, transparent), transparent)" }
+          },
+          {
+            "key": "cloud3",
+            "tag": "i",
+            "name": "Cloud 3",
+            "styles": { "position": "absolute", "top": "4%", "width": "560px", "height": "220px", "border-radius": "50%", "background": "radial-gradient(closest-side, color-mix(in srgb, var(--hue) 16%, transparent), transparent)" }
+          },
+          {
+            "key": "tint",
+            "tag": "div",
+            "name": "Fade to ground",
+            "styles": { "position": "absolute", "top": "0", "right": "0", "bottom": "0", "left": "0", "background": "linear-gradient(to bottom, var(--ground), transparent 70%)" }
+          }
+        ]
+      },
+      {
+        "key": "copy",
+        "tag": "div",
+        "name": "Copy",
+        "styles": { "position": "relative", "display": "flex", "flex-direction": "column", "align-items": "center", "padding-left": "var(--gutter)", "padding-right": "var(--gutter)", "padding-bottom": "var(--sp-5)", "text-align": "center" },
+        "children": [
+          {
+            "key": "tag",
+            "tag": "a",
+            "name": "Product tag",
+            "attrs": { "href": "{{link}}" },
+            "styles": {
+              "display": "inline-flex",
+              "align-items": "center",
+              "gap": "var(--sp-3)",
+              "padding": "var(--sp-2) var(--sp-4)",
+              "border": "1px solid var(--edge-strong)",
+              "background": "color-mix(in srgb, var(--pane) 86%, transparent)",
+              "color": "var(--ink-soft)",
+              "font-family": "var(--font-mono)",
+              "font-size": "var(--fs-xs)",
+              "line-height": "1.55",
+              "letter-spacing": "0.14em",
+              "text-transform": "uppercase",
+              "text-decoration": "none",
+              "transition": "border-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out)"
+            },
+            "children": [
+              {
+                "key": "tagname",
+                "tag": "span",
+                "name": "Product name",
+                "children": [
+                  { "key": "tagform", "tag": "span", "name": "Name, first half", "text": "Form", "styles": { "color": "var(--ink)" } },
+                  { "key": "tagsuffix", "tag": "span", "name": "Name, second half", "text": "{{name}}", "styles": { "color": "var(--hue)" } }
+                ]
+              },
+              { "key": "tagline", "tag": "span", "name": "Tag line", "text": "{{tagline}}", "breakpoints": { "mobile": { "display": "none" } } },
+              {
+                "key": "tagarrow",
+                "tag": "svg",
+                "name": "Arrow",
+                "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                "styles": { "flex": "none", "display": "block", "width": "14px", "height": "14px" },
+                "children": [
+                  { "key": "tagpath", "tag": "path", "name": "Arrow path", "attrs": { "d": "M5 12h14M13 6l6 6-6 6" } }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "title",
+            "tag": "h1",
+            "name": "Headline",
+            "styles": { "margin": "var(--sp-5) 0 0", "font-size": "clamp(40px, 7vw, 86px)", "font-weight": "var(--weight-display)", "line-height": "1.02", "letter-spacing": "var(--track-display)" },
+            "children": [
+              { "key": "title1", "tag": "span", "name": "Headline, first line", "text": "{{headline1}}", "styles": { "display": "block" } },
+              { "key": "title2", "tag": "span", "name": "Headline, tinted line", "text": "{{headline2}}", "styles": { "display": "block", "color": "var(--hue)" } }
+            ]
+          },
+          {
+            "key": "intro",
+            "tag": "p",
+            "name": "Intro",
+            "styles": { "max-width": "560px", "margin": "var(--sp-4) 0 0", "color": "var(--ink-soft)", "font-size": "var(--fs-m)", "line-height": "1.55" },
+            "children": [
+              { "key": "introform", "tag": "span", "name": "Name, first half", "text": "Form", "styles": { "color": "var(--ink)" } },
+              { "key": "introsuffix", "tag": "span", "name": "Name, second half", "text": "{{name}}", "styles": { "color": "var(--hue)" } },
+              { "key": "introtext", "tag": "span", "name": "Intro text", "text": " {{intro}}" }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "stage",
+        "tag": "div",
+        "name": "Desk",
+        "styles": {
+          "position": "relative",
+          "display": "flex",
+          "flex-direction": "column",
+          "flex": "1 1 0px",
+          "width": "min(1120px, calc(100% - 32px))",
+          "min-height": "330px",
+          "max-height": "600px",
+          "margin": "auto 0 0",
+          "border": "1px solid var(--edge-strong)",
+          "border-bottom": "0",
+          "border-radius": "14px 14px 0 0",
+          "background": "color-mix(in srgb, var(--pane) 78%, transparent)",
+          "overflow": "clip"
+        },
+        "breakpoints": { "mobile": { "min-height": "360px" } }
+      }
+    ]
+  },
+  "commands": [
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@tag@@", "value": { "from": { "opacity": "0", "transform": "translateY(18px)" }, "duration": 900, "delay": 200, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@title@@", "value": { "from": { "opacity": "0", "transform": "translateY(18px)" }, "duration": 1000, "delay": 300, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@intro@@", "value": { "from": { "opacity": "0", "transform": "translateY(18px)" }, "duration": 1000, "delay": 450, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@stage@@", "value": { "from": { "opacity": "0", "transform": "translateY(40%)" }, "duration": 1200, "delay": 500, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@bgdark@@", "value": { "type": "keyframes", "duration": 60000, "easing": "ease-in-out", "iterations": "infinite", "keyframes": [ { "at": 0, "styles": { "transform": "scale(1) translateY(0%)" } }, { "at": 0.5, "styles": { "transform": "scale(1.06) translateY(-1%)" } }, { "at": 1, "styles": { "transform": "scale(1) translateY(0%)" } } ] } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@bglight@@", "value": { "type": "keyframes", "duration": 60000, "easing": "ease-in-out", "iterations": "infinite", "keyframes": [ { "at": 0, "styles": { "transform": "scale(1) translateY(0%)" } }, { "at": 0.5, "styles": { "transform": "scale(1.06) translateY(-1%)" } }, { "at": 1, "styles": { "transform": "scale(1) translateY(0%)" } } ] } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@cloud1@@", "value": { "type": "keyframes", "duration": 70000, "easing": "linear", "iterations": "infinite", "keyframes": [ { "at": 0, "styles": { "transform": "translateX(-560px)" } }, { "at": 1, "styles": { "transform": "translateX(100vw)" } } ] } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@cloud2@@", "value": { "type": "keyframes", "duration": 95000, "easing": "linear", "iterations": "infinite", "keyframes": [ { "at": 0, "styles": { "transform": "translateX(calc(-294.7px + 47.37vw))" } }, { "at": 0.5263, "styles": { "transform": "translateX(100vw)" } }, { "at": 0.5264, "styles": { "transform": "translateX(-560px)" } }, { "at": 1, "styles": { "transform": "translateX(calc(-294.7px + 47.37vw))" } } ] } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@cloud3@@", "value": { "type": "keyframes", "duration": 120000, "easing": "linear", "iterations": "infinite", "keyframes": [ { "at": 0, "styles": { "transform": "translateX(calc(-210px + 62.5vw))" } }, { "at": 0.375, "styles": { "transform": "translateX(100vw)" } }, { "at": 0.3751, "styles": { "transform": "translateX(-560px)" } }, { "at": 1, "styles": { "transform": "translateX(calc(-210px + 62.5vw))" } } ] } } },
+    { "command": "code.instance.set", "params": { "node": "@@stage@@", "value": { "component": "scripted-desktop", "props": { "brandForm": "Form", "brandSuffix": "{{name}}", "accent": "var(--hue)" } } } }
+  ],
+  "behaviors": {
+    "@@tag@@": { "states": { "hover": { "border-color": "var(--hue)", "color": "var(--ink)" } } }
+  }
+}
