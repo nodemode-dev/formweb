@@ -21,7 +21,7 @@ export interface InspectorContext {
   selectNode(id: string): void;
   showLayers(): void;
   canvas: Canvas;
-  panes: { design: HTMLElement; content: HTMLElement; tokens: HTMLElement };
+  panes: { design: HTMLElement; content: HTMLElement; tokens: HTMLElement; motion: HTMLElement };
   anchors: { afterAttributes: HTMLElement; stageBefore: HTMLElement };
 }
 

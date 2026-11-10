@@ -1,0 +1,31 @@
+.fw-motion [hidden] { display: none; }
+.fw-motion-section > .inspector-section { border-bottom: 1px solid var(--border-color); }
+.fw-motion-empty { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); }
+.fw-motion-empty .micro { margin: 0; }
+.fw-motion-editor { display: grid; gap: var(--space-3); }
+.fw-motion-editor > .micro { margin: 0; }
+.fw-motion-flags { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.fw-motion-flags .checkbox-field, .fw-motion-editor .form-grid > .checkbox-field { margin-top: 0; }
+.fw-motion-editor .form-grid > .checkbox-field { align-self: end; min-height: var(--ctl-md); }
+.fw-motion-editor textarea { resize: vertical; min-height: 60px; padding: var(--space-2); }
+.fw-presets { margin-bottom: var(--space-3); }
+.fw-presets .fw-seg-btn { flex: 0 1 auto; height: var(--ctl-sm); }
+.fw-presets .fw-seg-btn.is-on { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-text); }
+.fw-motion-presets .field-label { display: block; margin: var(--space-3) 0 var(--space-2); }
+.fw-easing { display: grid; gap: var(--space-3); }
+.fw-easing-curve { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.fw-style-rows { display: grid; gap: var(--space-2); }
+.fw-style-list { display: grid; gap: var(--space-2); }
+.fw-style-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: var(--space-2); align-items: center; }
+.fw-style-row > select { grid-column: 1; grid-row: 1; }
+.fw-style-row > input:nth-child(3) { grid-column: 2; grid-row: 1; }
+.fw-style-row > button { grid-column: 3; grid-row: 1; }
+.fw-style-row > input:nth-child(2) { grid-column: 1 / 4; grid-row: 2; }
+.fw-style-rows > button { justify-self: start; }
+.fw-frame-list { display: grid; gap: var(--space-3); margin-bottom: var(--space-3); }
+.fw-frame-row { display: grid; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--line-1); border-radius: var(--radius); background: var(--surface-1); }
+.fw-frame-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); align-items: end; }
+.fw-motion-frames { display: grid; gap: var(--space-2); }
+.fw-motion-frames > button { justify-self: start; }
+.fw-motion-group { display: grid; gap: var(--space-3); }
+.fw-motion-none { padding: var(--space-4); }

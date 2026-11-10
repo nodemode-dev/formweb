@@ -1,4 +1,5 @@
 import type { Collection, Page, Site } from '../types';
+import { t } from '../i18n';
 
 type ItemContext = { collection: string; item: Collection['items'][number]; ids: Record<string, string>; suffix: string };
 
@@ -13,7 +14,7 @@ function safeVectorValue(name: string, content: string): boolean {
   return !/url\(|javascript:|[<>]/i.test(content);
 }
 const voidTags = new Set(['img', 'input', 'source', 'hr', 'br', 'wbr']);
-const allowedAttributes = new Set(['id', 'class', 'title', 'role', 'href', 'src', 'alt', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'required', 'checked', 'disabled', 'multiple', 'selected', 'min', 'max', 'step', 'pattern', 'minlength', 'maxlength', 'autocomplete', 'for', 'loading', 'width', 'height', 'tabindex', 'open', 'datetime', 'colspan', 'rowspan', 'scope', 'controls', 'muted', 'loop', 'poster', 'preload', 'accept', 'playsinline', 'decoding', 'fetchpriority', 'srcset', 'sizes']);
+const allowedAttributes = new Set(['id', 'class', 'title', 'role', 'href', 'src', 'alt', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'required', 'checked', 'disabled', 'multiple', 'selected', 'min', 'max', 'step', 'pattern', 'minlength', 'maxlength', 'autocomplete', 'for', 'loading', 'width', 'height', 'tabindex', 'open', 'datetime', 'colspan', 'rowspan', 'scope', 'controls', 'muted', 'loop', 'poster', 'preload', 'accept', 'playsinline', 'decoding', 'fetchpriority', 'srcset', 'sizes', 'hidden']);
 function safeUrl(url: string): boolean {
   return !/^\/\//.test(url) && !/[\\<>"'\u0000-\u001f]/.test(url) && (/^(?:https?:\/\/|mailto:|tel:)/i.test(url) || !url.split(/[/?#]/)[0].includes(':'));
 }
@@ -55,6 +56,48 @@ export class Canvas {
   private tokenOverride: Record<string, string> = {};
   private faceCss = '';
   private faceStyle?: HTMLStyleElement;
+  private motionFrame: Record<string, Record<string, string>> | null = null;
+  private posters: Record<string, string> = {};
+  private posterNodes = new Map<string, HTMLElement>();
+
+  setMotionFrame(frame: Record<string, Record<string, string>> | null): void {
+    const next = frame && Object.keys(frame).length ? frame : null;
+    if (JSON.stringify(next) === JSON.stringify(this.motionFrame)) return;
+    this.motionFrame = next;
+    if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
+  }
+
+  setPosters(posters: Record<string, string>): void {
+    if (JSON.stringify(Object.entries(posters)) === JSON.stringify(Object.entries(this.posters))) return;
+    this.posters = { ...posters };
+    if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
+  }
+
+  private syncPoster(node: HTMLElement, key: string, id: string, tag: string): void {
+    const doc = this.doc;
+    if (!doc) return;
+    const url = Object.prototype.hasOwnProperty.call(this.posters, id) ? this.posters[id] : undefined;
+    const wanted = url === undefined || vectorTags.has(tag) || (url !== '' && !safeUrl(url)) ? '' : url === '' ? 'div' : 'img';
+    let poster = this.posterNodes.get(key);
+    if (poster && poster.localName !== wanted) { poster.remove(); this.posterNodes.delete(key); poster = undefined; }
+    if (!wanted) return;
+    if (!poster) {
+      poster = doc.createElement(wanted);
+      poster.setAttribute('data-fw-poster', '');
+      this.posterNodes.set(key, poster);
+      if (wanted === 'img') {
+        poster.setAttribute('alt', '');
+        poster.setAttribute('decoding', 'async');
+        poster.setAttribute('draggable', 'false');
+        poster.setAttribute('style', 'display:block;width:100%;height:100%;object-fit:cover;pointer-events:none');
+      } else {
+        poster.setAttribute('style', 'display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:48px;outline:1px dashed color-mix(in srgb, currentColor 40%, transparent);outline-offset:-1px;font-size:12px;pointer-events:none');
+        poster.textContent = t('Component');
+      }
+    }
+    if (wanted === 'img' && poster.getAttribute('src') !== url) poster.setAttribute('src', url!);
+    if (poster.parentNode !== node || node.lastChild !== poster) node.append(poster);
+  }
 
   /* Parent-side appearance for the canvas document: the theme being previewed (data-theme and that theme's token
      values) and the site's self-hosted font faces. No script runs inside the canvas. */
@@ -102,7 +145,7 @@ export class Canvas {
     this.width = width;
     if (!this.doc) return;
     this.doc.body.toggleAttribute('data-preview', preview);
-    this.doc.documentElement.lang = locale;
+    if (this.doc.documentElement.lang !== locale) this.doc.documentElement.lang = locale;
     if (this.themeMode) { if (this.doc.documentElement.dataset.theme !== this.themeMode) this.doc.documentElement.dataset.theme = this.themeMode; }
     else if (this.doc.documentElement.hasAttribute('data-theme')) this.doc.documentElement.removeAttribute('data-theme');
     if (this.faceCss || this.faceStyle) {
@@ -125,7 +168,7 @@ export class Canvas {
     for (const [key, node] of this.nodes) {
       const id = node.dataset.fwId!;
       if (!site.nodes[id] || (pageIds.has(id) && !visited.has(key))) {
-        node.remove(); this.nodes.delete(key); this.textNodes.delete(key); this.attrs.delete(key); this.styles.delete(key);
+        node.remove(); this.nodes.delete(key); this.textNodes.delete(key); this.attrs.delete(key); this.styles.delete(key); this.posterNodes.delete(key);
       } else if (node.parentNode === this.doc.body) node.hidden = node !== root;
     }
     if (root) root.hidden = false;
@@ -273,6 +316,11 @@ export class Canvas {
     const picked = site.breakpoints.find(breakpoint => breakpoint.id === scope);
     const matching = [...site.breakpoints].filter(breakpoint => breakpoint.maxWidth === 100000 || (picked !== undefined && breakpoint.maxWidth >= picked.maxWidth)).sort((a, b) => b.maxWidth - a.maxWidth);
     matching.forEach(breakpoint => Object.assign(effective, data.breakpoints?.[breakpoint.id]));
+    const framed = this.motionFrame?.[id];
+    if (framed) for (const [name, content] of Object.entries(framed)) {
+      for (const own of Object.keys(effective)) if (cssName(own) === cssName(name)) delete effective[own];
+      effective[name] = content;
+    }
     const nextStyles = new Set<string>();
     for (const [name, content] of Object.entries(effective)) {
       const property = cssName(name);
@@ -309,6 +357,7 @@ export class Canvas {
         const childId = (child as HTMLElement).dataset.fwId;
         if (childId && !data.children.includes(childId)) child.remove();
       }
+      this.syncPoster(node, key, id, tag);
     }
     return node;
   }
