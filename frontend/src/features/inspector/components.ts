@@ -5,7 +5,7 @@ import type { Control, InspectorContext } from './context';
 import type { EditorState, SiteNode } from '../../types';
 
 interface PropSchema { type?: string; default?: unknown; required?: boolean }
-interface CodeComponent { enabled?: boolean; mode?: string; poster?: string; javascript?: string; props?: Record<string, PropSchema> }
+interface CodeComponent { enabled?: boolean; mode?: string; poster?: string; posterLight?: string; javascript?: string; props?: Record<string, PropSchema> }
 interface CodeInstance { component: string; props?: Record<string, unknown> }
 interface CodeSectionRecord { enabled?: boolean; poster?: string }
 interface CodeGroup { components?: Record<string, CodeComponent>; instances?: Record<string, CodeInstance>; sections?: Record<string, CodeSectionRecord>; allowSections?: boolean }
@@ -34,6 +34,16 @@ function defaultsOf(component: CodeComponent | undefined): Record<string, unknow
 function sizeLabel(component: CodeComponent): string {
   const bytes = new TextEncoder().encode(component.javascript || '').length;
   return (Math.round(bytes / 102.4) / 10) + ' KiB';
+}
+
+function posterLightMap(next: EditorState): Record<string, string> {
+  const group = codeGroup(next);
+  const map: Record<string, string> = {};
+  for (const [node, instance] of Object.entries(group.instances || {})) {
+    const light = group.components?.[instance.component]?.posterLight;
+    if (next.site.nodes[node] && light) map[node] = light;
+  }
+  return map;
 }
 
 function posterMap(next: EditorState): Record<string, string> {
@@ -93,6 +103,12 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
   const posterUpload = ctx.button(t('Upload poster'), 'image', () => posterFile.click());
   const posterClear = ctx.button(t('Clear poster'), 'close', () => void ctx.run(() => commitPoster('')));
   posterActions.append(posterUpload, posterClear);
+  const lightInput = ctx.input('/api/assets/...');
+  const lightFile = picker(IMAGE_ACCEPT);
+  const lightActions = element('div', 'fw-ext-actions');
+  const lightUpload = ctx.button(t('Upload light poster'), 'image', () => lightFile.click());
+  const lightClear = ctx.button(t('Clear light poster'), 'close', () => void ctx.run(() => commitPoster('', 'posterLight')));
+  lightActions.append(lightUpload, lightClear);
   const propsForm = element('div', 'form-grid');
   const removeButton = ctx.button(t('Remove component'), 'trash', () => void ctx.run(async () => {
     if (!current) return;
@@ -103,7 +119,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
   removeActions.append(removeButton);
   const modeRow = element('div', 'fw-ext-actions');
   modeRow.append(modeBadge);
-  editBox.append(ctx.field(t('Component'), componentSelect, true), modeRow, modeHint, ctx.field(t('Poster image'), posterInput, true), posterActions, propsForm, removeActions);
+  editBox.append(ctx.field(t('Component'), componentSelect, true), modeRow, modeHint, ctx.field(t('Poster image'), posterInput, true), posterActions, ctx.field(t('Light theme poster'), lightInput, true), lightActions, propsForm, removeActions);
   editBox.hidden = true;
   body.append(insertBox, editBox);
 
@@ -143,15 +159,15 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
     await command('code.instance.set', { node: current.id, value: { component: instance.component, props } });
   }
 
-  async function commitPoster(url: string): Promise<void> {
+  async function commitPoster(url: string, field: 'poster' | 'posterLight' = 'poster'): Promise<void> {
     const instance = instanceOf(current, latest);
     if (!instance || !latest) return;
     const group = codeGroup(latest);
     const component = group.components?.[instance.component];
     if (!component) return;
     const next: CodeComponent = { ...component };
-    if (url) next.poster = url;
-    else delete next.poster;
+    if (url) next[field] = url;
+    else delete next[field];
     await command('extension.set', { group: 'code', value: { ...group, components: { ...group.components, [instance.component]: next } } });
   }
 
@@ -164,6 +180,16 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
     const asset = await upload(file);
     await commitPoster(asset.url);
     ctx.status(t('Poster attached.'));
+  }));
+  lightInput.addEventListener('change', () => void ctx.run(() => commitPoster(lightInput.value.trim(), 'posterLight')));
+  lightFile.addEventListener('change', () => void ctx.run(async () => {
+    const file = lightFile.files?.[0];
+    lightFile.value = '';
+    if (!file) return;
+    ctx.status(t('Uploading light poster...'));
+    const asset = await upload(file);
+    await commitPoster(asset.url, 'posterLight');
+    ctx.status(t('Light poster attached.'));
   }));
   componentSelect.addEventListener('change', () => void ctx.run(async () => {
     const instance = instanceOf(current, latest);
@@ -356,6 +382,8 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
         if (modeHint.hidden === (mode === 'page')) modeHint.hidden = mode !== 'page';
         value(posterInput, component.poster || '');
         if (posterClear.disabled !== !component.poster) posterClear.disabled = !component.poster;
+        value(lightInput, component.posterLight || '');
+        if (lightClear.disabled !== !component.posterLight) lightClear.disabled = !component.posterLight;
         const key = JSON.stringify([node.id, instance.component, component.props || {}]);
         if (key !== schemaKey) {
           schemaKey = key;
@@ -369,11 +397,12 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
       }
       updateList(group);
       const map = posterMap(next);
-      const mapKey = JSON.stringify(map);
+      const lights = posterLightMap(next);
+      const mapKey = JSON.stringify([map, lights]);
       if (mapKey !== postersKey) {
         postersKey = mapKey;
-        const canvas = ctx.canvas as unknown as { setPosters?: (posters: Record<string, string>) => void };
-        if (typeof canvas.setPosters === 'function') canvas.setPosters(map);
+        const canvas = ctx.canvas as unknown as { setPosters?: (posters: Record<string, string>, lights?: Record<string, string>) => void };
+        if (typeof canvas.setPosters === 'function') canvas.setPosters(map, lights);
       }
     }
   };
