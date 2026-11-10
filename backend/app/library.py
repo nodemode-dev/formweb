@@ -90,7 +90,8 @@ def index() -> dict:
     order = {name: i for i, name in enumerate(CATEGORIES)}
     sections.sort(key=lambda s: (order.get(s['category'], 99), s['name'] or ''))
     components = [{key: data.get(key) for key in ('id', 'code', 'name', 'description', 'props', 'labels', 'sections')} for data in (_read(p) for p in sorted((LIBRARY / 'components').glob('*/manifest.json')))]
-    presets = [{key: data.get(key) for key in ('id', 'name', 'description')} for data in (_read(p) for p in sorted((LIBRARY / 'presets').glob('*.json')))]
+    # products: the preset's product tints, so an agent re-casting a section for a named app can pick its colour.
+    presets = [{key: data.get(key) for key in ('id', 'name', 'description', 'products')} for data in (_read(p) for p in sorted((LIBRARY / 'presets').glob('*.json')))]
     starters = [{key: data.get(key) for key in ('id', 'name', 'description', 'pages', 'preset')} for data in (_read(p) for p in sorted((LIBRARY / 'starters').glob('*.json')))]
     return {'categories': list(CATEGORIES), 'sections': sections, 'components': components, 'presets': presets, 'starters': starters}
 

@@ -14,9 +14,10 @@ Start a page from a finished, animated section instead of rebuilding it. An inse
 | Action | MCP (0.19.3) | Older server: REST route | CLI | Editor |
 | --- | --- | --- | --- | --- |
 | List sections, components, presets, starters | `library_list` (read-only) | GET /api/library | `./formweb library list` | Library panel |
-| Insert a section | `library_insert` {id, parent?, index?, values?, page?, updateComponents?} | POST /api/library/sections/[id]/insert | `./formweb library insert [id] key=value` | Library panel, Insert |
-| Apply the design preset | `library_apply_preset` {id, mode?, page?} | POST /api/library/presets/[id]/apply | `./formweb library preset [id] [--all]` | Library panel, Apply preset |
-| Apply a starter site | `library_apply_starter` {id, values?, updateComponents?} | POST /api/library/starters/[id]/apply | `./formweb library starter [id] key=value` | Library panel, Starters |
+| Start from a blank page | `new_site` {name, blank?} (blank defaults to true; the sample site otherwise) | POST /api/new {name, blank} | none | File > New |
+| Insert a section | `library_insert` {section, parent?, index?, values?, page?, update_components?} | POST /api/library/sections/[id]/insert (REST body uses updateComponents) | `./formweb library insert [id] key=value` | Library panel, Insert |
+| Apply the design preset | `library_apply_preset` {preset, mode?, page?} | POST /api/library/presets/[id]/apply | `./formweb library preset [id] [--all]` | Library panel, Apply preset |
+| Apply a starter site | `library_apply_starter` {starter, values?, update_components?} | POST /api/library/starters/[id]/apply | `./formweb library starter [id] key=value` | Library panel, Starters |
 | Import a whole HTML document as one code section | `library_import_html` {html, css?, name?, parent?, index?, page?} | POST /api/library/import-html | none | Library panel, Import HTML |
 | Validate and compile the library files | none | none | `./formweb library check`, `./formweb library build` | none |
 
@@ -26,6 +27,7 @@ The older-server routes are plain HTTP on the running backend (default port 8240
 
 1. `get_site` for the revision, the page and the parent node. `library_list` for the catalogue: each section has `id`, `name`, `category`, `tags`, `product`, `description`, `components`, `preset` and `fields`. Search by name, product, tag or category (`product-site`, `scroll-story`, `portfolio-hero`, `prompt-hero`, `support`, `not-found`, `chrome`).
 2. Choose sections for the brief. Read each one's `fields` and decide the values: `tint` (hex colour, the product hue), the product name (often two fields for the two-tone wordmark), copy, links and media. Field types are text (400 characters), longtext (4,000), color (hex), url (https, `/path`, `#anchor`, `mailto:` or empty), asset (an owned `/api/assets/` path or https) and number. A bad value is refused with the field named.
+2a. For a page assembled from the library, start with `new_site` (blank) so no sample content sits above the sections. For a named app, prefer sections whose `product` is that app, because the other sections' pictures and frames show other apps; take the tint from `products` on the preset in `library_list` kind presets.
 3. Insert with `library_insert`, passing `parent` (default: the page root), `index` to order siblings, and `values` to re-cast for the named app. The insert uploads bundled media, merges built page components, applies the preset in mode `missing` (a designer's own tokens are never overwritten), expands the tree and adds behaviors, all in one batch. Read `warnings` from the result: a component the site already has with a different `sourceDigest` is kept unless `updateComponents` is true, and a component with no built record is compiled on the spot.
 4. The preset: insert already applies what the site lacks. Use `library_apply_preset` with mode `all` only when the user wants every token, text preset and font replaced by the preset, because it overwrites their choices. Say so first.
 5. A whole site: `library_apply_starter` adds the `product-site` starter's six pages (Home, Product, About, Stories, Support, Not found), each opening with `formai-header` and ending with `formtray-footer`. One tint and product name recast every section. The first page replaces an empty home page.

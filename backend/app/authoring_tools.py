@@ -49,6 +49,8 @@ AUTHORING_TOOLS = [
          {'html': {'type': 'string', 'minLength': 1, 'maxLength': 1048576}, 'css': {'type': 'string', 'maxLength': 262144}, 'name': {'type': 'string', 'maxLength': 120}, 'parent': NODE, 'page': NODE, 'index': {'type': 'integer', 'minimum': 0}}, ['html']),
     tool('send_to_formpublisher', 'Send the open site to FormPublisher on this computer, as File > Send to FormPublisher does: delivered "live" when FormPublisher is running (returns its site id and revision), or "inbox" with the path of the zip it will import next time it runs. Does not change the site.',
          {'locale': {'type': 'string', 'maxLength': 40}}),
+    tool('new_site', 'Replace the open site with a new one, as File > New does: blank true (default) gives one empty home page to assemble from library sections; blank false gives the sample site. The replaced site stays in autosave and saved projects. Save it first with save_project if it matters.',
+         {'name': {'type': 'string', 'minLength': 1, 'maxLength': 120}, 'blank': {'type': 'boolean'}}, ['name'], destructive=True),
 ]
 AUTHORING_BY_NAME = {item['name']: item for item in AUTHORING_TOOLS}
 
@@ -162,4 +164,7 @@ async def dispatch(name, arguments):
     if name == 'send_to_formpublisher':
         studio.access.authorize('read')
         return await asyncio.to_thread(_send, arguments.get('locale'))
+    if name == 'new_site':
+        result = await studio.mutate('new', {'name': str(arguments['name']), 'blank': arguments.get('blank', True) is not False})
+        return _state(result, {'blank': arguments.get('blank', True) is not False})
     raise EngineError('Unknown tool.', 404)
