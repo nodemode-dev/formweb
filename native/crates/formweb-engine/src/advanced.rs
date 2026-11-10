@@ -1,5 +1,5 @@
 use super::{apply as base_apply, descendants, fresh_id, parent_of, string};
-use formweb_model::{advanced::object, component_attr_maps, instance_roots, linked_attrs, validate, Breakpoint, Component, Item, Node, Site, Strings};
+use formweb_model::{advanced::object, component_attr_maps, instance_roots, linked_attrs, validate, Breakpoint, Collection, Component, Item, Node, Site, Strings};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -152,6 +152,40 @@ fn fragment_variables(site:&Site,entries:&[Entry])->serde_json::Map<String,Value
     while let Some(name)=queue.pop(){if !seen.insert(name.clone()){continue;}let Some((kind,value))=variable_of(site,&name)else{continue};if kind=="formulas"{if let Some(text)=value.as_str(){for word in text.split(|c:char|!(c.is_ascii_alphanumeric()||c=='_')).filter(|w|!w.is_empty()){queue.push(word.to_string());}}}out.entry(kind).or_insert_with(||json!({})).as_object_mut().unwrap().insert(name,value);}
     out
 }
+const COLLECTION_ITEM_CAP:usize=500;
+// Names used as var(--name) anywhere in a piece of serialized JSON or CSS text.
+fn var_names(text:&str,out:&mut BTreeSet<String>){let mut rest=text;while let Some(at)=rest.find("var(--"){rest=&rest[at+6..];let end=rest.find(|c:char|!(c.is_ascii_alphanumeric()||c=='_'||c=='-')).unwrap_or(rest.len());if end>0{out.insert(rest[..end].to_string());}}}
+fn token_key(site:&Site,name:&str)->Option<String>{let bare=name.trim_start_matches("--");site.tokens.keys().find(|k|k.trim_start_matches("--")==bare).cloned()}
+// The design values the copied nodes use: every token named by var(--name) (following tokens that use other tokens, and their theme values), and the text presets their applications name.
+fn fragment_design(site:&Site,text:&str,entries:&[Entry])->Value{
+    let design=site.extensions.get("design");
+    let mut queue:BTreeSet<String>=BTreeSet::new();var_names(text,&mut queue);
+    let mut queue:Vec<String>=queue.into_iter().collect();let mut seen=BTreeSet::new();
+    let mut tokens=serde_json::Map::new();let mut modes=serde_json::Map::new();
+    let theme_values=design.and_then(|d|d.get("themes")).and_then(|t|t.get("values")).and_then(Value::as_object);
+    while let Some(name)=queue.pop(){
+        if !seen.insert(name.clone()){continue;}
+        let Some(key)=token_key(site,&name)else{continue};let value=site.tokens[&key].clone();
+        let mut more=BTreeSet::new();var_names(&value,&mut more);
+        let mut definition=json!({"value":value});
+        if let Some(kind)=design.and_then(|d|d.get("tokens")).and_then(|t|t.get(&key)).and_then(|t|t.get("type")).and_then(Value::as_str){definition["type"]=json!(kind);}
+        tokens.insert(key.clone(),definition);
+        if let Some(values)=theme_values{for(mode,map)in values{if let Some(map)=map.as_object(){for(k,v)in map{if k.trim_start_matches("--")==name{if let Some(s)=v.as_str(){var_names(s,&mut more);}modes.entry(mode.clone()).or_insert_with(||json!({})).as_object_mut().unwrap().insert(k.clone(),v.clone());}}}}}
+        queue.extend(more);
+    }
+    let mut presets=serde_json::Map::new();
+    for(g,f,_,v)in entries{if g=="design"&&f=="applications"{if let Some(name)=v.get("preset").and_then(Value::as_str){if let Some(preset)=design.and_then(|d|d.get("textPresets")).and_then(|p|p.get(name)){presets.insert(name.into(),preset.clone());}}}}
+    let themes=if modes.is_empty(){json!({})}else{json!({"default":design.and_then(|d|d.get("themes")).and_then(|t|t.get("default")).cloned().unwrap_or(json!("dark")),"followSystem":design.and_then(|d|d.get("themes")).and_then(|t|t.get("followSystem")).cloned().unwrap_or(json!(false)),"values":modes})};
+    json!({"tokens":tokens,"textPresets":presets,"themes":themes})
+}
+// The CMS collections the copied bindings and lists name, with their items; one past the cap travels as its definition only and is reported.
+fn fragment_collections(site:&Site,ids:&BTreeSet<String>,entries:&[Entry])->(Value,Vec<String>){
+    let mut out=serde_json::Map::new();let mut warnings=vec![];
+    let mut named:Vec<String>=ids.iter().filter_map(|n|site.nodes[n].binding.as_ref().map(|b|b.collection.clone())).collect();
+    for(g,f,_,v)in entries{if g=="cms"&&(f=="bindings"||f=="lists"){if let Some(id)=v.get("collection").and_then(Value::as_str){named.push(id.to_string());}}}
+    for id in named.iter().map(String::as_str){if out.contains_key(id){continue;}if let Some(c)=site.collections.get(id){let mut c=c.clone();if c.items.len()>COLLECTION_ITEM_CAP{warnings.push(format!("collection {id} has {} items, more than {COLLECTION_ITEM_CAP}; it travels as its definition only",c.items.len()));c.items.clear();}if let Ok(value)=serde_json::to_value(&c){out.insert(id.into(),value);}}}
+    (Value::Object(out),warnings)
+}
 // A self-contained copy of an element's subtree: nodes, the entries they own, the code component definitions their instances use, and every asset they name.
 pub fn fragment(site:&Site,id:&str)->Result<Value,String>{
     if !site.nodes.contains_key(id){return Err("unknown node".into());}
@@ -170,11 +204,65 @@ pub fn fragment(site:&Site,id:&str)->Result<Value,String>{
     let mut top=id.to_string();while let Some(p)=parent_of(site,&top){top=p;}
     let page=site.pages.iter().find(|p|p.root==top).map(|p|p.id.clone());
     let mut out=json!({"format":FRAGMENT_FORMAT,"version":1,"root":id,"nodes":nodes,"entries":grouped,"codeComponents":components,"variables":fragment_variables(site,&entries),"locales":collect_locales(site,&ids),"source":{"site":site.id,"page":page}});
+    let used=format!("{}{}",out["nodes"],out["entries"]);let (collections,collection_warnings)=fragment_collections(site,&ids,&entries);
+    out.as_object_mut().unwrap().insert("design".into(),fragment_design(site,&used,&entries));
+    out.as_object_mut().unwrap().insert("collections".into(),collections);
+    if !collection_warnings.is_empty(){out.as_object_mut().unwrap().insert("warnings".into(),json!(collection_warnings));}
     let mut found=BTreeSet::new();asset_ids(&out.to_string(),&mut found);
     out.as_object_mut().unwrap().insert("assets".into(),json!(found));
     Ok(out)
 }
 fn import_node(site:&mut Site,source:&BTreeMap<String,Node>,id:&str,map:&mut BTreeMap<String,String>)->Result<String,String>{let mut node=source[id].clone();let children=std::mem::take(&mut node.children);let new=fresh_id(site,"copy");node.id=new.clone();node.overrides.clear();map.insert(id.into(),new.clone());site.nodes.insert(new.clone(),node);for child in children{let c=import_node(site,source,&child,map)?;site.nodes.get_mut(&new).unwrap().children.push(c);}Ok(new)}
+// Adds the tokens, theme values and text presets the destination lacks; a name that exists with a different value keeps the destination's and warns.
+fn paste_design(site:&mut Site,design:Option<&Value>)->Result<(),String>{
+    let Some(design)=design else{return Ok(())};let design=design.as_object().ok_or("fragment design must be an object")?;
+    let mut eligible=BTreeSet::new();
+    if let Some(tokens)=design.get("tokens"){for(name,definition)in tokens.as_object().ok_or("fragment design tokens must be an object")?{
+        let value=definition.get("value").and_then(Value::as_str).ok_or("fragment design token needs a value")?;
+        match token_key(site,name){
+            None=>{site.tokens.insert(name.clone(),value.into());if let Some(kind)=definition.get("type").and_then(Value::as_str){set_path(site,"design","tokens",name,json!({"type":kind,"value":value}))?;}eligible.insert(name.trim_start_matches("--").to_string());}
+            Some(have)=>if site.tokens[&have]==value{eligible.insert(name.trim_start_matches("--").to_string());}else{warn(format!("design token {name} already exists here with a different value; the pasted elements use this site's"));}
+        }
+    }}
+    if let Some(themes)=design.get("themes"){if let Some(values)=themes.get("values").and_then(Value::as_object){for(mode,map)in values{
+        if mode!="dark"&&mode!="light"{continue;}
+        for(key,value)in map.as_object().ok_or("fragment theme values must be an object")?{
+            let Some(text)=value.as_str()else{continue};if !eligible.contains(key.trim_start_matches("--")){continue;}
+            let dest=group(site,"design").as_object_mut().ok_or("design must be object")?;
+            let themes_dest=dest.entry("themes").or_insert_with(||json!({"default":themes.get("default").cloned().unwrap_or(json!("dark")),"followSystem":themes.get("followSystem").cloned().unwrap_or(json!(false)),"values":{}}));
+            let modes=themes_dest.as_object_mut().ok_or("design themes must be object")?.entry("values").or_insert_with(||json!({})).as_object_mut().ok_or("theme values must be object")?;
+            let table=modes.entry(mode.clone()).or_insert_with(||json!({})).as_object_mut().ok_or("theme mode must be object")?;
+            match table.iter().find(|(k,_)|k.trim_start_matches("--")==key.trim_start_matches("--")).map(|(_,v)|v.clone()){
+                None=>{table.insert(key.clone(),json!(text));}
+                Some(have)=>if have!=json!(text){warn(format!("the {mode} theme value of {key} already exists here with a different value; this site's is kept"));}
+            }
+        }
+    }}}
+    if let Some(presets)=design.get("textPresets"){for(name,definition)in presets.as_object().ok_or("fragment text presets must be an object")?{
+        let existing=site.extensions.get("design").and_then(|g|g.get("textPresets")).and_then(|m|m.get(name)).cloned();
+        match existing{None=>set_path(site,"design","textPresets",name,definition.clone())?,Some(have)=>if &have!=definition{warn(format!("text preset {name} already exists here with a different definition; the pasted elements use this site's"));}}
+    }}
+    Ok(())
+}
+// Adds the collections (with items) the destination lacks; an existing collection keeps its own definition, gains only items it lacks, and warns on a difference.
+fn paste_collections(site:&mut Site,collections:Option<&Value>)->Result<(),String>{
+    let Some(collections)=collections else{return Ok(())};
+    for(id,value)in collections.as_object().ok_or("fragment collections must be an object")?{
+        let incoming:Collection=serde_json::from_value(value.clone()).map_err(|e|format!("invalid fragment collection: {e}"))?;
+        if &incoming.id!=id{return Err("fragment collection id does not match its key".into());}
+        formweb_model::validate_collection(&incoming)?;
+        match site.collections.get_mut(id){
+            None=>{site.collections.insert(id.clone(),incoming);}
+            Some(have)=>{
+                if have.name!=incoming.name||have.fields!=incoming.fields{warn(format!("collection {id} already exists here with different fields; this site's is kept and no items were added"));continue;}
+                let mut clash=false;
+                for item in incoming.items{match have.items.iter().find(|i|i.id==item.id){None=>have.items.push(item),Some(mine)=>if mine!=&item{clash=true;}}}
+                if clash{warn(format!("collection {id} already holds items with the same ids and different content; this site's were kept"));}
+            }
+        }
+    }
+    Ok(())
+}
 // Inserts a fragment under fresh ids: default last under `parent` (the first page's root when none is given), or at `index`.
 fn paste_fragment(site:&mut Site,params:&Value)->Result<(),String>{
     let fragment=params.get("fragment").and_then(Value::as_object).ok_or("fragment must be an object")?;
@@ -205,6 +293,7 @@ fn paste_fragment(site:&mut Site,params:&Value)->Result<(),String>{
     let locales:BTreeMap<String,Strings>=match fragment.get("locales"){Some(v)=>serde_json::from_value(v.clone()).map_err(|e|format!("invalid fragment locales: {e}"))?,None=>BTreeMap::new()};
     if let Some(defs)=fragment.get("codeComponents"){for(id,definition)in defs.as_object().ok_or("fragment codeComponents must be an object")?{let existing=site.extensions.get("code").and_then(|g|g.get("components")).and_then(|m|m.get(id)).cloned();match existing{None=>set_path(site,"code","components",id,definition.clone())?,Some(existing)=>if &existing!=definition{warn(format!("code component {id} already exists here with a different definition; the pasted instances use this site's"));}}}}
     if let Some(kinds)=fragment.get("variables"){for(kind,found)in kinds.as_object().ok_or("fragment variables must be an object")?{if !VALUE_KINDS.contains(&kind.as_str()){return Err(format!("fragment variables hold unknown kind {kind}"));}for(name,definition)in found.as_object().ok_or("fragment variables must map names to definitions")?{match variable_of(site,name){None=>set_path(site,"variables",kind,name,definition.clone())?,Some((have,existing))=>if have!=kind||&existing!=definition{warn(format!("variable {name} already exists here with a different definition; the pasted inputs and outputs use this site's"));}}}}}
+    paste_design(site,fragment.get("design"))?;paste_collections(site,fragment.get("collections"))?;
     let mut map=BTreeMap::new();let new_root=import_node(site,&source,&root,&mut map)?;
     site.nodes.get_mut(&parent).unwrap().children.insert(index,new_root.clone());
     let own:BTreeMap<String,String>=map.values().map(|n|(n.clone(),n.clone())).collect();
