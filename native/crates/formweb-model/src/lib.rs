@@ -3,6 +3,7 @@ use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub mod advanced;
+pub mod motion;
 pub mod vector;
 pub mod wishlist;
 
@@ -184,10 +185,23 @@ pub fn safe_css_value(value: &str) -> bool {
 
 pub fn safe_style(name: &str, value: &str) -> bool {
     const PROPERTIES: &[&str] = &[
-        "display", "position", "top", "right", "bottom", "left", "inset", "z-index", "width", "height", "min-width", "max-width", "min-height", "max-height", "margin", "margin-top", "margin-right", "margin-bottom", "margin-left", "padding", "padding-top", "padding-right", "padding-bottom", "padding-left", "gap", "row-gap", "column-gap", "grid-template-columns", "grid-template-rows", "grid-column", "grid-row", "grid-auto-flow", "align-items", "align-self", "align-content", "justify-content", "justify-items", "justify-self", "flex", "flex-grow", "flex-shrink", "flex-basis", "flex-direction", "flex-wrap", "order", "background", "background-color", "background-image", "color", "opacity", "border", "border-color", "border-width", "border-style", "border-radius", "border-top", "border-bottom", "border-left", "border-right", "box-shadow", "box-sizing", "font", "font-family", "font-size", "font-weight", "font-style", "line-height", "letter-spacing", "text-align", "text-transform", "text-decoration", "text-wrap", "white-space", "word-break", "overflow", "overflow-x", "overflow-y", "object-fit", "object-position", "aspect-ratio", "transform", "transform-origin", "transition", "filter", "backdrop-filter", "cursor", "list-style", "outline", "outline-offset", "visibility", "vertical-align", "content", "scroll-margin-top", "pointer-events", "border-collapse", "border-spacing", "table-layout", "caption-side", "font-variant-position", "font-variant-ligatures", "font-variant-caps", "font-variant-numeric", "font-kerning"
+        "display", "position", "top", "right", "bottom", "left", "inset", "z-index", "width", "height", "min-width", "max-width", "min-height", "max-height", "margin", "margin-top", "margin-right", "margin-bottom", "margin-left", "padding", "padding-top", "padding-right", "padding-bottom", "padding-left", "gap", "row-gap", "column-gap", "grid-template-columns", "grid-template-rows", "grid-column", "grid-row", "grid-auto-flow", "align-items", "align-self", "align-content", "justify-content", "justify-items", "justify-self", "flex", "flex-grow", "flex-shrink", "flex-basis", "flex-direction", "flex-wrap", "order", "background", "background-color", "background-image", "color", "opacity", "border", "border-color", "border-width", "border-style", "border-radius", "border-top", "border-bottom", "border-left", "border-right", "box-shadow", "box-sizing", "font", "font-family", "font-size", "font-weight", "font-style", "line-height", "letter-spacing", "text-align", "text-transform", "text-decoration", "text-wrap", "white-space", "word-break", "overflow", "overflow-x", "overflow-y", "object-fit", "object-position", "aspect-ratio", "transform", "transform-origin", "transition", "filter", "backdrop-filter", "cursor", "list-style", "outline", "outline-offset", "visibility", "vertical-align", "content", "scroll-margin-top", "pointer-events", "perspective", "perspective-origin", "transform-style", "backface-visibility", "clip-path", "mask-image", "mask-size", "mask-position", "mask-repeat", "-webkit-mask-image", "mix-blend-mode", "isolation", "will-change", "translate", "rotate", "scale", "scroll-snap-type", "scroll-snap-align", "scroll-snap-stop", "overscroll-behavior", "container-type", "container-name", "font-variation-settings", "font-feature-settings", "touch-action", "user-select", "place-items", "place-content", "place-self", "inset-block-start", "background-size", "background-position", "background-repeat", "background-blend-mode", "text-shadow", "text-overflow", "accent-color", "caret-color", "border-collapse", "border-spacing", "table-layout", "caption-side", "font-variant-position", "font-variant-ligatures", "font-variant-caps", "font-variant-numeric", "font-kerning"
     ];
     let valid_name = PROPERTIES.contains(&name) || (name.starts_with("--") && identifier(&name[2..]));
     valid_name && safe_css_value(value)
+}
+
+fn valid_srcset(value: &str) -> bool {
+    let candidates: Vec<&str> = value.split(',').map(str::trim).collect();
+    !candidates.is_empty() && candidates.len() <= 32 && candidates.iter().all(|candidate| {
+        let mut parts = candidate.split_whitespace();
+        let url_ok = parts.next().map(safe_url).unwrap_or(false);
+        let descriptor_ok = parts.next().map(|d| {
+            let digits = |s: &str| !s.is_empty() && s.bytes().all(|c| c.is_ascii_digit());
+            d.strip_suffix('w').map(digits).unwrap_or(false) || d.strip_suffix('x').map(|number| { let mut halves = number.splitn(2, '.'); digits(halves.next().unwrap_or("")) && halves.next().map(digits).unwrap_or(true) }).unwrap_or(false)
+        }).unwrap_or(true);
+        url_ok && descriptor_ok && parts.next().is_none()
+    })
 }
 
 pub fn void_tag(tag: &str) -> bool {
@@ -336,13 +350,19 @@ fn validate_node(node: &Node, site: &Site) -> Result<(), String> {
     if node.text.len() > 100000 || node.name.len() > 1000 || node.attrs.len() > 100 || node.interactions.len() > 20 { return Err("node content exceeds limit".into()); }
     if void_tag(&node.tag) && (!node.children.is_empty() || !node.text.is_empty()) { return Err("void elements cannot contain text or children".into()); }
     for (name, value) in &node.attrs {
-        let allowed = ["id", "class", "title", "role", "href", "src", "alt", "target", "rel", "type", "name", "value", "placeholder", "required", "checked", "disabled", "multiple", "selected", "min", "max", "step", "pattern", "minlength", "maxlength", "autocomplete", "for", "method", "action", "enctype", "loading", "width", "height", "tabindex", "open", "datetime", "colspan", "rowspan", "scope", "controls", "muted", "loop", "poster", "preload", "accept"].contains(&name.as_str())
+        let allowed = ["id", "class", "title", "role", "href", "src", "alt", "target", "rel", "type", "name", "value", "placeholder", "required", "checked", "disabled", "multiple", "selected", "min", "max", "step", "pattern", "minlength", "maxlength", "autocomplete", "for", "method", "action", "enctype", "loading", "width", "height", "tabindex", "open", "datetime", "colspan", "rowspan", "scope", "controls", "muted", "loop", "poster", "preload", "accept", "autoplay", "playsinline", "inert", "decoding", "fetchpriority", "srcset", "sizes"].contains(&name.as_str())
             || (name.starts_with("aria-") && identifier(&name[5..])) || (name.starts_with("data-") && identifier(&name[5..])) || vector::attr_allowed(&node.tag, name);
         if !allowed || value.len() > vector::max_len(&node.tag, name) || name.starts_with("on") { return Err(format!("unsupported attribute {name}")); }
         if vector::is_tag(&node.tag) { vector::check_attr(&node.tag, name, value)?; }
         if ["href", "src", "action", "poster"].contains(&name.as_str()) && !safe_url(value) { return Err(format!("unsafe URL on {}", node.id)); }
         if name == "target" && !["_blank", "_self", "_parent", "_top"].contains(&value.as_str()) { return Err("unsupported link target".into()); }
         if name == "method" && !["post", "get"].contains(&value.as_str()) { return Err("form method must be post or get".into()); }
+        if ["autoplay", "playsinline", "inert"].contains(&name.as_str()) && !["", "true"].contains(&value.as_str()) { return Err(format!("{name} must be empty or true")); }
+        if name == "decoding" && !["async", "sync", "auto"].contains(&value.as_str()) { return Err("decoding must be async, sync or auto".into()); }
+        if name == "fetchpriority" && !["high", "low", "auto"].contains(&value.as_str()) { return Err("fetchpriority must be high, low or auto".into()); }
+        if name == "srcset" && !valid_srcset(value) { return Err("invalid srcset".into()); }
+        if name == "sizes" && (value.len() > 512 || !safe_css_value(value)) { return Err("invalid sizes".into()); }
+        if name == "data-fw-theme-only" && !["dark", "light"].contains(&value.as_str()) { return Err("data-fw-theme-only must be dark or light".into()); }
     }
     for (name, value) in &node.styles {
         if !safe_style(name, value) { return Err(format!("unsafe style {name} on {}", node.id)); }
