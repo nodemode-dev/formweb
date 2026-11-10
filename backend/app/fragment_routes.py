@@ -11,7 +11,9 @@ import json
 
 from fastapi import APIRouter, Request
 
-from .assets import ASSET_NAME, ASSET_REF, asset_path, check_declared, ingest_declared, own_asset, visible_assets
+from .assets import ASSET_NAME, ASSET_REF, SIZE_LIMITS, asset_path, check_declared, ingest_declared, own_asset, visible_assets
+from .clips import MAX_CLIP_BYTES, clip_target, create_clip, fetch_clip_assets
+from .config import MAX_IMAGE_BYTES
 from .engine import EngineError
 from .service import studio
 
@@ -21,6 +23,7 @@ FORMAT = 'com.nodemode.formweb.fragment'
 VERSION = 1
 MAX_PASTE_BYTES = 32 * 1024 * 1024
 MAX_EMBED_BYTES = 16 * 1024 * 1024  # raw asset bytes a copy may carry; the base64 form stays under the paste cap
+MAX_CLIP_EMBED_BYTES = 4 * 1024 * 1024  # with clip, only this much rides inline; the rest waits behind the clip link
 MAX_NODES = 2000
 
 
@@ -74,9 +77,11 @@ def _check(fragment) -> list[str]:
     return _asset_names(fragment)
 
 
-async def fragment_of(node, embed=False):
+async def fragment_of(node, embed=False, clip=False):
     """The fragment of one element's subtree (read permission); shared by the route and the MCP tool.
-    With embed, `embedded` maps asset ids to base64 bytes (smallest first, 16 MiB of raw bytes in all) and `notEmbedded` lists the rest."""
+    With embed, `embedded` maps asset ids to base64 bytes (smallest first, 16 MiB of raw bytes in all) and `notEmbedded` lists the rest.
+    With embed and clip, only 4 MiB rides inline; the next assets (512 MiB in all, each within its type's upload limit) sit behind
+    `clip` ({url, token, ids, expires}, 15 minutes) and `notEmbedded` lists what neither carries."""
     studio.access.authorize('read')
     if not isinstance(node, str) or not 1 <= len(node) <= 160:
         raise EngineError('node must be an element id.', 400)
@@ -97,13 +102,27 @@ async def fragment_of(node, embed=False):
                 left.append(name)
         embedded: dict = {}
         total = 0
+        clipped: dict = {}
+        clip_total = 0
         for size, name, path in sorted(sized, key=lambda item: item[0]):
+            if clip is True:
+                if total + size <= MAX_CLIP_EMBED_BYTES and not clipped:
+                    total += size
+                    embedded[name] = base64.b64encode(path.read_bytes()).decode('ascii')
+                elif clip_total + size <= MAX_CLIP_BYTES and size <= SIZE_LIMITS.get(name.rsplit('.', 1)[1], MAX_IMAGE_BYTES):
+                    clip_total += size
+                    clipped[name] = path
+                else:
+                    left.append(name)
+                continue
             if total + size > MAX_EMBED_BYTES:
                 left.append(name)
                 continue
             total += size
             embedded[name] = base64.b64encode(path.read_bytes()).decode('ascii')
         fragment = {**fragment, 'embedded': embedded, 'notEmbedded': left}
+        if clipped:
+            fragment['clip'] = create_clip(clipped)
     return fragment
 
 
@@ -111,7 +130,7 @@ async def fragment_of(node, embed=False):
 async def make_fragment(request: Request):
     studio.access.authorize('read')
     body = await _body(request, 64 * 1024)
-    return await fragment_of(body.get('node'), body.get('embed') is True)
+    return await fragment_of(body.get('node'), body.get('embed') is True, body.get('clip') is True)
 
 
 @router.post('/api/paste')
@@ -132,10 +151,16 @@ async def paste_body(body: dict):
         embedded = {}
     if not isinstance(embedded, dict):
         raise EngineError('embedded must map asset ids to base64 bytes.', 400)
-    if 'embedded' in fragment or 'notEmbedded' in fragment:
-        fragment = {key: value for key, value in fragment.items() if key not in ('embedded', 'notEmbedded')}
+    clip = body.get('clip')
+    if clip is None:
+        clip = fragment.get('clip')
+    if clip is not None:
+        clip_target(clip)  # a link that is not this computer's loopback clip path is refused before any request
+    if 'embedded' in fragment or 'notEmbedded' in fragment or 'clip' in fragment:
+        fragment = {key: value for key, value in fragment.items() if key not in ('embedded', 'notEmbedded', 'clip')}
     missing = []
     adopt: dict = {}
+    remote = []
     visible = visible_assets(studio) if names else set()
     for name in names:
         try:
@@ -148,7 +173,10 @@ async def paste_body(body: dict):
             continue
         carried = embedded.get(name)
         if carried is None:
-            missing.append(name)
+            if clip is not None:
+                remote.append(name)
+            else:
+                missing.append(name)
             continue
         try:
             data = base64.b64decode(carried, validate=True) if isinstance(carried, str) else None
@@ -158,6 +186,15 @@ async def paste_body(body: dict):
             raise EngineError('Embedded bytes for ' + name + ' are not valid base64.', 400)
         check_declared(name, data)  # digest, size by type, magic bytes, mime: possession is proved before anything is stored
         adopt[name] = data
+    if remote:
+        fetched = await fetch_clip_assets(clip, remote)
+        for name in remote:
+            if name not in fetched:
+                missing.append(name)
+        if not missing:
+            for name in remote:
+                check_declared(name, fetched[name])  # same proof as embedded bytes, before anything is stored
+                adopt[name] = fetched[name]
     if missing:
         raise EngineError('This FormWeb does not have these assets: ' + ', '.join(missing) + '. Nothing was pasted.', 409)
     params: dict = {'fragment': fragment}

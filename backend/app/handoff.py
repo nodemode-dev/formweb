@@ -69,11 +69,16 @@ def _post(url: str, data: bytes, headers: dict[str, str]) -> dict | None:
             return body if isinstance(body, dict) else {}
     except urllib.error.HTTPError as error:
         detail = ''
+        code = ''
         try:
             parsed = json.loads(error.read().decode('utf-8', 'replace'))
             detail = str(parsed.get('detail') or parsed.get('error') or parsed.get('message') or '') if isinstance(parsed, dict) else ''
+            found = parsed.get('code') if isinstance(parsed, dict) else None
+            code = found if isinstance(found, str) and re.fullmatch(r'[a-z0-9][a-z0-9_-]{0,63}', found) else ''
         except ValueError:
             pass
+        if code:  # FormPublisher's error code ends the text so the editor can show it and act on it
+            raise EngineError(f'FormPublisher refused this site [{code}]: {detail or error.reason}', 502)
         raise EngineError(f'FormPublisher refused the site ({error.code}): {detail or error.reason}', 502)
     except (urllib.error.URLError, socket.timeout, ConnectionError, TimeoutError, OSError):
         return None

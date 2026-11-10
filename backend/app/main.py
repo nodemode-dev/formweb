@@ -18,6 +18,7 @@ from .advanced_routes import router as advanced_router, form_gate, serve_release
 from . import claude_code
 from .assets import MIME_TYPES, ProjectTooLarge, asset_path, ingest, list_assets, own_asset, project_envelope, read_project_archive, visible_assets, write_project_archive
 from .chat import router as chat_router
+from .clips import router as clips_router
 from .commands_mirror import router as commands_router
 from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_ARCHIVE_BYTES, MAX_PROJECT_FILE_BYTES, MAX_VIDEO_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
@@ -59,7 +60,8 @@ class LocalAccess:
             scope['formweb.preview'] = True
             scope['formweb.previewToken'] = preview_token
         public_form = bool(re.fullmatch(r'/api/forms/[^/]+/[^/]+', path))
-        public = public_form or runtime or path == '/api/providers/commerce/webhook' or path.startswith(('/published/', '/sites/', '/preview/'))
+        clip_fetch = bool(re.fullmatch(r'/api/clips/[0-9a-f]{64}/[0-9a-f]{64}\.(?:png|jpg|gif|webp|svg|mp4|webm|woff2)', path)) and scope['method'] == 'GET'
+        public = public_form or runtime or clip_fetch or path == '/api/providers/commerce/webhook' or path.startswith(('/published/', '/sites/', '/preview/'))
         control = path == '/mcp' or path.startswith('/api/') and not public and path not in ('/api/health', '/api/system')
         identity = {'id': 'visitor', 'name': 'Website visitor', 'root': False}
         try:
@@ -125,6 +127,7 @@ app.include_router(vector_router)
 app.include_router(library_router)
 app.include_router(handoff_router)
 app.include_router(fragment_router)
+app.include_router(clips_router)
 
 
 @app.get('/api/terminal/status')
