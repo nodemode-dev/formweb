@@ -2479,4 +2479,8 @@ export default [
   "formai.studio 設計系統：石墨色表面、可變字重的 Inter、每個區段一種產品色調、深色與淺色主題。",
   "一個仿 formai.studio 風格的六頁產品網站：首頁、產品、關於、故事、支援與找不到頁面，共用頁首與頁尾。",
   "一個找不到頁面的畫面，它搜尋網站，並把最接近的頁面列印在一張可下拉撕下的收據上。",
+  "傳送到 FormPublisher",
+  "已傳送到 FormPublisher：{0} 現在是第 {1} 版。",
+  "FormPublisher 未執行。網站已儲存到它的收件匣（{0}），FormPublisher 啟動後會自動匯入。",
+  "無法傳送到 FormPublisher：{0}",
 ] as readonly string[];

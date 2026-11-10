@@ -2479,4 +2479,8 @@ export const KEYS: readonly string[] = [
   "The formai.studio design system: graphite surfaces, Inter at variable weights, one product tint per section, dark and light themes.",
   "A six page product site in the formai.studio style: home, product, about, stories, support and a not found page, with a shared header and footer.",
   "A page-not-found screen that searches the site and prints the closest pages on a receipt you can pull down to tear.",
+  "Send to FormPublisher",
+  "Sent to FormPublisher: {0} is now at revision {1}.",
+  "FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.",
+  "Could not send to FormPublisher: {0}",
 ];

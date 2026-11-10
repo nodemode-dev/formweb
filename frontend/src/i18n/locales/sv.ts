@@ -2479,4 +2479,8 @@ export default [
   "Designsystemet bakom formai.studio: grafitytor, Inter i variabla vikter, en produktnyans per avsnitt, mörkt och ljust tema.",
   "En produktwebbplats på sex sidor i formai.studio-stil: startsida, produkt, om oss, berättelser, support och en sidan-hittades-inte-sida, med gemensamt sidhuvud och sidfot.",
   "En sidan-hittades-inte-skärm som söker på webbplatsen och skriver ut de närmaste sidorna på ett kvitto som du kan dra ner för att riva av.",
+  "Skicka till FormPublisher",
+  "Skickat till FormPublisher: {0} är nu på revision {1}.",
+  "FormPublisher körs inte. Webbplatsen sparades i dess inkorg ({0}) och importeras när FormPublisher startar.",
+  "Det gick inte att skicka till FormPublisher: {0}",
 ] as readonly string[];

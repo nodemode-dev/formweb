@@ -1,0 +1,96 @@
+"""Send the open site to FormPublisher (TURN_D_SPEC Phase 10, D3).
+
+`POST /api/handoff/formpublisher` exports the open site exactly like `GET /api/export`, then posts the zip to
+FormPublisher's `POST /api/receive/formweb`. When FormPublisher does not answer, the zip is written atomically into its
+inbox folder, which it imports the next time it runs. Returns `{delivered: "live"|"inbox", site?, revision?, path?}`."""
+import asyncio
+import json
+import os
+import re
+import socket
+import urllib.error
+import urllib.request
+from datetime import datetime, timezone
+from pathlib import Path
+from urllib.parse import quote
+
+from fastapi import APIRouter
+
+from .config import VERSION
+from .engine import EngineError
+from .service import studio
+
+router = APIRouter()
+
+DEFAULT_URL = 'http://127.0.0.1:8280'
+TIMEOUT_SECONDS = 8
+
+
+def publisher_url() -> str:
+    return (os.getenv('FORMWEB_FORMPUBLISHER_URL', '').strip() or DEFAULT_URL).rstrip('/')
+
+
+def inbox_folder() -> Path:
+    env = os.getenv('FORMPUBLISHER_HOME', '').strip()
+    base = Path(env).expanduser() if env else Path.home() / 'FormPublisher'
+    return base / 'inbox'
+
+
+def _post(url: str, data: bytes, headers: dict[str, str]) -> dict | None:
+    """The receipt on success, None when nothing answered, an EngineError when FormPublisher answered with a refusal."""
+    request = urllib.request.Request(url + '/api/receive/formweb', data=data, method='POST', headers=headers)
+    try:
+        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            body = json.loads(response.read().decode('utf-8') or '{}')
+            return body if isinstance(body, dict) else {}
+    except urllib.error.HTTPError as error:
+        detail = ''
+        try:
+            parsed = json.loads(error.read().decode('utf-8', 'replace'))
+            detail = str(parsed.get('detail') or parsed.get('error') or parsed.get('message') or '') if isinstance(parsed, dict) else ''
+        except ValueError:
+            pass
+        raise EngineError(f'FormPublisher refused the site ({error.code}): {detail or error.reason}', 502)
+    except (urllib.error.URLError, socket.timeout, ConnectionError, TimeoutError, OSError):
+        return None
+
+
+def _to_inbox(data: bytes, name: str, project: str) -> Path:
+    folder = inbox_folder()
+    folder.mkdir(parents=True, exist_ok=True)
+    slug = re.sub(r'[^a-z0-9]+', '-', name.lower()).strip('-')[:60] or 'site'
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    target = folder / f'{slug}-{stamp}.zip'
+    counter = 2
+    while target.exists():
+        target = folder / f'{slug}-{stamp}-{counter}.zip'
+        counter += 1
+    temp = folder / f'.{target.name}.part'
+    # The metadata lands first, so FormPublisher files the zip as a revision of the same site a live send would use.
+    meta = folder / f'{target.name}.json'
+    try:
+        meta.write_text(json.dumps({'siteName': name, 'project': project, 'version': VERSION}), encoding='utf-8')
+        temp.write_bytes(data)
+        os.replace(temp, target)
+    finally:
+        temp.unlink(missing_ok=True)
+    return target
+
+
+@router.post('/api/handoff/formpublisher')
+async def send_to_formpublisher(locale: str | None = None):
+    state = await studio.state()
+    name = str(state['site'].get('name') or 'Site')
+    project = studio.access.project_key()
+    data, _manifest = await studio.export_zip(locale)
+    headers = {
+        'Content-Type': 'application/zip',
+        'X-FormWeb-Version': VERSION,
+        'X-FormWeb-Site-Name': quote(name, safe=''),
+        'X-FormWeb-Project': quote(str(project), safe=''),
+    }
+    receipt = await asyncio.to_thread(_post, publisher_url(), data, headers)
+    if receipt is not None:
+        return {'delivered': 'live', 'site': receipt.get('site'), 'revision': receipt.get('revision')}
+    path = await asyncio.to_thread(_to_inbox, data, name, str(project))
+    return {'delivered': 'inbox', 'path': str(path)}

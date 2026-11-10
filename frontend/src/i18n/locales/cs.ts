@@ -2479,4 +2479,8 @@ export default [
   "Designový systém formai.studio: grafitové plochy, Inter s proměnnou tloušťkou, jeden odstín produktu na sekci, tmavý a světlý motiv.",
   "Šestistránkový produktový web ve stylu formai.studio: domů, produkt, o nás, příběhy, podpora a stránka nenalezeno, se sdíleným záhlavím a zápatím.",
   "Obrazovka „stránka nenalezena“, která prohledá web a vytiskne nejbližší stránky na účtenku, jíž můžete stáhnout dolů a utrhnout ji.",
+  "Odeslat do FormPublisher",
+  "Odesláno do FormPublisher: {0} je nyní v revizi {1}.",
+  "FormPublisher neběží. Web byl uložen do jeho doručené složky ({0}) a naimportuje se po spuštění FormPublisher.",
+  "Odeslání do FormPublisher se nezdařilo: {0}",
 ] as readonly string[];

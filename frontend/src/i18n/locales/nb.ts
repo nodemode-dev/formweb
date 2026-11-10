@@ -2479,4 +2479,8 @@ export default [
   "Designsystemet til formai.studio: grafittflater, Inter i variable vekter, én produktnyanse per seksjon, mørkt og lyst tema.",
   "Et produktnettsted på seks sider i formai.studio-stil: forside, produkt, om oss, historier, støtte og en side-ikke-funnet-side, med felles topptekst og bunntekst.",
   "En side-ikke-funnet-skjerm som søker på nettstedet og skriver ut de nærmeste sidene på en kvittering du kan dra ned for å rive av.",
+  "Send til FormPublisher",
+  "Sendt til FormPublisher: {0} er nå på revisjon {1}.",
+  "FormPublisher kjører ikke. Nettstedet ble lagret i innboksen dens ({0}) og importeres når FormPublisher starter.",
+  "Kunne ikke sende til FormPublisher: {0}",
 ] as readonly string[];

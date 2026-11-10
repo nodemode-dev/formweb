@@ -2479,4 +2479,8 @@ export default [
   "Hệ thống thiết kế của formai.studio: bề mặt than chì, Inter với độ đậm biến thiên, một tông màu sản phẩm cho mỗi phần, giao diện tối và sáng.",
   "Một trang sản phẩm sáu trang theo phong cách formai.studio: trang chủ, sản phẩm, giới thiệu, câu chuyện, hỗ trợ và một trang không tìm thấy, với đầu trang và chân trang dùng chung.",
   "Một màn hình không tìm thấy trang, tìm kiếm trong trang web và in các trang gần nhất lên một biên lai bạn có thể kéo xuống để xé.",
+  "Gửi tới FormPublisher",
+  "Đã gửi tới FormPublisher: {0} hiện ở bản sửa đổi {1}.",
+  "FormPublisher không chạy. Trang web đã được lưu vào hộp thư đến của nó ({0}) và sẽ được nhập khi FormPublisher khởi động.",
+  "Không thể gửi tới FormPublisher: {0}",
 ] as readonly string[];

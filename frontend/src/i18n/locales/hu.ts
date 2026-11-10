@@ -2479,4 +2479,8 @@ export default [
   "A formai.studio dizájnrendszere: grafitfelületek, változó vastagságú Inter, szekciónként egy termékárnyalat, sötét és világos téma.",
   "Hatoldalas termékwebhely a formai.studio stílusában: kezdőlap, termék, rólunk, történetek, támogatás és egy nem található oldal, közös fejléccel és lábléccel.",
   "Egy oldal nem található képernyő, amely átkeresi a webhelyet, és a legközelebbi oldalakat egy blokkra nyomtatja, amelyet lehúzva letéphetsz.",
+  "Küldés a FormPublishernek",
+  "Elküldve a FormPublishernek: {0} most a(z) {1}. változatnál tart.",
+  "A FormPublisher nem fut. A webhely mentve lett a bejövő mappájába ({0}), és a FormPublisher indulásakor importálódik.",
+  "Nem sikerült elküldeni a FormPublishernek: {0}",
 ] as readonly string[];
