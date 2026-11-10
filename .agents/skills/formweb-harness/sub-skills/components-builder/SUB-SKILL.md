@@ -26,7 +26,7 @@ Add code-driven parts to a site without breaking its layout or its safety bar. A
 
 1. Create the host first. A page component host is any node that already has its final size (for example a `div` with width 100 percent and `aspect-ratio` 16 / 9). A section host must have no children.
 2. Build the component with `build_code_component`: `mode` `"page"` or `"isolated"`, language, source and props. Page mode allows 256 KiB source and 512 KiB javascript; isolated 128 and 256 KiB; imports are refused in both. Fix every compiler diagnostic. Prop types: string, number, boolean, json, color (hex, `rgb(`, `rgba(`, `hsl(`, `hsla(` or `var(--name)`) and asset (an owned `/api/assets/<sha>.<ext>` path).
-3. Upload a poster through the asset route and keep its `/api/assets/<sha>.<ext>` path. The poster is the first paint and the canvas picture, so it must match the component's first frame closely; svg posters must pass the svg safety rules.
+3. Upload a poster through the asset route and keep its `/api/assets/<sha>.<ext>` path. The poster is the first paint and the canvas picture, so it must match the component's first frame closely; svg posters must pass the svg safety rules. If the site has themes, also upload a light poster (the component at rest in the light theme, same size) and pass it as `posterLight` to `build_code_component` or `component_build_install`; the export then shows each poster in its own theme.
 4. Place the instance:
 
 ```json

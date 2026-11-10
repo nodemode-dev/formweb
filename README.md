@@ -82,7 +82,7 @@
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <h3>Send to FormPublisher</h3>File > Send to FormPublisher exports the open site and hands it to FormPublisher on the same computer, live when it is running or into its inbox when it is not. Sending again files a new revision of the same site.
+      <h3>Send to FormPublisher</h3>File > Send to FormPublisher exports the open site and hands it to FormPublisher on the same computer, live when it is running (found through its engine.json, so any port works) or into its inbox when it is not. Sending again files a new revision of the same site.
     </td>
     <td width="50%" valign="top">
       <h3>Agent tools for motion and the library</h3>14 MCP tools set motion and variables, build and place components, start a blank site, insert and re-cast library sections, and send the result to FormPublisher, each as one undo step.
@@ -126,7 +126,8 @@ Agents can also start a blank site, set native motion and variables, build and p
 - **Rust engine:** atomic commands, revisions, undo and redo, component propagation and the static compiler.
 - **Python service:** FastAPI bridge for persistence, forms, local releases, HTTP and the official-SDK MCP server.
 - **Vanilla TypeScript:** a Vite editor with one command registry behind every menu, button and shortcut.
-- **Local data:** SQLite autosave and portable `.fweb` projects with history and assets.
+- **Local data:** SQLite autosave and portable `.fweb` projects with history and assets; projects over 64 MiB save as a version 2 zip.
+- **Editing:** Edit > Duplicate element copies an element with its motion, code and variables; code components can carry a light-theme poster.
 - **Tested:** backend tests in `backend/tests` and engine tests in `native/crates/*/tests`, run in CI.
 
 ## Download

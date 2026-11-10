@@ -30,6 +30,10 @@ Commands cover node and page editing, tokens, component creation/insertion, coll
 
 Facets and sort options are validated against field paths (reference paths such as `author.name` included). The exporter renders them as a labelled form plus per-item data, and `runtime` filters, sorts and keeps state in the URL. Collection list nesting is capped at 6 levels and a page may render 250000 nodes. `audit` adds `a11y.link-empty`, `a11y.button-empty`, `a11y.heading-order`, `a11y.contrast`, `a11y.svg-title`, `a11y.svg-decorative`, `a11y.table-header` and `a11y.table-caption`. A site that uses form steps or file inputs always takes the extension export path, which carries the runtime for them.
 
+## Duplicating (0.19.4)
+
+`node.duplicate {id, parent?, index?}` copies an element and its subtree, by default right after the original, in one undo step. `page.duplicate` and `node.duplicate` share `duplicate_node_entries`, which copies every node-keyed extension entry, now including `motion.scripts` (remapped, since steps target nodes), `code.sections`, `variables.inputs` and `variables.outputs` (copied as they are). It refuses a page root, a node or destination inside a linked component instance, more than 2,000 nodes and an index outside the children. The editor's Edit > Duplicate element (`Mod+D`) and the layers context menu run it.
+
 ## Mutation contract
 
 `exec` applies one command. `batch` validates and applies several commands as one undoable transaction. Include `expectedRevision` when acting on state read earlier. A revision conflict requires another state read before retrying. Invalid parentage, broken references, unsupported data or unsafe export values must fail before history is committed.
