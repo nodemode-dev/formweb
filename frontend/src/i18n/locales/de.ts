@@ -2513,4 +2513,6 @@ export default [
   "Basis-URL",
   "Die öffentliche Adresse der Website. Kanonische Links, die Sitemap und die 404.html im Stammverzeichnis verwenden sie. Agenten: site.update mit settings.baseUrl.",
   "Basis-URL festlegen",
+  "Basis-URL- und SEO-Einstellungen",
+  "Die Basis-URL festlegen, die kanonische Links, die Sitemap, die 404.html im Stammverzeichnis und portables Veröffentlichen verwenden.",
 ] as readonly string[];

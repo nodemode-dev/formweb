@@ -2513,4 +2513,6 @@ export default [
   "Perus-URL",
   "Sivuston julkinen osoite. Kanoniset linkit, sivustokartta ja juuren 404.html käyttävät sitä. Agentit: site.update ja settings.baseUrl.",
   "Aseta perus-URL",
+  "Perus-URL ja SEO-asetukset",
+  "Aseta perus-URL, jota kanoniset linkit, sivustokartta, juuren 404.html ja siirrettävä julkaisu käyttävät.",
 ] as readonly string[];

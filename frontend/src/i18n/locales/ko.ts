@@ -2513,4 +2513,6 @@ export default [
   "기본 URL",
   "사이트의 공개 주소입니다. 표준 링크, 사이트맵, 루트의 404.html이 이 주소를 사용합니다. 에이전트: site.update에 settings.baseUrl을 지정하세요.",
   "기본 URL 설정",
+  "기본 URL 및 SEO 설정",
+  "표준 링크, 사이트맵, 루트의 404.html, 이식 가능한 게시에서 사용하는 기본 URL을 설정합니다.",
 ] as readonly string[];

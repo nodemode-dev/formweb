@@ -2513,4 +2513,6 @@ export default [
   "Basis-URL",
   "Nettstedets offentlige adresse. Kanoniske lenker, områdekartet og 404.html i roten bruker den. Agenter: site.update med settings.baseUrl.",
   "Angi basis-URL-en",
+  "Basis-URL og SEO-innstillinger",
+  "Angi basis-URL-en som kanoniske lenker, områdekartet, 404.html i roten og portabel publisering bruker.",
 ] as readonly string[];

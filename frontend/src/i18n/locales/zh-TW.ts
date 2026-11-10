@@ -2513,4 +2513,6 @@ export default [
   "基礎 URL",
   "網站的公開位址。標準連結、網站地圖和根目錄的 404.html 都會使用它。代理：site.update 搭配 settings.baseUrl。",
   "設定基礎 URL",
+  "基礎 URL 與 SEO 設定",
+  "設定標準連結、網站地圖、根目錄的 404.html 和可攜式發布所使用的基礎 URL。",
 ] as readonly string[];

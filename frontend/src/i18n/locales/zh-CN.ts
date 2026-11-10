@@ -2513,4 +2513,6 @@ export default [
   "基础 URL",
   "站点的公开地址。规范链接、站点地图和根目录的 404.html 都会使用它。智能体：site.update 搭配 settings.baseUrl。",
   "设置基础 URL",
+  "基础 URL 和 SEO 设置",
+  "设置规范链接、站点地图、根目录的 404.html 和可移植发布所使用的基础 URL。",
 ] as readonly string[];

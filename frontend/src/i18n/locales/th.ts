@@ -2513,4 +2513,6 @@ export default [
   "URL หลัก",
   "ที่อยู่สาธารณะของไซต์ ลิงก์แบบ canonical, ไซต์แมป และ 404.html ที่รูทจะใช้ที่อยู่นี้ เอเจนต์: ใช้ site.update กับ settings.baseUrl",
   "ตั้ง URL หลัก",
+  "URL หลักและการตั้งค่า SEO",
+  "ตั้งค่า URL หลักที่ลิงก์แบบ canonical ไซต์แมป 404.html ที่รูท และการเผยแพร่ที่พกพาได้ใช้",
 ] as readonly string[];

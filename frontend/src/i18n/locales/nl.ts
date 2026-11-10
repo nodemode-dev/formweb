@@ -2513,4 +2513,6 @@ export default [
   "Basis-URL",
   "Het openbare adres van de site. Canonieke links, de sitemap en de 404.html in de hoofdmap gebruiken het. Agents: site.update met settings.baseUrl.",
   "Basis-URL instellen",
+  "Basis-URL en SEO-instellingen",
+  "Stel de basis-URL in die canonieke links, de sitemap, de 404.html in de hoofdmap en draagbaar publiceren gebruiken.",
 ] as readonly string[];

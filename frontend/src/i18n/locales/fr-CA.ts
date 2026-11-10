@@ -17,6 +17,7 @@ export default {
   "Protect the open page with the password typed in Page settings.": "Protégez la page ouverte avec le mot de passe saisi dans Paramètres de la page.",
   "Search the stock library": "Rechercher dans la bibliothèque de banque d’images",
   "Show the Page settings inspector (name, slug, SEO, password).": "Afficher l’inspecteur Paramètres de la page (nom, slug, SEO, mot de passe).",
+  "Base URL and SEO settings": "URL de base et paramètres SEO",
   "Site origin & SEO settings": "Origine du site et paramètres SEO",
   "Site settings patch": "Correctif des paramètres du site",
   "Stock icons and photos": "Icônes et photos de banque d’images",
