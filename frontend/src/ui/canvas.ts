@@ -13,7 +13,7 @@ function safeVectorValue(name: string, content: string): boolean {
   return !/url\(|javascript:|[<>]/i.test(content);
 }
 const voidTags = new Set(['img', 'input', 'source', 'hr', 'br', 'wbr']);
-const allowedAttributes = new Set(['id', 'class', 'title', 'role', 'href', 'src', 'alt', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'required', 'checked', 'disabled', 'multiple', 'selected', 'min', 'max', 'step', 'pattern', 'minlength', 'maxlength', 'autocomplete', 'for', 'loading', 'width', 'height', 'tabindex', 'open', 'datetime', 'colspan', 'rowspan', 'scope', 'controls', 'muted', 'loop', 'poster', 'preload', 'accept']);
+const allowedAttributes = new Set(['id', 'class', 'title', 'role', 'href', 'src', 'alt', 'target', 'rel', 'type', 'name', 'value', 'placeholder', 'required', 'checked', 'disabled', 'multiple', 'selected', 'min', 'max', 'step', 'pattern', 'minlength', 'maxlength', 'autocomplete', 'for', 'loading', 'width', 'height', 'tabindex', 'open', 'datetime', 'colspan', 'rowspan', 'scope', 'controls', 'muted', 'loop', 'poster', 'preload', 'accept', 'playsinline', 'decoding', 'fetchpriority', 'srcset', 'sizes']);
 function safeUrl(url: string): boolean {
   return !/^\/\//.test(url) && !/[\\<>"'\u0000-\u001f]/.test(url) && (/^(?:https?:\/\/|mailto:|tel:)/i.test(url) || !url.split(/[/?#]/)[0].includes(':'));
 }
@@ -51,6 +51,21 @@ export class Canvas {
   private height = 860;
   private width = 1280;
   private ready: Promise<void>;
+  private themeMode = '';
+  private tokenOverride: Record<string, string> = {};
+  private faceCss = '';
+  private faceStyle?: HTMLStyleElement;
+
+  /* Parent-side appearance for the canvas document: the theme being previewed (data-theme and that theme's token
+     values) and the site's self-hosted font faces. No script runs inside the canvas. */
+  setAppearance(mode: string, overrides: Record<string, string>, faces: string, rerender: boolean): void {
+    const same = mode === this.themeMode && faces === this.faceCss && JSON.stringify(overrides) === JSON.stringify(this.tokenOverride);
+    this.themeMode = mode;
+    this.tokenOverride = overrides;
+    this.faceCss = faces;
+    if (same || !rerender || !this.last) return;
+    this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
+  }
 
   constructor(private stage: HTMLElement, private onSelect: (id: string) => void, private onText: (id: string, text: string) => void, private onNavigate: (href: string) => void) {
     this.outer = document.createElement('div');
@@ -75,7 +90,7 @@ export class Canvas {
         resolve();
       }, { once: true });
     });
-    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}body{color:#edf0f5;background:#15171b}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-id]:hover{cursor:default}body[data-preview] [data-fw-id]:hover{cursor:auto}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}body:not([data-preview]) a,body:not([data-preview]) button{cursor:default}input,textarea,select{max-width:100%}.fw-fade{animation:fwFade .5s ease both}@keyframes fwFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style></head><body></body></html>';
+    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}body{color:#edf0f5;background:#15171b}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-id]:hover{cursor:default}body[data-preview] [data-fw-id]:hover{cursor:auto}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}body:not([data-preview]) a,body:not([data-preview]) button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark]{display:none!important}.fw-fade{animation:fwFade .5s ease both}@keyframes fwFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style></head><body></body></html>';
     new ResizeObserver(() => this.fit()).observe(stage);
   }
 
@@ -88,7 +103,13 @@ export class Canvas {
     if (!this.doc) return;
     this.doc.body.toggleAttribute('data-preview', preview);
     this.doc.documentElement.lang = locale;
-    for (const [name, content] of Object.entries(site.tokens)) {
+    if (this.themeMode) { if (this.doc.documentElement.dataset.theme !== this.themeMode) this.doc.documentElement.dataset.theme = this.themeMode; }
+    else if (this.doc.documentElement.hasAttribute('data-theme')) this.doc.documentElement.removeAttribute('data-theme');
+    if (this.faceCss || this.faceStyle) {
+      if (!this.faceStyle) { this.faceStyle = this.doc.createElement('style'); this.doc.head.append(this.faceStyle); }
+      if (this.faceStyle.textContent !== this.faceCss) this.faceStyle.textContent = this.faceCss;
+    }
+    for (const [name, content] of Object.entries({ ...site.tokens, ...this.tokenOverride })) {
       if (safeStyle(name.replace(/^--/, ''), content)) this.doc.documentElement.style.setProperty(name.startsWith('--') ? name : '--' + name, content);
     }
     const visited = new Set<string>();
@@ -220,8 +241,9 @@ export class Canvas {
     const nextAttrs = new Set<string>();
     for (const [name, content] of Object.entries(attributes)) {
       const vectorAttribute = vectorTags.has(tag) && vectorAttributes.has(name) && safeVectorValue(name, content);
-      if ((!allowedAttributes.has(name) && !vectorAttribute && !/^aria-[a-z-]+$/.test(name) && !/^data-[a-z-]+$/.test(name)) || /^data-fw-/.test(name)) continue;
+      if ((!allowedAttributes.has(name) && !vectorAttribute && !/^aria-[a-z-]+$/.test(name) && !/^data-[a-z-]+$/.test(name)) || (/^data-fw-/.test(name) && name !== 'data-fw-theme-only')) continue;
       if (['href', 'src', 'poster'].includes(name) && !safeUrl(content)) continue;
+      if (name === 'srcset' && !content.split(',').every(candidate => safeUrl(candidate.trim().split(/\s+/)[0]))) continue;
       let actual = content;
       if (context) {
         if (['id', 'for'].includes(name)) actual = context.ids[content] || content;

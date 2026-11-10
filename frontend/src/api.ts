@@ -149,17 +149,19 @@ export async function download(path: string, filename: string): Promise<void> {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export async function upload(file: File): Promise<{ id: string; url: string; mime: string; size: number }> {
-  if (!['image/png', 'image/jpeg', 'image/webp', 'image/gif'].includes(file.type)) throw new Error('Choose a PNG, JPEG, WebP or GIF image.');
-  if (file.size > 8 * 1024 * 1024) throw new Error('Images must be 8 MiB or smaller.');
+  const type = /\.woff2$/i.test(file.name) ? 'font/woff2' : file.type;
+  const caps: Record<string, number> = { 'image/png': 8, 'image/jpeg': 8, 'image/webp': 8, 'image/gif': 8, 'video/mp4': 64, 'video/webm': 64, 'font/woff2': 4 };
+  if (!caps[type]) throw new Error('Choose a PNG, JPEG, WebP or GIF image, an MP4 or WebM video, or a WOFF2 font.');
+  if (file.size > caps[type] * 1024 * 1024) throw new Error(type.startsWith('image/') ? 'Images must be 8 MiB or smaller.' : type.startsWith('video/') ? 'Videos must be 64 MiB or smaller.' : 'Fonts must be 4 MiB or smaller.');
   const response = await fetch(apiBase + '/api/assets', {
     method: 'POST',
     credentials: 'same-origin',
-    headers: { ...authHeaders(), 'Content-Type': file.type, 'X-Filename': encodeURIComponent(file.name) },
+    headers: { ...authHeaders(), 'Content-Type': type, 'X-Filename': encodeURIComponent(file.name) },
     body: await file.arrayBuffer()
   });
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(typeof error.detail === 'string' ? error.detail : 'Image upload failed.');
+    throw new Error(typeof error.detail === 'string' ? error.detail : 'Upload failed.');
   }
   return response.json();
 }

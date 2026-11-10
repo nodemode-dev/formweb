@@ -1,0 +1,23 @@
+.fw-theme-switch { display: inline-flex; flex: none; gap: 2px; padding: 2px; margin-left: var(--space-2); width: 56px; height: 26px; box-sizing: border-box; border: 1px solid var(--line-1); border-radius: var(--radius); background: var(--surface-field); }
+.fw-theme-btn { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; min-height: 0; height: 20px; padding: 0; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); }
+.fw-theme-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.fw-theme-btn.is-on { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-color); }
+.fw-theme-btn .icon, .fw-theme-btn .icon svg { width: 14px; height: 14px; }
+.fw-ext-group[hidden], .fw-ext-block [hidden], .form-grid[hidden] { display: none; }
+.fw-ext-block { margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border-color); }
+.fw-ext-head { margin-bottom: var(--space-3); color: var(--text-primary); font-size: var(--fs-12); font-weight: 600; }
+.fw-ext-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.form-grid > .full-row { grid-column: 1 / -1; margin: 0; }
+.fw-media-flags { margin-bottom: var(--space-3); }
+.fw-media-flags .checkbox-field { margin-top: 0; }
+.fw-theme-follow { align-self: end; margin-top: 0; min-height: var(--ctl-md, 28px); }
+.fw-theme-other { margin: var(--space-4) 0 var(--space-2); }
+.fw-font-list { display: grid; gap: var(--space-3); margin-bottom: var(--space-3); }
+.fw-font-row { padding: var(--space-3); border: 1px solid var(--line-1); border-radius: var(--radius); }
+.fw-font-top { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); min-width: 0; }
+.fw-font-name { font-weight: 600; color: var(--text-primary); }
+.fw-font-src { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fw-font-fields { grid-template-columns: 1fr 1fr 1fr; }
+.workspace > .stage-panel { grid-template-columns: minmax(0, 1fr); }
+.fw-ext-block > .fw-ext-add { margin-top: var(--space-3); }
+.stage-head .viewport-readout { white-space: nowrap; }
