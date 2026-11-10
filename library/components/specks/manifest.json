@@ -1,0 +1,30 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "specks",
+  "code": "C2",
+  "name": "Specks backdrop",
+  "description": "Soft glowing specks that rise slowly through a hero backdrop, each at its own depth, drawn on a small canvas.",
+  "props": {
+    "count": { "type": "number", "default": 46 },
+    "colorDark": { "type": "color", "default": "var(--ink)" },
+    "colorLight": { "type": "color", "default": "var(--hue)" },
+    "parallax": { "type": "number", "default": 12 }
+  },
+  "labels": {
+    "count": "Speck count",
+    "colorDark": "Colour in the dark theme",
+    "colorLight": "Colour in the light theme",
+    "parallax": "Pointer parallax (px)"
+  },
+  "propDocs": {
+    "count": "How many specks float at once. 0 to 200.",
+    "colorDark": "Speck colour in the dark theme. The dark theme blends specks with screen.",
+    "colorLight": "Speck colour in the light theme. The light theme draws them normally.",
+    "parallax": "How far the nearest specks slide with the pointer, in pixels. 0 turns the pointer drift off."
+  },
+  "poster": "poster.webp",
+  "sections": ["format-prompt"],
+  "fallback": "Nothing is drawn with reduced motion or without canvas: the hero keeps its picture and veil, which is what the original shows.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/format-prompt (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

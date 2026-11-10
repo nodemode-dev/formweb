@@ -1,0 +1,140 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "page-turn",
+  "code": "C13",
+  "name": "Page turn",
+  "description": "A publication turned page by page in 3D, with drag, arrow keys, arrow buttons and a swipe deck on narrow screens.",
+  "props": {
+    "pages": {
+      "type": "json",
+      "default": [
+        {"blocks": [
+          {"t": "mono", "spans": ["Version 0.85.4", "Free"]},
+          {"t": "mast"},
+          {"t": "shot", "src": "https://media.formai.studio/media/formdesign/ui-hero-2/3c7192b07f3f.w1024.webp", "light": "https://media.formai.studio/media/formdesign/ui-hero-light-2/b4a4e884250a.w1024.webp", "w": 2400, "h": 1500, "alt": "The FormDesign editor with a magazine spread open, the panels around it"},
+          {"t": "cline", "text": "Page layout and publishing\nfor the web and the desktop"},
+          {"t": "mono", "cls": "fd-by", "spans": ["Instead of InDesign and Affinity"]}
+        ]},
+        {"blocks": [
+          {"t": "k", "text": "What it is"},
+          {"t": "hd", "text": "A page-layout application for magazines, books, reports, print and websites."},
+          {"t": "p", "text": "It is made for people and their agents. Drop content on the Make panel, write a brief, pick a template and press Make layout, then refine the result in a full editor."},
+          {"t": "p", "text": "The layout core is FormDesign's own Rust engine with 394 commands and 41 tools, and the interface comes in 26 languages."},
+          {"t": "chip", "text": "Available on macOS, Windows and Linux"},
+          {"t": "sig", "text": "FormDesign 0.85.4"},
+          {"t": "num", "text": "02"}
+        ]},
+        {"blocks": [
+          {"t": "k", "text": "Contents"},
+          {"t": "list", "rows": [
+            {"a": "02", "b": "Letter", "c": "Intro", "go": 1},
+            {"a": "04", "b": "Make", "c": "Chapter", "go": 2},
+            {"a": "06", "b": "Pages", "c": "Captures", "go": 3},
+            {"a": "07", "b": "Publishing", "c": "Chapter", "go": 3},
+            {"a": "08", "b": "Facts", "c": "Checks", "go": 4},
+            {"a": "09", "b": "Get it", "c": "Download", "go": 4}
+          ]},
+          {"t": "tip", "text": "Tip: drag a page, or use the arrow keys."},
+          {"t": "num", "text": "03"}
+        ]},
+        {"bleed": {"src": "https://media.formai.studio/media/formdesign/ui-start/3b5a1f756846.w1024.webp", "light": "https://media.formai.studio/media/formdesign/ui-start-light/1dd433b5b605.w1024.webp", "w": 2400, "h": 1500, "alt": "The FormDesign start screen with the Make panel for files and a brief"},
+         "blocks": [
+          {"t": "card", "k": "From a brief to a layout", "hd": "Make"}
+        ]},
+        {"blocks": [
+          {"t": "k", "text": "The Make pass"},
+          {"t": "lede", "text": "Intake reads your files and brief for kind, size, page count, tone, colours and brand. The Make pass ranks templates, fills them, threads the article through continuation pages, matches images to frames, fits copy and reports what is still sample text."},
+          {"t": "pull", "text": "71 templates across magazine, newsletter, book, report, print, ad and web."},
+          {"t": "p", "text": "Turns Markdown, Word, RTF, text, HTML, CSV, spreadsheets, PDFs, images and a plain-words brief into one content pack. Text is composed with a Knuth-Plass paragraph composer."},
+          {"t": "link", "text": "Read the FormDesign page", "href": "https://formai.studio/formdesign/"},
+          {"t": "num", "text": "05"}
+        ]},
+        {"blocks": [
+          {"t": "k", "text": "In the window"},
+          {"t": "grid", "figs": [
+            {"src": "https://media.formai.studio/media/formdesign/ui-templates/73632c9fa127.w1024.webp", "light": "https://media.formai.studio/media/formdesign/ui-templates-light/1d93c6c48547.w1024.webp", "w": 2400, "h": 1500, "alt": "The FormDesign template browser", "caption": "71 templates"},
+            {"src": "https://media.formai.studio/media/formdesign/ui-inspector-2/2e9e7f4cf8df.w1024.webp", "w": 2400, "h": 1500, "alt": "The FormDesign inspector beside a page", "caption": "The inspector"},
+            {"src": "https://media.formai.studio/media/formdesign/ui-export-2/b7b84168009c.w1024.webp", "w": 2400, "h": 1500, "alt": "The FormDesign export dialog", "caption": "Export and publish", "wide": true}
+          ]},
+          {"t": "num", "text": "06"}
+        ]},
+        {"blocks": [
+          {"t": "k", "text": "Publishing"},
+          {"t": "thumb", "src": "https://media.formai.studio/media/formdesign/ui-editor/f8ffaa7a8128.w1024.webp", "w": 2400, "h": 1500, "alt": "The FormDesign editor with a layout open"},
+          {"t": "hd", "text": "Print, PDF and the web"},
+          {"t": "p", "text": "Any layout can become a responsive multi-page site with a sitemap and feed, and File > Publish Online gives a link served from this computer."},
+          {"t": "mono", "cls": "fd-rel", "spans": ["Version 0.85.4", "macOS, Windows, Linux"]},
+          {"t": "button", "text": "Explore FormDesign", "href": "https://formai.studio/formdesign/", "kind": "ink"}
+        ]},
+        {"blocks": [
+          {"t": "k", "text": "Facts"},
+          {"t": "quote", "text": "Turns Markdown, Word, RTF, text, HTML, CSV, PDFs and images into one content pack.", "src": "Intake"},
+          {"t": "quote", "text": "Composes text with a Knuth-Plass paragraph composer, styles, tables and footnotes.", "src": "Text"},
+          {"t": "quote", "text": "Exports layouts as responsive multi-page websites and publishes a link served from this computer.", "src": "Websites"},
+          {"t": "seps", "text": "Magazine · Newsletter · Book · Report · Presentation"},
+          {"t": "num", "text": "08"}
+        ]},
+        {"blocks": [
+          {"t": "k", "text": "Get FormDesign"},
+          {"t": "hd", "text": "Runs on macOS, Windows and Linux, with its source open on GitHub."},
+          {"t": "chip", "text": "Version 0.85.4, available"},
+          {"t": "copy", "text": "formai.studio/formdesign/", "url": "https://formai.studio/formdesign/", "label": "Copy", "done": "Copied", "fail": "Select to copy"},
+          {"t": "btns", "buttons": [
+            {"text": "Download", "href": "https://formai.studio/download/", "kind": "ink"},
+            {"text": "Every app", "href": "https://formai.studio/apps/", "kind": "quiet"}
+          ]},
+          {"t": "socials", "links": [
+            {"text": "Apps", "href": "https://formai.studio/apps/"},
+            {"text": "Docs", "href": "https://formai.studio/docs/"},
+            {"text": "Releases", "href": "https://formai.studio/releases/"}
+          ]},
+          {"t": "num", "text": "09"}
+        ]},
+        {"blocks": [
+          {"t": "mono", "spans": ["FormDesign", "Back cover"]},
+          {"t": "signoff", "text": "Page after page."},
+          {"t": "colo", "text": "FormDesign 0.85.4 is built with TypeScript, Vite, Python, FastAPI, Rust and Tauri 2."},
+          {"t": "ruler", "bars": [[70,1],[85,1],[40,1],[70,1],[100,1],[40,1],[85,3],[40,1],[40,3],[40,1],[55,1],[100,3],[40,1],[40,1],[70,3],[55,1],[100,2],[100,1],[40,1],[70,1],[100,1],[100,1],[100,1],[85,3],[70,3],[100,3],[70,2],[55,1],[55,1],[100,2],[100,3],[70,3],[70,1],[40,3]]},
+          {"t": "mono", "cls": "fd-price", "spans": ["Free", "No account"]}
+        ]}
+      ]
+    },
+    "names": {
+      "type": "json",
+      "default": ["Cover", "Letter and contents", "Make", "Pages and publishing", "Facts and get it", "Back cover"]
+    },
+    "brand": { "type": "string", "default": "Form" },
+    "suffix": { "type": "string", "default": "Design" },
+    "bookLabel": { "type": "string", "default": "FormDesign publication" },
+    "prevLabel": { "type": "string", "default": "Previous spread" },
+    "nextLabel": { "type": "string", "default": "Next spread" },
+    "deckLabel": { "type": "string", "default": "FormDesign publication, swipe to turn pages" },
+    "ofWord": { "type": "string", "default": "of" },
+    "spreadVariable": { "type": "string", "default": "spread" },
+    "savedVariable": { "type": "string", "default": "saved" }
+  },
+  "labels": {
+    "pages": "Pages",
+    "names": "Spread names",
+    "brand": "Brand, first part",
+    "suffix": "Brand, second part",
+    "bookLabel": "Book label",
+    "prevLabel": "Previous label",
+    "nextLabel": "Next label",
+    "deckLabel": "Swipe deck label",
+    "ofWord": "Word between spread numbers",
+    "spreadVariable": "Spread variable",
+    "savedVariable": "Saved variable"
+  },
+  "propDocs": {
+    "pages": "Array of pages in order, two per leaf (front, back). A page is {blocks:[...], bleed?:{src,light?,alt,w,h}}. Block types: k, mono {spans, cls?}, mast, shot, thumb, cline, hd, p, num, tip, sig, chip, lede, pull, colo, seps, signoff, link {text,href}, button {text,href,kind}, btns {buttons}, socials {links}, list {rows:[{a,b,c,go}]}, grid {figs}, quote {text,src}, copy {text,url,label,done,fail}, ruler {bars:[[height%,width px]]}, card {k,hd}. Pictures take src, optional light twin, w, h, alt.",
+    "names": "One name per spread (the cover, each opened spread, the back cover). Used for labels and the live region.",
+    "spreadVariable": "Name of a number variable. The component writes the current spread (0 is the cover) and turns to a spread when the variable is set elsewhere, so native dots can bind to it.",
+    "savedVariable": "Name of a boolean variable the component resets to false each time the spread changes."
+  },
+  "poster": "poster.webp",
+  "sections": ["formdesign-spreads"],
+  "fallback": "Without script the poster shows the cover spread. With reduced motion a page change jumps straight to the new spread and every control stays usable.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formdesign-spreads (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

@@ -1,0 +1,49 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "tile-cut",
+  "code": "C6",
+  "name": "Tile cut",
+  "description": "A picture cut into recursive tiles that slide under the pointer, re-cut on click and merge back into one image as the page scrolls.",
+  "props": {
+    "image": { "type": "asset", "default": "/api/assets/9a8c15492a89ca6489b57a41867e826ea4fd7912d2292d47bc49821465adc03b.webp" },
+    "label": { "type": "string", "default": "A rainy avenue under a red FORM CITY sign, a still being relit in FormVis with two light handles and their guide line, cut into layers that join back into a single image as you scroll." },
+    "cuts": { "type": "number", "default": 36 },
+    "loadingLabel": { "type": "string", "default": "Loading the still" },
+    "layerLabel": { "type": "string", "default": "Layer" },
+    "capLayers": { "type": "string", "default": "layers cut," },
+    "capNow": { "type": "string", "default": "now one image" },
+    "copyMouse": { "type": "string", "default": "A still being relit in FormVis, cut into layers and stacked. Click a layer to re-cut it, or move across the pile to slide them apart." },
+    "copyTouch": { "type": "string", "default": "A still being relit in FormVis, cut into layers and stacked. Drag a finger across the pile to slide them apart, and tap a layer to re-cut it." },
+    "copyDone": { "type": "string", "default": "The cuts are used up. Load a new set to re-cut the pile, or scroll to merge every layer back down." },
+    "copyFail": { "type": "string", "default": "The image could not be loaded here. Reload the page to try again." },
+    "recutLabel": { "type": "string", "default": "Re-cut layers" },
+    "newSetLabel": { "type": "string", "default": "Load a new set" },
+    "accent": { "type": "color", "default": "var(--hue)" }
+  },
+  "labels": {
+    "image": "Picture",
+    "label": "Picture description",
+    "cuts": "Cuts available",
+    "loadingLabel": "Loading text",
+    "layerLabel": "Layer stamp word",
+    "capLayers": "Caption, after the count",
+    "capNow": "Caption, second line",
+    "copyMouse": "Copy for a mouse",
+    "copyTouch": "Copy for touch",
+    "copyDone": "Copy when cuts run out",
+    "copyFail": "Copy when the picture fails",
+    "recutLabel": "Re-cut button",
+    "newSetLabel": "Button when cuts run out",
+    "accent": "Accent"
+  },
+  "propDocs": {
+    "image": "The still that is cut. The tiles assume the proportions 1481 by 1400.",
+    "cuts": "Starting number of cuts. The section node marked data-vt-count shows what is left.",
+    "copyMouse": "Written into the node marked data-vt-copy. The component also drives the nodes marked data-vt-count, data-vt-recut, data-vt-back, data-vt-sc and data-vt-fin that sit beside it in the stage."
+  },
+  "poster": "poster.webp",
+  "sections": ["formvis-tiles"],
+  "fallback": "If the picture fails the copy line says so and the tiles stay empty. With reduced motion the picture is drawn already merged into one image and no tile moves.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formvis-tiles (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

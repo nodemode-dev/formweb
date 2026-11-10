@@ -1,0 +1,40 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "orbit-constellation",
+  "code": "C11",
+  "name": "Orbit constellation",
+  "description": "Twenty-eight cropped captures spin on a ring, then fly into a constellation web as you scroll; drag to spin, hover to follow a thread, filter by panel and open any frame.",
+  "props": {
+    "frames": { "type": "json", "required": true },
+    "sources": { "type": "json", "required": true },
+    "series": { "type": "json", "default": ["Composition", "Timeline", "Graph Editor", "Effects", "Flowchart", "Project", "Text", "Preview"] },
+    "labels": { "type": "json", "default": { "frame": "Frame", "panelOrbit": "Panel orbit", "frames": "frames", "loading": "Loading", "allFrames": "All frames", "viewer": "Frame viewer", "close": "Close", "previous": "Previous", "next": "Next", "series": "Series", "capture": "Capture", "source": "Source", "by": "by", "showing": "showing", "failed": "The full capture did not load. The card preview stays." } },
+    "brandForm": { "type": "string", "default": "Form" },
+    "brandSuffix": { "type": "string", "default": "VFX" },
+    "filterVariable": { "type": "string", "default": "orbitFilter" },
+    "shuffleVariable": { "type": "string", "default": "orbitShuffle" }
+  },
+  "labels": {
+    "frames": "Frames",
+    "sources": "Source captures",
+    "series": "Panel names",
+    "labels": "Text labels",
+    "brandForm": "Brand, first part",
+    "brandSuffix": "Brand, second part",
+    "filterVariable": "Filter variable",
+    "shuffleVariable": "Shuffle variable"
+  },
+  "propDocs": {
+    "frames": "Array of {title, series, source, x, y, w} in ring order. series is an index into the panel names, source is a key of the source captures, x and y are the crop origin and w the crop width as fractions of the capture.",
+    "sources": "Object keyed by source id: {dark: [small url, large url], light: [small url, large url], w, h, name, alt}.",
+    "series": "Panel names in order; chips and the lightbox use them.",
+    "labels": "Text shown by the component: readout, loader, lightbox and screen reader labels.",
+    "filterVariable": "Name of the text variable the filter chips set: all, or a panel index such as 3.",
+    "shuffleVariable": "Name of the number variable whose change reshuffles the web."
+  },
+  "poster": "poster.webp",
+  "sections": ["formvfx-orbit"],
+  "fallback": "Without 3D transforms the stage becomes a plain grid of the same frames that opens the same viewer. With reduced motion the ring and the web cross-fade at the chapter break and the loop idles.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formvfx-orbit (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

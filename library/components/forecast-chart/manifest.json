@@ -1,0 +1,91 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "forecast-chart",
+  "code": "C16",
+  "name": "Forecast chart prompt",
+  "description": "A prompt panel that turns a typed question or a dropped CSV into an animated forecast chart with a confidence band, count-up figures and a keyboard read-out.",
+  "props": {
+    "productForm": { "type": "string", "default": "Form" },
+    "productSuffix": { "type": "string", "default": "Cel" },
+    "prompts": { "type": "json", "default": [
+      "Predict weekly signups for 14 weeks",
+      "Forecast column D revenue next quarter",
+      "Project monthly invoice totals",
+      "Estimate next month's export volume"
+    ] },
+    "horizons": { "type": "json", "default": [
+      { "n": 7, "label": "Short", "note": "7 steps, fast" },
+      { "n": 14, "label": "Medium", "note": "14 steps, default" },
+      { "n": 22, "label": "Long", "note": "22 steps, wide band" }
+    ] },
+    "templates": { "type": "json", "default": [
+      { "id": "budget", "name": "Monthly budget", "feat": "Conditional formatting", "cols": "A Category, B Planned, C Actual · 7 rows", "fm": "=SUM(B2:B8)-SUM(C2:C8)", "prompt": "Compare planned and actual spend and flag any overspend" },
+      { "id": "pipeline", "name": "Sales pipeline", "feat": "Formulas and data bars", "cols": "A Stage, B Deals, C Average value, D Chance, E Weighted · 5 rows", "fm": "E2 =B2*C2*D2, total =SUM(E2:E6)", "prompt": "Weight each pipeline stage by its chance to close" },
+      { "id": "invoices", "name": "Invoice log", "feat": "Sort and filter", "cols": "A Invoice, B Month, C Amount, D Status · 18 rows", "fm": "=SUMIF(D2:D19,\"Overdue\",C2:C19)", "prompt": "Total invoices by month and show what is overdue" },
+      { "id": "habits", "name": "Habit tracker", "feat": "Colour scales", "cols": "A Habit, B to AC days 1 to 28 · 5 rows", "fm": "=COUNTIF(B2:AC2,1)/28", "prompt": "Mark 28 days of five habits and shade the last seven" },
+      { "id": "inventory", "name": "Inventory", "feat": "Conditional formatting and icon sets", "cols": "A Item, B In stock, C Reorder at, D Unit cost · 6 rows", "fm": "=IF(B2<C2,\"Reorder\",\"OK\")", "prompt": "Flag items below their reorder level and value the stock" },
+      { "id": "grades", "name": "Grade book", "feat": "Formulas", "cols": "A Student, B Quiz, C Midterm, D Final, E Grade · 16 rows", "fm": "E2 =B2*0.3+C2*0.3+D2*0.4", "prompt": "Weight quiz, midterm and final into one grade" },
+      { "id": "timeline", "name": "Project timeline", "feat": "Data bars", "cols": "A Task, B Start week, C Weeks, D End week · 6 rows", "fm": "D2 =B2+C2", "prompt": "Lay the project out by week and show how much is done" },
+      { "id": "revenue", "name": "Revenue forecast", "feat": "Charts", "cols": "A Month, B Revenue · 36 rows", "fm": "Line fit plus seasonal average, 90 percent band", "prompt": "Forecast monthly revenue for the next quarter" },
+      { "id": "pivot", "name": "Expense pivot", "feat": "PivotTable", "cols": "A Date, B Category, C Amount · 30 rows", "fm": "Rows: Category · Values: Sum of Amount", "prompt": "Pivot 30 expenses by category with each share" },
+      { "id": "currency", "name": "Currency table", "feat": "Currencies data type", "cols": "A Code, B Rate per USD, C 1,000 USD, D 7-day change · 6 rows", "fm": "C2 =B2*1000", "prompt": "Convert 1,000 USD into six currencies with the 7-day move" },
+      { "id": "loan", "name": "Loan schedule", "feat": "Formulas and charts", "cols": "A Month, B Balance, C Interest, D Principal · 48 rows", "fm": "C2 =B2*$F$1/12, B3 =B2-D2", "prompt": "Schedule an 18,000 loan over 48 months at 5.9 percent" },
+      { "id": "workout", "name": "Workout log", "feat": "Charts", "cols": "A Date, B Exercise, C Top set in kg · 24 rows", "fm": "D2 =MAX(C$2:C2)", "prompt": "Log bench press top sets and track the best so far" },
+      { "id": "guests", "name": "Guest list RSVP", "feat": "Sort and filter", "cols": "A Guest, B Group, C RSVP · 100 rows", "fm": "=COUNTIF(C2:C101,\"Yes\")", "prompt": "Count RSVPs by group and show who has not replied" }
+    ] },
+    "labels": { "type": "json", "default": {
+      "question": "Your question",
+      "upload": "Upload table",
+      "sample": "Try sample data",
+      "go": "Forecast",
+      "busy": "Fitting",
+      "removeFile": "Remove file",
+      "chooseFile": "Choose a table file",
+      "free": "Ask anything",
+      "startingPoint": "Starting point",
+      "freeNote": "Ask in your own words · Charts",
+      "freeCols": "Reads one numeric column from a .csv, .tsv or .txt table",
+      "errType": "Only csv, tsv or txt tables work.",
+      "errRead": "That file could not be read.",
+      "errNone": "No numeric column with four values.",
+      "drop": "Drop a table here",
+      "horizon": "Forecast horizon",
+      "now": "Now",
+      "plotLabel": "Forecast chart. Arrow keys move the read-out.",
+      "resultLabel": "Result. Arrow keys move the read-out.",
+      "seriesFallback": "Series from your prompt",
+      "confidence": "Confidence",
+      "band": "90 percent band",
+      "meanVsLast": "mean vs last row",
+      "steps": "steps",
+      "ready": "ready",
+      "forecast": "Forecast",
+      "fmForecast": "Line fit plus seasonal average, 90 percent band",
+      "featCharts": "Charts",
+      "sampleName": "weekly-signups.csv",
+      "samplePrompt": "Predict weekly signups for the next {n} weeks",
+      "filePrompt": "Predict {col} for the next {n} steps"
+    } }
+  },
+  "labels": {
+    "productForm": "Product name, first part",
+    "productSuffix": "Product name, tinted part",
+    "prompts": "Typed suggestions",
+    "horizons": "Horizon options",
+    "templates": "Starting points",
+    "labels": "Interface text"
+  },
+  "propDocs": {
+    "productForm": "First part of the two-tone product name shown in the horizon picker.",
+    "productSuffix": "Second part of the product name, drawn in the section tint.",
+    "prompts": "Array of strings typed into the empty prompt one after another.",
+    "horizons": "Array of {n, label, note}; n is the number of forecast steps. The second entry is the default.",
+    "templates": "Array of {id, name, feat, cols, fm, prompt} in chip order. The id selects the built-in sample sheet (budget, pipeline, invoices, habits, inventory, grades, timeline, revenue, pivot, currency, loan, workout, guests).",
+    "labels": "Object with every interface string; keys left out keep their English default."
+  },
+  "poster": "poster.webp",
+  "sections": ["formcel-foresheet"],
+  "fallback": "The poster shows the idle prompt panel. With reduced motion the prompt shows its first suggestion, no typing loop runs, and results appear at once in their settled state.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formcel-foresheet (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

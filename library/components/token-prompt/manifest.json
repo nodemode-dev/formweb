@@ -1,0 +1,78 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "token-prompt",
+  "code": "C19",
+  "name": "Token prompt",
+  "description": "A prompt field that highlights slash commands and at mentions as you type and offers an autocomplete menu for both.",
+  "props": {
+    "taskNode": { "type": "string", "default": "" },
+    "countNode": { "type": "string", "default": "" },
+    "filesNode": { "type": "string", "default": "" },
+    "runNode": { "type": "string", "default": "" },
+    "logNode": { "type": "string", "default": "" },
+    "doneNode": { "type": "string", "default": "" },
+    "scopeNode": { "type": "string", "default": "" },
+    "startedVariable": { "type": "string", "default": "started" },
+    "finishedVariable": { "type": "string", "default": "finished" },
+    "transportVariable": { "type": "string", "default": "http" },
+    "transportNodes": { "type": "json", "default": [] },
+    "commands": { "type": "json", "default": [
+      { "name": "/family_apps", "desc": "List every Form app" },
+      { "name": "/suggest_app", "desc": "Rank apps for a task" },
+      { "name": "/app_tools", "desc": "Start an app, list its tools" },
+      { "name": "/call_app", "desc": "Run one app tool" },
+      { "name": "/app_resources", "desc": "List an app's documents" }
+    ] },
+    "apps": { "type": "json", "default": [
+      { "name": "@formcut", "path": "formcut", "desc": "Video editor" },
+      { "name": "@formvis", "path": "formvis", "desc": "Layered image editor" },
+      { "name": "@formwav", "path": "formwav", "desc": "Audio editor and music studio" },
+      { "name": "@formdeck", "path": "formdeck", "desc": "Presentation and pitch deck app" },
+      { "name": "@formmd", "path": "formmd", "desc": "Workspace for people and agents" }
+    ] },
+    "examples": { "type": "json", "default": [
+      "Run /app_tools on @formcut and list what it can do",
+      "Ask /suggest_app which app fits a job for @formmd pages",
+      "Use /call_app to run one tool from @formwav"
+    ] },
+    "label": { "type": "string", "default": "Task for the agent" },
+    "popoverLabel": { "type": "string", "default": "Suggestions" },
+    "commandsHeading": { "type": "string", "default": "Commands" },
+    "appsHeading": { "type": "string", "default": "Apps in the family" },
+    "hintBefore": { "type": "string", "default": "Try" },
+    "hintCommand": { "type": "string", "default": "/call_app" },
+    "hintMiddle": { "type": "string", "default": "with" },
+    "hintApp": { "type": "string", "default": "@formcut" },
+    "hintKey": { "type": "string", "default": "Tab" }
+  },
+  "labels": {
+    "taskNode": "Task input node id", "countNode": "App count input node id", "filesNode": "App list input node id",
+    "runNode": "Run button node id", "logNode": "Run log node id", "doneNode": "Run done bar node id", "scopeNode": "Glow scope node id",
+    "startedVariable": "Started variable", "finishedVariable": "Finished variable",
+    "transportVariable": "Transport variable", "transportNodes": "Transport button node ids",
+    "commands": "Slash commands", "apps": "At mention apps", "examples": "Example tasks",
+    "label": "Field label", "popoverLabel": "Menu label", "commandsHeading": "Commands heading", "appsHeading": "Apps heading",
+    "hintBefore": "Hint start", "hintCommand": "Hint command", "hintMiddle": "Hint middle", "hintApp": "Hint app", "hintKey": "Hint key"
+  },
+  "propDocs": {
+    "taskNode": "Id of a hidden input node. On submit the component writes the task text there (the example when the field is empty) so the run script can echo it with an input token.",
+    "countNode": "Id of a hidden input node that receives how many apps the task reads (1 to 3).",
+    "filesNode": "Id of a hidden input node that receives the app names the task reads, joined by commas.",
+    "runNode": "Id of the submit button. It is disabled while a run is on screen.",
+    "logNode": "Id of the run log. It is made inert until a run has started.",
+    "doneNode": "Id of the done bar. It is made inert until the run has finished.",
+    "scopeNode": "Id of the section root. The pointer position is written there as --kx and --ky for the dot grid and glow.",
+    "startedVariable": "Name of the boolean variable the run script sets true at submit and the New task action sets false.",
+    "finishedVariable": "Name of the boolean variable the run script sets true when the last step is done.",
+    "transportVariable": "Name of the number variable (0 or 1) the transport buttons set.",
+    "transportNodes": "Ids of the transport buttons in variable order; the component keeps their aria-checked in step with the variable.",
+    "commands": "Array of {name, desc}. Names start with a slash.",
+    "apps": "Array of {name, path, desc}. Names start with an at sign; path is the word matched while typing.",
+    "examples": "Array of task strings. Tab on an empty field fills the next one; New task moves on to the following one."
+  },
+  "poster": "poster.webp",
+  "sections": ["formmcp-prompt"],
+  "fallback": "Without scripts the poster shows the empty field. With reduced motion the field works the same; only the menu pop animation is dropped.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formmcp-prompt (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

@@ -1,0 +1,58 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "develop-frame",
+  "code": "C18",
+  "name": "Develop frame",
+  "description": "A prompt box that dims the page while a picture develops from its darkest areas, then keeps each result in a strip of recent frames you can bring back.",
+  "props": {
+    "prompts": { "type": "json", "default": ["A title writes itself on over a dark stage", "Onion skins ghosting a hand drawn bouncing ball", "Export the finished movie as a looping GIF", "The same movie again in a bright light theme"] },
+    "pictures": {
+      "type": "json",
+      "default": [
+        { "url": "https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w1024.webp", "alt": "The FormMorpheus Stage showing a spinning gem and the word FORMAI, with the Timeline of tracks below", "re": "stage|timeline|movie|track|frame" },
+        { "url": "https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w1024.webp", "alt": "A FormMorpheus flipbook with a drawn gem, its onion skin ghosts and the frame strip below", "re": "onion|skin|ghost|draw|flipbook|bounc" },
+        { "url": "https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w1024.webp", "alt": "FormMorpheus in Keyframe mode with motion paths on the Stage and ease lanes under the tracks", "re": "write|title|text|keyframe|path|ease|perform" },
+        { "url": "https://media.formai.studio/media/formmorpheus/ui-export-2/e5b2f1c564e7.w1024.webp", "alt": "The FormMorpheus Export dialog offering Video, Animated GIF, Frames as images, Current frame and Sprite sheet", "re": "export|gif|mp4|loop|render|save|webm" },
+        { "url": "https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w1024.webp", "alt": "The FormMorpheus window in its light theme with the Stage above the Timeline", "re": "light|bright|day|theme" }
+      ]
+    },
+    "matchOrder": { "type": "json", "default": [2, 1, 3, 4, 0] },
+    "ratios": { "type": "json", "default": [["4:5", 0.8], ["1:1", 1], ["3:2", 1.5]] },
+    "styles": { "type": "json", "default": ["Soft", "Crisp", "Glow"] },
+    "duration": { "type": "number", "default": 4200 },
+    "animateLabel": { "type": "string", "default": "Animate" },
+    "animatingLabel": { "type": "string", "default": "Animating" },
+    "waitingLabel": { "type": "string", "default": "Waiting for a prompt" },
+    "progressLabel": { "type": "string", "default": "In progress" },
+    "doneLabel": { "type": "string", "default": "Done" },
+    "showResultLabel": { "type": "string", "default": "Show result:" },
+    "emptyLabel": { "type": "string", "default": "Finished results collect here" }
+  },
+  "labels": {
+    "prompts": "Prompts",
+    "pictures": "Pictures",
+    "matchOrder": "Keyword match order",
+    "ratios": "Aspect ratios",
+    "styles": "Style names",
+    "duration": "Develop time in milliseconds",
+    "animateLabel": "Button text",
+    "animatingLabel": "Button text while busy",
+    "waitingLabel": "Status, waiting",
+    "progressLabel": "Status, in progress",
+    "doneLabel": "Status, done",
+    "showResultLabel": "Strip button label",
+    "emptyLabel": "Empty strip text"
+  },
+  "propDocs": {
+    "prompts": "Placeholder rotation, the idea buttons and the prompt used when the box is empty, in order.",
+    "pictures": "Array of {url, alt, re}. re is a keyword pattern; a prompt that matches picks that picture, otherwise the pictures rotate.",
+    "matchOrder": "Indexes into pictures, tried in this order when matching keywords.",
+    "ratios": "Array of [label, width over height]; the order matches the ratio buttons on the section.",
+    "styles": "Names of the three style buttons, in order: Soft, Crisp and Glow filters."
+  },
+  "poster": "poster.webp",
+  "sections": ["formmorpheus-prompt"],
+  "fallback": "Without mix-blend-mode or filter support the frame plays a plain brighten-in instead of the threshold chain. Under reduced motion a frame appears at once and the page still dims for an instant.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formmorpheus-prompt (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}
