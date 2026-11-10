@@ -64,6 +64,10 @@ async def _components(site: dict, ids: list[str], update: bool, warnings: list[s
         poster = library.LIBRARY / 'components' / cid / (manifest.get('poster') or 'poster.webp')
         if poster.is_file():
             record = {**record, 'poster': _upload(poster, 'image/webp' if poster.suffix == '.webp' else 'image/png')}
+        if manifest.get('posterLight'):
+            light = library.LIBRARY / 'components' / cid / manifest['posterLight']
+            if light.is_file():
+                record = {**record, 'posterLight': _upload(light, 'image/webp' if light.suffix == '.webp' else 'image/png')}
         records[cid] = record
     return library.component_group(site, records)
 
@@ -140,6 +144,16 @@ async def library_poster(component_id: str):
     path = library.LIBRARY / 'components' / component_id / (manifest.get('poster') or 'poster.webp')
     if not path.is_file():
         raise EngineError('Poster not found.', 404)
+    return FileResponse(path, media_type='image/webp' if path.suffix == '.webp' else 'image/png', headers={'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff'})
+
+
+@router.get('/api/library/components/{component_id}/poster-light.webp')
+async def library_poster_light(component_id: str):
+    studio.access.authorize('read')
+    manifest = library.component(component_id)
+    path = library.LIBRARY / 'components' / component_id / (manifest.get('posterLight') or 'poster-light.webp')
+    if not path.is_file():
+        raise EngineError('Light poster not found.', 404)
     return FileResponse(path, media_type='image/webp' if path.suffix == '.webp' else 'image/png', headers={'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff'})
 
 

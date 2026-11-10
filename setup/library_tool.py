@@ -82,6 +82,10 @@ def problems_in(library, lib: Path) -> list[str]:
         poster = folder / (data.get('poster') or 'poster.webp')
         if not poster.is_file():
             bad(where, f'poster {poster.name} is missing')
+        if data.get('posterLight'):
+            light = folder / data['posterLight']
+            if not light.is_file():
+                bad(where, f'light poster {light.name} is missing')
         components[folder.name] = data
 
     media = library.media_files()

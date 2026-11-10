@@ -34,7 +34,7 @@ AUTHORING_TOOLS = [
     tool('variables_remove', 'Delete one variables entry. Removing a value or formula that another entry still uses fails and changes nothing.',
          {'kind': {'type': 'string', 'enum': VARIABLE_KINDS}, 'name': NODE, 'expected_revision': REVISION}, ['kind', 'name'], destructive=True, idempotent=True),
     tool('component_build_install', 'Compile a page or isolated code component (JavaScript or TypeScript, with real compiler diagnostics) and merge the built record into the site\'s code components under id, in one undo step. Page mode exports mount(root, props, ctx). Then place it with component_instance_set. Needs Node (./formweb install).',
-         {'id': IDENT, 'language': {'type': 'string', 'enum': ['typescript', 'javascript']}, 'source': {'type': 'string', 'maxLength': 262144}, 'props': {'type': 'object'}, 'mode': {'type': 'string', 'enum': ['isolated', 'page'], 'default': 'page'}, 'poster': {'type': 'string', 'maxLength': 200}}, ['id', 'language', 'source'], idempotent=True),
+         {'id': IDENT, 'language': {'type': 'string', 'enum': ['typescript', 'javascript']}, 'source': {'type': 'string', 'maxLength': 262144}, 'props': {'type': 'object'}, 'mode': {'type': 'string', 'enum': ['isolated', 'page'], 'default': 'page'}, 'poster': {'type': 'string', 'maxLength': 200}, 'posterLight': {'type': 'string', 'maxLength': 200}}, ['id', 'language', 'source'], idempotent=True),
     tool('component_instance_set', 'Place or update a built code component on an element: node gets {component, props}, validated against the component\'s declared props. One undo step.',
          {'node': NODE, 'component': IDENT, 'props': {'type': 'object'}, 'expected_revision': REVISION}, ['node', 'component'], idempotent=True),
     tool('library_list', 'List the first-party section library: sections (id, name, category, tags, fields to re-cast, page components, preset), page components, design-system presets and starter sites. Filter with kind, category and query. Read-only; use before library_insert to pick an id and its fields.',
@@ -135,7 +135,7 @@ async def dispatch(name, arguments):
         return await _command('code.instance.set', {'node': arguments['node'], 'value': {'component': arguments['component'], 'props': arguments.get('props') or {}}}, arguments)
     if name == 'component_build_install':
         studio.access.authorize('edit')
-        built = await build_component({'enabled': True, 'language': arguments['language'], 'source': arguments['source'], 'props': arguments.get('props') or {}, 'mode': arguments.get('mode', 'page'), **({'poster': arguments['poster']} if arguments.get('poster') else {})})
+        built = await build_component({'enabled': True, 'language': arguments['language'], 'source': arguments['source'], 'props': arguments.get('props') or {}, 'mode': arguments.get('mode', 'page'), **({'poster': arguments['poster']} if arguments.get('poster') else {}), **({'posterLight': arguments['posterLight']} if arguments.get('posterLight') else {})})
         record = built['component']
         studio.access.record('code.build', {'language': arguments['language'], 'digest': record.get('sourceDigest')})
         state = await studio.state()
