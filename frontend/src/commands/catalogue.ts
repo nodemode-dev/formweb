@@ -30,6 +30,7 @@ const META: Record<string, Meta> = {
   'file.publish': { description: 'Open the Publish dialog to create a published snapshot served by this backend.', flags: 'mr', when: 'Use only when the person asks to publish.' },
   'edit.undo': { description: 'Undo the last site change, like Ctrl+Z.', flags: 'm', when: 'Use to reverse the last edit.' },
   'edit.redo': { description: 'Redo the change that was undone.', flags: 'm' },
+  'edit.duplicate': { description: 'Duplicate the selected element with everything attached (motion, code, variables) and select the copy; not a page root or an element inside a linked component instance.', flags: 'm', when: 'Use when the person asks to copy or duplicate the selected element.' },
   'edit.delete': { description: 'Delete the selected element (not a page root).', flags: 'mr', when: 'Use when the person asks to remove the selected element.' },
   'edit.settings': { description: 'Open Settings (theme, workspace and editor options).' },
   'image.remove-background': { description: 'Open the background remover for the selected image.', flags: 'm' },

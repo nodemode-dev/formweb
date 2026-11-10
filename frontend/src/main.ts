@@ -1410,6 +1410,7 @@ function update(next: EditorState): void {
     const row = button('', undefined, undefined, 'list-row layer-row');
     row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
     row.addEventListener('click', () => selectNode(row.dataset.key!));
+    row.addEventListener('contextmenu', event => showLayerMenu(event, row.dataset.key!));
     return row;
   }, (row, item) => {
     text(row.children[1] as HTMLElement, item.node.name);
@@ -1893,8 +1894,13 @@ mediaInput.addEventListener('change', () => void run(async () => {
 importer.addEventListener('change', () => void run(async () => {
   const file = importer.files?.[0];
   if (!file) return;
-  const data = JSON.parse(await file.text());
-  await replace('/api/load', data.site ? data : { site: data });
+  const head = new Uint8Array(await file.slice(0, 2).arrayBuffer());
+  if (head[0] === 0x50 && head[1] === 0x4b) {
+    await replace('/api/load', new Blob([file], { type: 'application/zip' }));
+  } else {
+    const data = JSON.parse(await file.text());
+    await replace('/api/load', data.site ? data : { site: data });
+  }
   importer.value = '';
   closeDialog();
   status(`Imported "${file.name}".`);
@@ -1919,6 +1925,45 @@ const featureStudio = new FeatureStudio({
 document.addEventListener('fw:open-studio', event => { const detail = (event as CustomEvent<{ category: string; action: string }>).detail; featureStudio.open(detail.category, detail.action); });
 const ready = (): boolean => !!lastState;
 const notRoot = (): boolean => !!lastState && currentNode().id !== currentPage().root;
+function insideLinkedInstance(id: string): boolean {
+  const nodes = state().site.nodes;
+  for (let at: SiteNode | undefined = nodes[id]; at; at = parentOf(at.id)) if (at.componentId || at.componentSourceId) return true;
+  return false;
+}
+const canDuplicate = (): boolean => notRoot() && !!scrim.hidden && !insideLinkedInstance(currentNode().id);
+async function duplicateSelection(): Promise<void> {
+  const original = currentNode().id;
+  const next = await command('node.duplicate', { id: original });
+  const parent = Object.values(next.site.nodes).find(node => node.children.includes(original));
+  const copy = parent?.children[parent.children.indexOf(original) + 1];
+  if (copy) selectNode(copy);
+  status('Element duplicated.');
+}
+function showLayerMenu(event: MouseEvent, id: string): void {
+  event.preventDefault();
+  selectNode(id);
+  overlay.querySelector('.fw-layer-menu')?.remove();
+  const menu = element('div', 'fw-menu fw-layer-menu');
+  menu.setAttribute('role', 'menu');
+  const row = element('button', 'fw-menu-item');
+  row.type = 'button';
+  row.setAttribute('role', 'menuitem');
+  const allowed = canDuplicate();
+  row.disabled = !allowed;
+  row.title = allowed ? t('Duplicate') : t('A page root or an element inside a linked component instance cannot be duplicated');
+  row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', t('Duplicate')), element('span', 'fw-menu-keys', commandRegistry.keyLabel(commandRegistry.get('edit.duplicate')!)));
+  const close = (): void => { menu.remove(); document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape, true); };
+  const outside = (down: Event): void => { if (!menu.contains(down.target as Node)) close(); };
+  const escape = (key: KeyboardEvent): void => { if (key.key === 'Escape') close(); };
+  row.addEventListener('click', () => { close(); void run(duplicateSelection); });
+  menu.append(row);
+  menu.style.left = `${Math.min(event.clientX, window.innerWidth - 260)}px`;
+  menu.style.top = `${Math.min(event.clientY, window.innerHeight - 60)}px`;
+  overlay.append(menu);
+  document.addEventListener('pointerdown', outside, true);
+  document.addEventListener('keydown', escape, true);
+  if (allowed) row.focus({ preventScroll: true });
+}
 const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); };
 const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link'], ['embed', 'Embed media']];
 setRunner(run);
@@ -1933,6 +1978,11 @@ registerCommands([
   { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
   { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
   { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z'], repeat: true, run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
+  { id: 'edit.duplicate', label: 'Duplicate element', menu: 'Edit', keys: ['Mod+D'], group: 1, run: () => {
+    const again = commandRegistry.get('vector.transform-again');
+    if (again && commandRegistry.enabled(again)) { runCommand('vector.transform-again'); return; }
+    return duplicateSelection();
+  }, enabled: () => canDuplicate() || (() => { const again = commandRegistry.get('vector.transform-again'); return !!again && commandRegistry.enabled(again); })() },
   { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete'], group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: () => notRoot() && !!scrim.hidden },
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
   { id: 'image.edit-in-formvis', label: 'Edit in formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await request<{ message: string }>('/api/formvis/send', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\/[0-9a-f]{64}\.(png|jpg|gif|webp)/.test(currentNode().attrs.src || '') },
