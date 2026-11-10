@@ -1,4 +1,4 @@
-import { apiBase, command, commands, connect, download, mutateVia, readReference, reconnect, replace, request, requestBlob, state, subscribe, upload } from './api';
+import { accept, apiBase, command, commands, connect, download, libraryMutate, mutateVia, readReference, reconnect, replace, request, requestBlob, state, subscribe, upload } from './api';
 import type { AuditIssue, Collection, EditorState, Page, SiteNode } from './types';
 import { Canvas } from './ui/canvas';
 import { element, keyed, options, revealApp, text, value } from './ui/dom';
@@ -1939,30 +1939,101 @@ async function duplicateSelection(): Promise<void> {
   if (copy) selectNode(copy);
   status('Element duplicated.');
 }
+const FRAGMENT_FORMAT = 'com.nodemode.formweb.fragment';
+function parseFragment(raw: string): Record<string, unknown> | null {
+  if (raw.length < 20 || raw.length > 9_000_000 || raw.trimStart()[0] !== '{') return null;
+  try {
+    const value = JSON.parse(raw) as Record<string, unknown>;
+    return value && value.format === FRAGMENT_FORMAT && value.version === 1 ? value : null;
+  } catch { return null; }
+}
+// The browser keeps Mod+C and Mod+X while text is selected outside the canvas (panels, code views, the status line).
+function panelTextSelected(): boolean {
+  const selection = window.getSelection();
+  return !!selection && !selection.isCollapsed && selection.toString().trim() !== '' && !stage.contains(selection.anchorNode);
+}
+async function copyFragment(): Promise<void> {
+  const fragment = await request<Record<string, unknown>>('/api/fragment', { node: currentNode().id });
+  if (!navigator.clipboard?.writeText) throw new Error('This browser does not allow writing to the clipboard here.');
+  await navigator.clipboard.writeText(JSON.stringify(fragment));
+}
+async function copySelection(): Promise<void> {
+  if (!canDuplicate()) return;
+  await copyFragment();
+  status('Element copied.');
+}
+async function cutSelection(): Promise<void> {
+  if (!canDuplicate()) return;
+  const id = currentNode().id;
+  await copyFragment();
+  await command('node.remove', { id });
+  status('Element cut. Paste puts it back; Undo restores it in place.');
+}
+async function pasteFragmentText(raw: string): Promise<boolean> {
+  const fragment = parseFragment(raw);
+  if (!fragment) return false;
+  const before = new Set(Object.keys(state().site.nodes));
+  const selected = currentNode();
+  const owner = selected.id === currentPage().root ? undefined : parentOf(selected.id);
+  const parentId = owner ? owner.id : currentPage().root;
+  const body: Record<string, unknown> = { fragment, parent: parentId };
+  if (owner) body.index = owner.children.indexOf(selected.id) + 1;
+  const result = await libraryMutate<{ state?: EditorState; root?: string }>('/api/paste', body);
+  const next = 'site' in result ? (result as unknown as EditorState) : result.state ? accept(result.state) : state();
+  const made = result.root && next.site.nodes[result.root] ? result.root : next.site.nodes[parentId]?.children.find(child => !before.has(child));
+  if (made) selectNode(made);
+  status('Element pasted.');
+  return true;
+}
+async function pasteFromClipboard(): Promise<void> {
+  if (!scrim.hidden || !ready()) return;
+  if (!navigator.clipboard?.readText) throw new Error('This browser does not allow reading the clipboard here. Click in the page and press Ctrl+V instead.');
+  let raw = '';
+  try { raw = await navigator.clipboard.readText(); } catch { throw new Error('Allow clipboard access to paste an element, or press Ctrl+V in the page.'); }
+  if (!(await pasteFragmentText(raw))) status('The clipboard does not hold a copied element.', true);
+}
+document.addEventListener('paste', event => {
+  if (!scrim.hidden || !ready() || event.defaultPrevented) return;
+  if ((event.target as Element | null)?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"], .xterm, .fw-term, [data-no-keys]')) return;
+  const raw = event.clipboardData?.getData('text/plain') || '';
+  if (!parseFragment(raw)) return;
+  event.preventDefault();
+  void run(() => pasteFragmentText(raw));
+});
 function showLayerMenu(event: MouseEvent, id: string): void {
   event.preventDefault();
   selectNode(id);
   overlay.querySelector('.fw-layer-menu')?.remove();
   const menu = element('div', 'fw-menu fw-layer-menu');
   menu.setAttribute('role', 'menu');
-  const row = element('button', 'fw-menu-item');
-  row.type = 'button';
-  row.setAttribute('role', 'menuitem');
   const allowed = canDuplicate();
-  row.disabled = !allowed;
-  row.title = allowed ? t('Duplicate') : t('A page root or an element inside a linked component instance cannot be duplicated');
-  row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', t('Duplicate')), element('span', 'fw-menu-keys', commandRegistry.keyLabel(commandRegistry.get('edit.duplicate')!)));
   const close = (): void => { menu.remove(); document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape, true); };
   const outside = (down: Event): void => { if (!menu.contains(down.target as Node)) close(); };
   const escape = (key: KeyboardEvent): void => { if (key.key === 'Escape') close(); };
-  row.addEventListener('click', () => { close(); void run(duplicateSelection); });
-  menu.append(row);
+  const rows: [string, string, string, boolean, () => Promise<void>][] = [
+    ['edit.copy', t('Copy element'), t('A page root or an element inside a linked component instance cannot be copied'), allowed, copySelection],
+    ['edit.cut', t('Cut element'), t('A page root or an element inside a linked component instance cannot be cut'), allowed, cutSelection],
+    ['edit.paste', t('Paste element'), t('Paste is not available while a dialog is open'), !!scrim.hidden, pasteFromClipboard],
+    ['edit.duplicate', t('Duplicate'), t('A page root or an element inside a linked component instance cannot be duplicated'), allowed, duplicateSelection]
+  ];
+  let first: HTMLButtonElement | undefined;
+  for (const [commandId, label, blocked, enabledNow, action] of rows) {
+    const row = element('button', 'fw-menu-item');
+    row.type = 'button';
+    row.setAttribute('role', 'menuitem');
+    row.disabled = !enabledNow;
+    row.title = enabledNow ? label : blocked;
+    row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', label), element('span', 'fw-menu-keys', commandRegistry.keyLabel(commandRegistry.get(commandId)!)));
+    row.addEventListener('click', () => { close(); void run(action); });
+    menu.append(row);
+    if (enabledNow && !first) first = row;
+  }
   menu.style.left = `${Math.min(event.clientX, window.innerWidth - 260)}px`;
-  menu.style.top = `${Math.min(event.clientY, window.innerHeight - 60)}px`;
+  menu.style.top = `${Math.min(event.clientY, window.innerHeight - 150)}px`;
   overlay.append(menu);
   document.addEventListener('pointerdown', outside, true);
   document.addEventListener('keydown', escape, true);
-  if (allowed) row.focus({ preventScroll: true });
+  first?.focus({ preventScroll: true });
 }
 const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); };
 const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link'], ['embed', 'Embed media']];
@@ -1978,10 +2049,15 @@ registerCommands([
   { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
   { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
   { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z'], repeat: true, run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
-  { id: 'edit.duplicate', label: 'Duplicate element', menu: 'Edit', keys: ['Mod+D'], group: 1, run: () => {
+  { id: 'edit.copy', label: 'Copy element', menu: 'Edit', keys: ['Mod+C'], group: 1, run: copySelection, enabled: canDuplicate, native: panelTextSelected },
+  { id: 'edit.cut', label: 'Cut element', menu: 'Edit', keys: ['Mod+X'], group: 1, run: cutSelection, enabled: canDuplicate, native: panelTextSelected },
+  { id: 'edit.paste', label: 'Paste element', menu: 'Edit', keys: ['Mod+V'], group: 1, run: pasteFromClipboard, enabled: () => ready() && !!scrim.hidden, native: () => true },
+  { id: 'edit.duplicate', label: 'Duplicate element', menu: 'Edit', keys: ['Mod+D', 'Shift+Mod+D'], group: 1, run: () => {
+    const typed = window.event;
+    const forced = typed instanceof KeyboardEvent && typed.shiftKey;
     const again = commandRegistry.get('vector.transform-again');
-    if (again && commandRegistry.enabled(again)) { runCommand('vector.transform-again'); return; }
-    return duplicateSelection();
+    if (!forced && again && commandRegistry.enabled(again)) { runCommand('vector.transform-again'); return; }
+    return canDuplicate() ? duplicateSelection() : undefined;
   }, enabled: () => canDuplicate() || (() => { const again = commandRegistry.get('vector.transform-again'); return !!again && commandRegistry.enabled(again); })() },
   { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete'], group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: () => notRoot() && !!scrim.hidden },
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
