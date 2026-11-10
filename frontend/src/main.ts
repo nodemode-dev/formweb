@@ -24,6 +24,7 @@ import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
 import { installInspector } from './features/inspector';
+import { installLibrary } from './features/library';
 import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 
@@ -338,7 +339,28 @@ const agentConnect = new AgentConnect({
 });
 const agentsPane = agentConnect.element;
 agentsPane.hidden = true;
-sidebar.append(sidebarTabs, pagesPane, insertPane, agentsPane);
+// Section library (TURN_C_SPEC section 10): inserts land after the selected top-level section, or at the end of the page.
+const libraryPanel = installLibrary({
+  placement: () => {
+    const root = currentPage().root;
+    let anchor = selectedId;
+    while (anchor && anchor !== root && parentOf(anchor)?.id !== root) anchor = parentOf(anchor)?.id || '';
+    const siblings = state().site.nodes[root].children;
+    const at = anchor && anchor !== root && siblings.includes(anchor) ? siblings.indexOf(anchor) + 1 : siblings.length;
+    return { page: currentPage().id, parent: root, index: at < siblings.length ? at : undefined };
+  },
+  select: id => { selectedId = id; update(state()); },
+  openPage: id => {
+    const page = state().site.pages.find(entry => entry.id === id);
+    if (!page) return;
+    pageId = page.id;
+    selectedId = page.root;
+    update(state());
+  },
+  notify: (message, error) => status(message, error),
+  url: path => apiBase + path
+});
+sidebar.append(sidebarTabs, pagesPane, insertPane, agentsPane, libraryPanel.element);
 
 const stagePanel = element('section', 'stage-panel');
 const stageHead = element('div', 'stage-head');
@@ -388,6 +410,7 @@ inspector.append(inspectorIdentity, inspectorTabs, inspectorScroll, dockStrip('r
 const rail = new Rail([
   { command: 'window.layers', label: 'Pages and layers', icon: 'layers', active: () => activeSidebar === 'pages' && layout.state.left === 'open' },
   { command: 'window.insert', label: 'Insert', icon: 'plus', active: () => activeSidebar === 'insert' && layout.state.left === 'open' },
+  { command: 'window.library', label: 'Library', icon: 'grid', active: () => activeSidebar === 'library' && layout.state.left === 'open' },
   { command: 'window.tokens', label: 'Design system', icon: 'palette' },
   { command: 'window.brand', label: 'Brand kit', icon: 'image' },
   { command: 'window.team', label: 'Team libraries', icon: 'folder' },
@@ -408,6 +431,7 @@ const toggleLeft = (pane: string): void => {
   if (layout.state.left === 'open' && activeSidebar === pane) layout.set({ left: 'collapsed' });
   else { openDock('left'); setSidebar(pane); }
   agentConnect.setVisible(activeSidebar === 'agents' && layout.state.left === 'open');
+  libraryPanel.setVisible(activeSidebar === 'library' && layout.state.left === 'open');
   rail.refresh();
 };
 
@@ -1287,8 +1311,9 @@ function setSidebar(id: string): void {
   pagesPane.hidden = id !== 'pages';
   insertPane.hidden = id !== 'insert';
   agentsPane.hidden = id !== 'agents';
-  text(sidebarTitle, id === 'insert' ? 'Insert' : id === 'agents' ? 'Agent Connect' : 'Pages and layers');
+  text(sidebarTitle, id === 'insert' ? 'Insert' : id === 'agents' ? 'Agent Connect' : id === 'library' ? 'Library' : 'Pages and layers');
   agentConnect.setVisible(id === 'agents' && layout.state.left === 'open');
+  libraryPanel.setVisible(id === 'library' && layout.state.left === 'open');
   rail.refresh();
 }
 function setInspector(id: string): void {
@@ -1935,6 +1960,7 @@ registerCommands([
   { id: 'view.menus-in-window', label: 'Menus in Window', menu: 'View', group: 2, enabled: desktopMac, checked: menusInWindow, run: () => { const on = !menusInWindow(); setMenusInWindow(on); status(on ? 'The menus stay in the window from the next start.' : 'The menus go to the menu bar from the next start.'); } },
   { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => toggleLeft('pages'), checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
   { id: 'window.insert', label: 'Insert', menu: 'Window', run: () => toggleLeft('insert'), checked: () => activeSidebar === 'insert' && layout.state.left === 'open' },
+  { id: 'window.library', label: 'Library', menu: 'Window', run: () => toggleLeft('library'), checked: () => activeSidebar === 'library' && layout.state.left === 'open' },
   { id: 'window.design', label: 'Design inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('design'); }, checked: () => activeInspector === 'design' && layout.state.right === 'open' },
   { id: 'window.motion', label: 'Motion inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('motion'); }, checked: () => activeInspector === 'motion' && layout.state.right === 'open' },
   { id: 'window.content', label: 'Content inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('content'); }, checked: () => activeInspector === 'content' && layout.state.right === 'open' },

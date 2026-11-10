@@ -1,0 +1,122 @@
+import { libraryMutate, request } from '../../api';
+import { element } from '../../ui/dom';
+import { t } from '../../i18n';
+import { SectionDetail } from './detail';
+import { SectionGrid } from './grid';
+import { HtmlImport } from './importer';
+import { Kits } from './kits';
+import type { LibIndex, LibResult, LibSection, LibraryHooks } from './types';
+import '../../styles/library.css';
+
+export type { LibraryHooks } from './types';
+export type LibraryPanel = { element: HTMLElement; setVisible: (on: boolean) => void };
+
+type Tab = 'sections' | 'kits' | 'import';
+
+/**
+ * Library panel (left sidebar, Library rail mode): sections to browse and insert, design presets, starter sites and
+ * Import HTML. One module, four views that swap by the `hidden` attribute inside one fixed-size pane, so opening a
+ * detail or switching a tab moves nothing around it. The index is fetched when the panel opens and keyed into the
+ * existing cards, so a library that grows shows the new sections without rebuilding what is already there.
+ */
+export function installLibrary(hooks: LibraryHooks): LibraryPanel {
+  const root = element('div', 'fw-lib');
+  root.hidden = true;
+  let index: LibIndex = { categories: [], sections: [], components: [], presets: [], starters: [] };
+  let tab: Tab = 'sections';
+  let opened = '';
+  let loading = false;
+  let loaded = false;
+
+  const grid = new SectionGrid(hooks, section => open(section), () => void load());
+  const detail = new SectionDetail(hooks, () => index.components, () => close(), async (section, values) => {
+    const where = hooks.placement();
+    const result = await libraryMutate<LibResult>(`/api/library/sections/${encodeURIComponent(section.id)}/insert`, {
+      parent: where.parent, index: where.index, page: where.page, values
+    });
+    if (result.root) hooks.select(result.root);
+    const name = t(section.name || section.id);
+    hooks.notify(t('Inserted {0}.', [name]), false);
+    return [t('Inserted {0}.', [name]), result.warnings?.[0]].filter(Boolean).join(' ');
+  });
+  const kits = new Kits(hooks, page => hooks.openPage(page));
+  const importer = new HtmlImport(hooks);
+
+  const tabs = element('div', 'fw-seg fw-lib-tabs');
+  tabs.setAttribute('role', 'tablist');
+  const buttons = new Map<Tab, HTMLButtonElement>();
+  for (const [id, label] of [['sections', t('Sections')], ['kits', t('Kits')], ['import', t('Import HTML')]] as [Tab, string][]) {
+    const button = element('button', 'fw-seg-btn', label);
+    button.type = 'button';
+    if (id === 'kits') button.title = t('Presets and starters');
+    button.setAttribute('role', 'tab');
+    button.addEventListener('click', () => { tab = id; paint(); });
+    buttons.set(id, button);
+    tabs.append(button);
+  }
+
+  const views: [Tab, HTMLElement][] = [['sections', grid.element], ['kits', kits.element], ['import', importer.element]];
+  root.append(tabs, grid.element, detail.element, kits.element, importer.element);
+
+  function paint(): void {
+    buttons.forEach((button, id) => {
+      const on = id === tab;
+      button.classList.toggle('is-on', on);
+      button.setAttribute('aria-selected', String(on));
+    });
+    for (const [id, view] of views) {
+      const show = id === tab && !(id === 'sections' && opened);
+      if (view.hidden === show) view.hidden = !show;
+    }
+    const showDetail = tab === 'sections' && !!opened;
+    if (detail.element.hidden === showDetail) detail.element.hidden = !showDetail;
+  }
+  function open(section: LibSection): void {
+    opened = section.id;
+    detail.show(section);
+    grid.mark(opened);
+    paint();
+  }
+  function close(): void {
+    opened = '';
+    paint();
+    const card = Array.from(root.querySelectorAll<HTMLElement>('.fw-lib-card')).find(node => node.classList.contains('is-open'));
+    card?.focus({ preventScroll: true });
+  }
+  async function load(): Promise<void> {
+    if (loading) return;
+    loading = true;
+    try {
+      const next = await request<LibIndex>('/api/library');
+      index = {
+        categories: Array.isArray(next.categories) ? next.categories : [],
+        sections: Array.isArray(next.sections) ? next.sections : [],
+        components: Array.isArray(next.components) ? next.components : [],
+        presets: Array.isArray(next.presets) ? next.presets : [],
+        starters: Array.isArray(next.starters) ? next.starters : []
+      };
+      loaded = true;
+      grid.setIndex(index);
+      kits.setIndex(index);
+      // An open detail keeps its form (a refresh must never rebuild inputs someone is typing in); it closes only if its section is gone.
+      if (opened && !index.sections.some(section => section.id === opened)) { opened = ''; paint(); }
+    } catch (error) {
+      if (!loaded) grid.setMessage(t('The library could not be loaded.') + ' ' + (error instanceof Error ? error.message : ''), true);
+      else hooks.notify(error instanceof Error ? error.message : String(error), true);
+    } finally {
+      loading = false;
+    }
+  }
+
+  root.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && opened && tab === 'sections' && !(event.target instanceof HTMLTextAreaElement)) { event.stopPropagation(); close(); }
+  });
+  paint();
+  return {
+    element: root,
+    setVisible(on: boolean): void {
+      if (root.hidden === on) root.hidden = !on;
+      if (on) void load();
+    }
+  };
+}
