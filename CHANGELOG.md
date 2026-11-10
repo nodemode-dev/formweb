@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.20.0 · 2026-11-10
+
+The version moves to 0.20.0 rather than 0.19.10, because FormWeb versions keep a one-digit patch number (as 0.18.9 moved to 0.19.0).
+
+- A status with a button, such as Set the base URL, now shows it in an open dialog's footer too; the button closes the dialog before it opens the field. Long footer messages keep to two lines, with the full text on hover and in the status bar.
+- Emptying the Base URL field clears the setting, so the site goes back to the example.com placeholder and its warnings, instead of being refused.
+- The authoring template that sets the address is now called Base URL and SEO settings, the same name as the field and the warnings.
+- `FORMWEB_CLIP_SECONDS` sets how long a large copy's link lives, from 10 seconds to an hour; the default stays 15 minutes.
+- Every new string is in all 26 languages.
+
 ## 0.19.9 · 2026-11-10
 
 - The page inspector's Whole site section has a Base URL field for the site's public address, which canonical links, the sitemap and the root `404.html` use.
