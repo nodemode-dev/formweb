@@ -1987,9 +1987,9 @@ async function pasteFragmentText(raw: string): Promise<boolean> {
 }
 async function pasteFromClipboard(): Promise<void> {
   if (!scrim.hidden || !ready()) return;
-  if (!navigator.clipboard?.readText) throw new Error('This browser does not allow reading the clipboard here. Click in the page and press Ctrl+V instead.');
+  if (!navigator.clipboard?.readText) throw new Error('This browser does not allow reading the clipboard here. Click in the page and paste with the keyboard instead.');
   let raw = '';
-  try { raw = await navigator.clipboard.readText(); } catch { throw new Error('Allow clipboard access to paste an element, or press Ctrl+V in the page.'); }
+  try { raw = await navigator.clipboard.readText(); } catch { throw new Error('Allow clipboard access to paste an element, or paste with the keyboard in the page.'); }
   if (!(await pasteFragmentText(raw))) status('The clipboard does not hold a copied element.', true);
 }
 document.addEventListener('paste', event => {
