@@ -13,7 +13,7 @@ Install Node 22.12 or later, Python 3.12 and Rust stable. From the repository:
 
 On Windows use `formweb.bat install` and `formweb.bat boot`. Open http://localhost:5240. The API runs on http://127.0.0.1:8240. `./formweb doctor` lists missing tools or builds. To serve a built editor with one process, run `./formweb build`, then `./formweb serve`, and open the API address.
 
-The default data folder is `backend/data`. Configure `FORMWEB_DATA_DIR` in `backend/.env` before launch to choose a persistent location. Keep a saved editable project or downloaded native document before replacing the checkout.
+The default data folder is `backend/data`. Configure `FORMWEB_DATA_DIR` in `backend/.env` before launch to choose a persistent location. Keep a saved editable project or downloaded native document before replacing the checkout. Since 0.20.2, at start the backend removes its own temporary files in the data folder that are more than 10 minutes old (leftovers of a killed paste, load or save: `assets/.stage-*.part`, `tmp/project-*.fweb`, `tmp/load-*.fweb` and `projects/.pending-*`) and logs "Removed N stale temporary file(s) from the data folder." when any went. Only regular files with those exact names are removed; symlinks, directories, younger files, publication `.pending` folders and FormPublisher's inbox are left alone.
 
 ## Advanced studio
 
