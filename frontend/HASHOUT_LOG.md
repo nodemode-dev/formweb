@@ -1101,3 +1101,11 @@ The settings dialog keeps the shared modal and takes formvis's Preferences shell
 - logged: v0.18.7 · 2026-11-02
 
 The UI font stack starts with the Apple system faces, so on macOS the bundled Inter is never used and nothing moves. On Linux and Windows Inter is the face in use, and fontsource declares it with `font-display: swap`: the window was revealed in the fallback face and every label changed width when Inter arrived, about 8 s into the throttled window smoke. CI measured 0.031 on main (menubar, title tools, Home hero actions, the inspector section); a Linux container reproduced 0.09 to 0.10 every run while macOS read 0 every run. `revealApp` now loads Inter 400, 500 and 600 and JetBrains Mono 400 (started when `dom.ts` is imported) and adds `app-ready` only once they have settled, capped at 4 s so a failed font never keeps the window hidden. To reproduce, run `frontend/tests/window` inside `mcr.microsoft.com/playwright/python:v1.63.0-noble` with a Linux `formweb-core`; a Mac does not show it.
+
+### Library panel
+
+- refers-to: `src/features/library/*.ts`, `src/styles/library.css`, `src/main.ts` (rail item, sidebar pane, `window.library`), `src/api.ts` :: libraryMutate
+- kind: feature
+- logged: v0.19.2 · 2026-11-10
+
+One fixed pane holds three views (Sections, Kits, Import HTML) swapped with `hidden`, so nothing reflows. Cards are keyed by section id and merged on every open, so a library that grows while the editor runs adds cards without rebuilding the grid; thumbnail boxes are a fixed 16:10 and a failed or missing image keeps the placeholder. The detail replaces the list in place and caches each section's form, so typed values survive Back; only values changed from the defaults are sent. `libraryMutate` queues behind other mutations and adopts the returned state when it carries `site` and `revision`. Section names and descriptions are looked up as English-text keys (the key form `keys.ts` uses), so a template whose wording changes falls back to English until a key is added. Apply preset asks for a second click within five seconds instead of a modal. The rail uses the existing `grid` icon; a dedicated library icon belongs in `icons.ts`.

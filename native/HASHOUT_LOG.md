@@ -1,5 +1,15 @@
 # Native context
 
+## Section library support in the exporter · v0.19.2 (2026-11-10)
+
+The executor spec is `TURN_C_SPEC.md` in the 0.19.2 planning sidecar. Three exporter changes came out of building the 35 library templates; the model and engine are unchanged.
+
+Export (`formweb-export`): `scope.rs` merges each page component's declared `default` values under the instance's own props before writing `components.page`, so a template that sets only some props still hands `mount` every prop that has a default. `route_styles.rs` counts as token references the source and props of every page component instance on the route and the `html`, `css` and `js` of every code section on it, alongside node styles, behaviors, motion and themes; before this, a token read only by a component's injected stylesheet (for example `--pane` or `--on-ink`) was pruned and the light theme fell back to dark literals. Section agents had worked around it with custom properties listing the tokens on their section roots; those lists are now redundant and harmless. `advanced.rs` `motion_runtime` appends `play.js` when a `search` or `play` action sits in `motion.actions` as well as in `behaviors`, so a site whose only search is a motion action (the 404 template, the chrome header) runs it.
+
+Limits found and left as they are (the model refuses them; templates use physical equivalents or do without): logical properties, `background-clip`, `writing-mode`, `scrollbar-width`, `text-underline-offset`, `text-decoration-color`, `overflow-wrap`, `appearance`, `resize`, the `rect` svg tag, the attributes `enterkeyhint`, `inputmode`, `spellcheck` and `focusable`; a scene `offset` takes a literal length, not `var()` or `calc()`; a scene needs at least one track; a json prop is capped at 64 KiB.
+
+Checked: `cargo build --release --locked` and `cargo test --release --locked` (69 tests pass, none added). All 37 templates exported through these changes and passed the four-run `shoot.py` bar (docs/SECTION_PARITY.md); light-theme frames of components that read `--pane` show the light pane.
+
 ## Variables, scripts, search, page components and code sections · v0.19.1 (2026-11-10)
 
 The executor spec is `TURN_B_SPEC.md` in the 0.19.1 planning sidecar; this entry records what the code does where it goes beyond or narrows it.
