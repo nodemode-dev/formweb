@@ -80,6 +80,14 @@
       <h3>Fields before insert</h3>Each section opens with the few fields a designer changes first; everything else is edited on the canvas.
     </td>
   </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>Send to FormPublisher</h3>File > Send to FormPublisher exports the open site and hands it to FormPublisher on the same computer, live when it is running or into its inbox when it is not. Sending again files a new revision of the same site.
+    </td>
+    <td width="50%" valign="top">
+      <h3>Agent tools for motion and the library</h3>14 MCP tools set motion and variables, build and place components, start a blank site, insert and re-cast library sections, and send the result to FormPublisher, each as one undo step.
+    </td>
+  </tr>
 </table>
 
 ## Everything in the box
@@ -105,7 +113,11 @@ One MCP server and one command line reach the same running document as the edito
 ./formweb run node.update id=headline 'patch={"text":"Hello"}'   # edit the open site
 ./formweb agents sync --check                     # check the skill mirrors for drift
 ./formweb mcp                                     # MCP server on stdio for Claude Code, Codex and Cursor
+./formweb library list scroll                     # find library sections (also: insert, preset, starter)
+./formweb library insert formcut-proxy-monitor tint=#ff9a3c   # insert one, re-cast, as one undo step
 ```
+
+Agents can also start a blank site, set native motion and variables, build and place page components, insert, re-cast and import library sections, and send the site to FormPublisher, with 14 authoring tools described in [docs/ADVANCED_SCHEMA.md](docs/ADVANCED_SCHEMA.md).
 
 `.mcp.json`, `.codex/config.toml` and `.cursor/mcp.json` are already wired in this repo. Start with the [agent quick start](docs/AGENT_QUICKSTART.md) and [`AGENTS.md`](AGENTS.md).
 

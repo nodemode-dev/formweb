@@ -34,8 +34,14 @@ Facets and sort options are validated against field paths (reference paths such 
 
 `exec` applies one command. `batch` validates and applies several commands as one undoable transaction. Include `expectedRevision` when acting on state read earlier. A revision conflict requires another state read before retrying. Invalid parentage, broken references, unsupported data or unsafe export values must fail before history is committed.
 
+Since 0.19.3 a batch defers the extension-group checks to one validate at its end and synchronizes text presets, linked components and pruning once at its end, except when it contains a `component.*` command, whose instances must materialize between steps. The document it leaves is byte-identical to the per-command path, failures are still atomic with the same messages, and a whole starter site now fits inside the backend's 30 second engine limit.
+
 Undo and redo change the authoritative document and revision. They must remain usable through the UI and through MCP. Failed operations must not consume an undo step.
 
 `export` returns a manifest of path/content pairs and warnings. Output paths are relative to the site root and must never traverse outside that root. Rust emits the website behavior; Python persists the files or packages them into a ZIP.
 
 `audit` reports observable issues and counts. It is an authoring aid, not a claim of complete browser accessibility or vendor parity. Visual and keyboard checks remain part of [[Verification]].
+
+## Wider vocabulary (0.19.3)
+
+`native/crates/formweb-model/src/css.rs` holds the value checks for the properties added in 0.19.3: logical margins, paddings, insets, sizes and borders, `background-clip` (text included) with `-webkit-text-fill-color`, `writing-mode`, `text-orientation`, the scrollbar properties, text underline and decoration properties, `overflow-wrap`, `hyphens`, `appearance`, `resize`, `text-rendering`, `-webkit-user-select`, `fill`, `stroke` and `stroke-width`. Each runs after the shared safety check and accepts only its keywords, lengths, colours, `var(--ident)` and, where lengths are allowed, `calc()`, `min()`, `max()` and `clamp()`. `lib.rs` adds the attributes `enterkeyhint`, `inputmode`, `spellcheck`, `autocomplete` and svg `focusable`; `vector.rs` adds the svg tags `rect`, `circle`, `ellipse`, `line`, `polyline` and `polygon` with numeric geometry. A scene `offset` may be `var(--token)` or a `calc()` of lengths and tokens; `motion.js` reads the stage's computed `top`. The exact rules are in [ADVANCED_SCHEMA.md](../../docs/ADVANCED_SCHEMA.md).

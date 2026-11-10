@@ -1,6 +1,6 @@
 # FormWeb advanced authority contract
 
-This contract describes the implemented Rust document boundary and consuming commands. The schema version remains 1. `Site.extensions` defaults to an empty object. Unknown namespaces and unknown keys inside known records are rejected. All mutations, including batches, operate on a candidate document; errors preserve the acknowledged document, revision, undo and redo. A batch accepts 1 to 500 commands and commits once.
+This contract describes the implemented Rust document boundary and consuming commands. The schema version remains 1. `Site.extensions` defaults to an empty object. Unknown namespaces and unknown keys inside known records are rejected. All mutations, including batches, operate on a candidate document; errors preserve the acknowledged document, revision, undo and redo. A batch accepts 1 to 500 commands and commits once. Since 0.19.3 a batch checks the extension groups once at its end instead of after each `variables`, `code` and `design` command, and synchronizes text presets, linked components and pruning once at its end, unless it contains a `component.*` command (linked instances must materialize between steps, so such a batch still synchronizes after every command). The resulting document is byte-identical and a failing batch is still atomic with the same message; a batch that sets many variables no longer costs time quadratic in the document. Single commands are unchanged.
 
 The whole serialized site is limited to 8 MiB and its extensions to 4 MiB. The existing semantic tag, attribute, URL and CSS guards also apply to extension content. Node IDs, component IDs, token IDs and other identifiers use the existing bounded ASCII identifier rule. Secrets belong in backend provider configuration.
 
@@ -96,7 +96,7 @@ Collection fields use `{name,type,required?,collection?}`. Supported types are t
 
 `design` also accepts `properties`, `themes` and `fonts` (0.19.0). Properties are `{name:{syntax,inherits,initial}}` for registered custom properties, compiled to `@property`; syntax is `<number>`, `<integer>`, `<length>`, `<percentage>`, `<length-percentage>`, `<color>`, `<angle>`, `<time>` or `*`. Themes are `{default:"dark"|"light",followSystem?,values?:{dark?,light?}}`; every value key must be an existing token, `site.tokens` hold the default mode, and export writes the other mode as `html[data-theme="..."]` overrides plus a blocking head script that picks the saved choice, then the system preference when `followSystem`, then the default. A node with `data-fw-theme-only="dark"` or `"light"` shows only in that theme. Fonts are `{id:{family,src,weight?,style?,display?}}` with an owned `/api/assets/<sha>.woff2` or https source, at most 16, exported as `@font-face` with a preload link; display defaults to optional.
 
-`motion` (0.19.0, ten maps from 0.19.1) holds maps keyed by existing node IDs: `reveals` `{from,duration?,delay?,stagger?,children?,easing?,threshold?,rootMargin?,once?,trigger:"view"|"load"}`; `scenes` `{stage,length(100..2000 svh),offset?,smoothing?,tracks:[{node,keyframes:[{at,styles}],easing?}],distribute?:[{parent,stagger,keyframes}],markers?:[{at,action}],reducedAt?,progressVar?}`; `loops` `{type:"marquee"|"spin"|"float"|"keyframes",...}`; `counters` `{to,from?,duration?,decimals?,trigger?,odometer?}`; `text` `{type:"split"|"typewriter"|"ghost",...}`; `drag` `{axis?,bounds?,inertia?,friction?,restitution?,rotate?,keyboard?,flip?:{back}}`; `pointer` `{type:"tilt"|"follow"|"proximity",...}`; `disclosure` `{type:"accordion"|"tabs"|"filter",items|chips,...}`; and `actions` arrays of `{trigger,action,...}` with actions copy, scroll-to, media, lightbox, toggle-theme, set-variable, search and play; and `scripts` (see Motion scripts below). Triggers are click, hover, submit, change, load, view and input. Keyframes and from-states take motion-safe properties only (opacity, transform, translate, scale, rotate, filter, backdrop-filter, clip-path, colours, box-shadow and custom properties), so motion never moves layout. Easing adds `spring(stiffness,damping)`. Scene keyframes start at 0, end at 1 and ascend; tracks and distribute parents must sit inside the scene. The group holds at most 2,000 entries. Removing a node prunes every entry that keys on it or points at it. Edit a single scene track with `motion.track` instead of replacing the scene. Export appends `motion.js` and `interact.js` to the runtime only for sites that use motion (`interact.js` also when `variables` exists), then `variables.js`, `play.js` and `components.js` only when used; reduced motion shows each scene's `reducedAt` state and runs no animation.
+`motion` (0.19.0, ten maps from 0.19.1) holds maps keyed by existing node IDs: `reveals` `{from,duration?,delay?,stagger?,children?,easing?,threshold?,rootMargin?,once?,trigger:"view"|"load"}`; `scenes` `{stage,length(100..2000 svh),offset? (a length, `var(--token)` or a `calc()` of lengths and tokens since 0.19.3),smoothing?,tracks:[{node,keyframes:[{at,styles}],easing?}],distribute?:[{parent,stagger,keyframes}],markers?:[{at,action}],reducedAt?,progressVar?}`; `loops` `{type:"marquee"|"spin"|"float"|"keyframes",...}`; `counters` `{to,from?,duration?,decimals?,trigger?,odometer?}`; `text` `{type:"split"|"typewriter"|"ghost",...}`; `drag` `{axis?,bounds?,inertia?,friction?,restitution?,rotate?,keyboard?,flip?:{back}}`; `pointer` `{type:"tilt"|"follow"|"proximity",...}`; `disclosure` `{type:"accordion"|"tabs"|"filter",items|chips,...}`; and `actions` arrays of `{trigger,action,...}` with actions copy, scroll-to, media, lightbox, toggle-theme, set-variable, search and play; and `scripts` (see Motion scripts below). Triggers are click, hover, submit, change, load, view and input. Keyframes and from-states take motion-safe properties only (opacity, transform, translate, scale, rotate, filter, backdrop-filter, clip-path, colours, box-shadow and custom properties), so motion never moves layout. Easing adds `spring(stiffness,damping)`. Scene keyframes start at 0, end at 1 and ascend; tracks and distribute parents must sit inside the scene. The group holds at most 2,000 entries. Removing a node prunes every entry that keys on it or points at it. Edit a single scene track with `motion.track` instead of replacing the scene. Export appends `motion.js` and `interact.js` to the runtime only for sites that use motion (`interact.js` also when `variables` exists), then `variables.js`, `play.js` and `components.js` only when used; reduced motion shows each scene's `reducedAt` state and runs no animation.
 
 `forms` accepts `{forms:{formNodeID:{successRedirect?,successMessage?,errorMessage?,tracking?,constraints?}}}`. Tracking maps generated hidden field names to query keys; matching authored controls must be hidden inputs. Constraints map existing enabled descendant field names to `{required?,pattern?,min?,max?,minLength?,maxLength?}`. Bounds are ordered and patterns are bounded with backreferences, lookarounds and common nested repetition forms excluded. Backend intake performs its own supported-field validation.
 
@@ -226,8 +226,75 @@ Routes (reads authorize `read`, writes `edit`; each write is one `/api/batch` wi
 | `POST /api/library/starters/{id}/apply` | `{values?, updateComponents?}` | `{pages, warnings}` plus the batch result |
 | `POST /api/library/import-html` | `{html, css?, name?, parent?, index?, page?}` | `{root, warnings}` plus the batch result |
 
-A section template is `formweb-section` version 1 with the keys `id`, `name`, `category`, `tags`, `product`, `description`, `source`, `preset`, `components`, `fields`, `tree`, `commands`, optional `behaviors` and optional `properties`. A tree node has only `key`, `tag`, `name`, `text`, `attrs`, `styles`, `breakpoints` and `children`; each becomes a `node.add` whose id is `<key>-<suffix>`. Placeholders are `$parent` (the whole string), `@@key@@` (a node id) and `{{field}}` (a field value; the raw value when it is the whole string). Fields have types `text` (400 characters), `longtext` (4,000), `color` (hex), `url`, `asset` and `number`. `commands` run after the tree; `extension.set` and `design.set` are refused in a template. `behaviors` is merged into the `behaviors` group with one `extension.set` at the end of the batch, and `properties` into the registered properties with one `design.set`, each keeping what the site already has. A component manifest is `formweb-component` version 1 whose `props` descriptors carry only `type`, `required` and `default`.
+A section template is `formweb-section` version 1 with the keys `id`, `name`, `category`, `tags`, `product`, `description`, `source`, `preset`, `components`, `fields`, `tree`, `commands`, optional `behaviors` and optional `properties`. A tree node has only `key`, `tag`, `name`, `text`, `attrs`, `styles`, `breakpoints` and `children`; each becomes a `node.add` whose id is `<key>-<suffix>`. Placeholders are `$parent` (the whole string), `@@key@@` (a node id), `{{field}}` (a field value; the raw value when it is the whole string) and, since 0.19.3, `%%name%%`, a variable scoped to the insert that expands to `name_<suffix>` (the node ids' suffix) in variable names, formulas, actions, scripts, component props and `var(--fw-v-...)` styles. Fields have types `text` (400 characters), `longtext` (4,000), `color` (hex), `url`, `asset` and `number`. `commands` run after the tree; `extension.set` and `design.set` are refused in a template. `behaviors` is merged into the `behaviors` group with one `extension.set` at the end of the batch, and `properties` into the registered properties with one `design.set`, each keeping what the site already has. A component manifest is `formweb-component` version 1 whose `props` descriptors carry only `type`, `required` and `default`.
 
 Insert applies the template's preset in mode `missing` (only tokens, light values, fonts, text presets and root styles the site lacks), while the preset route's default mode `all` replaces every value the preset defines. Insert also owns the bundled media the template references as `/api/assets/<sha256>.<ext>` and merges missing built components into the `code` group. Import HTML takes the whole body into one code section, so `html` up to 512 KiB, `css` 256 KiB and `js` 512 KiB apply, and it replaces the formai kit's `reduced`, `onTheme` and `token` helpers with an inline shim.
 
 Export change: the route stylesheet keeps a token only when something on the route references it with `var(--name)`. Page component sources and props, component instances on the route, and code section `html`, `css` and `js` now count as references, so a token that only a component or a code section reads is no longer dropped from the export.
+
+## Wider authoring vocabulary (0.19.3)
+
+Every new style property below passes the shared value check first (no `url()`, no `expression`, no control characters, at most 4,096 bytes) and then its own check, implemented in `native/crates/formweb-model/src/css.rs`. Wide keywords (`inherit`, `initial`, `unset`, `revert`) are accepted wherever a keyword list is. A "length" is `0`, a number with one of `px rem em % vh vw svh lvh dvh vmin vmax ch ex vi vb lh cqw cqh`, `var(--ident)`, or `calc()`, `min()`, `max()` or `clamp()` whose body holds only numbers, units, `+ - * /`, commas, parentheses and `var(--ident)` (at most 512 characters, balanced). A "colour" is a hex value of 3, 4, 6 or 8 digits, a keyword name, `var(--ident)` or `rgb()`, `rgba()`, `hsl()`, `hsla()`.
+
+| Property | Accepts |
+| --- | --- |
+| `margin-block`, `margin-inline`, `inset-block`, `inset-inline` | one or two lengths, `auto` allowed |
+| `margin-block-start`, `-end`, `margin-inline-start`, `-end`, `inset-block-start`, `-end`, `inset-inline-start`, `-end` | one length, `auto` allowed |
+| `padding-block`, `padding-inline` and their `-start` and `-end` | one or two lengths (one for the longhands), no `auto` |
+| `inline-size`, `block-size`, `min-inline-size`, `min-block-size` | a length or `auto`, `min-content`, `max-content`, `fit-content` |
+| `max-inline-size`, `max-block-size` | a length or `none`, `min-content`, `max-content`, `fit-content` |
+| `border-block`, `border-inline` | up to three of a border style, a length and a colour |
+| `background-clip`, `-webkit-background-clip` | up to four comma separated `border-box`, `padding-box`, `content-box`, `text` |
+| `-webkit-text-fill-color`, `text-decoration-color` | a colour (`transparent` included) |
+| `fill`, `stroke` | `none` or a colour (`currentColor` and `var(--token)` included); no `url()` |
+| `stroke-width` | a number or a length |
+| `writing-mode` | `horizontal-tb`, `vertical-rl`, `vertical-lr`, `sideways-rl`, `sideways-lr` |
+| `text-orientation` | `mixed`, `upright`, `sideways` |
+| `scrollbar-width` | `auto`, `thin`, `none` |
+| `scrollbar-color` | `auto` or two colours |
+| `scrollbar-gutter` | `auto`, `stable`, `stable both-edges` |
+| `text-underline-offset` | `auto` or a length |
+| `text-decoration-thickness` | `auto`, `from-font` or a length |
+| `overflow-wrap` | `normal`, `break-word`, `anywhere` |
+| `hyphens` | `none`, `manual`, `auto` |
+| `appearance`, `-webkit-appearance` | `none`, `auto` |
+| `resize` | `none`, `both`, `horizontal`, `vertical`, `block`, `inline` |
+| `text-rendering` | `auto`, `optimizeSpeed`, `optimizeLegibility`, `geometricPrecision` |
+| `-webkit-user-select` | `auto`, `none`, `text`, `all`, `contain` |
+
+`word-break`, `user-select`, `caret-color` and `accent-color` were already allowed and keep their earlier checks.
+
+Attributes: `enterkeyhint` is `enter`, `done`, `go`, `next`, `previous`, `search` or `send`; `inputmode` is `none`, `text`, `tel`, `url`, `email`, `numeric`, `decimal` or `search`; `spellcheck` is `true` or `false`; `autocomplete` is one or more space separated tokens of letters, digits and `-`, at most 100 characters; `focusable` is allowed on `svg` only, with `true`, `false` or `auto`.
+
+SVG tags: `rect`, `circle`, `ellipse`, `line`, `polyline` and `polygon` are allowed inside `svg`, `g`, `pattern`, `symbol`, `mask` and `clipPath`. Geometry attributes are numbers and lengths only: `rect` takes `x`, `y`, `width`, `height`, `rx`, `ry`; `circle` `cx`, `cy`, `r`; `ellipse` `cx`, `cy`, `rx`, `ry`; `line` `x1`, `y1`, `x2`, `y2`; `polyline` and `polygon` `points`, a list of an even count of numbers between -1,000,000 and 1,000,000 separated by spaces or commas, at most 10,000 characters. They take the same presentation attributes as `path`.
+
+Scene offset: `motion.scenes.*.offset` accepts a length, `var(--token)` or a `calc()` of lengths and tokens; anything else, such as a colour, fails with "scene offset must be a length, var(--token) or a calc() of lengths and tokens". The exporter writes it as the stage's sticky `top` and `motion.js` reads the stage's computed `top` instead of parsing the value, so a token that changes at a breakpoint (for example `--bar-h`) moves the pin with it.
+
+Section library: the preset may carry `pageBreakpoints` (a map from breakpoint name to root styles), applied to the page root like `page` and merged with the designer's values; in mode `missing` it never overwrites one.
+
+## Send to FormPublisher (0.19.3)
+
+`POST /api/handoff/formpublisher` (optional query `locale`) exports the open site exactly as `GET /api/export` does and posts the zip to FormPublisher's `POST /api/receive/formweb` on `FORMWEB_FORMPUBLISHER_URL` (default `http://127.0.0.1:8280`), with `Content-Type: application/zip`, `X-FormWeb-Version`, `X-FormWeb-Site-Name` (the site name, URL-encoded) and `X-FormWeb-Project` (the saved project id, URL-encoded), no `Origin` header and an 8 second timeout. A refusal from FormPublisher is returned as status 502 with its message. When nothing answers, the zip is written atomically (a temporary name, then a rename) into `FORMPUBLISHER_HOME/inbox`, or `~/FormPublisher/inbox`, created if missing, together with `<zip name>.json` holding `{siteName, project, version}` so FormPublisher files it as a revision of the same site when it next runs. The route returns `{delivered: "live", site, revision}` or `{delivered: "inbox", path}` and does not change the site. The File menu item and the command `file.send-formpublisher` call it.
+
+## Authoring MCP tools (0.19.3)
+
+The MCP server has 14 authoring tools for the native vocabulary, each over the existing routes or engine commands and one undo step. The motion, variables and component tools accept `expected_revision`.
+
+| Tool | Effect | Hints |
+| --- | --- | --- |
+| `motion_set` | `motion.set` for a kind and element; validated at once | idempotent |
+| `motion_remove` | `motion.remove` | destructive, idempotent |
+| `motion_track` | `motion.track` on a scene's tracks or distribute list; approval only when it removes a track | destructive |
+| `variables_set` | `variables.set` | idempotent |
+| `variables_remove` | `variables.remove` | destructive, idempotent |
+| `component_build_install` | compiles a page or isolated component through the build pipeline (Node needed) and merges the record into `code.components` | idempotent |
+| `component_instance_set` | `code.instance.set` on an element | idempotent |
+| `library_list` | the library index, filtered by kind, category and query | read-only, idempotent |
+| `library_insert` | `POST /api/library/sections/{id}/insert` with `section`, parent, page, index, field values and `update_components` | |
+| `library_apply_preset` | the preset route, mode `all` or `missing` | destructive, idempotent |
+| `library_apply_starter` | the starter route | |
+| `library_import_html` | `POST /api/library/import-html` | |
+| `send_to_formpublisher` | `POST /api/handoff/formpublisher` | does not change the site |
+| `new_site` | replaces the open site with a blank home page (`blank` true, the default) or the sample site, as File > New does | destructive, approval-gated |
+
+The tool set is also reachable with `apply_commands` and the REST routes on servers that predate them.
