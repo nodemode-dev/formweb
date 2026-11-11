@@ -1,5 +1,5 @@
 import { element } from '../../ui/dom';
-import { label, labelAttr, t } from '../../i18n';
+import { label, labelAttr } from '../../i18n';
 import type { MotionContext, MotionEditor, MotionKind } from './context';
 import type { SiteNode } from '../../types';
 
@@ -108,7 +108,8 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
     effectGroup.append(choice);
     return { preset, choice };
   });
-  const effectLabel = element('span', 'field-label', t('Classic effects'));
+  const effectLabel = element('span', 'field-label');
+  label(effectLabel, 'Classic effects');
   block.append(motionGroup, effectLabel, effectGroup);
 
   const mark = (choice: HTMLButtonElement, on: boolean): void => {

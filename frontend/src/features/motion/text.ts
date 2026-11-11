@@ -1,6 +1,7 @@
 import { element, value } from '../../ui/dom';
-import { t } from '../../i18n';
+import { t, labelAttr } from '../../i18n';
 import { checkField, entryShell, numberField, selectField, show } from './fields';
+import { fieldOf, noteOf } from './labels';
 import type { MotionContext, MotionEditor } from './context';
 
 export type TextType = 'split' | 'typewriter' | 'ghost';
@@ -34,39 +35,39 @@ export function installText(ctx: MotionContext, container: HTMLElement): MotionE
     void ctx.set('text', id, { ...entry, ...patch });
   };
 
-  const type = selectField<TextType>(ctx, t('Type'), [{ id: 'split', name: t('Split') }, { id: 'typewriter', name: t('Typewriter') }, { id: 'ghost', name: t('Ghost placeholder') }], next => { if (id) void ctx.set('text', id, textDefault(next)); }, true);
+  const type = selectField<TextType>(ctx, 'Type', [{ id: 'split', name: 'Split' }, { id: 'typewriter', name: 'Typewriter' }, { id: 'ghost', name: 'Ghost placeholder' }], next => { if (id) void ctx.set('text', id, textDefault(next)); }, true);
   shell.body.append(type.root);
   const ghostOption = Array.from(type.control.options).find(option => option.value === 'ghost');
 
-  const trigger = selectField<'view' | 'load'>(ctx, t('Trigger'), [{ id: 'view', name: t('When in view') }, { id: 'load', name: t('On page load') }], next => save({ trigger: next }));
+  const trigger = selectField<'view' | 'load'>(ctx, 'Trigger', [{ id: 'view', name: 'When in view' }, { id: 'load', name: 'On page load' }], next => save({ trigger: next }));
   const splitBox = element('div', 'fw-motion-group');
   const splitGrid = element('div', 'form-grid');
-  const by = selectField<NonNullable<TextEffect['by']>>(ctx, t('Split by'), [{ id: 'chars', name: t('Characters') }, { id: 'words', name: t('Words') }, { id: 'lines', name: t('Lines') }], next => save({ by: next }));
-  const duration = numberField(ctx, t('Duration (ms)'), 0, 10000, 10, next => save({ duration: Math.round(next ?? 0) }));
-  const stagger = numberField(ctx, t('Stagger (ms)'), 0, 10000, 10, next => save({ stagger: Math.round(next ?? 0) }));
+  const by = selectField<NonNullable<TextEffect['by']>>(ctx, 'Split by', [{ id: 'chars', name: 'Characters' }, { id: 'words', name: 'Words' }, { id: 'lines', name: 'Lines' }], next => save({ by: next }));
+  const duration = numberField(ctx, 'Duration (ms)', 0, 10000, 10, next => save({ duration: Math.round(next ?? 0) }));
+  const stagger = numberField(ctx, 'Stagger (ms)', 0, 10000, 10, next => save({ stagger: Math.round(next ?? 0) }));
   splitGrid.append(by.root, duration.root, stagger.root);
-  splitBox.append(element('p', 'micro', t('Start state of each part.')));
+  splitBox.append(noteOf('micro', 'Start state of each part.'));
   const from = ctx.styleRows(splitBox, {}, next => save({ from: next }));
   splitBox.append(splitGrid);
 
   const typeBox = element('div', 'form-grid');
-  const speed = numberField(ctx, t('Speed (characters per second)'), 1, 10000, 1, next => save({ speed: next ?? 24 }));
-  const cursor = checkField(ctx, t('Show cursor'), next => save({ cursor: next }));
+  const speed = numberField(ctx, 'Speed (characters per second)', 1, 10000, 1, next => save({ speed: next ?? 24 }));
+  const cursor = checkField(ctx, 'Show cursor', next => save({ cursor: next }));
   typeBox.append(speed.root, cursor.root);
 
   const ghostBox = element('div', 'form-grid');
   const strings = element('textarea');
   strings.rows = 3;
-  strings.placeholder = t('One string per line');
+  labelAttr(strings, 'placeholder', 'One string per line');
   strings.addEventListener('change', () => {
     const list = strings.value.split('\n').map(line => line.trim()).filter(Boolean).slice(0, 20);
     if (!list.length) { ctx.status(t('Ghost text needs at least one string.'), true); strings.value = (entry?.strings || []).join('\n'); return; }
     save({ strings: list.map(line => line.slice(0, 200)) });
   });
-  const ghostSpeed = numberField(ctx, t('Type speed'), 1, 10000, 1, next => save({ speed: next ?? 60 }));
-  const erase = numberField(ctx, t('Erase speed'), 1, 10000, 1, next => save({ erase: next ?? 18 }));
-  const hold = numberField(ctx, t('Hold (ms)'), 0, 60000, 100, next => save({ hold: Math.round(next ?? 0) }));
-  ghostBox.append(ctx.field(t('Strings'), strings, true), ghostSpeed.root, erase.root, hold.root);
+  const ghostSpeed = numberField(ctx, 'Type speed', 1, 10000, 1, next => save({ speed: next ?? 60 }));
+  const erase = numberField(ctx, 'Erase speed', 1, 10000, 1, next => save({ erase: next ?? 18 }));
+  const hold = numberField(ctx, 'Hold (ms)', 0, 60000, 100, next => save({ hold: Math.round(next ?? 0) }));
+  ghostBox.append(fieldOf(ctx, 'Strings', strings, true), ghostSpeed.root, erase.root, hold.root);
 
   shell.body.append(trigger.root, splitBox, typeBox, ghostBox);
 

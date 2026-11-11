@@ -1,8 +1,9 @@
-import { t } from '../../i18n';
 import type { SiteNode } from '../../types';
 import type { MotionContext, MotionEditor } from './context';
+import { english, fieldOf, selectOf } from './labels';
 import { checkbox, numberInput, pageNodes, readNumber, remover, saver, setChecked, setNumber, setSelect, shell, type Rec } from './pick';
 
+const AXES = english([{ id: 'both', name: 'Both' }, { id: 'x', name: 'Horizontal' }, { id: 'y', name: 'Vertical' }]);
 const DEFAULT: Rec = { axis: 'both', bounds: 'parent', inertia: true, friction: 4, restitution: 0.4, rotate: false, keyboard: 16 };
 
 export function installDrag(ctx: MotionContext, container: HTMLElement): MotionEditor {
@@ -23,22 +24,22 @@ export function installDrag(ctx: MotionContext, container: HTMLElement): MotionE
   };
   const commit = (): void => save(collect());
 
-  const axis = ctx.select([{ id: 'both', name: t('Both') }, { id: 'x', name: t('Horizontal') }, { id: 'y', name: t('Vertical') }]);
+  const axis = selectOf(ctx, AXES);
   const bounds = ctx.select([]);
-  const inertia = checkbox(t('Inertia'));
-  const rotate = checkbox(t('Rotate while dragging'));
+  const inertia = checkbox('Inertia');
+  const rotate = checkbox('Rotate while dragging');
   const frictionInput = numberInput(ctx, 0, 100, 0.1);
   const restitutionInput = numberInput(ctx, 0, 1, 0.05);
   const keyboardInput = numberInput(ctx, 0, 200);
   const flip = ctx.select([]);
   for (const control of [axis, bounds, inertia.box, rotate.box, frictionInput, restitutionInput, keyboardInput, flip]) control.addEventListener('change', commit);
   panel.body.append(
-    ctx.field(t('Axis'), axis),
-    ctx.field(t('Bounds'), bounds),
-    ctx.field(t('Friction'), frictionInput),
-    ctx.field(t('Bounce'), restitutionInput),
-    ctx.field(t('Keyboard step'), keyboardInput),
-    ctx.field(t('Flip back element'), flip),
+    fieldOf(ctx, 'Axis', axis),
+    fieldOf(ctx, 'Bounds', bounds),
+    fieldOf(ctx, 'Friction', frictionInput),
+    fieldOf(ctx, 'Bounce', restitutionInput),
+    fieldOf(ctx, 'Keyboard step', keyboardInput),
+    fieldOf(ctx, 'Flip back element', flip),
     inertia.wrap,
     rotate.wrap
   );
@@ -50,9 +51,9 @@ export function installDrag(ctx: MotionContext, container: HTMLElement): MotionE
       panel.show(!!entry);
       if (!entry) return;
       const nodes = pageNodes(next, current);
-      setSelect(axis, [{ id: 'both', name: t('Both') }, { id: 'x', name: t('Horizontal') }, { id: 'y', name: t('Vertical') }], String(entry.axis || 'both'));
-      setSelect(bounds, [{ id: 'parent', name: t('Parent') }, { id: 'window', name: t('Window') }, { id: 'none', name: t('None') }, ...nodes], String(entry.bounds || 'parent'));
-      setSelect(flip, [{ id: '', name: t('None') }, ...nodes], String((entry.flip as Rec | undefined)?.back || ''));
+      setSelect(axis, AXES, String(entry.axis || 'both'));
+      setSelect(bounds, [...english([{ id: 'parent', name: 'Parent' }, { id: 'window', name: 'Window' }, { id: 'none', name: 'None' }]), ...nodes], String(entry.bounds || 'parent'));
+      setSelect(flip, [...english([{ id: '', name: 'None' }]), ...nodes], String((entry.flip as Rec | undefined)?.back || ''));
       setChecked(inertia.box, entry.inertia === true);
       setChecked(rotate.box, entry.rotate === true);
       setNumber(frictionInput, entry.friction);

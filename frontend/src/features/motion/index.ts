@@ -1,6 +1,6 @@
 import { command } from '../../api';
 import { element } from '../../ui/dom';
-import { t } from '../../i18n';
+import { noteOf } from './labels';
 import { easingPicker, show, styleRowsEditor } from './fields';
 import { readMotion, type MotionContext, type MotionEditor, type MotionInstaller } from './context';
 import { installPresets } from './presets';
@@ -45,7 +45,7 @@ export function installMotion(ctx: InspectorContext): MotionEditor {
 
   const pane = ctx.panes.motion;
   pane.classList.add('fw-motion');
-  const empty = element('p', 'empty-note fw-motion-none', t('Select an element to edit its motion.'));
+  const empty = noteOf('empty-note fw-motion-none', 'Select an element to edit its motion.');
   const stack = element('div', 'fw-motion-stack');
   stack.hidden = true;
   pane.append(empty, stack);

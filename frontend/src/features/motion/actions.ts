@@ -1,33 +1,35 @@
 import { element, keyed, value } from '../../ui/dom';
-import { t } from '../../i18n';
 import type { SiteNode } from '../../types';
 import type { MotionContext, MotionEditor } from './context';
+import { buttonOf, english, fieldOf, inputOf, selectOf } from './labels';
 import { actionLists, checkbox, clone, group, numberInput, pageNodes, pick, readNumber, remover, saver, setChecked, setDisabled, setNumber, setSelect, shell, show, type ActionLists, type Item, type Rec } from './pick';
 
 const MAX_ACTIONS = 20;
 
-const TRIGGERS = (): Item[] => [
-  { id: 'click', name: t('Click') },
-  { id: 'hover', name: t('Hover') },
-  { id: 'submit', name: t('Submit') },
-  { id: 'change', name: t('Change') },
-  { id: 'input', name: t('Input') },
-  { id: 'load', name: t('Load') },
-  { id: 'view', name: t('Enters view') }
-];
+const TRIGGERS: Item[] = english([
+  { id: 'click', name: 'Click' },
+  { id: 'hover', name: 'Hover' },
+  { id: 'submit', name: 'Submit' },
+  { id: 'change', name: 'Change' },
+  { id: 'input', name: 'Input' },
+  { id: 'load', name: 'Load' },
+  { id: 'view', name: 'Enters view' }
+]);
 
-const ACTIONS = (): Item[] => [
-  { id: 'copy', name: t('Copy text') },
-  { id: 'scroll-to', name: t('Scroll to') },
-  { id: 'media', name: t('Control media') },
-  { id: 'lightbox', name: t('Open lightbox') },
-  { id: 'toggle-theme', name: t('Toggle theme') },
-  { id: 'set-variable', name: t('Set variable') },
-  { id: 'search', name: t('Site search') },
-  { id: 'play', name: t('Play script') }
-];
+const ACTIONS: Item[] = english([
+  { id: 'copy', name: 'Copy text' },
+  { id: 'scroll-to', name: 'Scroll to' },
+  { id: 'media', name: 'Control media' },
+  { id: 'lightbox', name: 'Open lightbox' },
+  { id: 'toggle-theme', name: 'Toggle theme' },
+  { id: 'set-variable', name: 'Set variable' },
+  { id: 'search', name: 'Site search' },
+  { id: 'play', name: 'Play script' }
+]);
 
-const COMMANDS = (): Item[] => [{ id: 'play', name: t('Play') }, { id: 'pause', name: t('Pause') }, { id: 'toggle', name: t('Toggle') }, { id: 'restart', name: t('Restart') }];
+const COMMANDS: Item[] = english([{ id: 'play', name: 'Play' }, { id: 'pause', name: 'Pause' }, { id: 'toggle', name: 'Toggle' }, { id: 'restart', name: 'Restart' }]);
+const NONE: Item[] = english([{ id: '', name: 'None' }]);
+const LITERAL: Item[] = english([{ id: '', name: 'Use the literal text' }]);
 
 export interface ActionForm { set(action: Rec, lists: ActionLists): void }
 
@@ -36,47 +38,47 @@ export function buildAction(ctx: MotionContext, host: HTMLElement, withTrigger: 
   let easingValue = '';
   const emit = (): void => onChange(compose());
 
-  const trigger = ctx.select(TRIGGERS());
-  const kind = ctx.select(ACTIONS());
+  const trigger = selectOf(ctx, TRIGGERS);
+  const kind = selectOf(ctx, ACTIONS);
   const head = group();
-  if (withTrigger) head.append(ctx.field(t('Trigger'), trigger));
-  head.append(ctx.field(t('Action'), kind, !withTrigger));
+  if (withTrigger) head.append(fieldOf(ctx, 'Trigger', trigger));
+  head.append(fieldOf(ctx, 'Action', kind, !withTrigger));
   host.append(head);
 
   const copy = group();
   const copyFrom = ctx.select([]);
-  const copyText = ctx.input(t('Text to copy'));
-  const feedback = ctx.input(t('Copied'));
+  const copyText = inputOf(ctx, 'Text to copy');
+  const feedback = inputOf(ctx, 'Copied');
   const copyDuration = numberInput(ctx, 0, 60000);
-  const copyTextField = ctx.field(t('Literal text'), copyText, true);
-  copy.append(ctx.field(t('Copy from element'), copyFrom, true), copyTextField,ctx.field(t('Feedback label'), feedback), ctx.field(t('Feedback duration in ms'), copyDuration));
+  const copyTextField = fieldOf(ctx, 'Literal text', copyText, true);
+  copy.append(fieldOf(ctx, 'Copy from element', copyFrom, true), copyTextField, fieldOf(ctx, 'Feedback label', feedback), fieldOf(ctx, 'Feedback duration in ms', copyDuration));
 
   const scroll = group();
   const scrollTo = ctx.select([]);
   const progress = numberInput(ctx, 0, 1, 0.05);
   const scrollDuration = numberInput(ctx, 0, 60000);
-  scroll.append(ctx.field(t('Scroll to element'), scrollTo, true), ctx.field(t('Scene progress'), progress), ctx.field(t('Duration in ms'), scrollDuration));
-  const easing = ctx.easing(scroll, t('Easing'), 'ease-in-out', next => { easingValue = next; emit(); });
+  scroll.append(fieldOf(ctx, 'Scroll to element', scrollTo, true), fieldOf(ctx, 'Scene progress', progress), fieldOf(ctx, 'Duration in ms', scrollDuration));
+  const easing = ctx.easing(scroll, 'Easing', 'ease-in-out', next => { easingValue = next; emit(); });
 
   const media = group();
-  const command = ctx.select(COMMANDS());
+  const command = selectOf(ctx, COMMANDS);
   const mediaTarget = ctx.select([]);
-  media.append(ctx.field(t('Command'), command), ctx.field(t('Media element'), mediaTarget));
+  media.append(fieldOf(ctx, 'Command', command), fieldOf(ctx, 'Media element', mediaTarget));
 
   const lightbox = group();
   const lightTarget = ctx.select([]);
-  lightbox.append(ctx.field(t('Image'), lightTarget, true));
+  lightbox.append(fieldOf(ctx, 'Image', lightTarget, true));
 
   const variable = group();
   const variableName = ctx.select([]);
-  const variableMode = ctx.select([{ id: 'value', name: t('Value') }, { id: 'formula', name: t('Formula') }]);
-  const variableText = ctx.input(t('Value'));
-  const variableBool = ctx.select([{ id: 'true', name: t('True') }, { id: 'false', name: t('False') }]);
+  const variableMode = selectOf(ctx, english([{ id: 'value', name: 'Value' }, { id: 'formula', name: 'Formula' }]));
+  const variableText = inputOf(ctx, 'Value');
+  const variableBool = selectOf(ctx, english([{ id: 'true', name: 'True' }, { id: 'false', name: 'False' }]));
   const variableFormula = ctx.input('seats * 2');
-  const textField = ctx.field(t('Value'), variableText, true);
-  const boolField = ctx.field(t('Value'), variableBool, true);
-  const formulaField = ctx.field(t('Formula'), variableFormula, true);
-  variable.append(ctx.field(t('Variable'), variableName), ctx.field(t('Set from'), variableMode), textField, boolField, formulaField);
+  const textField = fieldOf(ctx, 'Value', variableText, true);
+  const boolField = fieldOf(ctx, 'Value', variableBool, true);
+  const formulaField = fieldOf(ctx, 'Formula', variableFormula, true);
+  variable.append(fieldOf(ctx, 'Variable', variableName), fieldOf(ctx, 'Set from', variableMode), textField, boolField, formulaField);
 
   const search = group();
   const searchInput = ctx.select([]);
@@ -84,12 +86,12 @@ export function buildAction(ctx: MotionContext, host: HTMLElement, withTrigger: 
   const searchTemplate = ctx.select([]);
   const searchLimit = numberInput(ctx, 1, 50);
   const searchEmpty = ctx.select([]);
-  const searchParam = checkbox(t('Read the from parameter on load'));
-  search.append(ctx.field(t('Search input'), searchInput, true), ctx.field(t('Results container'), searchResults, true), ctx.field(t('Result template'), searchTemplate, true), ctx.field(t('Result limit'), searchLimit), ctx.field(t('Empty message'), searchEmpty), searchParam.wrap);
+  const searchParam = checkbox('Read the from parameter on load');
+  search.append(fieldOf(ctx, 'Search input', searchInput, true), fieldOf(ctx, 'Results container', searchResults, true), fieldOf(ctx, 'Result template', searchTemplate, true), fieldOf(ctx, 'Result limit', searchLimit), fieldOf(ctx, 'Empty message', searchEmpty), searchParam.wrap);
 
   const play = group();
   const script = ctx.select([]);
-  play.append(ctx.field(t('Script'), script, true));
+  play.append(fieldOf(ctx, 'Script', script, true));
 
   host.append(copy, scroll, media, lightbox, variable, search, play);
   const groups: Record<string, HTMLElement> = { copy, 'scroll-to': scroll, media, lightbox, 'set-variable': variable, search, play };
@@ -148,12 +150,11 @@ export function buildAction(ctx: MotionContext, host: HTMLElement, withTrigger: 
     set(action, next) {
       lists = next;
       const name = String(action.action || 'toggle-theme');
-      const none: Item = { id: '', name: t('None') };
       value(trigger, String(action.trigger || 'click'));
       value(kind, name);
       for (const key of Object.keys(groups)) show(groups[key], key === name);
       const own = (id: string, select: HTMLSelectElement, current: unknown): string => name === id ? String(current || '') : select.value;
-      setSelect(copyFrom, [{ id: '', name: t('Use the literal text') }, ...next.nodes], own('copy', copyFrom, action.from));
+      setSelect(copyFrom, [...LITERAL, ...next.nodes], own('copy', copyFrom, action.from));
       setSelect(scrollTo, next.nodes, own('scroll-to', scrollTo, action.to));
       setSelect(mediaTarget, next.media, own('media', mediaTarget, action.target));
       setSelect(lightTarget, next.images, own('lightbox', lightTarget, action.target));
@@ -161,7 +162,7 @@ export function buildAction(ctx: MotionContext, host: HTMLElement, withTrigger: 
       setSelect(searchInput, next.inputs, own('search', searchInput, action.input));
       setSelect(searchResults, next.nodes, own('search', searchResults, action.results));
       setSelect(searchTemplate, next.templates, own('search', searchTemplate, action.template));
-      setSelect(searchEmpty, [none, ...next.nodes], own('search', searchEmpty, action.empty));
+      setSelect(searchEmpty, [...NONE, ...next.nodes], own('search', searchEmpty, action.empty));
       setSelect(script, next.scripts, own('play', script, action.script));
       if (name === 'copy') {
         show(copyTextField, !action.from);
@@ -215,22 +216,22 @@ export function installActions(ctx: MotionContext, container: HTMLElement): Moti
     const host = element('div', 'form-grid');
     const form = buildAction(ctx, host, true, action => edit(draft => { draft[indexOf(row)] = action; }));
     const tools = element('div', 'fw-ext-actions');
-    const up = ctx.button(t('Move up'), undefined, () => edit(draft => {
+    const up = buttonOf(ctx, 'Move up', undefined, () => edit(draft => {
       const at = indexOf(row);
       if (at > 0) [draft[at - 1], draft[at]] = [draft[at], draft[at - 1]];
     }));
-    const down = ctx.button(t('Move down'), undefined, () => edit(draft => {
+    const down = buttonOf(ctx, 'Move down', undefined, () => edit(draft => {
       const at = indexOf(row);
       if (at < draft.length - 1) [draft[at + 1], draft[at]] = [draft[at], draft[at + 1]];
     }));
-    const remove = ctx.button(t('Remove action'), 'close', () => edit(draft => { draft.splice(indexOf(row), 1); }));
+    const remove = buttonOf(ctx, 'Remove action', 'close', () => edit(draft => { draft.splice(indexOf(row), 1); }));
     tools.append(up, down, remove);
     row.append(host, tools);
     rows.set(row, { form, up, down, remove });
     return row;
   };
 
-  const addAction = ctx.button(t('Add action'), 'plus', () => edit(draft => { draft.push({ trigger: 'click', action: 'toggle-theme' }); }));
+  const addAction = buttonOf(ctx, 'Add action', 'plus', () => edit(draft => { draft.push({ trigger: 'click', action: 'toggle-theme' }); }));
   panel.tools.append(addAction);
 
   return {

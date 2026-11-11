@@ -1,6 +1,7 @@
 import { element, value } from '../../ui/dom';
 import { t } from '../../i18n';
 import { checkField, entryShell, numberField, selectField, show } from './fields';
+import { buttonOf, fieldOf, iconButtonOf, inputOf, noteOf } from './labels';
 import type { MotionContext, MotionEditor } from './context';
 
 export type LoopType = 'marquee' | 'spin' | 'float' | 'keyframes';
@@ -51,23 +52,23 @@ export function installLoop(ctx: MotionContext, container: HTMLElement): MotionE
     void ctx.set('loops', id, { ...entry, ...patch });
   };
 
-  const type = selectField<LoopType>(ctx, t('Type'), [{ id: 'marquee', name: t('Marquee') }, { id: 'spin', name: t('Spin') }, { id: 'float', name: t('Float') }, { id: 'keyframes', name: t('Keyframes') }], next => {
+  const type = selectField<LoopType>(ctx, 'Type', [{ id: 'marquee', name: 'Marquee' }, { id: 'spin', name: 'Spin' }, { id: 'float', name: 'Float' }, { id: 'keyframes', name: 'Keyframes' }], next => {
     if (!id) return;
     void ctx.set('loops', id, loopDefault(next));
   }, true);
   shell.body.append(type.root);
 
   const marquee = element('div', 'form-grid');
-  const direction = selectField<NonNullable<Loop['direction']>>(ctx, t('Direction'), [{ id: 'left', name: t('Left') }, { id: 'right', name: t('Right') }, { id: 'up', name: t('Up') }, { id: 'down', name: t('Down') }], next => save({ direction: next }));
-  const speed = numberField(ctx, t('Speed (px per second)'), 1, 2000, 1, next => save({ speed: next ?? 40 }));
-  const hover = checkField(ctx, t('Pause on hover'), next => save({ pauseOnHover: next }));
-  const offscreen = checkField(ctx, t('Pause when off screen'), next => save({ pauseOffscreen: next }));
+  const direction = selectField<NonNullable<Loop['direction']>>(ctx, 'Direction', [{ id: 'left', name: 'Left' }, { id: 'right', name: 'Right' }, { id: 'up', name: 'Up' }, { id: 'down', name: 'Down' }], next => save({ direction: next }));
+  const speed = numberField(ctx, 'Speed (px per second)', 1, 2000, 1, next => save({ speed: next ?? 40 }));
+  const hover = checkField(ctx, 'Pause on hover', next => save({ pauseOnHover: next }));
+  const offscreen = checkField(ctx, 'Pause when off screen', next => save({ pauseOffscreen: next }));
   marquee.append(direction.root, speed.root, hover.root, offscreen.root);
 
   const timed = element('div', 'form-grid');
-  const duration = numberField(ctx, t('Duration (ms)'), 100, 120000, 100, next => save({ duration: next ?? 1000 }));
-  const amount = numberField(ctx, t('Amount (degrees or px)'), -100000, 100000, 1, next => save({ amount: next ?? 0 }));
-  const iterations = ctx.input(t('infinite'));
+  const duration = numberField(ctx, 'Duration (ms)', 100, 120000, 100, next => save({ duration: next ?? 1000 }));
+  const amount = numberField(ctx, 'Amount (degrees or px)', -100000, 100000, 1, next => save({ amount: next ?? 0 }));
+  const iterations = inputOf(ctx, 'infinite');
   iterations.addEventListener('change', () => {
     const raw = iterations.value.trim().toLowerCase();
     if (!raw || raw === 'infinite' || raw === t('infinite').toLowerCase()) { save({ iterations: 'infinite' }); return; }
@@ -75,11 +76,11 @@ export function installLoop(ctx: MotionContext, container: HTMLElement): MotionE
     if (!Number.isFinite(count) || count < 1 || count > 1000) { ctx.status(t('Iterations must be 1 to 1000 or infinite.'), true); iterations.value = typeof entry?.iterations === 'number' ? String(entry.iterations) : ''; return; }
     save({ iterations: count });
   });
-  const iterationsField = ctx.field(t('Iterations'), iterations);
+  const iterationsField = fieldOf(ctx, 'Iterations', iterations);
   timed.append(duration.root, amount.root, iterationsField);
 
   const easingBox = element('div', 'fw-motion-easing');
-  const easing = ctx.easing(easingBox, t('Easing'), 'ease-in-out', next => save({ easing: next }));
+  const easing = ctx.easing(easingBox, 'Easing', 'ease-in-out', next => save({ easing: next }));
 
   const framesBox = element('div', 'fw-motion-frames');
   const frameList = element('div', 'fw-frame-list');
@@ -89,17 +90,15 @@ export function installLoop(ctx: MotionContext, container: HTMLElement): MotionE
   const buildFrame = (index: number): FrameRow => {
     const root = element('div', 'fw-frame-row');
     const head = element('div', 'fw-frame-head');
-    const at = numberField(ctx, t('At (0 to 1)'), 0, 1, 0.05, next => {
+    const at = numberField(ctx, 'At (0 to 1)', 0, 1, 0.05, next => {
       const copy = frames.map(frame => ({ at: frame.at, styles: frame.styles }));
       copy[index] = { at: next ?? copy[index].at, styles: copy[index].styles };
       saveFrames(copy);
     });
-    const drop = ctx.button('', 'close', () => {
+    const drop = iconButtonOf(ctx, 'Remove keyframe', 'close', () => {
       if (frames.length <= 2) return;
       saveFrames(frames.filter((_, position) => position !== index));
     }, 'icon-button');
-    drop.title = t('Remove keyframe');
-    drop.setAttribute('aria-label', t('Remove keyframe'));
     head.append(at.root, drop);
     const holder = element('div');
     const styles = ctx.styleRows(holder, {}, next => {
@@ -111,14 +110,14 @@ export function installLoop(ctx: MotionContext, container: HTMLElement): MotionE
     frameList.append(root);
     return { root, at, styles, drop };
   };
-  const addFrame = ctx.button(t('Add keyframe'), 'plus', () => {
+  const addFrame = buttonOf(ctx, 'Add keyframe', 'plus', () => {
     if (frames.length >= 50) return;
     const last = frames[frames.length - 1];
     const copy = frames.map(frame => ({ at: frame.at, styles: frame.styles }));
     copy.push({ at: last ? Math.min(1, last.at) : 1, styles: { opacity: '1' } });
     saveFrames(copy);
   });
-  framesBox.append(element('p', 'micro', t('Keyframes play in order over the duration.')), frameList, addFrame);
+  framesBox.append(noteOf('micro', 'Keyframes play in order over the duration.'), frameList, addFrame);
 
   shell.body.append(marquee, timed, easingBox, framesBox);
 

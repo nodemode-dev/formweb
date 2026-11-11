@@ -1,14 +1,15 @@
 import { element, keyed, value } from '../../ui/dom';
-import { t } from '../../i18n';
 import type { SiteNode } from '../../types';
 import type { MotionContext, MotionEditor } from './context';
+import { buttonOf, english, fieldOf, selectOf } from './labels';
 import { checkbox, clone, group, numberInput, pageNodes, readNumber, remover, saver, setChecked, setDisabled, setNumber, setSelect, shell, show, type Item, type Rec } from './pick';
 
 interface Pair { trigger: string; panel: string }
 interface Chip { trigger: string; value: string }
 interface Row { first: HTMLSelectElement; second: HTMLSelectElement | HTMLInputElement; remove: HTMLButtonElement }
 
-const TYPES = (): Item[] => [{ id: 'accordion', name: t('Accordion') }, { id: 'tabs', name: t('Tabs') }, { id: 'filter', name: t('Filter') }];
+const TYPES: Item[] = english([{ id: 'accordion', name: 'Accordion' }, { id: 'tabs', name: 'Tabs' }, { id: 'filter', name: 'Filter' }]);
+const NONE: Item[] = english([{ id: '', name: 'None' }]);
 
 export function installDisclosure(ctx: MotionContext, container: HTMLElement): MotionEditor {
   let node: SiteNode | undefined;
@@ -28,9 +29,9 @@ export function installDisclosure(ctx: MotionContext, container: HTMLElement): M
   };
   const panel = shell(ctx, container, 'Disclosure', 'Accordion, tabs or filter chips.', () => save(defaults('accordion')), remover(ctx, 'disclosure', () => node));
 
-  const type = ctx.select(TYPES());
+  const type = selectOf(ctx, TYPES);
   type.addEventListener('change', () => save(defaults(type.value)));
-  const single = checkbox(t('Open one at a time'));
+  const single = checkbox('Open one at a time');
   single.box.addEventListener('change', () => edit(draft => { draft.single = single.box.checked; }));
   const indicator = ctx.select([]);
   indicator.addEventListener('change', () => edit(draft => { if (indicator.value) draft.indicator = indicator.value; else delete draft.indicator; }));
@@ -47,12 +48,12 @@ export function installDisclosure(ctx: MotionContext, container: HTMLElement): M
   const accordion = group();
   accordion.append(single.wrap);
   const tabs = group();
-  tabs.append(ctx.field(t('Indicator'), indicator, true));
+  tabs.append(fieldOf(ctx, 'Indicator', indicator, true));
   const indexed = group();
-  indexed.append(ctx.field(t('Initial item number'), initial));
+  indexed.append(fieldOf(ctx, 'Initial item number', initial));
   const filter = group();
-  filter.append(ctx.field(t('Items container'), itemsSelect, true), ctx.field(t('Initial value'), initialChip, true));
-  panel.body.append(ctx.field(t('Type'), type, true), accordion, tabs, indexed, filter);
+  filter.append(fieldOf(ctx, 'Items container', itemsSelect, true), fieldOf(ctx, 'Initial value', initialChip, true));
+  panel.body.append(fieldOf(ctx, 'Type', type, true), accordion, tabs, indexed, filter);
 
   const pairs = element('div', 'fw-font-list');
   const chips = element('div', 'fw-font-list');
@@ -64,7 +65,7 @@ export function installDisclosure(ctx: MotionContext, container: HTMLElement): M
     const fields = element('div', 'form-grid');
     const first = ctx.select([]);
     const second = kind === 'pair' ? ctx.select([]) : ctx.input('all');
-    const remove = ctx.button(t('Remove item'), 'close', () => edit(draft => {
+    const remove = buttonOf(ctx, 'Remove item', 'close', () => edit(draft => {
       const list = (kind === 'pair' ? draft.items : draft.chips) as unknown[];
       const removed = list.splice(indexOf(row), 1)[0] as Chip;
       if (kind === 'chip' && draft.initial === removed.value) draft.initial = (list[0] as Chip | undefined)?.value;
@@ -84,7 +85,7 @@ export function installDisclosure(ctx: MotionContext, container: HTMLElement): M
         list[at].value = next;
       }
     }));
-    fields.append(ctx.field(t('Trigger'), first), ctx.field(kind === 'pair' ? t('Panel') : t('Value'), second));
+    fields.append(fieldOf(ctx, 'Trigger', first), fieldOf(ctx, kind === 'pair' ? 'Panel' : 'Value', second));
     const tools = element('div', 'fw-ext-actions');
     tools.append(remove);
     row.append(fields, tools);
@@ -93,7 +94,7 @@ export function installDisclosure(ctx: MotionContext, container: HTMLElement): M
   };
 
   const add = element('div', 'fw-ext-actions');
-  add.append(ctx.button(t('Add item'), 'plus', () => edit(draft => {
+  add.append(buttonOf(ctx, 'Add item', 'plus', () => edit(draft => {
     const id = node ? node.id : '';
     if (draft.type === 'filter') (draft.chips as Rec[]).push({ trigger: id, value: `tag${(draft.chips as Rec[]).length + 1}` });
     else (draft.items as Rec[]).push({ trigger: id, panel: id });
@@ -118,7 +119,7 @@ export function installDisclosure(ctx: MotionContext, container: HTMLElement): M
       show(pairs, kind !== 'filter');
       show(chips, kind === 'filter');
       setChecked(single.box, stored.single === true);
-      setSelect(indicator, [{ id: '', name: t('None') }, ...nodes], String(stored.indicator || ''));
+      setSelect(indicator, [...NONE, ...nodes], String(stored.indicator || ''));
       setNumber(initial, stored.initial);
       if (kind === 'filter') {
         const list = (stored.chips as Chip[] | undefined) || [];

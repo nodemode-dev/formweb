@@ -1,6 +1,7 @@
 import { element, value } from '../../ui/dom';
 import { t } from '../../i18n';
 import { checkField, entryShell, numberField, selectField } from './fields';
+import { fieldOf, noteOf } from './labels';
 import type { MotionContext, MotionEditor } from './context';
 
 export interface Reveal {
@@ -44,15 +45,15 @@ export function installReveal(ctx: MotionContext, container: HTMLElement): Motio
     void ctx.set('reveals', id, { ...entry, ...patch });
   };
 
-  const trigger = selectField<'view' | 'load'>(ctx, t('Trigger'), [{ id: 'view', name: t('When in view') }, { id: 'load', name: t('On page load') }], next => save({ trigger: next }));
-  const easing = ctx.easing(shell.body, t('Easing'), REVEAL_DEFAULT.easing, next => save({ easing: next }));
-  shell.body.append(element('p', 'micro', t('Start state. The element animates from these styles to its own.')));
+  const trigger = selectField<'view' | 'load'>(ctx, 'Trigger', [{ id: 'view', name: 'When in view' }, { id: 'load', name: 'On page load' }], next => save({ trigger: next }));
+  const easing = ctx.easing(shell.body, 'Easing', REVEAL_DEFAULT.easing, next => save({ easing: next }));
+  shell.body.append(noteOf('micro', 'Start state. The element animates from these styles to its own.'));
   const from = ctx.styleRows(shell.body, {}, next => save({ from: next }));
   const grid = element('div', 'form-grid');
-  const duration = numberField(ctx, t('Duration (ms)'), 0, 10000, 10, next => save({ duration: next ?? 0 }));
-  const delay = numberField(ctx, t('Delay (ms)'), 0, 10000, 10, next => save({ delay: next ?? 0 }));
-  const stagger = numberField(ctx, t('Stagger (ms)'), 0, 10000, 10, next => save({ stagger: next ?? 0 }));
-  const threshold = numberField(ctx, t('Threshold'), 0, 1, 0.05, next => save({ threshold: next ?? 0 }));
+  const duration = numberField(ctx, 'Duration (ms)', 0, 10000, 10, next => save({ duration: next ?? 0 }));
+  const delay = numberField(ctx, 'Delay (ms)', 0, 10000, 10, next => save({ delay: next ?? 0 }));
+  const stagger = numberField(ctx, 'Stagger (ms)', 0, 10000, 10, next => save({ stagger: next ?? 0 }));
+  const threshold = numberField(ctx, 'Threshold', 0, 1, 0.05, next => save({ threshold: next ?? 0 }));
   const margin = ctx.input('0px 0px -10% 0px');
   margin.addEventListener('change', () => {
     const parts = margin.value.trim().split(/\s+/);
@@ -60,11 +61,11 @@ export function installReveal(ctx: MotionContext, container: HTMLElement): Motio
     if (!ok) { ctx.status(t('Root margin needs one to four lengths such as 0px or -10%.'), true); margin.value = entry?.rootMargin || ''; return; }
     save({ rootMargin: parts.join(' ') });
   });
-  const children = checkField(ctx, t('Apply to each child'), next => save({ children: next }));
-  const once = checkField(ctx, t('Play once'), next => save({ once: next }));
+  const children = checkField(ctx, 'Apply to each child', next => save({ children: next }));
+  const once = checkField(ctx, 'Play once', next => save({ once: next }));
   const flags = element('div', 'fw-motion-flags');
   flags.append(children.root, once.root);
-  grid.append(trigger.root, duration.root, delay.root, stagger.root, threshold.root, ctx.field(t('Root margin'), margin));
+  grid.append(trigger.root, duration.root, delay.root, stagger.root, threshold.root, fieldOf(ctx, 'Root margin', margin));
   shell.body.append(grid, flags);
 
   return {
