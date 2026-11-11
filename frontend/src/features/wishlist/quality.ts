@@ -1,5 +1,5 @@
 import type { SiteNode } from '../../types';
-import { t, tn } from '../../i18n';
+import { label, labelAttr, tn } from '../../i18n';
 import { element, keyed, text as setText } from '../../ui/dom';
 import { ancestorWhere, btn, check, field, note, number, pageOf, row, section, select, setChecked, setValue, text, type AuditRow, type Tab, type WishlistContext } from './kit';
 
@@ -91,10 +91,14 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
       const form = formOf(ctx);
       const direct = form ? form.children.map(id => nodes[id]).filter(node => node && !node.attrs['data-fw-step']) : [];
       const stepped = form ? form.children.filter(id => nodes[id]?.attrs['data-fw-step']).length : 0;
-      setText(stepNote, form ? (stepped ? t('{0} has {1} steps. Remove them to regroup.', [form.name || { t: 'Form' }, stepped]) : tn(direct.length, '{0}: {1} element.', '{0}: {1} elements.', [form.name || { t: 'Form' }, direct.length])) : 'Select a form, or an element inside one.');
+      if (form && stepped) label(stepNote, '{0} has {1} steps. Remove them to regroup.', [form.name || { t: 'Form' }, stepped]);
+      else if (form) setText(stepNote, tn(direct.length, '{0}: {1} element.', '{0}: {1} elements.', [form.name || { t: 'Form' }, direct.length]));
+      else setText(stepNote, 'Select a form, or an element inside one.');
       keyed(stepRows, direct, node => node.id, () => {
         const node = element('div', 'wl-item');
-        node.append(element('span', 'wl-item-name'), select(Array.from({ length: 12 }, (_, i) => [String(i + 1), t('Step {0}', [i + 1])] as [string, string])));
+        const stepPick = select(Array.from({ length: 12 }, (_, i) => [String(i + 1), 'Step ' + (i + 1)] as [string, string]));
+        Array.from(stepPick.options).forEach((option, index) => label(option, 'Step {0}', [index + 1]));
+        node.append(element('span', 'wl-item-name'), stepPick);
         return node;
       }, (node, item) => {
         setText(node.firstElementChild as HTMLElement, item.name || item.tag);
@@ -115,11 +119,10 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
         node.append(element('span', 'wl-item-name'), input);
         return node;
       }, (node, item) => {
-        const label = t('Step {0}', [item.attrs['data-fw-step']]);
-        setText(node.firstElementChild as HTMLElement, label);
+        label(node.firstElementChild as HTMLElement, 'Step {0}', [item.attrs['data-fw-step']]);
         const input = node.lastElementChild as HTMLInputElement;
-        input.placeholder = label;
-        input.setAttribute('aria-label', t('Title for Step {0}', [item.attrs['data-fw-step']]));
+        labelAttr(input, 'placeholder', 'Step {0}', [item.attrs['data-fw-step']]);
+        labelAttr(input, 'aria-label', 'Title for Step {0}', [item.attrs['data-fw-step']]);
         input.dataset.saved = item.attrs['data-fw-step-title'] || '';
         setValue(input, input.dataset.saved);
       });

@@ -1,6 +1,6 @@
 import type { Command, EditorState } from '../types';
 import { element, keyed, text } from '../ui/dom';
-import { t, tn } from '../i18n';
+import { label, t, tn } from '../i18n';
 import '../styles/brand-kit.css';
 
 /**
@@ -114,12 +114,13 @@ export class BrandKit {
     }, (node, item) => {
       node.dataset.node = item.node;
       text(node.querySelector('.fw-brand-issue-name')!, `${item.name}: ${item.property}${item.breakpoint === 'desktop' ? '' : ' (' + item.breakpoint + ')'}`);
-      text(node.querySelector('.fw-brand-value')!, t('{0} to {1}', [item.value, item.suggestion ?? { t: 'no brand value' }]));
+      label(node.querySelector('.fw-brand-value') as HTMLElement, '{0} to {1}', [item.value, item.suggestion ?? { t: 'no brand value' }]);
       (node.querySelector('[data-command="brand.fix"]') as HTMLButtonElement).disabled = !item.fix;
     });
     this.fixAll.hidden = !report.issues.some(issue => issue.fix);
     const s = report.summary;
-    text(this.checkNote, report.issues.length ? t('{0} colors, {1} fonts and {2} logos are off-brand on this page.', [s.color || 0, s.font || 0, s.logo || 0]) : report.note.startsWith('The brand kit is empty') ? t(report.note) : t('Everything on this page uses the brand kit.'));
+    if (report.issues.length) label(this.checkNote, '{0} colors, {1} fonts and {2} logos are off-brand on this page.', [s.color || 0, s.font || 0, s.logo || 0]);
+    else label(this.checkNote, report.note.startsWith('The brand kit is empty') ? report.note : 'Everything on this page uses the brand kit.');
   }
 
   private async applyFixes(issues: BrandIssue[]): Promise<void> {

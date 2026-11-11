@@ -1,5 +1,5 @@
-import { element, keyed, pieces, text } from '../ui/dom';
-import { t, tn } from '../i18n';
+import { element, keyed, labelPieces, pieces, text, type Piece } from '../ui/dom';
+import { label, labelAttr, t, tn } from '../i18n';
 import '../styles/stock-library.css';
 
 /**
@@ -146,7 +146,8 @@ export class StockLibrary {
       const result = await this.hooks.icons(query);
       if (token !== this.token) return;
       this.icons = result.icons;
-      text(this.iconCount, result.total === result.icons.length ? t('{0} icons from Lucide {1} (ISC; Feather-derived icons MIT).', [result.total, result.source.version]) : t('Showing {0} of {1} icons from Lucide {2} (ISC; Feather-derived icons MIT).', [result.icons.length, result.total, result.source.version]));
+      if (result.total === result.icons.length) label(this.iconCount, '{0} icons from Lucide {1} (ISC; Feather-derived icons MIT).', [result.total, result.source.version]);
+      else label(this.iconCount, 'Showing {0} of {1} icons from Lucide {2} (ISC; Feather-derived icons MIT).', [result.icons.length, result.total, result.source.version]);
       keyed(this.iconGrid, result.icons, item => item.name, item => this.iconTile(item), (node, item) => {
         node.dataset.selected = String(item.name === this.selectedIcon);
         node.title = [item.name, ...item.tags.slice(0, 5)].join(', ');
@@ -160,8 +161,10 @@ export class StockLibrary {
           const option = node as HTMLOptionElement;
           option.value = item.id;
           option.disabled = !item.ready;
-          const base = item.local ? item.label : t('{0} ({1}, your key)', [item.label, item.provider]);
-          text(option, item.ready ? base : t('{0}: not set up', [base]));
+          if (item.local && item.ready) text(option, item.label);
+          else if (item.local) label(option, '{0}: not set up', [item.label]);
+          else if (item.ready) label(option, '{0} ({1}, your key)', [item.label, item.provider]);
+          else text(option, t('{0}: not set up', [t('{0} ({1}, your key)', [item.label, item.provider])]));
           option.title = item.reason || item.licence;
         });
         const first = listing.generators.find(item => item.ready && item.local) || listing.generators.find(item => item.ready);
@@ -179,7 +182,8 @@ export class StockLibrary {
         this.photos = result.photos;
         this.photoNote.dataset.state = 'ok';
         if (result.photos.length) pieces(this.photoNote, [result.source.note, ' ', query ? tn(result.total, '{0} photo matches.', '{0} photos match.') : tn(result.total, '{0} photo.', '{0} photos.')]);
-        else text(this.photoNote, query ? t('No formlit photos match "{0}".', [query]) : t('Your formlit library has no photos yet.'));
+        else if (query) label(this.photoNote, 'No formlit photos match "{0}".', [query]);
+        else label(this.photoNote, 'Your formlit library has no photos yet.');
       } catch (error) {
         if (token !== this.token) return;
         this.photos = [];
@@ -198,7 +202,7 @@ export class StockLibrary {
   private iconTile(item: Icon): HTMLElement {
     const tile = element('button', 'fw-stock-icon');
     tile.type = 'button';
-    tile.setAttribute('aria-label', t('{0} icon', [item.name]));
+    labelAttr(tile, 'aria-label', '{0} icon', [item.name]);
     const svg = document.createElementNS(SVG, 'svg');
     for (const [key, value] of Object.entries({ viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' })) svg.setAttribute(key, value);
     svg.setAttribute('stroke-width', this.stroke.value);
@@ -244,7 +248,7 @@ export class StockLibrary {
     keyed(this.genSize, sizes.map(size => ({ size })), item => item.size, () => element('option'), (node, item) => {
       (node as HTMLOptionElement).value = item.size;
       const [w, h] = item.size.split('x').map(Number);
-      text(node, w === h ? t('{0} square', [item.size]) : w > h ? t('{0} landscape', [item.size]) : t('{0} portrait', [item.size]));
+      label(node, w === h ? '{0} square' : w > h ? '{0} landscape' : '{0} portrait', [item.size]);
     });
   }
 
@@ -265,7 +269,7 @@ export class StockLibrary {
           text(this.genNote, tn(state.assets?.length || 0, '{0} picture saved to this project with the prompt, generator and licence. Check the model or provider terms before publishing.', '{0} pictures saved to this project with the prompt, generator and licence. Check the model or provider terms before publishing.'));
           break;
         }
-        pieces(this.genNote, [t('formvis is generating... {0}%', [Math.round((state.progress || 0) * 100)]), state.message ? ` · ${state.message}` : '']);
+        labelPieces(this.genNote, [{ en: 'formvis is generating... {0}%', values: [Math.round((state.progress || 0) * 100)] }, state.message ? ` · ${state.message}` : '']);
         await new Promise(resolve => window.setTimeout(resolve, 1000));
       }
       if (this.tab === 'generate') this.renderGenerated();
@@ -293,21 +297,23 @@ export class StockLibrary {
   private describe(): void {
     if (this.tab === 'generate') {
       const item = this.generated.find(entry => entry.id === this.selectedGenerated);
-      text(this.detail, item ? t('Generated with {0} from "{1}". Provenance is saved with the image; check the model or provider terms before publishing.', [item.license?.generator || 'formvis', item.license?.prompt || '']) : t('Describe a picture and press Generate (or Enter). Results stay here for this session.'));
+      if (item) label(this.detail, 'Generated with {0} from "{1}". Provenance is saved with the image; check the model or provider terms before publishing.', [item.license?.generator || 'formvis', item.license?.prompt || '']);
+      else label(this.detail, 'Describe a picture and press Generate (or Enter). Results stay here for this session.');
       this.insertButton.disabled = !item || this.busy;
       return;
     }
     if (this.tab === 'icons') {
       const icon = this.icons.find(item => item.name === this.selectedIcon);
-      text(this.detail, icon ? t('{0}: {1} licence (Lucide). Credited in CREDITS.txt when you export.', [icon.name, icon.license]) : t('Pick an icon; double-click inserts it.'));
+      if (icon) label(this.detail, '{0}: {1} licence (Lucide). Credited in CREDITS.txt when you export.', [icon.name, icon.license]);
+      else label(this.detail, 'Pick an icon; double-click inserts it.');
       this.insertButton.disabled = !icon;
     } else {
       const photo = this.photos.find(item => item.id === this.selectedPhoto);
       const credit = photo?.credit;
       if (photo) {
-        const parts = [credit?.copyright || credit?.creator, credit?.usage ? t('Usage: {0}', [credit.usage]) : '', t('Credit saved with the image.')].filter(Boolean) as string[];
-        pieces(this.detail, parts.flatMap((part, index) => index ? [' · ', part] : [part]));
-      } else text(this.detail, t('Pick a photo; double-click inserts it.'));
+        const parts = [credit?.copyright || credit?.creator, credit?.usage ? { en: 'Usage: {0}', values: [credit.usage] } : '', { en: 'Credit saved with the image.' }].filter(Boolean) as Piece[];
+        labelPieces(this.detail, parts.flatMap((part, index) => index ? [' · ', part] : [part]));
+      } else label(this.detail, 'Pick a photo; double-click inserts it.');
       this.insertButton.disabled = !photo;
     }
   }

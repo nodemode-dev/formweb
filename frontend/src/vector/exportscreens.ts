@@ -1,5 +1,5 @@
-import { t } from '../i18n';
-import { element, text } from '../ui/dom';
+import { label, labelAttr, t } from '../i18n';
+import { element } from '../ui/dom';
 import type { Host } from './host';
 import { svgOf } from './store';
 import { boards } from './artboards';
@@ -240,45 +240,48 @@ class ExportDialog {
   private build(): HTMLElement {
     const root = element('div', 'fw-v-dialog fw-v-exportdlg');
     root.setAttribute('role', 'dialog');
-    root.setAttribute('aria-label', t('Export for Screens'));
+    labelAttr(root, 'aria-label', 'Export for Screens');
     root.hidden = true;
-    const check = (type: 'checkbox' | 'radio', label: string, name = ''): { row: HTMLElement; input: HTMLInputElement } => {
+    const check = (type: 'checkbox' | 'radio', english: string, name = '', plain = false): { row: HTMLElement; input: HTMLInputElement } => {
       const input = element('input', 'fw-v-check');
       input.type = type;
       if (name) input.name = name;
       const row = element('label', 'fw-v-checkrow');
-      row.append(input, element('span', '', label));
+      const span = element('span', '', plain ? english : '');
+      if (!plain) label(span, english);
+      row.append(input, span);
       return { row, input };
     };
     const group = (title: string, ...children: HTMLElement[]): HTMLElement => {
       const box = element('div', 'fw-v-stack');
-      box.append(element('span', 'fw-v-note', title), ...children);
+      const head = element('span', 'fw-v-note');
+      label(head, title);
+      box.append(head, ...children);
       return box;
     };
 
     this.name = element('input', 'fw-v-input');
-    this.name.setAttribute('aria-label', t('File name'));
-    const whole = check('radio', t('Whole drawing'), 'fw-exp-scope');
-    const sel = check('radio', t('Selected shapes only'), 'fw-exp-scope');
-    const all = check('radio', t('All artboards on this page'), 'fw-exp-scope');
+    labelAttr(this.name, 'aria-label', 'File name');
+    const whole = check('radio', 'Whole drawing', 'fw-exp-scope');
+    const sel = check('radio', 'Selected shapes only', 'fw-exp-scope');
+    const all = check('radio', 'All artboards on this page', 'fw-exp-scope');
     this.allLabel = all.row.lastElementChild as HTMLElement;
     this.scope = { whole: whole.input, selection: sel.input, all: all.input };
     const nameMode = (): void => {
       const prefix = this.scope.all.checked;
-      const label = prefix ? t('File name prefix') : t('File name');
-      if (this.name.getAttribute('aria-label') !== label) this.name.setAttribute('aria-label', label);
+      labelAttr(this.name, 'aria-label', prefix ? 'File name prefix' : 'File name');
       if (prefix && this.name.value === (safeName(this.host?.site().nodes[this.svg]?.name ?? '') || 'artwork')) this.name.value = '';
       if (!prefix && !this.name.value) this.name.value = safeName(this.host?.site().nodes[this.svg]?.name ?? '') || 'artwork';
     };
     for (const input of [whole.input, sel.input, all.input]) input.addEventListener('change', nameMode);
 
-    const formatRows = FORMATS.map(f => { const c = check('checkbox', f.label); this.formats.set(f.id, c.input); return c.row; });
+    const formatRows = FORMATS.map(f => { const c = check('checkbox', f.label, '', true); this.formats.set(f.id, c.input); return c.row; });
     const formats = element('div', 'fw-v-exp-formats');
     formats.append(...formatRows);
 
     this.quality = element('input', 'fw-v-input');
     this.quality.type = 'range'; this.quality.min = '1'; this.quality.max = '100'; this.quality.value = '90';
-    this.quality.setAttribute('aria-label', t('JPG and WebP quality'));
+    labelAttr(this.quality, 'aria-label', 'JPG and WebP quality');
     this.qualityOut = element('span', 'fw-v-note', '90');
     this.quality.addEventListener('input', () => { this.qualityOut.textContent = this.quality.value; });
     const qualityRow = element('div', 'fw-v-exp-quality');
@@ -289,7 +292,7 @@ class ExportDialog {
       on.type = 'checkbox';
       on.setAttribute('aria-label', `${s.scale}x`);
       const suffix = element('input', 'fw-v-input');
-      suffix.type = 'text'; suffix.value = s.suffix; suffix.maxLength = 16; suffix.setAttribute('aria-label', t('Suffix for {0}x', [s.scale]));
+      suffix.type = 'text'; suffix.value = s.suffix; suffix.maxLength = 16; labelAttr(suffix, 'aria-label', 'Suffix for {0}x', [s.scale]);
       const row = element('label', 'fw-v-exp-scale');
       row.append(on, element('span', '', `${s.scale}x`), suffix);
       this.scales.push({ scale: s.scale, on, suffix });
@@ -301,31 +304,39 @@ class ExportDialog {
     this.transparent.checked = true;
     this.bg = element('input', 'fw-v-color');
     this.bg.type = 'color'; this.bg.value = '#ffffff';
-    this.bg.setAttribute('aria-label', t('PNG and WebP background color'));
+    labelAttr(this.bg, 'aria-label', 'PNG and WebP background color');
     const bgRow = element('div', 'fw-v-exp-bg');
     const transparentLabel = element('label', 'fw-v-checkrow');
-    transparentLabel.append(this.transparent, element('span', '', t('Transparent PNG and WebP')));
+    const transparentText = element('span');
+    label(transparentText, 'Transparent PNG and WebP');
+    transparentLabel.append(this.transparent, transparentText);
     bgRow.append(transparentLabel, this.bg);
     this.transparent.addEventListener('change', () => { this.bg.disabled = this.transparent.checked; });
     this.bg.disabled = true;
     this.jpgBg = element('input', 'fw-v-color');
     this.jpgBg.type = 'color'; this.jpgBg.value = '#ffffff';
-    this.jpgBg.setAttribute('aria-label', t('JPG background color'));
+    labelAttr(this.jpgBg, 'aria-label', 'JPG background color');
     const jpgRow = element('div', 'fw-v-exp-bg');
-    jpgRow.append(element('span', 'fw-v-note', t('JPG background')), this.jpgBg);
+    const jpgNote = element('span', 'fw-v-note');
+    label(jpgNote, 'JPG background');
+    jpgRow.append(jpgNote, this.jpgBg);
 
     this.status = element('p', 'fw-v-note');
     this.status.setAttribute('role', 'status');
-    this.go = element('button', 'fw-v-btn', t('Export'));
+    this.go = element('button', 'fw-v-btn');
+    label(this.go, 'Export');
     this.go.type = 'button';
-    const cancel = element('button', 'fw-v-btn', t('Close'));
+    const cancel = element('button', 'fw-v-btn');
+    label(cancel, 'Close');
     cancel.type = 'button';
     const actions = element('div', 'fw-v-row');
     actions.append(this.go, cancel);
 
-    root.append(element('div', 'fw-v-summary', t('Export for Screens')),
-      group(t('File name'), this.name), group(t('Export'), whole.row, sel.row, all.row), group(t('Formats'), formats), group(t('JPG and WebP quality'), qualityRow),
-      group(t('Scales and file name suffixes'), ...scaleRows), group(t('Background'), bgRow, jpgRow), this.status, actions);
+    const summary = element('div', 'fw-v-summary');
+    label(summary, 'Export for Screens');
+    root.append(summary,
+      group('File name', this.name), group('Export', whole.row, sel.row, all.row), group('Formats', formats), group('JPG and WebP quality', qualityRow),
+      group('Scales and file name suffixes', ...scaleRows), group('Background', bgRow, jpgRow), this.status, actions);
 
     const submit = (): void => { void this.run(); };
     this.go.addEventListener('click', submit);
@@ -344,21 +355,22 @@ class ExportDialog {
     const formats = FORMATS.map(f => f.id).filter(id => this.formats.get(id)?.checked);
     const scales = this.scales.filter(s => s.on.checked).map(s => ({ scale: s.scale, suffix: s.suffix.value.trim() }));
     const raster = formats.some(f => !VECTOR.has(f));
-    if (!formats.length) { this.status.textContent = t('Choose at least one format.'); return; }
-    if (raster && !scales.length) { this.status.textContent = t('Choose at least one scale.'); return; }
-    if (new Set(scales.map(s => safeName(s.suffix))).size !== scales.length) { this.status.textContent = t('Each scale needs a different suffix.'); return; }
+    if (!formats.length) { label(this.status, 'Choose at least one format.'); return; }
+    if (raster && !scales.length) { label(this.status, 'Choose at least one scale.'); return; }
+    if (new Set(scales.map(s => safeName(s.suffix))).size !== scales.length) { label(this.status, 'Each scale needs a different suffix.'); return; }
     this.go.disabled = true;
-    this.status.textContent = t('Exporting...');
+    label(this.status, 'Exporting...');
     try {
       const options: ExportOptions = {
         base: this.name.value, selectionOnly: this.scope.selection.checked, formats, scales,
         quality: Number(this.quality.value) || 90, background: this.transparent.checked ? null : this.bg.value, jpgBackground: this.jpgBg.value
       };
       const files = this.scope.all.checked ? await exportArtboards(host, pageArtboards(host), options) : await exportScreens(host, this.svg, options);
-      this.status.textContent = t('Exported {0} files.', [files.length]);
+      label(this.status, 'Exported {0} files.', [files.length]);
       host.notify(t('Exported {0} files.', [files.length]));
     } catch (error) {
-      this.status.textContent = error instanceof Error ? error.message : t('Export failed.');
+      if (error instanceof Error) this.status.textContent = error.message;
+      else label(this.status, 'Export failed.');
     } finally { this.go.disabled = false; }
   }
 
@@ -369,7 +381,7 @@ class ExportDialog {
     const site = host.site();
     const hasSelection = !!svg && chosenIds(host, svg).length > 0;
     const count = pageArtboards(host).length;
-    text(this.allLabel, t('All artboards on this page ({0})', [count]));
+    label(this.allLabel, 'All artboards on this page ({0})', [count]);
     this.scope.all.disabled = count === 0;
     this.scope.whole.disabled = !svg;
     this.scope.selection.disabled = !hasSelection;

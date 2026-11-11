@@ -26,7 +26,7 @@ import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from
 import { installInspector } from './features/inspector';
 import { installLibrary } from './features/library';
 import { watchFit } from './ui/fit';
-import { isLang, label, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
+import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 
 await startLanguage();
@@ -473,8 +473,8 @@ function addInspectorInput(container: HTMLElement, label: string, key: string, h
 function resetButton(label: string, key: string): HTMLButtonElement {
   const reset = element('button', 'fw-reset', 'Reset');
   reset.type = 'button';
-  reset.title = t('Reset {0} to the inherited value', [{ t: label }]);
-  reset.setAttribute('aria-label', reset.title);
+  labelAttr(reset, 'title', 'Reset {0} to the inherited value', [{ t: label }]);
+  labelAttr(reset, 'aria-label', 'Reset {0} to the inherited value', [{ t: label }]);
   reset.dataset.reset = key;
   reset.hidden = true;
   reset.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); void run(() => setStyle(key, '')); });
@@ -502,7 +502,7 @@ function addSegments(container: HTMLElement, label: string, key: string, choices
     const node = element('button', 'fw-seg-btn', name);
     node.type = 'button';
     node.dataset.value = choice;
-    node.title = t('{0}: {1}', [{ t: label }, choice]);
+    labelAttr(node, 'title', '{0}: {1}', [{ t: label }, choice]);
     node.setAttribute('aria-pressed', 'false');
     node.addEventListener('click', () => void run(() => setStyle(key, node.classList.contains('is-on') ? '' : choice)));
     group.append(node);
@@ -785,7 +785,9 @@ const baseUrlGrid = element('div', 'form-grid');
 const baseUrlInput = addInspectorInput(baseUrlGrid, 'Base URL', 'site.baseUrl', next => command('site.update', { patch: { settings: { baseUrl: next.trim().replace(/\/+$/, '') || null } } }), undefined, true) as HTMLInputElement;
 baseUrlInput.placeholder = 'https://example.com';
 const baseUrlHelp = element('p', 'micro', 'The site\'s public address. Canonical links, the sitemap and the root 404.html use it. Agents: site.update with settings.baseUrl.');
-baseUrlHelp.append(' ', element('span', '', t('Leave it empty to keep the https://example.com placeholder.')));
+const baseUrlTail = element('span');
+label(baseUrlTail, 'Leave it empty to keep the https://example.com placeholder.');
+baseUrlHelp.append(' ', baseUrlTail);
 siteSection.append(baseUrlGrid, baseUrlHelp);
 function openBaseUrlField(): void {
   openDock('right');
@@ -1399,7 +1401,7 @@ function update(next: EditorState): void {
     if (current) crumb.setAttribute('aria-current', 'true'); else crumb.removeAttribute('aria-current');
   });
   const pickedBreakpoint = site.breakpoints.find(item => item.id === breakpoint);
-  text(viewportReadout, t('Editing {0}', [`${pickedBreakpoint?.name || breakpoint} · ${widths[breakpoint]} px`]));
+  label(viewportReadout, 'Editing {0}', [`${pickedBreakpoint?.name || breakpoint} · ${widths[breakpoint]} px`]);
   // Quiet hint only: the typed width never changes which breakpoint's styles are drawn or edited.
   const narrower = site.breakpoints.filter(item => item.maxWidth < (pickedBreakpoint?.maxWidth ?? 0)).reduce((top, item) => Math.max(top, item.maxWidth), 0);
   const outside = !!pickedBreakpoint && (widths[breakpoint] > pickedBreakpoint.maxWidth || widths[breakpoint] <= narrower);
@@ -1567,7 +1569,7 @@ function notFoundBaseWarning(warned?: string[]): string {
   return ' ' + t(NOT_FOUND_BASE_KEY);
 }
 function baseUrlAction(warning: string): { label: string; run: () => unknown } | undefined {
-  return warning ? { label: t('Set the base URL'), run: openBaseUrlField } : undefined;
+  return warning ? { label: 'Set the base URL', run: openBaseUrlField } : undefined;
 }
 async function exportSite(): Promise<void> {
   await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
@@ -1898,7 +1900,7 @@ function updateLocales(): void {
     text(row.children[2] as HTMLElement, locale === state().site.defaultLocale ? 'Default' : '');
     row.classList.toggle('active', locale === localeEditing);
   });
-  text(localeEditingLabel, t('Translations · {0}', [localeEditing.toUpperCase()]));
+  label(localeEditingLabel, 'Translations · {0}', [localeEditing.toUpperCase()]);
   localeDefault.disabled = localeEditing === state().site.defaultLocale;
   dialogPrimary.disabled = false;
 }
@@ -2072,19 +2074,21 @@ function showLayerMenu(event: MouseEvent, id: string): void {
   const outside = (down: Event): void => { if (!menu.contains(down.target as Node)) close(); };
   const escape = (key: KeyboardEvent): void => { if (key.key === 'Escape') close(); };
   const rows: [string, string, string, boolean, () => Promise<void>][] = [
-    ['edit.copy', t('Copy element'), t('A page root or an element inside a linked component instance cannot be copied'), allowed, copySelection],
-    ['edit.cut', t('Cut element'), t('A page root or an element inside a linked component instance cannot be cut'), allowed, cutSelection],
-    ['edit.paste', t('Paste element'), t('Paste is not available while a dialog is open'), !!scrim.hidden, pasteFromClipboard],
-    ['edit.duplicate', t('Duplicate'), t('A page root or an element inside a linked component instance cannot be duplicated'), allowed, duplicateSelection]
+    ['edit.copy', 'Copy element', 'A page root or an element inside a linked component instance cannot be copied', allowed, copySelection],
+    ['edit.cut', 'Cut element', 'A page root or an element inside a linked component instance cannot be cut', allowed, cutSelection],
+    ['edit.paste', 'Paste element', 'Paste is not available while a dialog is open', !!scrim.hidden, pasteFromClipboard],
+    ['edit.duplicate', 'Duplicate', 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
   ];
   let first: HTMLButtonElement | undefined;
-  for (const [commandId, label, blocked, enabledNow, action] of rows) {
+  for (const [commandId, english, blocked, enabledNow, action] of rows) {
     const row = element('button', 'fw-menu-item');
     row.type = 'button';
     row.setAttribute('role', 'menuitem');
     row.disabled = !enabledNow;
-    row.title = enabledNow ? label : blocked;
-    row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', label), element('span', 'fw-menu-keys', commandRegistry.keyLabel(commandRegistry.get(commandId)!)));
+    labelAttr(row, 'title', enabledNow ? english : blocked);
+    const name = element('span', 'fw-menu-label');
+    label(name, english);
+    row.append(element('span', 'fw-menu-check'), name, element('span', 'fw-menu-keys', commandRegistry.keyLabel(commandRegistry.get(commandId)!)));
     row.addEventListener('click', () => { close(); void run(action); });
     menu.append(row);
     if (enabledNow && !first) first = row;

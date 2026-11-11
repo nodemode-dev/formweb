@@ -1,5 +1,5 @@
 import { element, value } from '../ui/dom';
-import { t, tn } from '../i18n';
+import { label, labelAttr, tn, type Value } from '../i18n';
 import { openAverage } from './averagedialog';
 import { openPathfinderOptions } from './pfdialog';
 import type { PathfinderOp } from './boolean';
@@ -64,11 +64,11 @@ export const PATHFINDERS: { op: PathfinderOp; label: string; icon: VectorIcon }[
 
 const CORNER_TYPES: { id: CornerType; label: string }[] = [{ id: 'round', label: 'Round' }, { id: 'inverted', label: 'Inverted' }, { id: 'chamfer', label: 'Chamfer' }];
 
-function button(label: string, title: string, run: (event: MouseEvent) => void, icon?: VectorIcon): HTMLButtonElement {
+function button(label: string, title: string, run: (event: MouseEvent) => void, icon?: VectorIcon, values?: readonly Value[]): HTMLButtonElement {
   const b = element('button', 'fw-v-btn');
   b.type = 'button';
-  b.title = title;
-  b.setAttribute('aria-label', title);
+  labelAttr(b, 'title', title, values);
+  labelAttr(b, 'aria-label', title, values);
   if (icon) b.append(vectorIcon(icon));
   if (label) b.append(element('span', 'fw-v-btn-label', label));
   b.addEventListener('click', run);
@@ -154,7 +154,7 @@ export class VectorPanel {
     this.bar.setAttribute('role', 'toolbar');
     this.bar.setAttribute('aria-label', 'Vector tools');
     for (const tool of TOOLS) {
-      const b = button('', tool.keys ? t('{0} ({1})', [{ t: tool.label }, tool.keys]) : t(tool.label), () => editor.setTool(editor.tool === tool.id ? null : tool.id), tool.icon);
+      const b = button('', tool.keys ? '{0} ({1})' : tool.label, () => editor.setTool(editor.tool === tool.id ? null : tool.id), tool.icon, tool.keys ? [{ t: tool.label }, tool.keys] : undefined);
       b.dataset.tool = tool.id;
       this.toolButtons.set(tool.id, b);
       this.bar.append(b);
@@ -211,7 +211,7 @@ export class VectorPanel {
 
     const pathfinder = section('Pathfinder', true);
     const grid = element('div', 'fw-v-grid');
-    for (const item of PATHFINDERS) grid.append(button(item.label, t(`${item.label} on the selected paths`), event => editor.runPathfinder(item.op, event.altKey), item.icon));
+    for (const item of PATHFINDERS) grid.append(button(item.label, `${item.label} on the selected paths`, event => editor.runPathfinder(item.op, event.altKey), item.icon));
     const compoundRow = element('div', 'fw-v-grid');
     compoundRow.append(
       button('Options', 'Open the Pathfinder Options dialog', () => openPathfinderOptions(), 'simplify'),
@@ -339,8 +339,9 @@ export class VectorPanel {
     this.radius.disabled = c.count === 0;
     this.cornerType.set(c.type);
     this.cornerMode.set(c.mode);
-    const info = c.count === 0 ? t('No rounded-corner anchors. Select an anchor with the Direct Selection tool.') : c.selected ? tn(c.selected, '{0} anchor selected', '{0} anchors selected') : t('All {0} corners of the selection', [c.count]);
-    if (this.cornerInfo.textContent !== info) this.cornerInfo.textContent = info;
+    if (c.count === 0) label(this.cornerInfo, 'No rounded-corner anchors. Select an anchor with the Direct Selection tool.');
+    else if (c.selected) { const plural = tn(c.selected, '{0} anchor selected', '{0} anchors selected'); if (this.cornerInfo.textContent !== plural) this.cornerInfo.textContent = plural; }
+    else label(this.cornerInfo, 'All {0} corners of the selection', [c.count]);
     value(this.sides, String(e.options.sides));
     value(this.points, String(e.options.points));
     value(this.ratio, String(e.options.ratio));

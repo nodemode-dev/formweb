@@ -197,7 +197,7 @@ class StylesDialog {
     input.type = 'text';
     input.maxLength = 60;
     input.value = style.name;
-    input.setAttribute('aria-label', t('Style name'));
+    labelAttr(input, 'aria-label', 'Style name');
     label.replaceWith(input);
     input.focus();
     input.select();
