@@ -3,21 +3,21 @@ use serde_json::{Map, Value};
 use std::collections::BTreeSet;
 
 pub fn object(value: &Value) -> Result<&Map<String, Value>, String> { value.as_object().ok_or_else(||"extension value must be an object".into()) }
-fn keys(value: &Value, allowed: &[&str]) -> Result<(), String> {
+pub(crate) fn keys(value: &Value, allowed: &[&str]) -> Result<(), String> {
     if object(value)?.keys().any(|k|!allowed.contains(&k.as_str())) { return Err("unknown extension field".into()); }
     Ok(())
 }
-fn string<'a>(value: &'a Value, key: &str) -> Result<&'a str, String> { value.get(key).and_then(Value::as_str).ok_or_else(||format!("{key} must be a string")) }
+pub(crate) fn string<'a>(value: &'a Value, key: &str) -> Result<&'a str, String> { value.get(key).and_then(Value::as_str).ok_or_else(||format!("{key} must be a string")) }
 fn text(value: &Value, key: &str, max: usize) -> Result<(), String> { if value.get(key).map(|v|v.as_str().map(|s|s.len()<=max).unwrap_or(false)).unwrap_or(true) { Ok(()) } else { Err(format!("invalid {key}")) } }
 fn boolean(value: &Value, key: &str) -> Result<(), String> { if value.get(key).map(Value::is_boolean).unwrap_or(true) { Ok(()) } else { Err(format!("{key} must be boolean")) } }
 fn number(value: &Value, key: &str, max: u64) -> Result<(), String> { if value.get(key).map(|v|v.as_u64().map(|n|n<=max).unwrap_or(false)).unwrap_or(true) { Ok(()) } else { Err(format!("invalid {key}")) } }
-fn node(site: &Site, id: &str) -> Result<(), String> { if site.nodes.contains_key(id) { Ok(()) } else { Err(format!("extension references unknown node {id}")) } }
+pub(crate) fn node(site: &Site, id: &str) -> Result<(), String> { if site.nodes.contains_key(id) { Ok(()) } else { Err(format!("extension references unknown node {id}")) } }
 fn page(site: &Site, id: &str) -> Result<(), String> { if site.pages.iter().any(|p|p.id==id) { Ok(()) } else { Err(format!("extension references unknown page {id}")) } }
 fn styles(value: &Value) -> Result<(), String> {
     for (k,v) in object(value)? { if !v.as_str().map(|v|safe_style(k,v)).unwrap_or(false) { return Err(format!("unsafe extension style {k}")); } }
     Ok(())
 }
-fn maps<'a>(value: &'a Value, key: &str) -> Result<Vec<(&'a String, &'a Value)>, String> { value.get(key).map(|v|object(v).map(|m|m.iter().collect())).unwrap_or_else(||Ok(vec![])) }
+pub(crate) fn maps<'a>(value: &'a Value, key: &str) -> Result<Vec<(&'a String, &'a Value)>, String> { value.get(key).map(|v|object(v).map(|m|m.iter().collect())).unwrap_or_else(||Ok(vec![])) }
 fn safe(value: &Value, key: &str) -> Result<(), String> { if value.get(key).map(|v|v.as_str().map(safe_url).unwrap_or(false)).unwrap_or(true) { Ok(()) } else { Err(format!("unsafe {key}")) } }
 pub fn typed_value(kind: &str, value: &Value) -> bool {
     match kind {
@@ -74,7 +74,7 @@ pub fn validate_extensions(site: &Site) -> Result<(), String> {
         match group.as_str() {
             "design"=>design(site,value)?, "components"=>components(site,value)?, "libraries"=>libraries(site,value)?,
             "cms"=>cms(site,value)?, "localization"=>localization(site,value)?, "seo"=>seo(site,value)?,
-            "behaviors"=>behaviors(site,value)?, "forms"=>forms(site,value)?, "integrations"=>integrations(site,value)?, "code"=>code(site,value)?,
+            "behaviors"=>behaviors(site,value)?, "motion"=>crate::motion::validate(site,value)?, "forms"=>forms(site,value)?, "integrations"=>integrations(site,value)?, "code"=>code(site,value)?,
             _=>return Err(format!("unknown extension group {group}")),
         }
     }
@@ -96,8 +96,23 @@ fn code(site:&Site,value:&Value)->Result<(),String>{keys(value,&["components","i
         for(name,prop)in maps(definition,"props")?{if prop.get("required").and_then(Value::as_bool)==Some(true)&&!props.contains_key(name)&&prop.get("default").is_none(){return Err("required code prop missing".into());}}
     }Ok(())}
 fn code_prop(kind:&str,value:&Value)->bool {match kind{"string"=>value.as_str().map(|v|v.len()<=10000).unwrap_or(false),"number"=>value.is_number(),"boolean"=>value.is_boolean(),"json"=>serde_json::to_vec(value).map(|v|v.len()<=65536).unwrap_or(false),_=>false}}
+fn design_properties(value:&Value)->Result<(),String>{let entries=maps(value,"properties")?;if entries.len()>64{return Err("too many registered properties".into());}
+    for(name,property)in entries{if !identifier(name){return Err("invalid registered property name".into());}keys(property,&["syntax","inherits","initial"])?;boolean(property,"inherits")?;let syntax=string(property,"syntax")?;if !["<number>","<integer>","<length>","<percentage>","<length-percentage>","<color>","<angle>","<time>","*"].contains(&syntax){return Err("invalid registered property syntax".into());}
+        match property.get("initial"){Some(initial)=>{let initial=initial.as_str().ok_or("initial must be text")?;if initial.len()>200||!safe_css_value(initial)||(["<number>","<integer>"].contains(&syntax)&&initial.parse::<f64>().map(|n|!n.is_finite()).unwrap_or(true)){return Err("invalid registered property initial value".into());}},None=>if syntax!="*"{return Err("registered property needs an initial value".into());}}}
+    Ok(())}
+fn design_themes(site:&Site,value:&Value)->Result<(),String>{let Some(themes)=value.get("themes")else{return Ok(())};keys(themes,&["default","followSystem","values"])?;boolean(themes,"followSystem")?;if !["dark","light"].contains(&string(themes,"default")?){return Err("theme default must be dark or light".into());}
+    for(mode,tokens)in maps(themes,"values")?{if !["dark","light"].contains(&mode.as_str()){return Err("theme modes are dark and light".into());}for(name,token)in object(tokens)?{let bare=name.trim_start_matches("--");if !identifier(bare)||!site.tokens.keys().any(|k|k.trim_start_matches("--")==bare){return Err(format!("theme value {name} is not a site token"));}if !token.as_str().map(safe_css_value).unwrap_or(false){return Err(format!("unsafe theme value {name}"));}}}
+    Ok(())}
+fn design_fonts(value:&Value)->Result<(),String>{let entries=maps(value,"fonts")?;if entries.len()>16{return Err("too many fonts".into());}
+    for(id,font)in entries{if !identifier(id){return Err("invalid font id".into());}keys(font,&["family","src","weight","style","display"])?;let family=string(font,"family")?;if family.trim().is_empty()||family.chars().count()>64||family.chars().any(|c|c.is_control()||matches!(c,'"'|'\''|'{'|'}'|';'|'\\'|'<'|'>'|'@')){return Err("invalid font family".into());}
+        let src=string(font,"src")?;let owned=src.strip_prefix("/api/assets/").and_then(|name|name.strip_suffix(".woff2")).map(|hash|hash.len()==64&&hash.bytes().all(|c|c.is_ascii_hexdigit())).unwrap_or(false);if !owned&&!(src.starts_with("https://")&&safe_url(src)&&src.len()<=2048&&!src.contains(['(',')',' '])){return Err("font src must be an owned woff2 asset or an https URL".into());}
+        if let Some(weight)=font.get("weight"){let weight=weight.as_str().ok_or("weight must be text")?;let parts:Vec<&str>=weight.split(' ').collect();if parts.is_empty()||parts.len()>2||parts.iter().any(|p|!p.parse::<u32>().map(|n|(1..=1000).contains(&n)).unwrap_or(false)){return Err("invalid font weight".into());}}
+        if let Some(style)=font.get("style"){if !style.as_str().map(|s|["normal","italic"].contains(&s)).unwrap_or(false){return Err("invalid font style".into());}}
+        if let Some(display)=font.get("display"){if !display.as_str().map(|s|["swap","block","fallback","optional"].contains(&s)).unwrap_or(false){return Err("invalid font display".into());}}}
+    Ok(())}
 fn design(site:&Site,value:&Value)->Result<(),String> {
-    keys(value,&["tokens","textPresets","applications"])?;
+    keys(value,&["tokens","textPresets","applications","properties","themes","fonts"])?;
+    design_properties(value)?;design_themes(site,value)?;design_fonts(value)?;
     for (name,token) in maps(value,"tokens")? {
         keys(token,&["type","value"])?;
         let kind=string(token,"type")?;let raw=string(token,"value")?;

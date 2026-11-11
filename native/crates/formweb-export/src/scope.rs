@@ -29,5 +29,7 @@ pub fn configuration(site: &Site, root: &str, records: Vec<Value>, context: Valu
     if let Some(forms) = forms.as_object_mut() { for specification in forms.values_mut() { if let Some(url) = specification.get("successRedirect").and_then(Value::as_str).map(str::to_string) { specification["successRedirect"] = json!(crate::routing::link(&url, prefix, links)); } } }
     let mut integrations = site.extensions.get("integrations").cloned().unwrap_or_else(||json!({}));
     integrations["widgets"] = selected(integrations.get("widgets"), &ids);
-    json!({"records":records,"behaviors":{"nodes":selected(behaviors.and_then(|v|v.get("nodes")),&ids),"timelines":selected(behaviors.and_then(|v|v.get("timelines")),&actions),"overlays":overlays},"forms":{"forms":forms},"components":component_data(site,&components,&ids,prefix,links),"integrations":integrations,"nodes":node_map,"breakpoints":site.breakpoints,"routePrefix":prefix,"context":context})
+    let mut config = json!({"records":records,"behaviors":{"nodes":selected(behaviors.and_then(|v|v.get("nodes")),&ids),"timelines":selected(behaviors.and_then(|v|v.get("timelines")),&actions),"overlays":overlays},"forms":{"forms":forms},"components":component_data(site,&components,&ids,prefix,links),"integrations":integrations,"nodes":node_map,"breakpoints":site.breakpoints,"routePrefix":prefix,"context":context});
+    if let Some(motion) = site.extensions.get("motion") { config["motion"] = Value::Object(formweb_model::motion::KINDS.iter().map(|kind|(kind.to_string(),selected(motion.get(*kind),&ids))).collect()); }
+    config
 }

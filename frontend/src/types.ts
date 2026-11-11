@@ -51,3 +51,6 @@ export interface Site {
 export interface EditorState { site: Site; revision: number; canUndo: boolean; canRedo: boolean }
 export interface Command { command: string; params: Record<string, unknown> }
 export interface AuditIssue { severity: string; code: string; page?: string; node?: string; message: string }
+export type ThemeMode = 'dark' | 'light';
+export interface DesignThemes { default: ThemeMode; followSystem: boolean; values: Record<ThemeMode, Record<string, string>> }
+export interface DesignFont { family: string; src: string; weight: string; style: 'normal' | 'italic'; display: 'swap' | 'block' | 'fallback' | 'optional' }

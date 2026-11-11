@@ -10,7 +10,7 @@ ROOT = Path(os.getenv('FORMWEB_HOME', str(Path.home() / 'FormWeb'))) if FROZEN e
 if FROZEN:
     ROOT.mkdir(parents=True, exist_ok=True)
 load_dotenv(ROOT / 'backend' / '.env')
-VERSION = '0.18.9'
+VERSION = '0.19.0'
 PORT = int(os.getenv('FORMWEB_PORT', '8240'))
 CORE_NAME = 'formweb-core.exe' if os.name == 'nt' else 'formweb-core'
 CORE_BIN = Path(os.getenv('FORMWEB_CORE_BIN', str(BUNDLE / 'bin' / CORE_NAME if FROZEN else ROOT / 'native/target/release' / CORE_NAME)))
@@ -23,3 +23,6 @@ MAX_DOCUMENT_BYTES = 8 * 1024 * 1024
 MAX_FORM_BYTES = 65536
 MAX_FORM_UPLOAD_BYTES = 4 * 1024 * 1024
 MAX_PROJECT_FILE_BYTES = 64 * 1024 * 1024
+MAX_IMAGE_BYTES = 8 * 1024 * 1024
+MAX_VIDEO_BYTES = 64 * 1024 * 1024
+MAX_FONT_BYTES = 4 * 1024 * 1024

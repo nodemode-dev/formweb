@@ -12,6 +12,8 @@ pub fn render(site: &Site, root: &str) -> String {
     let mut needed = BTreeSet::new();
     let mut values: Vec<String> = scoped.nodes.values().flat_map(|node|node.styles.values().chain(node.breakpoints.values().flat_map(|map|map.values()))).cloned().collect();
     if let Some(behaviors)=scoped.extensions.get("behaviors") { values.push(behaviors.to_string()); }
+    if let Some(motion)=scoped.extensions.get("motion") { values.push(motion.to_string()); }
+    if let Some(themes)=scoped.extensions.get("design").and_then(|v|v.get("themes")) { values.push(themes.to_string()); }
     if let Some(components)=scoped.extensions.get("components").and_then(|v|v.get("definitions")).and_then(serde_json::Value::as_object) { let used:BTreeSet<_>=scoped.nodes.values().filter_map(|node|node.component_id.as_ref()).collect();for(id,definition)in components{if used.contains(id){values.push(definition.to_string());}} }
     while let Some(value) = values.pop() {
         let mut tail = value.as_str();

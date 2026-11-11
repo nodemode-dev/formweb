@@ -4,12 +4,14 @@ import json
 import re
 from pathlib import Path, PurePosixPath
 
-from .config import DATA_DIR
+from .config import DATA_DIR, MAX_FONT_BYTES, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES
 from .engine import EngineError
 
-ASSET_NAME = re.compile(r'^[0-9a-f]{64}\.(png|jpg|gif|webp|svg)$')
-ASSET_REF = re.compile(r'/api/assets/([0-9a-f]{64}\.(?:png|jpg|gif|webp|svg))')
-MIME_TYPES = {'png': 'image/png', 'jpg': 'image/jpeg', 'gif': 'image/gif', 'webp': 'image/webp', 'svg': 'image/svg+xml'}
+ASSET_NAME = re.compile(r'^[0-9a-f]{64}\.(png|jpg|gif|webp|svg|mp4|webm|woff2)$')
+ASSET_REF = re.compile(r'/api/assets/([0-9a-f]{64}\.(?:png|jpg|gif|webp|svg|mp4|webm|woff2))')
+MIME_TYPES = {'png': 'image/png', 'jpg': 'image/jpeg', 'gif': 'image/gif', 'webp': 'image/webp', 'svg': 'image/svg+xml',
+              'mp4': 'video/mp4', 'webm': 'video/webm', 'woff2': 'font/woff2'}
+SIZE_LIMITS = {'mp4': MAX_VIDEO_BYTES, 'webm': MAX_VIDEO_BYTES, 'woff2': MAX_FONT_BYTES}
 # FW-073: SVG assets come only from the bundled icon set (and .fweb files carrying them), never from uploads, and are
 # rebuilt from this allowlist so no script, link, style sheet or external reference can survive.
 SVG_TAGS = {'svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse',
@@ -226,11 +228,19 @@ def ingest(data: bytes, declared_type: str, filename: str | None, license: dict 
         extension = 'gif'
     elif data.startswith(b'RIFF') and data[8:12] == b'WEBP':
         extension = 'webp'
+    elif data[4:8] == b'ftyp' and data[8:12] in (b'isom', b'iso2', b'iso4', b'iso5', b'iso6', b'mp41', b'mp42', b'avc1', b'M4V ', b'dash', b'mmp4'):
+        extension = 'mp4'
+    elif data.startswith(b'\x1a\x45\xdf\xa3'):
+        extension = 'webm'
+    elif data.startswith(b'wOF2'):
+        extension = 'woff2'
     else:
-        raise EngineError('Upload a PNG, JPEG, GIF or WebP raster image.', 415)
+        raise EngineError('Upload a PNG, JPEG, GIF or WebP image, an MP4 or WebM video, or a WOFF2 font.', 415)
     mime = MIME_TYPES[extension]
     if declared_type not in (mime, 'application/octet-stream'):
-        raise EngineError('Image content does not match its declared media type.', 415)
+        raise EngineError('Asset content does not match its declared media type.', 415)
+    if len(data) > SIZE_LIMITS.get(extension, MAX_IMAGE_BYTES):
+        raise EngineError('Asset is too large.', 413)
     if len(data) < 20:
         raise EngineError('Image is truncated.')
     name = hashlib.sha256(data).hexdigest() + '.' + extension
@@ -331,13 +341,14 @@ def restore_project_assets(envelope: dict):
     for item in items:
         if not isinstance(item, dict) or not isinstance(item.get('id'), str) or not ASSET_NAME.fullmatch(item['id']) or item.get('encoding') != 'base64' or not isinstance(item.get('content'), str) or ('name' in item and not isinstance(item['name'], str)):
             raise EngineError('Native project image entry is invalid.')
-        if len(item['content']) > 12 * 1024 * 1024:
-            raise EngineError('Native project image exceeds 8 MiB.', 413)
+        limit = SIZE_LIMITS.get(item['id'].split('.')[-1], MAX_IMAGE_BYTES)
+        if len(item['content']) > limit * 4 // 3 + 4:
+            raise EngineError('Native project asset is too large.', 413)
         try:
             data = base64.b64decode(item['content'], validate=True)
         except (ValueError, TypeError) as error:
             raise EngineError('Native project image is not valid base64.') from error
-        if len(data) > 8 * 1024 * 1024 or hashlib.sha256(data).hexdigest() != item['id'].split('.')[0]:
+        if len(data) > limit or hashlib.sha256(data).hexdigest() != item['id'].split('.')[0]:
             raise EngineError('Native project image digest or size is invalid.')
         if item.get('mime') != MIME_TYPES[item['id'].split('.')[-1]]:
             raise EngineError('Native project image type is invalid.')

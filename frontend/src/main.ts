@@ -23,6 +23,7 @@ import { AiWriter, SiteGenerator } from './features/ai-writer';
 import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
+import { installInspector } from './features/inspector';
 import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 
@@ -270,6 +271,7 @@ const insertHead = element('div', 'panel-head');
 insertHead.append(element('span', 'eyebrow', 'Elements'));
 const insertGrid = element('div', 'insert-grid');
 for (const [label, symbol, kind] of [['Section', 'box', 'section'], ['Heading', 'text', 'heading'], ['Paragraph', 'text', 'paragraph'], ['Button', 'arrow', 'button'], ['Image', 'image', 'image'], ['Grid', 'grid', 'grid'], ['Form', 'box', 'form'], ['Link', 'globe', 'link'], ['Embed', 'eye', 'embed']] as [string, Icon, string][]) insertGrid.append(button(label, symbol, () => insertElement(kind), 'insert-card'));
+insertGrid.append(button('Video', 'video', () => inspectorExt.insertVideo(), 'insert-card'));
 const componentsHead = element('div', 'panel-head');
 componentsHead.append(element('span', 'eyebrow', 'Components'));
 const componentName = input('Component name');
@@ -1064,6 +1066,12 @@ const tokenName = input('accent');
 const tokenValue = input('#f97316');
 tokenGrid.append(field('New token name', tokenName), field('CSS value', tokenValue));
 tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS custom properties. Use var(--token-name) in element style fields.'), tokensList, tokenGrid, button('Add token', 'plus', () => command('token.set', { name: tokenName.value.trim(), value: tokenValue.value.trim() })));
+const inspectorExt = installInspector({
+  section, field, select, input, button, addStyle, addSegments, setStyle, nodePatch, run, status, insertionParent, makeNode, selectNode, canvas,
+  showLayers: () => setSidebar('pages'),
+  panes: { design: designPane, content: contentPane, tokens: tokensPane },
+  anchors: { afterAttributes: attributesSection, stageBefore: viewportReadout }
+});
 const settingsPane = dialogPane('settings');
 applyTheme();
 const themeSelect = select(Object.entries(THEMES).map(([id, profile]) => ({ id, name: profile.label })));
@@ -1447,6 +1455,7 @@ function update(next: EditorState): void {
   value(effectKind, node.attrs['data-fw-effect'] || '');
   value(effectSpeed, node.attrs['data-fw-effect-speed'] || '');
   effectSpeed.disabled = !node.attrs['data-fw-effect'];
+  inspectorExt.update(next, node, breakpoint);
   const invalidParents = descendants(node.id);
   options(parentSelect, Object.values(site.nodes).filter(item => !invalidParents.has(item.id) && descendants(page.root).has(item.id) && ['main', 'section', 'div', 'article', 'aside', 'header', 'footer', 'nav', 'form', 'ul', 'ol', 'li', 'figure'].includes(item.tag)).map(item => ({ id: item.id, name: item.name })));
   value(parentSelect, parent?.id || '');
@@ -1819,6 +1828,7 @@ function updateTokens(): void {
     text(row.children[0] as HTMLElement, `--${name.replace(/^--/, '')}`);
     value(row.children[1] as HTMLInputElement, content);
   });
+  inspectorExt.updateTokens(state());
 }
 
 mediaInput.addEventListener('change', () => void run(async () => {
