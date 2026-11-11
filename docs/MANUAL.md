@@ -11,7 +11,7 @@ Install Node 22.12 or later, Python 3.12 and Rust stable. From the repository:
 ./formweb boot
 ```
 
-On Windows use `formweb.bat install` and `formweb.bat boot`. Open http://localhost:5240. The API runs on http://127.0.0.1:8240. `./formweb doctor` lists missing tools or builds. To serve a built editor with one process, run `./formweb build`, then `./formweb serve`, and open the API address.
+On Windows use `formweb.bat install` and `formweb.bat boot`. The editor works in windows down to 760 x 640: when the menus, title tools and actions do not fit one row (in narrow windows, and in German or Russian even at 1440 px) the top bar takes two rows, Export and Audit show only their icons in a narrow toolbar, the side panels narrow, and the inspector puts its tabs two by two and its fields in one column whenever they would not fit. Open http://localhost:5240. The API runs on http://127.0.0.1:8240. `./formweb doctor` lists missing tools or builds. To serve a built editor with one process, run `./formweb build`, then `./formweb serve`, and open the API address.
 
 The default data folder is `backend/data`. Configure `FORMWEB_DATA_DIR` in `backend/.env` before launch to choose a persistent location. Keep a saved editable project or downloaded native document before replacing the checkout. Since 0.20.2, at start the backend removes its own temporary files in the data folder that are more than 10 minutes old (leftovers of a killed paste, load or save: `assets/.stage-*.part`, `tmp/project-*.fweb`, `tmp/load-*.fweb` and `projects/.pending-*`) and logs "Removed N stale temporary file(s) from the data folder." when any went. Only regular files with those exact names are removed; symlinks, directories, younger files, publication `.pending` folders and FormPublisher's inbox are left alone.
 
@@ -25,7 +25,7 @@ sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicat
 
 Add `xvfb` for a headless check. Build with `cd src-tauri` and `cargo build --release` (about 6 minutes); the binary is `src-tauri/target/release/formweb`. The shell uses the fixed port 8240 and reuses a healthy FormWeb service already running there. Run it with `FORMWEB_ROOT` set to the repository. Under Xvfb also set `WEBKIT_DISABLE_DMABUF_RENDERER=1`. Closing the window shuts the shell down and leaves no process behind.
 
-At 1440 x 900 the top bar, Team libraries, the Library panel, Preferences, Remove background, the brand kit, the stock dialogs and the Projects dialog match Chrome. Since 0.20.5 every select draws its own chevron, so selects look the same and show their whole value in both engines (the Desktop select reads in full in every language). Three small differences remain in WebKitGTK: range sliders fill their track with the accent colour, an unchecked checkbox is a plain white square, and number inputs show their spin buttons without hovering.
+At 1440 x 900 the top bar, Team libraries, the Library panel, Preferences, Remove background, the brand kit, the stock dialogs and the Projects dialog match Chrome. Since 0.20.5 every select draws its own chevron, so selects look the same and show their whole value in both engines (the Desktop select reads in full in every language). Since 0.20.6 sliders, checkboxes and number fields share one look too: a grey track with an accent knob, a grey rounded box with an accent fill and a dark check, and spin buttons that appear only when you point at or focus the field.
 
 ## Advanced studio
 
