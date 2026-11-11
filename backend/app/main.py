@@ -22,6 +22,7 @@ from .clips import router as clips_router
 from .commands_mirror import router as commands_router
 from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_ARCHIVE_BYTES, MAX_PROJECT_FILE_BYTES, MAX_VIDEO_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
+from .fpub import is_fpub, read_fpub
 from .fragment_routes import MAX_PASTE_BYTES, router as fragment_router
 from .handoff import router as handoff_router
 from .library_routes import router as library_router
@@ -648,7 +649,8 @@ async def load_archive(first: bytes, chunks):
                 spool.write(chunk)
         if total > MAX_PROJECT_ARCHIVE_BYTES:
             raise EngineError('Project archive exceeds the 512 MiB limit.', 413)
-        native = await asyncio.to_thread(read_project_archive, target, staged)
+        reader = read_fpub if await asyncio.to_thread(is_fpub, target) else read_project_archive
+        native = await asyncio.to_thread(reader, target, staged)
         return await load_native(native, target, staged)
     finally:
         target.unlink(missing_ok=True)
