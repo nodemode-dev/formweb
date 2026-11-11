@@ -2518,4 +2518,7 @@ export default [
   "Để trống để giữ văn bản giữ chỗ https://example.com.",
   "Nhập tệp .fweb hoặc .fpub",
   "Tệp này không phải dự án .fweb, gói .fpub hay JSON của dự án.",
+  "{0} tài nguyên quá lớn để nhúng và chỉ có thể dán trong FormWeb này.",
+  "{0} tài nguyên quá lớn để nhúng và chỉ có thể dán trên máy tính này.",
+  "Tiêu đề của Bước {0}",
 ] as readonly string[];

@@ -2518,4 +2518,7 @@ export default [
   "Jätä tyhjäksi, niin paikkamerkki https://example.com säilyy.",
   "Tuo .fweb- tai .fpub-tiedosto",
   "Tämä tiedosto ei ole .fweb-projekti, .fpub-paketti eikä projektin JSON.",
+  "{0} resurssia on liian suuria upotettaviksi, ja ne voidaan liittää vain tähän FormWebiin.",
+  "{0} resurssia on liian suuria upotettaviksi, ja ne voidaan liittää vain tällä tietokoneella.",
+  "Vaiheen {0} otsikko",
 ] as readonly string[];

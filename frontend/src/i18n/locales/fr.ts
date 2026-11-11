@@ -2518,4 +2518,7 @@ export default [
   "Laissez vide pour conserver le texte indicatif https://example.com.",
   "Importer un fichier .fweb ou .fpub",
   "Ce fichier n'est ni un projet .fweb, ni un package .fpub, ni un JSON de projet.",
+  "{0} ressources sont trop volumineuses pour être intégrées et ne pourront être collées que dans ce FormWeb.",
+  "{0} ressources sont trop volumineuses pour être intégrées et ne pourront être collées que sur cet ordinateur.",
+  "Titre de l'Étape {0}",
 ] as readonly string[];

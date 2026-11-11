@@ -2518,4 +2518,7 @@ export default [
   "Déjalo vacío para conservar el marcador de posición https://example.com.",
   "Importar archivo .fweb o .fpub",
   "Ese archivo no es un proyecto .fweb, un paquete .fpub ni un JSON de proyecto.",
+  "{0} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en este FormWeb.",
+  "{0} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en este ordenador.",
+  "Título del paso {0}",
 ] as readonly string[];

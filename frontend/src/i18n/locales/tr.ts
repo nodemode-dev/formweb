@@ -2518,4 +2518,7 @@ export default [
   "https://example.com yer tutucusunu korumak için boş bırakın.",
   ".fweb veya .fpub dosyasını içe aktar",
   "Bu dosya bir .fweb projesi, bir .fpub paketi ya da proje JSON'u değil.",
+  "{0} varlık gömülemeyecek kadar büyük ve yalnızca bu FormWeb içine yapıştırılabilir.",
+  "{0} varlık gömülemeyecek kadar büyük ve yalnızca bu bilgisayara yapıştırılabilir.",
+  "Adım {0} başlığı",
 ] as readonly string[];

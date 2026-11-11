@@ -2518,4 +2518,7 @@ export default [
   "Ponechte prázdné, aby zůstal zástupný text https://example.com.",
   "Importovat soubor .fweb nebo .fpub",
   "Tento soubor není projekt .fweb, balíček .fpub ani JSON projektu.",
+  "Počet obrázků příliš velkých na vložení do kopie: {0}. Půjdou vložit jen v tomto FormWebu.",
+  "Počet obrázků příliš velkých na vložení do kopie: {0}. Půjdou vložit jen v tomto počítači.",
+  "Název kroku {0}",
 ] as readonly string[];

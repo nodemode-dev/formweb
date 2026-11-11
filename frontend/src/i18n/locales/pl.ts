@@ -2518,4 +2518,7 @@ export default [
   "Zostaw puste, aby zachować tekst zastępczy https://example.com.",
   "Importuj plik .fweb lub .fpub",
   "Ten plik nie jest projektem .fweb, pakietem .fpub ani plikiem JSON projektu.",
+  "Liczba zasobów zbyt dużych, aby je osadzić: {0}. Można je wkleić tylko w tym FormWeb.",
+  "Liczba zasobów zbyt dużych, aby je osadzić: {0}. Można je wkleić tylko na tym komputerze.",
+  "Tytuł kroku {0}",
 ] as readonly string[];

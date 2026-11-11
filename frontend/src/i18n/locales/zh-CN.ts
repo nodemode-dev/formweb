@@ -2518,4 +2518,7 @@ export default [
   "留空则保留占位符 https://example.com。",
   "导入 .fweb 或 .fpub 文件",
   "该文件不是 .fweb 项目、.fpub 包或项目 JSON。",
+  "有 {0} 个资源过大，无法嵌入，只能粘贴到此 FormWeb 中。",
+  "有 {0} 个资源过大，无法嵌入，只能粘贴到这台计算机上。",
+  "步骤 {0} 的标题",
 ] as readonly string[];

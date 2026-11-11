@@ -2518,4 +2518,7 @@ export default [
   "留空即保留預留位置文字 https://example.com。",
   "匯入 .fweb 或 .fpub 檔案",
   "此檔案不是 .fweb 專案、.fpub 套件或專案 JSON。",
+  "有 {0} 個資源過大，無法嵌入，只能貼上到此 FormWeb 中。",
+  "有 {0} 個資源過大，無法嵌入，只能貼上到這台電腦上。",
+  "步驟 {0} 的標題",
 ] as readonly string[];

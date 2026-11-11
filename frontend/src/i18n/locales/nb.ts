@@ -2518,4 +2518,7 @@ export default [
   "La feltet stå tomt for å beholde plassholderen https://example.com.",
   "Importer .fweb- eller .fpub-fil",
   "Filen er verken et .fweb-prosjekt, en .fpub-pakke eller prosjekt-JSON.",
+  "{0} ressurser er for store til å bygges inn og kan bare limes inn i denne FormWeb.",
+  "{0} ressurser er for store til å bygges inn og kan bare limes inn på denne datamaskinen.",
+  "Tittel for Trinn {0}",
 ] as readonly string[];

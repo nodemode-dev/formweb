@@ -2518,4 +2518,7 @@ export default [
   "Lad feltet stå tomt for at beholde pladsholderen https://example.com.",
   "Importér .fweb- eller .fpub-fil",
   "Filen er hverken et .fweb-projekt, en .fpub-pakke eller projekt-JSON.",
+  "{0} billeder er for store til at blive indlejret og kan kun indsættes i denne FormWeb.",
+  "{0} billeder er for store til at blive indlejret og kan kun indsættes på denne computer.",
+  "Titel på Trin {0}",
 ] as readonly string[];

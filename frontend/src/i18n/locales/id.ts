@@ -2518,4 +2518,7 @@ export default [
   "Kosongkan untuk tetap memakai placeholder https://example.com.",
   "Impor file .fweb atau .fpub",
   "File itu bukan proyek .fweb, paket .fpub, atau JSON proyek.",
+  "{0} aset terlalu besar untuk disematkan dan hanya bisa ditempel di FormWeb ini.",
+  "{0} aset terlalu besar untuk disematkan dan hanya bisa ditempel di komputer ini.",
+  "Judul untuk Langkah {0}",
 ] as readonly string[];

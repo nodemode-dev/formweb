@@ -2518,4 +2518,7 @@ export default [
   "Hagyja üresen, hogy megmaradjon a https://example.com helyőrző.",
   ".fweb vagy .fpub fájl importálása",
   "Ez a fájl nem .fweb projekt, nem .fpub csomag és nem projekt-JSON.",
+  "{0} erőforrás túl nagy a beágyazáshoz, ezért csak ebbe a FormWebbe illeszthető be.",
+  "{0} erőforrás túl nagy a beágyazáshoz, ezért csak ezen a számítógépen illeszthető be.",
+  "{0}. lépés címe",
 ] as readonly string[];
