@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.20.7 · 2026-11-11
+
+- Menus that do not fit the menubar move into a More menus button (three dots) at its end, which opens each of them with the same commands and shortcuts, by mouse or keyboard. The top bar is one row from 800 px up in every language, so switching to German or Russian no longer pushes the page down.
+- Labels in the Library form, Kits, the vector dialogs, the inspector sections and Motion now follow a live language switch exactly, also where two labels share one word in a language (such as the library fields in Russian).
+- In narrow windows the stage header keeps the selection path readable and shortens the "Editing" text with an ellipsis instead of cutting it off. The desktop app on Linux was checked beside the browser at every width it allows.
+- The new label is in all 26 languages.
+
 ## 0.20.6 · 2026-11-11
 
 - Labels, tooltips and status messages that combine several words (graphic style buttons, recolor swatches, menu tooltips, team library details, the status bar and more) now follow a live language switch, like the rest of the editor. Menu tooltips no longer stay in English.
