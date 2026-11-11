@@ -2521,4 +2521,5 @@ export default [
   "{0} aset terlalu besar untuk disematkan dan hanya bisa ditempel di FormWeb ini.",
   "{0} aset terlalu besar untuk disematkan dan hanya bisa ditempel di komputer ini.",
   "Judul untuk Langkah {0}",
+  "Menu lainnya",
 ] as readonly string[];

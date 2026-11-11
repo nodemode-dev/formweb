@@ -2521,4 +2521,5 @@ export default [
   "Liczba zasobów zbyt dużych, aby je osadzić: {0}. Można je wkleić tylko w tym FormWeb.",
   "Liczba zasobów zbyt dużych, aby je osadzić: {0}. Można je wkleić tylko na tym komputerze.",
   "Tytuł kroku {0}",
+  "Więcej menu",
 ] as readonly string[];

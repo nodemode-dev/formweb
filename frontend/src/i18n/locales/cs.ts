@@ -2521,4 +2521,5 @@ export default [
   "Počet obrázků příliš velkých na vložení do kopie: {0}. Půjdou vložit jen v tomto FormWebu.",
   "Počet obrázků příliš velkých na vložení do kopie: {0}. Půjdou vložit jen v tomto počítači.",
   "Název kroku {0}",
+  "Další nabídky",
 ] as readonly string[];

@@ -2521,4 +2521,5 @@ export default [
   "{0} varlık gömülemeyecek kadar büyük ve yalnızca bu FormWeb içine yapıştırılabilir.",
   "{0} varlık gömülemeyecek kadar büyük ve yalnızca bu bilgisayara yapıştırılabilir.",
   "Adım {0} başlığı",
+  "Diğer menüler",
 ] as readonly string[];

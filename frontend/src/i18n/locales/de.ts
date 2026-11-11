@@ -2521,4 +2521,5 @@ export default [
   "{0} Assets sind zu groß zum Einbetten und lassen sich nur in diesem FormWeb einfügen.",
   "{0} Assets sind zu groß zum Einbetten und lassen sich nur auf diesem Computer einfügen.",
   "Titel für Schritt {0}",
+  "Weitere Menüs",
 ] as readonly string[];
