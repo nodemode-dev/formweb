@@ -70,7 +70,8 @@
   --radius-pill: 999px;
   --radius-small: var(--radius-sm);
   --radius-large: var(--radius-lg);
-  --font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', var(--font-script), 'Segoe UI', system-ui, sans-serif;
+  --font-script: 'FW Han JP', 'FW Hangul', 'FW Thai';
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, 'JetBrains Mono', monospace;
   --fs-9: 9px;
   --fs-10: 10px;
@@ -130,5 +131,8 @@
   --shadow-lg: 0 4px 14px rgba(96, 90, 70, 0.16);
   --shadow-window: 0 18px 44px rgba(96, 90, 70, 0.22);
 }
+:root:lang(zh-CN) { --font-script: 'FW Han SC', 'FW Hangul', 'FW Thai'; }
+:root:lang(zh-TW) { --font-script: 'FW Han TC', 'FW Hangul', 'FW Thai'; }
+:root:lang(ko) { --font-script: 'FW Hangul', 'FW Han JP', 'FW Thai'; }
 * { scrollbar-width: none; }
 *::-webkit-scrollbar { display: none; width: 0; height: 0; }
