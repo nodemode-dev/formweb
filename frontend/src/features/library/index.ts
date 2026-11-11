@@ -35,9 +35,9 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
       parent: where.parent, index: where.index, page: where.page, values
     });
     if (result.root) hooks.select(result.root);
-    const name = t(section.name || section.id);
-    hooks.notify(t('Inserted {0}.', [name]), false);
-    return [t('Inserted {0}.', [name]), result.warnings?.[0]].filter(Boolean).join(' ');
+    const inserted = t('Inserted {0}.', [{ t: section.name || section.id }]);
+    hooks.notify(inserted, false);
+    return result.warnings?.[0] ? [inserted, ' ', result.warnings[0]] : [inserted];
   });
   const kits = new Kits(hooks, page => hooks.openPage(page));
   const importer = new HtmlImport(hooks);
@@ -101,7 +101,7 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
       // An open detail keeps its form (a refresh must never rebuild inputs someone is typing in); it closes only if its section is gone.
       if (opened && !index.sections.some(section => section.id === opened)) { opened = ''; paint(); }
     } catch (error) {
-      if (!loaded) grid.setMessage(t('The library could not be loaded.') + ' ' + (error instanceof Error ? error.message : ''), true);
+      if (!loaded) grid.setMessage(t('The library could not be loaded.'), true, error instanceof Error ? ` ${error.message}` : '');
       else hooks.notify(error instanceof Error ? error.message : String(error), true);
     } finally {
       loading = false;

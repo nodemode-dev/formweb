@@ -229,7 +229,7 @@ class RecolorDialog {
       const input = element('input', 'fw-v-color');
       input.type = 'color';
       input.value = this.target.get(from) ?? from;
-      input.setAttribute('aria-label', `${t('New color for')} ${from}`);
+      input.setAttribute('aria-label', t('{0} {1}', [{ t: 'New color for' }, from]));
       input.addEventListener('input', () => { this.target.set(from, input.value.toLowerCase()); this.preview(); });
       row.append(old, element('span', 'fw-v-arrow', '→'), input, element('span', 'fw-v-note', `${from} (${this.palette.counts[this.palette.colors.indexOf(from)]})`));
       return row;

@@ -1,5 +1,5 @@
 import { command, commands, request, upload } from '../../api';
-import { element, keyed, options, text, value } from '../../ui/dom';
+import { element, keyed, options, pieces, text, value } from '../../ui/dom';
 import { t } from '../../i18n';
 import type { Control, InspectorContext } from './context';
 import type { EditorState, SiteNode } from '../../types';
@@ -354,7 +354,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
       if (poster && thumb.getAttribute('src') !== poster) thumb.setAttribute('src', poster);
       if (thumb.hidden === !!poster) thumb.hidden = !poster;
       if (holder.hidden === !poster) holder.hidden = !!poster;
-      text(row.children[2] as HTMLElement, id + ' | ' + t(MODE_LABEL[component.mode || 'isolated'] || MODE_LABEL.isolated) + ' | ' + sizeLabel(component));
+      pieces(row.children[2] as HTMLElement, [`${id} | `, t(MODE_LABEL[component.mode || 'isolated'] || MODE_LABEL.isolated), ` | ${sizeLabel(component)}`]);
     });
   }
 

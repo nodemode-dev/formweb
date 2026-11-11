@@ -1,4 +1,5 @@
 import { element, keyed, text } from './dom';
+import { t } from '../i18n';
 import { listCommands, runFromBridge } from '../commands/catalogue';
 import { commands, type Command } from '../commands/registry';
 
@@ -72,7 +73,7 @@ export class Menubar {
         row.type = 'button';
         row.setAttribute('role', 'menuitem');
         row.dataset.command = item.id;
-        row.title = `${commands.label(item)} · ${item.id}`;
+        row.title = t('{0} · {1}', [{ t: commands.label(item) }, item.id]);
         row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', commands.label(item)), element('span', 'fw-menu-keys', commands.keyLabel(item)));
         row.addEventListener('click', () => { this.close(); runCommand(item.id); });
         view.popup.append(row);

@@ -119,7 +119,7 @@ export function buildQuality(ctx: WishlistContext): Tab[] {
         setText(node.firstElementChild as HTMLElement, label);
         const input = node.lastElementChild as HTMLInputElement;
         input.placeholder = label;
-        input.setAttribute('aria-label', `Title for ${label}`);
+        input.setAttribute('aria-label', t('Title for Step {0}', [item.attrs['data-fw-step']]));
         input.dataset.saved = item.attrs['data-fw-step-title'] || '';
         setValue(input, input.dataset.saved);
       });

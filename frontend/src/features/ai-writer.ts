@@ -1,4 +1,4 @@
-import { element, keyed, options, text } from '../ui/dom';
+import { element, keyed, options, pieces, text } from '../ui/dom';
 import type { SiteReference } from '../api';
 import { t, tn } from '../i18n';
 import '../styles/ai-writer.css';
@@ -195,7 +195,7 @@ export class SiteGenerator {
   async open(): Promise<void> {
     const status = await this.hooks.status();
     this.note.dataset.state = status.available ? 'ok' : 'off';
-    text(this.note, `${status.note} ${t('You review an outline first; building adds new editable pages in one undo step and changes nothing that exists.')}`);
+    pieces(this.note, [status.note, ' ', t('You review an outline first; building adds new editable pages in one undo step and changes nothing that exists.')]);
     this.draftButton.disabled = !status.available;
     this.prompt.focus();
   }
@@ -254,7 +254,11 @@ export class SiteGenerator {
       const block = element('div', 'fw-ai-page');
       block.append(element('strong', '', `${page.name}  ${page.slug || ''}`));
       const list = element('ol');
-      for (const section of page.sections) list.append(element('li', '', `${section.kind}: ${section.heading || t('(no heading)')}${section.items.length ? ` (${tn(section.items.length, '{0} item', '{0} items')})` : ''}`));
+      for (const section of page.sections) {
+        const entry = element('li');
+        pieces(entry, [section.heading ? `${section.kind}: ${section.heading}` : `${section.kind}: `, section.heading ? '' : t('(no heading)'), section.items.length ? ' (' : '', section.items.length ? tn(section.items.length, '{0} item', '{0} items') : '', section.items.length ? ')' : '']);
+        list.append(entry);
+      }
       block.append(list);
       this.outline.append(block);
     }
