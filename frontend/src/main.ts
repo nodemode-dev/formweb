@@ -25,6 +25,7 @@ import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
 import { installInspector } from './features/inspector';
 import { installLibrary } from './features/library';
+import { watchFit } from './ui/fit';
 import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 
@@ -457,6 +458,7 @@ statusAction.addEventListener('click', () => { const act = statusActionRun; if (
 const statusRevision = element('span', 'status-revision', '');
 statusbar.append(statusConnection, statusMessage, statusAction, statusRevision);
 app.append(topbar, toolbar, workspace, statusbar);
+watchFit(app, topbar, inspector);
 
 function addInspectorInput(container: HTMLElement, label: string, key: string, handler: (next: string) => unknown, choices?: string[], full = false, multiline = false): HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
   const control = choices ? select(choices.map(id => ({ id, name: id || 'None' }))) : multiline ? element('textarea') : input();
