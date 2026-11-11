@@ -1,8 +1,9 @@
 import { command } from '../../api';
 import { element, keyed, text, value } from '../../ui/dom';
 import { icon, type Icon } from '../../ui/icons';
-import { t } from '../../i18n';
+import { label, labelAttr } from '../../i18n';
 import { readThemes, type InspectorContext } from './context';
+import { fieldOf, labeled, selectOf } from './labeled';
 import type { DesignThemes, EditorState, ThemeMode } from '../../types';
 
 export interface ThemeHandle {
@@ -17,14 +18,14 @@ export function installTheme(ctx: InspectorContext, onPreview: () => void): Them
 
   const switcher = element('div', 'fw-theme-switch');
   switcher.setAttribute('role', 'group');
-  switcher.setAttribute('aria-label', t('Canvas theme'));
+  labelAttr(switcher, 'aria-label', 'Canvas theme');
   const modeButtons = new Map<ThemeMode, HTMLButtonElement>();
   for (const [mode, symbol, label] of [['dark', 'moon', 'Preview dark theme'], ['light', 'sun', 'Preview light theme']] as [ThemeMode, Icon, string][]) {
     const node = element('button', 'fw-theme-btn');
     node.type = 'button';
     node.append(icon(symbol));
-    node.title = t(label);
-    node.setAttribute('aria-label', t(label));
+    labelAttr(node, 'title', label);
+    labelAttr(node, 'aria-label', label);
     node.setAttribute('aria-pressed', 'false');
     node.addEventListener('click', () => { chosen = mode; onPreview(); });
     modeButtons.set(mode, node);
@@ -33,19 +34,19 @@ export function installTheme(ctx: InspectorContext, onPreview: () => void): Them
   ctx.anchors.stageBefore.before(switcher);
 
   const block = element('div', 'fw-ext-block');
-  const head = element('div', 'fw-ext-head', t('Themes'));
+  const head = labeled('div', 'fw-ext-head', 'Themes');
   const grid = element('div', 'form-grid');
-  const defaultMode = ctx.select([{ id: 'dark', name: t('Dark') }, { id: 'light', name: t('Light') }]);
+  const defaultMode = selectOf(ctx, [{ id: 'dark', name: 'Dark', en: 'Dark' }, { id: 'light', name: 'Light', en: 'Light' }]);
   defaultMode.dataset.field = 'themes.default';
   const follow = element('input');
   follow.type = 'checkbox';
   follow.dataset.field = 'themes.followSystem';
   const followLabel = element('label', 'checkbox-field fw-theme-follow');
-  followLabel.append(follow, element('span', '', t('Follow the visitor system setting')));
-  grid.append(ctx.field(t('Default theme'), defaultMode), followLabel);
+  followLabel.append(follow, labeled('span', '', 'Follow the visitor system setting'));
+  grid.append(fieldOf(ctx, 'Default theme', defaultMode), followLabel);
   const otherHead = element('div', 'micro fw-theme-other');
   const rows = element('div', 'fw-theme-rows');
-  block.append(head, grid, otherHead, rows, element('p', 'micro', t('Tokens above hold the default theme. Fill a token here to give it another value in the other theme; empty keeps the default value. Visitors can switch themes and the choice is remembered on their device.')));
+  block.append(head, grid, otherHead, rows, labeled('p', 'micro', 'Tokens above hold the default theme. Fill a token here to give it another value in the other theme; empty keeps the default value. Visitors can switch themes and the choice is remembered on their device.'));
   ctx.panes.tokens.append(block);
 
   function other(themes: DesignThemes): ThemeMode { return themes.default === 'dark' ? 'light' : 'dark'; }
@@ -64,7 +65,7 @@ export function installTheme(ctx: InspectorContext, onPreview: () => void): Them
       value(defaultMode, themes.default);
       if (follow.checked !== themes.followSystem) follow.checked = themes.followSystem;
       const alt = other(themes);
-      text(otherHead, t('Values for {0} mode', [{ t: alt === 'light' ? 'Light' : 'Dark' }]));
+      label(otherHead, 'Values for {0} mode', [{ t: alt === 'light' ? 'Light' : 'Dark' }]);
       keyed(rows, Object.entries(next.site.tokens), item => item[0], () => {
         const row = element('div', 'tokens-row');
         const name = element('span', 'micro');

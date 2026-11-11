@@ -1,8 +1,9 @@
 import { command, upload } from '../../api';
 import { element, keyed, text, value } from '../../ui/dom';
 import { icon } from '../../ui/icons';
-import { t } from '../../i18n';
+import { labelAttr, t } from '../../i18n';
 import { readFonts, type InspectorContext } from './context';
+import { buttonOf, fieldOf, labeled, selectOf } from './labeled';
 import type { DesignFont, EditorState } from '../../types';
 
 const STYLES = ['normal', 'italic'];
@@ -20,28 +21,28 @@ function validFamily(family: string): boolean { return family.length > 0 && fami
 export function installFonts(ctx: InspectorContext): FontsHandle {
   let latest: EditorState | undefined;
   const block = element('div', 'fw-ext-block');
-  const head = element('div', 'fw-ext-head', t('Fonts'));
+  const head = labeled('div', 'fw-ext-head', 'Fonts');
   const list = element('div', 'fw-font-list');
-  const empty = element('p', 'micro', t('No fonts uploaded yet.'));
+  const empty = labeled('p', 'micro', 'No fonts uploaded yet.');
   const grid = element('div', 'form-grid');
   const family = ctx.input('Inter Web');
   const weight = ctx.input('100 900');
   weight.value = '400';
-  const style = ctx.select(STYLES.map(id => ({ id, name: t(id === 'normal' ? 'Normal' : 'Italic') })));
+  const style = selectOf(ctx, STYLES.map(id => { const en = id === 'normal' ? 'Normal' : 'Italic'; return { id, name: en, en }; }));
   const display = ctx.select(DISPLAYS.map(id => ({ id, name: id })));
-  grid.append(ctx.field(t('Family name'), family), ctx.field(t('Weight or range'), weight), ctx.field(t('Style'), style), ctx.field(t('Display'), display));
+  grid.append(fieldOf(ctx, 'Family name', family), fieldOf(ctx, 'Weight or range', weight), fieldOf(ctx, 'Style', style), fieldOf(ctx, 'Display', display));
   const picker = element('input');
   picker.type = 'file';
   picker.accept = '.woff2,font/woff2';
   picker.hidden = true;
   document.body.append(picker);
-  const add = ctx.button(t('Upload WOFF2 and add'), 'upload', () => {
+  const add = buttonOf(ctx, 'Upload WOFF2 and add', 'upload', () => {
     if (!validFamily(family.value.trim())) throw new Error(t('Enter a family name of up to 64 characters without quotes, braces, semicolons or backslashes.'));
     if (!validWeight(weight.value)) throw new Error(t('Weight is a number such as 400 or a range such as 100 900.'));
     if (Object.keys(readFonts(latest!)).length >= MAX_FACES) throw new Error(t('A site holds up to 16 font faces.'));
     picker.click();
   }, 'fw-ext-add');
-  block.append(head, list, empty, grid, add, element('p', 'micro', t('WOFF2 only, up to 4 MiB. Fonts are stored in this project, drawn on the canvas, and bundled into exports. Use the family name in the Family style field.')));
+  block.append(head, list, empty, grid, add, labeled('p', 'micro', 'WOFF2 only, up to 4 MiB. Fonts are stored in this project, drawn on the canvas, and bundled into exports. Use the family name in the Family style field.'));
   ctx.panes.tokens.append(block);
 
   function save(map: Record<string, DesignFont>): Promise<unknown> { return command('design.set', { key: 'fonts', value: map }); }
@@ -71,12 +72,12 @@ export function installFonts(ctx: InspectorContext): FontsHandle {
       return save(map);
     }, 'icon-button');
     remove.append(icon('trash'));
-    remove.title = t('Remove font');
-    remove.setAttribute('aria-label', t('Remove font'));
+    labelAttr(remove, 'title', 'Remove font');
+    labelAttr(remove, 'aria-label', 'Remove font');
     top.append(name, source, remove);
     const fields = element('div', 'form-grid fw-font-fields');
     const rowWeight = ctx.input('400');
-    const rowStyle = ctx.select(STYLES.map(id => ({ id, name: t(id === 'normal' ? 'Normal' : 'Italic') })));
+    const rowStyle = selectOf(ctx, STYLES.map(id => { const en = id === 'normal' ? 'Normal' : 'Italic'; return { id, name: en, en }; }));
     const rowDisplay = ctx.select(DISPLAYS.map(id => ({ id, name: id })));
     const edit = (patch: () => Partial<DesignFont>): void => void ctx.run(() => {
       const map = readFonts(latest!);
@@ -90,7 +91,7 @@ export function installFonts(ctx: InspectorContext): FontsHandle {
     });
     rowStyle.addEventListener('change', () => edit(() => ({ style: rowStyle.value as DesignFont['style'] })));
     rowDisplay.addEventListener('change', () => edit(() => ({ display: rowDisplay.value as DesignFont['display'] })));
-    fields.append(ctx.field(t('Weight'), rowWeight), ctx.field(t('Style'), rowStyle), ctx.field(t('Display'), rowDisplay));
+    fields.append(fieldOf(ctx, 'Weight', rowWeight), fieldOf(ctx, 'Style', rowStyle), fieldOf(ctx, 'Display', rowDisplay));
     row.append(top, fields);
     return row;
   }

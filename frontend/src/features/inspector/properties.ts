@@ -1,8 +1,9 @@
 import { command } from '../../api';
 import { element, keyed, text, value } from '../../ui/dom';
 import { icon } from '../../ui/icons';
-import { t } from '../../i18n';
+import { labelAttr, t } from '../../i18n';
 import type { InspectorContext } from './context';
+import { buttonOf, fieldOf, labeled } from './labeled';
 import type { EditorState } from '../../types';
 
 interface Registered { syntax: string; inherits: boolean; initial?: string }
@@ -19,20 +20,20 @@ function readProperties(next: EditorState): Record<string, Registered> {
 export function installProperties(ctx: InspectorContext): { fill(next: EditorState): void } {
   let latest: EditorState | undefined;
   const block = element('div', 'fw-ext-block');
-  const head = element('div', 'fw-ext-head', t('Registered properties'));
+  const head = labeled('div', 'fw-ext-head', 'Registered properties');
   const list = element('div', 'fw-font-list');
-  const empty = element('p', 'micro', t('No registered properties yet.'));
+  const empty = labeled('p', 'micro', 'No registered properties yet.');
   const grid = element('div', 'form-grid');
   const name = ctx.input('fold');
-  grid.append(ctx.field(t('Property name'), name, true));
-  const add = ctx.button(t('Add property'), 'plus', () => {
+  grid.append(fieldOf(ctx, 'Property name', name, true));
+  const add = buttonOf(ctx, 'Add property', 'plus', () => {
     const key = name.value.trim().replace(/^--/, '');
     if (!key) throw new Error(t('Enter a property name.'));
     const map = readProperties(latest!);
     map[key] = { syntax: '<number>', inherits: false, initial: '0' };
     return save(map).then(() => { name.value = ''; });
   }, 'fw-ext-add');
-  block.append(head, list, empty, grid, add, element('p', 'micro', t('Registered properties get a type, so they can be animated and transitioned. Use them as var(--name) in any style value.')));
+  block.append(head, list, empty, grid, add, labeled('p', 'micro', 'Registered properties get a type, so they can be animated and transitioned. Use them as var(--name) in any style value.'));
   ctx.panes.tokens.append(block);
 
   function save(map: Record<string, Registered>): Promise<unknown> { return command('design.set', { key: 'properties', value: map }); }
@@ -47,8 +48,8 @@ export function installProperties(ctx: InspectorContext): { fill(next: EditorSta
       return save(map);
     }, 'icon-button');
     remove.append(icon('trash'));
-    remove.title = t('Remove property');
-    remove.setAttribute('aria-label', t('Remove property'));
+    labelAttr(remove, 'title', 'Remove property');
+    labelAttr(remove, 'aria-label', 'Remove property');
     top.append(label, remove);
     top.children[0].classList.add('fw-font-src');
     const fields = element('div', 'form-grid');
@@ -57,7 +58,7 @@ export function installProperties(ctx: InspectorContext): { fill(next: EditorSta
     const inherits = element('input');
     inherits.type = 'checkbox';
     const inheritsLabel = element('label', 'checkbox-field');
-    inheritsLabel.append(inherits, element('span', '', t('Inherits')));
+    inheritsLabel.append(inherits, labeled('span', '', 'Inherits'));
     const error = element('p', 'micro error', '');
     error.hidden = true;
     const commit = (): void => void ctx.run(async () => {
@@ -78,7 +79,7 @@ export function installProperties(ctx: InspectorContext): { fill(next: EditorSta
     syntax.addEventListener('change', commit);
     initial.addEventListener('change', commit);
     inherits.addEventListener('change', commit);
-    fields.append(ctx.field(t('Syntax'), syntax), ctx.field(t('Initial value'), initial), inheritsLabel);
+    fields.append(fieldOf(ctx, 'Syntax', syntax), fieldOf(ctx, 'Initial value', initial), inheritsLabel);
     row.append(top, fields, error);
     return row;
   }

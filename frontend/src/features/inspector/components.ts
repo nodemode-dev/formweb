@@ -1,7 +1,8 @@
 import { command, commands, request, upload } from '../../api';
-import { element, keyed, options, pieces, text, value } from '../../ui/dom';
-import { t } from '../../i18n';
+import { element, keyed, options, pieces, value } from '../../ui/dom';
+import { label, labelText, t } from '../../i18n';
 import type { Control, InspectorContext } from './context';
+import { buttonOf, fieldOf, labeled, optionsOf, type Choice } from './labeled';
 import type { EditorState, SiteNode } from '../../types';
 
 interface PropSchema { type?: string; default?: unknown; required?: boolean }
@@ -76,7 +77,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
 
   const insertBox = element('div', 'fw-ext-group');
   const insertSelect = ctx.select([]);
-  const insertButton = ctx.button(t('Insert component'), 'plus', () => void ctx.run(async () => {
+  const insertButton = buttonOf(ctx, 'Insert component', 'plus', () => void ctx.run(async () => {
     const id = insertSelect.value;
     const group = codeGroup(latest!);
     if (!id || !group.components?.[id]) throw new Error(t('Choose an installed component first.'));
@@ -89,28 +90,28 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
     ctx.showLayers();
     ctx.status(t('Component inserted. The operation is one undo step.'));
   }));
-  const insertHint = element('p', 'micro', t('No code components are installed. Use Build new below.'));
-  insertBox.append(ctx.field(t('Component'), insertSelect, true), element('div', 'fw-ext-actions'), insertHint);
+  const insertHint = labeled('p', 'micro', 'No code components are installed. Use Build new below.');
+  insertBox.append(fieldOf(ctx, 'Component', insertSelect, true), element('div', 'fw-ext-actions'), insertHint);
   (insertBox.children[1] as HTMLElement).append(insertButton);
 
   const editBox = element('div', 'fw-ext-group');
   const componentSelect = ctx.select([]);
   const modeBadge = element('span', 'micro', '');
-  const modeHint = element('p', 'micro', t(PAGE_HINT));
+  const modeHint = labeled('p', 'micro', PAGE_HINT);
   const posterInput = ctx.input('/api/assets/...');
   const posterFile = picker(IMAGE_ACCEPT);
   const posterActions = element('div', 'fw-ext-actions');
-  const posterUpload = ctx.button(t('Upload poster'), 'image', () => posterFile.click());
-  const posterClear = ctx.button(t('Clear poster'), 'close', () => void ctx.run(() => commitPoster('')));
+  const posterUpload = buttonOf(ctx, 'Upload poster', 'image', () => posterFile.click());
+  const posterClear = buttonOf(ctx, 'Clear poster', 'close', () => void ctx.run(() => commitPoster('')));
   posterActions.append(posterUpload, posterClear);
   const lightInput = ctx.input('/api/assets/...');
   const lightFile = picker(IMAGE_ACCEPT);
   const lightActions = element('div', 'fw-ext-actions');
-  const lightUpload = ctx.button(t('Upload light poster'), 'image', () => lightFile.click());
-  const lightClear = ctx.button(t('Clear light poster'), 'close', () => void ctx.run(() => commitPoster('', 'posterLight')));
+  const lightUpload = buttonOf(ctx, 'Upload light poster', 'image', () => lightFile.click());
+  const lightClear = buttonOf(ctx, 'Clear light poster', 'close', () => void ctx.run(() => commitPoster('', 'posterLight')));
   lightActions.append(lightUpload, lightClear);
   const propsForm = element('div', 'form-grid');
-  const removeButton = ctx.button(t('Remove component'), 'trash', () => void ctx.run(async () => {
+  const removeButton = buttonOf(ctx, 'Remove component', 'trash', () => void ctx.run(async () => {
     if (!current) return;
     await command('code.instance.remove', { node: current.id });
     ctx.status(t('Component removed from this element.'));
@@ -119,15 +120,15 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
   removeActions.append(removeButton);
   const modeRow = element('div', 'fw-ext-actions');
   modeRow.append(modeBadge);
-  editBox.append(ctx.field(t('Component'), componentSelect, true), modeRow, modeHint, ctx.field(t('Poster image'), posterInput, true), posterActions, ctx.field(t('Light theme poster'), lightInput, true), lightActions, propsForm, removeActions);
+  editBox.append(fieldOf(ctx, 'Component', componentSelect, true), modeRow, modeHint, fieldOf(ctx, 'Poster image', posterInput, true), posterActions, fieldOf(ctx, 'Light theme poster', lightInput, true), lightActions, propsForm, removeActions);
   editBox.hidden = true;
   body.append(insertBox, editBox);
 
   const listBlock = ctx.section(ctx.panes.content, 'Code components');
   const list = element('div', 'fw-ext-group');
-  const emptyNote = element('p', 'micro', t('No code components are installed.'));
+  const emptyNote = labeled('p', 'micro', 'No code components are installed.');
   const listActions = element('div', 'fw-ext-actions');
-  listActions.append(ctx.button(t('Build new'), 'code', () => {
+  listActions.append(buttonOf(ctx, 'Build new', 'code', () => {
     document.dispatchEvent(new CustomEvent('fw:open-studio', { detail: { category: 'components', action: 'code-build' } }));
   }));
   listBlock.append(list, emptyNote, listActions);
@@ -202,8 +203,8 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
     await command('code.instance.set', { node: current.id, value: { component: componentSelect.value, props } });
   }));
 
-  function assetItems(selected: string): { id: string; name: string }[] {
-    const items = [{ id: '', name: t('None') }, ...assets.map(item => ({ id: item.url, name: item.name || item.id }))];
+  function assetItems(selected: string): Choice[] {
+    const items: Choice[] = [{ id: '', name: t('None'), en: 'None' }, ...assets.map(item => ({ id: item.url, name: item.name || item.id }))];
     if (selected && !items.some(item => item.id === selected)) items.push({ id: selected, name: selected });
     return items;
   }
@@ -213,7 +214,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
     for (const [name, found] of controls) {
       if (found.type !== 'asset') continue;
       const selected = String(instance?.props?.[name] ?? '');
-      options(found.input as HTMLSelectElement, assetItems(selected));
+      optionsOf(found.input as HTMLSelectElement, assetItems(selected));
       value(found.input, selected);
     }
   }
@@ -249,7 +250,8 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
         }));
         input = area;
       } else if (type === 'asset') {
-        const choice = ctx.select(assetItems(''));
+        const choice = ctx.select([]);
+        optionsOf(choice, assetItems(''));
         choice.addEventListener('change', () => void ctx.run(() => commitProps(props => {
           if (choice.value) props[name] = choice.value;
           else delete props[name];
@@ -292,7 +294,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
         wrap.append(row);
       } else if (extra) {
         const row = element('div', 'fw-ext-actions');
-        row.append(ctx.button(t('Upload image'), 'upload', () => extra!.click()));
+        row.append(buttonOf(ctx, 'Upload image', 'upload', () => extra!.click()));
         wrap.append(row);
       }
       controls.set(name, { type, input, picker: type === 'color' ? extra : undefined });
@@ -318,7 +320,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
         const choice = found.input as HTMLSelectElement;
         const selected = typeof shown === 'string' ? shown : '';
         if (document.activeElement !== choice) {
-          options(choice, assetItems(selected));
+          optionsOf(choice, assetItems(selected));
           value(choice, selected);
         }
       } else {
@@ -354,7 +356,11 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
       if (poster && thumb.getAttribute('src') !== poster) thumb.setAttribute('src', poster);
       if (thumb.hidden === !!poster) thumb.hidden = !poster;
       if (holder.hidden === !poster) holder.hidden = !!poster;
-      pieces(row.children[2] as HTMLElement, [`${id} | `, t(MODE_LABEL[component.mode || 'isolated'] || MODE_LABEL.isolated), ` | ${sizeLabel(component)}`]);
+      const mode = MODE_LABEL[component.mode || 'isolated'] || MODE_LABEL.isolated;
+      const summary = row.children[2] as HTMLElement;
+      pieces(summary, [`${id} | `, t(mode), ` | ${sizeLabel(component)}`]);
+      const middle = summary.childNodes[1];
+      if (middle instanceof Text) labelText(middle, mode);
     });
   }
 
@@ -378,7 +384,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
       if (instance && component) {
         value(componentSelect, instance.component);
         const mode = component.mode === 'page' ? 'page' : 'isolated';
-        text(modeBadge, t(MODE_LABEL[mode]));
+        label(modeBadge, MODE_LABEL[mode]);
         if (modeHint.hidden === (mode === 'page')) modeHint.hidden = mode !== 'page';
         value(posterInput, component.poster || '');
         if (posterClear.disabled !== !component.poster) posterClear.disabled = !component.poster;

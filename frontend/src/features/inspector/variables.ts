@@ -1,8 +1,9 @@
 import { command } from '../../api';
 import { element, keyed, options, text, value } from '../../ui/dom';
 import { icon } from '../../ui/icons';
-import { t } from '../../i18n';
+import { labelAttr, t } from '../../i18n';
 import type { InspectorContext } from './context';
+import { buttonOf, fieldOf, labeled, optionsOf, selectOf, type Choice } from './labeled';
 import type { EditorState } from '../../types';
 
 interface ValueDef { type: 'number' | 'text' | 'boolean'; initial: number | string | boolean; min?: number; max?: number; step?: number; options?: string[]; cssVar?: boolean }
@@ -16,7 +17,7 @@ interface Group {
   outputs: Record<string, OutputDef>;
 }
 type Kind = keyof Group;
-type Item = { id: string; name: string };
+type Item = Choice;
 
 const TYPES = ['number', 'text', 'boolean'];
 const INPUT_TAGS = ['input', 'select', 'textarea'];
@@ -42,7 +43,9 @@ function nodeItems(next: EditorState, inputLike: boolean): Item[] {
   return order.filter(entry => INPUT_TAGS.includes(next.site.nodes[entry.id].tag) === inputLike).map(entry => {
     const node = next.site.nodes[entry.id];
     const label = `${node.name || node.id} (${node.tag})`;
-    return { id: entry.id, name: multi && entry.page ? t('{0} in {1}', [{ t: label }, { t: entry.page }]) : label };
+    if (!(multi && entry.page)) return { id: entry.id, name: label };
+    const values = [{ t: label }, { t: entry.page }];
+    return { id: entry.id, name: t('{0} in {1}', values), en: '{0} in {1}', values };
   });
 }
 
@@ -60,7 +63,7 @@ function parseNumber(raw: string, label: string): number {
 
 export function installVariables(ctx: InspectorContext): { fill(next: EditorState): void } {
   const block = element('div', 'fw-ext-block');
-  block.append(element('div', 'fw-ext-head', t('Variables')));
+  block.append(labeled('div', 'fw-ext-head', 'Variables'));
   ctx.panes.tokens.append(block);
 
   const put = (kind: Kind, name: string, content: unknown): Promise<unknown> => command('variables.set', { kind, name, value: content });
@@ -79,14 +82,14 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
     });
   }
 
-  function heading(label: string, small = false): void { block.append(element('div', small ? 'micro fw-theme-other' : 'fw-ext-head fw-theme-other', label)); }
+  function heading(english: string, small = false): void { block.append(labeled('div', small ? 'micro fw-theme-other' : 'fw-ext-head fw-theme-other', english)); }
   function listBox(): HTMLElement { const box = element('div', 'fw-font-list'); block.append(box); return box; }
-  function emptyNote(label: string): HTMLElement { const note = element('p', 'micro', label); block.append(note); return note; }
-  function checkbox(label: string): { wrap: HTMLElement; box: HTMLInputElement } {
+  function emptyNote(english: string): HTMLElement { const note = labeled('p', 'micro', english); block.append(note); return note; }
+  function checkbox(english: string): { wrap: HTMLElement; box: HTMLInputElement } {
     const box = element('input');
     box.type = 'checkbox';
     const wrap = element('label', 'checkbox-field');
-    wrap.append(box, element('span', '', label));
+    wrap.append(box, labeled('span', '', english));
     return { wrap, box };
   }
   function check(box: HTMLInputElement, on: boolean): void { if (document.activeElement !== box && box.checked !== on) box.checked = on; }
@@ -96,22 +99,22 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
     const label = element('span', 'fw-font-name fw-font-src');
     const remove = ctx.button('', undefined, () => drop(kind, row.dataset.key!), 'icon-button');
     remove.append(icon('trash'));
-    remove.title = t('Remove');
-    remove.setAttribute('aria-label', t('Remove'));
+    labelAttr(remove, 'title', 'Remove');
+    labelAttr(remove, 'aria-label', 'Remove');
     if (mono) label.classList.add('fw-code-area');
     top.append(label, remove);
     error.hidden = true;
     return top;
   }
-  function addRow(label: string, fields: HTMLElement[], action: () => Promise<unknown>): void {
+  function addRow(english: string, fields: HTMLElement[], action: () => Promise<unknown>): void {
     const grid = element('div', 'form-grid');
     grid.append(...fields);
-    const button = ctx.button(label, 'plus', action, 'fw-ext-add');
+    const button = buttonOf(ctx, english, 'plus', action, 'fw-ext-add');
     block.append(grid, button);
   }
-  function addNamed(kind: Kind, label: string, make: () => unknown): void {
+  function addNamed(kind: Kind, english: string, make: () => unknown): void {
     const name = ctx.input('seats');
-    addRow(label, [ctx.field(t('Name'), name, true)], async () => {
+    addRow(english, [fieldOf(ctx, 'Name', name, true)], async () => {
       const key = name.value.trim();
       if (!key) throw new Error(t('Enter a name.'));
       await put(kind, key, make());
@@ -119,64 +122,64 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
     });
   }
 
-  heading(t('Values'), true);
+  heading('Values', true);
   const valuesList = listBox();
-  const valuesEmpty = emptyNote(t('No values yet.'));
-  addNamed('values', t('Add value'), () => ({ type: 'number', initial: 0 }));
+  const valuesEmpty = emptyNote('No values yet.');
+  addNamed('values', 'Add value', () => ({ type: 'number', initial: 0 }));
 
-  heading(t('Tables'), true);
+  heading('Tables', true);
   const tablesList = listBox();
-  const tablesEmpty = emptyNote(t('No tables yet.'));
-  addNamed('tables', t('Add table'), () => ({}));
+  const tablesEmpty = emptyNote('No tables yet.');
+  addNamed('tables', 'Add table', () => ({}));
 
-  heading(t('Formulas'), true);
+  heading('Formulas', true);
   const formulasList = listBox();
-  const formulasEmpty = emptyNote(t('No formulas yet.'));
-  addNamed('formulas', t('Add formula'), () => '0');
+  const formulasEmpty = emptyNote('No formulas yet.');
+  addNamed('formulas', 'Add formula', () => '0');
 
-  heading(t('Bindings'));
-  heading(t('Inputs'), true);
+  heading('Bindings');
+  heading('Inputs', true);
   const inputsList = listBox();
-  const inputsEmpty = emptyNote(t('No inputs bound yet.'));
+  const inputsEmpty = emptyNote('No inputs bound yet.');
   const addInputNode = ctx.select([]);
   const addInputValue = ctx.select([]);
   const addInputEvent = ctx.select([{ id: 'input', name: 'input' }, { id: 'change', name: 'change' }]);
-  addRow(t('Bind input'), [ctx.field('Element', addInputNode, true), ctx.field(t('Value'), addInputValue), ctx.field(t('Event'), addInputEvent)], async () => {
+  addRow('Bind input', [fieldOf(ctx, 'Element', addInputNode, true), fieldOf(ctx, 'Value', addInputValue), fieldOf(ctx, 'Event', addInputEvent)], async () => {
     if (!addInputNode.value) throw new Error(t('Choose an input, select or textarea element first.'));
     if (!addInputValue.value) throw new Error(t('Add a value first.'));
     await put('inputs', addInputNode.value, { variable: addInputValue.value, event: addInputEvent.value });
   });
 
-  heading(t('Outputs'), true);
+  heading('Outputs', true);
   const outputsList = listBox();
-  const outputsEmpty = emptyNote(t('No outputs bound yet.'));
+  const outputsEmpty = emptyNote('No outputs bound yet.');
   const addOutputNode = ctx.select([]);
   const addOutputFrom = ctx.select([]);
-  addRow(t('Bind output'), [ctx.field('Element', addOutputNode, true), ctx.field(t('From'), addOutputFrom, true)], async () => {
+  addRow('Bind output', [fieldOf(ctx, 'Element', addOutputNode, true), fieldOf(ctx, 'From', addOutputFrom, true)], async () => {
     if (!addOutputNode.value) throw new Error(t('Choose an element first.'));
     if (!addOutputFrom.value) throw new Error(t('Add a value or formula first.'));
     await put('outputs', addOutputNode.value, { from: addOutputFrom.value });
   });
 
-  block.append(element('p', 'micro', t('Values, tables and formulas share one namespace. Inputs write a value and outputs show a value or formula as text. Formulas use min, max, round, floor, ceil, abs, clamp, sum, lookup and if.')));
+  block.append(labeled('p', 'micro', 'Values, tables and formulas share one namespace. Inputs write a value and outputs show a value or formula as text. Formulas use min, max, round, floor, ceil, abs, clamp, sum, lookup and if.'));
 
   function valueRow(): HTMLElement {
     const row = element('div', 'fw-font-row');
     const error = element('p', 'micro error', '');
     const top = rowShell('values', row, error);
     const fields = element('div', 'form-grid');
-    const type = ctx.select(TYPES.map(id => ({ id, name: t(id === 'number' ? 'Number' : id === 'text' ? 'Text' : 'Boolean') })));
+    const type = selectOf(ctx, TYPES.map(id => { const en = id === 'number' ? 'Number' : id === 'text' ? 'Text' : 'Boolean'; return { id, name: en, en }; }));
     const initial = ctx.input();
-    const initialBool = ctx.select([{ id: 'false', name: t('False') }, { id: 'true', name: t('True') }]);
+    const initialBool = selectOf(ctx, [{ id: 'false', name: 'False', en: 'False' }, { id: 'true', name: 'True', en: 'True' }]);
     const min = ctx.input();
     const max = ctx.input();
     const step = ctx.input();
     const choices = ctx.input('solo, team, studio');
-    const css = checkbox(t('CSS variable'));
-    const wrapInitial = ctx.field(t('Initial'), initial);
-    const wrapBool = ctx.field(t('Initial'), initialBool);
-    const wraps = { min: ctx.field(t('Min'), min), max: ctx.field(t('Max'), max), step: ctx.field(t('Step'), step), choices: ctx.field(t('Options, comma separated'), choices, true) };
-    fields.append(ctx.field(t('Type'), type), wrapInitial, wrapBool, wraps.min, wraps.max, wraps.step, wraps.choices, css.wrap);
+    const css = checkbox('CSS variable');
+    const wrapInitial = fieldOf(ctx, 'Initial', initial);
+    const wrapBool = fieldOf(ctx, 'Initial', initialBool);
+    const wraps = { min: fieldOf(ctx, 'Min', min), max: fieldOf(ctx, 'Max', max), step: fieldOf(ctx, 'Step', step), choices: fieldOf(ctx, 'Options, comma separated', choices, true) };
+    fields.append(fieldOf(ctx, 'Type', type), wrapInitial, wrapBool, wraps.min, wraps.max, wraps.step, wraps.choices, css.wrap);
     const shape = (kind: string): void => {
       toggle(wrapInitial, kind !== 'boolean');
       toggle(wrapBool, kind === 'boolean');
@@ -224,7 +227,7 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
       return map;
     };
     const commit = (map: Record<string, number | string>): void => attempt(error, () => put('tables', row.dataset.key!, map));
-    const add = ctx.button(t('Add entry'), 'plus', () => {
+    const add = buttonOf(ctx, 'Add entry', 'plus', () => {
       const map = gather();
       let key = 'key';
       for (let n = 2; key in map; n++) key = `key${n}`;
@@ -244,13 +247,15 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
 
   function entryRow(): HTMLElement {
     const entry = element('div', 'fw-font-top');
-    const key = ctx.input(t('Key'));
-    const content = ctx.input(t('Value'));
+    const key = ctx.input();
+    labelAttr(key, 'placeholder', 'Key');
+    const content = ctx.input();
+    labelAttr(content, 'placeholder', 'Value');
     const remove = element('button', 'icon-button');
     remove.type = 'button';
     remove.append(icon('trash'));
-    remove.title = t('Remove entry');
-    remove.setAttribute('aria-label', t('Remove entry'));
+    labelAttr(remove, 'title', 'Remove entry');
+    labelAttr(remove, 'aria-label', 'Remove entry');
     entry.append(key, content, remove);
     return entry;
   }
@@ -276,7 +281,7 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
     variable.addEventListener('change', commit);
     event.addEventListener('change', commit);
     const fields = element('div', 'form-grid');
-    fields.append(ctx.field(t('Value'), variable), ctx.field(t('Event'), event));
+    fields.append(fieldOf(ctx, 'Value', variable), fieldOf(ctx, 'Event', event));
     row.append(top, fields, error);
     return row;
   }
@@ -290,7 +295,7 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
     const prefix = ctx.input('$');
     const suffix = ctx.input('/mo');
     const reserve = ctx.input();
-    const grouping = checkbox(t('Thousands separators'));
+    const grouping = checkbox('Thousands separators');
     const commit = (): void => attempt(error, () => {
       const def: OutputDef = { from: from.value };
       if (decimals.value.trim()) def.decimals = parseNumber(decimals.value, t('Decimals'));
@@ -302,7 +307,7 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
     });
     for (const control of [from, decimals, prefix, suffix, reserve, grouping.box]) control.addEventListener('change', commit);
     const fields = element('div', 'form-grid');
-    fields.append(ctx.field(t('From'), from, true), ctx.field(t('Decimals'), decimals), ctx.field(t('Reserve, in characters'), reserve), ctx.field(t('Prefix'), prefix), ctx.field(t('Suffix'), suffix), grouping.wrap);
+    fields.append(fieldOf(ctx, 'From', from, true), fieldOf(ctx, 'Decimals', decimals), fieldOf(ctx, 'Reserve, in characters', reserve), fieldOf(ctx, 'Prefix', prefix), fieldOf(ctx, 'Suffix', suffix), grouping.wrap);
     row.append(top, fields, error);
     return row;
   }
@@ -365,10 +370,10 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
       });
 
       const inputNodes = nodeItems(next, true);
-      options(addInputNode, inputNodes);
+      optionsOf(addInputNode, inputNodes);
       options(addInputValue, bindable);
       const outputNodes = nodeItems(next, false);
-      options(addOutputNode, outputNodes);
+      optionsOf(addOutputNode, outputNodes);
       options(addOutputFrom, sources);
 
       inputsEmpty.hidden = Object.keys(group.inputs).length > 0;
