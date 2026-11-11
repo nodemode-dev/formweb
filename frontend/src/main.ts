@@ -249,6 +249,8 @@ const exportButton = button('Export', 'code', undefined, 'quiet');
 exportButton.dataset.cmd = 'file.export';
 const auditButton = button('Audit', 'check', undefined, 'quiet');
 auditButton.dataset.cmd = 'page.audit';
+exportButton.title = 'Export';
+auditButton.title = 'Audit';
 toolbar.append(projectIdentity);
 separator(toolbar);
 toolbar.append(viewportActions, breakpointSelect, viewportSize, element('span', 'toolbar-label', 'px'), element('div', 'toolbar-spacer'), localeSelect, exportButton, auditButton);
