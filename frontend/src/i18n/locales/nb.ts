@@ -2517,4 +2517,5 @@ export default [
   "Angi basis-URL-en som kanoniske lenker, områdekartet, 404.html i roten og portabel publisering bruker.",
   "La feltet stå tomt for å beholde plassholderen https://example.com.",
   "Importer .fweb- eller .fpub-fil",
+  "Filen er verken et .fweb-prosjekt, en .fpub-pakke eller prosjekt-JSON.",
 ] as readonly string[];

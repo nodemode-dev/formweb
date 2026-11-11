@@ -2517,4 +2517,5 @@ export default [
   "Atur URL dasar yang dipakai tautan kanonis, sitemap, 404.html di root, dan publikasi portabel.",
   "Kosongkan untuk tetap memakai placeholder https://example.com.",
   "Impor file .fweb atau .fpub",
+  "File itu bukan proyek .fweb, paket .fpub, atau JSON proyek.",
 ] as readonly string[];

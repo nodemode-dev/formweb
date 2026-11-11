@@ -2517,4 +2517,5 @@ export default [
   "표준 링크, 사이트맵, 루트의 404.html, 이식 가능한 게시에서 사용하는 기본 URL을 설정합니다.",
   "비워 두면 https://example.com 플레이스홀더가 유지됩니다.",
   ".fweb 또는 .fpub 파일 가져오기",
+  "이 파일은 .fweb 프로젝트, .fpub 패키지 또는 프로젝트 JSON이 아닙니다.",
 ] as readonly string[];

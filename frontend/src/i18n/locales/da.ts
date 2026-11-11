@@ -2517,4 +2517,5 @@ export default [
   "Angiv den basis-URL, som kanoniske links, sitemappet, 404.html i roden og bærbar udgivelse bruger.",
   "Lad feltet stå tomt for at beholde pladsholderen https://example.com.",
   "Importér .fweb- eller .fpub-fil",
+  "Filen er hverken et .fweb-projekt, en .fpub-pakke eller projekt-JSON.",
 ] as readonly string[];

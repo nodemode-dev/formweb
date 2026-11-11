@@ -2517,4 +2517,5 @@ export default [
   "Ustaw bazowy adres URL używany przez linki kanoniczne, mapę witryny, główny plik 404.html i przenośną publikację.",
   "Zostaw puste, aby zachować tekst zastępczy https://example.com.",
   "Importuj plik .fweb lub .fpub",
+  "Ten plik nie jest projektem .fweb, pakietem .fpub ani plikiem JSON projektu.",
 ] as readonly string[];

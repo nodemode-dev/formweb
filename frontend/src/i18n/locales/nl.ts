@@ -2517,4 +2517,5 @@ export default [
   "Stel de basis-URL in die canonieke links, de sitemap, de 404.html in de hoofdmap en draagbaar publiceren gebruiken.",
   "Laat leeg om de plaatsaanduiding https://example.com te behouden.",
   ".fweb- of .fpub-bestand importeren",
+  "Dat bestand is geen .fweb-project, .fpub-pakket of project-JSON.",
 ] as readonly string[];
