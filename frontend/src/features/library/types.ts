@@ -42,6 +42,8 @@ const CATEGORY_LABEL: Record<string, () => string> = {
   'not-found': () => t('Not found'),
   chrome: () => t('Chrome')
 };
+/** The categories the bundled library ships, in its order: the chip row paints these at first paint, before the index arrives. */
+export const KNOWN_CATEGORIES: string[] = Object.keys(CATEGORY_LABEL);
 export function categoryLabel(id: string): string {
   const known = CATEGORY_LABEL[id];
   if (known) return known();

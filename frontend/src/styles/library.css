@@ -8,7 +8,7 @@
 
 /* Browse */
 .fw-lib-head { display: flex; flex: none; flex-direction: column; gap: var(--space-2); padding: 0 var(--space-3); }
-.fw-lib-chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--space-1); min-height: 74px; }
+.fw-lib-chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--space-1); }
 .fw-lib-chip { height: 22px; min-height: 0; padding: 0 var(--space-2); border: 1px solid var(--line-1); border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); font-size: var(--fs-11); }
 .fw-lib-chip.is-on { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 .fw-lib-search { position: relative; display: block; }
