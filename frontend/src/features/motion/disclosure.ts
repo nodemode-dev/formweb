@@ -26,7 +26,7 @@ export function installDisclosure(ctx: MotionContext, container: HTMLElement): M
     if (kind === 'tabs') return { type: 'tabs', initial: 0, items: [{ trigger: id, panel: id }] };
     return { type: 'accordion', single: false, initial: 0, items: [{ trigger: id, panel: id }] };
   };
-  const panel = shell(ctx, container, t('Disclosure'), t('Accordion, tabs or filter chips.'), () => save(defaults('accordion')), remover(ctx, 'disclosure', () => node));
+  const panel = shell(ctx, container, 'Disclosure', 'Accordion, tabs or filter chips.', () => save(defaults('accordion')), remover(ctx, 'disclosure', () => node));
 
   const type = ctx.select(TYPES());
   type.addEventListener('change', () => save(defaults(type.value)));

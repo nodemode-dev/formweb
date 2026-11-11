@@ -14,7 +14,7 @@ const CLIPS: [string, string][] = [
 ];
 
 export function installEffects(ctx: InspectorContext): (node: SiteNode, breakpoint: string) => void {
-  const block = ctx.section(ctx.panes.design, t('Effects'), t('CSS values'));
+  const block = ctx.section(ctx.panes.design, 'Effects', 'CSS values');
   const grid = element('div', 'form-grid');
   ctx.addStyle(grid, t('Blend mode'), 'mix-blend-mode', BLEND);
   ctx.addStyle(grid, t('Isolation'), 'isolation', ['', 'auto', 'isolate']);

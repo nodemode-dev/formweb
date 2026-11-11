@@ -28,7 +28,7 @@ export function textDefault(type: TextType): TextEffect {
 export function installText(ctx: MotionContext, container: HTMLElement): MotionEditor {
   let id = '';
   let entry: TextEffect | undefined;
-  const shell = entryShell(ctx, container, t('Text'), t('Split text into animated parts, type it out, or type into an input placeholder.'), () => { if (id) void ctx.set('text', id, textDefault('split')); }, () => { if (id) void ctx.remove('text', id); });
+  const shell = entryShell(ctx, container, 'Text', 'Split text into animated parts, type it out, or type into an input placeholder.', () => { if (id) void ctx.set('text', id, textDefault('split')); }, () => { if (id) void ctx.remove('text', id); });
   const save = (patch: Partial<TextEffect>): void => {
     if (!id || !entry) return;
     void ctx.set('text', id, { ...entry, ...patch });

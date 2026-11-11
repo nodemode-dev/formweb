@@ -1,4 +1,4 @@
-import { t } from '../i18n';
+import { label, labelAttr, t } from '../i18n';
 import { commands as registry } from '../commands/registry';
 import { element } from '../ui/dom';
 import type { CommandDef } from '../ui/shell';
@@ -534,11 +534,13 @@ export class ViewAids {
   private buildPrefs(): HTMLElement {
     const root = element('div', 'fw-v-dialog');
     root.setAttribute('role', 'dialog');
-    root.setAttribute('aria-label', t('Grid preferences'));
+    labelAttr(root, 'aria-label', 'Grid preferences');
     root.hidden = true;
-    const field = (label: string, input: HTMLInputElement): HTMLElement => {
+    const field = (english: string, input: HTMLInputElement): HTMLElement => {
       const row = element('label', 'fw-v-stack');
-      row.append(element('span', 'fw-v-note', label), input);
+      const caption = element('span', 'fw-v-note');
+      label(caption, english);
+      row.append(caption, input);
       return row;
     };
     const num = (min: number, max: number, step: string): HTMLInputElement => {
@@ -548,13 +550,17 @@ export class ViewAids {
     };
     this.spacingInput = num(0.1, 10000, '1');
     this.subInput = num(1, 100, '1');
-    const ok = element('button', 'fw-v-btn', t('OK'));
+    const ok = element('button', 'fw-v-btn');
+    label(ok, 'OK');
     ok.type = 'button';
-    const cancel = element('button', 'fw-v-btn', t('Cancel'));
+    const cancel = element('button', 'fw-v-btn');
+    label(cancel, 'Cancel');
     cancel.type = 'button';
     const actions = element('div', 'fw-v-row');
     actions.append(ok, cancel);
-    root.append(element('div', 'fw-v-summary', t('Grid preferences')), field(t('Gridline every (units)'), this.spacingInput), field(t('Subdivisions'), this.subInput), actions);
+    const summary = element('div', 'fw-v-summary');
+    label(summary, 'Grid preferences');
+    root.append(summary, field('Gridline every (units)', this.spacingInput), field('Subdivisions', this.subInput), actions);
     const close = (): void => { root.hidden = true; };
     const submit = (): void => {
       const s = parseFloat(this.spacingInput?.value ?? '');

@@ -1,5 +1,5 @@
 import { subscribe } from '../api';
-import { t } from '../i18n';
+import { label, labelAttr, t } from '../i18n';
 import { element } from '../ui/dom';
 import type { Command, Site } from '../types';
 import { colorToHex, gradientNode } from './gradient';
@@ -104,8 +104,9 @@ class StylesDialog {
   private name!: HTMLInputElement;
   private host: Host | null = null;
 
-  private button(label: string, run: () => void): HTMLButtonElement {
-    const b = element('button', 'fw-v-btn', label);
+  private button(english: string, run: () => void): HTMLButtonElement {
+    const b = element('button', 'fw-v-btn');
+    label(b, english);
     b.type = 'button';
     b.addEventListener('click', run);
     return b;
@@ -114,19 +115,23 @@ class StylesDialog {
   private build(): HTMLElement {
     const root = element('div', 'fw-v-dialog fw-v-styles');
     root.setAttribute('role', 'dialog');
-    root.setAttribute('aria-label', t('Graphic Styles'));
+    labelAttr(root, 'aria-label', 'Graphic Styles');
     root.hidden = true;
     this.list = element('div', 'fw-v-stylelist');
     this.name = element('input', 'fw-v-input');
     this.name.type = 'text';
     this.name.maxLength = 60;
-    this.name.placeholder = t('Style name');
-    this.name.setAttribute('aria-label', t('Style name'));
-    const save = this.button(t('Save from selection'), () => void this.save());
-    const close = this.button(t('Close'), () => this.close());
+    labelAttr(this.name, 'placeholder', 'Style name');
+    labelAttr(this.name, 'aria-label', 'Style name');
+    const save = this.button('Save from selection', () => void this.save());
+    const close = this.button('Close', () => this.close());
     const row = element('div', 'fw-v-bar');
     row.append(this.name, save);
-    root.append(element('div', 'fw-v-summary', t('Graphic Styles')), element('p', 'fw-v-note', t('Click a style to apply it to the selected shapes.')), this.list, row, close);
+    const summary = element('div', 'fw-v-summary');
+    label(summary, 'Graphic Styles');
+    const note = element('p', 'fw-v-note');
+    label(note, 'Click a style to apply it to the selected shapes.');
+    root.append(summary, note, this.list, row, close);
     root.addEventListener('keydown', event => {
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); this.close(); }
       else if (event.key === 'Enter' && event.target === this.name) { event.preventDefault(); void this.save(); }
@@ -152,17 +157,17 @@ class StylesDialog {
     const sig = JSON.stringify(styles);
     if (this.list.dataset.sig === sig) return;
     this.list.dataset.sig = sig;
-    if (!styles.length) { this.list.replaceChildren(element('p', 'fw-v-note', t('No styles yet. Select a shape and save one.'))); return; }
+    if (!styles.length) { const none = element('p', 'fw-v-note'); label(none, 'No styles yet. Select a shape and save one.'); this.list.replaceChildren(none); return; }
     this.list.replaceChildren(...styles.map(style => {
       const row = element('div', 'fw-v-styleitem');
       row.dataset.style = style.id;
       const use = element('button', 'fw-v-stylebtn');
       use.type = 'button';
-      use.title = t('{0} {1}', [{ t: 'Apply' }, style.name]);
+      labelAttr(use, 'title', '{0} {1}', [{ t: 'Apply' }, style.name]);
       use.append(swatch(style), element('span', 'fw-v-stylename', style.name));
       use.addEventListener('click', () => void this.apply(style));
-      const rename = this.button(t('Rename'), () => this.rename(style, row));
-      const remove = this.button(t('Delete'), () => void this.remove(style));
+      const rename = this.button('Rename', () => this.rename(style, row));
+      const remove = this.button('Delete', () => void this.remove(style));
       row.append(use, rename, remove);
       return row;
     }));

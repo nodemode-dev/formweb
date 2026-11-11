@@ -11,7 +11,7 @@ export function installPointer(ctx: MotionContext, container: HTMLElement): Moti
   let node: SiteNode | undefined;
   let root = '';
   const save = saver(ctx, 'pointer', () => node);
-  const panel = shell(ctx, container, t('Pointer'), t('React to the pointer with tilt, follow or proximity.'), () => save({ type: 'tilt', max: 8, perspective: '1000px', spring: 0.12 }), remover(ctx, 'pointer', () => node));
+  const panel = shell(ctx, container, 'Pointer', 'React to the pointer with tilt, follow or proximity.', () => save({ type: 'tilt', max: 8, perspective: '1000px', spring: 0.12 }), remover(ctx, 'pointer', () => node));
 
   const type = ctx.select(TYPES());
   const tilt = group();

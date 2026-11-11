@@ -26,7 +26,7 @@ import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from
 import { installInspector } from './features/inspector';
 import { installLibrary } from './features/library';
 import { watchFit } from './ui/fit';
-import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
+import { isLang, label, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 
 await startLanguage();
@@ -96,9 +96,11 @@ function section(container: HTMLElement, title: string, hint = ''): HTMLElement 
   const name = element('span');
   const chevron = icon('chevron');
   chevron.classList.add('fw-section-chevron');
-  name.append(chevron, document.createTextNode(title));
+  const caption = document.createTextNode('');
+  labelText(caption, title);
+  name.append(chevron, caption);
   head.append(name);
-  if (hint) head.append(element('span', 'hint', hint));
+  if (hint) { const note = element('span', 'hint'); label(note, hint); head.append(note); }
   head.setAttribute('role', 'button');
   head.tabIndex = 0;
   head.setAttribute('aria-expanded', 'true');
@@ -845,6 +847,7 @@ dialogStatusAction.type = 'button';
 dialogStatusAction.hidden = true;
 dialogStatusAction.addEventListener('click', () => { const act = statusActionRun; if (act) { closeDialog(); void run(act); } });
 dialogFooter.append(dialogStatus, dialogStatusAction, dialogCancel, dialogPrimary);
+onLanguage(() => queueMicrotask(() => { const shown = statusMessage.textContent || ''; if (dialogStatus.title !== shown && (dialogStatus.title || shown)) dialogStatus.title = shown; }));
 dialog.append(dialogHead, dialogBody, dialogFooter);
 scrim.append(dialog);
 overlay.append(scrim);

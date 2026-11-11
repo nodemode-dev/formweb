@@ -29,7 +29,7 @@ const percent = (at: number): string => `${Math.round(at * 10000) / 100}%`;
 const snap = (at: number): number => Math.round(at * 1000) / 1000;
 
 export function installScene(ctx: MotionContext, container: HTMLElement): MotionEditor {
-  const block = ctx.section(container, t('Scene'), t('Scroll-driven'));
+  const block = ctx.section(container, 'Scene', 'Scroll-driven');
   const empty = element('div', 'fw-scene-empty');
   const emptyHint = element('p', 'micro', t('Pin a child of this element and drive its children with scroll progress.'));
   const create = ctx.button(t('Add scene'), 'plus');

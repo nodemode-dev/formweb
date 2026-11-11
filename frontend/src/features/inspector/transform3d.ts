@@ -3,7 +3,7 @@ import { t } from '../../i18n';
 import type { InspectorContext } from './context';
 
 export function installTransform3d(ctx: InspectorContext): void {
-  const block = ctx.section(ctx.panes.design, t('Transform 3D'), t('CSS values'));
+  const block = ctx.section(ctx.panes.design, 'Transform 3D', 'CSS values');
   const grid = element('div', 'form-grid');
   ctx.addStyle(grid, t('Perspective'), 'perspective');
   ctx.addStyle(grid, t('Perspective origin'), 'perspective-origin');

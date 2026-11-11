@@ -1,4 +1,4 @@
-import { t, tn } from '../i18n';
+import { label, labelAttr, t, tn } from '../i18n';
 import { element } from '../ui/dom';
 import { gridOptions, setGridOptions } from './drawtools';
 import type { Host } from './host';
@@ -14,18 +14,22 @@ import { rearrangeCommands, type RearrangeLayout } from './artboards';
 
 interface Shell { root: HTMLElement; open(focus?: HTMLElement): void; close(): void }
 
-function shell(title: string, body: HTMLElement[], submit: () => void, okLabel = t('OK'), onCancel?: () => void): Shell {
+function shell(title: string, body: HTMLElement[], submit: () => void, okLabel = 'OK', onCancel?: () => void): Shell {
   const root = element('div', 'fw-v-dialog');
   root.setAttribute('role', 'dialog');
-  root.setAttribute('aria-label', title);
+  labelAttr(root, 'aria-label', title);
   root.hidden = true;
-  const ok = element('button', 'fw-v-btn', okLabel);
+  const ok = element('button', 'fw-v-btn');
+  label(ok, okLabel);
   ok.type = 'button';
-  const cancel = element('button', 'fw-v-btn', t('Cancel'));
+  const cancel = element('button', 'fw-v-btn');
+  label(cancel, 'Cancel');
   cancel.type = 'button';
   const actions = element('div', 'fw-v-row');
   actions.append(ok, cancel);
-  root.append(element('div', 'fw-v-summary', title), ...body, actions);
+  const summary = element('div', 'fw-v-summary');
+  label(summary, title);
+  root.append(summary, ...body, actions);
   const close = (): void => { if (!root.hidden) root.hidden = true; };
   ok.addEventListener('click', () => { submit(); });
   const dismiss = (): void => { close(); onCancel?.(); };
@@ -38,22 +42,26 @@ function shell(title: string, body: HTMLElement[], submit: () => void, okLabel =
   return { root, open: focus => { root.hidden = false; focus?.focus(); }, close };
 }
 
-function numberField(label: string, min: number, max: number, step = 1): { field: HTMLElement; input: HTMLInputElement } {
+function numberField(english: string, min: number, max: number, step = 1): { field: HTMLElement; input: HTMLInputElement } {
   const input = element('input', 'fw-v-input');
   input.type = 'number';
   input.min = String(min);
   input.max = String(max);
   input.step = String(step);
   const field = element('div', 'field');
-  field.append(element('span', 'field-label', label), input);
+  const caption = element('span', 'field-label');
+  label(caption, english);
+  field.append(caption, input);
   return { field, input };
 }
 
-const checkRow = (label: string): { row: HTMLElement; input: HTMLInputElement } => {
+const checkRow = (english: string): { row: HTMLElement; input: HTMLInputElement } => {
   const input = element('input', 'fw-v-check');
   input.type = 'checkbox';
   const row = element('label', 'fw-v-checkrow');
-  row.append(input, element('span', '', label));
+  const caption = element('span');
+  label(caption, english);
+  row.append(input, caption);
   return { row, input };
 };
 
@@ -71,11 +79,11 @@ class Axis {
   fit = true;
 
   constructor(readonly title: string, sizeLabel: string) {
-    const label = (field: HTMLElement, text: string): void => { field.querySelector('.field-label')!.textContent = text; };
-    label(this.count.field, t('Number'));
-    label(this.size.field, sizeLabel);
-    label(this.gutter.field, t('Gutter'));
-    label(this.total.field, t('Total'));
+    const named = (field: HTMLElement, english: string): void => label(field.querySelector<HTMLElement>('.field-label')!, english);
+    named(this.count.field, 'Number');
+    named(this.size.field, sizeLabel);
+    named(this.gutter.field, 'Gutter');
+    named(this.total.field, 'Total');
     this.box.append(this.count.field, this.size.field, this.gutter.field, this.total.field);
     this.count.input.addEventListener('input', () => this.refit());
     this.gutter.input.addEventListener('input', () => this.refit());
@@ -108,14 +116,17 @@ class Axis {
 class SplitGridDialog {
   private dialog: Shell | null = null;
   private host: Host | null = null;
-  private rows = new Axis(t('Rows'), t('Height'));
-  private cols = new Axis(t('Columns'), t('Width'));
+  private rows = new Axis('Rows', 'Height');
+  private cols = new Axis('Columns', 'Width');
 
   private build(): Shell {
-    return shell(t('Split Into Grid'), [
-      element('div', 'field-label', this.rows.title), this.rows.box,
-      element('div', 'field-label', this.cols.title), this.cols.box,
-      element('p', 'fw-v-note', t('Replaces each selected rectangle with a group of rectangles that keep its fill and stroke.'))
+    const head = (english: string): HTMLElement => { const node = element('div', 'field-label'); label(node, english); return node; };
+    const note = element('p', 'fw-v-note');
+    label(note, 'Replaces each selected rectangle with a group of rectangles that keep its fill and stroke.');
+    return shell('Split Into Grid', [
+      head(this.rows.title), this.rows.box,
+      head(this.cols.title), this.cols.box,
+      note
     ], () => this.apply());
   }
 
@@ -155,14 +166,16 @@ export const openSplitGrid = (host: Host): void => { (split ??= new SplitGridDia
 class CleanUpDialog {
   private dialog: Shell | null = null;
   private host: Host | null = null;
-  private stray = checkRow(t('Stray points'));
-  private unpainted = checkRow(t('Unpainted objects'));
-  private text = checkRow(t('Empty text paths'));
+  private stray = checkRow('Stray points');
+  private unpainted = checkRow('Unpainted objects');
+  private text = checkRow('Empty text paths');
 
   private build(): Shell {
-    return shell(t('Clean Up'), [
+    const note = element('p', 'fw-v-note');
+    label(note, 'Delete the checked kinds of object from the current vector.');
+    return shell('Clean Up', [
       this.stray.row, this.unpainted.row, this.text.row,
-      element('p', 'fw-v-note', t('Delete the checked kinds of object from the current vector.'))
+      note
     ], () => this.apply());
   }
 
@@ -194,13 +207,13 @@ class GridOptionsDialog {
 
   private make(tool: string): { shell: Shell; first: HTMLInputElement; second: HTMLInputElement } {
     const rect = tool === 'rgrid';
-    const a = numberField(rect ? t('Horizontal dividers') : t('Concentric dividers'), rect ? 0 : 1, 100);
-    const b = numberField(rect ? t('Vertical dividers') : t('Radial dividers'), 0, rect ? 100 : 360);
+    const a = numberField(rect ? 'Horizontal dividers' : 'Concentric dividers', rect ? 0 : 1, 100);
+    const b = numberField(rect ? 'Vertical dividers' : 'Radial dividers', 0, rect ? 100 : 360);
     const apply = (): void => {
       setGridOptions(rect ? { hdiv: parseFloat(a.input.value), vdiv: parseFloat(b.input.value) } : { rings: parseFloat(a.input.value), spokes: parseFloat(b.input.value) });
       entry.shell.close();
     };
-    const entry = { shell: shell(rect ? t('Rectangular Grid Tool Options') : t('Polar Grid Tool Options'), [a.field, b.field], apply), first: a.input, second: b.input };
+    const entry = { shell: shell(rect ? 'Rectangular Grid Tool Options' : 'Polar Grid Tool Options', [a.field, b.field], apply), first: a.input, second: b.input };
     this.dialogs.set(tool, entry);
     return entry;
   }
@@ -218,12 +231,14 @@ export const openGridOptions = (tool: string): void => { (gridDialog ??= new Gri
 
 /* Effect > Distort & Transform > Tweak */
 
-const radioRow = (label: string, name: string): { row: HTMLElement; input: HTMLInputElement } => {
+const radioRow = (english: string, name: string): { row: HTMLElement; input: HTMLInputElement } => {
   const input = element('input', 'fw-v-check');
   input.type = 'radio';
   input.name = name;
   const row = element('label', 'fw-v-checkrow');
-  row.append(input, element('span', '', label));
+  const caption = element('span');
+  label(caption, english);
+  row.append(input, caption);
   return { row, input };
 };
 
@@ -232,22 +247,22 @@ class TweakDialog {
   private host: Host | null = null;
   private base = new Map<string, SubPath[]>();
   private options: TweakOptions = { ...defaultTweak };
-  private horizontal = numberField(t('Horizontal'), 0, 100000, 0.1);
-  private vertical = numberField(t('Vertical'), 0, 100000, 0.1);
-  private relative = radioRow(t('Relative'), 'fw-tweak-mode');
-  private absolute = radioRow(t('Absolute'), 'fw-tweak-mode');
-  private anchors = checkRow(t('Anchor points'));
-  private ins = checkRow(t('"In" control points'));
-  private outs = checkRow(t('"Out" control points'));
-  private seed = numberField(t('Seed'), 1, 99999);
-  private preview = checkRow(t('Preview'));
+  private horizontal = numberField('Horizontal', 0, 100000, 0.1);
+  private vertical = numberField('Vertical', 0, 100000, 0.1);
+  private relative = radioRow('Relative', 'fw-tweak-mode');
+  private absolute = radioRow('Absolute', 'fw-tweak-mode');
+  private anchors = checkRow('Anchor points');
+  private ins = checkRow('"In" control points');
+  private outs = checkRow('"Out" control points');
+  private seed = numberField('Seed', 1, 99999);
+  private preview = checkRow('Preview');
 
   private build(): Shell {
     const amounts = element('div', 'fw-v-row');
     amounts.append(this.horizontal.field, this.vertical.field);
     const mode = element('div', 'fw-v-row');
     mode.append(this.relative.row, this.absolute.row);
-    const shell_ = shell(t('Tweak'), [amounts, mode, this.anchors.row, this.ins.row, this.outs.row, this.seed.field, this.preview.row], () => this.apply(), t('OK'), () => this.cancel());
+    const shell_ = shell('Tweak', [amounts, mode, this.anchors.row, this.ins.row, this.outs.row, this.seed.field, this.preview.row], () => this.apply(), 'OK', () => this.cancel());
     shell_.root.addEventListener('input', () => this.update());
     shell_.root.addEventListener('change', () => this.update());
     return shell_;
@@ -315,13 +330,15 @@ export const openTweak = (host: Host): void => { (tweak ??= new TweakDialog()).o
 
 class BlobDialog {
   private dialog: Shell | null = null;
-  private keep = checkRow(t('Keep Selected'));
-  private merge = checkRow(t('Merge Only with Selection'));
-  private fidelity = numberField(t('Fidelity'), 0.5, 20, 0.5);
-  private size = numberField(t('Size'), 1, BLOB_MAX_SIZE);
+  private keep = checkRow('Keep Selected');
+  private merge = checkRow('Merge Only with Selection');
+  private fidelity = numberField('Fidelity', 0.5, 20, 0.5);
+  private size = numberField('Size', 1, BLOB_MAX_SIZE);
 
   private build(): Shell {
-    return shell(t('Blob Brush Tool Options'), [this.keep.row, this.merge.row, this.fidelity.field, this.size.field, element('p', 'fw-v-note', t('Lower fidelity follows the pointer closely; higher gives smoother shapes. [ and ] change the size.'))], () => this.apply());
+    const note = element('p', 'fw-v-note');
+    label(note, 'Lower fidelity follows the pointer closely; higher gives smoother shapes. [ and ] change the size.');
+    return shell('Blob Brush Tool Options', [this.keep.row, this.merge.row, this.fidelity.field, this.size.field, note], () => this.apply());
   }
 
   open(): void {
@@ -345,33 +362,35 @@ export const openBlobOptions = (): void => { (blobDialog ??= new BlobDialog()).o
 
 /* Object > Pattern > Make, Pattern Options */
 
-function selectField(label: string, choices: [string, string][]): { field: HTMLElement; input: HTMLSelectElement } {
+function selectField(english: string, choices: [string, string][]): { field: HTMLElement; input: HTMLSelectElement } {
   const input = element('select', 'fw-v-input');
-  for (const [value, text] of choices) { const option = element('option', '', text); option.value = value; input.append(option); }
+  for (const [value, name] of choices) { const option = element('option'); label(option, name); option.value = value; input.append(option); }
   const field = element('div', 'field');
-  field.append(element('span', 'field-label', label), input);
+  const caption = element('span', 'field-label');
+  label(caption, english);
+  field.append(caption, input);
   return { field, input };
 }
 
 class PatternDialog {
   private dialog: Shell | null = null;
   private host: Host | null = null;
-  private tile = selectField(t('Tile type'), [['grid', t('Grid')], ['brick-row', t('Brick by Row')], ['brick-column', t('Brick by Column')], ['hex-column', t('Hex by Column')], ['hex-row', t('Hex by Row')]]);
+  private tile = selectField('Tile type', [['grid', 'Grid'], ['brick-row', 'Brick by Row'], ['brick-column', 'Brick by Column'], ['hex-column', 'Hex by Column'], ['hex-row', 'Hex by Row']]);
   private edit: PatternEdit | null = null;
   private note = element('p', 'fw-v-note', '');
-  private offset = selectField(t('Brick offset'), BRICK_OFFSETS.map(([v, label]) => [String(v), label]));
-  private fit = checkRow(t('Size Tile to Art'));
-  private width = numberField(t('Width'), 1, 100000, 0.1);
-  private height = numberField(t('Height'), 1, 100000, 0.1);
-  private hSpace = numberField(t('H Spacing'), -100000, 100000, 0.1);
-  private vSpace = numberField(t('V Spacing'), -100000, 100000, 0.1);
+  private offset = selectField('Brick offset', BRICK_OFFSETS.map(([v, name]) => [String(v), name]));
+  private fit = checkRow('Size Tile to Art');
+  private width = numberField('Width', 1, 100000, 0.1);
+  private height = numberField('Height', 1, 100000, 0.1);
+  private hSpace = numberField('H Spacing', -100000, 100000, 0.1);
+  private vSpace = numberField('V Spacing', -100000, 100000, 0.1);
 
   private build(): Shell {
     const size = element('div', 'fw-v-row');
     size.append(this.width.field, this.height.field);
     const space = element('div', 'fw-v-row');
     space.append(this.hSpace.field, this.vSpace.field);
-    const root = shell(t('Pattern Options'), [this.tile.field, this.offset.field, this.fit.row, size, space, this.note], () => this.apply(), t('Make pattern'));
+    const root = shell('Pattern Options', [this.tile.field, this.offset.field, this.fit.row, size, space, this.note], () => this.apply(), 'Make pattern');
     root.root.addEventListener('change', () => this.sync());
     return root;
   }
@@ -442,28 +461,30 @@ class AreaTypeDialog {
   private dialog: Shell | null = null;
   private host: Host | null = null;
   private text = element('textarea', 'fw-v-input');
-  private size = numberField(t('Font size'), 1, 1000, 0.5);
-  private leading = numberField(t('Leading'), 1, 2000, 0.5);
+  private size = numberField('Font size', 1, 1000, 0.5);
+  private leading = numberField('Leading', 1, 2000, 0.5);
   private family = element('input', 'fw-v-input');
-  private weight = selectField(t('Weight'), ['300', '400', '500', '600', '700', '800'].map(w => [w, w]));
+  private weight = selectField('Weight', ['300', '400', '500', '600', '700', '800'].map(w => [w, w]));
   private color = element('input', 'fw-v-input');
-  private align = selectField(t('Alignment'), [['left', t('Left')], ['center', t('Center')], ['right', t('Right')]]);
-  private inset = numberField(t('Inset spacing'), 0, 1000, 0.5);
-  private columns = numberField(t('Columns'), 1, 12);
-  private gutter = numberField(t('Gutter'), 0, 1000, 0.5);
+  private align = selectField('Alignment', [['left', 'Left'], ['center', 'Center'], ['right', 'Right']]);
+  private inset = numberField('Inset spacing', 0, 1000, 0.5);
+  private columns = numberField('Columns', 1, 12);
+  private gutter = numberField('Gutter', 0, 1000, 0.5);
 
   private build(): Shell {
     this.text.rows = 5;
-    this.text.setAttribute('aria-label', t('Text'));
+    labelAttr(this.text, 'aria-label', 'Text');
     this.color.type = 'color';
-    this.color.setAttribute('aria-label', t('Color'));
-    const wrap = (label: string, input: HTMLElement): HTMLElement => { const f = element('div', 'field'); f.append(element('span', 'field-label', label), input); return f; };
+    labelAttr(this.color, 'aria-label', 'Color');
+    const wrap = (english: string, input: HTMLElement): HTMLElement => { const f = element('div', 'field'); const caption = element('span', 'field-label'); label(caption, english); f.append(caption, input); return f; };
     const row = (...parts: HTMLElement[]): HTMLElement => { const r = element('div', 'fw-v-row'); r.append(...parts); return r; };
-    return shell(t('Area Type'), [
-      wrap(t('Text'), this.text), row(this.size.field, this.leading.field), wrap(t('Font family'), this.family),
-      row(this.weight.field, wrap(t('Color'), this.color)), this.align.field, this.inset.field, row(this.columns.field, this.gutter.field),
-      element('p', 'fw-v-note', t('Text flows inside the selected closed shape and reflows when the shape changes.'))
-    ], () => this.apply(), t('Place text'));
+    const note = element('p', 'fw-v-note');
+    label(note, 'Text flows inside the selected closed shape and reflows when the shape changes.');
+    return shell('Area Type', [
+      wrap('Text', this.text), row(this.size.field, this.leading.field), wrap('Font family', this.family),
+      row(this.weight.field, wrap('Color', this.color)), this.align.field, this.inset.field, row(this.columns.field, this.gutter.field),
+      note
+    ], () => this.apply(), 'Place text');
   }
 
   private editing: string | null = null;
@@ -477,9 +498,8 @@ class AreaTypeDialog {
     this.editing = found ? found.text.id : null;
     const o = found ? areaOptionsOf(found.text, found.spec) : areaOptions;
     this.dialog = this.dialog ?? this.build();
-    const ok = this.dialog.root.querySelector('.fw-v-row:last-child .fw-v-btn');
-    const okText = found ? t('Update text') : t('Place text');
-    if (ok && ok.textContent !== okText) ok.textContent = okText;
+    const ok = this.dialog.root.querySelector<HTMLElement>('.fw-v-row:last-child .fw-v-btn');
+    if (ok) label(ok, found ? 'Update text' : 'Place text');
     this.text.value = o.text;
     this.size.input.value = String(o.size);
     this.leading.input.value = String(o.leading);
@@ -540,14 +560,18 @@ export const openAreaType = (host: Host, edit = false): void => { (areaDialog ??
 class FreeformStopDialog {
   private dialog: Shell | null = null;
   private color = element('input', 'fw-v-color');
-  private spread = numberField(t('Spread (%)'), 2, 100);
+  private spread = numberField('Spread (%)', 2, 100);
   private apply: ((color: string, spread: number) => void) | null = null;
 
   private build(): Shell {
     this.color.type = 'color';
     const field = element('div', 'field');
-    field.append(element('span', 'field-label', t('Color')), this.color);
-    return shell(t('Freeform Gradient Stop'), [field, this.spread.field, element('p', 'fw-v-note', t('Click inside the shape to add a stop. Drag a stop outside the shape or press Backspace to remove it.'))], () => this.submit());
+    const caption = element('span', 'field-label');
+    label(caption, 'Color');
+    field.append(caption, this.color);
+    const note = element('p', 'fw-v-note');
+    label(note, 'Click inside the shape to add a stop. Drag a stop outside the shape or press Backspace to remove it.');
+    return shell('Freeform Gradient Stop', [field, this.spread.field, note], () => this.submit());
   }
 
   open(color: string, spread: number, apply: (color: string, spread: number) => void): void {
@@ -570,23 +594,22 @@ class FreeformStopDialog {
 
 class RearrangeDialog {
   private dialog: Shell | null = null;
-  private layout = selectField(t('Layout'), [['grid-row', t('Grid by Row')], ['grid-column', t('Grid by Column')], ['row', t('Arrange by Row')], ['column', t('Arrange by Column')]]);
-  private count = numberField(t('Columns'), 1, 100);
-  private spacing = numberField(t('Spacing'), 0, 10000);
-  private order = selectField(t('Layout order'), [['ltr', t('Left to right')], ['rtl', t('Right to left')]]);
+  private layout = selectField('Layout', [['grid-row', 'Grid by Row'], ['grid-column', 'Grid by Column'], ['row', 'Arrange by Row'], ['column', 'Arrange by Column']]);
+  private count = numberField('Columns', 1, 100);
+  private spacing = numberField('Spacing', 0, 10000);
+  private order = selectField('Layout order', [['ltr', 'Left to right'], ['rtl', 'Right to left']]);
   private host: Host | null = null;
   private parent = '';
 
   private build(): Shell {
     this.layout.input.addEventListener('change', () => this.label());
-    return shell(t('Rearrange All Artboards'), [this.layout.field, this.count.field, this.spacing.field, this.order.field], () => this.apply());
+    return shell('Rearrange All Artboards', [this.layout.field, this.count.field, this.spacing.field, this.order.field], () => this.apply());
   }
 
   private label(): void {
     const v = this.layout.input.value;
-    const span = this.count.field.querySelector('.field-label');
-    const next = v === 'grid-column' ? t('Rows') : t('Columns');
-    if (span && span.textContent !== next) span.textContent = next;
+    const span = this.count.field.querySelector<HTMLElement>('.field-label');
+    if (span) label(span, v === 'grid-column' ? 'Rows' : 'Columns');
     this.count.input.disabled = v === 'row' || v === 'column';
   }
 

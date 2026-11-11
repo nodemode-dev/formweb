@@ -26,7 +26,7 @@ type Hooks = {
   photoAsset: (id: number) => Promise<Made>;
   insert: (made: Made, kind: 'icon' | 'photo' | 'generated') => Promise<void>;
   url: (path: string) => string;
-  notify: (message: string, error?: boolean) => void;
+  notify: (message: string | readonly string[], error?: boolean) => void;
 };
 
 const SVG = 'http://www.w3.org/2000/svg';
@@ -325,12 +325,12 @@ export class StockLibrary {
         if (!this.selectedIcon) throw new Error('Pick an icon first.');
         const made = await this.hooks.iconAsset(this.selectedIcon, this.color.value, Number(this.stroke.value), Math.max(8, Math.min(1024, Number(this.size.value) || 96)));
         await this.hooks.insert(made, 'icon');
-        this.hooks.notify(`${t('Inserted the {0} icon ({1} licence, credited on export).', [this.selectedIcon, made.asset.license?.license || 'ISC'])} ${made.note}`);
+        this.hooks.notify([t('Inserted the {0} icon ({1} licence, credited on export).', [this.selectedIcon, made.asset.license?.license || 'ISC']), made.note ? ` ${made.note}` : '']);
       } else {
         if (!this.selectedPhoto) throw new Error('Pick a photo first.');
         const made = await this.hooks.photoAsset(this.selectedPhoto);
         await this.hooks.insert(made, 'photo');
-        this.hooks.notify(`${t('Inserted "{0}".', [made.name])} ${made.note}`);
+        this.hooks.notify([t('Inserted "{0}".', [made.name]), made.note ? ` ${made.note}` : '']);
       }
     } finally { this.describe(); }
   }

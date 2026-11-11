@@ -17,7 +17,7 @@ export const COUNTER_DEFAULT: Counter = { to: 100, from: 0, duration: 1200, deci
 export function installCounter(ctx: MotionContext, container: HTMLElement): MotionEditor {
   let id = '';
   let entry: Counter | undefined;
-  const shell = entryShell(ctx, container, t('Counter'), t('Count up to a number. The first number in the element text is replaced while counting.'), () => { if (id) void ctx.set('counters', id, COUNTER_DEFAULT); }, () => { if (id) void ctx.remove('counters', id); });
+  const shell = entryShell(ctx, container, 'Counter', 'Count up to a number. The first number in the element text is replaced while counting.', () => { if (id) void ctx.set('counters', id, COUNTER_DEFAULT); }, () => { if (id) void ctx.remove('counters', id); });
   const save = (patch: Partial<Counter>): void => {
     if (!id || !entry) return;
     void ctx.set('counters', id, { ...entry, ...patch });

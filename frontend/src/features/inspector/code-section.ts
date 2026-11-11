@@ -42,7 +42,7 @@ export function parseImport(source: string): { html: string; css: string; js: st
 }
 
 export function installCodeSection(ctx: InspectorContext): { update(next: EditorState, node: SiteNode): void } {
-  const block = ctx.section(ctx.panes.content, t('Code section'));
+  const block = ctx.section(ctx.panes.content, 'Code section');
   const body = element('div', 'fw-ext-group');
   block.append(body);
 

@@ -8,7 +8,7 @@ const DEFAULT: Rec = { axis: 'both', bounds: 'parent', inertia: true, friction: 
 export function installDrag(ctx: MotionContext, container: HTMLElement): MotionEditor {
   let node: SiteNode | undefined;
   const save = saver(ctx, 'drag', () => node);
-  const panel = shell(ctx, container, t('Drag'), t('Let visitors drag this element.'), () => save({ ...DEFAULT }), remover(ctx, 'drag', () => node));
+  const panel = shell(ctx, container, 'Drag', 'Let visitors drag this element.', () => save({ ...DEFAULT }), remover(ctx, 'drag', () => node));
 
   const collect = (): Rec => {
     const out: Rec = { axis: axis.value || 'both', bounds: bounds.value || 'parent', inertia: inertia.box.checked, rotate: rotate.box.checked };
