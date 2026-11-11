@@ -251,6 +251,8 @@ pub fn fragment(site:&Site,id:&str)->Result<Value,String>{
     let page=site.pages.iter().find(|p|p.root==top).map(|p|p.id.clone());
     let mut out=json!({"format":FRAGMENT_FORMAT,"version":1,"root":id,"nodes":nodes,"entries":grouped,"codeComponents":components,"variables":fragment_variables(site,&entries),"locales":collect_locales(site,&ids),"source":{"site":site.id,"page":page}});
     let used=format!("{}{}",out["nodes"],out["entries"]);let (collections,collection_warnings)=fragment_collections(site,&ids,&entries);
+    let mut above_ids=vec![];let mut up=parent_of(site,id);while let Some(p)=up{above_ids.push(p.clone());up=parent_of(site,&p);}
+    if !above_ids.is_empty(){out.as_object_mut().unwrap().insert("ancestors".into(),json!(above_ids));}
     out.as_object_mut().unwrap().insert("design".into(),fragment_design(site,&used,&entries));
     out.as_object_mut().unwrap().insert("collections".into(),collections);
     if !collection_warnings.is_empty(){out.as_object_mut().unwrap().insert("warnings".into(),json!(collection_warnings));}
@@ -344,8 +346,9 @@ fn paste_fragment(site:&mut Site,params:&Value)->Result<(),String>{
     site.nodes.get_mut(&parent).unwrap().children.insert(index,new_root.clone());
     let own:BTreeMap<String,String>=map.values().map(|n|(n.clone(),n.clone())).collect();
     let mut above:BTreeMap<&str,&str>=BTreeMap::new();for node in source.values(){for child in &node.children{above.insert(child.as_str(),node.id.as_str());}}
-    let mut made:BTreeMap<String,BTreeSet<String>>=BTreeMap::new();let mut every=BTreeSet::new();
-    for(from,to)in &map{let mut chain=BTreeSet::new();let mut at=Some(from.as_str());while let Some(n)=at{chain.insert(n.to_string());at=above.get(n).copied();}every.extend(chain.iter().cloned());made.insert(to.clone(),chain);}
+    let carried:BTreeSet<String>=fragment.get("ancestors").and_then(Value::as_array).map(|list|list.iter().take(256).filter_map(Value::as_str).filter(|s|s.len()<=128).map(String::from).collect()).unwrap_or_default();
+    let mut made:BTreeMap<String,BTreeSet<String>>=BTreeMap::new();let mut every=carried.clone();
+    for(from,to)in &map{let mut chain=carried.clone();let mut at=Some(from.as_str());while let Some(n)=at{chain.insert(n.to_string());at=above.get(n).copied();}every.extend(chain.iter().cloned());made.insert(to.clone(),chain);}
     let html=remap_html_ids(site,&own,&new_root,&made)?;place_entries(site,&entries,&map,&new_root,&html,&every)?;place_locales(site,&locales,&map);
     formweb_model::advanced::validate_extensions(site)
 }
