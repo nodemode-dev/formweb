@@ -1,6 +1,6 @@
 import { element, keyed, text } from './dom';
 import { icon } from './icons';
-import { t } from '../i18n';
+import { t, language, onLanguage } from '../i18n';
 import { listCommands, runFromBridge } from '../commands/catalogue';
 import { commands, type Command } from '../commands/registry';
 
@@ -230,6 +230,8 @@ export class Menubar {
   }
 }
 
+const fold = (value: string): string => value.normalize('NFD').replace(/\p{M}+/gu, '').toLowerCase();
+
 export class CommandSearch {
   readonly button = element('button', 'fw-tt-btn');
   readonly popup = element('div', 'fw-search-pop');
@@ -258,6 +260,7 @@ export class CommandSearch {
       else if (event.key === 'Enter') { event.preventDefault(); const item = this.matches[this.picked]; if (item) { this.hide(); runCommand(item.id); } }
       else if (event.key === 'Escape') { event.preventDefault(); this.hide(); this.button.focus(); }
     });
+    onLanguage(() => { if (!this.popup.hidden) this.refresh(); });
     document.addEventListener('pointerdown', event => {
       const target = event.target as Node;
       if (!this.popup.hidden && !this.popup.contains(target) && !this.button.contains(target)) this.hide();
@@ -271,8 +274,20 @@ export class CommandSearch {
   hide(): void { this.popup.hidden = true; }
 
   private refresh(): void {
-    const words = this.input.value.toLowerCase().split(/\s+/).filter(Boolean);
-    this.matches = commandList().filter(item => commands.enabled(item) && words.every(word => `${item.menu || ''} ${commands.label(item)} ${item.id}`.toLowerCase().includes(word))).slice(0, 12);
+    const words = fold(this.input.value).split(/\s+/).filter(Boolean);
+    const query = words.join(' ');
+    const rank = language() !== 'en' && query !== '';
+    const found: { item: Command; first: boolean }[] = [];
+    for (const item of commandList()) {
+      if (!commands.enabled(item)) continue;
+      const english = commands.label(item);
+      const labels = [...new Set([fold(t(english)), fold(english)])];
+      const menus = item.menu ? [...new Set([fold(t(item.menu)), fold(item.menu)])] : [];
+      const hay = `${menus.join(' ')} ${labels.join(' ')} ${fold(item.id)}`;
+      if (!words.every(word => hay.includes(word))) continue;
+      found.push({ item, first: rank && labels.some(name => name.startsWith(query)) });
+    }
+    this.matches = [...found.filter(entry => entry.first), ...found.filter(entry => !entry.first)].slice(0, 12).map(entry => entry.item);
     keyed(this.results, this.matches, item => item.id, item => {
       const row = element('button', 'fw-search-item');
       row.type = 'button';
@@ -283,7 +298,8 @@ export class CommandSearch {
     }, (row, item) => {
       row.dataset.command = item.id;
       row.title = item.id;
-      text(row.children[0] as HTMLElement, item.menu ? `${item.menu} › ${commands.label(item)}` : commands.label(item));
+      const name = t(commands.label(item));
+      text(row.children[0] as HTMLElement, item.menu ? `${t(item.menu)} › ${name}` : name);
       text(row.children[1] as HTMLElement, commands.keyLabel(item));
       const picked = this.matches[this.picked] === item;
       row.classList.toggle('is-picked', picked);
