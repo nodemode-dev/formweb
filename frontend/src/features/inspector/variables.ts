@@ -141,7 +141,7 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
   const addInputNode = ctx.select([]);
   const addInputValue = ctx.select([]);
   const addInputEvent = ctx.select([{ id: 'input', name: 'input' }, { id: 'change', name: 'change' }]);
-  addRow(t('Bind input'), [ctx.field(t('Element'), addInputNode, true), ctx.field(t('Value'), addInputValue), ctx.field(t('Event'), addInputEvent)], async () => {
+  addRow(t('Bind input'), [ctx.field('Element', addInputNode, true), ctx.field(t('Value'), addInputValue), ctx.field(t('Event'), addInputEvent)], async () => {
     if (!addInputNode.value) throw new Error(t('Choose an input, select or textarea element first.'));
     if (!addInputValue.value) throw new Error(t('Add a value first.'));
     await put('inputs', addInputNode.value, { variable: addInputValue.value, event: addInputEvent.value });
@@ -152,7 +152,7 @@ export function installVariables(ctx: InspectorContext): { fill(next: EditorStat
   const outputsEmpty = emptyNote(t('No outputs bound yet.'));
   const addOutputNode = ctx.select([]);
   const addOutputFrom = ctx.select([]);
-  addRow(t('Bind output'), [ctx.field(t('Element'), addOutputNode, true), ctx.field(t('From'), addOutputFrom, true)], async () => {
+  addRow(t('Bind output'), [ctx.field('Element', addOutputNode, true), ctx.field(t('From'), addOutputFrom, true)], async () => {
     if (!addOutputNode.value) throw new Error(t('Choose an element first.'));
     if (!addOutputFrom.value) throw new Error(t('Add a value or formula first.'));
     await put('outputs', addOutputNode.value, { from: addOutputFrom.value });
