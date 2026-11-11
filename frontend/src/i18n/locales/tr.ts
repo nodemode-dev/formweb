@@ -2516,4 +2516,5 @@ export default [
   "Temel URL ve SEO ayarları",
   "Kanonik bağlantıların, site haritasının, kökteki 404.html dosyasının ve taşınabilir yayımlamanın kullandığı temel URL'yi ayarlayın.",
   "https://example.com yer tutucusunu korumak için boş bırakın.",
+  ".fweb veya .fpub dosyasını içe aktar",
 ] as readonly string[];

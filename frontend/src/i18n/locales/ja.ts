@@ -2516,4 +2516,5 @@ export default [
   "ベース URL と SEO 設定",
   "正規リンク、サイトマップ、ルートの 404.html、持ち運び可能な公開で使うベース URL を設定します。",
   "空のままにすると、プレースホルダーの https://example.com がそのまま使われます。",
+  ".fweb または .fpub ファイルを読み込み",
 ] as readonly string[];

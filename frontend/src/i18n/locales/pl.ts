@@ -2516,4 +2516,5 @@ export default [
   "Bazowy adres URL i ustawienia SEO",
   "Ustaw bazowy adres URL używany przez linki kanoniczne, mapę witryny, główny plik 404.html i przenośną publikację.",
   "Zostaw puste, aby zachować tekst zastępczy https://example.com.",
+  "Importuj plik .fweb lub .fpub",
 ] as readonly string[];

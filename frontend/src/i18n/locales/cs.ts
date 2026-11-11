@@ -2516,4 +2516,5 @@ export default [
   "Základní URL a nastavení SEO",
   "Nastavte základní URL, které používají kanonické odkazy, mapa webu, kořenový soubor 404.html a přenosná publikace.",
   "Ponechte prázdné, aby zůstal zástupný text https://example.com.",
+  "Importovat soubor .fweb nebo .fpub",
 ] as readonly string[];

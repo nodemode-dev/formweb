@@ -2516,4 +2516,5 @@ export default [
   "基础 URL 和 SEO 设置",
   "设置规范链接、站点地图、根目录的 404.html 和可移植发布所使用的基础 URL。",
   "留空则保留占位符 https://example.com。",
+  "导入 .fweb 或 .fpub 文件",
 ] as readonly string[];

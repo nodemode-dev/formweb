@@ -2516,4 +2516,5 @@ export default [
   "URL base y ajustes de SEO",
   "Define la URL base que usan los enlaces canónicos, el sitemap, el 404.html de la raíz y la publicación portátil.",
   "Déjalo vacío para conservar el marcador de posición https://example.com.",
+  "Importar archivo .fweb o .fpub",
 ] as readonly string[];

@@ -2516,4 +2516,5 @@ export default [
   "Basis-URL og SEO-innstillinger",
   "Angi basis-URL-en som kanoniske lenker, områdekartet, 404.html i roten og portabel publisering bruker.",
   "La feltet stå tomt for å beholde plassholderen https://example.com.",
+  "Importer .fweb- eller .fpub-fil",
 ] as readonly string[];

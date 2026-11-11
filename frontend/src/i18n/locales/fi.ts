@@ -2516,4 +2516,5 @@ export default [
   "Perus-URL ja SEO-asetukset",
   "Aseta perus-URL, jota kanoniset linkit, sivustokartta, juuren 404.html ja siirrettävä julkaisu käyttävät.",
   "Jätä tyhjäksi, niin paikkamerkki https://example.com säilyy.",
+  "Tuo .fweb- tai .fpub-tiedosto",
 ] as readonly string[];

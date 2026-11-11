@@ -2516,4 +2516,5 @@ export default [
   "基礎 URL 與 SEO 設定",
   "設定標準連結、網站地圖、根目錄的 404.html 和可攜式發布所使用的基礎 URL。",
   "留空即保留預留位置文字 https://example.com。",
+  "匯入 .fweb 或 .fpub 檔案",
 ] as readonly string[];
