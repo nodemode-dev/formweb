@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.20.8 · 2026-11-11
+
+- Every label in the inspector, the Motion editors, the vector panels, Export for Screens and the feature dialogs follows a live language switch exactly. The View menu's ruler, guide and grid commands no longer stay in the first language.
+- The command palette (Ctrl+K) finds commands by their name in your language as well as in English, ignoring case and accents, and shows them in your language.
+- Switching to Japanese, Chinese, Korean or Thai no longer makes Preferences jump, and in German or Russian the inspector keeps the same tabs and columns as in English. Only labels whose width changes still shift a little.
+
 ## 0.20.7 · 2026-11-11
 
 - Menus that do not fit the menubar move into a More menus button (three dots) at its end, which opens each of them with the same commands and shortcuts, by mouse or keyboard. The top bar is one row from 800 px up in every language, so switching to German or Russian no longer pushes the page down.
