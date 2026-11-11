@@ -108,8 +108,12 @@
 .brand { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--accent-color); }
 .brand .fw-mark { display: block; flex: none; }
 .brand-name { color: var(--text-primary); font-size: var(--fs-13); font-weight: 600; letter-spacing: 0.2px; }
-.fw-menubar { display: flex; align-items: center; gap: 2px; min-width: 0; overflow: hidden; }
-.fw-menu-btn { min-height: 0; height: var(--ctl-md); padding: 0 var(--space-2); border: 0; border-radius: var(--radius); background: transparent; color: var(--text-secondary); font-size: var(--fs-12); cursor: default; }
+.fw-menubar { position: relative; display: flex; align-items: center; gap: 2px; min-width: 0; overflow: hidden; }
+.fw-menu-btn { flex: none; min-height: 0; height: var(--ctl-md); padding: 0 var(--space-2); border: 0; border-radius: var(--radius); background: transparent; color: var(--text-secondary); font-size: var(--fs-12); white-space: nowrap; cursor: default; }
+.fw-menu-btn.is-folded { position: absolute; visibility: hidden; pointer-events: none; }
+.fw-menu-more { display: inline-grid; place-items: center; width: var(--ctl-md); padding: 0; }
+.fw-menu-item[hidden] { display: none; }
+.fw-menu-item.is-open:not(:disabled) { background: color-mix(in srgb, var(--text-primary) 10%, transparent); }
 .fw-menu-btn:hover, .fw-menu-btn.is-open { background: var(--bg-tertiary); color: var(--text-primary); }
 .fw-menu { position: fixed; min-width: 240px; max-height: calc(100vh - 8px); overflow-y: auto; overscroll-behavior: contain; padding: 6px; pointer-events: auto; z-index: var(--z-dropdown); border: 1px solid color-mix(in srgb, var(--text-primary) 12%, transparent); border-radius: var(--radius-xl); background: color-mix(in srgb, var(--surface-2) 86%, transparent); -webkit-backdrop-filter: blur(40px) saturate(1.8); backdrop-filter: blur(40px) saturate(1.8); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); }
 .fw-menu[hidden] { display: none; }
@@ -211,6 +215,7 @@
 .fw-top2 .topbar > .fw-title-tools { grid-area: 2 / 1 / 3 / 4; }
 .fw-top2 .topbar > .top-actions { grid-area: 2 / 4; }
 .fw-top2 .fw-menu-btn { padding: 0 6px; }
+.fw-top2 .fw-menu-btn.fw-menu-more { padding: 0; }
 @media (max-width: 1180px) {
   .workspace[data-rail="labels"] { --rail-w: 48px; }
   .workspace[data-rail="labels"] .fw-rail-label { display: none; }

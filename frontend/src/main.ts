@@ -458,7 +458,7 @@ statusAction.addEventListener('click', () => { const act = statusActionRun; if (
 const statusRevision = element('span', 'status-revision', '');
 statusbar.append(statusConnection, statusMessage, statusAction, statusRevision);
 app.append(topbar, toolbar, workspace, statusbar);
-watchFit(app, topbar, inspector);
+watchFit(app, topbar, inspector, menubar);
 
 function addInspectorInput(container: HTMLElement, label: string, key: string, handler: (next: string) => unknown, choices?: string[], full = false, multiline = false): HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
   const control = choices ? select(choices.map(id => ({ id, name: id || 'None' }))) : multiline ? element('textarea') : input();
