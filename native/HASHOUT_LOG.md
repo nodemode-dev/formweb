@@ -1,5 +1,9 @@
 # Native context
 
+## A fragment carries its ancestor ids · v0.20.3 (2026-11-11)
+
+`formweb-engine/src/advanced.rs`: `fragment()` adds one optional field, `ancestors`, the ids of the copied element's ancestors at the source, nearest first, ids only. `paste_fragment` adds them to the ids that can have made an ending, so a child copied out of an earlier copy and pasted into another site swaps its ending from the first paste (`label-copy-1` becomes `label-copy-N`, not `label-copy-1-copy-N`). The field is read only as an array of at most 256 strings of at most 128 bytes and is ignored otherwise; it cannot add, rename or remove nodes. A fragment without it pastes as before, a 0.20.2 engine ignores it, and the backend passes it through unchanged. Checked: `cargo test --release --locked` (69 passed); ten generations stayed at 18 to 19 characters with no duplicate ids.
+
 ## Short ids only for endings a copy made · v0.20.2 (2026-11-10)
 
 `formweb-engine/src/advanced.rs`: a trailing `-copy-N` or `-page-N` on an HTML id (and a leading `copy-N-` on timeline and overlay ids) is swapped on copy only when `copy-N` or `page-N` is the copied element itself or one of its ancestors at the source (`node.duplicate`: in the site; `page.duplicate`: the page and its root; paste: inside the fragment). An author id such as `x-copy-5` or `step-page-2` is now appended to (`x-copy-5-copy-N`), not renumbered. This narrows the v0.20.1 rule below, which renumbered any id with such an ending.

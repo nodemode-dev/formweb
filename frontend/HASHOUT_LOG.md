@@ -1,5 +1,9 @@
 # Frontend context map
 
+## A narrow Remove background dialog, and steady image dialogs · v0.20.3 (2026-11-11)
+
+`styles/background-remover.css`: at 900 x 700 and 760 x 640 the dialog's stage kept `min(52vh, 460px)` while the dialog body shrank, so the picture was clipped and Apply cut-out sat below the fold. The stage is now a one-track `minmax(0, 1fr)` grid with its height clamped to `clamp(160px, 100vh - 410px, 460px)`; 1440 is unchanged. `styles/app.css`, `styles/library.css`, `styles/brand-kit.css`: the Library panel's category chips reserve their rows (74 px, shift 0.0065 before), the Team libraries dialog has a fixed height with a flexible, scrolling body, a stable scrollbar gutter and a 140 px library list (0.1102 before), and the site icon preview stays laid out while hidden (0.0001 before). The stock and brand kit dialogs were already steady. Checked at 4x CPU throttling: layout shift 0 for every measured dialog and panel; `npx tsc --noEmit` and `npm run build` pass.
+
 ## A steady Remove background dialog · v0.20.2 (2026-11-10)
 
 `features/background-remover.ts`, `styles/background-remover.css` and `.dialog-status` in `styles/app.css`: with a real image the dialog shifted when it opened (layout shift 0.039 to 0.082), because its note grew from empty to one line and the canvas jumped from 300x150 to the picture's size. The note now reserves two lines, the canvas stays hidden (still in layout) until it has its final size, and every dialog footer status reserves two lines, so a warning arriving in any dialog footer moves nothing. Layout shift is 0 at every step.
