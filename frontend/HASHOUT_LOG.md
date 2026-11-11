@@ -1,5 +1,17 @@
 # Frontend context map
 
+## The Tauri shell on Linux, checked in WebKitGTK · v0.20.4 (2026-11-11)
+
+No source change. `src-tauri` was built and run on Linux: install libwebkit2gtk-4.1-dev, libgtk-3-dev, libayatana-appindicator3-dev, librsvg2-dev, libsoup-3.0-dev and libjavascriptcoregtk-4.1-dev (plus xvfb for a headless check), then `cargo build --release` in `src-tauri` (about 6 minutes) gives `src-tauri/target/release/formweb`. The shell uses the fixed port 8240 and reuses a healthy FormWeb service already there; run with `FORMWEB_ROOT` set to the repo and, under Xvfb, `WEBKIT_DISABLE_DMABUF_RENDERER=1`. On WebKitGTK 2.52.6 (Ubuntu 24.04) Team libraries (760x774), the Library panel (243 px, 3 chip rows) and Preferences matched Chrome at 1440x900. Native select arrows differ (GTK triangle against Chrome's chevron), and the top-bar Desktop select clips its text in WebKitGTK because the select has no custom chevron: open item for a later turn. Shutdown left no process behind.
+
+## The Library category chips paint at first paint · v0.20.4 (2026-11-11)
+
+`features/library/types.ts` `KNOWN_CATEGORIES`, `styles/library.css`: the chip row no longer reserves a fixed 74 px. The 7 bundled categories are drawn at first paint and the index reuses the same keyed chips, so the row's height follows the sidebar width (74 px at 244 and 300 px, 48 px at 420) and is the same before and after load. Library with a section open went from layout shift 0.0060 (700x600) and 0.0068 (640x560) to 0. The inspector poster list, stock icons and photos, Brand kit, Team libraries, Settings and Remove background were already 0 and unclipped at 700x600 and 640x560. Limit: a category the bundled list does not know adds a chip, and maybe a row, when the index arrives.
+
+## Import .fweb or .fpub file · v0.20.4 (2026-11-11)
+
+`index.html` (importer) and `main.ts` (the `file.import` command): File > "Import .fweb or .fpub file..." and the project importer accept `.fweb`, `.json` and `.fpub`; the backend recognises a `.fpub` by content (see the backend log). The label is a key in `i18n/keys.ts`, translated in 25 languages.
+
 ## A narrow Remove background dialog, and steady image dialogs · v0.20.3 (2026-11-11)
 
 `styles/background-remover.css`: at 900 x 700 and 760 x 640 the dialog's stage kept `min(52vh, 460px)` while the dialog body shrank, so the picture was clipped and Apply cut-out sat below the fold. The stage is now a one-track `minmax(0, 1fr)` grid with its height clamped to `clamp(160px, 100vh - 410px, 460px)`; 1440 is unchanged. `styles/app.css`, `styles/library.css`, `styles/brand-kit.css`: the Library panel's category chips reserve their rows (74 px, shift 0.0065 before), the Team libraries dialog has a fixed height with a flexible, scrolling body, a stable scrollbar gutter and a 140 px library list (0.1102 before), and the site icon preview stays laid out while hidden (0.0001 before). The stock and brand kit dialogs were already steady. Checked at 4x CPU throttling: layout shift 0 for every measured dialog and panel; `npx tsc --noEmit` and `npm run build` pass.

@@ -39,7 +39,7 @@ The backend is running (`./formweb boot` for dev, `./formweb serve` for the buil
 | --- | --- |
 | Site state and history | Rust process `native/target/release/formweb-core`, mirrored to the editor |
 | Saved projects, sessions, submissions | `backend/data/formweb.sqlite3` (override with `FORMWEB_DATA_DIR`) |
-| Portable project | `.fweb` file (download or `save_project`) |
+| Portable project | `.fweb` file (download or `save_project`); the editor and `POST /api/load` also open a `.fpub` package made from a FormWeb site (FormWeb does not check its signature, FormPublisher does) |
 | Uploaded assets | `backend/data/assets` |
 | Static exports | `backend/data/exports` |
 | Local publications | `backend/data/publications/[slug]/[version]` |
