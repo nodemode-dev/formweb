@@ -2516,4 +2516,5 @@ export default [
   "URL หลักและการตั้งค่า SEO",
   "ตั้งค่า URL หลักที่ลิงก์แบบ canonical ไซต์แมป 404.html ที่รูท และการเผยแพร่ที่พกพาได้ใช้",
   "เว้นว่างไว้เพื่อคงข้อความตัวอย่าง https://example.com",
+  "นำเข้าไฟล์ .fweb หรือ .fpub",
 ] as readonly string[];

@@ -2094,7 +2094,7 @@ setRunner(run);
 registerCommands([
   { id: 'file.new', label: 'New site...', menu: 'File', run: () => openDialog('new') },
   { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
-  { id: 'file.import', label: 'Import .fweb file...', menu: 'File', run: () => importer.click() },
+  { id: 'file.import', label: 'Import .fweb or .fpub file...', menu: 'File', run: () => importer.click() },
   { id: 'file.save', label: 'Save', menu: 'File', keys: ['Mod+S'], global: true, group: 1, run: saveProject, enabled: ready },
   { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },
   { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: ready },

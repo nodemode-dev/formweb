@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.20.3" src="https://img.shields.io/badge/version-0.20.3-eef0f4?style=flat-square">
+  <img alt="version 0.20.4" src="https://img.shields.io/badge/version-0.20.4-eef0f4?style=flat-square">
   <img alt="TypeScript 7" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
   <img alt="Rust engine" src="https://img.shields.io/badge/Rust-engine-b7410e?style=flat-square">
   <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/macOS%20%C2%B7%20Linux%20%C2%B7%20Windows-native-2f7bf5?style=flat-square">
@@ -96,7 +96,7 @@
   <tr>
     <td width="33%" valign="top"><h4>Authoring</h4>Pages and layers · Flex and grid layout · Custom breakpoints · Design tokens · Components with variants and slots · Pen and shape tools · Pathfinder · Trace Image</td>
     <td width="33%" valign="top"><h4>Content and delivery</h4>CMS collections · Forms and inbox · Localized content and routes · JSON-LD · Redirects · Local releases · Signed webhooks · Review branches and comments</td>
-    <td width="33%" valign="top"><h4>Formats</h4>Opens: <code>.fweb</code>, CSV, SVG, PNG, JPEG, WebP, GIF · Saves: HTML, CSS, JSON, ZIP · Native: <code>.fweb</code></td>
+    <td width="33%" valign="top"><h4>Formats</h4>Opens: <code>.fweb</code>, <code>.fpub</code> (from a FormWeb site), CSV, SVG, PNG, JPEG, WebP, GIF · Saves: HTML, CSS, JSON, ZIP · Native: <code>.fweb</code></td>
   </tr>
 </table>
 
@@ -156,6 +156,15 @@ cd formweb
 `./formweb build` then `./formweb serve` runs the compiled editor on http://127.0.0.1:8240. `./formweb doctor` checks your setup, and `./build_app` builds the desktop app.
 
 On Windows use `formweb.bat install` and `formweb.bat boot`. The MCP endpoint is http://127.0.0.1:8240/mcp once Agents is enabled.
+
+**Desktop shell on Linux.** Install the WebKitGTK packages, then build the shell:
+
+```sh
+sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
+cd src-tauri && cargo build --release   # about 6 minutes; binary at src-tauri/target/release/formweb
+```
+
+The [manual](docs/MANUAL.md#desktop-shell-on-linux) has the run steps and two WebKitGTK notes.
 
 Settings live in `backend/.env` (see `backend/.env.example`): `FORMWEB_DATA_DIR`, `FORMWEB_CORE_BIN`, `FORMWEB_AGENTS`, `FORMWEB_AUTH_TOKEN`, `FORMWEB_PORT` and `FORMWEB_ORIGINS`. `FORMWEB_CLIP_SECONDS` (10 to 3600, default 900) sets how long a copy's clip link lives.
 

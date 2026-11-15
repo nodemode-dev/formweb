@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.20.4 · 2026-11-11
+
+- File > Import .fweb or .fpub file opens a `.fpub`, the one-file package FormPublisher saves for a build, as a project, with its pages and images. FormWeb checks that the package is whole before it loads anything; a package that FormWeb did not make is refused with a pointer to FormPublisher, which also checks the signature.
+- The Library panel's category chips are in place from the first paint, so the panel no longer moves when the library index arrives, at any sidebar width.
+- The desktop shell builds and runs on Linux; the README and the manual list the packages and the steps.
+- The new menu item is in all 26 languages.
+
 ## 0.20.3 · 2026-11-11
 
 - A part of a copy, copied into another site, keeps a short id from the first paste: `label-copy-1` pastes as `label-copy-5`, not `label-copy-1-copy-5`. Copies made by this version still paste into 0.20.2, which simply ignores the extra information.

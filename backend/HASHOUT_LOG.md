@@ -1,5 +1,11 @@
 # Backend context
 
+## Opening a .fpub package · v0.20.4 (2026-11-11)
+
+`fpub.py` `is_fpub` and `read_fpub`, called from the `POST /api/load` path: a zip whose first entry is `fpub.json` is a FormPublisher package, not a `.fweb` archive. It must hold exactly `fpub.json`, `publish.json`, `site.zip` and, when signed, `site.zip.sig`, in that order. The checks are the format (`formpublisher-package`, version 1), the package record, `publish.json` repeating that record, the signature record matching the entries, and `site.zip` matching the recorded size and sha256 (streamed to `DATA_DIR/tmp` while counted, capped at the 512 MiB archive limit). Then `site.formweb.json` is read from `site.zip` (8 MiB cap), its `assets/` references are rewritten to `/api/assets/`, and each asset the site uses is staged in the asset folder with the usual size, digest and magic-byte checks (at most 500). The result is a version 2 project object restored like a `.fweb` archive; nothing is stored before every check passes and staged files are removed on a refusal. A `.fpub` without `site.formweb.json` is refused with a message pointing to FormPublisher. The signature (`site.zip.sig`) is not verified here; FormPublisher verifies it when it opens the same file.
+
+Exit run: FormPublisher saved a signed `.fpub` of a FormWeb site (two pages, an image); a second FormWeb opened it with the same pages and nodes and the image stored under the same sha256 id. A `.fpub` with one flipped byte in `site.zip` was refused by both apps and left the FormWeb document unchanged.
+
 ## A start-up sweep of stale temporary files · v0.20.2 (2026-11-10)
 
 `assets.py` `sweep_stale_temporaries`, called in the `main.py` lifespan: at start the backend removes its own temporary files in the data folder that are more than 10 minutes old: `assets/.stage-XXXXXXXX.part` (clip and version 2 archive staging), `tmp/project-XXXXXXXX.fweb`, `tmp/load-XXXXXXXX.fweb` and `projects/.pending-` followed by 32 hex digits. Only regular files whose name fully matches are removed; symlinks are never followed, directories are skipped and younger files stay. It logs "Removed N stale temporary file(s) from the data folder." when any went. Publication `.pending` directories and FormPublisher's inbox are not touched.

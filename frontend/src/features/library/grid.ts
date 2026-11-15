@@ -2,7 +2,7 @@ import { element, keyed, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import { t, tn } from '../../i18n';
 import { thumbBox, updateThumb } from './thumb';
-import { categoryLabel, sectionName, sectionText, type LibComponent, type LibIndex, type LibSection, type LibraryHooks } from './types';
+import { KNOWN_CATEGORIES, categoryLabel, sectionName, sectionText, type LibComponent, type LibIndex, type LibSection, type LibraryHooks } from './types';
 
 /**
  * The browse view: category chips, a search field and a grid of cards. Cards are built once per section id and reused
@@ -44,6 +44,20 @@ export class SectionGrid {
     this.scroller.append(this.grid, this.empty);
     this.element.append(head, this.scroller);
     this.setMessage(t('Loading the library...'), false);
+    this.paintCategories(KNOWN_CATEGORIES);
+  }
+
+  private paintCategories(categories: string[]): void {
+    keyed(this.chips, ['', ...categories], id => id || 'all', id => {
+      const chip = element('button', 'fw-lib-chip');
+      chip.type = 'button';
+      chip.addEventListener('click', () => { this.category = this.category === id ? '' : id; this.paintChips(); this.filter(); });
+      return chip;
+    }, (node, id) => {
+      node.dataset.category = id;
+      text(node, id ? categoryLabel(id) : t('All'));
+    });
+    this.paintChips();
   }
 
   /** Shown when there is nothing to list (loading, a failed request or an empty library). The grid keeps its place. */
@@ -57,17 +71,8 @@ export class SectionGrid {
   setIndex(index: LibIndex): void {
     this.sections = index.sections;
     this.codes = new Map(index.components.map(item => [item.id, item]));
-    keyed(this.chips, ['', ...index.categories], id => id || 'all', id => {
-      const chip = element('button', 'fw-lib-chip');
-      chip.type = 'button';
-      chip.addEventListener('click', () => { this.category = this.category === id ? '' : id; this.paintChips(); this.filter(); });
-      return chip;
-    }, (node, id) => {
-      node.dataset.category = id;
-      text(node, id ? categoryLabel(id) : t('All'));
-    });
     if (this.category && !index.categories.includes(this.category)) this.category = '';
-    this.paintChips();
+    this.paintCategories(index.categories);
     keyed(this.grid, this.sections, section => section.id, section => this.card(section), (node, section) => this.paintCard(node, section));
     this.filter();
   }

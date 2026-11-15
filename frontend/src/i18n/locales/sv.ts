@@ -2516,4 +2516,5 @@ export default [
   "Bas-URL och SEO-inställningar",
   "Ange den bas-URL som kanoniska länkar, webbplatskartan, 404.html i roten och portabel publicering använder.",
   "Lämna tomt för att behålla platshållaren https://example.com.",
+  "Importera .fweb- eller .fpub-fil",
 ] as readonly string[];

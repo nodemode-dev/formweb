@@ -15,6 +15,18 @@ On Windows use `formweb.bat install` and `formweb.bat boot`. Open http://localho
 
 The default data folder is `backend/data`. Configure `FORMWEB_DATA_DIR` in `backend/.env` before launch to choose a persistent location. Keep a saved editable project or downloaded native document before replacing the checkout. Since 0.20.2, at start the backend removes its own temporary files in the data folder that are more than 10 minutes old (leftovers of a killed paste, load or save: `assets/.stage-*.part`, `tmp/project-*.fweb`, `tmp/load-*.fweb` and `projects/.pending-*`) and logs "Removed N stale temporary file(s) from the data folder." when any went. Only regular files with those exact names are removed; symlinks, directories, younger files, publication `.pending` folders and FormPublisher's inbox are left alone.
 
+## Desktop shell on Linux
+
+The Tauri shell in `src-tauri/` builds and runs on Linux (checked on Ubuntu 24.04 with WebKitGTK 2.52.6). Install the packages first:
+
+```bash
+sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
+```
+
+Add `xvfb` for a headless check. Build with `cd src-tauri` and `cargo build --release` (about 6 minutes); the binary is `src-tauri/target/release/formweb`. The shell uses the fixed port 8240 and reuses a healthy FormWeb service already running there. Run it with `FORMWEB_ROOT` set to the repository. Under Xvfb also set `WEBKIT_DISABLE_DMABUF_RENDERER=1`. Closing the window shuts the shell down and leaves no process behind.
+
+At 1440 x 900, Team libraries, the Library panel and Preferences match Chrome. Two differences in WebKitGTK: native select arrows are the GTK triangle, not Chrome's chevron, and the top-bar Desktop select clips its text because that select has no custom chevron. The clipped select is an open item.
+
 ## Advanced studio
 
 Open **Studio** in the menu for advanced authoring and service workflows. Choose a category, review its example using the current element/locale, then run the operation. The result panel shows the actual engine revision or service response. JSON editors are parsed locally and validated by Rust or the service. Pending Studio input remains mounted during live updates.
@@ -57,7 +69,7 @@ Locales stores node text and page metadata dictionaries. Studio > Localization &
 
 The Library tab in the left rail holds finished sections, design presets and starter sites. It has three views: Sections, Kits and Import HTML.
 
-Sections shows category chips (Product site, Scroll story, Portfolio hero, Prompt hero, Support, Not found, Chrome), a search field that matches name, tags, product and description, and a grid of cards with a thumbnail, the name and a badge when the section uses a page component. Select a card to open its detail in place: a larger thumbnail, a description, the fields you can re-cast before inserting (a colour field with a swatch for the tint, text, links, pictures) and Insert section. Insert places the section after the selected top-level section, or at the end of the page, as one undo step, and selects its root. Inserting the same section twice gives two independent copies. A note under the button warns when a section shares variables with one already on the site.
+Sections shows category chips (Product site, Scroll story, Portfolio hero, Prompt hero, Support, Not found, Chrome; the 7 bundled categories paint at first paint, so the row's height follows the sidebar width and does not change when the index loads, though a category the bundled list does not know adds a chip when the index arrives), a search field that matches name, tags, product and description, and a grid of cards with a thumbnail, the name and a badge when the section uses a page component. Select a card to open its detail in place: a larger thumbnail, a description, the fields you can re-cast before inserting (a colour field with a swatch for the tint, text, links, pictures) and Insert section. Insert places the section after the selected top-level section, or at the end of the page, as one undo step, and selects its root. Inserting the same section twice gives two independent copies. A note under the button warns when a section shares variables with one already on the site.
 
 An inserted section is built from your site's tokens and text presets, so changing a token restyles it. Inserting also adds only what the site is missing from the section's preset (tokens, light values, the font, text presets, root styles) and never overwrites your own values.
 
@@ -74,6 +86,8 @@ Form settings target a real form node and named controls. Configure required/pat
 ## Save, reopen and import
 
 Save writes the active editable project to the local project library. While an isolated branch is open, Save captures that branch. Projects lists main snapshots and opens one back into the engine. Download creates an editable `.fweb` envelope containing the model, checkpoint/history and uploaded raster assets. Import validates and restores the full envelope; a bare site JSON remains accepted. A project that fits in 64 MiB downloads as a single JSON `.fweb`. A larger one, such as a project with several videos, downloads as a version 2 `.fweb`, a zip with `project.json` and the assets stored uncompressed; Import reads both kinds, up to 512 MiB, and rejects a damaged or inconsistent zip before storing anything. A large load reads each file once and runs without blocking the server, so a 74 MiB project with two videos opens in a fraction of a second. Individual images are limited to 8 MiB. New creates a starter document with a distinct identity.
+
+File > Import .fweb or .fpub file... (and the project importer) also opens a `.fpub`. A `.fpub` is the single-file package FormPublisher saves for a build: a zip that holds exactly `fpub.json`, `publish.json`, `site.zip` and, when signed, `site.zip.sig`, in that order. FormWeb checks the format (`formpublisher-package`, version 1), the package record, and that `site.zip` matches the size and sha256 recorded in both `fpub.json` and `publish.json`. It then loads the site from `site.formweb.json` inside `site.zip`, with the images and other assets the site uses, which keep the same sha256 ids. Nothing is stored until every check passes; a refused file leaves the open document unchanged and its staged files are removed. FormWeb does not check the signature (`site.zip.sig`): FormPublisher does when it opens the same file, so open a signed package there to verify it. A `.fpub` built from a site FormWeb did not make has no `site.formweb.json`, and FormWeb refuses it with a message pointing to FormPublisher.
 
 Undo and redo operate on engine changes. An agent command batch is one atomic undo step. Save before starting a separate project if the current work must be retained.
 
