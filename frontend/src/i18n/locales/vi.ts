@@ -2522,4 +2522,5 @@ export default [
   "{0} tài nguyên quá lớn để nhúng và chỉ có thể dán trên máy tính này.",
   "Tiêu đề của Bước {0}",
   "Menu khác",
+  "Giới thiệu {0}",
 ] as readonly string[];

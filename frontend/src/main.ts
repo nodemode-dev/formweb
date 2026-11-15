@@ -7,6 +7,7 @@ import { THEMES, applyTheme, readChoice, setTheme } from './ui/themes';
 import { BRAND_MARK, CommandSearch, Menubar, exposeToAgents, registerCommands, runCommand, setRunner } from './ui/shell';
 import { commands as commandRegistry } from './commands/registry';
 import { NativeMenus, desktopMac, menusInWindow, setMenusInWindow, wantsNativeMenus } from './ui/native-menu';
+import { menuModel } from './ui/menus';
 import { installKeymap } from './commands/keymap';
 import { startCatalogue } from './commands/catalogue';
 import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/layout';
@@ -183,7 +184,8 @@ const brand = element('div', 'brand');
 brand.innerHTML = BRAND_MARK;
 brand.append(element('span', 'brand-name', 'formweb'));
 brand.title = 'formweb by nodemode.ai';
-const menubar = new Menubar(['File', 'Edit', 'Insert', 'Page', 'Arrange', 'Vector', 'CMS', 'View', 'Window', 'Help'], overlay);
+const menus = menuModel(commandRegistry);
+const menubar = new Menubar(menus, overlay);
 const titleTools = element('div', 'fw-title-tools');
 const topActions = element('div', 'top-actions');
 async function toggleAgents(): Promise<void> {
@@ -2104,6 +2106,7 @@ const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); 
 const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link'], ['embed', 'Embed media']];
 setRunner(run);
 registerCommands([
+  { id: 'file.home', label: 'Home', menu: 'File', keys: ['Alt+Mod+H'], run: () => home.show() },
   { id: 'file.new', label: 'New site...', menu: 'File', run: () => openDialog('new') },
   { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
   { id: 'file.import', label: 'Import .fweb or .fpub file...', menu: 'File', run: () => importer.click() },
@@ -2128,7 +2131,7 @@ registerCommands([
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
   { id: 'image.edit-in-formvis', label: 'Edit in formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await request<{ message: string }>('/api/formvis/send', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\/[0-9a-f]{64}\.(png|jpg|gif|webp)/.test(currentNode().attrs.src || '') },
   { id: 'image.update-from-formvis', label: 'Update from formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await mutateVia<{ message: string; state: EditorState }>('/api/formvis/update', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' },
-  { id: 'edit.settings', label: 'Settings...', menu: 'Edit', group: 2, run: () => openDialog('settings') },
+  { id: 'edit.settings', label: 'Settings...', menu: 'Edit', keys: ['Mod+,'], group: 2, run: () => openDialog('settings') },
   ...insertKinds.map(([kind, label]) => ({ id: `insert.${kind}`, label, menu: 'Insert', run: () => insertElement(kind), enabled: ready })),
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
   { id: 'insert.stock', label: 'Stock icons and photos...', menu: 'Insert', group: 1, run: () => openDialog('stock'), enabled: ready },
@@ -2189,10 +2192,12 @@ const wishlist = installWishlist({ state, commands: batch => commands(batch), se
 registerCommands(wishlist.commands);
 subscribe(() => wishlist.refresh());
 menubar.build();
+menubar.blocked = () => !scrim.hidden || featureStudio.opened;
 if (wantsNativeMenus()) {
-  const nativeMenus = new NativeMenus(commandRegistry, ['File', 'Edit', 'Insert', 'Page', 'Arrange', 'Vector', 'CMS', 'View', 'Window', 'Help']);
+  const nativeMenus = new NativeMenus(commandRegistry, () => menus);
   void nativeMenus.build().catch(() => undefined);
   subscribe(() => nativeMenus.refresh());
+  onLanguage(() => { void nativeMenus.build().catch(() => undefined); });
 }
 startPageTranslator();
 exposeToAgents();

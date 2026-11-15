@@ -2522,4 +2522,5 @@ export default [
   "{0} assets zijn te groot om in te sluiten en kunnen alleen op deze computer worden geplakt.",
   "Titel voor Stap {0}",
   "Meer menu's",
+  "Over {0}",
 ] as readonly string[];

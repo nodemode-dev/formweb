@@ -2522,4 +2522,5 @@ export default [
   "{0} resurser är för stora för att bäddas in och kan bara klistras in på den här datorn.",
   "Titel för Steg {0}",
   "Fler menyer",
+  "Om {0}",
 ] as readonly string[];

@@ -2522,4 +2522,5 @@ export default [
   "{0} varlık gömülemeyecek kadar büyük ve yalnızca bu bilgisayara yapıştırılabilir.",
   "Adım {0} başlığı",
   "Diğer menüler",
+  "{0} Hakkında",
 ] as readonly string[];

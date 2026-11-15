@@ -2522,4 +2522,5 @@ export default [
   "{0} aset terlalu besar untuk disematkan dan hanya bisa ditempel di komputer ini.",
   "Judul untuk Langkah {0}",
   "Menu lainnya",
+  "Tentang {0}",
 ] as readonly string[];

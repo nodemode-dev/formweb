@@ -2522,4 +2522,5 @@ export default [
   "{0} Assets sind zu groß zum Einbetten und lassen sich nur auf diesem Computer einfügen.",
   "Titel für Schritt {0}",
   "Weitere Menüs",
+  "Über {0}",
 ] as readonly string[];

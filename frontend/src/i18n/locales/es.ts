@@ -2522,4 +2522,5 @@ export default [
   "{0} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en este ordenador.",
   "Título del paso {0}",
   "Más menús",
+  "Acerca de {0}",
 ] as readonly string[];

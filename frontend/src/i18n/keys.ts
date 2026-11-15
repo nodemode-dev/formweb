@@ -2522,4 +2522,5 @@ export const KEYS: readonly string[] = [
   "{0} assets are too large to embed and will only paste on this computer.",
   "Title for Step {0}",
   "More menus",
+  "About {0}",
 ];

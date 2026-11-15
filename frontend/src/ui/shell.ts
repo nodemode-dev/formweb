@@ -2,7 +2,8 @@ import { element, keyed, text } from './dom';
 import { icon } from './icons';
 import { t, language, onLanguage } from '../i18n';
 import { listCommands, runFromBridge } from '../commands/catalogue';
-import { commands, type Command } from '../commands/registry';
+import { commands, isMac, type Command } from '../commands/registry';
+import { itemsOf, type MenuDef } from './menus';
 
 export type CommandDef = Omit<Command, 'keys' | 'group' | 'label'> & { label: string | (() => string); keys?: string | string[]; group?: number; sep?: number };
 
@@ -28,18 +29,27 @@ export function runCommand(id: string, params?: Record<string, unknown>): boolea
 
 export const BRAND_MARK = '<img class="fw-mark" src="/formweb-logo.png" width="18" height="18" alt="formweb" draggable="false">';
 
-interface MenuView { name: string; button: HTMLButtonElement; popup: HTMLElement; rows: { row: HTMLButtonElement; item: Command }[]; folded: boolean; row?: HTMLButtonElement }
+interface MenuView { name: string; def?: MenuDef; button: HTMLButtonElement; popup: HTMLElement; rows: { row: HTMLButtonElement; item: Command }[]; folded: boolean; row?: HTMLButtonElement }
+
+const KEEPS_ALT = '.xterm, .fw-term, [data-no-keys]';
+const TYPE_AHEAD_MS = 700;
 
 export class Menubar {
   readonly element = element('nav', 'fw-menubar');
+  blocked: (() => boolean) | null = null;
   private menus: MenuView[] = [];
   private open: MenuView | null = null;
   private sub: MenuView | null = null;
   private more: MenuView;
   private count = 0;
+  private returnTo: HTMLElement | null = null;
+  private barBack: HTMLElement | null = null;
+  private typed = '';
+  private typedAt = 0;
+  private altLone = false;
 
-  constructor(names: string[], private overlay: HTMLElement) {
-    this.element.setAttribute('aria-label', 'Application menu');
+  constructor(defs: MenuDef[], private overlay: HTMLElement) {
+    this.element.setAttribute('aria-label', 'Main menu');
     const moreButton = element('button', 'fw-menu-btn fw-menu-more is-folded');
     moreButton.type = 'button';
     moreButton.dataset.more = '';
@@ -54,11 +64,11 @@ export class Menubar {
     morePopup.hidden = true;
     const more: MenuView = { name: 'More menus', button: moreButton, popup: morePopup, rows: [], folded: false };
     this.more = more;
-    moreButton.addEventListener('click', () => (this.open === more ? this.close() : this.show(more)));
+    this.press(moreButton, more);
     moreButton.addEventListener('pointerenter', () => { if (this.open && this.open !== more) this.show(more); });
-    morePopup.addEventListener('keydown', event => this.keys(event, more));
     overlay.append(morePopup);
-    for (const name of names) {
+    for (const def of defs) {
+      const name = def.label;
       const button = element('button', 'fw-menu-btn', name);
       button.type = 'button';
       button.dataset.menu = name;
@@ -68,7 +78,7 @@ export class Menubar {
       popup.setAttribute('role', 'menu');
       popup.setAttribute('aria-label', name);
       popup.hidden = true;
-      const view: MenuView = { name, button, popup, rows: [], folded: false };
+      const view: MenuView = { name, def, button, popup, rows: [], folded: false };
       const row = element('button', 'fw-menu-item fw-menu-sub');
       row.type = 'button';
       row.hidden = true;
@@ -83,25 +93,31 @@ export class Menubar {
       row.addEventListener('pointerenter', () => { if (this.sub !== view) this.show(view); });
       view.row = row;
       morePopup.append(row);
-      button.addEventListener('click', () => (this.open === view ? this.close() : this.show(view)));
+      this.press(button, view);
       button.addEventListener('pointerenter', () => { if (this.open && this.open !== view) this.show(view); });
-      popup.addEventListener('keydown', event => this.keys(event, view));
       this.menus.push(view);
       this.element.append(button);
       overlay.append(popup);
     }
     this.element.append(moreButton);
     document.addEventListener('pointerdown', event => {
+      this.altLone = false;
       const target = event.target as Node;
       if (this.open && !this.open.popup.contains(target) && !this.sub?.popup.contains(target) && !this.element.contains(target)) this.close();
-    });
-    document.addEventListener('keydown', event => {
-      if (event.key !== 'Escape' || !this.open) return;
-      if (this.sub) { const row = this.sub.row; this.hide(this.sub); this.sub = null; row?.focus(); return; }
-      const button = this.open.button;
-      this.close();
-      button.focus();
-    });
+    }, true);
+    window.addEventListener('blur', () => { this.altLone = false; document.documentElement.classList.remove('is-menu-mnemonics'); this.close(); });
+    window.addEventListener('resize', () => this.close());
+    document.addEventListener('wheel', () => { this.altLone = false; }, { capture: true, passive: true });
+    document.addEventListener('keydown', event => this.key(event), true);
+    document.addEventListener('keyup', event => this.altUp(event), true);
+  }
+
+  get isOpen(): boolean { return this.open !== null; }
+
+  private press(button: HTMLButtonElement, view: MenuView): void {
+    const toggle = (): void => { if (this.open === view) this.close(); else this.show(view); };
+    button.addEventListener('pointerdown', event => { if (event.button !== 0) return; event.preventDefault(); toggle(); });
+    button.addEventListener('click', event => { if (event.detail === 0) toggle(); });
   }
 
   fold(count: number): void {
@@ -118,13 +134,11 @@ export class Menubar {
   }
 
   build(): void {
-    const byMenu = new Map<string, Command[]>();
-    for (const item of commandList()) if (item.menu) byMenu.set(item.menu, [...(byMenu.get(item.menu) || []), item]);
     for (const view of this.menus) {
-      const items = byMenu.get(view.name) || [];
-      let group = items[0]?.sep ?? 0;
-      for (const item of items) {
-        if ((item.sep ?? 0) !== group) { view.popup.append(element('div', 'fw-menu-sep')); group = item.sep ?? 0; }
+      for (const spec of view.def ? itemsOf(view.def) : []) {
+        if (spec === '-') { view.popup.append(element('div', 'fw-menu-sep')); continue; }
+        const item = commands.get(spec);
+        if (!item) continue;
         const row = element('button', 'fw-menu-item');
         row.type = 'button';
         row.setAttribute('role', 'menuitem');
@@ -138,7 +152,9 @@ export class Menubar {
     }
   }
 
-  private show(view: MenuView): void {
+  private show(view: MenuView, keyboard = false): void {
+    const from = document.activeElement;
+    if (!this.returnTo && keyboard && from instanceof HTMLElement && !from.closest('.fw-menu')) this.returnTo = from;
     const sub = view.folded ? view : null;
     const top = sub ? this.more : view;
     if (this.open && this.open !== top) this.hide(this.open);
@@ -147,7 +163,27 @@ export class Menubar {
     if (this.open !== top) this.reveal(top);
     if (sub) this.reveal(sub);
     this.open = top;
-    this.focusable(sub ?? top)[0]?.focus({ preventScroll: true });
+    if (keyboard) this.focusable(sub ?? top)[0]?.focus({ preventScroll: true });
+  }
+
+  private ring(): MenuView[] {
+    const ring = this.menus.filter(entry => !entry.folded);
+    if (this.count) ring.push(this.more);
+    return ring;
+  }
+
+  private byLetter(letter: string): MenuView | undefined {
+    const wanted = letter.toLowerCase();
+    return this.menus.find(entry => (entry.button.textContent ?? '').trim().charAt(0).toLowerCase() === wanted);
+  }
+
+  private leave(): boolean {
+    const sub = this.sub;
+    if (!sub) return false;
+    this.hide(sub);
+    this.sub = null;
+    sub.row?.focus();
+    return true;
   }
 
   private focusable(view: MenuView): HTMLButtonElement[] {
@@ -200,33 +236,99 @@ export class Menubar {
   }
 
   close(): void {
+    const inside = !!document.activeElement?.closest('.fw-menu');
     if (this.sub) { this.hide(this.sub); this.sub = null; }
     if (this.open) { this.hide(this.open); this.open = null; }
+    const back = this.returnTo;
+    this.returnTo = null;
+    if (inside && back?.isConnected) back.focus();
   }
 
-  private keys(event: KeyboardEvent, view: MenuView): void {
+  private idle(): boolean {
+    return document.documentElement.classList.contains('has-native-menus') || !!this.blocked?.();
+  }
+
+  private altUp(event: KeyboardEvent): void {
+    if (event.key !== 'Alt') return;
+    document.documentElement.classList.remove('is-menu-mnemonics');
+    if (!this.altLone) return;
+    this.altLone = false;
+    const ring = this.ring();
+    if (this.open || this.idle() || !ring.length) return;
+    event.preventDefault();
+    const from = document.activeElement;
+    if (from instanceof HTMLElement && !ring.some(entry => entry.button === from)) this.barBack = from;
+    ring[0].button.focus();
+  }
+
+  private leaveBar(): void {
+    const back = this.barBack;
+    this.barBack = null;
+    if (back?.isConnected && back !== document.body) back.focus(); else (document.activeElement as HTMLElement | null)?.blur();
+  }
+
+  private key(event: KeyboardEvent): void {
+    const stop = (): void => { event.preventDefault(); event.stopPropagation(); };
+    const keepsAlt = !!(event.target as Element | null)?.closest?.(KEEPS_ALT);
+    if (event.key === 'Alt') {
+      if (!event.repeat && !isMac && !keepsAlt && !this.open && !this.idle() && !event.ctrlKey && !event.metaKey && !event.shiftKey) { this.altLone = true; document.documentElement.classList.add('is-menu-mnemonics'); }
+      return;
+    }
+    this.altLone = false;
+    if (!this.open) {
+      if (this.idle() || event.ctrlKey || event.metaKey) return;
+      const ring = this.ring();
+      if (!ring.length) return;
+      const at = ring.findIndex(entry => entry.button === document.activeElement);
+      if (at >= 0 && !event.altKey && !event.shiftKey) {
+        const focus = (index: number): void => ring[(index + ring.length) % ring.length].button.focus();
+        if (event.key === 'ArrowRight') { stop(); focus(at + 1); return; }
+        if (event.key === 'ArrowLeft') { stop(); focus(at - 1); return; }
+        if (event.key === 'Home') { stop(); focus(0); return; }
+        if (event.key === 'End') { stop(); focus(-1); return; }
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') { stop(); this.show(ring[at], true); return; }
+        if (event.key === 'Escape') { stop(); this.leaveBar(); return; }
+        if (event.key.length === 1 && /\S/.test(event.key)) {
+          const hit = this.byLetter(event.key);
+          if (hit) { stop(); this.show(hit, true); }
+          return;
+        }
+      }
+      if (event.key === 'F10' && !event.altKey && !event.shiftKey && !keepsAlt) { stop(); this.show(ring[0], true); return; }
+      if (!event.altKey || event.shiftKey || isMac || keepsAlt || !/^Key[A-Z]$/.test(event.code) || commands.forEvent(event)) return;
+      const hit = this.byLetter(event.code.slice(3));
+      if (!hit) return;
+      stop();
+      this.show(hit, true);
+      return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) { if (commands.forEvent(event)) stop(); return; }
+    const view = this.sub ?? this.open;
     const rows = this.focusable(view);
     const at = rows.indexOf(document.activeElement as HTMLButtonElement);
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault();
-      rows[(at + (event.key === 'ArrowDown' ? 1 : rows.length - 1)) % rows.length]?.focus();
-    } else if (view.folded && event.key === 'ArrowLeft') {
-      event.preventDefault();
-      const row = view.row;
-      this.hide(view);
-      this.sub = null;
-      row?.focus();
-    } else if (view === this.more && event.key === 'ArrowRight') {
-      event.preventDefault();
-      const target = this.menus.find(entry => entry.row === document.activeElement);
-      if (target) this.show(target);
-    } else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-      event.preventDefault();
-      const ring = this.menus.filter(entry => !entry.folded);
-      if (this.count) ring.push(this.more);
-      const index = ring.indexOf(view.folded ? this.more : view);
-      this.show(ring[(index + (event.key === 'ArrowRight' ? 1 : ring.length - 1)) % ring.length]);
-    }
+    const go = (index: number): void => { if (rows.length) rows[(index + rows.length) % rows.length].focus(); };
+    const ring = this.ring();
+    const turn = (step: number): void => { this.show(ring[(ring.indexOf(this.open as MenuView) + step + ring.length) % ring.length], true); };
+    const folded = view === this.more && at >= 0 ? this.menus.find(entry => entry.row === rows[at]) : undefined;
+    if (event.key === 'ArrowDown') { stop(); go(at + 1); }
+    else if (event.key === 'ArrowUp') { stop(); go(at < 0 ? -1 : at - 1); }
+    else if (event.key === 'Home') { stop(); go(0); }
+    else if (event.key === 'End') { stop(); go(-1); }
+    else if (event.key === 'ArrowRight') { stop(); if (folded) this.show(folded, true); else turn(1); }
+    else if (event.key === 'ArrowLeft') { stop(); if (!this.leave()) turn(-1); }
+    else if (event.key === 'Enter' || event.key === ' ') { stop(); if (folded) this.show(folded, true); else if (at >= 0) rows[at].click(); }
+    else if (event.key === 'Escape') { stop(); if (!this.leave()) this.close(); }
+    else if (event.key === 'Tab') { stop(); this.close(); }
+    else if (event.key.length === 1 && /\S/.test(event.key) && !event.shiftKey) {
+      stop();
+      const now = performance.now();
+      const word = now - this.typedAt < TYPE_AHEAD_MS ? this.typed + event.key.toLowerCase() : event.key.toLowerCase();
+      this.typed = word;
+      this.typedAt = now;
+      const starts = (row: HTMLElement): boolean => (row.querySelector('.fw-menu-label')?.textContent ?? '').trim().toLowerCase().startsWith(word);
+      const from = word.length === 1 ? at + 1 : Math.max(0, at);
+      for (let step = 0; step < rows.length; step += 1) { const row = rows[(from + step) % rows.length]; if (starts(row)) { row.focus(); break; } }
+    } else if (commands.forEvent(event)) stop();
   }
 }
 

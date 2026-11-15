@@ -2522,4 +2522,5 @@ export default [
   "{0} erőforrás túl nagy a beágyazáshoz, ezért csak ezen a számítógépen illeszthető be.",
   "{0}. lépés címe",
   "További menük",
+  "A(z) {0} névjegye",
 ] as readonly string[];

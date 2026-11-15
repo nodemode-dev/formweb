@@ -2522,4 +2522,5 @@ export default [
   "Liczba zasobów zbyt dużych, aby je osadzić: {0}. Można je wkleić tylko na tym komputerze.",
   "Tytuł kroku {0}",
   "Więcej menu",
+  "Informacje o {0}",
 ] as readonly string[];

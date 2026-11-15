@@ -2522,4 +2522,5 @@ export default [
   "{0} ressources sont trop volumineuses pour être intégrées et ne pourront être collées que sur cet ordinateur.",
   "Titre de l'Étape {0}",
   "Autres menus",
+  "À propos de {0}",
 ] as readonly string[];

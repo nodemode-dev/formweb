@@ -2522,4 +2522,5 @@ export default [
   "{0} recursos são grandes demais para serem incorporados e só poderão ser colados neste computador.",
   "Título da Etapa {0}",
   "Mais menus",
+  "Sobre o {0}",
 ] as readonly string[];

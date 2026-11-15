@@ -105,7 +105,7 @@ export class HomeScreen {
       if (run) this.d.run(run);
     });
     host.appendChild(this.root);
-    document.addEventListener('keydown', event => { if (event.key === 'Escape' && this.siteId !== null && !this.root.hidden && !document.querySelector('.dialog-scrim:not([hidden])')) this.dismiss(); });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && !event.defaultPrevented && this.siteId !== null && !this.root.hidden && !document.querySelector('.dialog-scrim:not([hidden])')) this.dismiss(); });
     this.paint();
     this.apply();
   }

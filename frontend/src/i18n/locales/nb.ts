@@ -2522,4 +2522,5 @@ export default [
   "{0} ressurser er for store til å bygges inn og kan bare limes inn på denne datamaskinen.",
   "Tittel for Trinn {0}",
   "Flere menyer",
+  "Om {0}",
 ] as readonly string[];
