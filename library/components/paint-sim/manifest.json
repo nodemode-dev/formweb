@@ -93,6 +93,7 @@
     "modalAlt": "Placeholders: {title}, {id}."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formsurface-swatch"],
   "fallback": "Without WebGL2 a static blurred pigment gradient is shown as a printed proof, the pigment controls are hidden and a note explains why. With reduced motion the pinned scene holds the start or the finished card, the surface shows a settled sprayed stroke and the colour controls stay usable.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formsurface-swatch (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

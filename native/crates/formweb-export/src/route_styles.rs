@@ -55,7 +55,7 @@ fn extras(site: &Site) -> String {
         let definition = instance.get("component").and_then(serde_json::Value::as_str).and_then(|component| code?.get("components")?.get(component));
         definition.map(|d| d.get("enabled").and_then(serde_json::Value::as_bool) == Some(true) && d.get("mode").and_then(serde_json::Value::as_str) == Some("page")).unwrap_or(false)
     })).unwrap_or(false);
-    if hosts { css.push_str(":where([data-fw-component]){position:relative}\n[data-fw-poster]{display:block;width:100%;height:100%;object-fit:cover}\n"); }
+    if hosts { css.push_str(":where([data-fw-component]){position:relative}\n[data-fw-poster]{display:block;width:100%;height:100%;object-fit:cover}\n"); if crate::code::has_light_posters(site) { css.push_str("[data-fw-poster][style*=\"hidden\"]~[data-fw-poster]{visibility:hidden}\n"); } }
     if code.and_then(|v| v.get("allowSections")).and_then(serde_json::Value::as_bool) == Some(true) {
         if let Some(sections) = code.and_then(|v| v.get("sections")).and_then(serde_json::Value::as_object) {
             for id in site.nodes.keys() {

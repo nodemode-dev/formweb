@@ -103,11 +103,12 @@ fn code_sections(site:&Site,value:&Value)->Result<(),String>{boolean(value,"allo
         if let Some(poster)=section.get("poster"){if !poster.as_str().map(owned_image).unwrap_or(false){return Err("code section poster must be an owned image asset".into());}}}
     Ok(())}
 fn code(site:&Site,value:&Value)->Result<(),String>{keys(value,&["components","instances","siteCode","pageCode","allowSections","sections"])?;code_sections(site,value)?;custom_code(value.get("siteCode"))?;for(id,data)in maps(value,"pageCode")?{page(site,id)?;custom_code(Some(data))?;}
-    for(id,component)in maps(value,"components")?{if !identifier(id){return Err("invalid code component id".into());}keys(component,&["enabled","language","source","sourceDigest","builtDigest","javascript","props","mode","poster"])?;
+    for(id,component)in maps(value,"components")?{if !identifier(id){return Err("invalid code component id".into());}keys(component,&["enabled","language","source","sourceDigest","builtDigest","javascript","props","mode","poster","posterLight"])?;
         if component.get("enabled").and_then(Value::as_bool)!=Some(true)||!["typescript","javascript"].contains(&string(component,"language")?){return Err("code component requires explicit opt-in and supported language".into());}
         let source=string(component,"source")?;let js=string(component,"javascript")?;
         let page_mode=match component.get("mode"){None=>false,Some(mode)=>match mode.as_str(){Some("isolated")=>false,Some("page")=>true,_=>return Err("code component mode must be isolated or page".into())}};
         if let Some(poster)=component.get("poster"){if !poster.as_str().map(owned_image).unwrap_or(false){return Err("code component poster must be an owned image asset".into());}}
+        if let Some(poster)=component.get("posterLight"){if !poster.as_str().map(owned_image).unwrap_or(false){return Err("code component posterLight must be an owned image asset".into());}}
         let(source_cap,js_cap)=if page_mode{(256*1024,512*1024)}else{(128*1024,256*1024)};
         if source.len()>source_cap||js.len()>js_cap||digest(source)!=string(component,"sourceDigest")?||digest(js)!=string(component,"builtDigest")?{return Err("code size or digest mismatch".into());}
         if ["import ","import(","import\n","require(","export *"," from '"].iter().any(|bad|source.contains(bad)){return Err("code components cannot import dependencies".into());}

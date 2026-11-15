@@ -1,6 +1,8 @@
 import asyncio
 import json
 import mimetypes
+import os
+import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
@@ -8,15 +10,16 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
+from starlette.background import BackgroundTask
 from starlette.responses import FileResponse, JSONResponse, Response, StreamingResponse
 
 from .access import CHANNELS, actor, channel
 from .advanced_routes import router as advanced_router, form_gate, serve_release, submission_values
 from . import claude_code
-from .assets import MIME_TYPES, asset_path, ingest, list_assets, own_asset, project_envelope, visible_assets
+from .assets import MIME_TYPES, ProjectTooLarge, asset_path, ingest, list_assets, own_asset, project_envelope, read_project_archive, visible_assets, write_project_archive
 from .chat import router as chat_router
 from .commands_mirror import router as commands_router
-from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_FILE_BYTES, MAX_VIDEO_BYTES, ORIGINS, PORT, VERSION
+from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_ARCHIVE_BYTES, MAX_PROJECT_FILE_BYTES, MAX_VIDEO_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
 from .handoff import router as handoff_router
 from .library_routes import router as library_router
@@ -71,7 +74,8 @@ class LocalAccess:
                 raise EngineError('Agents are disabled. Enable Agents in the editor or set FORMWEB_AGENTS=1.', 403)
             if control and scope['method'] != 'OPTIONS':
                 identity = studio.access.authenticate(headers, mcp=path == '/mcp')
-            maximum = MAX_PROJECT_FILE_BYTES if path in ('/api/load', '/mcp') else MAX_VIDEO_BYTES if path == '/api/assets' and scope['method'] == 'POST' else MAX_DOCUMENT_BYTES
+            archive_load = path == '/api/load' and headers.get('content-type', '').split(';', 1)[0].strip().lower() == 'application/zip'
+            maximum = MAX_PROJECT_ARCHIVE_BYTES if archive_load else MAX_PROJECT_FILE_BYTES if path in ('/api/load', '/mcp') else MAX_VIDEO_BYTES if path == '/api/assets' and scope['method'] == 'POST' else MAX_DOCUMENT_BYTES
             length = headers.get('content-length', '')
             if length and (not length.isdecimal() or int(length) > maximum):
                 raise EngineError('Request body exceeds the configured size limit.', 413)
@@ -595,18 +599,67 @@ async def new(body: NewSite):
 
 @app.post('/api/load')
 async def load(request: Request):
+    chunks = request.stream().__aiter__()
+    first = b''
+    async for chunk in chunks:
+        first += chunk
+        if len(first) >= 4:
+            break
+    if first.startswith(b'PK\x03\x04') or request.headers.get('content-type', '').split(';', 1)[0].strip().lower() == 'application/zip':
+        return await load_archive(first, chunks)
+    body = bytearray(first)
+    async for chunk in chunks:
+        body.extend(chunk)
+        if len(body) > MAX_PROJECT_FILE_BYTES:
+            raise EngineError('Request body is too large.', 413)
+    if len(body) > MAX_PROJECT_FILE_BYTES:
+        raise EngineError('Request body is too large.', 413)
     try:
-        body = json.loads(await limited_body(request, MAX_PROJECT_FILE_BYTES))
+        native = json.loads(bytes(body))
     except (ValueError, UnicodeDecodeError) as error:
         raise EngineError('Project file is not valid JSON.') from error
-    return await load_native(body)
+    return await load_native(native)
+
+
+async def load_archive(first: bytes, chunks):
+    """Version 2 .fweb: spool the body to disk while counting bytes, validate it with zipfile, then load through load_native."""
+    studio.access.authorize('edit')
+    folder = DATA_DIR / 'tmp'
+    folder.mkdir(parents=True, exist_ok=True)
+    handle, temporary = tempfile.mkstemp(prefix='load-', suffix='.fweb', dir=folder)
+    target = Path(temporary)
+    try:
+        total = 0
+        with os.fdopen(handle, 'wb') as spool:
+            for chunk in (first,):
+                total += len(chunk)
+                spool.write(chunk)
+            async for chunk in chunks:
+                total += len(chunk)
+                if total > MAX_PROJECT_ARCHIVE_BYTES:
+                    raise EngineError('Project archive exceeds the 512 MiB limit.', 413)
+                spool.write(chunk)
+        if total > MAX_PROJECT_ARCHIVE_BYTES:
+            raise EngineError('Project archive exceeds the 512 MiB limit.', 413)
+        native = await asyncio.to_thread(read_project_archive, target)
+        return await load_native(native, target)
+    finally:
+        target.unlink(missing_ok=True)
 
 
 @app.get('/api/project-file')
 @app.get('/api/project/download')
 async def project_file():
     current = await studio.state()
-    envelope = project_envelope(current['site'], await studio.engine.request('checkpoint'))
+    return project_download(current['site'], await studio.engine.request('checkpoint'))
+
+
+def project_download(site, checkpoint):
+    try:
+        envelope = project_envelope(site, checkpoint)
+    except ProjectTooLarge:
+        archive = write_project_archive(site, checkpoint)
+        return FileResponse(archive, media_type='application/zip', headers={'Content-Disposition': 'attachment; filename="site.fweb"'}, background=BackgroundTask(archive.unlink, missing_ok=True))
     return Response(json.dumps(envelope, ensure_ascii=False, indent=2), media_type='application/json', headers={'Content-Disposition': 'attachment; filename="site.fweb"'})
 
 
@@ -631,8 +684,7 @@ async def saved_project_file(project_id: str):
     site = studio.store.project(project_id)
     if site is None:
         raise EngineError('Project not found.', 404)
-    envelope = project_envelope(site, studio.store.project_checkpoint(project_id))
-    return Response(json.dumps(envelope, ensure_ascii=False, indent=2), media_type='application/json', headers={'Content-Disposition': 'attachment; filename="site.fweb"'})
+    return project_download(site, studio.store.project_checkpoint(project_id))
 
 
 @app.get('/api/audit')

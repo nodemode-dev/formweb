@@ -65,6 +65,7 @@
     "siteResults": "Node id of the hidden list that the native site search action fills. Its results are printed first, ahead of the pages list."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formtxt-404"],
   "fallback": "With reduced motion the receipt prints fully at once, the lamp does not blink and the tear drop is instant. The tear gesture and the Reprint button stay usable.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formtxt-404 (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

@@ -85,6 +85,7 @@
     "labels": "Object with every interface string; keys left out keep their English default."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formcel-foresheet"],
   "fallback": "The poster shows the idle prompt panel. With reduced motion the prompt shows its first suggestion, no typing loop runs, and results appear at once in their settled state.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formcel-foresheet (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

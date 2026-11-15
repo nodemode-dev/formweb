@@ -43,6 +43,7 @@
     "copyMouse": "Written into the node marked data-vt-copy. The component also drives the nodes marked data-vt-count, data-vt-recut, data-vt-back, data-vt-sc and data-vt-fin that sit beside it in the stage."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formvis-tiles"],
   "fallback": "If the picture fails the copy line says so and the tiles stay empty. With reduced motion the picture is drawn already merged into one image and no tile moves.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formvis-tiles (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

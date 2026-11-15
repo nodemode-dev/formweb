@@ -27,6 +27,7 @@
     "reach": "How far from the pointer squares brighten and grow, in pixels."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formslot-support"],
   "fallback": "With reduced motion the squares are drawn once at a steady brightness and the pointer boost is off.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formslot-support (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

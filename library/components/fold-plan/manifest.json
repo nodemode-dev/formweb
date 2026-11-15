@@ -48,6 +48,7 @@
     "startMode": "plan or axon."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formcad-plan"],
   "fallback": "Under reduced motion every transition and entrance animation is switched off and the sheet shows its settled state; the plan and axon switch, the sun slider and the part cards stay usable. Without CSS 3D support the flat plan still shows.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formcad-plan (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

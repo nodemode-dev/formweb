@@ -26,6 +26,24 @@ pub fn apply(site:&mut Site,command:&str,params:&Value)->Result<(),String>{
             let mut duplicate=page.clone();duplicate.id=id.clone();duplicate.root=root;duplicate.slug=slug;duplicate.name=params.get("name").and_then(Value::as_str).map(String::from).unwrap_or_else(||format!("{} copy",page.name));site.pages.push(duplicate);
             remap_html_ids(site,&map,&id)?;duplicate_extensions(site,&map,&page.id,&id)?;
         }
+        "node.duplicate"=>{
+            let id=string(params,"id")?.to_string();if !site.nodes.contains_key(&id){return Err("unknown node".into());}
+            if site.pages.iter().any(|p|p.root==id){return Err("a page root cannot be duplicated; use page.duplicate".into());}
+            let linked=|site:&Site,start:&str|{let mut at=Some(start.to_string());while let Some(n)=at{let node=&site.nodes[&n];if node.component_id.is_some()||node.component_source_id.is_some(){return true;}at=parent_of(site,&n);}false};
+            if linked(site,&id){return Err("a node inside a linked component instance cannot be duplicated; detach the instance first".into());}
+            let from=parent_of(site,&id).ok_or("node has no parent")?;
+            let parent=match params.get("parent"){Some(p)=>p.as_str().ok_or("parent must be text")?.to_string(),None=>from.clone()};
+            if !site.nodes.contains_key(&parent){return Err("unknown destination parent".into());}
+            if linked(site,&parent){return Err("the copy cannot go inside a linked component instance".into());}
+            if descendants(site,&id)?.len()>2000{return Err("subtree has more than 2000 nodes; duplicate smaller parts".into());}
+            let at=site.nodes[&parent].children.len();
+            let index=match params.get("index"){Some(v)=>usize::try_from(v.as_u64().ok_or("index must be a nonnegative integer")?).map_err(|_|"index is out of range")?,None if parent==from=>site.nodes[&parent].children.iter().position(|c|*c==id).map(|i|i+1).unwrap_or(at),None=>at};
+            if index>at{return Err("index is outside destination children".into());}
+            let mut map=BTreeMap::new();let root=clone_plain(site,&id,&mut map)?;
+            site.nodes.get_mut(&parent).unwrap().children.insert(index,root.clone());
+            remap_html_ids(site,&map,&root)?;duplicate_node_entries(site,&map,&root)?;
+            formweb_model::advanced::validate_extensions(site)?;
+        }
         "page.bulk"=>{
             let template=string(params,"template")?.to_string();
             let rows=params.get("rows").and_then(Value::as_array).ok_or("rows must be an array")?;
@@ -81,14 +99,20 @@ pub fn apply(site:&mut Site,command:&str,params:&Value)->Result<(),String>{
 fn clone_plain(site:&mut Site,id:&str,map:&mut BTreeMap<String,String>)->Result<String,String>{let source=site.nodes.get(id).ok_or("missing source node")?.clone();let new=fresh_id(site,"copy");let mut node=source.clone();node.id=new.clone();node.children.clear();map.insert(id.into(),new.clone());site.nodes.insert(new.clone(),node);for child in source.children{let cloned=clone_plain(site,&child,map)?;site.nodes.get_mut(&new).unwrap().children.push(cloned);}Ok(new)}
 fn remap_html_ids(site:&mut Site,map:&BTreeMap<String,String>,suffix:&str)->Result<(),String>{let roots=instance_roots(site);let attrs=component_attr_maps(site);let ids:Strings=map.iter().filter_map(|(old,new)|site.nodes[old].attrs.get("id").map(|html|{let target=&site.nodes[new];let inherited=target.component_source_id.as_ref().filter(|_|!target.overrides.iter().any(|k|k=="attrs")).and_then(|source|site.nodes[source].attrs.get("id")).and_then(|html|roots.get(new).and_then(|root|attrs.get(root)).and_then(|map|map.get(html))).cloned();(html.clone(),inherited.unwrap_or_else(||format!("{html}-{suffix}")))})).collect();for new in map.values(){let mut n=site.nodes[new].clone();n.attrs=linked_attrs(&n,&ids);site.nodes.get_mut(new).unwrap().attrs=n.attrs;}Ok(())}
 fn remap_json(value:&mut Value,map:&BTreeMap<String,String>){match value{Value::String(s)=>{if let Some(n)=map.get(s){*s=n.clone();}},Value::Array(a)=>for v in a{remap_json(v,map)},Value::Object(o)=>{let old=std::mem::take(o);for(k,mut v)in old{remap_json(&mut v,map);o.insert(map.get(&k).cloned().unwrap_or(k),v);}},_=>{}}}
-fn duplicate_extensions(site:&mut Site,map:&BTreeMap<String,String>,old_page:&str,new_page:&str)->Result<(),String>{
-    let mut refs=map.clone();let behaviors=site.extensions.get("behaviors").cloned().unwrap_or_else(||json!({}));
+// Shared by page copies and element copies: every node-keyed entry of the copied nodes gets its own entry under the new id, with node references and behavior ids remapped.
+fn duplicate_node_entries(site:&mut Site,map:&BTreeMap<String,String>,prefix:&str)->Result<(),String>{
+    let new_page=prefix;let mut refs=map.clone();let behaviors=site.extensions.get("behaviors").cloned().unwrap_or_else(||json!({}));
     for field in ["timelines","overlays"]{let entries=behaviors.get(field).and_then(Value::as_object).cloned().unwrap_or_default();for(id,value)in entries{let owned=if field=="overlays"{value.get("node").and_then(Value::as_str).map(|id|map.contains_key(id)).unwrap_or(false)}else{value.get("tracks").and_then(Value::as_array).map(|tracks|tracks.iter().any(|t|t.get("node").and_then(Value::as_str).map(|id|map.contains_key(id)).unwrap_or(false))).unwrap_or(false)};if owned{let new=format!("{new_page}-{id}");if !formweb_model::identifier(&new){return Err("duplicated behavior id exceeds limit".into());}refs.insert(id.clone(),new.clone());set_path(site,"behaviors",field,&new,value)?;}}}
     for field in ["timelines","overlays"]{let updates:Vec<_>=site.extensions.get("behaviors").and_then(|g|g.get(field)).and_then(Value::as_object).map(|entries|entries.iter().filter(|(id,_)|refs.values().any(|new|new==*id)).map(|(id,v)|(id.clone(),v.clone())).collect()).unwrap_or_default();for(id,mut value)in updates{remap_json(&mut value,&refs);set_path(site,"behaviors",field,&id,value)?;}}
-    for(group_name,field)in [("cms","bindings"),("cms","lists"),("behaviors","nodes"),("forms","forms"),("code","instances"),("integrations","widgets"),("components","instances"),("design","applications"),("localization","assets"),("motion","reveals"),("motion","scenes"),("motion","loops"),("motion","counters"),("motion","text"),("motion","drag"),("motion","pointer"),("motion","disclosure"),("motion","actions")] {let copies:Vec<_>=site.extensions.get(group_name).and_then(|v|v.get(field)).and_then(Value::as_object).map(|entries|entries.iter().filter_map(|(id,value)|map.get(id).map(|new|(new.clone(),value.clone()))).collect()).unwrap_or_default();for(id,mut value)in copies{remap_json(&mut value,&refs);set_path(site,group_name,field,&id,value)?;}}
+    for(group_name,field)in [("cms","bindings"),("cms","lists"),("behaviors","nodes"),("forms","forms"),("code","instances"),("integrations","widgets"),("components","instances"),("design","applications"),("localization","assets"),("motion","reveals"),("motion","scenes"),("motion","loops"),("motion","counters"),("motion","text"),("motion","drag"),("motion","pointer"),("motion","disclosure"),("motion","actions"),("motion","scripts"),("code","sections"),("variables","inputs"),("variables","outputs")] {let copies:Vec<_>=site.extensions.get(group_name).and_then(|v|v.get(field)).and_then(Value::as_object).map(|entries|entries.iter().filter_map(|(id,value)|map.get(id).map(|new|(new.clone(),value.clone()))).collect()).unwrap_or_default();for(id,mut value)in copies{if group_name!="variables"&&field!="sections"{remap_json(&mut value,&refs);}set_path(site,group_name,field,&id,value)?;}}
+    for translations in site.locales.values_mut(){let copies:Vec<_>=map.iter().filter_map(|(old,new)|translations.get(old).map(|text|(new.clone(),text.clone()))).collect();for(k,v)in copies{translations.insert(k,v);}}
+    Ok(())
+}
+fn duplicate_extensions(site:&mut Site,map:&BTreeMap<String,String>,old_page:&str,new_page:&str)->Result<(),String>{
+    duplicate_node_entries(site,map,new_page)?;
     let new_slug=site.pages.iter().find(|p|p.id==new_page).ok_or("duplicate page missing")?.slug.trim_end_matches('/').to_string();
     for(group_name,field)in [("cms","templates"),("seo","pages"),("localization","pageSlugs"),("code","pageCode")] {if let Some(mut value)=site.extensions.get(group_name).and_then(|v|v.get(field)).and_then(|v|v.get(old_page)).cloned(){if group_name=="cms"{let route=string(&value,"slug")?.to_string();value.as_object_mut().unwrap().insert("slug".into(),json!(format!("{new_slug}/{}",route.trim_start_matches('/'))));}if group_name=="localization"{for path in value.as_object_mut().ok_or("localized routes must be map")?.values_mut(){*path=json!(format!("{new_slug}/{}",path.as_str().ok_or("localized route must be text")?.trim_start_matches('/')));}}set_path(site,group_name,field,new_page,value)?;}}
-    for translations in site.locales.values_mut(){let mut copies:Vec<_>=map.iter().filter_map(|(old,new)|translations.get(old).map(|text|(new.clone(),text.clone()))).collect();for key in ["title","description"]{if let Some(text)=translations.get(&format!("{old_page}.{key}")){copies.push((format!("{new_page}.{key}"),text.clone()));}}for(k,v)in copies{translations.insert(k,v);}}
+    for translations in site.locales.values_mut(){let mut copies:Vec<(String,String)>=vec![];for key in ["title","description"]{if let Some(text)=translations.get(&format!("{old_page}.{key}")){copies.push((format!("{new_page}.{key}"),text.clone()));}}for(k,v)in copies{translations.insert(k,v);}}
     Ok(())
 }
 

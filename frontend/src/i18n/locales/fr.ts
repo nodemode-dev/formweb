@@ -2483,4 +2483,13 @@ export default [
   "Envoyé à FormPublisher : {0} est maintenant à la révision {1}.",
   "FormPublisher n'est pas en cours d'exécution. Le site a été enregistré dans sa boîte de réception ({0}) et sera importé au démarrage de FormPublisher.",
   "Impossible d'envoyer à FormPublisher : {0}",
+  "Dupliquer",
+  "Dupliquer l’élément",
+  "Élément dupliqué.",
+  "La racine d’une page ou un élément à l’intérieur d’une instance de composant liée ne peut pas être dupliqué",
+  "Affiche du thème clair",
+  "Importer l'affiche du thème clair",
+  "Effacer l'affiche du thème clair",
+  "Import de l'affiche du thème clair...",
+  "Affiche du thème clair associée.",
 ] as readonly string[];

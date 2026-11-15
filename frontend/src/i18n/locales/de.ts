@@ -2483,4 +2483,13 @@ export default [
   "An FormPublisher gesendet: {0} ist jetzt bei Revision {1}.",
   "FormPublisher läuft nicht. Die Website wurde in dessen Eingang ({0}) gespeichert und wird beim Start von FormPublisher importiert.",
   "Senden an FormPublisher nicht möglich: {0}",
+  "Duplizieren",
+  "Element duplizieren",
+  "Element dupliziert.",
+  "Die Wurzel einer Seite oder ein Element in einer verknüpften Komponenteninstanz kann nicht dupliziert werden",
+  "Poster für helles Design",
+  "Poster für helles Design hochladen",
+  "Poster für helles Design löschen",
+  "Poster für helles Design wird hochgeladen ...",
+  "Poster für helles Design angehängt.",
 ] as readonly string[];

@@ -231,7 +231,7 @@ def component_group(site: dict, records: dict) -> dict | None:
     components = group.setdefault('components', {})
     changed = False
     for ident, record in records.items():
-        if components.get(ident, {}).get('sourceDigest') != record.get('sourceDigest') or components.get(ident, {}).get('poster') != record.get('poster'):
+        if components.get(ident, {}).get('sourceDigest') != record.get('sourceDigest') or components.get(ident, {}).get('poster') != record.get('poster') or components.get(ident, {}).get('posterLight') != record.get('posterLight'):
             components[ident] = record
             changed = True
     return group if changed else None

@@ -2483,4 +2483,13 @@ export default [
   "Inviato a FormPublisher: {0} è ora alla revisione {1}.",
   "FormPublisher non è in esecuzione. Il sito è stato salvato nella sua posta in arrivo ({0}) e viene importato all'avvio di FormPublisher.",
   "Impossibile inviare a FormPublisher: {0}",
+  "Duplica",
+  "Duplica elemento",
+  "Elemento duplicato.",
+  "La radice di una pagina o un elemento all'interno di un'istanza di componente collegata non può essere duplicato",
+  "Poster del tema chiaro",
+  "Carica poster del tema chiaro",
+  "Cancella poster del tema chiaro",
+  "Caricamento del poster del tema chiaro...",
+  "Poster del tema chiaro allegato.",
 ] as readonly string[];

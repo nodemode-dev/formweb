@@ -26,11 +26,11 @@ Placeholders in a template are `$parent`, `@@key@@` for a node id and `{{field}}
 
 ## Routes
 
-`GET /api/library`, `GET /api/library/thumbs/{id}.webp`, `GET /api/library/components/{id}/poster.webp`, `POST /api/library/sections/{id}/insert`, `POST /api/library/presets/{id}/apply`, `POST /api/library/starters/{id}/apply` and `POST /api/library/import-html`. Request and response shapes are in `docs/LIBRARY.md` and `docs/ADVANCED_SCHEMA.md`.
+`GET /api/library`, `GET /api/library/thumbs/{id}.webp`, `GET /api/library/components/{id}/poster.webp`, `GET /api/library/components/{id}/poster-light.webp` (404 when a component has none), `POST /api/library/sections/{id}/insert`, `POST /api/library/presets/{id}/apply`, `POST /api/library/starters/{id}/apply` and `POST /api/library/import-html`. Request and response shapes are in `docs/LIBRARY.md` and `docs/ADVANCED_SCHEMA.md`.
 
 ## Page components
 
-A component is one JavaScript file that exports `mount(root, props, ctx)`. It may not bring in other modules (the model refuses the substrings `import `, `import(`, `require(`, `export *` and ` from '`) and is capped at 256 KiB. It styles itself with token variables, draws the settled state under reduced motion, falls back from WebGL to a 2D canvas, and calls `ctx.ready()` to hide its poster. The runtime is `native/crates/formweb-export/src/components.js`; it mounts a component when its host comes within one viewport.
+A component is one JavaScript file that exports `mount(root, props, ctx)`. It may not bring in other modules (the model refuses the substrings `import `, `import(`, `require(`, `export *` and ` from '`) and is capped at 256 KiB. It styles itself with token variables, draws the settled state under reduced motion, falls back from WebGL to a 2D canvas, and calls `ctx.ready()` to hide its poster. A manifest may name `"posterLight": "poster-light.webp"`, the component at rest in the light theme at the dark poster's size; library check requires the file, and a component without one (`fog-wipe-monitor`) draws the same in both themes. The runtime is `native/crates/formweb-export/src/components.js`; it mounts a component when its host comes within one viewport.
 
 ## Verification
 

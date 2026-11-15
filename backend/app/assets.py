@@ -1,10 +1,14 @@
 import base64
 import hashlib
 import json
+import os
 import re
+import tempfile
+import zipfile
+import zlib
 from pathlib import Path, PurePosixPath
 
-from .config import DATA_DIR, MAX_FONT_BYTES, MAX_IMAGE_BYTES, MAX_SVG_BYTES, MAX_VIDEO_BYTES
+from .config import DATA_DIR, MAX_FONT_BYTES, MAX_IMAGE_BYTES, MAX_PROJECT_ARCHIVE_BYTES, MAX_SVG_BYTES, MAX_VIDEO_BYTES
 from .engine import EngineError
 
 ASSET_NAME = re.compile(r'^[0-9a-f]{64}\.(png|jpg|gif|webp|svg|mp4|webm|woff2)$')
@@ -359,6 +363,10 @@ def file_bytes(file: dict):
     return base64.b64decode(file['content'], validate=True) if file.get('encoding') == 'base64' else file['content'].encode('utf-8')
 
 
+class ProjectTooLarge(EngineError):
+    """A version 1 envelope would pass 64 MiB; the download routes then write a version 2 archive instead."""
+
+
 def project_envelope(site: dict, checkpoint: dict | None = None):
     assets = []
     references = {'site': site, 'checkpoint': checkpoint} if checkpoint else site
@@ -374,8 +382,113 @@ def project_envelope(site: dict, checkpoint: dict | None = None):
     if checkpoint is not None:
         envelope['checkpoint'] = checkpoint
     if len(json.dumps(envelope, ensure_ascii=False, indent=2).encode()) > 64 * 1024 * 1024:
-        raise EngineError('The native file exceeds 64 MiB. Reduce image sizes or history before downloading.', 413)
+        raise ProjectTooLarge('The native file exceeds 64 MiB. Reduce image sizes or history before downloading.', 413)
     return envelope
+
+
+def write_project_archive(site: dict, checkpoint: dict | None = None) -> Path:
+    """Write a version 2 .fweb (zip: project.json first, then assets/<id> stored uncompressed) to a temporary file and return its path; the caller deletes it."""
+    references = {'site': site, 'checkpoint': checkpoint} if checkpoint else site
+    names = sorted(set(ASSET_REF.findall(json.dumps(references))))
+    if len(names) > 500:
+        raise EngineError('A native project holds at most 500 assets.', 413)
+    listing = []
+    for name in names:
+        path = asset_path(name)
+        metadata_path = path.with_name(name + '.json')
+        metadata = json.loads(metadata_path.read_text()) if metadata_path.is_file() else {}
+        entry = {'id': name, 'mime': MIME_TYPES[path.suffix[1:]], 'name': metadata.get('name', name)}
+        if metadata.get('license'):
+            entry['license'] = metadata['license']
+        listing.append(entry)
+    envelope = {'format': 'com.nodemode.formweb', 'version': 2, 'site': site, 'assets': listing}
+    if checkpoint is not None:
+        envelope['checkpoint'] = checkpoint
+    folder = DATA_DIR / 'tmp'
+    folder.mkdir(parents=True, exist_ok=True)
+    handle, temporary = tempfile.mkstemp(prefix='project-', suffix='.fweb', dir=folder)
+    target = Path(temporary)
+    try:
+        with os.fdopen(handle, 'wb') as raw, zipfile.ZipFile(raw, 'w', zipfile.ZIP_STORED, allowZip64=True) as archive:
+            archive.writestr('project.json', json.dumps(envelope, ensure_ascii=False, indent=2), compress_type=zipfile.ZIP_DEFLATED)
+            for name in names:
+                archive.write(asset_path(name), 'assets/' + name, compress_type=zipfile.ZIP_STORED)
+        if target.stat().st_size > MAX_PROJECT_ARCHIVE_BYTES:
+            raise EngineError('The native archive exceeds 512 MiB. Reduce media sizes before downloading.', 413)
+    except BaseException:
+        target.unlink(missing_ok=True)
+        raise
+    return target
+
+
+def check_archive_asset(entry: dict, data_size: int, digest: str):
+    """The checks restore_project_assets applies to a version 1 asset, for one archive asset already hashed."""
+    limit = SIZE_LIMITS.get(entry['id'].split('.')[-1], MAX_IMAGE_BYTES)
+    if data_size > limit or digest != entry['id'].split('.')[0]:
+        raise EngineError('Native project image digest or size is invalid.')
+    if entry.get('mime') != MIME_TYPES[entry['id'].split('.')[-1]]:
+        raise EngineError('Native project image type is invalid.')
+
+
+def read_project_archive(path: Path) -> dict:
+    """Validate a version 2 archive on disk without loading assets into memory; return its project.json object."""
+    try:
+        with zipfile.ZipFile(path) as archive:
+            infos = archive.infolist()
+            if not infos or infos[0].filename != 'project.json':
+                raise EngineError('Native archive must start with project.json.')
+            if infos[0].file_size > 64 * 1024 * 1024:
+                raise EngineError('Native archive project.json exceeds 64 MiB.', 413)
+            try:
+                native = json.loads(archive.read(infos[0]).decode('utf-8'))
+            except (ValueError, UnicodeDecodeError) as error:
+                raise EngineError('Native archive project.json is not valid JSON.') from error
+            if not isinstance(native, dict) or native.get('format') != 'com.nodemode.formweb' or native.get('version') != 2:
+                raise EngineError('Native archive project.json is not a FormWeb version 2 project.')
+            if not isinstance(native.get('site'), dict):
+                raise EngineError('Native project requires a site object.')
+            listed = native.get('assets')
+            if not isinstance(listed, list) or len(listed) > 500:
+                raise EngineError('Native project assets must be a list containing at most 500 images.')
+            ids = []
+            for entry in listed:
+                if not isinstance(entry, dict) or not isinstance(entry.get('id'), str) or not ASSET_NAME.fullmatch(entry['id']) or not isinstance(entry.get('mime'), str) or ('name' in entry and not isinstance(entry['name'], str)):
+                    raise EngineError('Native project image entry is invalid.')
+                ids.append(entry['id'])
+            if len(set(ids)) != len(ids):
+                raise EngineError('Native project lists an asset more than once.')
+            names = [info.filename for info in infos[1:]]
+            if len(set(names)) != len(names):
+                raise EngineError('Native archive contains duplicate entries.')
+            for name in names:
+                if not name.startswith('assets/') or name[7:] not in ids:
+                    raise EngineError('Native archive contains an entry not listed in project.json: ' + name[:80], 400)
+            if len(names) != len(ids):
+                raise EngineError('Native archive is missing a listed asset.')
+            sizes = {info.filename[7:]: info for info in infos[1:]}
+            for entry in listed:
+                info = sizes[entry['id']]
+                if info.file_size > SIZE_LIMITS.get(entry['id'].split('.')[-1], MAX_IMAGE_BYTES):
+                    raise EngineError('Native project asset is too large.', 413)
+                digest, counted = hashlib.sha256(), 0
+                with archive.open(info) as stream:
+                    while chunk := stream.read(1024 * 1024):
+                        counted += len(chunk)
+                        digest.update(chunk)
+                check_archive_asset(entry, counted, digest.hexdigest())
+            return native
+    except (zipfile.BadZipFile, zlib.error, EOFError, NotImplementedError, RuntimeError, OSError) as error:
+        raise EngineError('Native archive is not a valid, readable zip file.') from error
+
+
+def restore_archive_assets(path: Path, native: dict):
+    """Store the assets of an archive already accepted by read_project_archive, one at a time."""
+    with zipfile.ZipFile(path) as archive:
+        for entry in native['assets']:
+            licence = entry.get('license') if isinstance(entry.get('license'), dict) else None
+            stored = ingest(archive.read('assets/' + entry['id']), entry['mime'], entry.get('name'), licence)
+            if stored['id'] != entry['id']:
+                raise EngineError('Native project image extension does not match its content.')
 
 
 def restore_project_assets(envelope: dict):

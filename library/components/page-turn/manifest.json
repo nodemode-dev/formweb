@@ -134,6 +134,7 @@
     "savedVariable": "Name of a boolean variable the component resets to false each time the spread changes."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formdesign-spreads"],
   "fallback": "Without script the poster shows the cover spread. With reduced motion a page change jumps straight to the new spread and every control stays usable.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formdesign-spreads (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

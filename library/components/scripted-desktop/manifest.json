@@ -36,6 +36,7 @@
     "media": "Object with capturesIconDark, capturesIconLight, capturesIconW, capturesIconH, knot, knotW, knotH, knotAlt and thumbs, an array of {dark, light, alt, altLight, origin, w, h} for the three captures. Missing keys keep the defaults."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formsurface-prompt"],
   "fallback": "The poster shows the desk at rest. Under reduced motion the desk works the same but every script step runs at once and the loops and transitions are switched off.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formsurface-prompt (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

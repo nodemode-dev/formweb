@@ -58,6 +58,7 @@ export class Canvas {
   private faceStyle?: HTMLStyleElement;
   private motionFrame: Record<string, Record<string, string>> | null = null;
   private posters: Record<string, string> = {};
+  private posterLights: Record<string, string> = {};
   private posterNodes = new Map<string, HTMLElement>();
 
   setMotionFrame(frame: Record<string, Record<string, string>> | null): void {
@@ -67,16 +68,19 @@ export class Canvas {
     if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
   }
 
-  setPosters(posters: Record<string, string>): void {
-    if (JSON.stringify(Object.entries(posters)) === JSON.stringify(Object.entries(this.posters))) return;
+  setPosters(posters: Record<string, string>, lights: Record<string, string> = {}): void {
+    if (JSON.stringify(Object.entries(posters)) === JSON.stringify(Object.entries(this.posters)) && JSON.stringify(Object.entries(lights)) === JSON.stringify(Object.entries(this.posterLights))) return;
     this.posters = { ...posters };
+    this.posterLights = { ...lights };
     if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
   }
 
   private syncPoster(node: HTMLElement, key: string, id: string, tag: string): void {
     const doc = this.doc;
     if (!doc) return;
-    const url = Object.prototype.hasOwnProperty.call(this.posters, id) ? this.posters[id] : undefined;
+    const dark = Object.prototype.hasOwnProperty.call(this.posters, id) ? this.posters[id] : undefined;
+    const light = this.themeMode === 'light' && dark !== undefined && this.posterLights[id] && safeUrl(this.posterLights[id]) ? this.posterLights[id] : '';
+    const url = light || dark;
     const wanted = url === undefined || vectorTags.has(tag) || (url !== '' && !safeUrl(url)) ? '' : url === '' ? 'div' : 'img';
     let poster = this.posterNodes.get(key);
     if (poster && poster.localName !== wanted) { poster.remove(); this.posterNodes.delete(key); poster = undefined; }

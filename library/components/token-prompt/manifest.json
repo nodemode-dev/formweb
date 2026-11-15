@@ -72,6 +72,7 @@
     "examples": "Array of task strings. Tab on an empty field fills the next one; New task moves on to the following one."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formmcp-prompt"],
   "fallback": "Without scripts the poster shows the empty field. With reduced motion the field works the same; only the menu pop animation is dropped.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formmcp-prompt (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

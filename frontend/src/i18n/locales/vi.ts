@@ -2483,4 +2483,13 @@ export default [
   "Đã gửi tới FormPublisher: {0} hiện ở bản sửa đổi {1}.",
   "FormPublisher không chạy. Trang web đã được lưu vào hộp thư đến của nó ({0}) và sẽ được nhập khi FormPublisher khởi động.",
   "Không thể gửi tới FormPublisher: {0}",
+  "Nhân đôi",
+  "Nhân đôi phần tử",
+  "Đã nhân đôi phần tử.",
+  "Không thể nhân đôi gốc của trang hoặc một phần tử bên trong thể hiện thành phần liên kết",
+  "Ảnh bìa giao diện sáng",
+  "Tải ảnh bìa sáng lên",
+  "Xóa ảnh bìa sáng",
+  "Đang tải ảnh bìa sáng lên...",
+  "Đã đính kèm ảnh bìa sáng.",
 ] as readonly string[];

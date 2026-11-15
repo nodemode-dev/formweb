@@ -22,12 +22,15 @@ async def build_component(request):
     poster = request.get('poster')
     if poster is not None and (not isinstance(poster, str) or not POSTER_PATH.fullmatch(poster)):
         raise EngineError('Component poster must be an owned image asset path.')
+    poster_light = request.get('posterLight')
+    if poster_light is not None and (not isinstance(poster_light, str) or not POSTER_PATH.fullmatch(poster_light)):
+        raise EngineError('Component light poster must be an owned image asset path.')
     source_cap, javascript_cap = COMPONENT_LIMITS[mode]
     source = request.get('source')
     if isinstance(source, str) and len(source.encode('utf-8')) > source_cap:
         raise EngineError(f'Component source exceeds {source_cap // 1024} KiB.', 413)
     props = request.get('props')
-    forwarded = {key: value for key, value in request.items() if key != 'poster'}
+    forwarded = {key: value for key, value in request.items() if key not in ('poster', 'posterLight')}
     if mode == 'page' and isinstance(props, dict):
         forwarded['props'] = {name: {**descriptor, 'type': 'string'} if isinstance(descriptor, dict) and descriptor.get('type') in EXTENDED_PROP_TYPES else descriptor for name, descriptor in props.items()}
     body = json.dumps(forwarded, ensure_ascii=False, allow_nan=False).encode('utf-8')
@@ -57,4 +60,6 @@ async def build_component(request):
         component['props'] = props
     if poster is not None:
         component['poster'] = poster
+    if poster_light is not None:
+        component['posterLight'] = poster_light
     return result

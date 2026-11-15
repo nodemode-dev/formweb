@@ -59,6 +59,7 @@
     "asidePointer": "Use {app} where the two-tone product name belongs."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formsculpt-viewport"],
   "fallback": "Without WebGL 2 the two screenshots show plain, the glyph set picker hides and the side note says the viewport is off air. Under reduced motion the grid stops flickering and the scroll steps between three settled states.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formsculpt-viewport (NodeAgentc, Inc., cleared by the owner 2026-11-09)."

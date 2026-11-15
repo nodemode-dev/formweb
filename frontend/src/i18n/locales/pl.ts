@@ -2483,4 +2483,13 @@ export default [
   "Wysłano do FormPublisher: {0} jest teraz w rewizji {1}.",
   "FormPublisher nie jest uruchomiony. Witrynę zapisano w jego skrzynce odbiorczej ({0}) i zostanie zaimportowana po uruchomieniu FormPublisher.",
   "Nie można wysłać do FormPublisher: {0}",
+  "Powiel",
+  "Powiel element",
+  "Element został powielony.",
+  "Korzenia strony ani elementu wewnątrz powiązanej instancji komponentu nie można powielić",
+  "Plakat dla jasnego motywu",
+  "Prześlij jasny plakat",
+  "Wyczyść jasny plakat",
+  "Przesyłanie jasnego plakatu...",
+  "Dołączono jasny plakat.",
 ] as readonly string[];

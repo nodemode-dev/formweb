@@ -2483,4 +2483,13 @@ export default [
   "Lähetetty FormPublisherille: {0} on nyt versiossa {1}.",
   "FormPublisher ei ole käynnissä. Sivusto tallennettiin sen saapuneiden kansioon ({0}), ja se tuodaan, kun FormPublisher käynnistyy.",
   "Lähetys FormPublisherille epäonnistui: {0}",
+  "Kahdenna",
+  "Kahdenna elementti",
+  "Elementti kahdennettu.",
+  "Sivun juurta tai linkitetyn komponenttiesiintymän sisällä olevaa elementtiä ei voi kahdentaa",
+  "Vaalean teeman kansikuva",
+  "Lataa vaalean teeman kansikuva",
+  "Tyhjennä vaalean teeman kansikuva",
+  "Ladataan vaalean teeman kansikuvaa...",
+  "Vaalean teeman kansikuva liitetty.",
 ] as readonly string[];

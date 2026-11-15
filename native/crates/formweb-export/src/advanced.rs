@@ -134,7 +134,7 @@ fn design_css(site:&Site)->String {
             if !kept.is_empty() { css.push_str(&format!("html[data-theme=\"{other}\"]{{{kept}}}\n")); }
         }
     }
-    if themes.is_some()||site.nodes.values().any(|n|n.attrs.contains_key("data-fw-theme-only")) {
+    if themes.is_some()||site.nodes.values().any(|n|n.attrs.contains_key("data-fw-theme-only"))||crate::code::has_light_posters(site) {
         let default=themes.and_then(|t|t.get("default")).and_then(Value::as_str).unwrap_or("dark");
         css.push_str(&format!("html[data-theme=\"dark\"] [data-fw-theme-only=\"light\"],html[data-theme=\"light\"] [data-fw-theme-only=\"dark\"]{{display:none!important}}html:not([data-theme]) [data-fw-theme-only]:not([data-fw-theme-only=\"{default}\"]){{display:none!important}}\n"));
     }

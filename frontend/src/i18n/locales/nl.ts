@@ -2483,4 +2483,13 @@ export default [
   "Naar FormPublisher gestuurd: {0} staat nu op revisie {1}.",
   "FormPublisher draait niet. De site is opgeslagen in de inbox ({0}) en wordt geïmporteerd zodra FormPublisher start.",
   "Kan niet naar FormPublisher sturen: {0}",
+  "Dupliceren",
+  "Element dupliceren",
+  "Element gedupliceerd.",
+  "De hoofdmap van een pagina of een element in een gekoppelde componentinstantie kan niet worden gedupliceerd",
+  "Poster voor licht thema",
+  "Lichte poster uploaden",
+  "Lichte poster wissen",
+  "Lichte poster uploaden...",
+  "Lichte poster gekoppeld.",
 ] as readonly string[];

@@ -15,6 +15,7 @@ library/
   components/<id>/manifest.json          component manifest
   components/<id>/component.js           the component source
   components/<id>/poster.webp            static rest frame shown on the canvas
+  components/<id>/poster-light.webp      optional rest frame in the light theme
   components/<id>/media/                 media only that component uses (optional)
   sections/<id>.json                     section template
   sections/thumbs/<id>.webp              640 by 400 thumbnail for the Library panel
@@ -128,6 +129,7 @@ The 21 components are the algorithms the native motion model cannot express: the
   "labels": { "frames": "Frames", "accent": "Accent" },
   "propDocs": { "frames": "Array of {src, alt, title, loc, frame, w, h, fx, fy} in plate order." },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formmorpheus-filmstrip"],
   "fallback": "What shows without WebGL, or with reduced motion.",
   "source": "Where the component was ported from and its clearance."
@@ -176,6 +178,8 @@ Under `ctx.reduced` a component draws the settled end state the original shows u
 
 `poster.webp` is the component at rest in the dark theme, at most 1600 px wide. The editor draws the poster on the canvas, because page components never run there, and the export shows it until `ctx.ready()` hides it, so its box and the page's layout do not change. On insert the route uploads the poster as an asset the site owns.
 
+A manifest may also name `"posterLight": "poster-light.webp"`. It is the same component at rest in the light theme, captured at the dark poster's size, so swapping them moves nothing. When the site has themes, the export shows each poster in its own theme, and the canvas shows the light one while the Design system dialog previews the light theme. Insert uploads it and the site owns it like the poster, and a changed light poster counts as a component update. A component without one, such as `fog-wipe-monitor`, draws the same in both themes and keeps its single poster.
+
 ### Props and defaults in a template
 
 A template installs a component with `code.instance.set` on a host node, naming the component and its props: `{ "node": "@@host@@", "value": { "component": "filmstrip", "props": { "frames": [...] } } }`. The check fails when the template names a prop the manifest does not declare or omits a required prop that has no default.
@@ -204,7 +208,7 @@ A preset applies in one of two modes, and both are one batch:
 ./formweb library build [--check] [--json] [--root DIR]
 ```
 
-`check` validates everything under `library/` and prints one line per problem, then a summary. It exits 1 on any problem. It verifies that every manifest, template, preset and starter parses and has the right `format`; that ids match file names; that categories are known; that thumbnails and posters exist; that component sources pass the substring and size rules; that every `@@key@@` and `{{field}}` resolves; that field defaults are valid; that `components` and `code.instance.set` agree with the manifests; that bundled media exists; that every template expands; and that starters name existing sections.
+`check` validates everything under `library/` and prints one line per problem, then a summary. It exits 1 on any problem. It verifies that every manifest, template, preset and starter parses and has the right `format`; that ids match file names; that categories are known; that thumbnails and posters exist, including a `posterLight` file when a manifest names one; that component sources pass the substring and size rules; that every `@@key@@` and `{{field}}` resolves; that field defaults are valid; that `components` and `code.instance.set` agree with the manifests; that bundled media exists; that every template expands; and that starters name existing sections.
 
 `build` compiles every component with `setup/build_component.mjs` in `page` mode and writes `library/build/components/<id>.json` with the keys `enabled`, `language`, `mode`, `source`, `sourceDigest`, `builtDigest`, `javascript` and `props`, sorted, with a trailing newline. These records are what the routes install, so a running server needs no Node. `build --check` rebuilds in memory and exits 1 if any file is missing, differs or has no component. Run `./formweb install` first; the build needs Node and the pinned compiler. CI runs `./formweb library check && ./formweb library build --check`.
 
@@ -232,6 +236,7 @@ All routes live in `backend/app/library_routes.py`. Reads authorize `read`, writ
 | `GET /api/library` | none | `{categories, sections, components, presets, starters}`. Each section carries `id, name, category, tags, product, description, components, preset, fields, thumb` (`thumb` is true when a thumbnail exists), in category order then by name. A component carries `id, code, name, description, props, labels, sections`; a preset `id, name, description`; a starter `id, name, description, pages, preset`. |
 | `GET /api/library/thumbs/{id}.webp` | none | The thumbnail, `Cache-Control: no-cache`. 404 when missing. |
 | `GET /api/library/components/{id}/poster.webp` | none | The component poster, `no-cache`. |
+| `GET /api/library/components/{id}/poster-light.webp` | none | The light-theme poster, `no-cache`. 404 when the component has none. |
 | `POST /api/library/sections/{id}/insert` | `{parent?, index?, values?, page?, updateComponents?}` | The batch result plus `{root, warnings}`. `parent` defaults to the page's root, `page` to the first page, `index` moves the new root among its siblings, `values` re-cast fields. |
 | `POST /api/library/presets/{id}/apply` | `{mode?, page?}` where `mode` is `all` (default) or `missing` | The batch result plus `{changed}`; `{changed: false}` when there is nothing to do. |
 | `POST /api/library/starters/{id}/apply` | `{values?, updateComponents?}` | The batch result plus `{pages, warnings}`. `values` re-casts fields shared by the sections, such as tint and name. |

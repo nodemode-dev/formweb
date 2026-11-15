@@ -34,6 +34,7 @@
     "shuffleVariable": "Name of the number variable whose change reshuffles the web."
   },
   "poster": "poster.webp",
+  "posterLight": "poster-light.webp",
   "sections": ["formvfx-orbit"],
   "fallback": "Without 3D transforms the stage becomes a plain grid of the same frames that opens the same viewer. With reduced motion the ring and the web cross-fade at the chapter break and the loop idles.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formvfx-orbit (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
