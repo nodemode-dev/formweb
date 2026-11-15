@@ -3,8 +3,6 @@ import { DEMOS, DEMO_PREVIEW } from './demos';
 import { element, text } from './dom';
 import { icon } from './icons';
 
-const SANDBOX = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox';
-
 export class DemoPreview {
   private readonly root = element('section', 'fw-demo-pv');
   private readonly name = element('span', 'fw-demo-pv-name');
@@ -67,8 +65,8 @@ export class DemoPreview {
     }
     const frame = element('iframe', 'fw-demo-pv-frame');
     frame.title = t('Demo preview');
-    frame.setAttribute('sandbox', SANDBOX);
     frame.setAttribute('referrerpolicy', 'no-referrer');
+    this.guard(true);
     frame.addEventListener('load', () => {
       if (this.frame !== frame) return;
       frame.classList.add('is-ready');
@@ -87,6 +85,7 @@ export class DemoPreview {
   close(): void {
     if (this.root.hidden) return;
     window.removeEventListener('keydown', this.onKey, true);
+    this.guard(false);
     this.watch?.disconnect();
     this.watch = null;
     this.frame?.remove();
@@ -98,6 +97,27 @@ export class DemoPreview {
     this.back = null;
     if (back?.isConnected) back.focus({ preventScroll: true });
   }
+
+  // The frame needs scripts and the app's origin, and a sandbox with both only warns. While it is open, the window refuses
+  // any navigation the frame starts (top.location, a _top link or form, window.open); without that API the window asks first.
+  private guard(on: boolean): void {
+    const navigation = (window as unknown as { navigation?: EventTarget }).navigation;
+    if (navigation) {
+      if (on) navigation.addEventListener('navigate', this.onNavigate);
+      else navigation.removeEventListener('navigate', this.onNavigate);
+    } else if (on) window.addEventListener('beforeunload', this.onLeave);
+    else window.removeEventListener('beforeunload', this.onLeave);
+  }
+
+  private readonly onNavigate = (event: Event): void => {
+    const { navigationType, cancelable } = event as Event & { navigationType: string };
+    if (cancelable && navigationType !== 'traverse') event.preventDefault();
+  };
+
+  private readonly onLeave = (event: BeforeUnloadEvent): void => {
+    event.preventDefault();
+    event.returnValue = '';
+  };
 
   private shown(): string {
     let slug = '';
