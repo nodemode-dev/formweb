@@ -1,5 +1,5 @@
 import { request } from '../api';
-import { element, keyed, text } from '../ui/dom';
+import { element, keyed, pieces, text } from '../ui/dom';
 import { icon } from '../ui/icons';
 import { t } from '../i18n';
 import '../styles/agent-connect.css';
@@ -99,14 +99,14 @@ export class AgentConnect {
     keyed(this.clientList, clients.clients, item => item.id, item => this.clientCard(item), (node, item) => {
       text(node.querySelector('.fw-ac-chip')!, STATUS_TEXT[item.status]);
       (node.querySelector('.fw-ac-chip') as HTMLElement).dataset.status = item.status;
-      text(node.querySelector('.fw-ac-sub')!, `${item.file} · ${item.cliFound ? t('{0} found', [item.cli]) : t('{0} not found', [item.cli])}`);
+      pieces(node.querySelector('.fw-ac-sub') as HTMLElement, [`${item.file} · `, item.cliFound ? t('{0} found', [item.cli]) : t('{0} not found', [item.cli])]);
       (node.querySelector('[data-action="write"]') as HTMLButtonElement).hidden = item.status === 'ready';
     });
     if (document.activeElement !== this.destructive) this.destructive.checked = approvals.settings.agentDestructive;
     if (document.activeElement !== this.review) this.review.checked = approvals.settings.publishReview;
     keyed(this.approvalList, approvals.approvals, item => item.id, item => this.approvalCard(item), (node, item) => {
       text(node.querySelector('.fw-ac-name')!, item.kind === 'release.promote' ? t('Promote release {0} {1}', [item.subject.slug, item.subject.version]) : t('Agent wants to run {0}', [item.subject.tool]));
-      text(node.querySelector('.fw-ac-sub')!, `${t('{0} via {1}', [item.requestedBy.name, item.requestedBy.channel])} · ${item.createdAt.slice(11, 19)}`);
+      pieces(node.querySelector('.fw-ac-sub') as HTMLElement, [t('{0} via {1}', [item.requestedBy.name, item.requestedBy.channel]), ` · ${item.createdAt.slice(11, 19)}`]);
     });
     this.approvalEmpty.hidden = approvals.approvals.length > 0;
     text(this.who, t('{0}, {1}: {2}.', [clients.access.identity.name, clients.access.role || { t: 'no role' }, clients.access.permissions.join(', ') || { t: 'no permissions' }]));

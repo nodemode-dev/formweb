@@ -2518,4 +2518,7 @@ export const KEYS: readonly string[] = [
   "Leave it empty to keep the https://example.com placeholder.",
   "Import .fweb or .fpub file",
   "That file is not a .fweb project, a .fpub package or project JSON.",
+  "{0} assets are too large to embed and will only paste on this FormWeb.",
+  "{0} assets are too large to embed and will only paste on this computer.",
+  "Title for Step {0}",
 ];

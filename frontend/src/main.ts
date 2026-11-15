@@ -1,7 +1,7 @@
 import { accept, apiBase, command, commands, connect, download, libraryMutate, mutateVia, readReference, reconnect, replace, request, requestBlob, state, subscribe, upload } from './api';
 import type { AuditIssue, Collection, EditorState, Page, SiteNode } from './types';
 import { Canvas } from './ui/canvas';
-import { element, keyed, options, revealApp, text, value } from './ui/dom';
+import { element, keyed, options, pieces, revealApp, text, value } from './ui/dom';
 import { icon, type Icon } from './ui/icons';
 import { THEMES, applyTheme, readChoice, setTheme } from './ui/themes';
 import { BRAND_MARK, CommandSearch, Menubar, exposeToAgents, registerCommands, runCommand, setRunner } from './ui/shell';
@@ -25,6 +25,7 @@ import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
 import { installInspector } from './features/inspector';
 import { installLibrary } from './features/library';
+import { watchFit } from './ui/fit';
 import { isLang, language, languages, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 
@@ -140,10 +141,10 @@ function insertionParent(): string {
   return ['main', 'section', 'div', 'article', 'aside', 'header', 'footer', 'nav', 'form', 'ul', 'ol', 'li', 'figure'].includes(node.tag) ? node.id : parentOf(node.id)?.id || currentPage().root;
 }
 let statusActionRun: (() => unknown) | null = null;
-function status(message: string, error = false, action?: { label: string; run: () => unknown }): void {
-  text(statusMessage, message);
+function status(parts: string | readonly string[], error = false, action?: { label: string; run: () => unknown }): void {
+  const message = typeof parts === 'string' ? parts : parts.filter(Boolean).join('');
+  if (typeof parts === 'string') { text(statusMessage, parts); text(dialogStatus, parts); } else { pieces(statusMessage, parts); pieces(dialogStatus, parts); }
   statusMessage.classList.toggle('error', error);
-  text(dialogStatus, message);
   if (dialogStatus.title !== message) dialogStatus.title = message;
   dialogStatus.classList.toggle('error', error);
   statusActionRun = action ? action.run : null;
@@ -249,6 +250,8 @@ const exportButton = button('Export', 'code', undefined, 'quiet');
 exportButton.dataset.cmd = 'file.export';
 const auditButton = button('Audit', 'check', undefined, 'quiet');
 auditButton.dataset.cmd = 'page.audit';
+exportButton.title = 'Export';
+auditButton.title = 'Audit';
 toolbar.append(projectIdentity);
 separator(toolbar);
 toolbar.append(viewportActions, breakpointSelect, viewportSize, element('span', 'toolbar-label', 'px'), element('div', 'toolbar-spacer'), localeSelect, exportButton, auditButton);
@@ -455,6 +458,7 @@ statusAction.addEventListener('click', () => { const act = statusActionRun; if (
 const statusRevision = element('span', 'status-revision', '');
 statusbar.append(statusConnection, statusMessage, statusAction, statusRevision);
 app.append(topbar, toolbar, workspace, statusbar);
+watchFit(app, topbar, inspector);
 
 function addInspectorInput(container: HTMLElement, label: string, key: string, handler: (next: string) => unknown, choices?: string[], full = false, multiline = false): HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
   const control = choices ? select(choices.map(id => ({ id, name: id || 'None' }))) : multiline ? element('textarea') : input();
@@ -1565,14 +1569,14 @@ function baseUrlAction(warning: string): { label: string; run: () => unknown } |
 async function exportSite(): Promise<void> {
   await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
   const warning = notFoundBaseWarning();
-  status(`Static site exported for ${locale}.${warning}`, false, baseUrlAction(warning));
+  status([`Static site exported for ${locale}.`, warning], false, baseUrlAction(warning));
 }
 async function sendToFormPublisher(): Promise<void> {
   try {
     const sent = await request<{ delivered: 'live' | 'inbox'; site?: string; revision?: string; path?: string; warnings?: string[] }>(`/api/handoff/formpublisher?locale=${encodeURIComponent(locale)}`, {});
     const warning = notFoundBaseWarning(sent.warnings || []);
-    if (sent.delivered === 'live') status(t('Sent to FormPublisher: {0} is now at revision {1}.', [state().site.name, sent.revision ?? '']) + warning, false, baseUrlAction(warning));
-    else status(t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [sent.path ?? '']) + warning, false, baseUrlAction(warning));
+    if (sent.delivered === 'live') status([t('Sent to FormPublisher: {0} is now at revision {1}.', [state().site.name, sent.revision ?? '']), warning], false, baseUrlAction(warning));
+    else status([t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [sent.path ?? '']), warning], false, baseUrlAction(warning));
   } catch (error) {
     status(t('Could not send to FormPublisher: {0}', [error instanceof Error ? error.message : String(error)]), true);
   }
@@ -2005,20 +2009,20 @@ async function copyFragment(): Promise<{ behind: number; left: number }> {
   const notCarried = Array.isArray(fragment.notEmbedded) ? fragment.notEmbedded.filter(id => !behindIds.includes(id)) : [];
   return { behind: behindIds.length, left: notCarried.length };
 }
-const notEmbeddedNote = (count: number): string => count === 1 ? ' ' + t('One asset is too large to embed and will only paste on this FormWeb.') : count > 1 ? ' ' + t('{n} assets are too large to embed and will only paste on this FormWeb.').replace('{n}', String(count)) : '';
-const behindClipNote = (count: number): string => count === 1 ? ' ' + t('One asset is too large to embed and will only paste on this computer.') : count > 1 ? ' ' + t('{n} assets are too large to embed and will only paste on this computer.').replace('{n}', String(count)) : '';
-const copyNote = (copied: { behind: number; left: number }): string => behindClipNote(copied.behind) + notEmbeddedNote(copied.left);
+const notEmbeddedNote = (count: number): string => count === 1 ? ' ' + t('One asset is too large to embed and will only paste on this FormWeb.') : count > 1 ? ' ' + t('{0} assets are too large to embed and will only paste on this FormWeb.', [count]) : '';
+const behindClipNote = (count: number): string => count === 1 ? ' ' + t('One asset is too large to embed and will only paste on this computer.') : count > 1 ? ' ' + t('{0} assets are too large to embed and will only paste on this computer.', [count]) : '';
+const copyNote = (copied: { behind: number; left: number }): string[] => [behindClipNote(copied.behind), notEmbeddedNote(copied.left)];
 async function copySelection(): Promise<void> {
   if (!canDuplicate()) return;
   const copied = await copyFragment();
-  status('Element copied.' + copyNote(copied));
+  status(['Element copied.', ...copyNote(copied)]);
 }
 async function cutSelection(): Promise<void> {
   if (!canDuplicate()) return;
   const id = currentNode().id;
   const copied = await copyFragment();
   await command('node.remove', { id });
-  status('Element cut. Paste puts it back; Undo restores it in place.' + copyNote(copied));
+  status(['Element cut. Paste puts it back; Undo restores it in place.', ...copyNote(copied)]);
 }
 async function pasteFragmentText(raw: string): Promise<boolean> {
   const fragment = parseFragment(raw);

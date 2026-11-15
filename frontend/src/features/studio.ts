@@ -1,6 +1,6 @@
 import { accept, command, download, request, state, subscribe } from '../api';
 import type { EditorState } from '../types';
-import { element, keyed, options, text } from '../ui/dom';
+import { element, keyed, options, pieces, text } from '../ui/dom';
 import { icon } from '../ui/icons';
 import { t } from '../i18n';
 import { authoringActions } from './authoring';
@@ -243,6 +243,6 @@ export class FeatureStudio {
   private update(next: EditorState): void {
     if (this.scrim.hidden) return;
     const selected = this.context.selection();
-    text(this.summary, `${next.site.name} · ${next.site.nodes[selected.node]?.name || selected.node} · ${selected.locale} · ${t('rev {0}', [next.revision])}`);
+    pieces(this.summary, [`${next.site.name} · ${next.site.nodes[selected.node]?.name || selected.node} · ${selected.locale} · `, t('rev {0}', [next.revision])]);
   }
 }

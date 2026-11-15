@@ -1,5 +1,5 @@
 import type { EditorState } from '../types';
-import { element, keyed, options, text } from '../ui/dom';
+import { element, keyed, options, pieces, text } from '../ui/dom';
 import { t, tn } from '../i18n';
 import '../styles/brand-kit.css';
 
@@ -98,8 +98,10 @@ export class TeamLibraries {
     keyed(this.list, libraries, item => item.id, () => this.libraryRow(), (node, item) => {
       node.dataset.selected = String(this.selected?.id === item.id);
       text(node.querySelector('.fw-team-name')!, item.name);
-      const counts = `${tn(item.counts.colors, '{0} color', '{0} colors')}, ${tn(item.counts.fonts, '{0} font', '{0} fonts')}, ${tn(item.counts.graphics, '{0} graphic', '{0} graphics')}`;
-      text(node.querySelector('.fw-team-meta')!, `${item.role === 'owner' ? t('Yours') : item.role === 'edit' ? t("{0}'s, you can edit", [item.owner]) : t("{0}'s, you can use", [item.owner])} · ${counts}`);
+      pieces(node.querySelector('.fw-team-meta') as HTMLElement, [
+        item.role === 'owner' ? t('Yours') : item.role === 'edit' ? t("{0}'s, you can edit", [item.owner]) : t("{0}'s, you can use", [item.owner]),
+        ' · ', tn(item.counts.colors, '{0} color', '{0} colors'), ', ', tn(item.counts.fonts, '{0} font', '{0} fonts'), ', ', tn(item.counts.graphics, '{0} graphic', '{0} graphics')
+      ]);
       const badge = node.querySelector('.fw-team-badge') as HTMLElement;
       badge.dataset.state = item.updateAvailable ? 'update' : item.linked ? 'linked' : 'off';
       text(badge, item.updateAvailable ? 'Update available' : item.linked ? 'Linked' : '');
@@ -134,7 +136,11 @@ export class TeamLibraries {
     for (const node of Array.from(this.list.children) as HTMLElement[]) node.dataset.selected = String(node.dataset.key === id);
     const canEdit = library.role !== 'view';
     text(this.detailTitle, library.name);
-    text(this.detailMeta, `${t('Revision {0}', [library.revision])} · ${tn(library.usedBy, 'used by {0} site', 'used by {0} sites')}${library.linked ? ` · ${t('linked here at revision {0}', [library.linkedRevision ?? 0])}` : ''}. ${t('Tokens are named var(--lib-{0}-...).', [library.slug])}`);
+    pieces(this.detailMeta, [
+      t('Revision {0}', [library.revision]), ' · ', tn(library.usedBy, 'used by {0} site', 'used by {0} sites'),
+      library.linked ? ' · ' : '', library.linked ? t('linked here at revision {0}', [library.linkedRevision ?? 0]) : '',
+      '. ', t('Tokens are named var(--lib-{0}-...).', [library.slug])
+    ]);
     keyed(this.colors, library.colors, item => item.name, () => this.itemRow('colors', canEdit), (node, item) => {
       (node.querySelector('.fw-brand-swatch') as HTMLElement).style.background = item.value;
       text(node.querySelector('.fw-brand-name')!, item.name);

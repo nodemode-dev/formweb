@@ -2518,4 +2518,7 @@ export default [
   "Leer lassen, um den Platzhalter https://example.com beizubehalten.",
   ".fweb- oder .fpub-Datei importieren",
   "Diese Datei ist weder ein .fweb-Projekt noch ein .fpub-Paket oder Projekt-JSON.",
+  "{0} Assets sind zu groß zum Einbetten und lassen sich nur in diesem FormWeb einfügen.",
+  "{0} Assets sind zu groß zum Einbetten und lassen sich nur auf diesem Computer einfügen.",
+  "Titel für Schritt {0}",
 ] as readonly string[];

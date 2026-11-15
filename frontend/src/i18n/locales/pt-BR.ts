@@ -2518,4 +2518,7 @@ export default [
   "Deixe vazio para manter o texto de exemplo https://example.com.",
   "Importar arquivo .fweb ou .fpub",
   "Esse arquivo não é um projeto .fweb, um pacote .fpub nem um JSON de projeto.",
+  "{0} recursos são grandes demais para serem incorporados e só poderão ser colados neste FormWeb.",
+  "{0} recursos são grandes demais para serem incorporados e só poderão ser colados neste computador.",
+  "Título da Etapa {0}",
 ] as readonly string[];

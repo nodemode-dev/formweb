@@ -2518,4 +2518,7 @@ export default [
   "Lascia vuoto per mantenere il segnaposto https://example.com.",
   "Importa file .fweb o .fpub",
   "Questo file non è un progetto .fweb, un pacchetto .fpub né un JSON di progetto.",
+  "{0} risorse sono troppo grandi per essere incorporate e si potranno incollare solo in questo FormWeb.",
+  "{0} risorse sono troppo grandi per essere incorporate e si potranno incollare solo su questo computer.",
+  "Titolo per Passaggio {0}",
 ] as readonly string[];

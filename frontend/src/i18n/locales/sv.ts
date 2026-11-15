@@ -2518,4 +2518,7 @@ export default [
   "Lämna tomt för att behålla platshållaren https://example.com.",
   "Importera .fweb- eller .fpub-fil",
   "Filen är varken ett .fweb-projekt, ett .fpub-paket eller projekt-JSON.",
+  "{0} resurser är för stora för att bäddas in och kan bara klistras in i den här FormWeb.",
+  "{0} resurser är för stora för att bäddas in och kan bara klistras in på den här datorn.",
+  "Titel för Steg {0}",
 ] as readonly string[];

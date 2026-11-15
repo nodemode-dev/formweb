@@ -1,4 +1,4 @@
-import { element, keyed, text } from '../ui/dom';
+import { element, keyed, pieces, text } from '../ui/dom';
 import { t, tn } from '../i18n';
 import '../styles/stock-library.css';
 
@@ -178,7 +178,8 @@ export class StockLibrary {
         if (token !== this.token) return;
         this.photos = result.photos;
         this.photoNote.dataset.state = 'ok';
-        text(this.photoNote, result.photos.length ? `${result.source.note} ${query ? tn(result.total, '{0} photo matches.', '{0} photos match.') : tn(result.total, '{0} photo.', '{0} photos.')}` : query ? t('No formlit photos match "{0}".', [query]) : t('Your formlit library has no photos yet.'));
+        if (result.photos.length) pieces(this.photoNote, [result.source.note, ' ', query ? tn(result.total, '{0} photo matches.', '{0} photos match.') : tn(result.total, '{0} photo.', '{0} photos.')]);
+        else text(this.photoNote, query ? t('No formlit photos match "{0}".', [query]) : t('Your formlit library has no photos yet.'));
       } catch (error) {
         if (token !== this.token) return;
         this.photos = [];
@@ -264,7 +265,7 @@ export class StockLibrary {
           text(this.genNote, tn(state.assets?.length || 0, '{0} picture saved to this project with the prompt, generator and licence. Check the model or provider terms before publishing.', '{0} pictures saved to this project with the prompt, generator and licence. Check the model or provider terms before publishing.'));
           break;
         }
-        text(this.genNote, t('formvis is generating... {0}%', [Math.round((state.progress || 0) * 100)]) + (state.message ? ` · ${state.message}` : ''));
+        pieces(this.genNote, [t('formvis is generating... {0}%', [Math.round((state.progress || 0) * 100)]), state.message ? ` · ${state.message}` : '']);
         await new Promise(resolve => window.setTimeout(resolve, 1000));
       }
       if (this.tab === 'generate') this.renderGenerated();
@@ -303,7 +304,10 @@ export class StockLibrary {
     } else {
       const photo = this.photos.find(item => item.id === this.selectedPhoto);
       const credit = photo?.credit;
-      text(this.detail, photo ? [credit?.copyright || credit?.creator, credit?.usage ? t('Usage: {0}', [credit.usage]) : '', t('Credit saved with the image.')].filter(Boolean).join(' · ') : t('Pick a photo; double-click inserts it.'));
+      if (photo) {
+        const parts = [credit?.copyright || credit?.creator, credit?.usage ? t('Usage: {0}', [credit.usage]) : '', t('Credit saved with the image.')].filter(Boolean) as string[];
+        pieces(this.detail, parts.flatMap((part, index) => index ? [' · ', part] : [part]));
+      } else text(this.detail, t('Pick a photo; double-click inserts it.'));
       this.insertButton.disabled = !photo;
     }
   }

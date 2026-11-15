@@ -2518,4 +2518,7 @@ export default [
   "Laat leeg om de plaatsaanduiding https://example.com te behouden.",
   ".fweb- of .fpub-bestand importeren",
   "Dat bestand is geen .fweb-project, .fpub-pakket of project-JSON.",
+  "{0} assets zijn te groot om in te sluiten en kunnen alleen in deze FormWeb worden geplakt.",
+  "{0} assets zijn te groot om in te sluiten en kunnen alleen op deze computer worden geplakt.",
+  "Titel voor Stap {0}",
 ] as readonly string[];

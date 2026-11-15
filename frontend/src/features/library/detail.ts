@@ -1,5 +1,5 @@
 import { upload } from '../../api';
-import { element, text } from '../../ui/dom';
+import { element, pieces, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import { t } from '../../i18n';
 import { thumbBox, updateThumb } from './thumb';
@@ -63,7 +63,7 @@ export class SectionDetail {
   private current: LibSection | null = null;
   private busy = false;
 
-  constructor(private hooks: LibraryHooks, private components: () => LibComponent[], onBack: () => void, private onInsert: (section: LibSection, values: Record<string, string | number>) => Promise<string>) {
+  constructor(private hooks: LibraryHooks, private components: () => LibComponent[], onBack: () => void, private onInsert: (section: LibSection, values: Record<string, string | number>) => Promise<readonly string[]>) {
     this.back.type = 'button';
     this.back.append(icon('chevronLeft'), element('span', '', t('Library')));
     this.back.setAttribute('aria-label', t('Back to the library'));
@@ -183,8 +183,8 @@ export class SectionDetail {
     return row;
   }
 
-  private say(message: string, error: boolean): void {
-    text(this.note, message);
+  private say(message: string | readonly string[], error: boolean): void {
+    if (typeof message === 'string') text(this.note, message); else pieces(this.note, message);
     this.note.classList.toggle('is-error', error);
   }
 
@@ -195,7 +195,7 @@ export class SectionDetail {
     for (const control of this.controls(section)) {
       const result = control.read();
       control.input.setAttribute('aria-invalid', String(!!result.error));
-      if (result.error) { this.say(`${t(control.spec.label || control.name)}: ${result.error}`, true); control.input.focus(); return; }
+      if (result.error) { this.say(t('{0}: {1}', [{ t: control.spec.label || control.name }, { t: result.error }]), true); control.input.focus(); return; }
       if (result.value !== undefined) values[control.name] = result.value;
     }
     this.busy = true;

@@ -158,7 +158,7 @@ class StylesDialog {
       row.dataset.style = style.id;
       const use = element('button', 'fw-v-stylebtn');
       use.type = 'button';
-      use.title = `${t('Apply')} ${style.name}`;
+      use.title = t('{0} {1}', [{ t: 'Apply' }, style.name]);
       use.append(swatch(style), element('span', 'fw-v-stylename', style.name));
       use.addEventListener('click', () => void this.apply(style));
       const rename = this.button(t('Rename'), () => this.rename(style, row));

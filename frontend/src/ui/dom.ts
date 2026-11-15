@@ -37,6 +37,10 @@ function showApp(): void {
 export function text(node: HTMLElement, value: string): void {
   if (node.textContent !== value) node.textContent = value;
 }
+export function pieces(node: HTMLElement, parts: readonly string[]): void {
+  const kept = parts.filter(Boolean);
+  if (node.textContent !== kept.join('')) node.replaceChildren(...kept.map(part => document.createTextNode(part)));
+}
 export function value(node: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, next: string): void {
   if (document.activeElement !== node && node.value !== next) node.value = next;
 }

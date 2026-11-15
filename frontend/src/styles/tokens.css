@@ -89,6 +89,13 @@
   --select-chev: 5px;
   --select-edge: 7px;
   --select-room: 22px;
+  --range-track: 4px;
+  --range-thumb: 14px;
+  --range-box: 16px;
+  --range-track-bg: var(--line-3);
+  --check-size: 16px;
+  --check-edge: var(--line-3);
+  --check-ink: #16100c;
   --titlebar-h: 40px;
   --z-base: 0;
   --z-raised: 100;

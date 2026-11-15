@@ -1,5 +1,5 @@
 import { libraryMutate } from '../../api';
-import { element, keyed, text } from '../../ui/dom';
+import { element, keyed, pieces, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import { t, tn } from '../../i18n';
 import { colorControl } from './detail';
@@ -44,7 +44,7 @@ export class Kits {
       const pages = item.pages || [];
       text(node.querySelector<HTMLElement>('.fw-lib-row-name')!, t(item.name || item.id));
       text(node.querySelector<HTMLElement>('.fw-lib-row-text')!, item.description ? t(item.description) : '');
-      text(node.querySelector<HTMLElement>('.fw-lib-row-meta')!, `${tn(pages.length, '{0} page', '{0} pages')}: ${pages.map(page => page.name || page.slug || '').filter(Boolean).join(', ')}`);
+      pieces(node.querySelector<HTMLElement>('.fw-lib-row-meta')!, [tn(pages.length, '{0} page', '{0} pages'), `: ${pages.map(page => page.name || page.slug || '').filter(Boolean).join(', ')}`]);
     });
     this.presets.hidden = !index.presets.length;
     this.starters.hidden = !index.starters.length;

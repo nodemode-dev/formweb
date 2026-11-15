@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.20.6 · 2026-11-11
+
+- Labels, tooltips and status messages that combine several words (graphic style buttons, recolor swatches, menu tooltips, team library details, the status bar and more) now follow a live language switch, like the rest of the editor. Menu tooltips no longer stay in English.
+- Sliders, checkboxes and number fields look the same in the browser and in the desktop app on Linux: a grey track with an accent knob, a grey rounded box, and spin buttons that appear only when you point at the field.
+- The editor works in windows down to 760 x 640. In narrower windows the top bar takes two rows, Export and Audit show only their icons, and the side panels and the inspector make room for the canvas.
+- New messages are in all 26 languages.
+
 ## 0.20.5 · 2026-11-11
 
 - Every dropdown draws its own arrow, so dropdowns look the same and show their whole value in the browser and in the desktop app on Linux. The Desktop device dropdown in the top bar now reads in full in every language.

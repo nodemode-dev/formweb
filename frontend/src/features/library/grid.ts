@@ -61,9 +61,13 @@ export class SectionGrid {
   }
 
   /** Shown when there is nothing to list (loading, a failed request or an empty library). The grid keeps its place. */
-  setMessage(message: string, retry: boolean): void {
+  setMessage(message: string, retry: boolean, extra = ''): void {
     const label = this.empty.firstChild && this.empty.firstChild.nodeType === 3 ? (this.empty.firstChild as Text) : null;
     if (label) { if (label.data !== message) label.data = message; } else this.empty.prepend(document.createTextNode(message));
+    const head = this.empty.firstChild as Text;
+    const after = head.nextSibling && head.nextSibling.nodeType === 3 ? (head.nextSibling as Text) : null;
+    if (!extra) after?.remove();
+    else if (after) { if (after.data !== extra) after.data = extra; } else head.after(document.createTextNode(extra));
     this.retry.hidden = !retry;
     this.empty.hidden = false;
   }
