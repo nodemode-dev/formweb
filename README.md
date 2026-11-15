@@ -100,7 +100,7 @@
   </tr>
 </table>
 
-The editor runs in 26 languages, switched live from Settings.
+The editor runs in 26 languages, switched live in Preferences (Edit > Settings..., Ctrl+comma, or Cmd+comma on macOS).
 
 A built-in library adds 35 section templates from the formai.studio sites, 21 first-party page components, a design-system preset, a product-site starter and Import HTML; see [docs/LIBRARY.md](docs/LIBRARY.md).
 
