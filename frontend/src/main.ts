@@ -12,6 +12,9 @@ import { installKeymap } from './commands/keymap';
 import { startCatalogue } from './commands/catalogue';
 import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/layout';
 import { HomeScreen, homePref, setHomePref } from './ui/home';
+import { RECENT_MAX } from './ui/home-files';
+import { demoCommands, openDemo, type DemoHooks } from './ui/demos';
+import { unsavedWork } from './ui/unsaved';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
@@ -1944,10 +1947,7 @@ mediaInput.addEventListener('change', () => void run(async () => {
   bitmap.close();
   mediaInput.value = '';
 }));
-importer.addEventListener('change', () => void run(async () => {
-  const file = importer.files?.[0];
-  importer.value = '';
-  if (!file) return;
+async function loadProjectFile(file: Blob): Promise<void> {
   const head = new Uint8Array(await file.slice(0, 2).arrayBuffer());
   if (head[0] === 0x50 && head[1] === 0x4b) {
     await replace('/api/load', new Blob([file], { type: 'application/zip' }));
@@ -1956,6 +1956,12 @@ importer.addEventListener('change', () => void run(async () => {
     try { data = JSON.parse(await file.text()); } catch { throw new Error('That file is not a .fweb project, a .fpub package or project JSON.'); }
     await replace('/api/load', data.site ? data : { site: data });
   }
+}
+importer.addEventListener('change', () => void run(async () => {
+  const file = importer.files?.[0];
+  importer.value = '';
+  if (!file) return;
+  await loadProjectFile(file);
   closeDialog();
   status(`Imported "${file.name}".`);
 }));
@@ -2191,6 +2197,9 @@ registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
 registerCommands(wishlist.commands);
 subscribe(() => wishlist.refresh());
+const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.askReplace(state().site.name);
+const demoHooks: DemoHooks = { mayReplace, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
+registerCommands(demoCommands(demoHooks, ready));
 menubar.build();
 menubar.blocked = () => !scrim.hidden || featureStudio.opened;
 if (wantsNativeMenus()) {
@@ -2223,7 +2232,7 @@ function usePreset(id: string): void {
 subscribe(update);
 const home = new HomeScreen(app, {
   files: {
-    list: async () => (await request<{ projects: { id: string; name: string; updatedAt: string }[] }>('/api/projects')).projects.map(project => ({ key: project.id, name: project.name, kind: 'FWEB', size: 0, when: Date.parse(project.updatedAt) || 0 })),
+    list: async tab => (await request<{ projects: { id: string; name: string; updatedAt: string }[] }>('/api/projects')).projects.map(project => ({ key: project.id, name: project.name, kind: 'FWEB', size: 0, when: Date.parse(project.updatedAt) || 0 })).sort((a, b) => b.when - a.when).slice(0, tab === 'recent' ? RECENT_MAX : undefined),
     open: item => void run(async () => {
       await replace(`/api/projects/${encodeURIComponent(item.key)}/open`, {});
       home.dismiss();
@@ -2233,12 +2242,14 @@ const home = new HomeScreen(app, {
   templates: STARTER_SITES.map(entry => ({ id: entry.id, name: entry.label, pages: entry.pages.length })),
   run: id => { runCommand(id); },
   create: id => void run(async () => {
+    if (!(await mayReplace())) return;
     await createSite(id ? STARTER_SITES.find(entry => entry.id === id)?.label || 'Untitled website' : 'Untitled website', id);
     home.dismiss();
     status('New site created.');
-  })
+  }),
+  demo: id => void openDemo(demoHooks, id)
 });
-subscribe(next => home.sync(next.site.id));
+subscribe(next => home.sync(next.site.id, next.site.name));
 const brandButton = brand;
 brandButton.setAttribute('role', 'button');
 brandButton.tabIndex = 0;
