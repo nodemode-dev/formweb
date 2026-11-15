@@ -1,16 +1,36 @@
 import asyncio
 import json
 import os
+import re
 import shutil
 
 from .config import ROOT
 from .engine import EngineError
 
 
+POSTER_PATH = re.compile(r'^/api/assets/[0-9a-f]{64}\.(png|jpg|jpeg|webp|gif|svg)$')
+COMPONENT_LIMITS = {'isolated': (131072, 262144), 'page': (262144, 524288)}
+EXTENDED_PROP_TYPES = ('color', 'asset')
+
+
 async def build_component(request):
     if not isinstance(request, dict):
         raise EngineError('Component build requires an object.')
-    body = json.dumps(request, ensure_ascii=False, allow_nan=False).encode('utf-8')
+    mode = request.get('mode', 'isolated')
+    if mode not in COMPONENT_LIMITS:
+        raise EngineError('Component mode must be isolated or page.')
+    poster = request.get('poster')
+    if poster is not None and (not isinstance(poster, str) or not POSTER_PATH.fullmatch(poster)):
+        raise EngineError('Component poster must be an owned image asset path.')
+    source_cap, javascript_cap = COMPONENT_LIMITS[mode]
+    source = request.get('source')
+    if isinstance(source, str) and len(source.encode('utf-8')) > source_cap:
+        raise EngineError(f'Component source exceeds {source_cap // 1024} KiB.', 413)
+    props = request.get('props')
+    forwarded = {key: value for key, value in request.items() if key != 'poster'}
+    if mode == 'page' and isinstance(props, dict):
+        forwarded['props'] = {name: {**descriptor, 'type': 'string'} if isinstance(descriptor, dict) and descriptor.get('type') in EXTENDED_PROP_TYPES else descriptor for name, descriptor in props.items()}
+    body = json.dumps(forwarded, ensure_ascii=False, allow_nan=False).encode('utf-8')
     if len(body) > 1048576:
         raise EngineError('Component build request exceeds 1 MiB.', 413)
     node = os.getenv('FORMWEB_NODE_BIN') or shutil.which('node')
@@ -29,4 +49,12 @@ async def build_component(request):
         raise EngineError('Component compiler did not return a valid build result. Verify the Node installation.', 503) from failure
     if not result.get('ok'):
         raise EngineError(str(result.get('diagnostics', 'Component compilation failed.'))[:65536], 422)
+    component = result.get('component', {})
+    if len(str(component.get('javascript', '')).encode('utf-8')) > javascript_cap:
+        raise EngineError(f'Compiled component exceeds {javascript_cap // 1024} KiB.', 413)
+    component['mode'] = mode
+    if mode == 'page' and isinstance(props, dict):
+        component['props'] = props
+    if poster is not None:
+        component['poster'] = poster
     return result

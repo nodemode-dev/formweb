@@ -20,4 +20,5 @@
 .fw-font-fields { grid-template-columns: 1fr 1fr 1fr; }
 .workspace > .stage-panel { grid-template-columns: minmax(0, 1fr); }
 .fw-ext-block > .fw-ext-add { margin-top: var(--space-3); }
+.fw-ext-block p.error { color: var(--danger-color); }
 .stage-head .viewport-readout { white-space: nowrap; }

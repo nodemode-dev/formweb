@@ -4,14 +4,17 @@ import json
 import re
 from pathlib import Path, PurePosixPath
 
-from .config import DATA_DIR, MAX_FONT_BYTES, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES
+from .config import DATA_DIR, MAX_FONT_BYTES, MAX_IMAGE_BYTES, MAX_SVG_BYTES, MAX_VIDEO_BYTES
 from .engine import EngineError
 
 ASSET_NAME = re.compile(r'^[0-9a-f]{64}\.(png|jpg|gif|webp|svg|mp4|webm|woff2)$')
 ASSET_REF = re.compile(r'/api/assets/([0-9a-f]{64}\.(?:png|jpg|gif|webp|svg|mp4|webm|woff2))')
 MIME_TYPES = {'png': 'image/png', 'jpg': 'image/jpeg', 'gif': 'image/gif', 'webp': 'image/webp', 'svg': 'image/svg+xml',
               'mp4': 'video/mp4', 'webm': 'video/webm', 'woff2': 'font/woff2'}
-SIZE_LIMITS = {'mp4': MAX_VIDEO_BYTES, 'webm': MAX_VIDEO_BYTES, 'woff2': MAX_FONT_BYTES}
+SIZE_LIMITS = {'mp4': MAX_VIDEO_BYTES, 'webm': MAX_VIDEO_BYTES, 'woff2': MAX_FONT_BYTES, 'svg': MAX_SVG_BYTES}
+UPLOAD_SVG_BLOCKED_TAGS = {'script', 'foreignobject', 'iframe', 'embed', 'object'}
+UPLOAD_SVG_MARKERS = re.compile(r'<!doctype|<!entity|<\?xml-stylesheet', re.I)
+UPLOAD_SVG_URL = re.compile(r'url\((?!#)', re.I)
 # FW-073: SVG assets come only from the bundled icon set (and .fweb files carrying them), never from uploads, and are
 # rebuilt from this allowlist so no script, link, style sheet or external reference can survive.
 SVG_TAGS = {'svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon', 'ellipse',
@@ -219,6 +222,44 @@ def ingest_svg(data: bytes, filename: str | None, license: dict | None = None) -
     return write_metadata(name, 'image/svg+xml', len(clean), filename, license)
 
 
+def check_upload_svg(data: bytes):
+    import xml.etree.ElementTree as ET
+
+    try:
+        text = data.decode('utf-8-sig', 'strict')
+    except UnicodeDecodeError as error:
+        raise EngineError('SVG must be UTF-8 text.', 415) from error
+    if UPLOAD_SVG_MARKERS.search(text):
+        raise EngineError('SVG may not contain a DOCTYPE, entities or style sheet instructions.', 415)
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError as error:
+        raise EngineError('SVG is not well formed.', 415) from error
+    if root.tag.split('}', 1)[-1].lower() != 'svg':
+        raise EngineError('Not an SVG document.', 415)
+
+    def unsafe(value: str) -> bool:
+        lowered = value.lower()
+        return 'javascript:' in lowered or '@import' in lowered or bool(UPLOAD_SVG_URL.search(value))
+
+    for node in root.iter():
+        if not isinstance(node.tag, str):
+            continue
+        tag = node.tag.split('}', 1)[-1].lower()
+        if tag in UPLOAD_SVG_BLOCKED_TAGS:
+            raise EngineError(f'SVG element <{tag}> is not allowed.', 415)
+        if unsafe(node.text or '') or unsafe(node.tail or ''):
+            raise EngineError('SVG contains a script URL, an import or an external reference.', 415)
+        for key, value in node.attrib.items():
+            name = key.split('}', 1)[-1].lower()
+            if name.startswith('on'):
+                raise EngineError(f'SVG attribute {name} is not allowed.', 415)
+            if name == 'href' and not value.strip().startswith('#'):
+                raise EngineError('SVG links may only point inside the document.', 415)
+            if unsafe(value):
+                raise EngineError('SVG contains a script URL, an import or an external reference.', 415)
+
+
 def ingest(data: bytes, declared_type: str, filename: str | None, license: dict | None = None):
     if data.startswith(b'\x89PNG\r\n\x1a\n'):
         extension = 'png'
@@ -234,13 +275,17 @@ def ingest(data: bytes, declared_type: str, filename: str | None, license: dict 
         extension = 'webm'
     elif data.startswith(b'wOF2'):
         extension = 'woff2'
+    elif declared_type == 'image/svg+xml' or data.lstrip(b'\xef\xbb\xbf \t\r\n').startswith((b'<svg', b'<?xml', b'<!')):
+        extension = 'svg'
     else:
-        raise EngineError('Upload a PNG, JPEG, GIF or WebP image, an MP4 or WebM video, or a WOFF2 font.', 415)
+        raise EngineError('Upload a PNG, JPEG, GIF, WebP or SVG image, an MP4 or WebM video, or a WOFF2 font.', 415)
     mime = MIME_TYPES[extension]
     if declared_type not in (mime, 'application/octet-stream'):
         raise EngineError('Asset content does not match its declared media type.', 415)
     if len(data) > SIZE_LIMITS.get(extension, MAX_IMAGE_BYTES):
         raise EngineError('Asset is too large.', 413)
+    if extension == 'svg':
+        check_upload_svg(data)
     if len(data) < 20:
         raise EngineError('Image is truncated.')
     name = hashlib.sha256(data).hexdigest() + '.' + extension
@@ -355,7 +400,7 @@ def restore_project_assets(envelope: dict):
         pending.append((item, data))
     for item, data in pending:
         licence = item.get('license') if isinstance(item.get('license'), dict) else None
-        stored = ingest_svg(data, item.get('name'), licence) if item['id'].endswith('.svg') else ingest(data, item['mime'], item.get('name'), licence)
+        stored = ingest(data, item['mime'], item.get('name'), licence)
         if stored['id'] != item['id']:
             raise EngineError('Native project image extension does not match its content.')
 

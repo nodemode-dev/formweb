@@ -150,9 +150,9 @@ export async function download(path: string, filename: string): Promise<void> {
 }
 export async function upload(file: File): Promise<{ id: string; url: string; mime: string; size: number }> {
   const type = /\.woff2$/i.test(file.name) ? 'font/woff2' : file.type;
-  const caps: Record<string, number> = { 'image/png': 8, 'image/jpeg': 8, 'image/webp': 8, 'image/gif': 8, 'video/mp4': 64, 'video/webm': 64, 'font/woff2': 4 };
+  const caps: Record<string, number> = { 'image/png': 8, 'image/jpeg': 8, 'image/webp': 8, 'image/gif': 8, 'image/svg+xml': 2, 'video/mp4': 64, 'video/webm': 64, 'font/woff2': 4 };
   if (!caps[type]) throw new Error('Choose a PNG, JPEG, WebP or GIF image, an MP4 or WebM video, or a WOFF2 font.');
-  if (file.size > caps[type] * 1024 * 1024) throw new Error(type.startsWith('image/') ? 'Images must be 8 MiB or smaller.' : type.startsWith('video/') ? 'Videos must be 64 MiB or smaller.' : 'Fonts must be 4 MiB or smaller.');
+  if (file.size > caps[type] * 1024 * 1024) throw new Error(type === 'image/svg+xml' ? 'SVG images must be 2 MiB or smaller.' : type.startsWith('image/') ? 'Images must be 8 MiB or smaller.' : type.startsWith('video/') ? 'Videos must be 64 MiB or smaller.' : 'Fonts must be 4 MiB or smaller.');
   const response = await fetch(apiBase + '/api/assets', {
     method: 'POST',
     credentials: 'same-origin',

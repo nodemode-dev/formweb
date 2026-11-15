@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.19.1 · 2026-11-10
+
+- A Motion tab edits every kind of motion for the selected element: one-click presets (including the classic effects), reveals, scroll scenes, loops, counters, text motion, drag, pointer effects, accordions, tabs and filters, actions and scripts.
+- Scroll scenes get a track editor with keyframes you drag on a rail, and a scrubber in the stage head that shows any point of a scene on the canvas without running it.
+- Pages can calculate: variables, lookup tables and formulas bound to sliders, selects, checkboxes and text, with formatted outputs that show their final numbers on first paint.
+- Scripts play conversations and demos from data: append from templates, stream and type text, move a stand-in pointer, press, scroll, focus and run any action, on submit, click, load or view.
+- Site search: exported sites carry a search index, and a search input lists matching pages as you type and can start from the words of a `?from=` path.
+- Page components run code in the page with typed props, a poster, scene progress, the theme and variables; code sections bring whole HTML, CSS and JavaScript pages in, opt-in per site. Live preview can no longer reach the editor's API, and svg images upload with strict checks.
+- Every new string is in all 26 languages, and exported pages built with every new feature still report no console errors and no layout shift in dark and light, at 390 px, and under a 4x slower CPU and network.
+
 ## 0.19.0 · 2026-11-09
 
 - Pages can move: scroll scenes pin a stage while the visitor scrolls and drive any element's opacity, transforms, filters, clip path and colours through keyframes, with smoothing, staggered children and markers that fire actions. Reveals, marquees, spins and keyframe loops, counters, split-text and typewriter reveals, and ghost-typed placeholders join them, all authored as data with `motion.set` and run by one small runtime in exported pages only. Reduced motion shows each scene's settled state.

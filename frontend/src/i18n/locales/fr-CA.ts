@@ -23,4 +23,5 @@ export default {
   "Stock library": "Bibliothèque de banque d’images",
   "Workspace settings": "Paramètres de l’espace de travail",
   "X post": "Publication X",
+  "Uploading image...": "Téléversement de l'image...",
 } as Record<string, string>;

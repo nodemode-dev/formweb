@@ -31,5 +31,14 @@ pub fn configuration(site: &Site, root: &str, records: Vec<Value>, context: Valu
     integrations["widgets"] = selected(integrations.get("widgets"), &ids);
     let mut config = json!({"records":records,"behaviors":{"nodes":selected(behaviors.and_then(|v|v.get("nodes")),&ids),"timelines":selected(behaviors.and_then(|v|v.get("timelines")),&actions),"overlays":overlays},"forms":{"forms":forms},"components":component_data(site,&components,&ids,prefix,links),"integrations":integrations,"nodes":node_map,"breakpoints":site.breakpoints,"routePrefix":prefix,"context":context});
     if let Some(motion) = site.extensions.get("motion") { config["motion"] = Value::Object(formweb_model::motion::KINDS.iter().map(|kind|(kind.to_string(),selected(motion.get(*kind),&ids))).collect()); }
+    if let Some(variables) = site.extensions.get("variables") { config["variables"] = variables.clone(); }
+    let code = site.extensions.get("code");
+    let page_hosts: serde_json::Map<String, Value> = code.and_then(|v| v.get("instances")).and_then(Value::as_object).map(|map| map.iter().filter(|(host, _)| ids.contains(*host)).filter_map(|(host, instance)| {
+        let component = instance.get("component").and_then(Value::as_str)?;
+        let definition = code?.get("components")?.get(component)?;
+        if definition.get("enabled").and_then(Value::as_bool) != Some(true) || definition.get("mode").and_then(Value::as_str) != Some("page") { return None; }
+        Some((host.clone(), json!({"component": component, "props": instance.get("props").cloned().unwrap_or_else(|| json!({}))})))
+    }).collect()).unwrap_or_default();
+    if !page_hosts.is_empty() { config["components"]["page"] = Value::Object(page_hosts); }
     config
 }

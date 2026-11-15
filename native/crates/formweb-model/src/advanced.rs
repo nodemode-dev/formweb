@@ -74,7 +74,7 @@ pub fn validate_extensions(site: &Site) -> Result<(), String> {
         match group.as_str() {
             "design"=>design(site,value)?, "components"=>components(site,value)?, "libraries"=>libraries(site,value)?,
             "cms"=>cms(site,value)?, "localization"=>localization(site,value)?, "seo"=>seo(site,value)?,
-            "behaviors"=>behaviors(site,value)?, "motion"=>crate::motion::validate(site,value)?, "forms"=>forms(site,value)?, "integrations"=>integrations(site,value)?, "code"=>code(site,value)?,
+            "behaviors"=>behaviors(site,value)?, "motion"=>crate::motion::validate(site,value)?, "forms"=>forms(site,value)?, "integrations"=>integrations(site,value)?, "code"=>code(site,value)?, "variables"=>crate::variables::validate(site,value)?,
             _=>return Err(format!("unknown extension group {group}")),
         }
     }
@@ -83,19 +83,33 @@ pub fn validate_extensions(site: &Site) -> Result<(), String> {
 pub fn digest(value:&str)->String { use sha2::{Digest,Sha256};Sha256::digest(value.as_bytes()).iter().map(|byte|format!("{byte:02x}")).collect() }
 // Custom head and body code (FW-178): raw HTML written into exported pages, site-wide and per page, each slot capped at 50,000 bytes.
 fn custom_code(value:Option<&Value>)->Result<(),String>{let Some(value)=value else{return Ok(())};object(value)?;keys(value,&["head","bodyStart","bodyEnd"])?;for key in ["head","bodyStart","bodyEnd"]{text(value,key,50000)?;}Ok(())}
-fn code(site:&Site,value:&Value)->Result<(),String>{keys(value,&["components","instances","siteCode","pageCode"])?;custom_code(value.get("siteCode"))?;for(id,data)in maps(value,"pageCode")?{page(site,id)?;custom_code(Some(data))?;}
-    for(id,component)in maps(value,"components")?{if !identifier(id){return Err("invalid code component id".into());}keys(component,&["enabled","language","source","sourceDigest","builtDigest","javascript","props"])?;
+fn owned_asset(path:&str,extensions:&[&str])->bool{path.strip_prefix("/api/assets/").and_then(|name|name.split_once('.')).map(|(hash,ext)|hash.len()==64&&hash.bytes().all(|c|c.is_ascii_hexdigit())&&extensions.contains(&ext)).unwrap_or(false)}
+fn owned_image(path:&str)->bool{owned_asset(path,&["png","jpg","jpeg","webp","gif","svg"])}
+fn code_sections(site:&Site,value:&Value)->Result<(),String>{boolean(value,"allowSections")?;let entries=maps(value,"sections")?;
+    if !entries.is_empty()&&value.get("allowSections").and_then(Value::as_bool)!=Some(true){return Err("code sections need allowSections".into());}
+    for(id,section)in entries{node(site,id)?;if !site.nodes[id].children.is_empty(){return Err("a code section host cannot have children".into());}keys(section,&["enabled","html","css","js","module","poster"])?;boolean(section,"enabled")?;boolean(section,"module")?;text(section,"html",512*1024)?;text(section,"css",256*1024)?;text(section,"js",512*1024)?;
+        if let Some(poster)=section.get("poster"){if !poster.as_str().map(owned_image).unwrap_or(false){return Err("code section poster must be an owned image asset".into());}}}
+    Ok(())}
+fn code(site:&Site,value:&Value)->Result<(),String>{keys(value,&["components","instances","siteCode","pageCode","allowSections","sections"])?;code_sections(site,value)?;custom_code(value.get("siteCode"))?;for(id,data)in maps(value,"pageCode")?{page(site,id)?;custom_code(Some(data))?;}
+    for(id,component)in maps(value,"components")?{if !identifier(id){return Err("invalid code component id".into());}keys(component,&["enabled","language","source","sourceDigest","builtDigest","javascript","props","mode","poster"])?;
         if component.get("enabled").and_then(Value::as_bool)!=Some(true)||!["typescript","javascript"].contains(&string(component,"language")?){return Err("code component requires explicit opt-in and supported language".into());}
         let source=string(component,"source")?;let js=string(component,"javascript")?;
-        if source.len()>128*1024||js.len()>256*1024||digest(source)!=string(component,"sourceDigest")?||digest(js)!=string(component,"builtDigest")?{return Err("code size or digest mismatch".into());}
+        let page_mode=match component.get("mode"){None=>false,Some(mode)=>match mode.as_str(){Some("isolated")=>false,Some("page")=>true,_=>return Err("code component mode must be isolated or page".into())}};
+        if let Some(poster)=component.get("poster"){if !poster.as_str().map(owned_image).unwrap_or(false){return Err("code component poster must be an owned image asset".into());}}
+        let(source_cap,js_cap)=if page_mode{(256*1024,512*1024)}else{(128*1024,256*1024)};
+        if source.len()>source_cap||js.len()>js_cap||digest(source)!=string(component,"sourceDigest")?||digest(js)!=string(component,"builtDigest")?{return Err("code size or digest mismatch".into());}
         if ["import ","import(","import\n","require(","export *"," from '"].iter().any(|bad|source.contains(bad)){return Err("code components cannot import dependencies".into());}
-        for(name,prop)in maps(component,"props")?{if !identifier(name){return Err("invalid code prop name".into());}keys(prop,&["type","required","default"])?;boolean(prop,"required")?;if !["string","number","boolean","json"].contains(&string(prop,"type")?){return Err("invalid code prop type".into());}if let Some(default)=prop.get("default"){if !code_prop(string(prop,"type")?,default){return Err("invalid code prop default".into());}}}
+        for(name,prop)in maps(component,"props")?{if !identifier(name){return Err("invalid code prop name".into());}keys(prop,&["type","required","default"])?;boolean(prop,"required")?;if !["string","number","boolean","json","color","asset"].contains(&string(prop,"type")?){return Err("invalid code prop type".into());}if let Some(default)=prop.get("default"){if !code_prop(string(prop,"type")?,default){return Err("invalid code prop default".into());}}}
     }
     for(id,instance)in maps(value,"instances")?{node(site,id)?;keys(instance,&["component","props"])?;let definition=value.get("components").and_then(|v|v.get(string(instance,"component").ok()?)).ok_or("unknown code component")?;let props=object(instance.get("props").ok_or("code instance props required")?)?;
         for(name,prop)in props{let d=definition.get("props").and_then(|v|v.get(name)).ok_or("unknown code prop")?;if !code_prop(string(d,"type")?,prop){return Err("invalid code prop value".into());}}
         for(name,prop)in maps(definition,"props")?{if prop.get("required").and_then(Value::as_bool)==Some(true)&&!props.contains_key(name)&&prop.get("default").is_none(){return Err("required code prop missing".into());}}
     }Ok(())}
-fn code_prop(kind:&str,value:&Value)->bool {match kind{"string"=>value.as_str().map(|v|v.len()<=10000).unwrap_or(false),"number"=>value.is_number(),"boolean"=>value.is_boolean(),"json"=>serde_json::to_vec(value).map(|v|v.len()<=65536).unwrap_or(false),_=>false}}
+fn code_prop(kind:&str,value:&Value)->bool {match kind{"string"=>value.as_str().map(|v|v.len()<=10000).unwrap_or(false),"number"=>value.is_number(),"boolean"=>value.is_boolean(),"json"=>serde_json::to_vec(value).map(|v|v.len()<=65536).unwrap_or(false),"color"=>value.as_str().map(code_color).unwrap_or(false),"asset"=>value.as_str().map(|v|owned_asset(v,&["png","jpg","jpeg","webp","gif","svg","mp4","webm","woff2"])).unwrap_or(false),_=>false}}
+fn code_color(value:&str)->bool{
+    if let Some(hex)=value.strip_prefix('#'){return [3,4,6,8].contains(&hex.len())&&hex.bytes().all(|c|c.is_ascii_hexdigit());}
+    if let Some(name)=value.strip_prefix("var(--").and_then(|rest|rest.strip_suffix(')')){return identifier(name);}
+    ["rgb(","rgba(","hsl(","hsla("].iter().any(|prefix|value.strip_prefix(prefix).and_then(|rest|rest.strip_suffix(')')).map(|inner|!inner.is_empty()&&inner.bytes().all(|c|c.is_ascii_digit()||matches!(c,b','|b' '|b'.'|b'%'|b'/'))).unwrap_or(false))}
 fn design_properties(value:&Value)->Result<(),String>{let entries=maps(value,"properties")?;if entries.len()>64{return Err("too many registered properties".into());}
     for(name,property)in entries{if !identifier(name){return Err("invalid registered property name".into());}keys(property,&["syntax","inherits","initial"])?;boolean(property,"inherits")?;let syntax=string(property,"syntax")?;if !["<number>","<integer>","<length>","<percentage>","<length-percentage>","<color>","<angle>","<time>","*"].contains(&syntax){return Err("invalid registered property syntax".into());}
         match property.get("initial"){Some(initial)=>{let initial=initial.as_str().ok_or("initial must be text")?;if initial.len()>200||!safe_css_value(initial)||(["<number>","<integer>"].contains(&syntax)&&initial.parse::<f64>().map(|n|!n.is_finite()).unwrap_or(true)){return Err("invalid registered property initial value".into());}},None=>if syntax!="*"{return Err("registered property needs an initial value".into());}}}

@@ -3,7 +3,9 @@ use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
 pub mod advanced;
+pub mod formula;
 pub mod motion;
+pub mod variables;
 pub mod vector;
 pub mod wishlist;
 
@@ -350,14 +352,14 @@ fn validate_node(node: &Node, site: &Site) -> Result<(), String> {
     if node.text.len() > 100000 || node.name.len() > 1000 || node.attrs.len() > 100 || node.interactions.len() > 20 { return Err("node content exceeds limit".into()); }
     if void_tag(&node.tag) && (!node.children.is_empty() || !node.text.is_empty()) { return Err("void elements cannot contain text or children".into()); }
     for (name, value) in &node.attrs {
-        let allowed = ["id", "class", "title", "role", "href", "src", "alt", "target", "rel", "type", "name", "value", "placeholder", "required", "checked", "disabled", "multiple", "selected", "min", "max", "step", "pattern", "minlength", "maxlength", "autocomplete", "for", "method", "action", "enctype", "loading", "width", "height", "tabindex", "open", "datetime", "colspan", "rowspan", "scope", "controls", "muted", "loop", "poster", "preload", "accept", "autoplay", "playsinline", "inert", "decoding", "fetchpriority", "srcset", "sizes"].contains(&name.as_str())
+        let allowed = ["id", "class", "title", "role", "href", "src", "alt", "target", "rel", "type", "name", "value", "placeholder", "required", "checked", "disabled", "multiple", "selected", "min", "max", "step", "pattern", "minlength", "maxlength", "autocomplete", "for", "method", "action", "enctype", "loading", "width", "height", "tabindex", "open", "datetime", "colspan", "rowspan", "scope", "controls", "muted", "loop", "poster", "preload", "accept", "autoplay", "playsinline", "inert", "decoding", "fetchpriority", "srcset", "sizes", "hidden"].contains(&name.as_str())
             || (name.starts_with("aria-") && identifier(&name[5..])) || (name.starts_with("data-") && identifier(&name[5..])) || vector::attr_allowed(&node.tag, name);
         if !allowed || value.len() > vector::max_len(&node.tag, name) || name.starts_with("on") { return Err(format!("unsupported attribute {name}")); }
         if vector::is_tag(&node.tag) { vector::check_attr(&node.tag, name, value)?; }
         if ["href", "src", "action", "poster"].contains(&name.as_str()) && !safe_url(value) { return Err(format!("unsafe URL on {}", node.id)); }
         if name == "target" && !["_blank", "_self", "_parent", "_top"].contains(&value.as_str()) { return Err("unsupported link target".into()); }
         if name == "method" && !["post", "get"].contains(&value.as_str()) { return Err("form method must be post or get".into()); }
-        if ["autoplay", "playsinline", "inert"].contains(&name.as_str()) && !["", "true"].contains(&value.as_str()) { return Err(format!("{name} must be empty or true")); }
+        if ["autoplay", "playsinline", "inert", "hidden"].contains(&name.as_str()) && !["", "true"].contains(&value.as_str()) { return Err(format!("{name} must be empty or true")); }
         if name == "decoding" && !["async", "sync", "auto"].contains(&value.as_str()) { return Err("decoding must be async, sync or auto".into()); }
         if name == "fetchpriority" && !["high", "low", "auto"].contains(&value.as_str()) { return Err("fetchpriority must be high, low or auto".into()); }
         if name == "srcset" && !valid_srcset(value) { return Err("invalid srcset".into()); }

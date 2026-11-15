@@ -11,6 +11,9 @@ mod inline_module;
 mod routing;
 mod route_styles;
 mod scope;
+mod search;
+mod sections;
+mod variables;
 mod wishlist;
 
 fn escape(value: &str) -> String {
@@ -219,7 +222,15 @@ impl Renderer<'_> {
         if let Some((target, content)) = cms::binding(self.site, node, self.locale, context.map(|c|(c.collection,c.item))) {
             if target == "text" { text = content; } else if content.is_empty() { attrs.remove(&target); } else { attrs.insert(target, content); }
         }
+        if let Some(value) = variables::output_text(self.site, node) { text = value; }
+        for (name, value) in variables::input_attrs(self.site, node) {
+            if ["min", "max", "step"].contains(&name.as_str()) && attrs.contains_key(&name) { continue; }
+            attrs.insert(name, value);
+        }
         advanced::attrs(self.site, node, self.locale, &mut attrs);
+        let page_host = code::page_host(self.site, &node.id)?;
+        if let Some((component, _)) = &page_host { attrs.insert("data-fw-component".into(), component.clone()); }
+        let section = sections::spec(self.site, &node.id);
         if advanced::initially_open(self.site, node) { attrs.insert("data-fw-open".into(), String::new()); }
         if advanced::initially_hidden(self.site, node) { attrs.insert("hidden".into(), String::new()); }
         let suffix = context.map(|c|c.suffix).unwrap_or("");
@@ -244,7 +255,7 @@ impl Renderer<'_> {
         attrs.remove("data-fw-guides");
         if node.tag == "svg" && !attrs.contains_key("role") && !attrs.contains_key("aria-label") { attrs.insert("aria-hidden".into(), "true".into()); }
         if attrs.get("src").map(|s|s.starts_with("http://") || s.starts_with("https://")).unwrap_or(false) { self.warnings.insert("Remote media URLs are referenced and are not bundled into the archive".into()); }
-        if node.tag == "form" && !attrs.get("action").map(|action| !action.is_empty()).unwrap_or(false) {
+        if node.tag == "form" && !advanced::script_form(self.site, node) && !attrs.get("action").map(|action| !action.is_empty()).unwrap_or(false) {
             attrs.insert("action".into(), format!("{}/api/forms/{}/{}", self.forms, self.site.id, node.id));
             attrs.insert("method".into(), "post".into());
             attrs.insert("data-fw-form".into(), "true".into());
@@ -278,7 +289,9 @@ impl Renderer<'_> {
             node.attrs.get("name").map(|name|format!("<span class=\"fw-field-error\" data-fw-error=\"{}\" aria-live=\"polite\"></span>",escape(name))).unwrap_or_default()
         } else { String::new() };
         if void_tag(&node.tag) { result.push_str(&field_error); return Ok(result); }
-        if let Some(frame) = code::render(self.site, &node.id, self.prefix)? { result.push_str(&frame); }
+        if let Some((_, Some(poster))) = &page_host { result.push_str(&format!("<img data-fw-poster src=\"{}\" alt=\"\" decoding=\"async\">", escape(poster))); }
+        if let Some(section) = section { result.push_str(sections::html(section)); }
+        else if let Some(frame) = code::render(self.site, &node.id, self.prefix)? { result.push_str(&frame); }
         else if let Some(frame) = embed::render(self.site, node) { result.push_str(&frame); }
         else {
             let (panel, track) = (advanced::wraps_panel(self.site, node), advanced::wraps_track(self.site, node));
@@ -290,9 +303,10 @@ impl Renderer<'_> {
             if panel { result.push_str("</div>"); }
         }
         result.push_str(&advanced::widget(self.site,node));
-        if node.tag == "form" { result.push_str(&advanced::form_extra(self.site,node)); result.push_str("<p class=\"fw-form-status\" data-fw-form-status aria-live=\"polite\"></p>"); }
+        if node.tag == "form" && !advanced::script_form(self.site, node) { result.push_str(&advanced::form_extra(self.site,node)); result.push_str("<p class=\"fw-form-status\" data-fw-form-status aria-live=\"polite\"></p>"); }
         result.push_str(&format!("</{}>", node.tag));
         result.push_str(&field_error);
+        if section.is_some() { if let Some(tag) = sections::tag(self.site, &node.id, self.prefix) { result.push_str(&tag); } }
         Ok(advanced::overlay(self.site,node,suffix,result))
     }
 }

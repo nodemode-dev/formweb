@@ -26,5 +26,31 @@ pub fn render(site: &Site, root: &str) -> String {
         }
     }
     scoped.tokens.retain(|key, _|needed.contains(key.trim_start_matches("--")));
-    format!("{}{}",crate::stylesheet(&scoped),crate::advanced::styles(&scoped))
+    format!("{}{}{}",crate::stylesheet(&scoped),crate::advanced::styles(&scoped),extras(&scoped))
+}
+fn extras(site: &Site) -> String {
+    let mut css = String::new();
+    for (id, node) in &site.nodes {
+        if let Some(reserve) = crate::variables::reserve(site, id) {
+            let inline = ["span", "strong", "em", "b", "i", "small", "a", "code", "time", "label"].contains(&node.tag.as_str());
+            css.push_str(&format!("[data-fw-node=\"{id}\"]{{font-variant-numeric:tabular-nums;min-width:{reserve}ch{}}}\n", if inline { ";display:inline-block" } else { "" }));
+        }
+    }
+    let code = site.extensions.get("code");
+    let hosts = code.and_then(|v| v.get("instances")).and_then(serde_json::Value::as_object).map(|map| map.iter().filter(|(host, _)| site.nodes.contains_key(*host)).any(|(_, instance)| {
+        let definition = instance.get("component").and_then(serde_json::Value::as_str).and_then(|component| code?.get("components")?.get(component));
+        definition.map(|d| d.get("enabled").and_then(serde_json::Value::as_bool) == Some(true) && d.get("mode").and_then(serde_json::Value::as_str) == Some("page")).unwrap_or(false)
+    })).unwrap_or(false);
+    if hosts { css.push_str(":where([data-fw-component]){position:relative}\n[data-fw-poster]{display:block;width:100%;height:100%;object-fit:cover}\n"); }
+    if code.and_then(|v| v.get("allowSections")).and_then(serde_json::Value::as_bool) == Some(true) {
+        if let Some(sections) = code.and_then(|v| v.get("sections")).and_then(serde_json::Value::as_object) {
+            for id in site.nodes.keys() {
+                if let Some(section) = sections.get(id) {
+                    if section.get("enabled").and_then(serde_json::Value::as_bool) != Some(true) { continue; }
+                    if let Some(text) = section.get("css").and_then(serde_json::Value::as_str) { if !text.is_empty() { css.push_str(text); css.push('\n'); } }
+                }
+            }
+        }
+    }
+    css
 }

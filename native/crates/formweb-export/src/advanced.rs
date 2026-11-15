@@ -22,6 +22,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     if gated { warnings.insert("Private routes require backend membership authorization before serving; editable source JSON is omitted".into()); }
     let mut files = vec![json!({"path":"assets/site.css","content":crate::route_styles::base(site)}),json!({"path":"assets/runtime.js","content":format!("{}{}{}{}{}",include_str!("runtime.js"),crate::wishlist::SCRIPT,crate::embed::GATE_RUNTIME,crate::EFFECTS_RUNTIME,motion_runtime(site))})];
     files.extend(code::files(site)?);
+    files.extend(crate::sections::files(site));
     let mut asset_access:BTreeMap<String,BTreeSet<String>>=BTreeMap::new();
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xhtml=\"http://www.w3.org/1999/xhtml\">\n");
     for (route_index,route) in routes.iter().enumerate() {
@@ -49,7 +50,8 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         let boot = boot_script(site);
         let html = format!("<!doctype html>\n<html lang=\"{}\"><head><meta charset=\"utf-8\">{}<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{}</title><meta name=\"description\" content=\"{}\"><link rel=\"canonical\" href=\"{}\"><meta property=\"og:title\" content=\"{}\"><meta property=\"og:description\" content=\"{}\"><meta property=\"og:url\" content=\"{}\"><meta property=\"og:type\" content=\"website\">{}{}{}{}<link rel=\"stylesheet\" href=\"{}{}\"><script src=\"{}assets/runtime.js\" defer></script>{}</head><body>{}<a class=\"fw-skip\" href=\"#fw-main\">Skip to content</a><div id=\"fw-main\" tabindex=\"-1\">{}</div><script type=\"application/json\" id=\"fw-config\">{}</script>{}</body></html>\n",escape(&route.locale),boot,escape(&title),escape(&description),escape(&canonical),escape(&title),escape(&description),escape(&canonical),robots,alternates,json_ld,crate::icons(site,&prefix),prefix,css_path,prefix,code[0],code[1],body,json_script(&config),code[2]);
         asset_access.entry(css_path.clone()).or_default().insert(route.page.id.clone());
-        if let Some(components)=site.extensions.get("code").and_then(|v|v.get("components")).and_then(Value::as_object){for id in components.keys(){if body.contains(&format!("data-fw-code=\"{id}\"")){asset_access.entry(format!("assets/components/{id}.html")).or_default().insert(route.page.id.clone());}}}
+        if let Some(components)=site.extensions.get("code").and_then(|v|v.get("components")).and_then(Value::as_object){for id in components.keys(){if body.contains(&format!("data-fw-code=\"{id}\"")){asset_access.entry(format!("assets/components/{id}.html")).or_default().insert(route.page.id.clone());}if body.contains(&format!("data-fw-component=\"{id}\"")){asset_access.entry(format!("assets/components/{id}.js")).or_default().insert(route.page.id.clone());}}}
+        for node in crate::sections::used(site){if body.contains(&format!("assets/sections/{node}.js")){asset_access.entry(format!("assets/sections/{node}.js")).or_default().insert(route.page.id.clone());}}
         files.push(json!({"path":route.path(),"content":html}));
         if !route.page.seo.noindex {
             sitemap.push_str(&format!("<url><loc>{}</loc>",escape(&canonical)));
@@ -71,6 +73,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     if let Some(redirects)=site.extensions.get("seo").and_then(|v|v.get("redirects")) { files.push(json!({"path":"redirects.json","content":redirects.to_string()})); }
     let route_manifest: Vec<_> = routes.iter().enumerate().map(|(index,r)|json!({"path":r.path(),"page":r.page.id,"locale":r.locale,"item":r.item.as_ref().map(|i|&i.id),"stylesheet":format!("assets/pages/{index}.css")})).collect();
     files.push(json!({"path":"routes.json","content":serde_json::to_string(&route_manifest).map_err(|e|e.to_string())?}));
+    if let Some(index)=crate::search::index(site,&routes) { files.push(json!({"path":"search-index.json","content":index})); }
     files.push(json!({"path":"asset-access.json","content":json!({"schemaVersion":1,"assets":asset_access}).to_string()}));
     files.push(json!({"path":"README.txt","content":"FormWeb static output. Serve over HTTP. Owned assets are bundled by the backend. Browser integrations require the configured backend and do not embed credentials. Isolated code frames cannot access the parent or network. Gated output must be served by an authorizing backend. Keep native .fweb source separately."}));
     Ok(json!({"files":files,"warnings":warnings.into_iter().collect::<Vec<_>>(),"routes":route_manifest}))
@@ -86,17 +89,29 @@ pub fn styles(site:&Site)->String {
     css.push_str(&motion_css(site));
     css
 }
-pub fn motion_runtime(site:&Site)->String { if site.extensions.contains_key("motion") { format!("{}{}",include_str!("motion.js"),include_str!("interact.js")) } else { String::new() } }
+pub fn motion_runtime(site:&Site)->String {
+    let motion=site.extensions.get("motion");let variables=site.extensions.contains_key("variables");
+    let mut out=String::new();
+    if motion.is_some() { out.push_str(include_str!("motion.js")); }
+    if motion.is_some()||variables { out.push_str(include_str!("interact.js")); }
+    if variables { out.push_str(include_str!("variables.js")); }
+    let played=site.nodes.keys().any(|id|site.extensions.get("behaviors").and_then(|v|v.get("nodes")).and_then(|v|v.get(id)).and_then(|n|n.get("actions")).and_then(Value::as_array).map(|a|a.iter().any(|x|matches!(x.get("action").and_then(Value::as_str),Some("search"|"play")))).unwrap_or(false));
+    if motion.and_then(|g|g.get("scripts")).is_some()||played { out.push_str(include_str!("play.js")); }
+    if code::uses_page(site) { out.push_str(include_str!("components.js")); }
+    out
+}
 pub fn boot_script(site:&Site)->String {
     let themes=site.extensions.get("design").and_then(|v|v.get("themes"));let motion=site.extensions.contains_key("motion");
     let preload:String=site.extensions.get("design").and_then(|d|d.get("fonts")).and_then(Value::as_object).map(|fonts|fonts.values().filter_map(|f|f.get("src").and_then(Value::as_str)).filter(|s|s.ends_with(".woff2")&&safe_url(s)).map(|s|format!("<link rel=\"preload\" as=\"font\" type=\"font/woff2\" href=\"{}\" crossorigin>",escape(s))).collect()).unwrap_or_default();
-    if themes.is_none()&&!motion { return preload; }
+    let variables=crate::variables::boot(site);
+    if themes.is_none()&&!motion&&variables.is_empty() { return preload; }
     let mut script=String::from("<script>(function(){var d=document.documentElement;");
     if let Some(themes)=themes {
         let default=themes.get("default").and_then(Value::as_str).unwrap_or("dark");let follow=themes.get("followSystem").and_then(Value::as_bool).unwrap_or(false);
         script.push_str(&format!("var t=\"{default}\",s=null;try{{s=localStorage.getItem(\"fw-theme-{}\")}}catch(e){{}}if(s===\"dark\"||s===\"light\"){{t=s}}else if({follow}&&window.matchMedia){{t=matchMedia(\"(prefers-color-scheme: light)\").matches?\"light\":\"dark\"}}d.setAttribute(\"data-theme\",t);",site.id));
     }
     if motion { script.push_str("d.classList.add(window.matchMedia&&matchMedia(\"(prefers-reduced-motion: reduce)\").matches?\"fw-r\":\"fw-m\");"); }
+    script.push_str(&variables);
     script.push_str("})();</script>");
     script.push_str(&preload);
     script
@@ -169,6 +184,7 @@ fn accordion_panels(site:&Site)->BTreeMap<String,bool> {
 }
 pub fn initially_open(site:&Site,node:&Node)->bool { accordion_panels(site).get(&node.id).copied().unwrap_or(false) }
 pub fn wraps_panel(site:&Site,node:&Node)->bool { site.extensions.contains_key("motion")&&accordion_panels(site).contains_key(&node.id) }
+pub fn script_form(site:&Site,node:&Node)->bool { node.tag=="form"&&site.extensions.get("forms").and_then(|g|g.get("forms")).and_then(|f|f.get(&node.id)).is_none()&&site.extensions.get("motion").and_then(|m|m.get("scripts")).and_then(|s|s.get(&node.id)).and_then(|s|s.get("trigger")).and_then(Value::as_str)==Some("submit") }
 pub fn initially_hidden(site:&Site,node:&Node)->bool { motion_entries(site,"disclosure").into_iter().filter(|(_,e)|e.get("type").and_then(Value::as_str)==Some("tabs")).any(|(_,e)|{let initial=e.get("initial").and_then(Value::as_u64).unwrap_or(0);e.get("items").and_then(Value::as_array).into_iter().flatten().enumerate().any(|(i,item)|i as u64!=initial&&item.get("panel").and_then(Value::as_str)==Some(node.id.as_str()))}) }
 pub fn wraps_track(site:&Site,node:&Node)->bool { site.extensions.get("motion").and_then(|g|g.get("loops")).and_then(|l|l.get(&node.id)).and_then(|l|l.get("type")).and_then(Value::as_str)==Some("marquee") }
 pub fn text_html(site:&Site,node:&Node,text:&str)->String {

@@ -205,6 +205,21 @@
 
   const sceneStates = new Map();
   const sceneProgress = id => sceneStates.get(id)?.[0]?.s || 0;
+  const sceneOf = element => {
+    for (let n = element instanceof Element ? element : null; n; n = n.parentElement) {
+      const key = n.getAttribute('data-fw-node');
+      if (key && sceneStates.has(key)) return key;
+    }
+    return null;
+  };
+  const progressSubs = new Map();
+  const onProgress = (scene, fn) => {
+    if (typeof fn !== 'function') return () => {};
+    let set = progressSubs.get(scene);
+    if (!set) { set = new Set(); progressSubs.set(scene, set); }
+    set.add(fn);
+    return () => { set.delete(fn); };
+  };
   const scrollToNode = (id, duration, easingName) => {
     const el = all(id)[0];
     if (!el) return Promise.resolve();
@@ -359,6 +374,7 @@
             }
           }
           if (s.cfg.progressVar) put(s.el, '--fw-progress', s.s.toFixed(4));
+          if (progressSubs.get(s.id)?.size && sceneStates.get(s.id)?.[0] === s) for (const fn of [...progressSubs.get(s.id)]) fn(s.s);
         }
         for (const m of s.cfg.markers || []) if (s.prev < m.at && s.s >= m.at) document.dispatchEvent(new CustomEvent('formweb-motion-action', { detail: { action: m.action, origin: s.el } }));
         s.prev = s.s;
@@ -599,7 +615,7 @@
     return p.keys.map(k => cs.getPropertyValue(k).trim());
   };
 
-  globalThis.__formwebMotion = Object.freeze({ config, reduced, easing, onFrame, interpolate, applyStyles, sceneProgress, scrollToScene, scrollToNode });
+  globalThis.__formwebMotion = Object.freeze({ config, reduced, easing, onFrame, interpolate, applyStyles, sceneProgress, sceneOf, onProgress, scrollToScene, scrollToNode });
 
   initReveals();
   initScenes();

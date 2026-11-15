@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: "Project skill for Claude Code and other clients with the FormWeb MCP server connected. Requires a running local FormWeb FastAPI service and explicit Agents enablement."
 metadata:
   author: "nodemode-ai"
-  version: "0.19.0"
+  version: "0.19.1"
 ---
 
 # FormWeb Harness
@@ -36,7 +36,8 @@ formweb-harness/
     localization/SUB-SKILL.md                locales, translations, locale routes
     seo-a11y-auditor/SUB-SKILL.md            audit, metadata, alt text, headings
     forms-operator/SUB-SKILL.md              forms, inbox, retention, delivery
-    interaction-builder/SUB-SKILL.md         interactions and runtime widgets
+    interaction-builder/SUB-SKILL.md         interactions, variables, scripts, search
+    components-builder/SUB-SKILL.md          page components, code sections, posters
     release-operator/SUB-SKILL.md            save, export, publish, providers
     branch-and-review/SUB-SKILL.md           branches, merges, comments, release review
     agent-connect-and-terminal/SUB-SKILL.md  approvals, activity, selection, terminal, CLI
@@ -61,7 +62,8 @@ A specialist-local path resolves from that specialist's folder. A sibling path r
 | Add a language, translate copy or CMS items, locale routes | `sub-skills/localization/SUB-SKILL.md` |
 | Audit or fix SEO and accessibility: titles, descriptions, alt text, headings, labels | `sub-skills/seo-a11y-auditor/SUB-SKILL.md` |
 | Forms, submissions inbox, CSV, retention, signed webhook delivery | `sub-skills/forms-operator/SUB-SKILL.md` |
-| Author interactions, data widgets, commerce, membership or consent behavior | `sub-skills/interaction-builder/SUB-SKILL.md` |
+| Author interactions, variables and calculators, script player, site search, data widgets, commerce, membership or consent behavior | `sub-skills/interaction-builder/SUB-SKILL.md` |
+| Page components that run in the page, code sections, posters, color and asset props, svg assets | `sub-skills/components-builder/SUB-SKILL.md` |
 | Save/import a native project, export, publish locally or through configured providers | `sub-skills/release-operator/SUB-SKILL.md` |
 | Branches, merge review, comments, presence, release approval by a reviewer | `sub-skills/branch-and-review/SUB-SKILL.md` |
 | A person is in the editor too: approvals, activity, their selection, the terminal, `./formweb run` | `sub-skills/agent-connect-and-terminal/SUB-SKILL.md` |

@@ -372,7 +372,7 @@ inspectorLabel.append(inspectorName, inspectorTag);
 inspectorIdentity.append(icon('box'), inspectorLabel, collapseButton({ command: 'window.toggle-right', label: 'Collapse right panel', icon: 'chevronsRight' }));
 const inspectorTabs = element('div', 'inspector-tabs');
 const inspectorTabButtons = new Map<string, HTMLButtonElement>();
-for (const id of ['design', 'content', 'page']) {
+for (const id of ['design', 'motion', 'content', 'page']) {
   const node = button(id[0].toUpperCase() + id.slice(1), undefined, () => setInspector(id), 'quiet');
   inspectorTabButtons.set(id, node);
   inspectorTabs.append(node);
@@ -381,7 +381,9 @@ const inspectorScroll = element('div', 'inspector-scroll');
 const designPane = element('div');
 const contentPane = element('div');
 const pagePane = element('div');
-inspectorScroll.append(designPane, contentPane, pagePane);
+const motionPane = element('div');
+motionPane.hidden = true;
+inspectorScroll.append(designPane, motionPane, contentPane, pagePane);
 inspector.append(inspectorIdentity, inspectorTabs, inspectorScroll, dockStrip('right', [{ command: 'window.design', label: 'Design', icon: 'sliders' }, { command: 'window.content', label: 'Content', icon: 'text' }, { command: 'page.settings', label: 'Page', icon: 'page' }], { command: 'window.toggle-right', label: 'Expand right panel', icon: 'chevronsLeft' }));
 const rail = new Rail([
   { command: 'window.layers', label: 'Pages and layers', icon: 'layers', active: () => activeSidebar === 'pages' && layout.state.left === 'open' },
@@ -1069,7 +1071,7 @@ tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS cu
 const inspectorExt = installInspector({
   section, field, select, input, button, addStyle, addSegments, setStyle, nodePatch, run, status, insertionParent, makeNode, selectNode, canvas,
   showLayers: () => setSidebar('pages'),
-  panes: { design: designPane, content: contentPane, tokens: tokensPane },
+  panes: { design: designPane, content: contentPane, tokens: tokensPane, motion: motionPane },
   anchors: { afterAttributes: attributesSection, stageBefore: viewportReadout }
 });
 const settingsPane = dialogPane('settings');
@@ -1293,6 +1295,7 @@ function setInspector(id: string): void {
   activeInspector = id;
   designPane.hidden = id !== 'design';
   contentPane.hidden = id !== 'content';
+  motionPane.hidden = id !== 'motion';
   pagePane.hidden = id !== 'page';
   inspectorTabButtons.forEach((node, key) => node.classList.toggle('active', key === id));
 }
@@ -1879,6 +1882,7 @@ const featureStudio = new FeatureStudio({
   selectNode,
   selectPage: id => { pageId = id; selectedId = currentPage().root; update(state()); }
 }, overlay);
+document.addEventListener('fw:open-studio', event => { const detail = (event as CustomEvent<{ category: string; action: string }>).detail; featureStudio.open(detail.category, detail.action); });
 const ready = (): boolean => !!lastState;
 const notRoot = (): boolean => !!lastState && currentNode().id !== currentPage().root;
 const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); };
@@ -1932,6 +1936,7 @@ registerCommands([
   { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => toggleLeft('pages'), checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
   { id: 'window.insert', label: 'Insert', menu: 'Window', run: () => toggleLeft('insert'), checked: () => activeSidebar === 'insert' && layout.state.left === 'open' },
   { id: 'window.design', label: 'Design inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('design'); }, checked: () => activeInspector === 'design' && layout.state.right === 'open' },
+  { id: 'window.motion', label: 'Motion inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('motion'); }, checked: () => activeInspector === 'motion' && layout.state.right === 'open' },
   { id: 'window.content', label: 'Content inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('content'); }, checked: () => activeInspector === 'content' && layout.state.right === 'open' },
   { id: 'window.toggle-left', label: 'Left panel', menu: 'Window', keys: ['Mod+['], global: true, group: 4, run: () => { layout.set({ left: layout.state.left === 'open' ? 'collapsed' : 'open' }); rail.refresh(); }, checked: () => layout.state.left === 'open' },
   { id: 'window.toggle-right', label: 'Right panel', menu: 'Window', keys: ['Mod+]'], global: true, group: 4, run: () => layout.set({ right: layout.state.right === 'open' ? 'collapsed' : 'open' }), checked: () => layout.state.right === 'open' },
