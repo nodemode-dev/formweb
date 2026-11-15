@@ -475,7 +475,15 @@
           return (v < 0 ? '-' : '') + body + (frac ? '.' + frac : '');
         };
         let update = v => { const next = prefix + format(v) + suffix; if (node.data !== next) node.data = next; };
-        if (!el.style.minWidth) { const range = document.createRange(); range.selectNodeContents(el); const width = Math.ceil(range.getBoundingClientRect().width); if (width) el.style.minWidth = width + 'px'; }
+        if (!el.style.minWidth) {
+          const range = document.createRange(); range.selectNodeContents(el);
+          const authored = node.data, a = format(from), b = format(to), longest = a.length > b.length ? a : b;
+          let width = range.getBoundingClientRect().width;
+          for (let d = 0; d < 10; d++) { node.data = prefix + longest.replace(/\d/g, String(d)) + suffix; width = Math.max(width, range.getBoundingClientRect().width); }
+          node.data = authored;
+          width = Math.ceil(width);
+          if (width) el.style.minWidth = width + 'px';
+        }
         if (reduced) { update(to); continue; }
         if (cfg.odometer) {
           const template = format(Math.max(Math.abs(from), Math.abs(to)));

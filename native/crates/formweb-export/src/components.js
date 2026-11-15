@@ -57,8 +57,12 @@
   const run = (host, id, props) => {
     const stops = [];
     let failed = false;
-    const fail = () => { failed = true; host.setAttribute('data-fw-error', ''); };
-    const guard = fn => (...args) => { try { return fn(...args); } catch { fail(); } };
+    const fail = error => {
+      if (!failed) console.error('FormWeb component "' + id + '" failed on [data-fw-node="' + (host.getAttribute('data-fw-node') || '') + '"]:', error);
+      failed = true;
+      host.setAttribute('data-fw-component-error', '');
+    };
+    const guard = fn => (...args) => { try { return fn(...args); } catch (error) { fail(error); } };
     const track = off => { stops.push(off); return () => { const i = stops.indexOf(off); if (i >= 0) stops.splice(i, 1); off(); }; };
     const poster = host.querySelector(':scope > [data-fw-poster]');
     let box = { width: host.clientWidth, height: host.clientHeight };
@@ -138,8 +142,8 @@
       const result = mod.mount(layer, props, ctx);
       if (typeof result === 'function') stops.push(guard(result));
       else if (result && typeof result === 'object' && typeof result.destroy === 'function') stops.push(guard(() => result.destroy()));
-    }).catch(() => {
-      fail();
+    }).catch(error => {
+      fail(error);
       layer.remove();
       if (poster) poster.style.visibility = '';
       for (const off of stops.splice(0)) { try { off(); } catch {} }

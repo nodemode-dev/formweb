@@ -1,5 +1,6 @@
 import asyncio
 import io
+import ipaddress
 import json
 import os
 import re
@@ -9,6 +10,7 @@ import zipfile
 from collections import defaultdict, deque
 from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from contextvars import ContextVar
@@ -35,6 +37,42 @@ def safe_export_path(value: str) -> PurePosixPath:
     if path.is_absolute() or any(part in ('.', '..', '') for part in value.split('/')) or ':' in value:
         raise EngineError('Unsafe export path.')
     return path
+
+
+LOCAL_FORM = 'The form on {0} posts to this computer and will not work once the site is on another host. Give it a scripted reply (Motion > Script, trigger Submit), or keep the site on this computer with Publish.'
+POSTING_FORM = re.compile(r'<form data-fw-node="([^"]+)"[^>]*\sdata-fw-form="true"')
+
+
+def local_address(url: str) -> bool:
+    host = (urlsplit(url).hostname or '').lower()
+    if host == 'localhost' or host.endswith(('.localhost', '.local')) or ('.' not in host and ':' not in host):
+        return True
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return address.is_loopback or address.is_private or address.is_link_local or address.is_unspecified
+
+
+def local_forms(site: dict, exported: dict) -> list[dict]:
+    """One audit finding per posting form of a plain export, read from what the export wrote: a form the exporter gave
+    its own action (not scripted, no action of its own) posts to PUBLIC_BASE, which is this computer."""
+    if not local_address(PUBLIC_BASE):
+        return []
+    files = {file['path']: file for file in exported.get('files', [])}
+    manifest = json.loads(files['routes.json']['content']) if 'routes.json' in files else []
+    routes = manifest.get('routes', []) if isinstance(manifest, dict) else manifest
+    names = {page['id']: page['name'] for page in site.get('pages', [])}
+    seen, found = set(), []
+    for route in routes:
+        page, file = route.get('page'), files.get(route.get('path'))
+        if not file or page not in names:
+            continue
+        for node in POSTING_FORM.findall(file['content']):
+            if (page, node) not in seen:
+                seen.add((page, node))
+                found.append({'severity': 'warning', 'code': 'forms.local-address', 'page': page, 'node': node, 'message': LOCAL_FORM.replace('{0}', names[page])})
+    return found
 
 
 inapp = ContextVar('formweb_inapp', default=False)
@@ -115,6 +153,19 @@ class Studio:
     async def state(self):
         self.access.authorize('read')
         return await self.engine.request('state')
+
+    async def audit(self):
+        self.access.authorize('read')
+        result = await self.engine.request('audit')
+        site = (await self.engine.request('state'))['site']
+        if not local_address(PUBLIC_BASE) or not any(node.get('tag') == 'form' for node in site['nodes'].values()):
+            return result
+        try:
+            exported = await self.engine.request('export', {'formsEndpoint': PUBLIC_BASE})
+        except EngineError:
+            return result
+        result['issues'] = list(result.get('issues', [])) + local_forms(site, exported)
+        return result
 
     async def persist(self, state: dict[str, Any]):
         checkpoint = await self.engine.request('checkpoint')
@@ -227,7 +278,8 @@ class Studio:
             params['locale'] = locale
         result = await self.engine.request('export', params)
         if any('data-fw-form="true"' in file['content'] for file in result['files']):
-            result['warnings'] = list(result.get('warnings', [])) + ['Form submissions use the local FormWeb backend; keep it running or replace form actions before external deployment.']
+            found = local_forms((await self.engine.request('state'))['site'], result)
+            result['warnings'] = list(result.get('warnings', [])) + list(dict.fromkeys(issue['message'] for issue in found))
         for file in result['files']:
             safe_export_path(file['path'])
         return bundle_assets(result)

@@ -97,8 +97,7 @@ async def call_tool(context, params):
                 if arguments.get('detail', 'summary') == 'summary':
                     result = compact(result)
             case 'audit_site':
-                studio.access.authorize('read')
-                result = await studio.engine.request('audit')
+                result = await studio.audit()
             case 'save_project':
                 result = await studio.save_project(arguments.get('name'))
             case 'list_projects':
@@ -354,8 +353,7 @@ async def read_resource(context, params):
         studio.access.authorize('read')
         result = tokens(await studio.state())
     elif uri == 'formweb://audit':
-        studio.access.authorize('read')
-        result = await studio.engine.request('audit')
+        result = await studio.audit()
     elif uri == 'formweb://commands':
         result = {'commands': studio.engine.commands, 'parameters': COMMAND_DOCS, 'tools': {tool['name']: tool['inputSchema']['properties']['command']['enum'] for tool in DOMAIN_TOOLS}, 'request': {'command': 'node.update', 'params': {'id': 'headline', 'patch': {'text': 'New headline'}}, 'expectedRevision': 0}, 'batch': {'commands': [{'command': 'node.update', 'params': {'id': 'headline', 'patch': {'text': 'New headline'}}}], 'expected_revision': 0}, 'owner': 'rust'}
     elif uri.removeprefix('formweb://') in RESOURCE_WORKFLOWS:

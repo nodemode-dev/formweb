@@ -114,7 +114,7 @@ export function installFonts(ctx: InspectorContext): FontsHandle {
     css(next) {
       return Object.values(readFonts(next)).filter(face => validFamily(face.family) && /^(?:\/|https:\/\/)[^\s"'()\\]+$/.test(face.src)).map(face => {
         const src = face.src.startsWith('/') ? location.origin + face.src : face.src;
-        return `@font-face{font-family:"${face.family}";src:url("${src}") format("woff2");font-weight:${validWeight(face.weight) ? face.weight : '400'};font-style:${face.style === 'italic' ? 'italic' : 'normal'};font-display:${DISPLAYS.includes(face.display) ? face.display : 'swap'}}`;
+        return `@font-face{font-family:"${face.family}";src:url("${src}") format("woff2");font-weight:${validWeight(face.weight) ? face.weight : '400'};font-style:${face.style === 'italic' ? 'italic' : 'normal'};font-display:swap}`;
       }).join('\n');
     }
   };

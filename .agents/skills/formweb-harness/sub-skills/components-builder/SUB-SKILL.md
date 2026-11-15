@@ -50,7 +50,7 @@ Add code-driven parts to a site without breaking its layout or its safety bar. A
 ```
 
    `host` is the section node inside the script. `html` 512 KiB, `css` 256 KiB, `js` 512 KiB. Section code never runs on the canvas; the editor shows the poster or a placeholder. Remove with `code.section.remove`, `code.instance.remove`.
-7. Export and open the page. Check: component or section works, no console errors, no page errors, no layout shift while it loads, no horizontal overflow, reduced motion respected, theme change followed. A failed component keeps its poster and sets `data-fw-error` on the host; read that attribute when the poster stays.
+7. Export and open the page. Check: component or section works, no console errors, no page errors, no layout shift while it loads, no horizontal overflow, reduced motion respected, theme change followed. A failed component keeps its poster, sets `data-fw-component-error` on the host and logs one console error with its id; read the console and that attribute when the poster stays.
 8. Call `audit_site` and re-read the tree.
 
 ## Gate

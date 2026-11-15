@@ -96,17 +96,26 @@ bundle="$FORMWEB_ROOT/src-tauri/target/release/bundle"
 version="$(cat VERSION)"
 
 if [ "$os" = macos ]; then
-  app="$bundle/macos/formweb.app"
+  product=FormWeb
+  app="$bundle/macos/$product.app"
   [ -d "$app" ] || die "the build finished but $app is missing"
-  codesign --verify --deep --strict "$app" 2>/dev/null || fw_say "codesign could not verify the app; it is ad-hoc signed, so macOS may ask once before it opens"
+  if [ -n "${APPLE_SIGNING_IDENTITY:-}" ]; then
+    codesign --verify --deep --strict "$app" || die "codesign could not verify the signed app; nothing was packed"
+  else
+    codesign --verify --deep --strict "$app" 2>/dev/null || fw_say "codesign could not verify the app; it is ad-hoc signed, so macOS may ask once before it opens"
+  fi
+  step "checking the engine inside the app"
+  [ -x "$app/Contents/MacOS/formweb-engine" ] || die "the app has no engine at Contents/MacOS/formweb-engine; nothing was packed"
+  FORMWEB_HOME="$(mktemp -d)" "$app/Contents/MacOS/formweb-engine" --selfcheck \
+    || die "the engine inside the app failed its self-check under the app's signature; run $app/Contents/MacOS/formweb-engine --selfcheck to see why. Nothing was packed"
   step "packing the disk image"
   mkdir -p "$bundle/dmg"
-  dmg="$bundle/dmg/formweb_${version}_$(uname -m).dmg"
+  dmg="$bundle/dmg/${product}_${version}_$(uname -m).dmg"
   stage="$(mktemp -d)"
-  ditto "$app" "$stage/formweb.app"
+  ditto "$app" "$stage/$product.app"
   ln -s /Applications "$stage/Applications"
   rm -f "$dmg"
-  hdiutil create -quiet -volname formweb -srcfolder "$stage" -ov -format UDZO "$dmg"
+  hdiutil create -quiet -volname "$product" -srcfolder "$stage" -ov -format UDZO "$dmg"
   rm -rf "$stage"
   fw_say "app: $app"
   fw_say "disk image: $dmg"
@@ -115,13 +124,13 @@ if [ "$os" = macos ]; then
     dest=/Applications
     [ -w "$dest" ] || { dest="$HOME/Applications"; mkdir -p "$dest"; }
     if pgrep -x formweb >/dev/null 2>&1; then
-      osascript -e 'tell application "formweb" to quit' >/dev/null 2>&1 || true
+      osascript -e "tell application \"$product\" to quit" >/dev/null 2>&1 || true
       sleep 2
     fi
-    rm -rf "$dest/formweb.app"
-    ditto "$app" "$dest/formweb.app"
-    xattr -dr com.apple.quarantine "$dest/formweb.app" 2>/dev/null || true
-    target_app="$dest/formweb.app"
+    rm -rf "$dest/$product.app"
+    ditto "$app" "$dest/$product.app"
+    xattr -dr com.apple.quarantine "$dest/$product.app" 2>/dev/null || true
+    target_app="$dest/$product.app"
     fw_say "installed: $target_app"
   fi
   if [ "$open_app" = 1 ]; then open "${target_app:-$app}"; fi

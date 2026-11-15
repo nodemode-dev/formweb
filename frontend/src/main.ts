@@ -7,10 +7,16 @@ import { THEMES, applyTheme, readChoice, setTheme } from './ui/themes';
 import { BRAND_MARK, CommandSearch, Menubar, exposeToAgents, registerCommands, runCommand, setRunner } from './ui/shell';
 import { commands as commandRegistry } from './commands/registry';
 import { NativeMenus, desktopMac, menusInWindow, setMenusInWindow, wantsNativeMenus } from './ui/native-menu';
+import { menuModel } from './ui/menus';
 import { installKeymap } from './commands/keymap';
 import { startCatalogue } from './commands/catalogue';
 import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/layout';
 import { HomeScreen, homePref, setHomePref } from './ui/home';
+import { RECENT_MAX } from './ui/home-files';
+import { demoCommands, openDemo, type DemoHooks } from './ui/demos';
+import { DemoPreview } from './ui/demo-preview';
+import { unsavedWork } from './ui/unsaved';
+import { watchOpenedFiles } from './ui/opened-file';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
@@ -183,7 +189,8 @@ const brand = element('div', 'brand');
 brand.innerHTML = BRAND_MARK;
 brand.append(element('span', 'brand-name', 'formweb'));
 brand.title = 'formweb by nodemode.ai';
-const menubar = new Menubar(['File', 'Edit', 'Insert', 'Page', 'Arrange', 'Vector', 'CMS', 'View', 'Window', 'Help'], overlay);
+const menus = menuModel(commandRegistry);
+const menubar = new Menubar(menus, overlay);
 const titleTools = element('div', 'fw-title-tools');
 const topActions = element('div', 'top-actions');
 async function toggleAgents(): Promise<void> {
@@ -1310,7 +1317,7 @@ window.addEventListener('resize', prefsQueueWire);
 const resetPrefs = button('Reset All Preferences...', 'trash', undefined, 'fw-prefs-danger');
 const resetNote = element('p', 'micro', 'Every FormWeb preference on this device goes back to its default and the editor reloads. Your sites and projects are kept.');
 const resetConfirm = button('Reset', undefined, () => {
-  try { for (const key of Object.keys(localStorage)) if (key.startsWith('formweb.')) localStorage.removeItem(key); } catch { }
+  try { for (const key of Object.keys(localStorage)) if (key.startsWith('formweb.') || ['nodemode_ui_settings', 'formweb_theme', 'formweb_language', 'formweb_shortcuts', 'formweb_workspace', 'formweb_terminal', 'fw.vector.pathfinder'].includes(key)) localStorage.removeItem(key); } catch { }
   location.reload();
 }, 'fw-prefs-danger');
 const resetCancel = button('Cancel', undefined, () => { resetRow.hidden = true; resetPrefs.hidden = false; });
@@ -1561,6 +1568,7 @@ async function downloadProject(): Promise<void> {
   status('Editable .fweb project downloaded.');
 }
 const NOT_FOUND_BASE_KEY = "The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.";
+const LOCAL_FORM_KEY = 'The form on {0} posts to this computer and will not work once the site is on another host. Give it a scripted reply (Motion > Script, trigger Submit), or keep the site on this computer with Publish.';
 function notFoundBaseWarning(warned?: string[]): string {
   if (warned) return warned.includes(NOT_FOUND_BASE_KEY) ? ' ' + t(NOT_FOUND_BASE_KEY) : '';
   const site = state().site;
@@ -1729,8 +1737,10 @@ async function createSite(name: string, starter: string): Promise<void> {
 }
 async function performDialogAction(): Promise<void> {
   if (dialogMode === 'new') {
-    await createSite(newName.value.trim() || 'Untitled website', newStarter.value);
+    const name = newName.value.trim() || 'Untitled website', starter = newStarter.value;
     closeDialog();
+    if (!(await mayReplace())) return;
+    await createSite(name, starter);
     status('New site created.');
   } else if (dialogMode === 'page') {
     const before = new Set(state().site.pages.map(page => page.id));
@@ -1791,8 +1801,10 @@ async function updateProjects(): Promise<void> {
     const label = element('div');
     label.append(element('span'), element('small'));
     const open = button('Open', 'folder', async () => {
-      await replace(`/api/projects/${encodeURIComponent(row.dataset.key!)}/open`, {});
+      const id = row.dataset.key!;
       closeDialog();
+      if (!(await mayReplace())) return;
+      await replace(`/api/projects/${encodeURIComponent(id)}/open`, {});
       status('Project opened.');
     });
     row.append(label, open);
@@ -1826,7 +1838,9 @@ async function auditSite(): Promise<void> {
     row.dataset.node = issue.node || '';
     row.dataset.page = issue.page || '';
     text(row.children[0] as HTMLElement, issue.severity);
-    text(row.children[1].children[0] as HTMLElement, issue.message);
+    const formPage = issue.code === 'forms.local-address' ? state().site.pages.find(page => page.id === issue.page)?.name : undefined;
+    if (formPage !== undefined) label(row.children[1].children[0] as HTMLElement, LOCAL_FORM_KEY, [formPage]);
+    else text(row.children[1].children[0] as HTMLElement, issue.message);
     text(row.children[1].children[1] as HTMLElement, `${issue.code}${issue.node ? ' · ' + issue.node : issue.page ? ' · ' + issue.page : ''}`);
     (row.children[2] as HTMLButtonElement).hidden = !issue.node && !issue.page;
   });
@@ -1942,10 +1956,7 @@ mediaInput.addEventListener('change', () => void run(async () => {
   bitmap.close();
   mediaInput.value = '';
 }));
-importer.addEventListener('change', () => void run(async () => {
-  const file = importer.files?.[0];
-  importer.value = '';
-  if (!file) return;
+async function loadProjectFile(file: Blob): Promise<void> {
   const head = new Uint8Array(await file.slice(0, 2).arrayBuffer());
   if (head[0] === 0x50 && head[1] === 0x4b) {
     await replace('/api/load', new Blob([file], { type: 'application/zip' }));
@@ -1954,7 +1965,14 @@ importer.addEventListener('change', () => void run(async () => {
     try { data = JSON.parse(await file.text()); } catch { throw new Error('That file is not a .fweb project, a .fpub package or project JSON.'); }
     await replace('/api/load', data.site ? data : { site: data });
   }
+}
+importer.addEventListener('change', () => void run(async () => {
+  const file = importer.files?.[0];
+  importer.value = '';
+  if (!file) return;
   closeDialog();
+  if (!(await mayReplace())) return;
+  await loadProjectFile(file);
   status(`Imported "${file.name}".`);
 }));
 document.addEventListener('keydown', event => {
@@ -2104,6 +2122,7 @@ const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); 
 const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link'], ['embed', 'Embed media']];
 setRunner(run);
 registerCommands([
+  { id: 'file.home', label: 'Home', menu: 'File', keys: ['Alt+Mod+H'], run: () => home.show() },
   { id: 'file.new', label: 'New site...', menu: 'File', run: () => openDialog('new') },
   { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
   { id: 'file.import', label: 'Import .fweb or .fpub file...', menu: 'File', run: () => importer.click() },
@@ -2128,7 +2147,7 @@ registerCommands([
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
   { id: 'image.edit-in-formvis', label: 'Edit in formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await request<{ message: string }>('/api/formvis/send', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\/[0-9a-f]{64}\.(png|jpg|gif|webp)/.test(currentNode().attrs.src || '') },
   { id: 'image.update-from-formvis', label: 'Update from formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await mutateVia<{ message: string; state: EditorState }>('/api/formvis/update', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' },
-  { id: 'edit.settings', label: 'Settings...', menu: 'Edit', group: 2, run: () => openDialog('settings') },
+  { id: 'edit.settings', label: 'Settings...', menu: 'Edit', keys: ['Mod+,'], group: 2, run: () => openDialog('settings') },
   ...insertKinds.map(([kind, label]) => ({ id: `insert.${kind}`, label, menu: 'Insert', run: () => insertElement(kind), enabled: ready })),
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
   { id: 'insert.stock', label: 'Stock icons and photos...', menu: 'Insert', group: 1, run: () => openDialog('stock'), enabled: ready },
@@ -2188,11 +2207,18 @@ registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
 registerCommands(wishlist.commands);
 subscribe(() => wishlist.refresh());
+const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.askReplace(state().site.name);
+const demoHooks: DemoHooks = { mayReplace: () => { demoPreview.close(); return mayReplace(); }, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
+const demoPreview = new DemoPreview(id => void openDemo(demoHooks, id));
+registerCommands(demoCommands(demoHooks, ready, { show: id => demoPreview.show(id), close: () => demoPreview.close(), isOpen: () => demoPreview.isOpen }));
+commandRegistry.gate = item => !demoPreview.isOpen || item.id.startsWith('demo.');
 menubar.build();
+menubar.blocked = () => !scrim.hidden || featureStudio.opened || demoPreview.isOpen;
 if (wantsNativeMenus()) {
-  const nativeMenus = new NativeMenus(commandRegistry, ['File', 'Edit', 'Insert', 'Page', 'Arrange', 'Vector', 'CMS', 'View', 'Window', 'Help']);
+  const nativeMenus = new NativeMenus(commandRegistry, () => menus);
   void nativeMenus.build().catch(() => undefined);
   subscribe(() => nativeMenus.refresh());
+  onLanguage(() => { void nativeMenus.build().catch(() => undefined); });
 }
 startPageTranslator();
 exposeToAgents();
@@ -2218,8 +2244,9 @@ function usePreset(id: string): void {
 subscribe(update);
 const home = new HomeScreen(app, {
   files: {
-    list: async () => (await request<{ projects: { id: string; name: string; updatedAt: string }[] }>('/api/projects')).projects.map(project => ({ key: project.id, name: project.name, kind: 'FWEB', size: 0, when: Date.parse(project.updatedAt) || 0 })),
+    list: async tab => (await request<{ projects: { id: string; name: string; updatedAt: string }[] }>('/api/projects')).projects.map(project => ({ key: project.id, name: project.name, kind: 'FWEB', size: 0, when: Date.parse(project.updatedAt) || 0 })).sort((a, b) => b.when - a.when).slice(0, tab === 'recent' ? RECENT_MAX : undefined),
     open: item => void run(async () => {
+      if (!(await mayReplace())) return;
       await replace(`/api/projects/${encodeURIComponent(item.key)}/open`, {});
       home.dismiss();
       status('Project opened.');
@@ -2228,12 +2255,15 @@ const home = new HomeScreen(app, {
   templates: STARTER_SITES.map(entry => ({ id: entry.id, name: entry.label, pages: entry.pages.length })),
   run: id => { runCommand(id); },
   create: id => void run(async () => {
+    if (!(await mayReplace())) return;
     await createSite(id ? STARTER_SITES.find(entry => entry.id === id)?.label || 'Untitled website' : 'Untitled website', id);
     home.dismiss();
     status('New site created.');
-  })
+  }),
+  demo: id => void openDemo(demoHooks, id),
+  preview: (id, opener) => demoPreview.show(id, opener)
 });
-subscribe(next => home.sync(next.site.id));
+subscribe(next => home.sync(next.site.id, next.site.name));
 const brandButton = brand;
 brandButton.setAttribute('role', 'button');
 brandButton.tabIndex = 0;
@@ -2256,4 +2286,9 @@ void run(async () => {
   void agentConnect.refresh().catch(() => undefined);
   void terminalDock.remount();
   status('Ready. Select an element, or open Insert to add content.');
+  watchOpenedFiles(file => run(async () => {
+    if (!(await mayReplace())) return;
+    await loadProjectFile(file);
+    status('Project opened.');
+  }));
 }).finally(revealApp);

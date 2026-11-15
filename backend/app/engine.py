@@ -59,7 +59,7 @@ class RustEngine:
                 raise EngineError('Rust engine stopped before acknowledging the request.', 503)
             reply = json.loads(line)
             if reply.get('id') != request_id:
-                raise EngineError('Rust engine protocol response mismatch.', 503)
+                raise ValueError('Rust engine protocol response mismatch.')
         except (OSError, asyncio.TimeoutError, ValueError) as error:
             await self._stop()
             raise EngineError('Rust engine transport interrupted; the last acknowledged document will be recovered.', 503) from error
@@ -69,7 +69,11 @@ class RustEngine:
         return reply.get('result')
 
     async def request(self, method: str, params: dict[str, Any] | None = None):
-        async with self.lock:
+        await self.lock.acquire()
+        return await asyncio.shield(asyncio.ensure_future(self._request(method, params)))
+
+    async def _request(self, method: str, params: dict[str, Any] | None = None):
+        try:
             if not self.process or self.process.returncode is not None:
                 last = self.cached_state
                 checkpoint = self.cached_checkpoint
@@ -86,6 +90,8 @@ class RustEngine:
                 self.cached_state = result
                 self.cached_checkpoint = await self._exchange('checkpoint', {})
             return result
+        finally:
+            self.lock.release()
 
     async def _stop(self):
         if self.process and self.process.returncode is None:

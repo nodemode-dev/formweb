@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.20.8 · 2026-11-11
+## 0.21.0 · 2026-11-15
+
+- Home is rebuilt: Start, Recent and Projects pages beside a navigation column you can resize or hide, a real Recent list (the newest twelve projects), and it works down to the smallest window. File > Home (Alt+Ctrl+H, Alt+Cmd+H on macOS) and the command palette open it. Escape no longer closes a menu or Preferences and Home at once.
+- Three finished demo sites come with the app, on Home and under Help > Demos: Lowlight, Looking Back and Harbour Ferries. Each opens as a new, unsaved site to take apart; Preview shows the finished sites, every page, without replacing the site you are working on. Picture and font credits are in NOTICE.md.
+- A site with unsaved changes is no longer replaced without a question: template tiles, demos, the New site dialog, Open project, Import and a project file opened from the desktop all ask first.
+- Menus: View is the third menu, the macOS menu bar is translated and follows a language change, and the window's menubar works from the keyboard (F10 or Alt, Alt+letter, arrows, typing a letter). Settings opens with Ctrl+comma (Cmd+comma). A long menu such as Vector stays under its button and scrolls, so a second click closes it.
+- The audit warns when a form would post to this computer: a form without a scripted reply gets this computer's FormWeb address when you export, and does nothing once the site is on another host. The warning names the page, selects the form and says what to do. An export's warnings list says the same.
+- Published sites: the 404 page loads its fonts, icon and pictures at any missing address, however deep. A page component that fails says so in the browser console, with its name. With reduced motion a pinned scroll scene is one screen tall and shows its settled state instead of a long still stretch. Counters no longer nudge the layout while they count. Site search reads the whole page text, leaves out the navigation and footer, and no longer lists the 404 page.
+- Section library: a section or the product-site starter on a blank site now brings its own page styles and colours (no side strips, no dark text on dark), a page keeps a single h1 when sections are combined, and the orbit section's chapter links have a destination. The audit no longer flags the hidden search-result template of the header.
+- The canvas draws the site's own fonts and SVG shapes (circle, rect, ellipse, line, polyline, polygon). Reset All Preferences now also resets the theme, language, shortcuts and layout. `appearance: textfield` is accepted.
+- A rare state where every request answered "Rust engine protocol response mismatch" until the app was restarted cannot happen any more.
+- Desktop app: opening a `.fweb` file from Finder or Explorer opens it; on macOS and Linux, Export and Download project save to Downloads and links open in your browser; quitting no longer leaves a temporary folder behind; the macOS app is named FormWeb and carries the entitlements its engine needs under a Developer ID signature. A signed build that is not notarized needs one extra step on first open (see the manual's Troubleshooting).
+- The new labels are in all 26 languages.
 
 - Every label in the inspector, the Motion editors, the vector panels, Export for Screens and the feature dialogs follows a live language switch exactly. The View menu's ruler, guide and grid commands no longer stay in the first language.
 - The command palette (Ctrl+K) finds commands by their name in your language as well as in English, ignoring case and accents, and shows them in your language.

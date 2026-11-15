@@ -21,29 +21,30 @@ fn node_text(site: &Site, locale: &str, id: &str) -> String {
     crate::translation(site, locale, &node.id, &node.text)
 }
 
-fn walk(site: &Site, locale: &str, id: &str, texts: &mut Vec<String>, headings: &mut Vec<String>, seen: &mut usize) {
+fn walk(site: &Site, locale: &str, id: &str, texts: &mut Vec<String>, headings: &mut Vec<String>, seen: &mut usize, chrome: bool) {
     let Some(node) = site.nodes.get(id) else { return };
     if node.attrs.contains_key("hidden") || *seen > 20000 { return; }
     *seen += 1;
+    let chrome = chrome || ["nav", "footer"].contains(&node.tag.as_str());
     let own = collapse(&node_text(site, locale, id));
     if !own.is_empty() {
         if ["h1", "h2", "h3"].contains(&node.tag.as_str()) && headings.len() < 50 { headings.push(own.clone()); }
-        texts.push(own);
+        if !chrome { texts.push(own); }
     }
-    for child in &node.children { walk(site, locale, child, texts, headings, seen); }
+    for child in &node.children { walk(site, locale, child, texts, headings, seen, chrome); }
 }
 
 pub fn index(site: &Site, routes: &[Route]) -> Option<String> {
     let motion = site.extensions.get("motion")?;
     let used = ["actions", "scenes"].iter().any(|key| motion.get(*key).map(uses_search).unwrap_or(false));
     if !used { return None; }
-    let entries: Vec<Value> = routes.iter().map(|route| {
+    let entries: Vec<Value> = routes.iter().filter(|route| route.page.slug.trim_matches('/') != "404").map(|route| {
         let (title, _, _) = routing::metadata(site, route);
         let mut texts = Vec::new();
         let mut headings = Vec::new();
         let mut seen = 0;
-        walk(site, &route.locale, &route.page.root, &mut texts, &mut headings, &mut seen);
-        let text: String = collapse(&texts.join(" ")).chars().take(400).collect();
+        walk(site, &route.locale, &route.page.root, &mut texts, &mut headings, &mut seen, false);
+        let text: String = collapse(&texts.join(" ")).chars().take(4000).collect();
         let slug = route.slug.trim_matches('/');
         let path = if slug.is_empty() { String::new() } else { format!("{slug}/") };
         json!({"path": path, "locale": route.locale, "title": title, "headings": headings, "text": text})

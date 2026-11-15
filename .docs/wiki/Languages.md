@@ -1,6 +1,6 @@
 # Languages
 
-The editor interface speaks 26 languages, English by default. Choose one in Settings > Editor language; the whole window relabels live with no reload, and the choice is remembered in the browser (`formweb_language`). This is the editor's own language. Site content, layer names, page names and the project name are never translated, and site locales for visitors are a separate feature (see [[Engine]] and the locale commands).
+The editor interface speaks 26 languages, English by default. Choose one in Preferences > Interface > Language (Edit > Settings..., Ctrl+comma or Cmd+comma; on macOS the item sits in the app menu); the whole window relabels live with no reload, and the choice is remembered in the browser (`formweb_language`). This is the editor's own language. Site content, layer names, page names and the project name are never translated, and site locales for visitors are a separate feature (see [[Engine]] and the locale commands).
 
 | Code | Language | Code | Language |
 | --- | --- | --- | --- |

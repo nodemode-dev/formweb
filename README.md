@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.20.8" src="https://img.shields.io/badge/version-0.20.8-eef0f4?style=flat-square">
+  <img alt="version 0.21.0" src="https://img.shields.io/badge/version-0.21.0-eef0f4?style=flat-square">
   <img alt="TypeScript 7" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
   <img alt="Rust engine" src="https://img.shields.io/badge/Rust-engine-b7410e?style=flat-square">
   <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/macOS%20%C2%B7%20Linux%20%C2%B7%20Windows-native-2f7bf5?style=flat-square">
@@ -100,9 +100,11 @@
   </tr>
 </table>
 
-The editor runs in 26 languages, switched live from Settings.
+The editor runs in 26 languages, switched live in Preferences (Edit > Settings..., Ctrl+comma, or Cmd+comma on macOS).
 
 A built-in library adds 35 section templates from the formai.studio sites, 21 first-party page components, a design-system preset, a product-site starter and Import HTML; see [docs/LIBRARY.md](docs/LIBRARY.md).
+
+Three finished demo sites come with the app, on Home and under Help > Demos: Lowlight (a studio site made from library sections, with scroll scenes and animated components), Looking Back (a photo essay told in pinned scroll scenes, with a filterable gallery and a lightbox) and Harbour Ferries (a service site with a fare calculator, CMS route pages, site search and redirects). Each opens as a new, unsaved site to take apart, and Preview shows the finished site, every page, without replacing the site you are working on. Picture credits are in [frontend/public/demos/CREDITS.md](frontend/public/demos/CREDITS.md).
 
 ## Built for agents
 

@@ -20,6 +20,7 @@ export interface CatalogueEntry {
 interface Meta { description: string; flags?: string; when?: string }
 
 const META: Record<string, Meta> = {
+  'file.home': { description: 'Show the Home screen over the editor; the open site stays open.', when: 'Use when the person asks for Home, the start screen or their saved projects.' },
   'file.new': { description: 'Open the New site dialog to start an empty site in the engine.', flags: 'mr', when: 'Use when the person wants a blank site; it replaces the open site.' },
   'file.projects': { description: 'Open the saved projects list to load one.', flags: 'm', when: 'Use when switching to another saved project.' },
   'file.import': { description: 'Pick a .fweb project file, or a .fpub package of a FormWeb site made by FormPublisher, from disk and load it into the editor.', flags: 'mr', when: 'Use when the person gives a project file to open; it replaces the open site.' },

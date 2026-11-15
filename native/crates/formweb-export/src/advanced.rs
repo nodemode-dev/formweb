@@ -167,7 +167,7 @@ fn motion_css(site:&Site)->String {
     for(id,scene)in motion_entries(site,"scenes") {
         let offset=scene.get("offset").and_then(Value::as_str).map(|o|if o=="0"{"0px"}else{o}).unwrap_or("0px");let length=scene.get("length").and_then(Value::as_f64).unwrap_or(300.0);let reduced=scene.get("reducedAt").and_then(Value::as_f64).unwrap_or(1.0);
         css.push_str(&format!("[data-fw-node=\"{id}\"]{{position:relative;height:{length}svh}}\n"));
-        if let Some(stage)=scene.get("stage").and_then(Value::as_str) { css.push_str(&format!("[data-fw-node=\"{stage}\"]{{position:sticky;top:{offset};height:calc(100svh - {offset});overflow:clip}}\n")); }
+        if let Some(stage)=scene.get("stage").and_then(Value::as_str) { css.push_str(&format!("[data-fw-node=\"{stage}\"]{{position:sticky;top:{offset};height:calc(100svh - {offset});overflow:clip}}\nhtml.fw-r [data-fw-node=\"{id}\"]{{height:auto}}\n")); }
         let targets:Vec<(String,&Value)>=scene.get("tracks").and_then(Value::as_array).into_iter().flatten().filter_map(|t|Some((format!("[data-fw-node=\"{}\"]",t.get("node")?.as_str()?),t.get("keyframes")?))).chain(scene.get("distribute").and_then(Value::as_array).into_iter().flatten().filter_map(|d|Some((format!("[data-fw-node=\"{}\"]>*",d.get("parent")?.as_str()?),d.get("keyframes")?)))).collect();
         for(selector,frames)in targets {
             let start=frame_state(Some(frames),0.0);let end=frame_state(Some(frames),reduced);

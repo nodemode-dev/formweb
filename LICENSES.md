@@ -171,6 +171,24 @@ The shell's lock contains neither `ring` nor `webpki-roots` (no updater), so the
 | `library/components/*`, `library/sections/*`, `library/presets/formai-studio.json`, `library/starters/*` | ported from formai-xmental-webspun v3.1.0 (`assets/sections/*`, `_kit/site.css`) | Apache-2.0 as part of FormWeb | the pack is NodeAgentc, Inc.'s own work, cleared by the owner on 2026-11-09 to come into FormWeb (DEV_PLAN dependencies table) |
 | pictures referenced by template defaults | `https://media.formai.studio/media/...` | owner's captures, linked, not bundled | the formai and Form app names and marks stay trademarks of NodeAgentc, Inc. |
 
+## Bundled content: demo media
+
+`frontend/public/demos/` holds the three demo sites the app opens from Home and Help > Demos (`<id>/site.fweb`), the preview file made from the same sites (`preview.html`) and one cover picture per demo. The pictures are stored inside each `.fweb` and again inside `preview.html`. The per-file table (stored name, what it shows, credit, source page, status) is in NOTICE.md under "Demo media" and in `frontend/public/demos/CREDITS.md`.
+
+| Item | Source | Licence | Notes |
+| --- | --- | --- | --- |
+| Lowlight: `img_rise.webp`, `img_set.webp`, `img_dot.webp`, `img_smile.webp`, `img_sat.webp`, `img_edge.webp`, `img_jup.webp`, `img_cur.webp`, `img_moj.webp`, `img_per.webp`, `img_chey.webp` | NASA photographs, byte-for-byte copies of formdeck `frontend/public/demos/nasa/` (credits in formdeck `demo/CREDITS.md`) | NASA content, public domain in the US | the source pages carry a credit line and no licence text; basis: NASA's media guidelines, quoted in NOTICE.md; no NASA insignia shown |
+| Lowlight: `img_per_tiles.webp` | 1245 x 1177 crop of `img_per.webp`, made for the demo | NASA content, public domain in the US | derived copy, same credit as `img_per.webp` |
+| Lowlight: `img_udf.webp` | Hubble Ultra Deep Field, NASA and the European Space Agency, copy of the formdeck file | public domain | "This file is in the public domain because it was created by NASA and ESA." (Wikimedia Commons file page) |
+| Looking Back: `ap-17.webp`, `ap-10.webp`, `gt-11.webp`, `gt-9a.webp`, `gt-10.webp` | NASA photographs (NASA Image and Video Library), byte-for-byte copies of form.md `demos/views/assets/media/` (credits in form.md `demos/views/CREDITS.md`) | NASA content, public domain in the US | same basis as above |
+| Looking Back: `img_rise.webp`, `img_set.webp`, `img_dot.webp`, `img_smile.webp` | the same four files as in Lowlight | NASA content, public domain in the US | stored again inside this site's `.fweb` |
+| Lowlight: ten component posters `lowlight-<component>-poster.webp` and `lowlight-<component>-poster-light.webp` (starfield, specks, orbit-constellation, tile-cut, receipt-printer) | stills of the demo site's own page components | Apache-2.0 as part of FormWeb | the orbit and tile posters show the NASA pictures listed above |
+| `lowlight-icon.png`, `looking-back-icon.png`, `harbour-ferries-icon.png` | site icons drawn for the demos | Apache-2.0 as part of FormWeb | Harbour Ferries stores no other picture; its map and logo are inline SVG drawn for the demo |
+| `lowlight/cover.webp`, `looking-back/cover.webp`, `harbour-ferries/cover.webp` | 640 x 360 captures of each demo's home page | Apache-2.0 as part of FormWeb | the Looking Back cover shows the Earth of `ap-17.webp` (NASA content) |
+| the sites themselves: pages, copy, styles, the harbour map | written for the demos; Lowlight is built from `library/` sections and page components | Apache-2.0 as part of FormWeb | Lowlight and Harbour Ferries are fictional; the facts in Looking Back are from the public NASA record |
+| demo fonts inside the `.fweb` files and `preview.html`: Space Grotesk 400 and 700, IBM Plex Mono 400, Playfair Display 400, Source Serif 4 400, 400 italic and 700, Oswald 400 and 700, Work Sans 400 and 700 | latin subset woff2 files copied unmodified from formvis `frontend/public/fonts/` (IBM Plex Mono, Playfair Display, Oswald) and formtxt `demo/assets/` (Space Grotesk, Source Serif 4, Work Sans, from the @fontsource packages) | SIL OFL 1.1 | full text per family in `frontend/public/demos/licenses/OFL-<Family>.txt`, unchanged from each family's `OFL.txt` in github.com/google/fonts; copyright lines in `NOTICE.md`, "Demo fonts" |
+| Inter inside Lowlight's `.fweb` and `preview.html` | `library/presets/fonts/inter-4-var-latin.woff2`, embedded by the formai.studio preset | SIL OFL 1.1 | text in `library/presets/fonts/LICENSE-Inter.txt` (row above, section library) |
+
 ## License text integrity
 
 The preserved legal texts were copied byte-for-byte from installed upstream packages. The planning sidecar's dependency audit records SHA-256 hashes and source provenance for the inspected texts. Do not remove notices while shrinking archives, and do not modify upstream MPL files. Future package changes need an updated inventory and matching legal texts.
