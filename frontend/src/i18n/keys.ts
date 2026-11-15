@@ -2513,4 +2513,6 @@ export const KEYS: readonly string[] = [
   "Base URL",
   "The site's public address. Canonical links, the sitemap and the root 404.html use it. Agents: site.update with settings.baseUrl.",
   "Set the base URL",
+  "Base URL and SEO settings",
+  "Set the base URL that canonical links, the sitemap, the root 404.html and portable publishing use.",
 ];

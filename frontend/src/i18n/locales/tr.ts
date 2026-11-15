@@ -2513,4 +2513,6 @@ export default [
   "Temel URL",
   "Sitenin herkese açık adresi. Kanonik bağlantılar, site haritası ve kökteki 404.html bunu kullanır. Ajanlar: site.update ile settings.baseUrl.",
   "Temel URL'yi ayarla",
+  "Temel URL ve SEO ayarları",
+  "Kanonik bağlantıların, site haritasının, kökteki 404.html dosyasının ve taşınabilir yayımlamanın kullandığı temel URL'yi ayarlayın.",
 ] as readonly string[];

@@ -144,10 +144,13 @@ function status(message: string, error = false, action?: { label: string; run: (
   text(statusMessage, message);
   statusMessage.classList.toggle('error', error);
   text(dialogStatus, message);
+  if (dialogStatus.title !== message) dialogStatus.title = message;
   dialogStatus.classList.toggle('error', error);
   statusActionRun = action ? action.run : null;
   if (action) text(statusAction, action.label);
   if (statusAction.hidden === !!action) statusAction.hidden = !action;
+  if (action) text(dialogStatusAction, action.label);
+  if (dialogStatusAction.hidden === !!action) dialogStatusAction.hidden = !action;
 }
 async function run(action: () => unknown): Promise<void> {
   try { await action(); } catch (error) { status(error instanceof Error ? error.message : String(error), true); }
@@ -773,7 +776,7 @@ async function setPagePassword(password: string | null): Promise<void> {
 }
 const siteSection = section(pagePane, 'Whole site');
 const baseUrlGrid = element('div', 'form-grid');
-const baseUrlInput = addInspectorInput(baseUrlGrid, 'Base URL', 'site.baseUrl', next => command('site.update', { patch: { settings: { baseUrl: next.trim().replace(/\/+$/, '') } } }), undefined, true) as HTMLInputElement;
+const baseUrlInput = addInspectorInput(baseUrlGrid, 'Base URL', 'site.baseUrl', next => command('site.update', { patch: { settings: { baseUrl: next.trim().replace(/\/+$/, '') || null } } }), undefined, true) as HTMLInputElement;
 baseUrlInput.placeholder = 'https://example.com';
 siteSection.append(baseUrlGrid, element('p', 'micro', 'The site\'s public address. Canonical links, the sitemap and the root 404.html use it. Agents: site.update with settings.baseUrl.'));
 function openBaseUrlField(): void {
@@ -831,7 +834,11 @@ const dialogFooter = element('div', 'dialog-footer');
 const dialogStatus = element('span', 'dialog-status');
 const dialogCancel = button('Close', undefined, closeDialog);
 const dialogPrimary = button('Apply', undefined, () => performDialogAction(), 'primary');
-dialogFooter.append(dialogStatus, dialogCancel, dialogPrimary);
+const dialogStatusAction = element('button', 'dialog-status-action');
+dialogStatusAction.type = 'button';
+dialogStatusAction.hidden = true;
+dialogStatusAction.addEventListener('click', () => { const act = statusActionRun; if (act) { closeDialog(); void run(act); } });
+dialogFooter.append(dialogStatus, dialogStatusAction, dialogCancel, dialogPrimary);
 dialog.append(dialogHead, dialogBody, dialogFooter);
 scrim.append(dialog);
 overlay.append(scrim);
@@ -1675,6 +1682,7 @@ function openDialog(id: string): void {
   text(dialogCancel.querySelector('span')!, id === 'settings' ? 'Done' : 'Close');
   dialog.classList.toggle('fw-prefs-dlg', id === 'settings');
   text(dialogStatus, '');
+  if (!dialogStatusAction.hidden) dialogStatusAction.hidden = true;
   scrim.hidden = false;
   if (id === 'settings') { prefsPages.scrollTop = 0; prefsQueueWire(); }
   if (id === 'projects') void run(updateProjects);

@@ -2513,4 +2513,6 @@ export default [
   "URL dasar",
   "Alamat publik situs. Tautan kanonis, sitemap, dan 404.html di root menggunakannya. Agen: site.update dengan settings.baseUrl.",
   "Atur URL dasar",
+  "URL dasar & pengaturan SEO",
+  "Atur URL dasar yang dipakai tautan kanonis, sitemap, 404.html di root, dan publikasi portabel.",
 ] as readonly string[];

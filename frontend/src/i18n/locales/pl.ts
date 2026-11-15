@@ -2513,4 +2513,6 @@ export default [
   "Bazowy adres URL",
   "Publiczny adres witryny. Korzystają z niego linki kanoniczne, mapa witryny i główny plik 404.html. Agenci: site.update z settings.baseUrl.",
   "Ustaw bazowy adres URL",
+  "Bazowy adres URL i ustawienia SEO",
+  "Ustaw bazowy adres URL używany przez linki kanoniczne, mapę witryny, główny plik 404.html i przenośną publikację.",
 ] as readonly string[];

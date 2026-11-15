@@ -2513,4 +2513,6 @@ export default [
   "Alap-URL",
   "A webhely nyilvános címe. A kanonikus hivatkozások, a webhelytérkép és a gyökér 404.html ezt használják. Ügynökök: site.update a settings.baseUrl értékkel.",
   "Alap-URL beállítása",
+  "Alap-URL és SEO-beállítások",
+  "Az alap-URL beállítása, amelyet a kanonikus hivatkozások, a webhelytérkép, a gyökér 404.html és a hordozható közzététel használ.",
 ] as readonly string[];

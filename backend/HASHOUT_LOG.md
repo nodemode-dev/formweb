@@ -1,5 +1,15 @@
 # Backend context
 
+## A clip lifetime setting, and an unset base URL · v0.20.0 (2026-11-10)
+
+The executor spec is `TURN_K_SPEC.md` in the 0.20.0 planning sidecar (planned as 0.19.10; `tests/test_f4_versions.py` keeps the patch number to one digit, so the release is 0.20.0).
+
+`config.py`: `_clip_seconds()` reads `FORMWEB_CLIP_SECONDS`, an ASCII whole number from 10 to 3600 (surrounding spaces allowed); unset or empty gives `CLIP_SECONDS_DEFAULT` (900) silently, anything else gives 900 with one `uvicorn.error` warning at startup naming the value. `clips.py` imports `CLIP_SECONDS` instead of its own constant, so `expires` and `_purge` follow it; `fragment_routes.py` and the `copy_element` and `paste_element` descriptions say 15 minutes by default.
+
+An unset base URL was checked with real requests and needed no change: `site.update {patch: {settings: {baseUrl: null}}}` removes it, the audit lists `seo.base-url` and `seo.base-url-404`, `GET /api/export` writes canonical links, the sitemap and robots from `https://example.com` and `export_site` gives both warnings; `baseUrl: ""` is still refused with 400, which is why the editor sends null.
+
+Checked: with `FORMWEB_CLIP_SECONDS=20` a clip served a paste at 0.2 s, its asset answered 404 at 21 s, and a paste into a fresh installation after expiry answered 409 naming the video with nothing stored (a paste into an installation that already holds the assets succeeds, since nothing needs fetching); `abc`, `5`, `999999` and an empty value gave 900, `10`, `45` and `3600` were honoured; backend pytest 115 passed.
+
 ## Warnings on send, and clips that serve every paste · v0.19.9 (2026-11-10)
 
 The executor spec is `TURN_J_SPEC.md` in the 0.19.9 planning sidecar.

@@ -2513,4 +2513,6 @@ export default [
   "URL di base",
   "L'indirizzo pubblico del sito. I link canonici, la sitemap e il 404.html nella radice lo usano. Agenti: site.update con settings.baseUrl.",
   "Imposta l'URL di base",
+  "URL di base e impostazioni SEO",
+  "Imposta l'URL di base usato da link canonici, sitemap, 404.html nella radice e pubblicazione portabile.",
 ] as readonly string[];

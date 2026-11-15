@@ -2513,4 +2513,6 @@ export default [
   "URL cơ sở",
   "Địa chỉ công khai của trang web. Liên kết chuẩn, sơ đồ trang web và 404.html ở thư mục gốc sử dụng địa chỉ này. Tác nhân: site.update với settings.baseUrl.",
   "Đặt URL cơ sở",
+  "URL cơ sở và cài đặt SEO",
+  "Đặt URL cơ sở mà liên kết chuẩn, sơ đồ trang web, 404.html ở thư mục gốc và xuất bản di động sử dụng.",
 ] as readonly string[];

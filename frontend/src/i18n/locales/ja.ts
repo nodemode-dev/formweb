@@ -2513,4 +2513,6 @@ export default [
   "ベース URL",
   "サイトの公開アドレスです。正規リンク、サイトマップ、ルートの 404.html で使われます。エージェント：site.update で settings.baseUrl を指定します。",
   "ベース URL を設定",
+  "ベース URL と SEO 設定",
+  "正規リンク、サイトマップ、ルートの 404.html、持ち運び可能な公開で使うベース URL を設定します。",
 ] as readonly string[];

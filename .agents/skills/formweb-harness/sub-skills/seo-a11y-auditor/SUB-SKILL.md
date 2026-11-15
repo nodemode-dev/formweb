@@ -16,7 +16,7 @@ Find the problems the engine audit can see, fix them through validated commands,
 | Run the audit | `audit_site`, resource formweb://audit | GET /api/audit | Page > Run SEO and accessibility audit (page.audit) |
 | Page title, description, noindex | `edit_pages` (page.update with patch.seo) | `./formweb run page.update '{"id":"[page-id]","patch":{"seo":{"title":"T","description":"D","noindex":false}}}'` | Page > Page settings (page.settings), Search and metadata |
 | Alt text, labels, heading tags | `edit_nodes` (node.update) | `./formweb run node.update '{"id":"[node-id]","patch":{"attrs":{"alt":"..."}}}'` | Design and Content inspector tabs |
-| Base URL | `edit_site` (site.update patch settings baseUrl) | `./formweb run site.update '{"patch":{"settings":{"baseUrl":"https://[domain]"}}}'` | Page inspector, Whole site, Base URL (or Website studio, Site origin and SEO settings) |
+| Base URL | `edit_site` (site.update patch settings baseUrl) | `./formweb run site.update '{"patch":{"settings":{"baseUrl":"https://[domain]"}}}'` | Page inspector, Whole site, Base URL (or Website studio, Base URL and SEO settings; null removes it and the site is treated as on https://example.com) |
 | Templates, JSON-LD, robots rules | `apply_commands` with `extension.set` group seo | `./formweb run extension.set '{"group":"seo","value":{}}'` | Website studio, Structured metadata and robots |
 | Sitemap and robots output | `export_site` | GET /api/export | Export button in the toolbar |
 

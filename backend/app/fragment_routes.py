@@ -81,7 +81,7 @@ async def fragment_of(node, embed=False, clip=False):
     """The fragment of one element's subtree (read permission); shared by the route and the MCP tool.
     With embed, `embedded` maps asset ids to base64 bytes (smallest first, 16 MiB of raw bytes in all) and `notEmbedded` lists the rest.
     With embed and clip, only 4 MiB rides inline; the next assets (512 MiB in all, each within its type's upload limit) sit behind
-    `clip` ({url, token, ids, expires}, 15 minutes) and `notEmbedded` lists what neither carries."""
+    `clip` ({url, token, ids, expires}, 15 minutes by default) and `notEmbedded` lists what neither carries."""
     studio.access.authorize('read')
     if not isinstance(node, str) or not 1 <= len(node) <= 160:
         raise EngineError('node must be an element id.', 400)

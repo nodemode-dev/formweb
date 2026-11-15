@@ -2513,4 +2513,6 @@ export default [
   "Basis-URL",
   "Webstedets offentlige adresse. Kanoniske links, sitemappet og 404.html i roden bruger den. Agenter: site.update med settings.baseUrl.",
   "Angiv basis-URL'en",
+  "Basis-URL og SEO-indstillinger",
+  "Angiv den basis-URL, som kanoniske links, sitemappet, 404.html i roden og bærbar udgivelse bruger.",
 ] as readonly string[];

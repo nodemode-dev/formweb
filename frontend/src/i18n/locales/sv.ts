@@ -2513,4 +2513,6 @@ export default [
   "Bas-URL",
   "Webbplatsens publika adress. Kanoniska länkar, webbplatskartan och 404.html i roten använder den. Agenter: site.update med settings.baseUrl.",
   "Ange bas-URL:en",
+  "Bas-URL och SEO-inställningar",
+  "Ange den bas-URL som kanoniska länkar, webbplatskartan, 404.html i roten och portabel publicering använder.",
 ] as readonly string[];

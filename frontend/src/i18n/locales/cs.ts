@@ -2513,4 +2513,6 @@ export default [
   "Základní URL",
   "Veřejná adresa webu. Používají ji kanonické odkazy, mapa webu a kořenový soubor 404.html. Agenti: site.update s settings.baseUrl.",
   "Nastavit základní URL",
+  "Základní URL a nastavení SEO",
+  "Nastavte základní URL, které používají kanonické odkazy, mapa webu, kořenový soubor 404.html a přenosná publikace.",
 ] as readonly string[];
