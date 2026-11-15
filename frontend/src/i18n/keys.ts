@@ -2562,4 +2562,5 @@ export const KEYS: readonly string[] = [
   "Demo preview",
   "Loading the preview...",
   "Close the demo preview",
+  "The form on {0} posts to this computer and will not work once the site is on another host. Give it a scripted reply (Motion > Script, trigger Submit), or keep the site on this computer with Publish.",
 ];

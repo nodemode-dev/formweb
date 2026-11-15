@@ -2562,4 +2562,5 @@ export default [
   "Demon esikatselu",
   "Ladataan esikatselua...",
   "Sulje demon esikatselu",
+  "Sivun {0} lomake lähettää tälle tietokoneelle eikä toimi, kun sivusto on toisella palvelimella. Anna sille skriptattu vastaus (Liike > Skripti, laukaisin Lähetä) tai pidä sivusto tällä tietokoneella Julkaise-toiminnolla.",
 ] as readonly string[];

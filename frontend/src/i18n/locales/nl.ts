@@ -2562,4 +2562,5 @@ export default [
   "Voorbeeld van de demo",
   "Voorbeeld laden...",
   "Voorbeeld van de demo sluiten",
+  "Het formulier op {0} verzendt naar deze computer en werkt niet meer zodra de site bij een andere host staat. Geef het een gescript antwoord (Beweging > Script, trigger Verzenden), of houd de site op deze computer met Publiceren.",
 ] as readonly string[];

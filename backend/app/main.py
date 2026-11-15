@@ -700,8 +700,7 @@ async def saved_project_file(project_id: str):
 
 @app.get('/api/audit')
 async def audit():
-    studio.access.authorize('read')
-    return await studio.engine.request('audit')
+    return await studio.audit()
 
 
 @app.get('/api/export')

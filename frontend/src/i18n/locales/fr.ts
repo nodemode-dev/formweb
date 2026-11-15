@@ -2562,4 +2562,5 @@ export default [
   "Aperçu de la démo",
   "Chargement de l’aperçu...",
   "Fermer l’aperçu de la démo",
+  "Le formulaire de {0} envoie ses données à cet ordinateur et ne fonctionnera plus une fois le site chez un autre hébergeur. Donnez-lui une réponse par script (Animation > Script, déclencheur Envoi), ou gardez le site sur cet ordinateur avec Publier.",
 ] as readonly string[];

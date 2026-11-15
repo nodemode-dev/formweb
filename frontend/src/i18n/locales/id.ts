@@ -2562,4 +2562,5 @@ export default [
   "Pratinjau demo",
   "Memuat pratinjau...",
   "Tutup pratinjau demo",
+  "Formulir di {0} mengirim ke komputer ini dan tidak akan berfungsi setelah situs berada di host lain. Beri formulir itu balasan berskrip (Gerak > Skrip, pemicu Kirim), atau biarkan situs tetap di komputer ini dengan Publikasikan.",
 ] as readonly string[];

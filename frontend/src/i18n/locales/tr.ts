@@ -2562,4 +2562,5 @@ export default [
   "Demo önizlemesi",
   "Önizleme yükleniyor...",
   "Demo önizlemesini kapat",
+  "{0} sayfasındaki form bu bilgisayara gönderir ve site başka bir barındırıcıya taşındığında çalışmaz. Forma betikli bir yanıt verin (Hareket > Betik, tetikleyici Gönderme) veya Yayımla ile siteyi bu bilgisayarda tutun.",
 ] as readonly string[];

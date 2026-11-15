@@ -2562,4 +2562,5 @@ export default [
   "Eksempel på demo",
   "Indlæser eksemplet...",
   "Luk eksemplet på demoen",
+  "Formularen på {0} sender til denne computer og virker ikke, når webstedet ligger hos en anden vært. Giv den et scriptet svar (Bevægelse > Script, trigger Send), eller behold webstedet på denne computer med Udgiv.",
 ] as readonly string[];

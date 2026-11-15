@@ -2562,4 +2562,5 @@ export default [
   "Demo-Vorschau",
   "Vorschau wird geladen...",
   "Demo-Vorschau schließen",
+  "Das Formular auf {0} sendet an diesen Computer und funktioniert nicht mehr, sobald die Website bei einem anderen Host liegt. Geben Sie ihm eine Skript-Antwort (Bewegung > Skript, Auslöser Absenden), oder behalten Sie die Website mit Veröffentlichen auf diesem Computer.",
 ] as readonly string[];

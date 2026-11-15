@@ -106,7 +106,7 @@ Undo and redo operate on engine changes. An agent command batch is one atomic un
 
 ## Audit and export
 
-Run Audit to inspect model issues. Select an issue to focus its element or page SEO inspector, then check hierarchy, links, media alternatives, forms, headings and narrow widths visually. The audit is an aid and does not certify all accessibility requirements.
+Run Audit to inspect model issues. Select an issue to focus its element or page SEO inspector, then check hierarchy, links, media alternatives, forms, headings and narrow widths visually. The audit is an aid and does not certify all accessibility requirements. A form that posts (one with no submit script and no action of its own) gets the warning `forms.local-address`: Export static site writes its action as this computer's FormWeb address, so on another host the form sends nothing. The warning names the page and selects the form. Give the form a scripted reply (Motion > Script with the Submit trigger) or keep the site on this computer with Publish; an export's warnings list carries the same sentence. A local publication and Preview are served by FormWeb itself and are not flagged.
 
 Export downloads static HTML/CSS/JavaScript, uploaded assets, route metadata and configured runtime behavior. All-locale output includes translated routes and alternate-language metadata. Review warnings and open the exported pages. Keep editable source as well as the ZIP. Gated member content requires the authorizing backend; public static export is rejected rather than exposing it.
 

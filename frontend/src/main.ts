@@ -1568,6 +1568,7 @@ async function downloadProject(): Promise<void> {
   status('Editable .fweb project downloaded.');
 }
 const NOT_FOUND_BASE_KEY = "The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.";
+const LOCAL_FORM_KEY = 'The form on {0} posts to this computer and will not work once the site is on another host. Give it a scripted reply (Motion > Script, trigger Submit), or keep the site on this computer with Publish.';
 function notFoundBaseWarning(warned?: string[]): string {
   if (warned) return warned.includes(NOT_FOUND_BASE_KEY) ? ' ' + t(NOT_FOUND_BASE_KEY) : '';
   const site = state().site;
@@ -1837,7 +1838,9 @@ async function auditSite(): Promise<void> {
     row.dataset.node = issue.node || '';
     row.dataset.page = issue.page || '';
     text(row.children[0] as HTMLElement, issue.severity);
-    text(row.children[1].children[0] as HTMLElement, issue.message);
+    const formPage = issue.code === 'forms.local-address' ? state().site.pages.find(page => page.id === issue.page)?.name : undefined;
+    if (formPage !== undefined) label(row.children[1].children[0] as HTMLElement, LOCAL_FORM_KEY, [formPage]);
+    else text(row.children[1].children[0] as HTMLElement, issue.message);
     text(row.children[1].children[1] as HTMLElement, `${issue.code}${issue.node ? ' · ' + issue.node : issue.page ? ' · ' + issue.page : ''}`);
     (row.children[2] as HTMLButtonElement).hidden = !issue.node && !issue.page;
   });

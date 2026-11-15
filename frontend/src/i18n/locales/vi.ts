@@ -2562,4 +2562,5 @@ export default [
   "Xem trước bản demo",
   "Đang tải bản xem trước...",
   "Đóng bản xem trước demo",
+  "Biểu mẫu trên {0} gửi đến máy tính này và sẽ không hoạt động khi trang web nằm trên máy chủ khác. Hãy cho biểu mẫu một phản hồi bằng tập lệnh (Chuyển động > Tập lệnh, trình kích hoạt Gửi), hoặc giữ trang web trên máy tính này bằng Xuất bản.",
 ] as readonly string[];
