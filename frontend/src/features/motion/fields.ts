@@ -1,5 +1,5 @@
 import { element, value } from '../../ui/dom';
-import { t } from '../../i18n';
+import { label, t } from '../../i18n';
 import { MOTION_SAFE } from './context';
 import type { InspectorContext } from '../inspector/context';
 
@@ -78,7 +78,9 @@ export function selectField<T extends string>(ctx: InspectorContext, label: stri
 export function entryShell(ctx: InspectorContext, container: HTMLElement, title: string, hint: string, onAdd: () => void, onRemove: () => void): EntryShell {
   const block = ctx.section(container, title);
   const empty = element('div', 'fw-motion-empty');
-  empty.append(element('p', 'micro', hint), ctx.button(t('Add'), 'plus', onAdd));
+  const note = element('p', 'micro');
+  label(note, hint);
+  empty.append(note, ctx.button(t('Add'), 'plus', onAdd));
   const body = element('div', 'fw-motion-body');
   const actions = element('div', 'fw-ext-actions');
   actions.append(ctx.button(t('Remove'), 'trash', onRemove));

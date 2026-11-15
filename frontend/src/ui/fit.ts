@@ -1,4 +1,5 @@
 import { onLanguage } from '../i18n';
+import type { Menubar } from './shell';
 
 function px(value: string): number { return parseFloat(value) || 0; }
 
@@ -15,13 +16,19 @@ function natural(box: HTMLElement): number {
   return total + gap * Math.max(0, count - 1);
 }
 
-function menuNatural(menubar: HTMLElement, two: boolean): number {
-  if (document.documentElement.classList.contains('has-native-menus')) return 0;
-  const buttons = Array.from(menubar.children) as HTMLElement[];
+const TWO_ROWS_BELOW = 800;
+
+function foldCount(menubar: HTMLElement, room: number): number {
+  const kids = Array.from(menubar.children) as HTMLElement[];
+  const moreWidth = kids.pop()?.getBoundingClientRect().width || 0;
   const gap = px(getComputedStyle(menubar).columnGap);
-  let total = 0;
-  for (const button of buttons) total += button.getBoundingClientRect().width + (two ? 4 : 0);
-  return total + gap * Math.max(0, buttons.length - 1);
+  const widths = kids.map(button => button.getBoundingClientRect().width);
+  for (let folded = 0; folded < widths.length; folded += 1) {
+    const shown = widths.slice(0, widths.length - folded);
+    const need = shown.reduce((sum, width) => sum + width, 0) + gap * (shown.length - 1) + (folded ? gap + moreWidth : 0);
+    if (need <= room + 0.5) return folded;
+  }
+  return widths.length;
 }
 
 function textWidth(context: CanvasRenderingContext2D, node: HTMLElement, text: string): number {
@@ -30,7 +37,7 @@ function textWidth(context: CanvasRenderingContext2D, node: HTMLElement, text: s
   return context.measureText(text).width;
 }
 
-export function watchFit(app: HTMLElement, topbar: HTMLElement, inspector: HTMLElement): void {
+export function watchFit(app: HTMLElement, topbar: HTMLElement, inspector: HTMLElement, menus: Menubar): void {
   const brand = topbar.querySelector<HTMLElement>('.brand');
   const menubar = topbar.querySelector<HTMLElement>('.fw-menubar');
   const tools = topbar.querySelector<HTMLElement>('.fw-title-tools');
@@ -41,10 +48,12 @@ export function watchFit(app: HTMLElement, topbar: HTMLElement, inspector: HTMLE
     if (!brand || !menubar || !tools || !actions || !topbar.clientWidth) return;
     const style = getComputedStyle(topbar);
     const room = topbar.clientWidth - px(style.paddingLeft) - px(style.paddingRight);
-    const two = app.classList.contains('fw-top2');
-    const need = brand.getBoundingClientRect().width + menuNatural(menubar, two) + natural(tools) + natural(actions) + px(style.columnGap) * 4;
-    const fits = need <= room;
-    if (app.classList.contains('fw-top2') === fits) app.classList.toggle('fw-top2', !fits);
+    const two = topbar.clientWidth < TWO_ROWS_BELOW;
+    if (app.classList.contains('fw-top2') !== two) app.classList.toggle('fw-top2', two);
+    if (document.documentElement.classList.contains('has-native-menus')) { menus.fold(0); return; }
+    const gap = px(style.columnGap);
+    const free = two ? room - brand.getBoundingClientRect().width - gap : room - brand.getBoundingClientRect().width - natural(tools) - natural(actions) - gap * 4;
+    menus.fold(foldCount(menubar, free));
   };
   const fitInspector = (): void => {
     if (!tabs || !context || !inspector.clientWidth || !tabs.clientWidth) return;

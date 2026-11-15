@@ -2521,4 +2521,5 @@ export default [
   "{0} risorse sono troppo grandi per essere incorporate e si potranno incollare solo in questo FormWeb.",
   "{0} risorse sono troppo grandi per essere incorporate e si potranno incollare solo su questo computer.",
   "Titolo per Passaggio {0}",
+  "Altri menu",
 ] as readonly string[];

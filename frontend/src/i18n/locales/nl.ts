@@ -2521,4 +2521,5 @@ export default [
   "{0} assets zijn te groot om in te sluiten en kunnen alleen in deze FormWeb worden geplakt.",
   "{0} assets zijn te groot om in te sluiten en kunnen alleen op deze computer worden geplakt.",
   "Titel voor Stap {0}",
+  "Meer menu's",
 ] as readonly string[];

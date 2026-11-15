@@ -1,4 +1,4 @@
-import { t } from '../i18n';
+import { label, labelAttr, t } from '../i18n';
 import { element } from '../ui/dom';
 import type { Command, Site } from '../types';
 import { colorToHex, gradientNode } from './gradient';
@@ -161,8 +161,9 @@ class RecolorDialog {
   private target = new Map<string, string>();
   private touched: { el: Element; attr: string; raw: string | null }[] = [];
 
-  private button(label: string, run: () => void): HTMLButtonElement {
-    const b = element('button', 'fw-v-btn', label);
+  private button(english: string, run: () => void): HTMLButtonElement {
+    const b = element('button', 'fw-v-btn');
+    label(b, english);
     b.type = 'button';
     b.addEventListener('click', run);
     return b;
@@ -171,30 +172,36 @@ class RecolorDialog {
   private build(): HTMLElement {
     const root = element('div', 'fw-v-dialog fw-v-recolor');
     root.setAttribute('role', 'dialog');
-    root.setAttribute('aria-label', t('Recolor Artwork'));
+    labelAttr(root, 'aria-label', 'Recolor Artwork');
     root.hidden = true;
     this.rows = element('div', 'fw-v-recolor-rows');
     this.rule = element('select', 'fw-v-input');
-    for (const r of RULES) { const o = element('option', '', t(r.label)); o.value = r.id; this.rule.append(o); }
+    for (const r of RULES) { const o = element('option'); label(o, r.label); o.value = r.id; this.rule.append(o); }
     this.base = element('input', 'fw-v-color');
     this.base.type = 'color';
-    this.base.setAttribute('aria-label', t('Base color'));
+    labelAttr(this.base, 'aria-label', 'Base color');
     this.reduce = element('input', 'fw-v-input');
     this.reduce.type = 'number';
     this.reduce.min = '1';
     this.reduce.step = '1';
-    this.reduce.setAttribute('aria-label', t('Reduce colors to'));
+    labelAttr(this.reduce, 'aria-label', 'Reduce colors to');
     const harmony = element('div', 'fw-v-bar');
-    harmony.append(this.base, this.rule, this.button(t('Apply harmony'), () => this.harmony()));
+    harmony.append(this.base, this.rule, this.button('Apply harmony', () => this.harmony()));
     const reduceRow = element('div', 'fw-v-bar');
-    reduceRow.append(element('span', '', t('Reduce colors to')), this.reduce, this.button(t('Reduce'), () => this.shrink()));
+    const reduceText = element('span');
+    label(reduceText, 'Reduce colors to');
+    reduceRow.append(reduceText, this.reduce, this.button('Reduce', () => this.shrink()));
     const tools = element('div', 'fw-v-bar');
-    tools.append(this.button(t('Randomize order'), () => this.shuffle()), this.button(t('Reset'), () => this.reset()));
-    const ok = this.button(t('OK'), () => this.accept());
-    const cancel = this.button(t('Cancel'), () => this.cancel());
+    tools.append(this.button('Randomize order', () => this.shuffle()), this.button('Reset', () => this.reset()));
+    const ok = this.button('OK', () => this.accept());
+    const cancel = this.button('Cancel', () => this.cancel());
     const actions = element('div', 'fw-v-bar');
     actions.append(ok, cancel);
-    root.append(element('div', 'fw-v-summary', t('Recolor Artwork')), element('p', 'fw-v-note', t('Current color, then new color. Changes preview live on the canvas.')), this.rows, harmony, reduceRow, tools, actions);
+    const summary = element('div', 'fw-v-summary');
+    label(summary, 'Recolor Artwork');
+    const note = element('p', 'fw-v-note');
+    label(note, 'Current color, then new color. Changes preview live on the canvas.');
+    root.append(summary, note, this.rows, harmony, reduceRow, tools, actions);
     this.reduce.addEventListener('change', () => this.shrink());
     root.addEventListener('keydown', event => {
       if (event.key === 'Enter' && (event.target as HTMLElement).tagName !== 'SELECT') { event.preventDefault(); this.accept(); }
@@ -229,7 +236,7 @@ class RecolorDialog {
       const input = element('input', 'fw-v-color');
       input.type = 'color';
       input.value = this.target.get(from) ?? from;
-      input.setAttribute('aria-label', t('{0} {1}', [{ t: 'New color for' }, from]));
+      labelAttr(input, 'aria-label', '{0} {1}', [{ t: 'New color for' }, from]);
       input.addEventListener('input', () => { this.target.set(from, input.value.toLowerCase()); this.preview(); });
       row.append(old, element('span', 'fw-v-arrow', '→'), input, element('span', 'fw-v-note', `${from} (${this.palette.counts[this.palette.colors.indexOf(from)]})`));
       return row;

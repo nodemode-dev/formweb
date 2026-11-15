@@ -1,5 +1,5 @@
 import { element } from '../../ui/dom';
-import { t } from '../../i18n';
+import { label, labelAttr, t } from '../../i18n';
 import type { MotionContext, MotionEditor, MotionKind } from './context';
 import type { SiteNode } from '../../types';
 
@@ -67,17 +67,20 @@ function matches(preset: MotionPreset, node: SiteNode, entry: unknown): boolean 
 export function installPresets(ctx: MotionContext, container: HTMLElement): MotionEditor {
   let current: SiteNode | undefined;
   let parent = '';
-  const block = ctx.section(container, t('Presets'));
-  block.append(element('p', 'micro', t('One click sets the effect for the selected element. Click an active preset again to remove it.')));
+  const block = ctx.section(container, 'Presets');
+  const help = element('p', 'micro');
+  label(help, 'One click sets the effect for the selected element. Click an active preset again to remove it.');
+  block.append(help);
   const motionGroup = element('div', 'fw-seg fw-presets');
   motionGroup.setAttribute('role', 'group');
-  motionGroup.setAttribute('aria-label', t('Motion presets'));
+  labelAttr(motionGroup, 'aria-label', 'Motion presets');
   const effectGroup = element('div', 'fw-seg fw-presets');
   effectGroup.setAttribute('role', 'group');
-  effectGroup.setAttribute('aria-label', t('Classic effects'));
+  labelAttr(effectGroup, 'aria-label', 'Classic effects');
 
   const motionButtons = MOTION_PRESETS.map(preset => {
-    const choice = element('button', 'fw-seg-btn', t(preset.label));
+    const choice = element('button', 'fw-seg-btn');
+    label(choice, preset.label);
     choice.type = 'button';
     choice.setAttribute('aria-pressed', 'false');
     choice.addEventListener('click', () => {
@@ -90,7 +93,8 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
     return { preset, choice };
   });
   const effectButtons = EFFECT_PRESETS.map(preset => {
-    const choice = element('button', 'fw-seg-btn', t(preset.label));
+    const choice = element('button', 'fw-seg-btn');
+    label(choice, preset.label);
     choice.type = 'button';
     choice.setAttribute('aria-pressed', 'false');
     choice.addEventListener('click', () => {

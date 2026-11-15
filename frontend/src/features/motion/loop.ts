@@ -45,7 +45,7 @@ interface FrameRow {
 export function installLoop(ctx: MotionContext, container: HTMLElement): MotionEditor {
   let id = '';
   let entry: Loop | undefined;
-  const shell = entryShell(ctx, container, t('Loop'), t('Repeat a motion on this element: marquee, spin, float or custom keyframes.'), () => { if (id) void ctx.set('loops', id, loopDefault('marquee')); }, () => { if (id) void ctx.remove('loops', id); });
+  const shell = entryShell(ctx, container, 'Loop', 'Repeat a motion on this element: marquee, spin, float or custom keyframes.', () => { if (id) void ctx.set('loops', id, loopDefault('marquee')); }, () => { if (id) void ctx.remove('loops', id); });
   const save = (patch: Partial<Loop>): void => {
     if (!id || !entry) return;
     void ctx.set('loops', id, { ...entry, ...patch });

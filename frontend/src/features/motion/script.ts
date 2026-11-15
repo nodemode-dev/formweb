@@ -77,7 +77,7 @@ export function installScript(ctx: MotionContext, container: HTMLElement): Motio
     change(draft);
     save(draft);
   };
-  const panel = shell(ctx, container, t('Script'), t('Play a timed sequence of steps from this element.'), () => save({ trigger: 'click', once: false, restart: false, reset: false, loop: false, loopDelay: 2000, steps: [{ type: 'wait', ms: 500 }] }), remover(ctx, 'scripts', () => node));
+  const panel = shell(ctx, container, 'Script', 'Play a timed sequence of steps from this element.', () => save({ trigger: 'click', once: false, restart: false, reset: false, loop: false, loopDelay: 2000, steps: [{ type: 'wait', ms: 500 }] }), remover(ctx, 'scripts', () => node));
 
   const trigger = ctx.select(TRIGGERS());
   trigger.addEventListener('change', () => edit(draft => {

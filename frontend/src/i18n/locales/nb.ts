@@ -2521,4 +2521,5 @@ export default [
   "{0} ressurser er for store til å bygges inn og kan bare limes inn i denne FormWeb.",
   "{0} ressurser er for store til å bygges inn og kan bare limes inn på denne datamaskinen.",
   "Tittel for Trinn {0}",
+  "Flere menyer",
 ] as readonly string[];

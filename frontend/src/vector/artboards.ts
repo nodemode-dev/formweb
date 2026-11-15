@@ -1,5 +1,5 @@
 import { subscribe } from '../api';
-import { t } from '../i18n';
+import { label, labelAttr, t } from '../i18n';
 import type { Command, Site, SiteNode } from '../types';
 import { element, keyed, text, value } from '../ui/dom';
 import { pathBounds } from './geometry';
@@ -153,27 +153,32 @@ export class ArtboardsPanel {
   private build(): HTMLElement {
     const root = element('div', 'fw-v-dialog fw-v-artboards');
     root.setAttribute('role', 'dialog');
-    root.setAttribute('aria-label', t('Artboards'));
+    labelAttr(root, 'aria-label', 'Artboards');
     root.hidden = true;
     const head = element('div', 'fw-v-row');
-    const close = element('button', 'fw-v-btn', t('Close'));
+    const close = element('button', 'fw-v-btn');
+    label(close, 'Close');
     close.type = 'button';
     close.addEventListener('click', () => this.close());
-    head.append(element('div', 'fw-v-summary', t('Artboards')), close);
-    for (const [label, w, h] of ARTBOARD_PRESETS) { const o = element('option', '', label); o.value = `${w}x${h}`; this.preset.append(o); }
-    const custom = element('option', '', t('Custom')); custom.value = 'custom'; this.preset.append(custom);
-    this.preset.setAttribute('aria-label', t('Size'));
-    for (const [input, label] of [[this.w, t('Width')], [this.h, t('Height')]] as const) { input.type = 'number'; input.min = '1'; input.max = '20000'; input.setAttribute('aria-label', label); }
+    const summary = element('div', 'fw-v-summary');
+    label(summary, 'Artboards');
+    head.append(summary, close);
+    for (const [name, w, h] of ARTBOARD_PRESETS) { const o = element('option', '', name); o.value = `${w}x${h}`; this.preset.append(o); }
+    const custom = element('option'); label(custom, 'Custom'); custom.value = 'custom'; this.preset.append(custom);
+    labelAttr(this.preset, 'aria-label', 'Size');
+    for (const [input, english] of [[this.w, 'Width'], [this.h, 'Height']] as const) { input.type = 'number'; input.min = '1'; input.max = '20000'; labelAttr(input, 'aria-label', english); }
     this.preset.addEventListener('change', () => { const [w, h] = this.preset.value.split('x'); if (h) { this.w.value = w; this.h.value = h; } });
-    const add = element('button', 'fw-v-btn', t('New artboard'));
+    const add = element('button', 'fw-v-btn');
+    label(add, 'New artboard');
     add.type = 'button';
     add.addEventListener('click', () => void this.create());
     const size = element('div', 'fw-v-row');
     size.append(this.w, this.h);
-    this.empty.textContent = t('No artboards on any page yet.');
+    label(this.empty, 'No artboards on any page yet.');
     const area = element('div', 'fw-v-boardarea');
     area.append(this.list, this.empty);
-    const arrange = element('button', 'fw-v-btn', t('Rearrange...'));
+    const arrange = element('button', 'fw-v-btn');
+    label(arrange, 'Rearrange...');
     arrange.type = 'button';
     arrange.addEventListener('click', () => this.rearrange());
     root.append(head, area, this.preset, size, add, arrange);
@@ -206,22 +211,23 @@ export class ArtboardsPanel {
   private row(): HTMLElement {
     const row = element('div', 'fw-v-board');
     const name = element('input', 'fw-v-input');
-    name.setAttribute('aria-label', t('Artboard name'));
+    labelAttr(name, 'aria-label', 'Artboard name');
     name.addEventListener('change', () => { const id = row.dataset.key!; const next = name.value.trim().slice(0, 120); if (next) void this.host.commit([{ command: 'node.update', params: { id, patch: { name: next } } }]); });
     const actions = element('div', 'fw-v-row');
-    const act = (label: string, run: (b: Board) => void): void => {
-      const btn = element('button', 'fw-v-btn', label);
+    const act = (english: string, run: (b: Board) => void): void => {
+      const btn = element('button', 'fw-v-btn');
+      label(btn, english);
       btn.type = 'button';
       btn.addEventListener('click', () => { const b = boards(this.host.site()).find(x => x.id === row.dataset.key); if (b) run(b); });
       actions.append(btn);
     };
-    act(t('Select'), b => this.select(b.id));
-    act(t('Move up'), b => { const cmds = reorderCommands(this.host.site(), b.id, -1); if (cmds) void this.host.commit(cmds); });
-    act(t('Move down'), b => { const cmds = reorderCommands(this.host.site(), b.id, 1); if (cmds) void this.host.commit(cmds); });
-    act(t('Duplicate'), b => { const made = duplicateCommands(this.host.site(), b); if (made) void this.host.commit(made.cmds).then(ok => { if (ok) this.select(made.id); }); });
-    act(t('Fit to artwork'), b => { const cmds = fitCommands(this.host.site(), b); if (cmds) void this.host.commit(cmds); else this.host.notify(t('This artboard has no paths to fit.')); });
-    act(t('Resize'), b => { const w = parseFloat(this.w.value), h = parseFloat(this.h.value); if (w >= 1 && h >= 1 && w <= 20000 && h <= 20000) void this.host.commit(resizeCommands(b, w, h)); });
-    act(t('Delete'), b => void this.host.commit([removeNode(b.id)]));
+    act('Select', b => this.select(b.id));
+    act('Move up', b => { const cmds = reorderCommands(this.host.site(), b.id, -1); if (cmds) void this.host.commit(cmds); });
+    act('Move down', b => { const cmds = reorderCommands(this.host.site(), b.id, 1); if (cmds) void this.host.commit(cmds); });
+    act('Duplicate', b => { const made = duplicateCommands(this.host.site(), b); if (made) void this.host.commit(made.cmds).then(ok => { if (ok) this.select(made.id); }); });
+    act('Fit to artwork', b => { const cmds = fitCommands(this.host.site(), b); if (cmds) void this.host.commit(cmds); else this.host.notify(t('This artboard has no paths to fit.')); });
+    act('Resize', b => { const w = parseFloat(this.w.value), h = parseFloat(this.h.value); if (w >= 1 && h >= 1 && w <= 20000 && h <= 20000) void this.host.commit(resizeCommands(b, w, h)); });
+    act('Delete', b => void this.host.commit([removeNode(b.id)]));
     row.append(name, element('span', 'fw-v-boardsize'), actions);
     return row;
   }

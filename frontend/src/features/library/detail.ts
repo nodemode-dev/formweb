@@ -1,7 +1,7 @@
 import { upload } from '../../api';
 import { element, pieces, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
-import { t } from '../../i18n';
+import { label, labelAttr, t } from '../../i18n';
 import { thumbBox, updateThumb } from './thumb';
 import { categoryLabel, sectionName, sectionText, type LibComponent, type LibField, type LibSection, type LibraryHooks } from './types';
 
@@ -18,17 +18,17 @@ export function longHex(value: string): string {
 }
 
 /** A colour field: the swatch (native picker) and the hex text beside it, kept in step. */
-export function colorControl(initial: string, label: string): { row: HTMLElement; input: HTMLInputElement } {
+export function colorControl(initial: string, english: string): { row: HTMLElement; input: HTMLInputElement } {
   const row = element('div', 'fw-lib-color');
   const swatch = element('input', 'fw-lib-swatch');
   swatch.type = 'color';
-  swatch.setAttribute('aria-label', label);
+  labelAttr(swatch, 'aria-label', english);
   const input = element('input');
   input.type = 'text';
   input.spellcheck = false;
   input.autocomplete = 'off';
   input.maxLength = 7;
-  input.setAttribute('aria-label', label);
+  labelAttr(input, 'aria-label', english);
   input.placeholder = '#ff9a3c';
   const set = (value: string): void => {
     input.value = value;
@@ -58,15 +58,18 @@ export class SectionDetail {
   private form = element('div', 'fw-lib-fields');
   private note = element('p', 'fw-lib-note');
   private insert = element('button', 'fw-lib-insert primary');
-  private label = element('span', '', t('Insert section'));
+  private label = element('span');
   private forms = new Map<string, Control[]>();
   private current: LibSection | null = null;
   private busy = false;
 
   constructor(private hooks: LibraryHooks, private components: () => LibComponent[], onBack: () => void, private onInsert: (section: LibSection, values: Record<string, string | number>) => Promise<readonly string[]>) {
     this.back.type = 'button';
-    this.back.append(icon('chevronLeft'), element('span', '', t('Library')));
-    this.back.setAttribute('aria-label', t('Back to the library'));
+    const backText = element('span');
+    label(backText, 'Library');
+    this.back.append(icon('chevronLeft'), backText);
+    labelAttr(this.back, 'aria-label', 'Back to the library');
+    label(this.label, 'Insert section');
     this.back.addEventListener('click', onBack);
     const bar = element('div', 'fw-lib-bar');
     bar.append(this.back, this.crumb);
@@ -109,13 +112,15 @@ export class SectionDetail {
     const list: Control[] = [];
     for (const [name, spec] of Object.entries(section.fields || {})) {
       const kind = spec.type || 'text';
-      const label = t(spec.label || name);
+      const english = spec.label || name;
       const initial = spec.default === undefined || spec.default === null ? '' : String(spec.default);
       const wrap = element('div', 'field');
-      wrap.append(element('span', 'field-label', label));
+      const caption = element('span', 'field-label');
+      label(caption, english);
+      wrap.append(caption);
       let input: HTMLInputElement | HTMLTextAreaElement;
       if (kind === 'color') {
-        const made = colorControl(initial, label);
+        const made = colorControl(initial, english);
         input = made.input;
         wrap.append(made.row);
       } else if (kind === 'longtext') {
@@ -123,7 +128,7 @@ export class SectionDetail {
         area.rows = 4;
         area.value = initial;
         area.maxLength = LIMIT.longtext;
-        area.setAttribute('aria-label', label);
+        labelAttr(area, 'aria-label', english);
         input = area;
         wrap.append(area);
       } else {
@@ -131,7 +136,7 @@ export class SectionDetail {
         line.type = kind === 'number' ? 'number' : kind === 'url' ? 'url' : 'text';
         line.value = initial;
         if (LIMIT[kind]) line.maxLength = LIMIT[kind];
-        line.setAttribute('aria-label', label);
+        labelAttr(line, 'aria-label', english);
         input = line;
         if (kind === 'asset') wrap.append(this.assetRow(line));
         else wrap.append(line);
@@ -144,13 +149,13 @@ export class SectionDetail {
           const same = raw === initial;
           if (kind === 'color') {
             const value = raw.trim();
-            if (!HEX.test(value)) return { error: t('Enter a hex color such as #ff9a3c.') };
+            if (!HEX.test(value)) return { error: 'Enter a hex color such as #ff9a3c.' };
             return same ? {} : { value };
           }
           if (kind === 'number') {
             if (raw.trim() === '') return {};
             const value = Number(raw);
-            return Number.isFinite(value) ? (same ? {} : { value }) : { error: t('Enter a number.') };
+            return Number.isFinite(value) ? (same ? {} : { value }) : { error: 'Enter a number.' };
           }
           return same ? {} : { value: raw };
         }
@@ -167,7 +172,8 @@ export class SectionDetail {
     pick.type = 'file';
     pick.accept = 'image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm';
     pick.hidden = true;
-    const choose = element('button', 'fw-lib-choose', t('Upload'));
+    const choose = element('button', 'fw-lib-choose');
+    label(choose, 'Upload');
     choose.type = 'button';
     choose.addEventListener('click', () => pick.click());
     pick.addEventListener('change', () => {
@@ -195,12 +201,12 @@ export class SectionDetail {
     for (const control of this.controls(section)) {
       const result = control.read();
       control.input.setAttribute('aria-invalid', String(!!result.error));
-      if (result.error) { this.say(t('{0}: {1}', [{ t: control.spec.label || control.name }, { t: result.error }]), true); control.input.focus(); return; }
+      if (result.error) { label(this.note, '{0}: {1}', [{ t: control.spec.label || control.name }, { t: result.error }]); this.note.classList.add('is-error'); control.input.focus(); return; }
       if (result.value !== undefined) values[control.name] = result.value;
     }
     this.busy = true;
     this.insert.disabled = true;
-    text(this.label, t('Inserting...'));
+    label(this.label, 'Inserting...');
     this.say('', false);
     try {
       this.say(await this.onInsert(section, values), false);
@@ -209,7 +215,7 @@ export class SectionDetail {
     } finally {
       this.busy = false;
       this.insert.disabled = false;
-      text(this.label, t('Insert section'));
+      label(this.label, 'Insert section');
     }
   }
 }

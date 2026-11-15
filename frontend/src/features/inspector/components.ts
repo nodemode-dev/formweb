@@ -70,7 +70,7 @@ function picker(accept: string): HTMLInputElement {
 }
 
 export function installComponents(ctx: InspectorContext): { update(next: EditorState, node: SiteNode): void } {
-  const block = ctx.section(ctx.panes.content, t('Component'));
+  const block = ctx.section(ctx.panes.content, 'Component');
   const body = element('div', 'fw-ext-group');
   block.append(body);
 
@@ -123,7 +123,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
   editBox.hidden = true;
   body.append(insertBox, editBox);
 
-  const listBlock = ctx.section(ctx.panes.content, t('Code components'));
+  const listBlock = ctx.section(ctx.panes.content, 'Code components');
   const list = element('div', 'fw-ext-group');
   const emptyNote = element('p', 'micro', t('No code components are installed.'));
   const listActions = element('div', 'fw-ext-actions');

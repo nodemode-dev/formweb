@@ -21,7 +21,7 @@ function picker(accept: string): HTMLInputElement {
 }
 
 export function installMedia(ctx: InspectorContext): MediaHandle {
-  const block = ctx.section(ctx.panes.content, t('Media'));
+  const block = ctx.section(ctx.panes.content, 'Media');
   ctx.panes.content.insertBefore(block, ctx.anchors.afterAttributes.nextElementSibling);
   let current: SiteNode | undefined;
 

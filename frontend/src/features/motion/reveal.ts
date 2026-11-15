@@ -38,7 +38,7 @@ export function readReveal(source: unknown): Reveal | undefined {
 export function installReveal(ctx: MotionContext, container: HTMLElement): MotionEditor {
   let id = '';
   let entry: Reveal | undefined;
-  const shell = entryShell(ctx, container, t('Reveal'), t('Animate this element into place when it enters the view or the page loads.'), () => { if (id) void ctx.set('reveals', id, REVEAL_DEFAULT); }, () => { if (id) void ctx.remove('reveals', id); });
+  const shell = entryShell(ctx, container, 'Reveal', 'Animate this element into place when it enters the view or the page loads.', () => { if (id) void ctx.set('reveals', id, REVEAL_DEFAULT); }, () => { if (id) void ctx.remove('reveals', id); });
   const save = (patch: Partial<Reveal>): void => {
     if (!id || !entry) return;
     void ctx.set('reveals', id, { ...entry, ...patch });

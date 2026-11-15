@@ -206,7 +206,7 @@ export function installActions(ctx: MotionContext, container: HTMLElement): Moti
     if (draft.length) save(draft);
     else if (node) void ctx.run(() => ctx.remove('actions', (node as SiteNode).id));
   };
-  const panel = shell(ctx, container, t('Actions'), t('Run an action on a trigger, up to 20 per element.'), () => save([{ trigger: 'click', action: 'toggle-theme' }]), remover(ctx, 'actions', () => node));
+  const panel = shell(ctx, container, 'Actions', 'Run an action on a trigger, up to 20 per element.', () => save([{ trigger: 'click', action: 'toggle-theme' }]), remover(ctx, 'actions', () => node));
   const rows = new WeakMap<HTMLElement, RowState>();
   const indexOf = (row: HTMLElement): number => Number(row.dataset.key);
 

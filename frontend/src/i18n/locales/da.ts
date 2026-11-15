@@ -2521,4 +2521,5 @@ export default [
   "{0} billeder er for store til at blive indlejret og kan kun indsættes i denne FormWeb.",
   "{0} billeder er for store til at blive indlejret og kan kun indsættes på denne computer.",
   "Titel på Trin {0}",
+  "Flere menuer",
 ] as readonly string[];

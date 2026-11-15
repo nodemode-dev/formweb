@@ -1,6 +1,6 @@
 import { libraryMutate, request } from '../../api';
 import { element } from '../../ui/dom';
-import { t } from '../../i18n';
+import { label, labelAttr, t } from '../../i18n';
 import { SectionDetail } from './detail';
 import { SectionGrid } from './grid';
 import { HtmlImport } from './importer';
@@ -45,10 +45,11 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
   const tabs = element('div', 'fw-seg fw-lib-tabs');
   tabs.setAttribute('role', 'tablist');
   const buttons = new Map<Tab, HTMLButtonElement>();
-  for (const [id, label] of [['sections', t('Sections')], ['kits', t('Kits')], ['import', t('Import HTML')]] as [Tab, string][]) {
-    const button = element('button', 'fw-seg-btn', label);
+  for (const [id, english] of [['sections', 'Sections'], ['kits', 'Kits'], ['import', 'Import HTML']] as [Tab, string][]) {
+    const button = element('button', 'fw-seg-btn');
+    label(button, english);
     button.type = 'button';
-    if (id === 'kits') button.title = t('Presets and starters');
+    if (id === 'kits') labelAttr(button, 'title', 'Presets and starters');
     button.setAttribute('role', 'tab');
     button.addEventListener('click', () => { tab = id; paint(); });
     buttons.set(id, button);

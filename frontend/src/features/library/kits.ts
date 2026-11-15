@@ -1,7 +1,7 @@
 import { libraryMutate } from '../../api';
 import { element, keyed, pieces, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
-import { t, tn } from '../../i18n';
+import { label, labelAttr, t, tn } from '../../i18n';
 import { colorControl } from './detail';
 import type { LibIndex, LibPreset, LibResult, LibSection, LibStarter, LibraryHooks } from './types';
 
@@ -24,10 +24,14 @@ export class Kits {
 
   constructor(private hooks: LibraryHooks, private openPage: (page: string) => void) {
     this.note.setAttribute('role', 'status');
-    const presetHead = element('h3', 'fw-lib-subhead', t('Presets'));
-    const presetHelp = element('p', 'fw-lib-help', t('A preset holds tokens, light and dark values, fonts, text presets and page styles. Inserting a section adds only what your site lacks. Apply preset sets every value the preset owns.'));
-    const starterHead = element('h3', 'fw-lib-subhead', t('Starters'));
-    const starterHelp = element('p', 'fw-lib-help', t('A starter adds pages with their sections in one step. Pick one product name and tint for the whole site.'));
+    const presetHead = element('h3', 'fw-lib-subhead');
+    label(presetHead, 'Presets');
+    const presetHelp = element('p', 'fw-lib-help');
+    label(presetHelp, 'A preset holds tokens, light and dark values, fonts, text presets and page styles. Inserting a section adds only what your site lacks. Apply preset sets every value the preset owns.');
+    const starterHead = element('h3', 'fw-lib-subhead');
+    label(starterHead, 'Starters');
+    const starterHelp = element('p', 'fw-lib-help');
+    label(starterHelp, 'A starter adds pages with their sections in one step. Pick one product name and tint for the whole site.');
     this.scroller.append(presetHead, presetHelp, this.presets, starterHead, starterHelp, this.starters);
     const foot = element('div', 'fw-lib-foot fw-lib-foot-note');
     foot.append(this.note);
@@ -65,14 +69,15 @@ export class Kits {
 
   private presetRow(item: LibPreset): HTMLElement {
     const row = this.row('preset');
-    const apply = element('button', 'fw-lib-action', t('Apply preset'));
+    const apply = element('button', 'fw-lib-action');
+    label(apply, 'Apply preset');
     apply.type = 'button';
     let armed = 0;
-    const disarm = (): void => { clearTimeout(armed); armed = 0; text(apply, t('Apply preset')); apply.classList.remove('is-armed'); };
+    const disarm = (): void => { clearTimeout(armed); armed = 0; label(apply, 'Apply preset'); apply.classList.remove('is-armed'); };
     apply.addEventListener('blur', disarm);
     apply.addEventListener('click', () => {
       if (!armed) {
-        text(apply, t('Confirm: replace values'));
+        label(apply, 'Confirm: replace values');
         apply.classList.add('is-armed');
         armed = window.setTimeout(disarm, ARM_MS);
         return;
@@ -90,7 +95,8 @@ export class Kits {
   private starterRow(item: LibStarter): HTMLElement {
     const row = this.row('starter');
     row.append(element('span', 'fw-lib-row-meta'));
-    const open = element('button', 'fw-lib-action', t('Use starter'));
+    const open = element('button', 'fw-lib-action');
+    label(open, 'Use starter');
     open.type = 'button';
     open.setAttribute('aria-expanded', 'false');
     const form = element('div', 'fw-lib-starter-form');
@@ -100,13 +106,18 @@ export class Kits {
     name.type = 'text';
     name.maxLength = 400;
     name.value = names.name;
-    name.setAttribute('aria-label', t('Product name'));
-    const tint = colorControl(names.tint, t('Tint'));
+    labelAttr(name, 'aria-label', 'Product name');
+    const tint = colorControl(names.tint, 'Tint');
+    const nameLabel = element('span', 'field-label');
+    label(nameLabel, 'Product name');
     const nameField = element('div', 'field');
-    nameField.append(element('span', 'field-label', t('Product name')), name);
+    nameField.append(nameLabel, name);
+    const tintLabel = element('span', 'field-label');
+    label(tintLabel, 'Tint');
     const tintField = element('div', 'field');
-    tintField.append(element('span', 'field-label', t('Tint')), tint.row);
-    const add = element('button', 'fw-lib-insert primary', t('Add pages'));
+    tintField.append(tintLabel, tint.row);
+    const add = element('button', 'fw-lib-insert primary');
+    label(add, 'Add pages');
     add.type = 'button';
     add.prepend(icon('plus'));
     form.append(nameField, tintField, add);

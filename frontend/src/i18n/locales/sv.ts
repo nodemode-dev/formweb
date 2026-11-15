@@ -2521,4 +2521,5 @@ export default [
   "{0} resurser är för stora för att bäddas in och kan bara klistras in i den här FormWeb.",
   "{0} resurser är för stora för att bäddas in och kan bara klistras in på den här datorn.",
   "Titel för Steg {0}",
+  "Fler menyer",
 ] as readonly string[];

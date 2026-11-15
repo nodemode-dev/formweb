@@ -102,7 +102,7 @@ function lookup(english: string, lang: Lang = current): string {
   return tail && look(base) !== undefined ? `${found}${tail}` : found;
 }
 
-type Value = string | number | { t: string };
+export type Value = string | number | { t: string };
 type Entry = { en: string; redo: () => string };
 type Rec = { en: string; shown: string; redo?: () => string };
 
@@ -224,6 +224,34 @@ const SKIP_ATTR = SKIP.replace('textarea, input, ', '');
 const textEn = new WeakMap<Text, Rec>();
 const attrEn = new WeakMap<Element, Map<string, Rec>>();
 let observer: MutationObserver | null = null;
+
+// Sets a node's text through t() and records its English source on the text node, so a later switch re-translates from
+// that source instead of mapping the shown string back (which fails when another key shares the translation).
+export function labelText(node: Text, english: string, values?: readonly Value[]): void {
+  const args = values ? unmade(values) : undefined;
+  const render = (): string => args ? fill(lookup(english), args, false) : lookup(english);
+  const shown = t(english, values);
+  if (node.data !== shown) node.data = shown;
+  textEn.set(node, { en: args ? fill(english, args, true) : english, shown, redo: render });
+}
+
+export function label(node: HTMLElement, english: string, values?: readonly Value[]): void {
+  const shown = t(english, values);
+  if (node.textContent !== shown) node.textContent = shown;
+  const child = node.firstChild;
+  if (child instanceof Text && child === node.lastChild) labelText(child, english, values);
+}
+
+// The same for an attribute the translator watches (title, aria-label, placeholder).
+export function labelAttr(el: Element, name: (typeof ATTRS)[number], english: string, values?: readonly Value[]): void {
+  const args = values ? unmade(values) : undefined;
+  const render = (): string => args ? fill(lookup(english), args, false) : lookup(english);
+  const shown = t(english, values);
+  if (el.getAttribute(name) !== shown) el.setAttribute(name, shown);
+  let recs = attrEn.get(el);
+  if (!recs) { recs = new Map(); attrEn.set(el, recs); }
+  recs.set(name, { en: args ? fill(english, args, true) : english, shown, redo: render });
+}
 
 const skipped = (node: Node | null): boolean => {
   const el = node instanceof Element ? node : node?.parentElement ?? null;

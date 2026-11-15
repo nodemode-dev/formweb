@@ -1,6 +1,6 @@
 import { element, keyed, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
-import { t, tn } from '../../i18n';
+import { label, labelAttr, t, tn } from '../../i18n';
 import { thumbBox, updateThumb } from './thumb';
 import { KNOWN_CATEGORIES, categoryLabel, sectionName, sectionText, type LibComponent, type LibIndex, type LibSection, type LibraryHooks } from './types';
 
@@ -16,7 +16,7 @@ export class SectionGrid {
   private count = element('p', 'fw-lib-count');
   private grid = element('div', 'fw-lib-grid');
   private empty = element('p', 'fw-lib-empty');
-  private retry = element('button', 'fw-lib-retry', t('Try again'));
+  private retry = element('button', 'fw-lib-retry');
   private scroller = element('div', 'fw-lib-scroll');
   private sections: LibSection[] = [];
   private codes = new Map<string, LibComponent>();
@@ -25,18 +25,19 @@ export class SectionGrid {
 
   constructor(private hooks: LibraryHooks, private onOpen: (section: LibSection) => void, onRetry: () => void) {
     this.search.type = 'search';
-    this.search.placeholder = t('Search sections');
-    this.search.setAttribute('aria-label', t('Search sections'));
+    labelAttr(this.search, 'placeholder', 'Search sections');
+    labelAttr(this.search, 'aria-label', 'Search sections');
     this.search.autocomplete = 'off';
     this.search.spellcheck = false;
     this.search.addEventListener('input', () => this.filter());
+    label(this.retry, 'Try again');
     this.retry.type = 'button';
     this.retry.hidden = true;
     this.retry.addEventListener('click', onRetry);
     const field = element('label', 'fw-lib-search');
     field.append(icon('search'), this.search);
     this.chips.setAttribute('role', 'group');
-    this.chips.setAttribute('aria-label', t('Categories'));
+    labelAttr(this.chips, 'aria-label', 'Categories');
     this.count.setAttribute('aria-live', 'polite');
     const head = element('div', 'fw-lib-head');
     head.append(this.chips, field, this.count);
@@ -55,7 +56,7 @@ export class SectionGrid {
       return chip;
     }, (node, id) => {
       node.dataset.category = id;
-      text(node, id ? categoryLabel(id) : t('All'));
+      if (id) text(node, categoryLabel(id)); else label(node, 'All');
     });
     this.paintChips();
   }
