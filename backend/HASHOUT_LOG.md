@@ -1,5 +1,15 @@
 # Backend context
 
+## The 404 page under every address, and clip copies for agents · v0.19.8 (2026-11-10)
+
+The executor spec is `TURN_I_SPEC.md` in the 0.19.8 planning sidecar.
+
+`advanced_routes.py`: one helper, `missing_page(page, base, request)`, builds the served copy of a site's 404 page. It inserts an HTML-escaped `<base href>` at the 404 folder right after `<head>` and rewrites every `href="#` to the request's own raw path and query (from `scope['raw_path']` and `query_string`, HTML-escaped with `quote=True`), so the skip link and in-content anchors scroll on the same document instead of navigating to the 404 folder that the base tag names. `serve_release` uses it after the visitor gate and the password gate, as in 0.19.7. `preview_file` answers a missing path with the same helper (status 404, base at `/preview/<token>/404/`, `private, no-store` and the preview sandbox CSP) when the preview folder has both `404.html` and `404/index.html`; redirects run first, and a preview without a 404 page keeps the plain 404. Exported files on disk are untouched.
+
+`authoring_tools.py`: `copy_element` takes `clip` (boolean); with `embed_assets` it calls `fragment_of(node, True, True)`, so the copy keeps 4 MiB inline and links the rest through `clips.py`, and without `embed_assets` it answers 400. `paste_element` takes `clip` (object) and passes it to `paste_body` beside `embedded`; a fragment carrying its own `clip` pastes as before. The MCP stdio proxy forwards to the backend's `/mcp`, so the clip URL always names the backend's own port. Tool count 103.
+
+Checked: `backend/venv/bin/python -m pytest -q` (115 pass, none added). On a release and a preview with a 404 page in headless Chrome, Tab then Enter on the skip link kept the pathname and query, set `#fw-main` and moved focus; an in-content `#bottom` link scrolled on the same document; CLS 0. A raw quote, angle brackets and `%22` in the path stayed inside the attribute; a password-gated 404 page answered the plain 404 when locked. Over `/mcp`, a 3 MiB PNG and a 21 MiB MP4 copied with clip came back as 4.2 MB of JSON (one inline, one behind the clip), pasted into a second backend with both stored and exported, and a stopped source answered 409 naming the MP4 with nothing stored.
+
 ## Clip links, release splats and the 404 page, send codes · v0.19.7 (2026-11-10)
 
 The executor spec is `TURN_H_SPEC.md` in the 0.19.7 planning sidecar.

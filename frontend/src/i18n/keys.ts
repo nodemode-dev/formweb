@@ -2509,4 +2509,5 @@ export const KEYS: readonly string[] = [
   "{n} assets are too large to embed and will only paste on this FormWeb.",
   "One asset is too large to embed and will only paste on this computer.",
   "{n} assets are too large to embed and will only paste on this computer.",
+  "The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.",
 ];

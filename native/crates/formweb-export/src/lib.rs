@@ -59,6 +59,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     if !forms.is_empty() && (!safe_url(forms) || !(forms.starts_with("https://") || forms.starts_with("http://"))) { return Err("formsEndpoint must be an http(s) origin URL".into()); }
     let mut warnings = BTreeSet::new();
     if base == "https://example.com" { warnings.insert("Replace the example.com base URL before deploying sitemap and canonical URLs".to_string()); }
+    if base == "https://example.com" && site.pages.iter().any(|p| p.slug.trim_matches('/') == "404") { warnings.insert("The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.".to_string()); }
     if site.locales.len() > 1 { warnings.insert(format!("This archive contains the {locale} locale only; export other locales separately")); }
     let mut files = vec![];
     let css = stylesheet(site);

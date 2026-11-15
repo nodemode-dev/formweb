@@ -2509,4 +2509,5 @@ export default [
   "{n} varlık gömülemeyecek kadar büyük ve yalnızca bu FormWeb içine yapıştırılabilir.",
   "Bir varlık gömülemeyecek kadar büyük ve yalnızca bu bilgisayara yapıştırılabilir.",
   "{n} varlık gömülemeyecek kadar büyük ve yalnızca bu bilgisayara yapıştırılabilir.",
+  "404 sayfası stillerini ve sayfalarını / konumundan bağlıyor, çünkü temel URL hâlâ example.com. Siteyi bir alt yola dağıtmadan önce temel URL'yi sitenin herkese açık adresine ayarlayın.",
 ] as readonly string[];

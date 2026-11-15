@@ -19,6 +19,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     let routes = routing::plan(site, locale, all)?;
     let mut warnings = BTreeSet::new();
     if base == "https://example.com" { warnings.insert("Set the public base URL before deploying canonical URLs and sitemap".to_string()); }
+    if base == "https://example.com" && routes.iter().any(|r| r.locale == site.default_locale && r.item.is_none() && r.slug.trim_matches('/') == "404") { warnings.insert("The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.".to_string()); }
     if gated { warnings.insert("Private routes require backend membership authorization before serving; editable source JSON is omitted".into()); }
     let mut files = vec![json!({"path":"assets/site.css","content":crate::route_styles::base(site)}),json!({"path":"assets/runtime.js","content":format!("{}{}{}{}{}",include_str!("runtime.js"),crate::wishlist::SCRIPT,crate::embed::GATE_RUNTIME,crate::EFFECTS_RUNTIME,motion_runtime(site))})];
     files.extend(code::files(site)?);

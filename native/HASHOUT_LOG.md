@@ -1,5 +1,13 @@
 # Native context
 
+## The base URL warning for the 404 page · v0.19.8 (2026-11-10)
+
+The executor spec is `TURN_I_SPEC.md` in the 0.19.8 planning sidecar.
+
+The root `404.html` takes its URL prefix from the base URL's path, so with the `https://example.com` placeholder it links from `/` and breaks when the site is served under a path. Both export paths add one warning when the site has a page routed at `/404` and the base URL (trailing slash trimmed; the export's `baseUrl` parameter first, then `settings.baseUrl`, then the placeholder) is the placeholder: `lib.rs` `export()` tests `site.pages` by slug, the same test that writes the root copy, and `advanced.rs` `export()` tests the planned routes (default locale, no CMS item, slug `404`), the same test as its own root copy. `formweb-engine/src/lib.rs` `audit()` adds `seo.base-url-404` (warning) beside `seo.base-url` under the same condition, with the same sentence the editor shows. Exports without the condition keep their files and warnings.
+
+Checked: `cargo test --release --locked` (all pass, none added); eight sites exported before and after on both paths with only per-run ids differing; the warning and the audit issue appear with a 404 page and the placeholder (with or without a trailing slash) and not with a real base URL or without a 404 page.
+
 ## Splat redirects, the root 404 page and fragments that miss nothing · v0.19.7 (2026-11-10)
 
 The executor spec is `TURN_H_SPEC.md` in the 0.19.7 planning sidecar.

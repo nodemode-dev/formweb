@@ -2509,4 +2509,5 @@ export default [
   "{n} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en este FormWeb.",
   "Un recurso es demasiado grande para incrustarlo y solo se podrá pegar en este ordenador.",
   "{n} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en este ordenador.",
+  "La página 404 enlaza sus estilos y páginas desde / porque la URL base sigue siendo example.com. Define la URL base con la dirección pública del sitio antes de publicarlo bajo una ruta.",
 ] as readonly string[];

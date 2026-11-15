@@ -2509,4 +2509,5 @@ export default [
   "{n} billeder er for store til at blive indlejret og kan kun indsættes i denne FormWeb.",
   "Et billede er for stort til at blive indlejret og kan kun indsættes på denne computer.",
   "{n} billeder er for store til at blive indlejret og kan kun indsættes på denne computer.",
+  "404-siden henter sine typografier og sider fra /, fordi basis-URL'en stadig er example.com. Angiv basis-URL'en til webstedets offentlige adresse, før du udgiver det i en undermappe.",
 ] as readonly string[];

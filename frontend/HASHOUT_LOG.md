@@ -1,5 +1,11 @@
 # Frontend context map
 
+## The base URL warning for the 404 page · v0.19.8 (2026-11-10)
+
+`main.ts`: `notFoundBaseWarning()` sits above `exportSite` and returns a leading space plus one `t()` sentence when the site has a page whose slug, trimmed of `/`, is `404` and `site.settings.baseUrl` (trailing slashes trimmed, unset counted as the placeholder) is `https://example.com`; otherwise an empty string. `exportSite` and both status calls in `sendToFormPublisher` append it to their existing status text, so no element is added and nothing moves. One key appended to `i18n/keys.ts` (2511 in all) and to the 23 array locales; es-MX and fr-CA need no override.
+
+Checked: `npm run build` and `npx tsc --noEmit` clean; in headless Chrome the Export status showed the sentence only with a 404 page and the example.com base URL, CLS 0 in all three runs, no page errors; `python3 -I setup/i18n_check.py` passes.
+
 ## Large copies by clip link · v0.19.7 (2026-11-10)
 
 `main.ts`, copy and paste helper region: `copyFragment` posts `{node, embed: true, clip: true}`, writes the whole fragment with `embedded` and `clip` to the clipboard, and returns `{behind, left}` (assets behind the clip, and `notEmbedded` minus those). `behindClipNote` and `copyNote` sit beside `notEmbeddedNote`; Copy and Cut use `copyNote`, with "this computer" sentences for assets behind the clip and the 0.19.6 "this FormWeb" sentences for assets not carried. `pasteFragmentText` sends `clip` beside `embedded` in the `/api/paste` body. Two keys added to `i18n/keys.ts` and all locales.

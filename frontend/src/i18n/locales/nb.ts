@@ -2509,4 +2509,5 @@ export default [
   "{n} ressurser er for store til å bygges inn og kan bare limes inn i denne FormWeb.",
   "Én ressurs er for stor til å bygges inn og kan bare limes inn på denne datamaskinen.",
   "{n} ressurser er for store til å bygges inn og kan bare limes inn på denne datamaskinen.",
+  "404-siden henter stilene og sidene sine fra /, fordi basis-URL-en fortsatt er example.com. Sett basis-URL-en til nettstedets offentlige adresse før du publiserer det i en undermappe.",
 ] as readonly string[];

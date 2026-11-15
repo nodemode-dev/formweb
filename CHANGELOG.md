@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.19.8 · 2026-11-10
+
+- The not-found page of a published site keeps its links on the page: Skip to content and links to a section of the page scroll where they should instead of opening the 404 folder.
+- Previews of a site that is not published yet show the site's own not-found page at a missing address, the same way published releases do.
+- Export, the audit and the Export and Send to FormPublisher status lines warn when a site with a 404 page still has the example.com base URL, because its root `404.html` then links from `/` and loses its styles when the site is served under a path.
+- Agents can copy large elements by link: `copy_element` takes `clip` (with `embed_assets`) and `paste_element` takes `clip`, the same 15-minute link on this computer that Copy element uses in the editor.
+- Every new string is in all 26 languages.
+
 ## 0.19.7 · 2026-11-10
 
 - Redirects can cover a whole folder: `/blog/*` to `/docs/:splat` sends every old blog address to its new place. Exact redirects still win, then the longest folder rule, and a rule that would loop or point into itself is refused.

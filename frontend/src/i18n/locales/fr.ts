@@ -2509,4 +2509,5 @@ export default [
   "{n} ressources sont trop volumineuses pour être intégrées et ne pourront être collées que dans ce FormWeb.",
   "Une ressource est trop volumineuse pour être intégrée et ne pourra être collée que sur cet ordinateur.",
   "{n} ressources sont trop volumineuses pour être intégrées et ne pourront être collées que sur cet ordinateur.",
+  "La page 404 charge ses styles et ses pages depuis / parce que l’URL de base est toujours example.com. Définissez l’URL de base sur l’adresse publique du site avant de le déployer dans un sous-dossier.",
 ] as readonly string[];
