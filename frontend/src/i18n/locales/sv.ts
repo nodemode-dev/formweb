@@ -2510,4 +2510,7 @@ export default [
   "En resurs är för stor för att bäddas in och kan bara klistras in på den här datorn.",
   "{n} resurser är för stora för att bäddas in och kan bara klistras in på den här datorn.",
   "404-sidan länkar sina stilar och sidor från / eftersom bas-URL:en fortfarande är example.com. Ange webbplatsens publika adress som bas-URL innan du publicerar den i en undermapp.",
+  "Bas-URL",
+  "Webbplatsens publika adress. Kanoniska länkar, webbplatskartan och 404.html i roten använder den. Agenter: site.update med settings.baseUrl.",
+  "Ange bas-URL:en",
 ] as readonly string[];

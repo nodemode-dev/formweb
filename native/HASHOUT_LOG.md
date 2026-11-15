@@ -1,5 +1,11 @@
 # Native context
 
+## The audit's base URL test · v0.19.9 (2026-11-10)
+
+The executor spec is `TURN_J_SPEC.md` in the 0.19.9 planning sidecar.
+
+`formweb-engine/src/lib.rs` `audit()`: `seo.base-url` now uses the same test as `seo.base-url-404`, the base URL with trailing slashes trimmed and an unset one counted as `https://example.com`, so `https://example.com/` and a base URL removed through `site.update` are caught; the message is unchanged. Checked: `cargo test --release --locked` (all pass, none added); the audit listed both codes for the placeholder with and without a trailing slash and after the base URL was removed, and neither with a real address.
+
 ## The base URL warning for the 404 page · v0.19.8 (2026-11-10)
 
 The executor spec is `TURN_I_SPEC.md` in the 0.19.8 planning sidecar.

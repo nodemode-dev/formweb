@@ -2510,4 +2510,7 @@ export default [
   "Ein Asset ist zu groß zum Einbetten und lässt sich nur auf diesem Computer einfügen.",
   "{n} Assets sind zu groß zum Einbetten und lassen sich nur auf diesem Computer einfügen.",
   "Die 404-Seite verlinkt ihre Stile und Seiten ab /, weil die Basis-URL noch example.com ist. Lege die Basis-URL auf die öffentliche Adresse der Website fest, bevor du sie in einem Unterpfad bereitstellst.",
+  "Basis-URL",
+  "Die öffentliche Adresse der Website. Kanonische Links, die Sitemap und die 404.html im Stammverzeichnis verwenden sie. Agenten: site.update mit settings.baseUrl.",
+  "Basis-URL festlegen",
 ] as readonly string[];

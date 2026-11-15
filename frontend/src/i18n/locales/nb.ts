@@ -2510,4 +2510,7 @@ export default [
   "Én ressurs er for stor til å bygges inn og kan bare limes inn på denne datamaskinen.",
   "{n} ressurser er for store til å bygges inn og kan bare limes inn på denne datamaskinen.",
   "404-siden henter stilene og sidene sine fra /, fordi basis-URL-en fortsatt er example.com. Sett basis-URL-en til nettstedets offentlige adresse før du publiserer det i en undermappe.",
+  "Basis-URL",
+  "Nettstedets offentlige adresse. Kanoniske lenker, områdekartet og 404.html i roten bruker den. Agenter: site.update med settings.baseUrl.",
+  "Angi basis-URL-en",
 ] as readonly string[];

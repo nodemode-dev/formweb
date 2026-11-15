@@ -2510,4 +2510,7 @@ export default [
   "Một tài nguyên quá lớn để nhúng và chỉ có thể dán trên máy tính này.",
   "{n} tài nguyên quá lớn để nhúng và chỉ có thể dán trên máy tính này.",
   "Trang 404 liên kết kiểu dáng và các trang từ / vì URL cơ sở vẫn là example.com. Hãy đặt URL cơ sở thành địa chỉ công khai của trang web trước khi bạn triển khai nó dưới một đường dẫn con.",
+  "URL cơ sở",
+  "Địa chỉ công khai của trang web. Liên kết chuẩn, sơ đồ trang web và 404.html ở thư mục gốc sử dụng địa chỉ này. Tác nhân: site.update với settings.baseUrl.",
+  "Đặt URL cơ sở",
 ] as readonly string[];

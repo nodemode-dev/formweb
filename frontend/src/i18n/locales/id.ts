@@ -2510,4 +2510,7 @@ export default [
   "Satu aset terlalu besar untuk disematkan dan hanya bisa ditempel di komputer ini.",
   "{n} aset terlalu besar untuk disematkan dan hanya bisa ditempel di komputer ini.",
   "Halaman 404 menautkan gaya dan halamannya dari / karena URL dasar masih example.com. Atur URL dasar ke alamat publik situs sebelum Anda men-deploy-nya di bawah sebuah path.",
+  "URL dasar",
+  "Alamat publik situs. Tautan kanonis, sitemap, dan 404.html di root menggunakannya. Agen: site.update dengan settings.baseUrl.",
+  "Atur URL dasar",
 ] as readonly string[];

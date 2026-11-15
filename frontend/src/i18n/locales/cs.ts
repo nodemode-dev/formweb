@@ -2510,4 +2510,7 @@ export default [
   "Jeden obrázek je příliš velký na vložení do kopie a půjde vložit jen v tomto počítači.",
   "Počet obrázků příliš velkých na vložení do kopie: {n}. Půjdou vložit jen v tomto počítači.",
   "Stránka 404 odkazuje na své styly a stránky od /, protože základní URL je stále example.com. Nastavte základní URL na veřejnou adresu webu, než jej nasadíte do podsložky.",
+  "Základní URL",
+  "Veřejná adresa webu. Používají ji kanonické odkazy, mapa webu a kořenový soubor 404.html. Agenti: site.update s settings.baseUrl.",
+  "Nastavit základní URL",
 ] as readonly string[];

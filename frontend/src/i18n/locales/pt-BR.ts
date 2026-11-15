@@ -2510,4 +2510,7 @@ export default [
   "Um recurso é grande demais para ser incorporado e só poderá ser colado neste computador.",
   "{n} recursos são grandes demais para serem incorporados e só poderão ser colados neste computador.",
   "A página 404 vincula seus estilos e páginas a partir de / porque o URL base ainda é example.com. Defina o URL base com o endereço público do site antes de publicá-lo em um subcaminho.",
+  "URL base",
+  "O endereço público do site. Os links canônicos, o sitemap e o 404.html da raiz o usam. Agentes: site.update com settings.baseUrl.",
+  "Definir o URL base",
 ] as readonly string[];

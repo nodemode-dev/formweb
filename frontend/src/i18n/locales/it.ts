@@ -2510,4 +2510,7 @@ export default [
   "Una risorsa è troppo grande per essere incorporata e si potrà incollare solo su questo computer.",
   "{n} risorse sono troppo grandi per essere incorporate e si potranno incollare solo su questo computer.",
   "La pagina 404 collega i suoi stili e le sue pagine a partire da / perché l'URL di base è ancora example.com. Imposta l'URL di base sull'indirizzo pubblico del sito prima di pubblicarlo in un sottopercorso.",
+  "URL di base",
+  "L'indirizzo pubblico del sito. I link canonici, la sitemap e il 404.html nella radice lo usano. Agenti: site.update con settings.baseUrl.",
+  "Imposta l'URL di base",
 ] as readonly string[];

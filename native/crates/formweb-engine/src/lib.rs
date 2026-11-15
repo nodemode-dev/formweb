@@ -452,7 +452,7 @@ pub fn audit(site: &Site) -> Value {
         }
         if node.interactions.iter().any(|i| i.trigger == "hover") { issues.push(json!({"severity":"info","code":"interaction.hover","node":node.id,"message":"Verify hover interactions also have an accessible keyboard/touch path"})); }
     }
-    if site.settings.get("baseUrl").map(String::as_str) == Some("https://example.com") { issues.push(json!({"severity":"warning","code":"seo.base-url","message":"Set the real public base URL before deployment"})); }
+    if site.settings.get("baseUrl").map(|v| v.trim_end_matches('/')).unwrap_or("https://example.com") == "https://example.com" { issues.push(json!({"severity":"warning","code":"seo.base-url","message":"Set the real public base URL before deployment"})); }
     if site.settings.get("baseUrl").map(|v| v.trim_end_matches('/')).unwrap_or("https://example.com") == "https://example.com" && site.pages.iter().any(|p| p.slug.trim_matches('/') == "404") { issues.push(json!({"severity":"warning","code":"seo.base-url-404","message":"The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path."})); }
     wishlist::audit(site, &mut issues);
     json!({"issues": issues, "counts": {"pages": site.pages.len(), "nodes": site.nodes.len(), "components":site.components.len(), "collections":site.collections.len(), "cmsItems":site.collections.values().map(|c|c.items.len()).sum::<usize>(), "locales":site.locales.len()}})

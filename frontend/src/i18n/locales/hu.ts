@@ -2510,4 +2510,7 @@ export default [
   "Egy erőforrás túl nagy a beágyazáshoz, ezért csak ezen a számítógépen illeszthető be.",
   "{n} erőforrás túl nagy a beágyazáshoz, ezért csak ezen a számítógépen illeszthető be.",
   "A 404-es oldal a stílusait és oldalait a /-ről hivatkozza, mert az alap-URL még mindig example.com. Állítsd az alap-URL-t a webhely nyilvános címére, mielőtt egy almappában közzéteszed.",
+  "Alap-URL",
+  "A webhely nyilvános címe. A kanonikus hivatkozások, a webhelytérkép és a gyökér 404.html ezt használják. Ügynökök: site.update a settings.baseUrl értékkel.",
+  "Alap-URL beállítása",
 ] as readonly string[];

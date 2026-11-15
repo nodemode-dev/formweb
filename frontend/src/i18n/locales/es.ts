@@ -2510,4 +2510,7 @@ export default [
   "Un recurso es demasiado grande para incrustarlo y solo se podrá pegar en este ordenador.",
   "{n} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en este ordenador.",
   "La página 404 enlaza sus estilos y páginas desde / porque la URL base sigue siendo example.com. Define la URL base con la dirección pública del sitio antes de publicarlo bajo una ruta.",
+  "URL base",
+  "La dirección pública del sitio. Los enlaces canónicos, el mapa del sitio y el 404.html de la raíz la usan. Agentes: site.update con settings.baseUrl.",
+  "Definir la URL base",
 ] as readonly string[];
