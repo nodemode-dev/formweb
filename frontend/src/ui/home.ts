@@ -16,6 +16,7 @@ export interface HomeDeps {
   run: (command: string) => void;
   create: (templateId: string) => void;
   demo: (id: string) => void;
+  preview: (id: string, opener: HTMLElement) => void;
 }
 
 type Page = 'start' | 'recent' | 'projects';
@@ -71,7 +72,7 @@ export class HomeScreen {
     const backItem = `<button class="fw-home-nav-item fw-home-back" type="button" data-back hidden>${glyph('chevronLeft')}<span data-t>Back to Editor</span></button>`;
     const formats = FORMATS.map(f => `<span class="fw-home-format">${f}</span>`).join('');
     const tiles = [{ id: '', name: 'Blank site', pages: 1 }, ...d.templates].map(t => `<button class="fw-card" type="button" data-template="${t.id}"><span class="fw-card-preview is-blank">${glyph(t.id ? 'page' : 'plus')}</span><span class="fw-card-body"><span class="fw-card-name" data-t>${t.name}</span><span class="fw-card-meta" data-pages="${t.pages}">&nbsp;</span></span></button>`).join('');
-    const demos = DEMOS.length ? `<section class="fw-home-section" data-section="demos"><div class="fw-home-section-head"><h2 class="fw-home-section-title" data-t>Demos</h2><span class="fw-card-meta" data-t>Each opens as a new, unsaved site. Saved projects are not changed.</span></div><div class="fw-card-grid fw-demo-grid">${DEMOS.map(x => `<button class="fw-card" type="button" data-demo="${escapeHtml(x.id)}" aria-busy="false"><span class="fw-card-preview" aria-hidden="true"><img alt="" width="320" height="180" decoding="async" draggable="false" src="${escapeHtml(x.picture)}"></span><span class="fw-card-body"><span class="fw-card-name" translate="no" data-no-i18n>${escapeHtml(x.title)}</span><span class="fw-card-meta" title="${escapeHtml(x.line)}" data-t data-ta>${escapeHtml(x.line)}</span></span></button>`).join('')}</div></section>` : '';
+    const demos = DEMOS.length ? `<section class="fw-home-section" data-section="demos"><div class="fw-home-section-head"><h2 class="fw-home-section-title" data-t>Demos</h2><span class="fw-card-meta" data-t>Each opens as a new, unsaved site. Saved projects are not changed.</span></div><div class="fw-card-grid fw-demo-grid">${DEMOS.map(x => `<div class="fw-demo"><button class="fw-card" type="button" data-demo="${escapeHtml(x.id)}" aria-busy="false"><span class="fw-card-preview" aria-hidden="true"><img alt="" width="320" height="180" decoding="async" draggable="false" src="${escapeHtml(x.picture)}"></span><span class="fw-card-body"><span class="fw-card-name" id="fw-demo-name-${escapeHtml(x.id)}" translate="no" data-no-i18n>${escapeHtml(x.title)}</span><span class="fw-card-meta" title="${escapeHtml(x.line)}" data-t data-ta>${escapeHtml(x.line)}</span></span></button><button class="fw-home-btn fw-demo-preview" type="button" data-demo-preview="${escapeHtml(x.id)}" aria-labelledby="fw-demo-see-${escapeHtml(x.id)} fw-demo-name-${escapeHtml(x.id)}">${glyph('eye')}<span id="fw-demo-see-${escapeHtml(x.id)}" data-t>Preview</span></button></div>`).join('')}</div></section>` : '';
     this.root.innerHTML = `<nav class="fw-home-nav" aria-label="Home">
       <div class="fw-home-brand" data-no-i18n><img class="fw-mark" src="/formweb-logo.png" width="26" height="26" alt="" draggable="false">formweb <span translate="no">by nodemode.ai</span></div>
       ${navItem('start', 'image', 'Start')}${navItem('recent', 'history', 'Recent')}${navItem('projects', 'folder', 'Projects')}
@@ -132,6 +133,8 @@ export class HomeScreen {
       if (v) { this.show(v); return; }
       const answer = target.closest<HTMLElement>('[data-a]')?.dataset.a;
       if (answer === 'confirm-no' || answer === 'confirm-yes') { this.askClose(answer === 'confirm-yes'); return; }
+      const see = target.closest<HTMLElement>('[data-demo-preview]');
+      if (see) { this.d.preview(see.dataset.demoPreview ?? '', see); return; }
       const demo = target.closest<HTMLElement>('[data-demo]')?.dataset.demo;
       if (demo) { this.d.demo(demo); return; }
       const template = target.closest<HTMLElement>('[data-template]');

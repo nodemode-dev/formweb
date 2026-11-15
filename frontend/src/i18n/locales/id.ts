@@ -2554,4 +2554,12 @@ export default [
   "Demo sudah terbuka. Simpan untuk mempertahankan perubahan Anda.",
   "Demo tidak dapat dibuka.",
   "Sebuah demo masih dibuka.",
+  "Situs studio yang dibangun dari bagian pustaka, dengan adegan gulir dan komponen beranimasi.",
+  "Esai foto yang dituturkan dalam adegan gulir tersemat, dengan galeri berfilter dan penampil gambar.",
+  "Situs layanan dengan kalkulator tarif, halaman rute dari CMS, pencarian situs, dan pengalihan.",
+  "Buka demo ini",
+  "Pratinjau situs demo",
+  "Pratinjau demo",
+  "Memuat pratinjau...",
+  "Tutup pratinjau demo",
 ] as readonly string[];

@@ -2554,4 +2554,12 @@ export const KEYS: readonly string[] = [
   "The demo is open. Save it to keep your changes.",
   "The demo could not open.",
   "A demo is still opening.",
+  "A studio site made from library sections, with scroll scenes and animated components.",
+  "A photo essay told in pinned scroll scenes, with a filterable gallery and a lightbox.",
+  "A service site with a fare calculator, CMS route pages, site search and redirects.",
+  "Open this demo",
+  "Preview the demo sites",
+  "Demo preview",
+  "Loading the preview...",
+  "Close the demo preview",
 ];

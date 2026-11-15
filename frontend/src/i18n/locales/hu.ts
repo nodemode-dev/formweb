@@ -2554,4 +2554,12 @@ export default [
   "A demó meg van nyitva. Mentse, hogy megtartsa a módosításait.",
   "A demót nem sikerült megnyitni.",
   "Egy demó megnyitása még folyamatban van.",
+  "Stúdióoldal a könyvtár szakaszaiból, görgetésre mozgó jelenetekkel és animált komponensekkel.",
+  "Fotóesszé rögzített, görgetésre mozgó jelenetekben, szűrhető galériával és lightboxszal.",
+  "Szolgáltatói webhely díjkalkulátorral, CMS-útvonaloldalakkal, kereséssel és átirányításokkal.",
+  "A demó megnyitása",
+  "A demówebhelyek előnézete",
+  "Demó előnézete",
+  "Az előnézet betöltése...",
+  "A demó előnézetének bezárása",
 ] as readonly string[];

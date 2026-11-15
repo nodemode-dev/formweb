@@ -2554,4 +2554,12 @@ export default [
   "Demo jest otwarte. Zapisz je, aby zachować zmiany.",
   "Nie udało się otworzyć dema.",
   "Demo nadal się otwiera.",
+  "Witryna studia zbudowana z sekcji z biblioteki, ze scenami przewijania i animowanymi komponentami.",
+  "Fotoesej opowiedziany w przypiętych scenach przewijania, z filtrowaną galerią i lightboxem.",
+  "Witryna usługowa z kalkulatorem opłat, stronami tras z CMS, wyszukiwaniem w witrynie i przekierowaniami.",
+  "Otwórz to demo",
+  "Podgląd witryn demonstracyjnych",
+  "Podgląd dema",
+  "Wczytywanie podglądu...",
+  "Zamknij podgląd dema",
 ] as readonly string[];

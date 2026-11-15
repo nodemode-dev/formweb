@@ -14,6 +14,7 @@ import { PRESETS, Rail, WorkspaceLayout, collapseButton, dockStrip } from './ui/
 import { HomeScreen, homePref, setHomePref } from './ui/home';
 import { RECENT_MAX } from './ui/home-files';
 import { demoCommands, openDemo, type DemoHooks } from './ui/demos';
+import { DemoPreview } from './ui/demo-preview';
 import { unsavedWork } from './ui/unsaved';
 import { watchOpenedFiles } from './ui/opened-file';
 import { FeatureStudio } from './features/studio';
@@ -2204,10 +2205,12 @@ const wishlist = installWishlist({ state, commands: batch => commands(batch), se
 registerCommands(wishlist.commands);
 subscribe(() => wishlist.refresh());
 const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.askReplace(state().site.name);
-const demoHooks: DemoHooks = { mayReplace, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
-registerCommands(demoCommands(demoHooks, ready));
+const demoHooks: DemoHooks = { mayReplace: () => { demoPreview.close(); return mayReplace(); }, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
+const demoPreview = new DemoPreview(id => void openDemo(demoHooks, id));
+registerCommands(demoCommands(demoHooks, ready, { show: id => demoPreview.show(id), close: () => demoPreview.close(), isOpen: () => demoPreview.isOpen }));
+commandRegistry.gate = item => !demoPreview.isOpen || item.id.startsWith('demo.');
 menubar.build();
-menubar.blocked = () => !scrim.hidden || featureStudio.opened;
+menubar.blocked = () => !scrim.hidden || featureStudio.opened || demoPreview.isOpen;
 if (wantsNativeMenus()) {
   const nativeMenus = new NativeMenus(commandRegistry, () => menus);
   void nativeMenus.build().catch(() => undefined);
@@ -2254,7 +2257,8 @@ const home = new HomeScreen(app, {
     home.dismiss();
     status('New site created.');
   }),
-  demo: id => void openDemo(demoHooks, id)
+  demo: id => void openDemo(demoHooks, id),
+  preview: (id, opener) => demoPreview.show(id, opener)
 });
 subscribe(next => home.sync(next.site.id, next.site.name));
 const brandButton = brand;

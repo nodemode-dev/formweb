@@ -2554,4 +2554,12 @@ export default [
   "Demo on auki. Tallenna se, jos haluat säilyttää muutoksesi.",
   "Demoa ei voitu avata.",
   "Demon avaaminen on vielä kesken.",
+  "Studion sivusto, joka on koottu kirjaston osioista ja jossa on vierityskohtauksia ja animoituja komponentteja.",
+  "Kuvaessee kiinnitettyinä vierityskohtauksina, mukana suodatettava galleria ja kuvankatselin.",
+  "Palvelusivusto, jossa on hintalaskuri, CMS-reittisivut, sivuston haku ja uudelleenohjaukset.",
+  "Avaa tämä demo",
+  "Esikatsele demosivustoja",
+  "Demon esikatselu",
+  "Ladataan esikatselua...",
+  "Sulje demon esikatselu",
 ] as readonly string[];

@@ -2554,4 +2554,12 @@ export default [
   "La démo est ouverte. Enregistrez-la pour conserver vos modifications.",
   "Impossible d’ouvrir la démo.",
   "Une démo est encore en cours d’ouverture.",
+  "Un site de studio composé de sections de la bibliothèque, avec des scènes au défilement et des composants animés.",
+  "Un essai photo raconté en scènes épinglées au défilement, avec une galerie filtrable et une visionneuse.",
+  "Un site de service avec un calculateur de tarifs, des pages d’itinéraires CMS, une recherche dans le site et des redirections.",
+  "Ouvrir cette démo",
+  "Aperçu des sites de démo",
+  "Aperçu de la démo",
+  "Chargement de l’aperçu...",
+  "Fermer l’aperçu de la démo",
 ] as readonly string[];

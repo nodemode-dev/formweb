@@ -2554,4 +2554,12 @@ export default [
   "Demon är öppen. Spara den för att behålla dina ändringar.",
   "Demon kunde inte öppnas.",
   "En demo håller fortfarande på att öppnas.",
+  "En studiowebbplats byggd av sektioner från biblioteket, med rullningsscener och animerade komponenter.",
+  "En fotoessä berättad i fästa rullningsscener, med ett filtrerbart galleri och en lightbox.",
+  "En tjänstewebbplats med biljettpriskalkylator, CMS-ruttsidor, webbplatssökning och omdirigeringar.",
+  "Öppna den här demon",
+  "Förhandsgranska demowebbplatserna",
+  "Förhandsgranskning av demo",
+  "Läser in förhandsgranskningen...",
+  "Stäng förhandsgranskningen av demon",
 ] as readonly string[];

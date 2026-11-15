@@ -2554,4 +2554,12 @@ export default [
   "Demoen er åpen. Lagre den for å beholde endringene dine.",
   "Demoen kunne ikke åpnes.",
   "En demo åpnes fortsatt.",
+  "Et studionettsted bygget av seksjoner fra biblioteket, med rullescener og animerte komponenter.",
+  "Et fotoessay fortalt i festede rullescener, med et galleri med filtre og en lysboks.",
+  "Et tjenestenettsted med billettpriskalkulator, CMS-rutesider, nettstedsøk og omdirigeringer.",
+  "Åpne denne demoen",
+  "Forhåndsvis demonettstedene",
+  "Forhåndsvisning av demo",
+  "Laster forhåndsvisningen...",
+  "Lukk forhåndsvisningen av demoen",
 ] as readonly string[];

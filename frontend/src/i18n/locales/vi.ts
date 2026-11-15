@@ -2554,4 +2554,12 @@ export default [
   "Bản demo đã mở. Hãy lưu để giữ các thay đổi của bạn.",
   "Không thể mở bản demo.",
   "Một bản demo vẫn đang mở.",
+  "Trang web studio dựng từ các phần trong thư viện, với các cảnh cuộn và thành phần chuyển động.",
+  "Bài tiểu luận ảnh kể qua các cảnh cuộn được ghim, với thư viện ảnh có bộ lọc và trình xem ảnh.",
+  "Trang web dịch vụ có công cụ tính giá vé, các trang tuyến từ CMS, tìm kiếm trang web và chuyển hướng.",
+  "Mở bản demo này",
+  "Xem trước các trang web demo",
+  "Xem trước bản demo",
+  "Đang tải bản xem trước...",
+  "Đóng bản xem trước demo",
 ] as readonly string[];

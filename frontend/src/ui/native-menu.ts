@@ -68,6 +68,11 @@ export class NativeMenus {
       };
       const separator = (): Promise<unknown> => api.PredefinedMenuItem.new({ item: 'Separator' });
       const make = async (spec: MenuSpec): Promise<unknown> => {
+        if (typeof spec !== 'string') {
+          const inner: unknown[] = [];
+          for (const id of spec.items) inner.push(await make(id));
+          return api.Submenu.new({ text: t(spec.label), items: inner.filter(Boolean) as never[] });
+        }
         if (spec === '-') return separator();
         const command = this.commands.get(spec);
         if (!command) return null;

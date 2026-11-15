@@ -3,7 +3,7 @@ import { icon } from './icons';
 import { t, language, onLanguage } from '../i18n';
 import { listCommands, runFromBridge } from '../commands/catalogue';
 import { commands, isMac, type Command } from '../commands/registry';
-import { itemsOf, type MenuDef } from './menus';
+import { itemsOf, type MenuDef, type SubMenu } from './menus';
 
 export type CommandDef = Omit<Command, 'keys' | 'group' | 'label'> & { label: string | (() => string); keys?: string | string[]; group?: number; sep?: number };
 
@@ -29,7 +29,7 @@ export function runCommand(id: string, params?: Record<string, unknown>): boolea
 
 export const BRAND_MARK = '<img class="fw-mark" src="/formweb-logo.png" width="18" height="18" alt="formweb" draggable="false">';
 
-interface MenuView { name: string; def?: MenuDef; button: HTMLButtonElement; popup: HTMLElement; rows: { row: HTMLButtonElement; item: Command }[]; folded: boolean; row?: HTMLButtonElement }
+interface MenuView { name: string; def?: MenuDef; button: HTMLButtonElement; popup: HTMLElement; rows: { row: HTMLButtonElement; item?: Command; child?: MenuView }[]; folded: boolean; row?: HTMLButtonElement; parent?: MenuView }
 
 const KEEPS_ALT = '.xterm, .fw-term, [data-no-keys]';
 const TYPE_AHEAD_MS = 700;
@@ -40,6 +40,7 @@ export class Menubar {
   private menus: MenuView[] = [];
   private open: MenuView | null = null;
   private sub: MenuView | null = null;
+  private leaf: MenuView | null = null;
   private more: MenuView;
   private count = 0;
   private returnTo: HTMLElement | null = null;
@@ -103,7 +104,7 @@ export class Menubar {
     document.addEventListener('pointerdown', event => {
       this.altLone = false;
       const target = event.target as Node;
-      if (this.open && !this.open.popup.contains(target) && !this.sub?.popup.contains(target) && !this.element.contains(target)) this.close();
+      if (this.open && !this.open.popup.contains(target) && !this.sub?.popup.contains(target) && !this.leaf?.popup.contains(target) && !this.element.contains(target)) this.close();
     }, true);
     window.addEventListener('blur', () => { this.altLone = false; document.documentElement.classList.remove('is-menu-mnemonics'); this.close(); });
     window.addEventListener('resize', () => this.close());
@@ -136,25 +137,75 @@ export class Menubar {
   build(): void {
     for (const view of this.menus) {
       for (const spec of view.def ? itemsOf(view.def) : []) {
-        if (spec === '-') { view.popup.append(element('div', 'fw-menu-sep')); continue; }
-        const item = commands.get(spec);
-        if (!item) continue;
-        const row = element('button', 'fw-menu-item');
-        row.type = 'button';
-        row.setAttribute('role', 'menuitem');
-        row.dataset.command = item.id;
-        row.title = t('{0} · {1}', [{ t: commands.label(item) }, item.id]);
-        row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', commands.label(item)), element('span', 'fw-menu-keys', commands.keyLabel(item)));
-        row.addEventListener('click', () => { this.close(); runCommand(item.id); });
-        view.popup.append(row);
-        view.rows.push({ row, item });
+        if (typeof spec === 'string') this.item(view, spec);
+        else this.nested(view, spec);
       }
     }
+  }
+
+  private item(view: MenuView, spec: string): void {
+    if (spec === '-') { view.popup.append(element('div', 'fw-menu-sep')); return; }
+    const item = commands.get(spec);
+    if (!item) return;
+    const row = element('button', 'fw-menu-item');
+    row.type = 'button';
+    row.setAttribute('role', 'menuitem');
+    row.dataset.command = item.id;
+    row.title = t('{0} · {1}', [{ t: commands.label(item) }, item.id]);
+    row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', commands.label(item)), element('span', 'fw-menu-keys', commands.keyLabel(item)));
+    row.addEventListener('click', () => { this.close(); runCommand(item.id); });
+    view.popup.append(row);
+    view.rows.push({ row, item });
+  }
+
+  private nested(parent: MenuView, spec: SubMenu): void {
+    const row = element('button', 'fw-menu-item fw-menu-sub');
+    row.type = 'button';
+    row.dataset.submenu = spec.label;
+    row.setAttribute('role', 'menuitem');
+    row.setAttribute('aria-haspopup', 'menu');
+    row.setAttribute('aria-expanded', 'false');
+    const chevron = element('span', 'fw-menu-keys');
+    chevron.append(icon('chevron'));
+    row.append(element('span', 'fw-menu-check'), element('span', 'fw-menu-label', spec.label), chevron);
+    const popup = element('div', 'fw-menu');
+    popup.setAttribute('role', 'menu');
+    popup.setAttribute('aria-label', spec.label);
+    popup.hidden = true;
+    const child: MenuView = { name: spec.label, button: row, popup, rows: [], folded: false, row, parent };
+    for (const id of spec.items) this.item(child, id);
+    row.addEventListener('click', () => this.nest(child));
+    row.addEventListener('pointerenter', () => this.nest(child));
+    if (!parent.rows.some(entry => entry.child)) {
+      parent.popup.addEventListener('pointerover', event => {
+        const over = (event.target as Element).closest('.fw-menu-item');
+        if (over && this.leaf?.parent === parent && over !== this.leaf.row) this.unnest();
+      });
+    }
+    parent.popup.append(row);
+    parent.rows.push({ row, child });
+    this.overlay.append(popup);
+  }
+
+  private nest(child: MenuView, keyboard = false): void {
+    if (this.leaf !== child) {
+      this.unnest();
+      this.reveal(child);
+      this.leaf = child;
+    }
+    if (keyboard) this.focusable(child)[0]?.focus({ preventScroll: true });
+  }
+
+  private unnest(): void {
+    if (!this.leaf) return;
+    this.hide(this.leaf);
+    this.leaf = null;
   }
 
   private show(view: MenuView, keyboard = false): void {
     const from = document.activeElement;
     if (!this.returnTo && keyboard && from instanceof HTMLElement && !from.closest('.fw-menu')) this.returnTo = from;
+    this.unnest();
     const sub = view.folded ? view : null;
     const top = sub ? this.more : view;
     if (this.open && this.open !== top) this.hide(this.open);
@@ -178,6 +229,12 @@ export class Menubar {
   }
 
   private leave(): boolean {
+    const leaf = this.leaf;
+    if (leaf) {
+      this.unnest();
+      leaf.row?.focus({ preventScroll: true });
+      return true;
+    }
     const sub = this.sub;
     if (!sub) return false;
     this.hide(sub);
@@ -207,6 +264,7 @@ export class Menubar {
 
   private reveal(view: MenuView): void {
     for (const { row, item } of view.rows) {
+      if (!item) continue;
       row.disabled = !commands.enabled(item);
       text(row.children[1] as HTMLElement, commands.label(item));
       text(row.children[2] as HTMLElement, commands.keyLabel(item));
@@ -214,9 +272,10 @@ export class Menubar {
       row.classList.toggle('is-checked', checked);
       if (item.checked) row.setAttribute('aria-checked', String(checked));
     }
-    if (view.folded && view.row) {
+    const host = view.parent ?? (view.folded ? this.more : null);
+    if (host && view.row) {
       const anchor = view.row.getBoundingClientRect();
-      const parent = this.more.popup.getBoundingClientRect();
+      const parent = host.popup.getBoundingClientRect();
       this.place(view, parent.right + 2, anchor.top - 6, parent);
       view.row.classList.add('is-open');
       view.row.setAttribute('aria-expanded', 'true');
@@ -238,6 +297,7 @@ export class Menubar {
 
   close(): void {
     const inside = !!document.activeElement?.closest('.fw-menu');
+    this.unnest();
     if (this.sub) { this.hide(this.sub); this.sub = null; }
     if (this.open) { this.hide(this.open); this.open = null; }
     const back = this.returnTo;
@@ -304,9 +364,10 @@ export class Menubar {
       return;
     }
     if (event.ctrlKey || event.metaKey || event.altKey) { if (commands.forEvent(event)) stop(); return; }
-    const view = this.sub ?? this.open;
+    const view = this.leaf ?? this.sub ?? this.open;
     const rows = this.focusable(view);
     const at = rows.indexOf(document.activeElement as HTMLButtonElement);
+    const child = at >= 0 ? view.rows.find(entry => entry.row === rows[at])?.child : undefined;
     const go = (index: number): void => { if (rows.length) rows[(index + rows.length) % rows.length].focus(); };
     const ring = this.ring();
     const turn = (step: number): void => { this.show(ring[(ring.indexOf(this.open as MenuView) + step + ring.length) % ring.length], true); };
@@ -315,9 +376,9 @@ export class Menubar {
     else if (event.key === 'ArrowUp') { stop(); go(at < 0 ? -1 : at - 1); }
     else if (event.key === 'Home') { stop(); go(0); }
     else if (event.key === 'End') { stop(); go(-1); }
-    else if (event.key === 'ArrowRight') { stop(); if (folded) this.show(folded, true); else turn(1); }
+    else if (event.key === 'ArrowRight') { stop(); if (child) this.nest(child, true); else if (folded) this.show(folded, true); else turn(1); }
     else if (event.key === 'ArrowLeft') { stop(); if (!this.leave()) turn(-1); }
-    else if (event.key === 'Enter' || event.key === ' ') { stop(); if (folded) this.show(folded, true); else if (at >= 0) rows[at].click(); }
+    else if (event.key === 'Enter' || event.key === ' ') { stop(); if (child) this.nest(child, true); else if (folded) this.show(folded, true); else if (at >= 0) rows[at].click(); }
     else if (event.key === 'Escape') { stop(); if (!this.leave()) this.close(); }
     else if (event.key === 'Tab') { stop(); this.close(); }
     else if (event.key.length === 1 && /\S/.test(event.key) && !event.shiftKey) {

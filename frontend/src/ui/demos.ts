@@ -12,7 +12,13 @@ const BASE = `${import.meta.env.BASE_URL}demos/`;
 
 export const demo = (id: string, title: string, line: string): DemoInfo => ({ id, title, line, picture: `${BASE}${id}/cover.webp`, file: `${BASE}${id}/site.fweb` });
 
-export const DEMOS: readonly DemoInfo[] = [];
+export const DEMOS: readonly DemoInfo[] = [
+  demo('lowlight', 'Lowlight', 'A studio site made from library sections, with scroll scenes and animated components.'),
+  demo('looking-back', 'Looking Back', 'A photo essay told in pinned scroll scenes, with a filterable gallery and a lightbox.'),
+  demo('harbour-ferries', 'Harbour Ferries', 'A service site with a fare calculator, CMS route pages, site search and redirects.'),
+];
+
+export const DEMO_PREVIEW = `${BASE}preview.html`;
 
 export const demoCommand = (d: DemoInfo): string => `demo.${d.id}`;
 
@@ -56,11 +62,18 @@ export async function openDemo(hooks: DemoHooks, id: string): Promise<void> {
   }
 }
 
-export function demoCommands(hooks: DemoHooks, ready: () => boolean): CommandDef[] {
-  return DEMOS.map(d => ({
+export interface DemoPreviewHooks {
+  show: (id: string) => void;
+  close: () => void;
+  isOpen: () => boolean;
+}
+
+export function demoCommands(hooks: DemoHooks, ready: () => boolean, preview: DemoPreviewHooks): CommandDef[] {
+  const open: CommandDef[] = DEMOS.map(d => ({
     id: demoCommand(d),
     label: d.title,
     menu: 'Help',
+    submenu: 'Demos',
     group: 1,
     description: `Open the demo site "${d.title}" as a new, unsaved site. ${d.line}`,
     when: 'Use when the person asks for a demo or an example site; it replaces the open site and asks first when that site has changes not saved as a project. Saved projects are not changed.',
@@ -69,4 +82,23 @@ export function demoCommands(hooks: DemoHooks, ready: () => boolean): CommandDef
     enabled: () => ready() && opening === null,
     run: () => openDemo(hooks, d.id),
   }));
+  if (!DEMOS.length) return open;
+  return [...open, {
+    id: 'demo.preview',
+    label: 'Preview the demo sites',
+    menu: 'Help',
+    submenu: 'Demos',
+    group: 2,
+    description: 'Show a finished demo site in a preview over the window: every page, working, with a bar that switches between the demos. The open site is not changed.',
+    when: 'Use when the person wants to look at a demo before opening it for editing.',
+    params: { id: { type: 'string', enum: DEMOS.map(d => d.id), description: `The demo to show first: ${DEMOS.map(d => d.id).join(', ')}. Default: ${DEMOS[0].id}.` } },
+    run: params => preview.show(typeof params?.id === 'string' ? params.id : DEMOS[0].id),
+  }, {
+    id: 'demo.preview-close',
+    label: 'Close the demo preview',
+    description: 'Close the demo preview and return to the window behind it.',
+    when: 'Use after demo.preview, before any other command: while the preview is open only the demo commands are enabled.',
+    enabled: preview.isOpen,
+    run: () => preview.close(),
+  }];
 }

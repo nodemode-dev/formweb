@@ -2554,4 +2554,12 @@ export default [
   "De demo is geopend. Sla hem op om je wijzigingen te bewaren.",
   "De demo kon niet worden geopend.",
   "Er wordt nog een demo geopend.",
+  "Een studiosite opgebouwd uit bibliotheeksecties, met scrollscènes en geanimeerde componenten.",
+  "Een foto-essay verteld in vastgezette scrollscènes, met een filterbare galerij en een lightbox.",
+  "Een servicesite met een tariefcalculator, CMS-routepagina's, zoeken op de site en omleidingen.",
+  "Deze demo openen",
+  "Voorbeeld van de demosites",
+  "Voorbeeld van de demo",
+  "Voorbeeld laden...",
+  "Voorbeeld van de demo sluiten",
 ] as readonly string[];

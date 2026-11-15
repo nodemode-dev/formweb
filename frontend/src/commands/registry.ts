@@ -10,6 +10,7 @@ export interface Command {
   checked?: () => boolean;
   group?: string;
   menu?: string;
+  submenu?: string;
   sep?: number;
   description?: string;
   when?: string;

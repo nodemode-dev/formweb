@@ -2554,4 +2554,12 @@ export default [
   "Die Demo ist geöffnet. Speichere sie, um deine Änderungen zu behalten.",
   "Die Demo konnte nicht geöffnet werden.",
   "Eine Demo wird noch geöffnet.",
+  "Eine Studio-Website aus Bibliotheksabschnitten, mit Scrollszenen und animierten Komponenten.",
+  "Ein Fotoessay in fixierten Scrollszenen, mit filterbarer Galerie und Lightbox.",
+  "Eine Service-Website mit Fahrpreisrechner, CMS-Routenseiten, Websitesuche und Weiterleitungen.",
+  "Diese Demo öffnen",
+  "Vorschau der Demo-Websites",
+  "Demo-Vorschau",
+  "Vorschau wird geladen...",
+  "Demo-Vorschau schließen",
 ] as readonly string[];

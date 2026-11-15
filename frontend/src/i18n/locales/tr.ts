@@ -2554,4 +2554,12 @@ export default [
   "Demo açıldı. Değişikliklerinizi korumak için kaydedin.",
   "Demo açılamadı.",
   "Bir demo hâlâ açılıyor.",
+  "Kitaplık bölümlerinden kurulmuş bir stüdyo sitesi; kaydırma sahneleri ve hareketli bileşenler içerir.",
+  "Sabitlenmiş kaydırma sahneleriyle anlatılan bir fotoğraf denemesi; filtrelenebilir galeri ve ışık kutusu içerir.",
+  "Ücret hesaplayıcısı, CMS rota sayfaları, site araması ve yönlendirmeleri olan bir hizmet sitesi.",
+  "Bu demoyu aç",
+  "Demo sitelerini önizle",
+  "Demo önizlemesi",
+  "Önizleme yükleniyor...",
+  "Demo önizlemesini kapat",
 ] as readonly string[];

@@ -2554,4 +2554,12 @@ export default [
   "Ukázka je otevřená. Uložte ji, abyste si změny ponechali.",
   "Ukázku se nepodařilo otevřít.",
   "Ukázka se ještě otevírá.",
+  "Web studia sestavený ze sekcí z knihovny, se scénami řízenými posouváním a animovanými komponentami.",
+  "Fotoesej vyprávěná v připnutých scénách při posouvání, s galerií s filtry a lightboxem.",
+  "Web služby s kalkulačkou jízdného, stránkami tras z CMS, hledáním na webu a přesměrováními.",
+  "Otevřít tuto ukázku",
+  "Náhled ukázkových webů",
+  "Náhled ukázky",
+  "Načítání náhledu...",
+  "Zavřít náhled ukázky",
 ] as readonly string[];

@@ -15,6 +15,17 @@ On Windows use `formweb.bat install` and `formweb.bat boot`. The editor works in
 
 The default data folder is `backend/data`. Configure `FORMWEB_DATA_DIR` in `backend/.env` before launch to choose a persistent location. Keep a saved editable project or downloaded native document before replacing the checkout. Since 0.20.2, at start the backend removes its own temporary files in the data folder that are more than 10 minutes old (leftovers of a killed paste, load or save: `assets/.stage-*.part`, `tmp/project-*.fweb`, `tmp/load-*.fweb` and `projects/.pending-*`) and logs "Removed N stale temporary file(s) from the data folder." when any went. Only regular files with those exact names are removed; symlinks, directories, younger files, publication `.pending` folders and FormPublisher's inbox are left alone.
 
+## Home and the demos
+
+Home (File > Home, or the formweb mark in the top bar) opens over the editor. Its Start page shows recent sites, the Demos and the New site tiles; Recent and Projects list what you opened and saved.
+
+Three finished demo sites come with the app: Lowlight (a studio site made from library sections, with scroll scenes and animated components), Looking Back (a photo essay told in pinned scroll scenes, with a filterable gallery and a lightbox) and Harbour Ferries (a service site with a fare calculator, CMS route pages, site search and redirects). Each demo card on Home has two actions:
+
+- The card opens the demo as a new, unsaved site, ready to edit. It replaces the open site and asks first when that site has changes that are not saved as a project. Saved projects are not changed; save the demo to keep what you change.
+- Preview shows the finished site over the window, every page, working as a visitor would see it, without replacing the site you are working on. A bar inside the preview switches between the three demos. The top row names the demo on show; Open this demo closes the preview and opens that demo for editing, and Close or Escape returns to where you were. While a picture is open in a demo's lightbox, Escape closes the picture first. Links to other websites open in the system browser.
+
+Help > Demos is a submenu with the three demos and Preview the demo sites. The same actions are the commands `demo.lowlight`, `demo.looking-back`, `demo.harbour-ferries` and `demo.preview` (`demo.preview-close` closes the preview). The pictures in the demos are credited in `frontend/public/demos/CREDITS.md` and in NOTICE.md.
+
 ## Desktop shell on Linux
 
 The Tauri shell in `src-tauri/` builds and runs on Linux (checked on Ubuntu 24.04 with WebKitGTK 2.52.6). Install the packages first:
