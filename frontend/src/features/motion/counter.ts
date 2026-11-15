@@ -1,5 +1,4 @@
 import { element } from '../../ui/dom';
-import { t } from '../../i18n';
 import { checkField, entryShell, numberField, selectField } from './fields';
 import type { MotionContext, MotionEditor } from './context';
 
@@ -23,12 +22,12 @@ export function installCounter(ctx: MotionContext, container: HTMLElement): Moti
     void ctx.set('counters', id, { ...entry, ...patch });
   };
   const grid = element('div', 'form-grid');
-  const from = numberField(ctx, t('From'), -1e12, 1e12, 1, next => save({ from: next ?? 0 }));
-  const to = numberField(ctx, t('To'), -1e12, 1e12, 1, next => save({ to: next ?? 0 }));
-  const duration = numberField(ctx, t('Duration (ms)'), 0, 60000, 100, next => save({ duration: Math.round(next ?? 0) }));
-  const decimals = numberField(ctx, t('Decimals'), 0, 6, 1, next => save({ decimals: Math.round(next ?? 0) }));
-  const trigger = selectField<'view' | 'load'>(ctx, t('Trigger'), [{ id: 'view', name: t('When in view') }, { id: 'load', name: t('On page load') }], next => save({ trigger: next }), true);
-  const odometer = checkField(ctx, t('Odometer digits'), next => save({ odometer: next }));
+  const from = numberField(ctx, 'From', -1e12, 1e12, 1, next => save({ from: next ?? 0 }));
+  const to = numberField(ctx, 'To', -1e12, 1e12, 1, next => save({ to: next ?? 0 }));
+  const duration = numberField(ctx, 'Duration (ms)', 0, 60000, 100, next => save({ duration: Math.round(next ?? 0) }));
+  const decimals = numberField(ctx, 'Decimals', 0, 6, 1, next => save({ decimals: Math.round(next ?? 0) }));
+  const trigger = selectField<'view' | 'load'>(ctx, 'Trigger', [{ id: 'view', name: 'When in view' }, { id: 'load', name: 'On page load' }], next => save({ trigger: next }), true);
+  const odometer = checkField(ctx, 'Odometer digits', next => save({ odometer: next }));
   grid.append(from.root, to.root, duration.root, decimals.root, trigger.root);
   shell.body.append(grid, odometer.root);
 

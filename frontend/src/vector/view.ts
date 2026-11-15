@@ -592,17 +592,17 @@ export function viewCommands(view: ViewAids, editing: () => boolean, redraw: () 
   const on = (): boolean => editing();
   const flip = (fn: () => void) => (): void => { fn(); redraw(); };
   return [
-    { id: 'vector.rulers', label: () => (view.rulers ? t('Hide Rulers') : t('Show Rulers')), menu: MENU, keys: 'Mod+R', group: 20, checked: () => view.rulers,
+    { id: 'vector.rulers', label: () => (view.rulers ? 'Hide Rulers' : 'Show Rulers'), menu: MENU, keys: 'Mod+R', group: 20, checked: () => view.rulers,
       run: () => { if (!on()) { location.reload(); return; } flip(() => { view.rulers = !view.rulers; })(); } },
-    { id: 'vector.guides.toggle', label: () => (view.guidesVisible ? t('Hide Guides') : t('Show Guides')), menu: MENU, keys: 'Mod+;', group: 20, checked: () => view.guidesVisible, enabled: on, run: flip(() => { view.guidesVisible = !view.guidesVisible; }) },
-    { id: 'vector.guides.lock', label: t('Lock Guides'), menu: MENU, keys: 'Mod+Alt+;', group: 20, checked: () => view.locked, enabled: on, run: () => { void view.toggleLock().then(redraw); } },
-    { id: 'vector.guides.make', label: t('Make Guides'), menu: MENU, keys: 'Mod+5', group: 20, enabled: () => on() && view.hasSelection(), run: () => { void view.makeGuides(); } },
-    { id: 'vector.guides.release', label: t('Release Guides'), menu: MENU, keys: 'Mod+Alt+5', group: 20, enabled: on, run: () => { void view.releaseGuides(); } },
-    { id: 'vector.guides.clear', label: t('Clear Guides'), menu: MENU, group: 20, enabled: () => on() && view.hasGuides(), run: () => view.clearGuides() },
-    { id: 'vector.grid.show', label: () => (view.grid ? t('Hide Grid') : t('Show Grid')), menu: MENU, keys: "Mod+'", group: 21, checked: () => view.grid, enabled: on, run: flip(() => { view.grid = !view.grid; }) },
-    { id: 'vector.grid.snap', label: t('Snap to Grid'), menu: MENU, keys: "Mod+Shift+'", group: 21, checked: () => view.snapGrid, enabled: on, run: flip(() => { view.snapGrid = !view.snapGrid; }) },
-    { id: 'vector.grid.prefs', label: t('Grid Preferences...'), menu: MENU, group: 21, enabled: on, run: () => view.openPrefs() },
-    { id: 'vector.outline', label: () => (view.outline ? t('Preview') : t('Outline')), menu: MENU, keys: 'Mod+Y', group: 22, checked: () => view.outline,
+    { id: 'vector.guides.toggle', label: () => (view.guidesVisible ? 'Hide Guides' : 'Show Guides'), menu: MENU, keys: 'Mod+;', group: 20, checked: () => view.guidesVisible, enabled: on, run: flip(() => { view.guidesVisible = !view.guidesVisible; }) },
+    { id: 'vector.guides.lock', label: 'Lock Guides', menu: MENU, keys: 'Mod+Alt+;', group: 20, checked: () => view.locked, enabled: on, run: () => { void view.toggleLock().then(redraw); } },
+    { id: 'vector.guides.make', label: 'Make Guides', menu: MENU, keys: 'Mod+5', group: 20, enabled: () => on() && view.hasSelection(), run: () => { void view.makeGuides(); } },
+    { id: 'vector.guides.release', label: 'Release Guides', menu: MENU, keys: 'Mod+Alt+5', group: 20, enabled: on, run: () => { void view.releaseGuides(); } },
+    { id: 'vector.guides.clear', label: 'Clear Guides', menu: MENU, group: 20, enabled: () => on() && view.hasGuides(), run: () => view.clearGuides() },
+    { id: 'vector.grid.show', label: () => (view.grid ? 'Hide Grid' : 'Show Grid'), menu: MENU, keys: "Mod+'", group: 21, checked: () => view.grid, enabled: on, run: flip(() => { view.grid = !view.grid; }) },
+    { id: 'vector.grid.snap', label: 'Snap to Grid', menu: MENU, keys: "Mod+Shift+'", group: 21, checked: () => view.snapGrid, enabled: on, run: flip(() => { view.snapGrid = !view.snapGrid; }) },
+    { id: 'vector.grid.prefs', label: 'Grid Preferences...', menu: MENU, group: 21, enabled: on, run: () => view.openPrefs() },
+    { id: 'vector.outline', label: () => (view.outline ? 'Preview' : 'Outline'), menu: MENU, keys: 'Mod+Y', group: 22, checked: () => view.outline,
       run: () => { if (!on()) { registry.run('edit.redo'); return; } flip(() => { view.outline = !view.outline; })(); } }
   ];
 }

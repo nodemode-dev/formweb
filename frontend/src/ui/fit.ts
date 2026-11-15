@@ -17,6 +17,8 @@ function natural(box: HTMLElement): number {
 }
 
 const TWO_ROWS_BELOW = 800;
+const ENGLISH_FIELD_NEED = 104.32;
+const ENGLISH_TABS_NEED = 242.98;
 
 function foldCount(menubar: HTMLElement, room: number): number {
   const kids = Array.from(menubar.children) as HTMLElement[];
@@ -66,14 +68,11 @@ export function watchFit(app: HTMLElement, topbar: HTMLElement, inspector: HTMLE
       range.selectNodeContents(node);
       tabNeed += range.getBoundingClientRect().width + px(style.paddingLeft) + px(style.paddingRight) + 2;
     }
-    const wantTabs = tabNeed > room + 0.5;
+    const wantTabs = tabNeed > room + 0.5 || room < ENGLISH_TABS_NEED;
     if (inspector.classList.contains('fw-tabs2') !== wantTabs) inspector.classList.toggle('fw-tabs2', wantTabs);
-    const reset = inspector.querySelector<HTMLElement>('.fw-reset');
     const section = inspector.querySelector<HTMLElement>('.inspector-section');
     const grid = inspector.querySelector<HTMLElement>('.form-grid');
-    if (!reset || !section || !grid) return;
-    const resetStyle = getComputedStyle(reset);
-    const resetNeed = textWidth(context, reset, reset.textContent || '') + px(resetStyle.paddingLeft) + px(resetStyle.paddingRight) + 2;
+    if (!section || !grid) return;
     const gap = px(getComputedStyle(grid).columnGap);
     const sectionStyle = getComputedStyle(section);
     const column = (inspector.clientWidth - 1 - 16 - px(sectionStyle.paddingLeft) - px(sectionStyle.paddingRight) - gap) / 2;
@@ -84,7 +83,7 @@ export function watchFit(app: HTMLElement, topbar: HTMLElement, inspector: HTMLE
         for (const piece of (node.textContent || '').split(/\s+/)) if (piece) word = Math.max(word, textWidth(context, label, piece));
       }
     }
-    const wantOne = word + gap + resetNeed > column;
+    const wantOne = word > column || column < ENGLISH_FIELD_NEED;
     if (inspector.classList.contains('fw-fields1') !== wantOne) inspector.classList.toggle('fw-fields1', wantOne);
   };
   const fit = (): void => { fitTop(); fitInspector(); };

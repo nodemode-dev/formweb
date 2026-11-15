@@ -1,11 +1,11 @@
 import { value } from '../../ui/dom';
-import { t } from '../../i18n';
 import type { SiteNode } from '../../types';
 import type { MotionContext, MotionEditor } from './context';
+import { english, fieldOf, selectOf } from './labels';
 import { group, numberInput, pageNodes, pageRoot, pick, readNumber, remover, saver, setNumber, setSelect, shell, show, type Rec } from './pick';
 
-const TYPES = (): { id: string; name: string }[] => [{ id: 'tilt', name: t('Tilt') }, { id: 'follow', name: t('Follow') }, { id: 'proximity', name: t('Proximity') }];
-const SHOWS = (): { id: string; name: string }[] => [{ id: 'hover', name: t('On hover') }, { id: 'always', name: t('Always') }];
+const TYPES = english([{ id: 'tilt', name: 'Tilt' }, { id: 'follow', name: 'Follow' }, { id: 'proximity', name: 'Proximity' }]);
+const SHOWS = english([{ id: 'hover', name: 'On hover' }, { id: 'always', name: 'Always' }]);
 
 export function installPointer(ctx: MotionContext, container: HTMLElement): MotionEditor {
   let node: SiteNode | undefined;
@@ -13,7 +13,7 @@ export function installPointer(ctx: MotionContext, container: HTMLElement): Moti
   const save = saver(ctx, 'pointer', () => node);
   const panel = shell(ctx, container, 'Pointer', 'React to the pointer with tilt, follow or proximity.', () => save({ type: 'tilt', max: 8, perspective: '1000px', spring: 0.12 }), remover(ctx, 'pointer', () => node));
 
-  const type = ctx.select(TYPES());
+  const type = selectOf(ctx, TYPES);
   const tilt = group();
   const follow = group();
   const near = group();
@@ -22,7 +22,7 @@ export function installPointer(ctx: MotionContext, container: HTMLElement): Moti
   const tiltSpring = numberInput(ctx, 0, 1, 0.01);
   const within = ctx.select([]);
   const followSpring = numberInput(ctx, 0, 1, 0.01);
-  const shown = ctx.select(SHOWS());
+  const shown = selectOf(ctx, SHOWS);
   const radius = numberInput(ctx, 1, 2000);
 
   const collect = (): Rec => {
@@ -47,10 +47,10 @@ export function installPointer(ctx: MotionContext, container: HTMLElement): Moti
   const commit = (): void => save(collect());
   for (const control of [type, max, perspective, tiltSpring, within, followSpring, shown, radius]) control.addEventListener('change', commit);
 
-  tilt.append(ctx.field(t('Max angle'), max), ctx.field(t('Spring'), tiltSpring), ctx.field(t('Perspective'), perspective, true));
-  follow.append(ctx.field(t('Follow inside'), within, true), ctx.field(t('Spring'), followSpring), ctx.field(t('Show'), shown));
-  near.append(ctx.field(t('Radius'), radius));
-  panel.body.append(ctx.field(t('Type'), type, true), tilt, follow, near);
+  tilt.append(fieldOf(ctx, 'Max angle', max), fieldOf(ctx, 'Spring', tiltSpring), fieldOf(ctx, 'Perspective', perspective, true));
+  follow.append(fieldOf(ctx, 'Follow inside', within, true), fieldOf(ctx, 'Spring', followSpring), fieldOf(ctx, 'Show', shown));
+  near.append(fieldOf(ctx, 'Radius', radius));
+  panel.body.append(fieldOf(ctx, 'Type', type, true), tilt, follow, near);
 
   return {
     update(next, current) {

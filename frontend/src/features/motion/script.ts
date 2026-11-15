@@ -1,27 +1,29 @@
 import { element, keyed, value } from '../../ui/dom';
-import { t } from '../../i18n';
 import type { SiteNode } from '../../types';
 import type { MotionContext, MotionEditor } from './context';
+import { buttonOf, english, fieldOf, inputOf, selectOf } from './labels';
 import { buildAction, type ActionForm } from './actions';
 import { actionLists, checkbox, clone, numberInput, pageNodes, pick, readNumber, remover, saver, setChecked, setDisabled, setNumber, setSelect, shell, show, type ActionLists, type Item, type Rec } from './pick';
 
 const MAX_STEPS = 100;
 
-const TRIGGERS = (): Item[] => [{ id: 'click', name: t('Click') }, { id: 'submit', name: t('Submit') }, { id: 'load', name: t('Load') }, { id: 'view', name: t('Enters view') }, { id: 'change', name: t('Change') }];
+const TRIGGERS: Item[] = english([{ id: 'click', name: 'Click' }, { id: 'submit', name: 'Submit' }, { id: 'load', name: 'Load' }, { id: 'view', name: 'Enters view' }, { id: 'change', name: 'Change' }]);
 
-const STEPS = (): Item[] => [
-  { id: 'append', name: t('Append a copy') },
-  { id: 'clear', name: t('Clear') },
-  { id: 'wait', name: t('Wait') },
-  { id: 'stream', name: t('Stream text') },
-  { id: 'type', name: t('Type text') },
-  { id: 'class', name: t('Change classes') },
-  { id: 'pointer', name: t('Move pointer') },
-  { id: 'press', name: t('Press') },
-  { id: 'scroll', name: t('Scroll') },
-  { id: 'focus', name: t('Focus') },
-  { id: 'action', name: t('Run action') }
-];
+const STEPS: Item[] = english([
+  { id: 'append', name: 'Append a copy' },
+  { id: 'clear', name: 'Clear' },
+  { id: 'wait', name: 'Wait' },
+  { id: 'stream', name: 'Stream text' },
+  { id: 'type', name: 'Type text' },
+  { id: 'class', name: 'Change classes' },
+  { id: 'pointer', name: 'Move pointer' },
+  { id: 'press', name: 'Press' },
+  { id: 'scroll', name: 'Scroll' },
+  { id: 'focus', name: 'Focus' },
+  { id: 'action', name: 'Run action' }
+]);
+
+const BOUNDS: Item[] = english([{ id: 'start', name: 'Start' }, { id: 'end', name: 'End' }]);
 
 const FIELDS: Record<string, string[]> = {
   append: ['template', 'into', 'as', 'text'],
@@ -79,7 +81,7 @@ export function installScript(ctx: MotionContext, container: HTMLElement): Motio
   };
   const panel = shell(ctx, container, 'Script', 'Play a timed sequence of steps from this element.', () => save({ trigger: 'click', once: false, restart: false, reset: false, loop: false, loopDelay: 2000, steps: [{ type: 'wait', ms: 500 }] }), remover(ctx, 'scripts', () => node));
 
-  const trigger = ctx.select(TRIGGERS());
+  const trigger = selectOf(ctx, TRIGGERS);
   trigger.addEventListener('change', () => edit(draft => {
     draft.trigger = trigger.value;
     if (trigger.value !== 'load' && trigger.value !== 'view') draft.loop = false;
@@ -89,14 +91,14 @@ export function installScript(ctx: MotionContext, container: HTMLElement): Motio
     made.box.addEventListener('change', () => edit(draft => { draft[key] = made.box.checked; }));
     return made;
   };
-  const once = flag(t('Run once per page view'), 'once');
-  const restart = flag(t('Restart when triggered again'), 'restart');
-  const reset = flag(t('Remove earlier copies before running'), 'reset');
-  const loop = flag(t('Loop'), 'loop');
+  const once = flag('Run once per page view', 'once');
+  const restart = flag('Restart when triggered again', 'restart');
+  const reset = flag('Remove earlier copies before running', 'reset');
+  const loop = flag('Loop', 'loop');
   const loopDelay = numberInput(ctx, 0, 60000);
   loopDelay.addEventListener('change', () => edit(draft => { draft.loopDelay = readNumber(loopDelay, true) ?? 0; }));
-  const loopField = ctx.field(t('Loop delay in ms'), loopDelay);
-  panel.body.append(ctx.field(t('Trigger'), trigger, true), once.wrap, restart.wrap, reset.wrap, loop.wrap, loopField);
+  const loopField = fieldOf(ctx, 'Loop delay in ms', loopDelay);
+  panel.body.append(fieldOf(ctx, 'Trigger', trigger, true), once.wrap, restart.wrap, reset.wrap, loop.wrap, loopField);
 
   const rows = new WeakMap<HTMLElement, StepRow>();
   const indexOf = (row: HTMLElement): number => Number(row.dataset.key);
@@ -127,66 +129,66 @@ export function installScript(ctx: MotionContext, container: HTMLElement): Motio
   const makeRow = (): HTMLElement => {
     const row = element('div', 'fw-font-row fw-motion-row');
     const host = element('div', 'form-grid');
-    const type = ctx.select(STEPS());
+    const type = selectOf(ctx, STEPS);
     const template = ctx.select([]);
     const into = ctx.select([]);
     const alias = ctx.input('reply');
-    const text = ctx.input(t('Text'));
+    const text = inputOf(ctx, 'Text');
     const target = ctx.select([]);
     const ms = numberInput(ctx, 0, 60000);
     const speed = numberInput(ctx, 1, 2000);
-    const by = ctx.select([{ id: 'chars', name: t('Characters') }, { id: 'words', name: t('Words') }]);
+    const by = selectOf(ctx, english([{ id: 'chars', name: 'Characters' }, { id: 'words', name: 'Words' }]));
     const add = ctx.input('is-open');
     const remove = ctx.input('is-closed');
     const to = ctx.select([]);
     const duration = numberInput(ctx, 0, 10000);
     const scrollTo = ctx.select([]);
     const fields: Record<string, HTMLElement> = {
-      template: ctx.field(t('Template'), template),
-      into: ctx.field(t('Append into'), into),
-      as: ctx.field(t('Alias name'), alias),
-      text: ctx.field(t('Text'), text, true),
-      target: ctx.field(t('Target'), target, true),
-      ms: ctx.field(t('Wait in ms'), ms),
-      speed: ctx.field(t('Speed per second'), speed),
-      by: ctx.field(t('Reveal by'), by),
-      add: ctx.field(t('Add classes'), add),
-      remove: ctx.field(t('Remove classes'), remove),
-      to: ctx.field(t('Move to'), to, true),
-      duration: ctx.field(t('Duration in ms'), duration),
-      scrollTo: ctx.field(t('Scroll to'), scrollTo, true)
+      template: fieldOf(ctx, 'Template', template),
+      into: fieldOf(ctx, 'Append into', into),
+      as: fieldOf(ctx, 'Alias name', alias),
+      text: fieldOf(ctx, 'Text', text, true),
+      target: fieldOf(ctx, 'Target', target, true),
+      ms: fieldOf(ctx, 'Wait in ms', ms),
+      speed: fieldOf(ctx, 'Speed per second', speed),
+      by: fieldOf(ctx, 'Reveal by', by),
+      add: fieldOf(ctx, 'Add classes', add),
+      remove: fieldOf(ctx, 'Remove classes', remove),
+      to: fieldOf(ctx, 'Move to', to, true),
+      duration: fieldOf(ctx, 'Duration in ms', duration),
+      scrollTo: fieldOf(ctx, 'Scroll to', scrollTo, true)
     };
     const easingHost = element('div', 'form-grid full-row');
     const actionHost = element('div', 'form-grid full-row');
     fields.easing = easingHost;
     const state = { type, fields, template, into, alias, text, target, ms, speed, by, add, remove, to, duration, scrollTo, actionHost, easingValue: '', action: {} } as unknown as StepRow;
-    state.easing = ctx.easing(easingHost, t('Easing'), 'ease-in-out', next => { state.easingValue = next; commit(); });
+    state.easing = ctx.easing(easingHost, 'Easing', 'ease-in-out', next => { state.easingValue = next; commit(); });
     const commit = (): void => edit(draft => { (draft.steps as Rec[])[indexOf(row)] = compose(state); });
     state.form = buildAction(ctx, actionHost, false, action => { state.action = action; edit(draft => { (draft.steps as Rec[])[indexOf(row)] = { type: 'action', action }; }); });
     for (const control of [template, into, alias, text, target, ms, speed, by, add, remove, to, duration, scrollTo]) control.addEventListener('change', commit);
     type.addEventListener('change', commit);
-    host.append(ctx.field(t('Step'), type, true));
+    host.append(fieldOf(ctx, 'Step', type, true));
     for (const key of Object.keys(fields)) host.append(fields[key]);
     host.append(actionHost);
     const tools = element('div', 'fw-ext-actions');
-    state.up = ctx.button(t('Move up'), undefined, () => edit(draft => {
+    state.up = buttonOf(ctx, 'Move up', undefined, () => edit(draft => {
       const list = draft.steps as Rec[];
       const at = indexOf(row);
       if (at > 0) [list[at - 1], list[at]] = [list[at], list[at - 1]];
     }));
-    state.down = ctx.button(t('Move down'), undefined, () => edit(draft => {
+    state.down = buttonOf(ctx, 'Move down', undefined, () => edit(draft => {
       const list = draft.steps as Rec[];
       const at = indexOf(row);
       if (at < list.length - 1) [list[at + 1], list[at]] = [list[at], list[at + 1]];
     }));
-    state.drop = ctx.button(t('Remove step'), 'close', () => edit(draft => { (draft.steps as Rec[]).splice(indexOf(row), 1); }));
+    state.drop = buttonOf(ctx, 'Remove step', 'close', () => edit(draft => { (draft.steps as Rec[]).splice(indexOf(row), 1); }));
     tools.append(state.up, state.down, state.drop);
     row.append(host, tools);
     rows.set(row, state);
     return row;
   };
 
-  const addStep = ctx.button(t('Add step'), 'plus', () => edit(draft => { (draft.steps as Rec[]).push({ type: 'wait', ms: 500 }); }));
+  const addStep = buttonOf(ctx, 'Add step', 'plus', () => edit(draft => { (draft.steps as Rec[]).push({ type: 'wait', ms: 500 }); }));
   panel.tools.append(addStep);
 
   const fill = (row: HTMLElement, item: { step: Rec; index: number; count: number }): void => {
@@ -202,7 +204,7 @@ export function installScript(ctx: MotionContext, container: HTMLElement): Motio
     setSelect(state.template, base.templates, own('append', state.template, step.template));
     setSelect(state.into, nodes, own('append', state.into, step.into));
     setSelect(state.to, targets, own('pointer', state.to, step.to));
-    setSelect(state.scrollTo, [{ id: 'start', name: t('Start') }, { id: 'end', name: t('End') }, ...nodes], own('scroll', state.scrollTo, step.to, 'end'));
+    setSelect(state.scrollTo, [...BOUNDS, ...nodes], own('scroll', state.scrollTo, step.to, 'end'));
     setSelect(state.target, targets, step.target ? String(step.target) : state.target.value);
     if (type === 'append') {
       value(state.alias, String(step.as || ''));

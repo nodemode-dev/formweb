@@ -1,8 +1,9 @@
 import { element, options, value } from '../../ui/dom';
 import { icon } from '../../ui/icons';
-import { t } from '../../i18n';
+import { labelAttr, t } from '../../i18n';
 import type { EditorState, SiteNode } from '../../types';
 import type { MotionContext, MotionEditor, TrackList } from './context';
+import { buttonOf, fieldOf, iconButtonOf, noteOf } from './labels';
 import { readScenes, type Keyframe, type Scene, type SceneTrack } from './interpolate';
 import '../../styles/motion-scene.css';
 
@@ -31,8 +32,8 @@ const snap = (at: number): number => Math.round(at * 1000) / 1000;
 export function installScene(ctx: MotionContext, container: HTMLElement): MotionEditor {
   const block = ctx.section(container, 'Scene', 'Scroll-driven');
   const empty = element('div', 'fw-scene-empty');
-  const emptyHint = element('p', 'micro', t('Pin a child of this element and drive its children with scroll progress.'));
-  const create = ctx.button(t('Add scene'), 'plus');
+  const emptyHint = noteOf('micro', 'Pin a child of this element and drive its children with scroll progress.');
+  const create = buttonOf(ctx, 'Add scene', 'plus');
   empty.append(emptyHint, create);
   const body = element('div', 'fw-scene');
   body.hidden = true;
@@ -70,27 +71,27 @@ export function installScene(ctx: MotionContext, container: HTMLElement): Motion
   progressVar.type = 'checkbox';
   progressVar.dataset.field = 'scene.progressVar';
   const progressLabel = element('label', 'checkbox-field');
-  progressLabel.append(progressVar, element('span', '', t('Write the progress variable')));
+  progressLabel.append(progressVar, noteOf('', 'Write the progress variable', 'span'));
   const grid = element('div', 'form-grid');
   grid.append(
-    ctx.field(t('Stage'), stage, true),
-    ctx.field(t('Length (svh)'), length),
-    ctx.field(t('Sticky offset'), offset),
-    ctx.field(t('Smoothing (ms)'), smoothing),
-    ctx.field(t('Reduced motion frame'), reduced),
+    fieldOf(ctx, 'Stage', stage, true),
+    fieldOf(ctx, 'Length (svh)', length),
+    fieldOf(ctx, 'Sticky offset', offset),
+    fieldOf(ctx, 'Smoothing (ms)', smoothing),
+    fieldOf(ctx, 'Reduced motion frame', reduced),
     progressLabel
   );
-  const removeScene = ctx.button(t('Remove scene'), 'trash', () => ctx.run(() => ctx.remove('scenes', key)));
+  const removeScene = buttonOf(ctx, 'Remove scene', 'trash', () => ctx.run(() => ctx.remove('scenes', key)));
   const sceneActions = element('div', 'fw-ext-actions');
   sceneActions.append(removeScene);
 
   const lists: Record<TrackList, HTMLElement> = { tracks: element('div', 'fw-scene-list'), distribute: element('div', 'fw-scene-list') };
-  const addTrack = ctx.button(t('Add track'), 'plus', () => addEntry('tracks'));
-  const addDistribute = ctx.button(t('Add distribute'), 'plus', () => addEntry('distribute'));
+  const addTrack = buttonOf(ctx, 'Add track', 'plus', () => addEntry('tracks'));
+  const addDistribute = buttonOf(ctx, 'Add distribute', 'plus', () => addEntry('distribute'));
   const trackHead = element('div', 'fw-scene-list-head');
-  trackHead.append(element('span', '', t('Tracks')), addTrack);
+  trackHead.append(noteOf('', 'Tracks', 'span'), addTrack);
   const distributeHead = element('div', 'fw-scene-list-head');
-  distributeHead.append(element('span', '', t('Distribute')), addDistribute);
+  distributeHead.append(noteOf('', 'Distribute', 'span'), addDistribute);
   body.append(grid, trackHead, lists.tracks, distributeHead, lists.distribute, sceneActions);
 
   const scene = (): Scene | undefined => (latest ? readScenes(latest.site)[key] : undefined);
@@ -164,11 +165,9 @@ export function installScene(ctx: MotionContext, container: HTMLElement): Motion
     const el = element('div', 'fw-scene-row');
     const head = element('div', 'fw-scene-row-head');
     const node = ctx.select([]);
-    node.setAttribute('aria-label', list === 'tracks' ? t('Track node') : t('Parent node'));
-    const remove = ctx.button('', 'trash');
-    remove.title = list === 'tracks' ? t('Remove track') : t('Remove distribute row');
-    remove.setAttribute('aria-label', remove.title);
-    head.append(ctx.field(list === 'tracks' ? t('Node') : t('Parent'), node), remove);
+    labelAttr(node, 'aria-label', list === 'tracks' ? 'Track node' : 'Parent node');
+    const remove = iconButtonOf(ctx, list === 'tracks' ? 'Remove track' : 'Remove distribute row', 'trash');
+    head.append(fieldOf(ctx, list === 'tracks' ? 'Node' : 'Parent', node), remove);
     el.append(head);
     const opts = element('div', 'fw-scene-row-opts');
     let stagger: HTMLInputElement | undefined;
@@ -178,7 +177,7 @@ export function installScene(ctx: MotionContext, container: HTMLElement): Motion
       stagger.min = '0';
       stagger.max = '1';
       stagger.step = '0.01';
-      opts.append(ctx.field(t('Stagger'), stagger));
+      opts.append(fieldOf(ctx, 'Stagger', stagger));
     }
     const easingHost = element('div', 'field');
     opts.append(easingHost);
@@ -186,7 +185,7 @@ export function installScene(ctx: MotionContext, container: HTMLElement): Motion
     const rail = element('div', 'fw-scene-rail');
     rail.setAttribute('role', 'group');
     rail.setAttribute('data-no-keys', '');
-    rail.setAttribute('aria-label', t('Keyframes'));
+    labelAttr(rail, 'aria-label', 'Keyframes');
     const track = element('div', 'fw-scene-track');
     rail.append(track);
     const scale = element('div', 'fw-scene-scale');
@@ -198,11 +197,9 @@ export function installScene(ctx: MotionContext, container: HTMLElement): Motion
     at.min = '0';
     at.max = '100';
     at.step = '1';
-    const drop = ctx.button('', 'close');
-    drop.title = t('Remove keyframe');
-    drop.setAttribute('aria-label', drop.title);
+    const drop = iconButtonOf(ctx, 'Remove keyframe', 'close');
     const detailHead = element('div', 'fw-scene-detail-head');
-    detailHead.append(ctx.field(t('Position (%)'), at), drop);
+    detailHead.append(fieldOf(ctx, 'Position (%)', at), drop);
     const styleHost = element('div', 'fw-scene-styles');
     detail.append(detailHead, styleHost);
     el.append(rail, scale, detail);
@@ -215,7 +212,7 @@ export function installScene(ctx: MotionContext, container: HTMLElement): Motion
       if (k < 0 || !kfs[k]) return;
       commit(row, withKeyframes(row, kfs.map((kf, i) => (i === k ? { ...kf, styles: next } : kf))));
     });
-    const easing = ctx.easing(easingHost, t('Easing'), 'linear', next => { if (row.data) commit(row, { ...row.data, easing: next }); });
+    const easing = ctx.easing(easingHost, 'Easing', 'linear', next => { if (row.data) commit(row, { ...row.data, easing: next }); });
     Object.assign(row, { list, index, el, node, stagger, easing, track, rail, dots: [], detail, at, styles, styleKey: '' });
 
     node.addEventListener('change', () => {
@@ -321,8 +318,7 @@ export function installScene(ctx: MotionContext, container: HTMLElement): Motion
       const held = dragging && dragging.list === row.list && dragging.row === row.index && dragging.k === i;
       const left = percent(kfs[i].at);
       if (!held && dot.style.left !== left) dot.style.left = left;
-      const label = t('Keyframe at {0} percent', [Math.round(kfs[i].at * 100)]);
-      if (dot.getAttribute('aria-label') !== label) dot.setAttribute('aria-label', label);
+      labelAttr(dot, 'aria-label', 'Keyframe at {0} percent', [Math.round(kfs[i].at * 100)]);
       const fixed = i === 0 || i === kfs.length - 1;
       if (dot.hasAttribute('data-fixed') !== fixed) dot.toggleAttribute('data-fixed', fixed);
       const on = i === picked;

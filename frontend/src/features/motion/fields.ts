@@ -1,6 +1,7 @@
 import { element, value } from '../../ui/dom';
-import { label, t } from '../../i18n';
+import { label, labelAttr } from '../../i18n';
 import { MOTION_SAFE } from './context';
+import { buttonOf, english, fieldOf, iconButtonOf, inputOf, noteOf, selectOf, type Choice } from './labels';
 import type { InspectorContext } from '../inspector/context';
 
 export interface NumberField {
@@ -31,7 +32,7 @@ export function show(node: HTMLElement, on: boolean): void {
   if (node.hidden === on) node.hidden = !on;
 }
 
-export function numberField(ctx: InspectorContext, label: string, min: number, max: number, step: number, onCommit: (next: number | undefined) => void, full = false): NumberField {
+export function numberField(ctx: InspectorContext, name: string, min: number, max: number, step: number, onCommit: (next: number | undefined) => void, full = false): NumberField {
   const control = ctx.input('');
   control.type = 'number';
   control.min = String(min);
@@ -45,19 +46,19 @@ export function numberField(ctx: InspectorContext, label: string, min: number, m
     onCommit(Math.min(max, Math.max(min, parsed)));
   });
   return {
-    root: ctx.field(label, control, full),
+    root: fieldOf(ctx, name, control, full),
     control,
     set(next) { value(control, next === undefined ? '' : String(next)); }
   };
 }
 
-export function checkField(ctx: InspectorContext, label: string, onCommit: (next: boolean) => void): CheckField {
+export function checkField(ctx: InspectorContext, name: string, onCommit: (next: boolean) => void): CheckField {
   void ctx;
   const control = element('input');
   control.type = 'checkbox';
   control.addEventListener('change', () => onCommit(control.checked));
   const root = element('label', 'checkbox-field');
-  root.append(control, element('span', '', label));
+  root.append(control, noteOf('', name, 'span'));
   return {
     root,
     control,
@@ -65,11 +66,11 @@ export function checkField(ctx: InspectorContext, label: string, onCommit: (next
   };
 }
 
-export function selectField<T extends string>(ctx: InspectorContext, label: string, items: { id: T; name: string }[], onCommit: (next: T) => void, full = false): SelectField<T> {
-  const control = ctx.select(items);
+export function selectField<T extends string>(ctx: InspectorContext, name: string, items: { id: T; name: string }[], onCommit: (next: T) => void, full = false): SelectField<T> {
+  const control = selectOf(ctx, english(items));
   control.addEventListener('change', () => onCommit(control.value as T));
   return {
-    root: ctx.field(label, control, full),
+    root: fieldOf(ctx, name, control, full),
     control,
     set(next) { if (next !== undefined) value(control, next); }
   };
@@ -80,10 +81,10 @@ export function entryShell(ctx: InspectorContext, container: HTMLElement, title:
   const empty = element('div', 'fw-motion-empty');
   const note = element('p', 'micro');
   label(note, hint);
-  empty.append(note, ctx.button(t('Add'), 'plus', onAdd));
+  empty.append(note, buttonOf(ctx, 'Add', 'plus', onAdd));
   const body = element('div', 'fw-motion-body');
   const actions = element('div', 'fw-ext-actions');
-  actions.append(ctx.button(t('Remove'), 'trash', onRemove));
+  actions.append(buttonOf(ctx, 'Remove', 'trash', onRemove));
   const editor = element('div', 'fw-motion-editor');
   body.append(editor, actions);
   block.append(empty, body);
@@ -118,11 +119,11 @@ function clamp(number: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, number));
 }
 
-export function easingPicker(ctx: InspectorContext, container: HTMLElement, label: string, current: string, onChange: (next: string) => void): { set(next: string): void } {
+export function easingPicker(ctx: InspectorContext, container: HTMLElement, name: string, current: string, onChange: (next: string) => void): { set(next: string): void } {
   const names: Record<string, string> = { linear: 'Linear', ease: 'Ease', 'ease-in': 'Ease in', 'ease-out': 'Ease out', 'ease-in-out': 'Ease in out', 'cubic-bezier': 'Custom curve', spring: 'Spring' };
-  const mode = ctx.select(Object.keys(names).map(id => ({ id, name: t(names[id]) })));
+  const mode = selectOf(ctx, english(Object.keys(names).map(id => ({ id, name: names[id] }))));
   const holder = element('div', 'fw-easing');
-  const pick = ctx.field(label, mode, true);
+  const pick = fieldOf(ctx, name, mode, true);
   const curveBox = element('div', 'form-grid fw-easing-curve full-row');
   const springBox = element('div', 'form-grid full-row');
   const state: EasingParts = parseEasing(current);
@@ -140,7 +141,7 @@ export function easingPicker(ctx: InspectorContext, container: HTMLElement, labe
     { name: 'X2', min: 0, max: 1, step: 0.01 },
     { name: 'Y2', min: -2, max: 3, step: 0.01 }
   ].map((spec, index) => {
-    const field = numberField(ctx, t(spec.name), spec.min, spec.max, spec.step, next => {
+    const field = numberField(ctx, spec.name, spec.min, spec.max, spec.step, next => {
       state.curve[index] = clamp(next ?? state.curve[index], spec.min, spec.max);
       field.set(state.curve[index]);
       commit();
@@ -148,12 +149,12 @@ export function easingPicker(ctx: InspectorContext, container: HTMLElement, labe
     curveBox.append(field.root);
     return field;
   });
-  const stiffness = numberField(ctx, t('Stiffness'), 1, 1000, 1, next => {
+  const stiffness = numberField(ctx, 'Stiffness', 1, 1000, 1, next => {
     state.spring[0] = Math.round(clamp(next ?? state.spring[0], 1, 1000));
     stiffness.set(state.spring[0]);
     commit();
   });
-  const damping = numberField(ctx, t('Damping'), 1, 100, 1, next => {
+  const damping = numberField(ctx, 'Damping', 1, 100, 1, next => {
     state.spring[1] = Math.round(clamp(next ?? state.spring[1], 1, 100));
     damping.set(state.spring[1]);
     commit();
@@ -207,7 +208,7 @@ export function styleRowsEditor(ctx: InspectorContext, container: HTMLElement, s
   const holder = element('div', 'fw-style-rows');
   const list = element('div', 'fw-style-list');
   const rows: StyleRow[] = [];
-  const keyItems = [...MOTION_SAFE.map(name => ({ id: name as string, name })), { id: CUSTOM, name: t('Custom property') }];
+  const keyItems: Choice[] = [...MOTION_SAFE.map(name => ({ id: name as string, name })), { id: CUSTOM, name: 'Custom property', en: true }];
 
   const rowKey = (row: StyleRow): string => {
     if (row.key.value !== CUSTOM) return row.key.value;
@@ -234,18 +235,16 @@ export function styleRowsEditor(ctx: InspectorContext, container: HTMLElement, s
     if (row.custom.hidden === on) row.custom.hidden = !on;
   };
   const build = (): StyleRow => {
-    const key = ctx.select(keyItems);
-    key.setAttribute('aria-label', t('Property'));
+    const key = selectOf(ctx, keyItems);
+    labelAttr(key, 'aria-label', 'Property');
     const custom = ctx.input('--name');
-    custom.setAttribute('aria-label', t('Custom property name'));
+    labelAttr(custom, 'aria-label', 'Custom property name');
     custom.hidden = true;
-    const content = ctx.input(t('Value'));
-    content.setAttribute('aria-label', t('Value'));
+    const content = inputOf(ctx, 'Value');
+    labelAttr(content, 'aria-label', 'Value');
     const root = element('div', 'fw-style-row');
     const row: StyleRow = { root, key, custom, value: content };
-    const drop = ctx.button('', 'close', undefined, 'icon-button');
-    drop.title = t('Remove style');
-    drop.setAttribute('aria-label', t('Remove style'));
+    const drop = iconButtonOf(ctx, 'Remove style', 'close', undefined, 'icon-button');
     drop.addEventListener('click', () => {
       const had = rowKey(row) && row.value.value.trim();
       const at = rows.indexOf(row);
@@ -266,7 +265,7 @@ export function styleRowsEditor(ctx: InspectorContext, container: HTMLElement, s
     value(row.value, content);
     showCustom(row);
   };
-  const add = ctx.button(t('Add style'), 'plus', () => {
+  const add = buttonOf(ctx, 'Add style', 'plus', () => {
     const used = new Set(rows.map(rowKey));
     const free = MOTION_SAFE.find(name => !used.has(name)) || CUSTOM;
     const row = build();

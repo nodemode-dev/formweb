@@ -1,3 +1,4 @@
+import { labelText, t, type Value } from '../i18n';
 export function element<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   node.className = className;
@@ -40,6 +41,17 @@ export function text(node: HTMLElement, value: string): void {
 export function pieces(node: HTMLElement, parts: readonly string[]): void {
   const kept = parts.filter(Boolean);
   if (node.textContent !== kept.join('')) node.replaceChildren(...kept.map(part => document.createTextNode(part)));
+}
+export type Piece = string | { en: string; values?: readonly Value[] };
+export function labelPieces(node: HTMLElement, parts: readonly Piece[]): void {
+  const kept = parts.filter(part => typeof part !== 'string' || part);
+  const shown = kept.map(part => typeof part === 'string' ? part : t(part.en, part.values)).join('');
+  if (node.textContent === shown) return;
+  node.replaceChildren(...kept.map(part => {
+    const piece = document.createTextNode('');
+    if (typeof part === 'string') piece.data = part; else labelText(piece, part.en, part.values);
+    return piece;
+  }));
 }
 export function value(node: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, next: string): void {
   if (document.activeElement !== node && node.value !== next) node.value = next;

@@ -2,6 +2,7 @@ import { command, upload } from '../../api';
 import { element, value } from '../../ui/dom';
 import { t } from '../../i18n';
 import type { InspectorContext } from './context';
+import { buttonOf, fieldOf, labeled } from './labeled';
 import type { EditorState, SiteNode } from '../../types';
 
 interface SectionRecord { enabled?: boolean; html?: string; css?: string; js?: string; module?: boolean; poster?: string }
@@ -55,15 +56,15 @@ export function installCodeSection(ctx: InspectorContext): { update(next: Editor
     await command('code.sections.allow', { enabled: allowBox.checked });
   }));
   const allowWrap = element('label', 'checkbox-field');
-  allowWrap.append(allowBox, element('span', '', t('Allow code sections on this site')));
-  const allowHint = element('p', 'micro', t('Code sections run their own HTML, CSS and JavaScript in Preview and in exports.'));
+  allowWrap.append(allowBox, labeled('span', '', 'Allow code sections on this site'));
+  const allowHint = labeled('p', 'micro', 'Code sections run their own HTML, CSS and JavaScript in Preview and in exports.');
 
   const nodeBox = element('div', 'fw-ext-group');
-  const childHint = element('p', 'micro', t('A code section needs an element with no children. Remove or move the children first.'));
+  const childHint = labeled('p', 'micro', 'A code section needs an element with no children. Remove or move the children first.');
   const enableBox = element('input');
   enableBox.type = 'checkbox';
   const enableWrap = element('label', 'checkbox-field');
-  enableWrap.append(enableBox, element('span', '', t('Enable')));
+  enableWrap.append(enableBox, labeled('span', '', 'Enable'));
 
   const htmlArea = area();
   const cssArea = area();
@@ -71,27 +72,27 @@ export function installCodeSection(ctx: InspectorContext): { update(next: Editor
   const moduleBox = element('input');
   moduleBox.type = 'checkbox';
   const moduleWrap = element('label', 'checkbox-field');
-  moduleWrap.append(moduleBox, element('span', '', t('Module')));
+  moduleWrap.append(moduleBox, labeled('span', '', 'Module'));
   const posterInput = ctx.input('/api/assets/...');
   const posterFile = picker(IMAGE_ACCEPT);
   const importFile = picker('text/html,.html,.htm');
 
   const editBox = element('div', 'fw-ext-group');
   const actions = element('div', 'fw-ext-actions');
-  const posterButton = ctx.button(t('Upload poster'), 'image', () => posterFile.click());
-  const importButton = ctx.button(t('Import HTML file'), 'upload', () => importFile.click());
-  const removeButton = ctx.button(t('Remove'), 'trash', () => void ctx.run(async () => {
+  const posterButton = buttonOf(ctx, 'Upload poster', 'image', () => posterFile.click());
+  const importButton = buttonOf(ctx, 'Import HTML file', 'upload', () => importFile.click());
+  const removeButton = buttonOf(ctx, 'Remove', 'trash', () => void ctx.run(async () => {
     if (!current) return;
     await command('code.section.remove', { node: current.id });
     ctx.status(t('Code section removed.'));
   }));
   actions.append(posterButton, importButton, removeButton);
   editBox.append(
-    ctx.field(t('HTML'), htmlArea, true),
-    ctx.field(t('CSS'), cssArea, true),
-    ctx.field(t('JavaScript'), jsArea, true),
+    fieldOf(ctx, 'HTML', htmlArea, true),
+    fieldOf(ctx, 'CSS', cssArea, true),
+    fieldOf(ctx, 'JavaScript', jsArea, true),
     moduleWrap,
-    ctx.field(t('Poster image'), posterInput, true),
+    fieldOf(ctx, 'Poster image', posterInput, true),
     actions
   );
   nodeBox.append(childHint, enableWrap, editBox);

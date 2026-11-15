@@ -2,6 +2,7 @@ import { commands, upload } from '../../api';
 import { element, value } from '../../ui/dom';
 import { t } from '../../i18n';
 import type { InspectorContext } from './context';
+import { buttonOf, fieldOf, labeled, selectOf } from './labeled';
 import type { SiteNode } from '../../types';
 
 const FLAGS: [string, string][] = [['autoplay', 'Autoplay'], ['muted', 'Muted'], ['loop', 'Loop'], ['playsinline', 'Plays inline'], ['controls', 'Controls']];
@@ -34,23 +35,23 @@ export function installMedia(ctx: InspectorContext): MediaHandle {
     box.dataset.attr = name;
     box.addEventListener('change', () => void ctx.run(() => ctx.nodePatch({ attrs: { [name]: box.checked ? '' : null } })));
     const wrap = element('label', 'checkbox-field');
-    wrap.append(box, element('span', '', t(label)));
+    wrap.append(box, labeled('span', '', label));
     flagBoxes.set(name, box);
     flags.append(wrap);
   }
   const videoGrid = element('div', 'form-grid');
-  const preload = ctx.select([{ id: '', name: t('Auto') }, { id: 'none', name: 'none' }, { id: 'metadata', name: 'metadata' }, { id: 'auto', name: 'auto' }]);
+  const preload = selectOf(ctx, [{ id: '', name: 'Auto', en: 'Auto' }, { id: 'none', name: 'none' }, { id: 'metadata', name: 'metadata' }, { id: 'auto', name: 'auto' }]);
   preload.addEventListener('change', () => void ctx.run(() => ctx.nodePatch({ attrs: { preload: preload.value || null } })));
   const poster = ctx.input('/api/assets/...');
   poster.addEventListener('change', () => void ctx.run(() => ctx.nodePatch({ attrs: { poster: poster.value.trim() || null } })));
   const posterInput = picker('image/png,image/jpeg,image/webp,image/gif');
   const videoInput = picker('video/mp4,video/webm,.mp4,.webm');
-  const posterButton = ctx.button(t('Upload poster'), 'image', () => posterInput.click());
-  const videoButton = ctx.button(t('Upload video'), 'upload', () => { videoInput.dataset.mode = 'src'; videoInput.click(); });
+  const posterButton = buttonOf(ctx, 'Upload poster', 'image', () => posterInput.click());
+  const videoButton = buttonOf(ctx, 'Upload video', 'upload', () => { videoInput.dataset.mode = 'src'; videoInput.click(); });
   const videoActions = element('div', 'fw-ext-actions');
   videoActions.append(videoButton, posterButton);
-  videoGrid.append(ctx.field(t('Preload'), preload, true), ctx.field(t('Poster image'), poster, true));
-  videoBox.append(flags, videoGrid, videoActions, element('p', 'micro', t('Autoplay works only with Muted on. Videos never play on the canvas; use Preview or the published site. MP4 or WebM, up to 64 MiB.')));
+  videoGrid.append(fieldOf(ctx, 'Preload', preload, true), fieldOf(ctx, 'Poster image', poster, true));
+  videoBox.append(flags, videoGrid, videoActions, labeled('p', 'micro', 'Autoplay works only with Muted on. Videos never play on the canvas; use Preview or the published site. MP4 or WebM, up to 64 MiB.'));
 
   const imageBox = element('div', 'fw-ext-group');
   const imageGrid = element('div', 'form-grid');
@@ -58,12 +59,12 @@ export function installMedia(ctx: InspectorContext): MediaHandle {
   srcset.addEventListener('change', () => void ctx.run(() => ctx.nodePatch({ attrs: { srcset: srcset.value.trim() || null } })));
   const sizes = ctx.input('(min-width: 800px) 50vw, 100vw');
   sizes.addEventListener('change', () => void ctx.run(() => ctx.nodePatch({ attrs: { sizes: sizes.value.trim() || null } })));
-  const decoding = ctx.select([{ id: '', name: t('Auto') }, { id: 'async', name: 'async' }, { id: 'sync', name: 'sync' }, { id: 'auto', name: 'auto' }]);
+  const decoding = selectOf(ctx, [{ id: '', name: 'Auto', en: 'Auto' }, { id: 'async', name: 'async' }, { id: 'sync', name: 'sync' }, { id: 'auto', name: 'auto' }]);
   decoding.addEventListener('change', () => void ctx.run(() => ctx.nodePatch({ attrs: { decoding: decoding.value || null } })));
-  const priority = ctx.select([{ id: '', name: t('Auto') }, { id: 'high', name: 'high' }, { id: 'low', name: 'low' }, { id: 'auto', name: 'auto' }]);
+  const priority = selectOf(ctx, [{ id: '', name: 'Auto', en: 'Auto' }, { id: 'high', name: 'high' }, { id: 'low', name: 'low' }, { id: 'auto', name: 'auto' }]);
   priority.addEventListener('change', () => void ctx.run(() => ctx.nodePatch({ attrs: { fetchpriority: priority.value || null } })));
-  imageGrid.append(ctx.field(t('Source set'), srcset, true), ctx.field(t('Sizes'), sizes, true), ctx.field(t('Decoding'), decoding), ctx.field(t('Fetch priority'), priority));
-  imageBox.append(imageGrid, element('p', 'micro', t('Each source set entry is a URL and a width such as 480w or a density such as 2x. Sizes tells the browser how wide the image is drawn.')));
+  imageGrid.append(fieldOf(ctx, 'Source set', srcset, true), fieldOf(ctx, 'Sizes', sizes, true), fieldOf(ctx, 'Decoding', decoding), fieldOf(ctx, 'Fetch priority', priority));
+  imageBox.append(imageGrid, labeled('p', 'micro', 'Each source set entry is a URL and a width such as 480w or a density such as 2x. Sizes tells the browser how wide the image is drawn.'));
   block.append(videoBox, imageBox);
   videoBox.hidden = true;
   imageBox.hidden = true;

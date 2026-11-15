@@ -1,6 +1,7 @@
 import { element, value } from '../../ui/dom';
-import { t } from '../../i18n';
+import { labelAttr } from '../../i18n';
 import { breakpointStyles, type InspectorContext } from './context';
+import { fieldOf, labeled, selectOf, styleOf } from './labeled';
 import type { SiteNode } from '../../types';
 
 const BLEND = ['', 'normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity', 'plus-lighter'];
@@ -16,19 +17,19 @@ const CLIPS: [string, string][] = [
 export function installEffects(ctx: InspectorContext): (node: SiteNode, breakpoint: string) => void {
   const block = ctx.section(ctx.panes.design, 'Effects', 'CSS values');
   const grid = element('div', 'form-grid');
-  ctx.addStyle(grid, t('Blend mode'), 'mix-blend-mode', BLEND);
-  ctx.addStyle(grid, t('Isolation'), 'isolation', ['', 'auto', 'isolate']);
-  ctx.addStyle(grid, t('Clip path'), 'clip-path', undefined, true);
+  styleOf(ctx, grid, 'Blend mode', 'mix-blend-mode', BLEND);
+  styleOf(ctx, grid, 'Isolation', 'isolation', ['', 'auto', 'isolate']);
+  styleOf(ctx, grid, 'Clip path', 'clip-path', undefined, true);
   const presets = element('div', 'field full');
-  presets.append(element('span', 'field-label', t('Clip presets')));
+  presets.append(labeled('span', 'field-label', 'Clip presets'));
   const group = element('div', 'fw-seg');
   group.setAttribute('role', 'group');
-  group.setAttribute('aria-label', t('Clip presets'));
+  labelAttr(group, 'aria-label', 'Clip presets');
   const buttons = CLIPS.map(([shape, name]) => {
-    const choice = element('button', 'fw-seg-btn', t(name));
+    const choice = labeled('button', 'fw-seg-btn', name);
     choice.type = 'button';
     choice.dataset.shape = shape;
-    choice.title = shape || t('Remove the clip path');
+    if (shape) choice.title = shape; else labelAttr(choice, 'title', 'Remove the clip path');
     choice.setAttribute('aria-pressed', 'false');
     choice.addEventListener('click', () => void ctx.run(() => ctx.setStyle('clip-path', shape)));
     group.append(choice);
@@ -36,16 +37,16 @@ export function installEffects(ctx: InspectorContext): (node: SiteNode, breakpoi
   });
   presets.append(group);
   grid.append(presets);
-  ctx.addStyle(grid, t('Mask image'), 'mask-image', undefined, true);
-  grid.append(element('p', 'micro full-row', t('Mask image takes gradients only, such as linear-gradient(black, transparent). Images and url() are not allowed.')));
-  ctx.addStyle(grid, t('Filter'), 'filter', undefined, true);
-  ctx.addStyle(grid, t('Backdrop filter'), 'backdrop-filter', undefined, true);
-  ctx.addStyle(grid, t('Will change'), 'will-change', undefined, true);
-  const showIn = ctx.select([{ id: '', name: t('Both') }, { id: 'dark', name: t('Dark only') }, { id: 'light', name: t('Light only') }]);
-  showIn.setAttribute('aria-label', t('Show in'));
+  styleOf(ctx, grid, 'Mask image', 'mask-image', undefined, true);
+  grid.append(labeled('p', 'micro full-row', 'Mask image takes gradients only, such as linear-gradient(black, transparent). Images and url() are not allowed.'));
+  styleOf(ctx, grid, 'Filter', 'filter', undefined, true);
+  styleOf(ctx, grid, 'Backdrop filter', 'backdrop-filter', undefined, true);
+  styleOf(ctx, grid, 'Will change', 'will-change', undefined, true);
+  const showIn = selectOf(ctx, [{ id: '', name: 'Both', en: 'Both' }, { id: 'dark', name: 'Dark only', en: 'Dark only' }, { id: 'light', name: 'Light only', en: 'Light only' }]);
+  labelAttr(showIn, 'aria-label', 'Show in');
   showIn.addEventListener('change', () => void ctx.run(() => ctx.nodePatch({ attrs: { 'data-fw-theme-only': showIn.value || null } })));
-  grid.append(ctx.field(t('Show in'), showIn, true));
-  grid.append(element('p', 'micro full-row', t('Dark only and Light only keep a twin of this element hidden in the other theme. Switch the canvas theme in the stage bar to see each one.')));
+  grid.append(fieldOf(ctx, 'Show in', showIn, true));
+  grid.append(labeled('p', 'micro full-row', 'Dark only and Light only keep a twin of this element hidden in the other theme. Switch the canvas theme in the stage bar to see each one.'));
   block.append(grid);
 
   return (node, breakpoint) => {

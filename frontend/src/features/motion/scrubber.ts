@@ -1,5 +1,5 @@
 import { element, options, text, value } from '../../ui/dom';
-import { t } from '../../i18n';
+import { label, labelAttr } from '../../i18n';
 import type { EditorState, SiteNode } from '../../types';
 import type { MotionContext, MotionEditor } from './context';
 import { frameFor, readScenes } from './interpolate';
@@ -9,16 +9,16 @@ export function installScrubber(ctx: MotionContext): MotionEditor {
   const root = element('div', 'fw-scrub');
   root.hidden = true;
   root.setAttribute('role', 'group');
-  root.setAttribute('aria-label', t('Scene scrubber'));
+  labelAttr(root, 'aria-label', 'Scene scrubber');
   const pick = ctx.select([]);
-  pick.setAttribute('aria-label', t('Scene'));
+  labelAttr(pick, 'aria-label', 'Scene');
   const range = element('input');
   range.type = 'range';
   range.min = '0';
   range.max = '100';
   range.step = '1';
   range.value = '0';
-  range.setAttribute('aria-label', t('Scene progress'));
+  labelAttr(range, 'aria-label', 'Scene progress');
   const readout = element('output', '', '0');
   const marks = element('div', 'fw-seg');
   const stops = [0, 50, 100].map(stop => {
@@ -28,7 +28,8 @@ export function installScrubber(ctx: MotionContext): MotionEditor {
     marks.append(button);
     return button;
   });
-  const off = element('button', 'fw-seg-btn', t('Off'));
+  const off = element('button', 'fw-seg-btn');
+  label(off, 'Off');
   off.type = 'button';
   off.disabled = true;
   off.addEventListener('click', () => stop());

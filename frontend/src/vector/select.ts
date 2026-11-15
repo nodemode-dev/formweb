@@ -1,5 +1,5 @@
 import { element } from '../ui/dom';
-import { t } from '../i18n';
+import { label, labelAttr, t } from '../i18n';
 import type { CommandDef } from '../ui/shell';
 import type { Command, Site } from '../types';
 import { matrixCommands, unionBox, type EachParams, type TransformParams } from './arrange';
@@ -363,7 +363,7 @@ export function selectCommands(editor: Editor): CommandDef[] {
 
 export function selectSection(editor: Editor): { root: HTMLElement; update: () => void } {
   const picker = editor.picker;
-  const box = section(t('Select'), false);
+  const box = section('Select', false);
   const rows: { key: keyof Criteria; label: string; min: number; max: number; step: number; hint: string }[] = [
     { key: 'fill', label: 'Fill Color', min: 0, max: 255, step: 1, hint: 'Color tolerance, 0 to 255 per RGB channel' },
     { key: 'stroke', label: 'Stroke Color', min: 0, max: 255, step: 1, hint: 'Color tolerance, 0 to 255 per RGB channel' },
@@ -381,22 +381,26 @@ export function selectSection(editor: Editor): { root: HTMLElement; update: () =
     const amount = numberInput(row.min, row.max, row.step, n => { picker.wand.tolerance[row.key] = n; });
     amount.value = String(picker.wand.tolerance[row.key]);
     amount.title = row.hint;
-    amount.setAttribute('aria-label', t('{0}: {1}', [{ t: row.label }, { t: row.hint }]));
+    labelAttr(amount, 'aria-label', '{0}: {1}', [{ t: row.label }, { t: row.hint }]);
     const line = element('div', 'fw-v-row');
-    line.append(label, field(t('Tolerance'), amount));
+    line.append(label, field('Tolerance', amount));
     wrap.append(line);
   }
   const anchors = element('input', 'fw-v-check');
   anchors.type = 'checkbox';
   anchors.addEventListener('change', () => { picker.anchorMode = anchors.checked; editor.render(); });
   const anchorRow = element('label', 'fw-v-checkrow');
-  anchorRow.title = t('The Lasso selects anchors inside the loop instead of whole shapes');
-  anchorRow.append(anchors, element('span', '', t('Lasso selects anchors')));
+  labelAttr(anchorRow, 'title', 'The Lasso selects anchors inside the loop instead of whole shapes');
+  const anchorText = element('span');
+  label(anchorText, 'Lasso selects anchors');
+  anchorRow.append(anchors, anchorText);
+  const wandNote = element('p', 'fw-v-note');
+  label(wandNote, 'Magic Wand: click a shape to select the shapes with a similar look. Shift adds, Alt removes.');
   box.body.append(
-    element('p', 'fw-v-note', t('Magic Wand: click a shape to select the shapes with a similar look. Shift adds, Alt removes.')),
+    wandNote,
     wrap,
     anchorRow,
-    button(t('Select inverse'), t('Select every visible shape that is not selected'), () => picker.inverse())
+    button('Select inverse', 'Select every visible shape that is not selected', () => picker.inverse())
   );
   return { root: box.root, update: () => { if (anchors.checked !== picker.anchorMode) anchors.checked = picker.anchorMode; } };
 }

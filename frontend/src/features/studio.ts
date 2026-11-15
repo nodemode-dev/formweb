@@ -1,8 +1,8 @@
 import { accept, command, download, request, state, subscribe } from '../api';
 import type { EditorState } from '../types';
-import { element, keyed, options, pieces, text } from '../ui/dom';
+import { element, keyed, labelPieces, options, text } from '../ui/dom';
 import { icon } from '../ui/icons';
-import { t } from '../i18n';
+import { label, t } from '../i18n';
 import { authoringActions } from './authoring';
 import { serviceActions } from './services';
 import { providerActions } from './providers';
@@ -124,7 +124,12 @@ export class FeatureStudio {
     pane.hidden = true;
     const heading = element('h2', '', spec.title);
     const explanation = element('p', 'feature-description', spec.description);
-    const address = element('span', 'feature-operation', spec.command || (spec.group ? t('Site configuration: {0}', [spec.group]) : spec.execute ? t('Validated authoring workflow') : t('{0} service workflow', [spec.method || 'GET'])));
+    const address = element('span', 'feature-operation', spec.command || '');
+    if (!spec.command) {
+      if (spec.group) label(address, 'Site configuration: {0}', [spec.group]);
+      else if (spec.execute) label(address, 'Validated authoring workflow');
+      else label(address, '{0} service workflow', [spec.method || 'GET']);
+    }
     const controls = new Map<string, HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>();
     const form = element('div', 'feature-fields');
     const output = element('pre', 'feature-result', 'No operation has been run.');
@@ -230,7 +235,8 @@ export class FeatureStudio {
       view.output.classList.remove('error');
       view.dirty = false;
       const saved = !!view.spec.command || !!view.spec.group;
-      text(this.footerStatus, saved ? t('Validated change saved at revision {0}.', [state().revision]) : t('Service response received. Inspect its status and output.'));
+      if (saved) label(this.footerStatus, 'Validated change saved at revision {0}.', [state().revision]);
+      else label(this.footerStatus, 'Service response received. Inspect its status and output.');
       this.context.notify(saved ? t('{0} saved.', [view.spec.title]) : t('{0}: response received.', [view.spec.title]));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -243,6 +249,6 @@ export class FeatureStudio {
   private update(next: EditorState): void {
     if (this.scrim.hidden) return;
     const selected = this.context.selection();
-    pieces(this.summary, [`${next.site.name} · ${next.site.nodes[selected.node]?.name || selected.node} · ${selected.locale} · `, t('rev {0}', [next.revision])]);
+    labelPieces(this.summary, [`${next.site.name} · ${next.site.nodes[selected.node]?.name || selected.node} · ${selected.locale} · `, { en: 'rev {0}', values: [next.revision] }]);
   }
 }

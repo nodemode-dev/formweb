@@ -1,10 +1,10 @@
-import { element, options, value } from '../../ui/dom';
-import { t } from '../../i18n';
+import { element, value } from '../../ui/dom';
 import type { EditorState, SiteNode } from '../../types';
 import { readMotion, type MotionContext, type MotionKind } from './context';
+import { buttonOf, noteOf, optionsOf, type Choice } from './labels';
 
 export type Rec = Record<string, unknown>;
-export interface Item { id: string; name: string; tag?: string; hidden?: boolean }
+export type Item = Choice;
 export interface ActionLists {
   nodes: Item[];
   media: Item[];
@@ -76,8 +76,8 @@ export function withCurrent(items: Item[], current: string): Item[] {
   return current && !items.some(item => item.id === current) ? [...items, { id: current, name: current }] : items;
 }
 
-export function setSelect(select: HTMLSelectElement, items: { id: string; name: string }[], current: string): void {
-  options(select, withCurrent(items as Item[], current));
+export function setSelect(select: HTMLSelectElement, items: Choice[], current: string): void {
+  optionsOf(select, withCurrent(items as Item[], current));
   value(select, current);
 }
 
@@ -121,11 +121,11 @@ export function setNumber(input: HTMLInputElement, next: unknown): void {
   value(input, typeof next === 'number' ? String(next) : '');
 }
 
-export function checkbox(label: string): { wrap: HTMLElement; box: HTMLInputElement } {
+export function checkbox(name: string): { wrap: HTMLElement; box: HTMLInputElement } {
   const box = element('input');
   box.type = 'checkbox';
   const wrap = element('label', 'checkbox-field');
-  wrap.append(box, element('span', '', label));
+  wrap.append(box, noteOf('', name, 'span'));
   return { wrap, box };
 }
 
@@ -138,13 +138,13 @@ export interface Shell { body: HTMLElement; list: HTMLElement; tools: HTMLElemen
 export function shell(ctx: MotionContext, container: HTMLElement, title: string, hint: string, add: () => void, remove: () => void): Shell {
   const block = ctx.section(container, title, hint);
   const empty = element('div', 'fw-ext-group');
-  empty.append(ctx.button(t('Add'), 'plus', add, 'fw-ext-add'));
+  empty.append(buttonOf(ctx, 'Add', 'plus', add, 'fw-ext-add'));
   const editor = element('div', 'fw-ext-group');
   const body = element('div', 'form-grid');
   const list = element('div', 'fw-font-list');
   const tools = element('div', 'fw-ext-actions');
   const bottom = element('div', 'fw-ext-actions');
-  bottom.append(ctx.button(t('Remove'), 'trash', remove));
+  bottom.append(buttonOf(ctx, 'Remove', 'trash', remove));
   editor.append(body, list, tools, bottom);
   editor.hidden = true;
   block.append(empty, editor);
