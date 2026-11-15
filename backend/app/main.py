@@ -6,6 +6,7 @@ import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -118,7 +119,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title='FormWeb', version=VERSION, lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename', 'X-FormWeb-Channel'], expose_headers=['Content-Disposition', 'X-FormWeb-Method', 'X-FormWeb-Asset'], allow_credentials=True)
+app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename', 'X-FormWeb-Channel'], expose_headers=['Content-Disposition', 'X-FormWeb-Method', 'X-FormWeb-Asset', 'X-FormWeb-Local-Forms'], allow_credentials=True)
 app.add_middleware(LocalAccess)
 app.include_router(advanced_router)
 app.include_router(provider_router)
@@ -706,7 +707,10 @@ async def audit():
 @app.get('/api/export')
 async def export(locale: str | None = None):
     data, manifest = await studio.export_zip(locale)
-    return Response(data, media_type='application/zip', headers={'Content-Disposition': 'attachment; filename="site-export.zip"'})
+    headers = {'Content-Disposition': 'attachment; filename="site-export.zip"'}
+    if manifest.get('localForms'):
+        headers['X-FormWeb-Local-Forms'] = quote(json.dumps(manifest['localForms'][:20]), safe='')
+    return Response(data, media_type='application/zip', headers=headers)
 
 
 @app.get('/api/exports/{filename}')

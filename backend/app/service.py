@@ -278,8 +278,11 @@ class Studio:
             params['locale'] = locale
         result = await self.engine.request('export', params)
         if any('data-fw-form="true"' in file['content'] for file in result['files']):
-            found = local_forms((await self.engine.request('state'))['site'], result)
+            site = (await self.engine.request('state'))['site']
+            found = local_forms(site, result)
+            names = {page['id']: page['name'] for page in site.get('pages', [])}
             result['warnings'] = list(result.get('warnings', [])) + list(dict.fromkeys(issue['message'] for issue in found))
+            result['localForms'] = list(dict.fromkeys(names[issue['page']] for issue in found))
         for file in result['files']:
             safe_export_path(file['path'])
         return bundle_assets(result)

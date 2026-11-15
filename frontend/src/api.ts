@@ -147,7 +147,7 @@ export async function connect(onConnection: (connected: boolean) => void): Promi
   events.onopen = () => onConnection(true);
   events.onerror = () => onConnection(false);
 }
-export async function download(path: string, filename: string): Promise<void> {
+export async function download(path: string, filename: string): Promise<Headers> {
   await queue.catch(() => undefined);
   const response = await fetch(apiBase + path, { headers: authHeaders(), credentials: 'same-origin' });
   if (!response.ok) throw new Error(`Download failed: ${response.status}`);
@@ -157,6 +157,7 @@ export async function download(path: string, filename: string): Promise<void> {
   link.download = filename;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return response.headers;
 }
 export async function upload(file: File): Promise<{ id: string; url: string; mime: string; size: number }> {
   const type = /\.woff2$/i.test(file.name) ? 'font/woff2' : file.type;
