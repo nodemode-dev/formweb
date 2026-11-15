@@ -16,7 +16,7 @@ from starlette.responses import FileResponse, JSONResponse, Response, StreamingR
 from .access import CHANNELS, actor, channel
 from .advanced_routes import router as advanced_router, form_gate, serve_release, submission_values
 from . import claude_code
-from .assets import MIME_TYPES, ProjectTooLarge, asset_path, ingest, list_assets, own_asset, project_envelope, read_project_archive, visible_assets, write_project_archive
+from .assets import MIME_TYPES, ProjectTooLarge, asset_path, ingest, list_assets, own_asset, project_envelope, read_project_archive, sweep_stale_temporaries, visible_assets, write_project_archive
 from .chat import router as chat_router
 from .clips import router as clips_router
 from .commands_mirror import router as commands_router
@@ -107,6 +107,7 @@ class LocalAccess:
 
 @asynccontextmanager
 async def lifespan(app):
+    await asyncio.to_thread(sweep_stale_temporaries)
     await studio.start()
     try:
         async with mcp.session_manager.run():

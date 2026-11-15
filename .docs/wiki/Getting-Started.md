@@ -28,6 +28,6 @@ For a single production-mode process:
 
 Open http://127.0.0.1:8240. This serves the built editor alongside its API. Bindings remain loopback-only.
 
-The backend configuration template is `backend/.env.example`. Local files such as `.env`, project databases and dependency folders are ignored by Git. Set `FORMWEB_DATA_DIR` to a durable folder if the checkout will be replaced. The default data location is `backend/data`.
+The backend configuration template is `backend/.env.example`. Local files such as `.env`, project databases and dependency folders are ignored by Git. Set `FORMWEB_DATA_DIR` to a durable folder if the checkout will be replaced. Since v0.20.2 the backend removes its own temporary files in that folder (`assets/.stage-*.part`, `tmp/project-*.fweb`, `tmp/load-*.fweb`, `projects/.pending-*`) when they are more than 10 minutes old at start (`sweep_stale_temporaries` in `backend/app/assets.py`, called from the `main.py` lifespan); symlinks, directories, younger files, publication `.pending` directories and FormPublisher's inbox are left alone. The default data location is `backend/data`.
 
 Enable the editor's Agents switch before using MCP. Start the HTTP service first; `./formweb mcp` proxies that running service and does not create another engine.

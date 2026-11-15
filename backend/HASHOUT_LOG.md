@@ -1,5 +1,9 @@
 # Backend context
 
+## A start-up sweep of stale temporary files · v0.20.2 (2026-11-10)
+
+`assets.py` `sweep_stale_temporaries`, called in the `main.py` lifespan: at start the backend removes its own temporary files in the data folder that are more than 10 minutes old: `assets/.stage-XXXXXXXX.part` (clip and version 2 archive staging), `tmp/project-XXXXXXXX.fweb`, `tmp/load-XXXXXXXX.fweb` and `projects/.pending-` followed by 32 hex digits. Only regular files whose name fully matches are removed; symlinks are never followed, directories are skipped and younger files stay. It logs "Removed N stale temporary file(s) from the data folder." when any went. Publication `.pending` directories and FormPublisher's inbox are not touched.
+
 ## Clip pastes that stream to disk · v0.20.1 (2026-11-10)
 
 `clips.py`, `fragment_routes.py` and `assets.py` `check_declared_file`: a paste fetches each clip asset straight into a staged `.stage-*.part` file in the asset folder with a running sha256, checks it like embedded bytes (digest, the type's size limit, magic bytes, svg checks; files over 8 MiB are judged from their first bytes) and stores the files only after `node.paste` succeeds; every refusal removes the staged files. The 409 for missing assets and embedded base64 assets are unchanged.

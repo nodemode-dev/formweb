@@ -1,5 +1,9 @@
 # Frontend context map
 
+## A steady Remove background dialog · v0.20.2 (2026-11-10)
+
+`features/background-remover.ts`, `styles/background-remover.css` and `.dialog-status` in `styles/app.css`: with a real image the dialog shifted when it opened (layout shift 0.039 to 0.082), because its note grew from empty to one line and the canvas jumped from 300x150 to the picture's size. The note now reserves two lines, the canvas stays hidden (still in layout) until it has its final size, and every dialog footer status reserves two lines, so a warning arriving in any dialog footer moves nothing. Layout shift is 0 at every step.
+
 ## Base URL help, and the footer button in every dialog · v0.20.1 (2026-11-10)
 
 `main.ts` and `i18n/keys.ts`: the Base URL field's help in the page inspector ends with "Leave it empty to keep the https://example.com placeholder." (the grey placeholder was already there). The Turn K footer status button was checked in all 19 dialogs.
