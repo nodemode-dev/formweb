@@ -86,6 +86,9 @@
   --ctl-lg: 36px;
   --ctl-xl: 40px;
   --control-height: var(--ctl);
+  --select-chev: 5px;
+  --select-edge: 7px;
+  --select-room: 22px;
   --titlebar-h: 40px;
   --z-base: 0;
   --z-raised: 100;

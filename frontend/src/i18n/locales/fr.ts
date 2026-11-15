@@ -2517,4 +2517,5 @@ export default [
   "Définissez l’URL de base qu’utilisent les liens canoniques, le sitemap, le 404.html à la racine et la publication portable.",
   "Laissez vide pour conserver le texte indicatif https://example.com.",
   "Importer un fichier .fweb ou .fpub",
+  "Ce fichier n'est ni un projet .fweb, ni un package .fpub, ni un JSON de projet.",
 ] as readonly string[];

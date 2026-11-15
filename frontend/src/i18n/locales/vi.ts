@@ -2517,4 +2517,5 @@ export default [
   "Đặt URL cơ sở mà liên kết chuẩn, sơ đồ trang web, 404.html ở thư mục gốc và xuất bản di động sử dụng.",
   "Để trống để giữ văn bản giữ chỗ https://example.com.",
   "Nhập tệp .fweb hoặc .fpub",
+  "Tệp này không phải dự án .fweb, gói .fpub hay JSON của dự án.",
 ] as readonly string[];

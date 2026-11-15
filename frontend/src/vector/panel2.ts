@@ -141,7 +141,7 @@ export class ExtraSections {
     const stroke = section('Stroke align and width', false);
     this.align = segment<StrokeAlign>([{ id: 'center', label: 'Center' }, { id: 'inside', label: 'Inside' }, { id: 'outside', label: 'Outside' }], id => editor.applyPaint({ align: id }));
     const presets: { id: WidthPreset; label: string }[] = [{ id: 'uniform', label: 'Uniform' }, { id: 'taper-end', label: 'Taper end' }, { id: 'taper-both', label: 'Taper both' }, { id: 'bulge', label: 'Bulge' }, { id: 'ends', label: 'Wide ends' }];
-    stroke.body.append(field('Stroke align', this.align.root, true), grid(...presets.map(p => button(p.label, `${t('Width profile:')} ${t(p.label)}`, () => { void ops.widthPreset(p.id); }))),
+    stroke.body.append(field('Stroke align', this.align.root, true), grid(...presets.map(p => button(p.label, t('{0} {1}', [{ t: 'Width profile:' }, { t: p.label }]), () => { void ops.widthPreset(p.id); }))),
       grid(button('Flip profile', 'Reverse the width profile along the path', () => { void ops.widthFlip(); }, 'convert')), this.widthNote,
       element('p', 'fw-v-note', 'Width tool (Shift+W): drag from a point on the path to set the width there, drag a point to change it, Alt-drag changes one side, double-click a point for exact widths, Alt-click a point to remove it.'));
     this.profileName.type = 'text';

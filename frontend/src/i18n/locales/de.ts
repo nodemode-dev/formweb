@@ -2517,4 +2517,5 @@ export default [
   "Die Basis-URL festlegen, die kanonische Links, die Sitemap, die 404.html im Stammverzeichnis und portables Veröffentlichen verwenden.",
   "Leer lassen, um den Platzhalter https://example.com beizubehalten.",
   ".fweb- oder .fpub-Datei importieren",
+  "Diese Datei ist weder ein .fweb-Projekt noch ein .fpub-Paket oder Projekt-JSON.",
 ] as readonly string[];

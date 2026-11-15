@@ -8,6 +8,7 @@ button:hover { background: var(--bg-hover); }
 button:disabled { opacity: .35; cursor: default; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 1px; }
 input, select, textarea { min-width: 0; padding: var(--space-2); width: 100%; min-height: var(--control-height); }
+select:not([multiple]):not([size]) { -webkit-appearance: none; appearance: none; padding-right: var(--select-room); text-overflow: ellipsis; background-repeat: no-repeat; background-size: var(--select-chev) var(--select-chev), var(--select-chev) var(--select-chev); background-position: right calc(var(--select-edge) + var(--select-chev)) center, right var(--select-edge) center; background-image: linear-gradient(to top right, transparent calc(50% - .75px), currentColor calc(50% - .75px), currentColor calc(50% + .75px), transparent calc(50% + .75px)), linear-gradient(to bottom right, transparent calc(50% - .75px), currentColor calc(50% - .75px), currentColor calc(50% + .75px), transparent calc(50% + .75px)); }
 textarea { resize: vertical; min-height: 76px; line-height: 1.5; }
 .fw-code-area { font-family: var(--font-mono); font-size: var(--fs-11); white-space: pre; overflow-wrap: normal; }
 input[type='checkbox'] { width: 16px; min-height: 16px; height: 16px; accent-color: var(--accent-color); }
@@ -32,7 +33,7 @@ a { color: var(--accent-text); }
 .project-identity { display: flex; align-items: center; gap: var(--space-2); min-width: 184px; max-width: 250px; }
 .project-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .toolbar-spacer { flex: 1; }
-.toolbar-select { width: 88px; background: transparent; }
+.toolbar-select { width: 104px; background: transparent; }
 .toolbar-label { color: var(--text-muted); }
 .viewport-size { width: 62px; text-align: center; font-size: 11px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
 .workspace { --rail-w: 48px; --left-w: 244px; --right-w: 290px; min-height: 0; display: grid; grid-template-columns: var(--rail-w) var(--left-w) minmax(0, 1fr) var(--right-w); }

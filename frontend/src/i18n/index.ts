@@ -91,12 +91,12 @@ async function load(lang: Lang): Promise<void> {
   }
 }
 
-function lookup(english: string): string {
-  if (current === 'en') return english;
+function lookup(english: string, lang: Lang = current): string {
+  if (lang === 'en') return english;
   const tail = english.endsWith('...') ? '...' : english.endsWith(':') && !english.endsWith('::') ? ':' : '';
   const base = tail ? english.slice(0, -tail.length) : english;
-  const parent = LANG_PARENT[current];
-  const look = (key: string): string | undefined => tables.get(current)?.[key] ?? (parent ? tables.get(parent)?.[key] : undefined);
+  const parent = LANG_PARENT[lang];
+  const look = (key: string): string | undefined => tables.get(lang)?.[key] ?? (parent ? tables.get(parent)?.[key] : undefined);
   const found = look(base) ?? (tail ? look(english) : undefined);
   if (found === undefined) return english;
   return tail && look(base) !== undefined ? `${found}${tail}` : found;
@@ -106,8 +106,15 @@ type Value = string | number | { t: string };
 type Entry = { en: string; redo: () => string };
 type Rec = { en: string; shown: string; redo?: () => string };
 
-const made = new Map<string, Entry>();
-const MADE_MAX = 3000;
+// Shown string back to its English source, scoped per language; null marks a string two sources share.
+const made = new Map<string, Entry | null>();
+const MADE_MAX = 20000;
+const madeKey = (lang: string, shown: string): string => `${lang}\u0001${shown}`;
+let KEYSET: Set<string> | null = null;
+// Where unrecorded nodes were last drawn: the previous language while a switch is walking the page.
+let from: Lang | null = null;
+let settling = false;
+let done = new WeakSet<Node>();
 const rules = new Map<string, Intl.PluralRules>();
 
 function fill(text: string, values: readonly Value[], english: boolean): string {
@@ -119,10 +126,30 @@ function fill(text: string, values: readonly Value[], english: boolean): string 
   });
 }
 
-function remember(shown: string, entry: Entry): void {
-  made.delete(shown);
-  made.set(shown, entry);
+function remember(shown: string, entry: Entry, lang: Lang = current): void {
+  const key = madeKey(lang, shown);
+  const old = made.get(key);
+  made.delete(key);
+  made.set(key, old && old.en !== entry.en || old === null ? null : entry);
   if (made.size > MADE_MAX) made.delete(made.keys().next().value as string);
+}
+
+// An untranslated string on the page is its own source; a second source for it makes it ambiguous.
+function own(shown: string): void {
+  if (current !== 'en' && shown.length <= 400) remember(shown, { en: shown, redo: () => lookup(shown) });
+}
+
+// The English source of a shown string, unless the string is itself an untranslated key or is shared.
+function source(shown: string): Entry | undefined {
+  const lang = from ?? current;
+  const entry = made.get(madeKey(lang, shown));
+  if (!entry) return undefined;
+  if (lang !== 'en') {
+    KEYSET ??= new Set(KEYS);
+    const base = shown.replace(/(\.\.\.|:)$/, '');
+    if (KEYSET.has(shown) || KEYSET.has(base)) return undefined;
+  }
+  return entry;
 }
 
 function category(lang: string, n: number): string {
@@ -134,12 +161,17 @@ function category(lang: string, n: number): string {
   return found.select(n);
 }
 
-export function t(english: string, values?: readonly Value[]): string {
-  if (!values) {
+// A {t} value that is already translated goes back to its English source.
+const unmade = (values: readonly Value[]): readonly Value[] =>
+  values.map(v => typeof v === 'object' ? { t: source(v.t)?.en ?? v.t } : v);
+
+export function t(english: string, given?: readonly Value[]): string {
+  if (!given) {
     const plain = lookup(english);
     if (plain !== english) remember(plain, { en: english, redo: () => lookup(english) });
     return plain;
   }
+  const values = unmade(given);
   const render = (): string => fill(lookup(english), values, false);
   const shown = render();
   remember(shown, { en: fill(english, values, true), redo: render });
@@ -147,7 +179,7 @@ export function t(english: string, values?: readonly Value[]): string {
 }
 
 export function tn(n: number, one: string, other: string, values?: readonly Value[]): string {
-  const args = values ?? [n];
+  const args = values ? unmade(values) : [n];
   const pick = (lang: string): string => category(lang, n) === 'one' ? one : other;
   const render = (): string => fill(lookup(pick(current)), args, false);
   const shown = render();
@@ -162,10 +194,15 @@ export async function setLanguage(lang: Lang): Promise<void> {
   try { localStorage.setItem(PREF, lang); } catch {}
   try { await load(lang); } catch { return; }
   if (wanted !== lang || lang === current) return;
+  drain(false);
+  const previous = current;
   current = lang;
   document.documentElement.lang = lang;
+  done = new WeakSet();
   for (const fn of listeners) fn();
-  translatePage();
+  drain(true);
+  from = previous;
+  try { translatePage(); } finally { from = null; }
 }
 
 export async function startLanguage(): Promise<void> {
@@ -195,16 +232,17 @@ const skipped = (node: Node | null): boolean => {
 const skippedAttr = (el: Element): boolean => !!el.closest(SKIP_ATTR);
 
 function translateText(node: Text): void {
+  if (from && done.has(node)) return;
+  if (settling) done.add(node);
   const raw = node.data;
   const rec = textEn.get(node);
   if (rec && raw === rec.shown) {
     const next = rec.redo ? rec.redo() : t(rec.en);
     if (next !== raw) { rec.shown = next; node.data = next; }
-    if (current === 'en' || next === rec.en) textEn.delete(node);
     return;
   }
   const trimmed = raw.trim();
-  const entry = trimmed ? made.get(trimmed) : undefined;
+  const entry = trimmed ? source(trimmed) : undefined;
   if (entry && !skipped(node)) {
     const lead = raw.slice(0, raw.indexOf(trimmed)), tail = raw.slice(lead.length + trimmed.length);
     const redo = (): string => lead + entry.redo() + tail;
@@ -213,13 +251,21 @@ function translateText(node: Text): void {
     if (next !== raw) node.data = next;
     return;
   }
-  if (!trimmed || trimmed.length > 400 || !known(trimmed) || skipped(node)) { if (rec) textEn.delete(node); return; }
-  const next = raw.replace(trimmed, t(trimmed));
-  textEn.set(node, { en: raw, shown: next });
+  if (!trimmed || trimmed.length > 400 || !known(trimmed) || skipped(node)) {
+    if (rec) textEn.delete(node);
+    if (trimmed && !skipped(node)) own(trimmed);
+    return;
+  }
+  const lead = raw.slice(0, raw.indexOf(trimmed)), tail = raw.slice(lead.length + trimmed.length);
+  const redo = (): string => lead + t(trimmed) + tail;
+  const next = redo();
+  textEn.set(node, { en: raw, shown: next, redo });
   node.data = next;
 }
 
 function translateAttrs(el: Element): void {
+  if (from && done.has(el)) return;
+  if (settling) done.add(el);
   for (const name of ATTRS) {
     const value = el.getAttribute(name);
     if (value === null) continue;
@@ -230,7 +276,7 @@ function translateAttrs(el: Element): void {
       if (next !== value) { rec.shown = next; el.setAttribute(name, next); }
       continue;
     }
-    const entry = made.get(value);
+    const entry = source(value);
     if (entry && !skippedAttr(el)) {
       if (!recs) { recs = new Map(); attrEn.set(el, recs); }
       const next = entry.redo();
@@ -238,7 +284,11 @@ function translateAttrs(el: Element): void {
       if (next !== value) el.setAttribute(name, next);
       continue;
     }
-    if (!known(value) || skippedAttr(el)) { recs?.delete(name); continue; }
+    if (!known(value) || skippedAttr(el)) {
+      recs?.delete(name);
+      if (!skippedAttr(el)) own(value);
+      continue;
+    }
     if (!recs) { recs = new Map(); attrEn.set(el, recs); }
     const next = t(value);
     recs.set(name, { en: value, shown: next });
@@ -273,17 +323,29 @@ function translatePage(): void {
   observer?.observe(document.body, OBSERVE);
 }
 
+function apply(records: MutationRecord[]): void {
+  observer?.disconnect();
+  for (const record of records) {
+    if (record.type === 'childList') record.addedNodes.forEach(node => walk(node));
+    else if (record.type === 'characterData' && record.target instanceof Text) translateText(record.target);
+    else if (record.type === 'attributes' && record.target instanceof Element) translateAttrs(record.target);
+  }
+  observer?.observe(document.body, OBSERVE);
+}
+
+// Handle queued changes now; after the listeners ran (settle) they are already drawn in the new language.
+function drain(settle: boolean): void {
+  if (!observer) return;
+  const records = observer.takeRecords();
+  if (!records.length || (!settle && current === 'en')) return;
+  settling = settle;
+  try { apply(records); } finally { settling = false; }
+}
+
 export function startPageTranslator(): void {
   if (observer || typeof MutationObserver === 'undefined') return;
   observer = new MutationObserver(records => {
-    if (current === 'en') return;
-    observer?.disconnect();
-    for (const record of records) {
-      if (record.type === 'childList') record.addedNodes.forEach(node => walk(node));
-      else if (record.type === 'characterData' && record.target instanceof Text) translateText(record.target);
-      else if (record.type === 'attributes' && record.target instanceof Element) translateAttrs(record.target);
-    }
-    observer?.observe(document.body, OBSERVE);
+    if (current !== 'en') apply(records);
   });
   translatePage();
 }

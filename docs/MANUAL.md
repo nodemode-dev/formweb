@@ -25,7 +25,7 @@ sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicat
 
 Add `xvfb` for a headless check. Build with `cd src-tauri` and `cargo build --release` (about 6 minutes); the binary is `src-tauri/target/release/formweb`. The shell uses the fixed port 8240 and reuses a healthy FormWeb service already running there. Run it with `FORMWEB_ROOT` set to the repository. Under Xvfb also set `WEBKIT_DISABLE_DMABUF_RENDERER=1`. Closing the window shuts the shell down and leaves no process behind.
 
-At 1440 x 900, Team libraries, the Library panel and Preferences match Chrome. Two differences in WebKitGTK: native select arrows are the GTK triangle, not Chrome's chevron, and the top-bar Desktop select clips its text because that select has no custom chevron. The clipped select is an open item.
+At 1440 x 900 the top bar, Team libraries, the Library panel, Preferences, Remove background, the brand kit, the stock dialogs and the Projects dialog match Chrome. Since 0.20.5 every select draws its own chevron, so selects look the same and show their whole value in both engines (the Desktop select reads in full in every language). Three small differences remain in WebKitGTK: range sliders fill their track with the accent colour, an unchecked checkbox is a plain white square, and number inputs show their spin buttons without hovering.
 
 ## Advanced studio
 

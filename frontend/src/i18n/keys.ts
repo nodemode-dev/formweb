@@ -2517,4 +2517,5 @@ export const KEYS: readonly string[] = [
   "Set the base URL that canonical links, the sitemap, the root 404.html and portable publishing use.",
   "Leave it empty to keep the https://example.com placeholder.",
   "Import .fweb or .fpub file",
+  "That file is not a .fweb project, a .fpub package or project JSON.",
 ];

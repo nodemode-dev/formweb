@@ -365,10 +365,10 @@ export function selectSection(editor: Editor): { root: HTMLElement; update: () =
   const picker = editor.picker;
   const box = section(t('Select'), false);
   const rows: { key: keyof Criteria; label: string; min: number; max: number; step: number; hint: string }[] = [
-    { key: 'fill', label: t('Fill Color'), min: 0, max: 255, step: 1, hint: t('Color tolerance, 0 to 255 per RGB channel') },
-    { key: 'stroke', label: t('Stroke Color'), min: 0, max: 255, step: 1, hint: t('Color tolerance, 0 to 255 per RGB channel') },
-    { key: 'weight', label: t('Stroke Weight'), min: 0, max: 1000, step: 0.5, hint: t('Weight tolerance in points') },
-    { key: 'opacity', label: t('Opacity'), min: 0, max: 100, step: 1, hint: t('Opacity tolerance in percent') }
+    { key: 'fill', label: 'Fill Color', min: 0, max: 255, step: 1, hint: 'Color tolerance, 0 to 255 per RGB channel' },
+    { key: 'stroke', label: 'Stroke Color', min: 0, max: 255, step: 1, hint: 'Color tolerance, 0 to 255 per RGB channel' },
+    { key: 'weight', label: 'Stroke Weight', min: 0, max: 1000, step: 0.5, hint: 'Weight tolerance in points' },
+    { key: 'opacity', label: 'Opacity', min: 0, max: 100, step: 1, hint: 'Opacity tolerance in percent' }
   ];
   const wrap = element('div', 'fw-v-stack');
   for (const row of rows) {
@@ -381,7 +381,7 @@ export function selectSection(editor: Editor): { root: HTMLElement; update: () =
     const amount = numberInput(row.min, row.max, row.step, n => { picker.wand.tolerance[row.key] = n; });
     amount.value = String(picker.wand.tolerance[row.key]);
     amount.title = row.hint;
-    amount.setAttribute('aria-label', `${row.label}: ${row.hint}`);
+    amount.setAttribute('aria-label', t('{0}: {1}', [{ t: row.label }, { t: row.hint }]));
     const line = element('div', 'fw-v-row');
     line.append(label, field(t('Tolerance'), amount));
     wrap.append(line);

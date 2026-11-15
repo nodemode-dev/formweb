@@ -936,7 +936,7 @@ const deletePageNote = element('p', 'empty-note');
 deletePagePane.append(deletePageNote);
 const projectsPane = dialogPane('projects');
 const projectButtons = element('div', 'control-row');
-projectButtons.append(button('New site', 'plus', () => openDialog('new')), button('Import .fweb / JSON', 'folder', () => importer.click()), button('Save current', 'save', saveProject));
+projectButtons.append(button('New site', 'plus', () => openDialog('new')), button('Import .fweb or .fpub file', 'folder', () => importer.click()), button('Save current', 'save', saveProject));
 const projectList = element('div');
 const projectEmpty = element('p', 'empty-note', 'No saved projects yet. Save the current site to keep an editable snapshot.');
 projectsPane.append(projectButtons, projectList, projectEmpty);
@@ -1935,15 +1935,16 @@ mediaInput.addEventListener('change', () => void run(async () => {
 }));
 importer.addEventListener('change', () => void run(async () => {
   const file = importer.files?.[0];
+  importer.value = '';
   if (!file) return;
   const head = new Uint8Array(await file.slice(0, 2).arrayBuffer());
   if (head[0] === 0x50 && head[1] === 0x4b) {
     await replace('/api/load', new Blob([file], { type: 'application/zip' }));
   } else {
-    const data = JSON.parse(await file.text());
+    let data: { site?: unknown };
+    try { data = JSON.parse(await file.text()); } catch { throw new Error('That file is not a .fweb project, a .fpub package or project JSON.'); }
     await replace('/api/load', data.site ? data : { site: data });
   }
-  importer.value = '';
   closeDialog();
   status(`Imported "${file.name}".`);
 }));

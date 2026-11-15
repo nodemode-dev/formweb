@@ -2517,4 +2517,5 @@ export default [
   "Az alap-URL beállítása, amelyet a kanonikus hivatkozások, a webhelytérkép, a gyökér 404.html és a hordozható közzététel használ.",
   "Hagyja üresen, hogy megmaradjon a https://example.com helyőrző.",
   ".fweb vagy .fpub fájl importálása",
+  "Ez a fájl nem .fweb projekt, nem .fpub csomag és nem projekt-JSON.",
 ] as readonly string[];

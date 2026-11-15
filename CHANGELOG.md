@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.5 · 2026-11-11
+
+- Every dropdown draws its own arrow, so dropdowns look the same and show their whole value in the browser and in the desktop app on Linux. The Desktop device dropdown in the top bar now reads in full in every language.
+- Every place that offers to import a project names `.fpub` beside `.fweb`: the Projects dialog button, the Start page and the format list.
+- Importing a file that is not a project now says so plainly instead of showing a parser error, and you can pick the same file again right away.
+- Switching the editor language in Preferences without reloading no longer leaves a wrong word behind (for example "Тема" where "Дизайн" belonged after going from German to Russian). Every switch now matches a fresh start in that language.
+- The new message is in all 26 languages.
+
 ## 0.20.4 · 2026-11-11
 
 - File > Import .fweb or .fpub file opens a `.fpub`, the one-file package FormPublisher saves for a build, as a project, with its pages and images. FormWeb checks that the package is whole before it loads anything; a package that FormWeb did not make is refused with a pointer to FormPublisher, which also checks the signature.

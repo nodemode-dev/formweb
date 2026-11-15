@@ -2517,4 +2517,5 @@ export default [
   "Ange den bas-URL som kanoniska länkar, webbplatskartan, 404.html i roten och portabel publicering använder.",
   "Lämna tomt för att behålla platshållaren https://example.com.",
   "Importera .fweb- eller .fpub-fil",
+  "Filen är varken ett .fweb-projekt, ett .fpub-paket eller projekt-JSON.",
 ] as readonly string[];

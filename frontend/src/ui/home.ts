@@ -17,7 +17,7 @@ export interface HomeDeps {
 
 type Page = 'start' | 'recent' | 'projects';
 
-const FORMATS = ['FWEB', 'JSON', 'HTML', 'CSS', 'SVG', 'PNG', 'JPEG', 'WEBP', 'GIF', 'CSV'];
+const FORMATS = ['FWEB', 'FPUB', 'JSON', 'HTML', 'CSS', 'SVG', 'PNG', 'JPEG', 'WEBP', 'GIF', 'CSV'];
 
 const PREF_KEY = 'formweb.homePrefs';
 
@@ -60,7 +60,7 @@ export class HomeScreen {
       ${navItem('start', 'image', 'Start')}${navItem('recent', 'history', 'Recent')}${navItem('projects', 'folder', 'Projects')}
       <div class="fw-home-nav-sep"></div>
       <div class="fw-home-nav-title">Create</div>
-      ${cmdItem('file.new', 'plus', 'New site')}${cmdItem('file.projects', 'folder', 'Open project')}${cmdItem('file.import', 'upload', 'Import .fweb file')}${cmdItem('page.generate', 'wand', 'Generate pages')}
+      ${cmdItem('file.new', 'plus', 'New site')}${cmdItem('file.projects', 'folder', 'Open project')}${cmdItem('file.import', 'upload', 'Import .fweb or .fpub file')}${cmdItem('page.generate', 'wand', 'Generate pages')}
       <div class="fw-home-nav-foot"><button class="fw-home-nav-item fw-home-back" type="button" data-back hidden>${glyph('chevronLeft')}<span>Back to Editor</span></button>${cmdItem('edit.settings', 'gear', 'Preferences')}${cmdItem('help.guide', 'info', 'Help')}</div>
     </nav>
     <div class="fw-home-main">
