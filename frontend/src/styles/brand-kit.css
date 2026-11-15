@@ -32,6 +32,10 @@
 .fw-team-graphics { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: var(--space-2); }
 .fw-team-graphic { display: flex; flex-direction: column; gap: 4px; padding: 6px; border: 1px solid var(--border-soft); border-radius: 8px; }
 .fw-team-graphic img { width: 100%; height: 72px; object-fit: contain; border-radius: 4px; background: #ffffff; }
+.dialog:has(.dialog-body > :not([hidden]) > .fw-team) { height: min(86vh, 780px); max-height: none; }
+.dialog:has(.dialog-body > :not([hidden]) > .fw-team) .dialog-body { flex: 1 1 auto; min-height: 0; scrollbar-gutter: stable; }
+.fw-team > .fw-brand-list { min-height: 140px; max-height: 140px; overflow-y: auto; }
+.fw-team > .fw-brand-list > * { flex: none; }
 .fw-team-graphic-name { overflow: hidden; color: var(--text-secondary); font-size: var(--fs-11); text-overflow: ellipsis; white-space: nowrap; }
 .fw-team-actions { display: flex; flex-wrap: wrap; gap: 4px; }
 .fw-team-member { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--space-2); min-height: 28px; }

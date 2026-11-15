@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.20.3 · 2026-11-11
+
+- A part of a copy, copied into another site, keeps a short id from the first paste: `label-copy-1` pastes as `label-copy-5`, not `label-copy-1-copy-5`. Copies made by this version still paste into 0.20.2, which simply ignores the extra information.
+- The Remove background dialog fits small windows: the whole picture and the Apply button stay in view at 760 x 640.
+- The Library panel, the Team libraries dialog and the site icon preview no longer jump while their lists and images arrive.
+
 ## 0.20.2 · 2026-11-10
 
 - When FormWeb starts, it removes temporary files a crash or a killed paste left in its data folder more than 10 minutes earlier. It touches nothing else, and logs one line when it removed any.
