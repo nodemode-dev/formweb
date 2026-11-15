@@ -10,7 +10,7 @@
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -28,6 +28,44 @@ const MIN_LOGICAL: (f64, f64) = (1024.0, 680.0);
 const SCREEN_FRACTION: f64 = 0.9;
 
 struct Service(Mutex<Option<Child>>);
+
+/// Project files the system asked the app to open (a double-click in Finder or Explorer), waiting for the page.
+struct Opened(Mutex<Vec<PathBuf>>);
+
+#[cfg(target_os = "macos")]
+fn queue_file(handle: &tauri::AppHandle, path: PathBuf) {
+    if !path.is_file() { return; }
+    handle.state::<Opened>().0.lock().unwrap().push(path);
+    if let Some(window) = handle.get_webview_window("main") {
+        let _ = window.eval("window.dispatchEvent(new Event('formweb-open-file'))");
+    }
+}
+
+/// The bytes of the oldest waiting file, or nothing. The page loads them the way File > Import does.
+#[tauri::command]
+fn take_opened_file(opened: tauri::State<Opened>) -> tauri::ipc::Response {
+    let path = { let mut list = opened.0.lock().unwrap(); if list.is_empty() { None } else { Some(list.remove(0)) } };
+    tauri::ipc::Response::new(path.and_then(|path| std::fs::read(path).ok()).unwrap_or_default())
+}
+
+/// A link the page opens in a new window goes to the system browser: the web view opens no window of its own.
+fn open_outside(url: &str) {
+    #[cfg(target_os = "macos")]
+    let mut command = Command::new("open");
+    #[cfg(windows)]
+    let mut command = {
+        let mut command = Command::new("rundll32");
+        command.arg("url.dll,FileProtocolHandler");
+        command
+    };
+    #[cfg(all(unix, not(target_os = "macos")))]
+    let mut command = Command::new("xdg-open");
+    if let Ok(mut child) = command.arg(url).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).spawn() {
+        std::thread::spawn(move || {
+            let _ = child.wait();
+        });
+    }
+}
 
 #[cfg(unix)]
 static SERVICE_GROUP: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
@@ -146,6 +184,15 @@ fn open_editor(handle: &tauri::AppHandle) {
         .background_color(reveal::BACKGROUND);
     #[cfg(target_os = "macos")]
     let builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay).hidden_title(true);
+    // The macOS and Linux web views cancel a download unless a handler is set; with one the file goes to Downloads.
+    #[cfg(not(windows))]
+    let builder = builder.on_download(|_webview, _event| true);
+    let builder = builder.on_new_window(|url, _features| {
+        if matches!(url.scheme(), "http" | "https") {
+            open_outside(url.as_str());
+        }
+        tauri::webview::NewWindowResponse::Deny
+    });
     let builder = builder.on_page_load(|window, payload| {
         if matches!(payload.event(), tauri::webview::PageLoadEvent::Finished) {
             traffic_lights::place(&window.as_ref().window());
@@ -168,6 +215,7 @@ fn main() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(Service(Mutex::new(None)))
+        .manage(Opened(Mutex::new(std::env::args_os().skip(1).map(PathBuf::from).filter(|path| path.is_file()).take(1).collect())))
         .on_window_event(|window, event| {
             if window.label() == "main"
                 && matches!(
@@ -181,7 +229,7 @@ fn main() {
                 traffic_lights::place(window);
             }
         })
-        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready, traffic_lights::set_window_title, text_edit::text_edit])
+        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready, traffic_lights::set_window_title, text_edit::text_edit, take_opened_file])
         .setup(|app| {
             reveal::round_splash(app.handle());
             let handle = app.handle().clone();
@@ -231,6 +279,12 @@ fn main() {
             // The last window closing ends the app; the service the shell started goes with it.
             RunEvent::WindowEvent { event: tauri::WindowEvent::Destroyed, .. } if handle.webview_windows().is_empty() => handle.exit(0),
             RunEvent::Exit => stop_service(handle),
+            #[cfg(target_os = "macos")]
+            RunEvent::Opened { urls } => {
+                for url in urls {
+                    if let Ok(path) = url.to_file_path() { queue_file(handle, path); }
+                }
+            }
             _ => {}
         }
     });

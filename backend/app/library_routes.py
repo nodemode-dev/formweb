@@ -109,8 +109,10 @@ async def _preamble(site: dict, templates: list[dict], root: str, update: bool, 
         commands.append({'command': 'extension.set', 'params': {'group': 'code', 'value': group}})
     for preset_id in sorted({t['preset'] for t in templates if t.get('preset')}):
         data = library.preset(preset_id)
-        commands += library.preset_commands(site, data, _fonts(site, data, 'missing'), 'missing')
-        commands += library.page_commands(site, data, root, 'missing')
+        empty = not ((site.get('nodes') or {}).get(root) or {}).get('children')
+        fresh = 'all' if empty and len(site.get('pages') or []) == 1 else 'missing'
+        commands += library.preset_commands(site, data, _fonts(site, data, fresh), fresh)
+        commands += library.page_commands(site, data, root, 'all' if empty else 'missing')
     registered = library.properties_command(site, *templates)
     if registered:
         commands.append(registered)
@@ -169,7 +171,7 @@ async def library_insert(section_id: str, request: Request):
         raise EngineError('Parent node not found.', 404)
     warnings: list[str] = []
     commands = await _preamble(site, [template], page['root'], bool(body.get('updateComponents')), warnings)
-    made, root, behaviors = library.expand(template, parent, body.get('values') or {})
+    made, root, behaviors = library.expand(template, parent, body.get('values') or {}, demote=library.has_h1(site.get('nodes') or {}, page['root']))
     commands += made
     index = body.get('index')
     if isinstance(index, int) and not isinstance(index, bool) and 0 <= index < len(site['nodes'][parent].get('children') or []):
@@ -232,11 +234,15 @@ async def library_apply_starter(starter_id: str, request: Request):
             ids.add(page_id)
             root = f'{page_id}-root'
             commands.append({'command': 'page.add', 'params': {'name': page.get('name') or slug, 'slug': '/' + slug, 'id': page_id, 'root': root}})
+            for preset_id in sorted({t['preset'] for t in templates.values() if t.get('preset')}):
+                commands += library.page_commands(site, library.preset(preset_id), root, 'all')
         made_pages.append(page_id)
+        headline = False
         for sid in page.get('sections') or []:
             template = templates[sid]
             own = {k: v for k, v in values.items() if k in (template.get('fields') or {})}
-            made, _, extra = library.expand(template, root, own)
+            made, _, extra = library.expand(template, root, own, demote=headline)
+            headline = headline or library.has_h1({}, template['tree'])
             commands += made
             behaviors.append(extra)
     merged = library.behaviors_command(site, *behaviors)

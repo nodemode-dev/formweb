@@ -194,6 +194,7 @@ export class Menubar {
   private place(view: MenuView, left: number, top: number, beside?: DOMRect): void {
     view.popup.style.left = `${Math.round(left)}px`;
     view.popup.style.top = `${Math.round(top)}px`;
+    view.popup.style.maxHeight = beside ? '' : `${Math.max(120, Math.floor(window.innerHeight - 4 - top))}px`;
     view.popup.hidden = false;
     const width = view.popup.offsetWidth;
     const height = view.popup.offsetHeight;

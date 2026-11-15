@@ -15,6 +15,7 @@ import { HomeScreen, homePref, setHomePref } from './ui/home';
 import { RECENT_MAX } from './ui/home-files';
 import { demoCommands, openDemo, type DemoHooks } from './ui/demos';
 import { unsavedWork } from './ui/unsaved';
+import { watchOpenedFiles } from './ui/opened-file';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
@@ -1315,7 +1316,7 @@ window.addEventListener('resize', prefsQueueWire);
 const resetPrefs = button('Reset All Preferences...', 'trash', undefined, 'fw-prefs-danger');
 const resetNote = element('p', 'micro', 'Every FormWeb preference on this device goes back to its default and the editor reloads. Your sites and projects are kept.');
 const resetConfirm = button('Reset', undefined, () => {
-  try { for (const key of Object.keys(localStorage)) if (key.startsWith('formweb.')) localStorage.removeItem(key); } catch { }
+  try { for (const key of Object.keys(localStorage)) if (key.startsWith('formweb.') || ['nodemode_ui_settings', 'formweb_theme', 'formweb_language', 'formweb_shortcuts', 'formweb_workspace', 'formweb_terminal', 'fw.vector.pathfinder'].includes(key)) localStorage.removeItem(key); } catch { }
   location.reload();
 }, 'fw-prefs-danger');
 const resetCancel = button('Cancel', undefined, () => { resetRow.hidden = true; resetPrefs.hidden = false; });
@@ -1734,8 +1735,10 @@ async function createSite(name: string, starter: string): Promise<void> {
 }
 async function performDialogAction(): Promise<void> {
   if (dialogMode === 'new') {
-    await createSite(newName.value.trim() || 'Untitled website', newStarter.value);
+    const name = newName.value.trim() || 'Untitled website', starter = newStarter.value;
     closeDialog();
+    if (!(await mayReplace())) return;
+    await createSite(name, starter);
     status('New site created.');
   } else if (dialogMode === 'page') {
     const before = new Set(state().site.pages.map(page => page.id));
@@ -1796,8 +1799,10 @@ async function updateProjects(): Promise<void> {
     const label = element('div');
     label.append(element('span'), element('small'));
     const open = button('Open', 'folder', async () => {
-      await replace(`/api/projects/${encodeURIComponent(row.dataset.key!)}/open`, {});
+      const id = row.dataset.key!;
       closeDialog();
+      if (!(await mayReplace())) return;
+      await replace(`/api/projects/${encodeURIComponent(id)}/open`, {});
       status('Project opened.');
     });
     row.append(label, open);
@@ -1961,8 +1966,9 @@ importer.addEventListener('change', () => void run(async () => {
   const file = importer.files?.[0];
   importer.value = '';
   if (!file) return;
-  await loadProjectFile(file);
   closeDialog();
+  if (!(await mayReplace())) return;
+  await loadProjectFile(file);
   status(`Imported "${file.name}".`);
 }));
 document.addEventListener('keydown', event => {
@@ -2234,6 +2240,7 @@ const home = new HomeScreen(app, {
   files: {
     list: async tab => (await request<{ projects: { id: string; name: string; updatedAt: string }[] }>('/api/projects')).projects.map(project => ({ key: project.id, name: project.name, kind: 'FWEB', size: 0, when: Date.parse(project.updatedAt) || 0 })).sort((a, b) => b.when - a.when).slice(0, tab === 'recent' ? RECENT_MAX : undefined),
     open: item => void run(async () => {
+      if (!(await mayReplace())) return;
       await replace(`/api/projects/${encodeURIComponent(item.key)}/open`, {});
       home.dismiss();
       status('Project opened.');
@@ -2272,4 +2279,9 @@ void run(async () => {
   void agentConnect.refresh().catch(() => undefined);
   void terminalDock.remount();
   status('Ready. Select an element, or open Insert to add content.');
+  watchOpenedFiles(file => run(async () => {
+    if (!(await mayReplace())) return;
+    await loadProjectFile(file);
+    status('Project opened.');
+  }));
 }).finally(revealApp);

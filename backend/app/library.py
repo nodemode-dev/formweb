@@ -138,7 +138,19 @@ def _substitute(value, parent: str, suffix: str, values: dict):
     return value
 
 
-def expand(template: dict, parent: str, overrides: dict | None = None, suffix: str | None = None) -> tuple[list[dict], str, dict]:
+def has_h1(nodes: dict, root: str) -> bool:
+    """True when the subtree under `root` (site nodes by id, or a template tree) holds an h1."""
+    stack = [root]
+    while stack:
+        item = stack.pop()
+        node = item if isinstance(item, dict) else nodes.get(item) or {}
+        if node.get('tag') == 'h1':
+            return True
+        stack.extend(node.get('children') or [])
+    return False
+
+
+def expand(template: dict, parent: str, overrides: dict | None = None, suffix: str | None = None, demote: bool = False) -> tuple[list[dict], str, dict]:
     """node.add commands for the template's tree (parents first), then its own commands. Returns them, the root id and
     the template's `behaviors` (node id to {states, actions, conditions}); callers merge those with `behaviors_command`
     after every template in the batch, because `extension.set` replaces a whole group."""
@@ -150,7 +162,7 @@ def expand(template: dict, parent: str, overrides: dict | None = None, suffix: s
         key = spec.get('key')
         if not isinstance(key, str) or not KEY.fullmatch(key):
             raise EngineError(f'Section {template.get("id")} has a node without a valid key.', 500)
-        node = {'id': f'{key}-{suffix}', 'tag': spec['tag'], 'name': spec.get('name') or key, 'text': spec.get('text', ''),
+        node = {'id': f'{key}-{suffix}', 'tag': 'h2' if demote and spec['tag'] == 'h1' else spec['tag'], 'name': spec.get('name') or key, 'text': spec.get('text', ''),
                 'children': [], 'attrs': dict(spec.get('attrs') or {}), 'styles': dict(spec.get('styles') or {}),
                 'breakpoints': {name: dict(styles) for name, styles in (spec.get('breakpoints') or {}).items()}}
         commands.append({'command': 'node.add', 'params': {'parent': under, 'node': _substitute(node, parent, suffix, values)}})

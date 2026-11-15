@@ -99,7 +99,15 @@ if [ "$os" = macos ]; then
   product=FormWeb
   app="$bundle/macos/$product.app"
   [ -d "$app" ] || die "the build finished but $app is missing"
-  codesign --verify --deep --strict "$app" 2>/dev/null || fw_say "codesign could not verify the app; it is ad-hoc signed, so macOS may ask once before it opens"
+  if [ -n "${APPLE_SIGNING_IDENTITY:-}" ]; then
+    codesign --verify --deep --strict "$app" || die "codesign could not verify the signed app; nothing was packed"
+  else
+    codesign --verify --deep --strict "$app" 2>/dev/null || fw_say "codesign could not verify the app; it is ad-hoc signed, so macOS may ask once before it opens"
+  fi
+  step "checking the engine inside the app"
+  [ -x "$app/Contents/MacOS/formweb-engine" ] || die "the app has no engine at Contents/MacOS/formweb-engine; nothing was packed"
+  FORMWEB_HOME="$(mktemp -d)" "$app/Contents/MacOS/formweb-engine" --selfcheck \
+    || die "the engine inside the app failed its self-check under the app's signature; run $app/Contents/MacOS/formweb-engine --selfcheck to see why. Nothing was packed"
   step "packing the disk image"
   mkdir -p "$bundle/dmg"
   dmg="$bundle/dmg/${product}_${version}_$(uname -m).dmg"

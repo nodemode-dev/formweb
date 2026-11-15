@@ -337,7 +337,7 @@
           const kind = slot.getAttribute('data-fw-slot');
           if (kind === 'title') setText(slot, String(item.title ?? ''));
           else if (kind === 'path') setText(slot, '/' + String(item.path ?? ''));
-          else if (kind === 'excerpt') setText(slot, String(item.text ?? ''));
+          else if (kind === 'excerpt') setText(slot, [...String(item.text ?? '')].slice(0, 400).join(''));
           else if (kind === 'link') slot.setAttribute('href', prefix + String(item.path ?? ''));
         }
         frag.append(copy);

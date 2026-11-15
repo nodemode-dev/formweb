@@ -98,7 +98,7 @@ pub fn value_ok(name: &str, value: &str) -> Option<bool> {
         "text-decoration-thickness" => matches!(value, "auto" | "from-font") || length_token(value, false),
         "overflow-wrap" => keyword(value, &["normal", "break-word", "anywhere"]),
         "hyphens" => keyword(value, &["none", "manual", "auto"]),
-        "appearance" | "-webkit-appearance" => keyword(value, &["none", "auto"]),
+        "appearance" | "-webkit-appearance" => keyword(value, &["none", "auto", "textfield", "menulist-button"]),
         "resize" => keyword(value, &["none", "both", "horizontal", "vertical", "block", "inline"]),
         "text-rendering" => keyword(value, &["auto", "optimizeSpeed", "optimizeLegibility", "geometricPrecision"]),
         "-webkit-user-select" => keyword(value, &["auto", "none", "text", "all", "contain"]),

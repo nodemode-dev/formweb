@@ -442,7 +442,7 @@ pub fn audit(site: &Site) -> Value {
     }
     for node in site.nodes.values() {
         if node.tag == "img" && !node.attrs.contains_key("alt") { issues.push(json!({"severity":"warning","code":"a11y.alt","node":node.id,"message":"Image needs alt text (empty alt is valid for decoration)"})); }
-        if node.tag == "a" && node.attrs.get("href").map(|s| s.is_empty() || s == "#").unwrap_or(true) { issues.push(json!({"severity":"warning","code":"link.placeholder","node":node.id,"message":"Link needs a destination"})); }
+        if node.tag == "a" && node.attrs.get("data-fw-slot").map(String::as_str) != Some("link") && node.attrs.get("href").map(|s| s.is_empty() || s == "#").unwrap_or(true) { issues.push(json!({"severity":"warning","code":"link.placeholder","node":node.id,"message":"Link needs a destination"})); }
         if ["input", "select", "textarea"].contains(&node.tag.as_str()) && node.attrs.get("type").map(String::as_str) != Some("hidden") {
             let has_label = node.attrs.contains_key("aria-label") || node.attrs.contains_key("aria-labelledby") || node.attrs.get("id").map(|id| site.nodes.values().any(|n| n.tag == "label" && n.attrs.get("for") == Some(id))).unwrap_or(false) || parent_of(site, &node.id).map(|id| site.nodes[&id].tag == "label").unwrap_or(false);
             if !has_label { issues.push(json!({"severity":"warning","code":"a11y.form-label","node":node.id,"message":"Form control needs an associated label"})); }

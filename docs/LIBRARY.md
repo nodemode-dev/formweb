@@ -166,7 +166,7 @@ One plain modern JavaScript file that exports `mount(root, props, ctx)` and retu
 | `ready()` | Call once when the first real frame is drawn. It hides the poster. |
 | `reduced` | A getter, true when the visitor prefers reduced motion. |
 
-Every subscription returns an off function and is cleaned up when the component is destroyed. An error thrown inside a callback marks the host with `data-fw-error` and never logs a console error.
+Every subscription returns an off function and is cleaned up when the component is destroyed. An error thrown inside a callback marks the host with `data-fw-component-error` and logs one console error that names the component id, the host node and the error; the visitor still sees the poster.
 
 ### Scroll stories
 

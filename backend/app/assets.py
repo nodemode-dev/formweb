@@ -16,6 +16,7 @@ from .engine import EngineError
 
 ASSET_NAME = re.compile(r'^[0-9a-f]{64}\.(png|jpg|gif|webp|svg|mp4|webm|woff2)$')
 ASSET_REF = re.compile(r'/api/assets/([0-9a-f]{64}\.(?:png|jpg|gif|webp|svg|mp4|webm|woff2))')
+ROOT_404_PREFIX = re.compile(r'<script src="(/[^"]*)assets/runtime\.js" defer>')
 MIME_TYPES = {'png': 'image/png', 'jpg': 'image/jpeg', 'gif': 'image/gif', 'webp': 'image/webp', 'svg': 'image/svg+xml',
               'mp4': 'video/mp4', 'webm': 'video/webm', 'woff2': 'font/woff2'}
 SIZE_LIMITS = {'mp4': MAX_VIDEO_BYTES, 'webm': MAX_VIDEO_BYTES, 'woff2': MAX_FONT_BYTES, 'svg': MAX_SVG_BYTES}
@@ -444,6 +445,9 @@ def bundle_assets(result: dict):
             continue
         file = dict(original)
         prefix = '../' * (len(PurePosixPath(file['path']).parts) - 1)
+        if file['path'] == '404.html':
+            rooted = ROOT_404_PREFIX.search(file['content'])
+            prefix = rooted.group(1) if rooted else prefix
         for name in ASSET_REF.findall(file['content']):
             names.add(name)
             path = 'assets/' + name
