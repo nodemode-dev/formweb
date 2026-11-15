@@ -2505,4 +2505,6 @@ export default [
   "Denne nettleseren tillater ikke skriving til utklippstavlen her.",
   "Denne nettleseren tillater ikke lesing av utklippstavlen her. Klikk i siden og lim inn med tastaturet i stedet.",
   "Tillat tilgang til utklippstavlen for å lime inn et element, eller lim inn med tastaturet på siden.",
+  "Én ressurs er for stor til å bygges inn og kan bare limes inn i denne FormWeb.",
+  "{n} ressurser er for store til å bygges inn og kan bare limes inn i denne FormWeb.",
 ] as readonly string[];

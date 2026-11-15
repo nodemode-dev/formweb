@@ -2505,4 +2505,6 @@ export default [
   "Tämä selain ei salli leikepöydälle kirjoittamista tässä.",
   "Tämä selain ei salli leikepöydän lukemista tässä. Napsauta sivua ja liitä sen sijaan näppäimistöllä.",
   "Salli pääsy leikepöydälle liittääksesi elementin tai liitä näppäimistöllä sivulla.",
+  "Yksi resurssi on liian suuri upotettavaksi, ja se voidaan liittää vain tähän FormWebiin.",
+  "{n} resurssia on liian suuria upotettaviksi, ja ne voidaan liittää vain tähän FormWebiin.",
 ] as readonly string[];

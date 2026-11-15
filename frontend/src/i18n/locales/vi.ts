@@ -2505,4 +2505,6 @@ export default [
   "Trình duyệt này không cho phép ghi vào bộ nhớ tạm ở đây.",
   "Trình duyệt này không cho phép đọc bộ nhớ tạm ở đây. Hãy nhấp vào trang rồi dán bằng bàn phím.",
   "Hãy cho phép truy cập bộ nhớ tạm để dán phần tử, hoặc dán bằng bàn phím trong trang.",
+  "Một tài nguyên quá lớn để nhúng và chỉ có thể dán trong FormWeb này.",
+  "{n} tài nguyên quá lớn để nhúng và chỉ có thể dán trong FormWeb này.",
 ] as readonly string[];

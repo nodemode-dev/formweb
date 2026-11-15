@@ -291,7 +291,11 @@ Since 0.19.5 a version 2 load reads each asset once and keeps the server answeri
 
 The read-only core method `fragment {id}` returns `{format: "com.nodemode.formweb.fragment", version: 1, root, nodes, entries, codeComponents, variables, locales, assets, source}`: the element's subtree, every node-keyed entry it owns (the same list `node.duplicate` and `page.duplicate` copy, including timelines and overlays), the definitions of the code components its instances use, the variables its inputs, outputs and formulas bind, its node-keyed translations, and every `/api/assets` ID it mentions. `source` says where it came from. It refuses a page root, a node inside or holding a linked component instance, and more than 2,000 nodes. `node.paste` takes the result.
 
+Since 0.19.6 a fragment also carries `design: {tokens, textPresets, themes}` and `collections`. The tokens are the design tokens the copied elements use as `var(--name)`, followed through tokens that name other tokens, with every theme value. The text presets are the ones named by their `design.applications` entries. The collections are the ones named by `cms.bindings`, `cms.lists` and repeaters, with at most 500 items; a larger collection travels as its definition and the fragment carries a warning. Paste adds what the site lacks and keeps the site's own on a name clash with a different value, with a warning per clash. Older fragments paste as before. Known limits: a collection that a copied collection refers to is not carried, and a binding that names an item of a collection cut to its definition is refused and nothing changes.
+
 `POST /api/fragment {node}` needs read permission and returns the fragment. `POST /api/paste {fragment, parent?, index?, expectedRevision?}` needs edit permission and runs `node.paste` as one undo step. The body is capped at 8 MiB, and the format, version and size are checked. Every asset the fragment names must exist and be visible to the person pasting: for the local owner every asset, otherwise the assets of projects they have a role in and shared team libraries. A missing or invisible asset is named in a 409 and nothing changes; the assets belong to the current project only after the engine accepts the paste. `apply_commands` can reach `node.paste` too, without the asset check.
+
+Between two FormWeb installations (0.19.6): `POST /api/fragment {node, embed: true}` also answers with `embedded` (asset ID to base64, smallest first, up to 16 MiB of raw bytes) and `notEmbedded` (the IDs left out). `POST /api/paste` takes `embedded`, and its body limit is now 32 MiB (it was 8 MiB). An asset this person cannot see is taken from the embedded bytes after the same checks an upload gets (digest equals the ID, magic bytes, size by type, SVG checks) and is then owned by the current project. Without embedded bytes the paste answers 409 naming the asset. Everything is checked before anything is stored.
 
 ## Authoring MCP tools (0.19.3)
 
@@ -313,7 +317,7 @@ The MCP server has 14 authoring tools for the native vocabulary (and, since 0.19
 | `library_import_html` | `POST /api/library/import-html` | |
 | `send_to_formpublisher` | `POST /api/handoff/formpublisher` | does not change the site |
 | `new_site` | replaces the open site with a blank home page (`blank` true, the default) or the sample site, as File > New does | destructive, approval-gated |
-| `copy_element` | `POST /api/fragment` for `node` (0.19.5); returns the fragment JSON | read-only, idempotent |
-| `paste_element` | `POST /api/paste` with `fragment`, `parent`, `index` and `expected_revision` (0.19.5); a missing asset is a tool error naming it | |
+| `copy_element` | `POST /api/fragment` for `node` (0.19.5); returns the fragment JSON; `embed_assets` (default false, 0.19.6) adds `embedded` and `notEmbedded` | read-only, idempotent |
+| `paste_element` | `POST /api/paste` with `fragment`, `parent`, `index` and `expected_revision` (0.19.5); a missing asset is a tool error naming it; passes `embedded` through (0.19.6) | |
 
 The tool set is also reachable with `apply_commands` and the REST routes on servers that predate them.

@@ -2505,4 +2505,6 @@ export default [
   "Ce navigateur n’autorise pas l’écriture dans le presse-papiers ici.",
   "Ce navigateur n’autorise pas la lecture du presse-papiers ici. Cliquez dans la page et collez plutôt avec le clavier.",
   "Autorisez l’accès au presse-papiers pour coller un élément, ou collez avec le clavier dans la page.",
+  "Une ressource est trop volumineuse pour être intégrée et ne pourra être collée que dans ce FormWeb.",
+  "{n} ressources sont trop volumineuses pour être intégrées et ne pourront être collées que dans ce FormWeb.",
 ] as readonly string[];

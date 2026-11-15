@@ -2505,4 +2505,6 @@ export default [
   "Den här webbläsaren tillåter inte att skriva till urklipp här.",
   "Den här webbläsaren tillåter inte att läsa urklipp här. Klicka på sidan och klistra in med tangentbordet i stället.",
   "Tillåt åtkomst till urklipp för att klistra in ett element, eller klistra in med tangentbordet på sidan.",
+  "En resurs är för stor för att bäddas in och kan bara klistras in i den här FormWeb.",
+  "{n} resurser är för stora för att bäddas in och kan bara klistras in i den här FormWeb.",
 ] as readonly string[];

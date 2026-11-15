@@ -307,6 +307,32 @@ def ingest(data: bytes, declared_type: str, filename: str | None, license: dict 
     return write_metadata(name, mime, len(data), filename, license)
 
 
+def check_declared(name: str, data: bytes) -> str:
+    """Prove bytes belong to the asset id `name` with the upload checks and no store write; returns the mime type."""
+    if not ASSET_NAME.fullmatch(name):
+        raise EngineError('Asset id is not valid: ' + name[:80], 400)
+    if hashlib.sha256(data).hexdigest() != name.split('.', 1)[0]:
+        raise EngineError('Embedded bytes do not match the asset id ' + name + '.', 400)
+    extension = sniff_extension(data, MIME_TYPES[name.rsplit('.', 1)[1]])
+    if extension != name.rsplit('.', 1)[1]:
+        raise EngineError('Embedded bytes do not match the type of ' + name + '.', 415)
+    if len(data) > SIZE_LIMITS.get(extension, MAX_IMAGE_BYTES):
+        raise EngineError('Embedded asset is too large: ' + name + '.', 413)
+    if extension == 'svg':
+        check_upload_svg(data)
+    if len(data) < 20:
+        raise EngineError('Embedded image is truncated: ' + name + '.', 400)
+    return MIME_TYPES[extension]
+
+
+def ingest_declared(name: str, data: bytes) -> dict:
+    """Store bytes under the id they declare, after check_declared; the stored id always equals `name`."""
+    stored = ingest(data, check_declared(name, data), name)
+    if stored['id'] != name:
+        raise EngineError('Embedded bytes do not match the asset id ' + name + '.', 400)
+    return stored
+
+
 def ingest_file(staged: Path, digest: str, declared_type: str, filename: str | None, license: dict | None = None):
     """Store a verified file from the asset folder: small ones through ingest, large ones by rename after a magic-byte check on the first bytes. The file is consumed."""
     try:

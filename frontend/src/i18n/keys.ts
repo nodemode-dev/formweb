@@ -2505,4 +2505,6 @@ export const KEYS: readonly string[] = [
   "This browser does not allow writing to the clipboard here.",
   "This browser does not allow reading the clipboard here. Click in the page and paste with the keyboard instead.",
   "Allow clipboard access to paste an element, or paste with the keyboard in the page.",
+  "One asset is too large to embed and will only paste on this FormWeb.",
+  "{n} assets are too large to embed and will only paste on this FormWeb.",
 ];

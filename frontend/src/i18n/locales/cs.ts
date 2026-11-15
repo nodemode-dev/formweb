@@ -2505,4 +2505,6 @@ export default [
   "Tento prohlížeč zde nepovoluje zápis do schránky.",
   "Tento prohlížeč zde nepovoluje čtení schránky. Klikněte na stránku a vložte pomocí klávesnice.",
   "Povolte přístup ke schránce a vložte prvek, nebo vložte pomocí klávesnice na stránce.",
+  "Jeden obrázek je příliš velký na vložení do kopie a půjde vložit jen v tomto FormWebu.",
+  "Počet obrázků příliš velkých na vložení do kopie: {n}. Půjdou vložit jen v tomto FormWebu.",
 ] as readonly string[];

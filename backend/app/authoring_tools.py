@@ -51,10 +51,10 @@ AUTHORING_TOOLS = [
          {'locale': {'type': 'string', 'maxLength': 40}}),
     tool('new_site', 'Replace the open site with a new one, as File > New does: blank true (default) gives one empty home page to assemble from library sections; blank false gives the sample site. The replaced site stays in autosave and saved projects. Save it first with save_project if it matters.',
          {'name': {'type': 'string', 'minLength': 1, 'maxLength': 120}, 'blank': {'type': 'boolean'}}, ['name'], destructive=True),
-    tool('copy_element', 'Copy one element and everything under it as a fragment: the subtree, its motion, code and variables entries, the page components it uses and the assets it names. Read-only; the fragment is plain JSON you can keep and give to paste_element, in this site or in another site open on this FormWeb. Refuses a page root, a node inside a linked component instance and subtrees over 2,000 nodes.',
-         {'node': NODE}, ['node'], read_only=True, idempotent=True),
-    tool('paste_element', 'Paste a fragment from copy_element under parent (an element ID; default: the first page\'s root) at index (default: last), with fresh element IDs, so pass the parent of the page you are working on. Every asset the fragment names must exist on this FormWeb; missing ones are listed and nothing changes. Adds the code components the site lacks. One undo step. Refuses another format or version, more than 2,000 nodes and fragments over 8 MiB.',
-         {'fragment': {'type': 'object', 'description': 'The object copy_element returned, unchanged.'}, 'parent': NODE, 'index': {'type': 'integer', 'minimum': 0}, 'expected_revision': REVISION}, ['fragment']),
+    tool('copy_element', 'Copy one element and everything under it as a fragment: the subtree, its motion, code and variables entries, the page components it uses and the assets it names. Read-only; the fragment is plain JSON you can keep and give to paste_element, in this site or in another site open on this FormWeb. Refuses a page root, a node inside a linked component instance and subtrees over 2,000 nodes. With embed_assets true the result also carries embedded (asset id to base64 bytes, smallest first, up to 16 MiB of raw bytes) and notEmbedded (the ids that did not fit), so the fragment can be pasted into another FormWeb; leave it off for a paste on this FormWeb.',
+         {'node': NODE, 'embed_assets': {'type': 'boolean', 'description': 'Carry the assets\' bytes in the result. Default false.'}}, ['node'], read_only=True, idempotent=True),
+    tool('paste_element', 'Paste a fragment from copy_element under parent (an element ID; default: the first page\'s root) at index (default: last), with fresh element IDs, so pass the parent of the page you are working on. Every asset the fragment names must exist on this FormWeb; missing ones are listed (409) unless embedded carries their bytes, which are checked like an upload and then owned by this project; nothing changes on any refusal. Adds the code components the site lacks. One undo step. Refuses another format or version, more than 2,000 nodes and bodies over 32 MiB.',
+         {'fragment': {'type': 'object', 'description': 'The object copy_element returned, unchanged.'}, 'embedded': {'type': 'object', 'description': 'The embedded map copy_element returned with embed_assets, if any.'}, 'parent': NODE, 'index': {'type': 'integer', 'minimum': 0}, 'expected_revision': REVISION}, ['fragment']),
 ]
 AUTHORING_BY_NAME = {item['name']: item for item in AUTHORING_TOOLS}
 
@@ -170,10 +170,10 @@ async def dispatch(name, arguments):
         return await asyncio.to_thread(_send, arguments.get('locale'))
     if name == 'copy_element':
         from .fragment_routes import fragment_of
-        return await fragment_of(arguments['node'])
+        return await fragment_of(arguments['node'], arguments.get('embed_assets') is True)
     if name == 'paste_element':
         from .fragment_routes import paste_body
-        body = {'fragment': arguments['fragment'], **{k: arguments[k] for k in ('parent', 'index') if arguments.get(k) is not None}}
+        body = {'fragment': arguments['fragment'], **{k: arguments[k] for k in ('parent', 'index', 'embedded') if arguments.get(k) is not None}}
         if arguments.get('expected_revision') is not None:
             body['expectedRevision'] = arguments['expected_revision']
         return _state(await paste_body(body))

@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.19.5" src="https://img.shields.io/badge/version-0.19.5-eef0f4?style=flat-square">
+  <img alt="version 0.19.6" src="https://img.shields.io/badge/version-0.19.6-eef0f4?style=flat-square">
   <img alt="TypeScript 7" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
   <img alt="Rust engine" src="https://img.shields.io/badge/Rust-engine-b7410e?style=flat-square">
   <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/macOS%20%C2%B7%20Linux%20%C2%B7%20Windows-native-2f7bf5?style=flat-square">
@@ -127,7 +127,7 @@ Agents can also start a blank site, set native motion and variables, build and p
 - **Python service:** FastAPI bridge for persistence, forms, local releases, HTTP and the official-SDK MCP server.
 - **Vanilla TypeScript:** a Vite editor with one command registry behind every menu, button and shortcut.
 - **Local data:** SQLite autosave and portable `.fweb` projects with history and assets; projects over 64 MiB save as a version 2 zip.
-- **Editing:** Edit > Copy, Cut and Paste element (`Mod+C`, `Mod+X`, `Mod+V`) move an element with its motion, code, variables and pictures between pages and sites, Edit > Duplicate element (`Mod+D`, or `Shift+Mod+D` always) copies it in place, and agents do the same with `copy_element` and `paste_element`; code components can carry a light-theme poster.
+- **Editing:** Edit > Copy, Cut and Paste element (`Mod+C`, `Mod+X`, `Mod+V`) move an element with its motion, code, variables, design tokens, CMS collections and pictures between pages and sites (and, with embedded pictures, between FormWeb installations), Edit > Duplicate element (`Mod+D`, or `Shift+Mod+D` always) copies it in place, and agents do the same with `copy_element` and `paste_element`; code components can carry a light-theme poster.
 - **Tested:** backend tests in `backend/tests` and engine tests in `native/crates/*/tests`, run in CI.
 
 ## Download

@@ -2505,4 +2505,6 @@ export default [
   "Este navegador não permite gravar na área de transferência aqui.",
   "Este navegador não permite ler a área de transferência aqui. Clique na página e cole com o teclado.",
   "Permita o acesso à área de transferência para colar um elemento ou cole com o teclado na página.",
+  "Um recurso é grande demais para ser incorporado e só poderá ser colado neste FormWeb.",
+  "{n} recursos são grandes demais para serem incorporados e só poderão ser colados neste FormWeb.",
 ] as readonly string[];

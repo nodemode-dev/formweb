@@ -2505,4 +2505,6 @@ export default [
   "Ta przeglądarka nie pozwala tutaj zapisywać do schowka.",
   "Ta przeglądarka nie pozwala tutaj odczytywać schowka. Kliknij na stronie i wklej za pomocą klawiatury.",
   "Zezwól na dostęp do schowka, aby wkleić element, albo wklej za pomocą klawiatury na stronie.",
+  "Jeden zasób jest zbyt duży, aby go osadzić, i można go wkleić tylko w tym FormWeb.",
+  "Liczba zasobów zbyt dużych, aby je osadzić: {n}. Można je wkleić tylko w tym FormWeb.",
 ] as readonly string[];
