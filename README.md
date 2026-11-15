@@ -186,7 +186,7 @@ Settings live in `backend/.env` (see `backend/.env.example`): `FORMWEB_DATA_DIR`
 | `setup/` | Install, build, doctor, stdio proxy and skill mirroring |
 | `docs/` | Manual, guides and parity comparisons |
 
-Docs: [`.docs/wiki`](.docs/wiki) · Agents: [`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md) · Contributing: [`.docs/BRANCHING.md`](.docs/BRANCHING.md)
+Docs: [`.docs/wiki`](.docs/wiki) · Agents: [`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md) · Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), [`SECURITY.md`](SECURITY.md), [`.docs/BRANCHING.md`](.docs/BRANCHING.md)
 
 <br>
 
