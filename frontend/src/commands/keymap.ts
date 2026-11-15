@@ -11,6 +11,7 @@ export function installKeymap(registry: Commands, ready: () => boolean): void {
     const mod = comboOf(event).includes('Mod+');
     const typing = !!(event.target as Element | null)?.closest?.(TYPING);
     if (typing && !(command.global && mod)) return;
+    if (command.native?.()) return;
     if (event.repeat && !command.repeat) { if (mod) event.preventDefault(); return; }
     if (!mod && !registry.enabled(command)) return;
     event.preventDefault();

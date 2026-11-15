@@ -264,7 +264,8 @@ def check_upload_svg(data: bytes):
                 raise EngineError('SVG contains a script URL, an import or an external reference.', 415)
 
 
-def ingest(data: bytes, declared_type: str, filename: str | None, license: dict | None = None):
+def sniff_extension(data: bytes, declared_type: str) -> str:
+    """The extension the magic bytes give; data may be the first bytes only for mp4, webm and woff2."""
     if data.startswith(b'\x89PNG\r\n\x1a\n'):
         extension = 'png'
     elif data.startswith(b'\xff\xd8\xff') and data.endswith(b'\xff\xd9'):
@@ -283,6 +284,11 @@ def ingest(data: bytes, declared_type: str, filename: str | None, license: dict 
         extension = 'svg'
     else:
         raise EngineError('Upload a PNG, JPEG, GIF, WebP or SVG image, an MP4 or WebM video, or a WOFF2 font.', 415)
+    return extension
+
+
+def ingest(data: bytes, declared_type: str, filename: str | None, license: dict | None = None):
+    extension = sniff_extension(data, declared_type)
     mime = MIME_TYPES[extension]
     if declared_type not in (mime, 'application/octet-stream'):
         raise EngineError('Asset content does not match its declared media type.', 415)
@@ -299,6 +305,30 @@ def ingest(data: bytes, declared_type: str, filename: str | None, license: dict 
     if not target.exists():
         target.write_bytes(data)
     return write_metadata(name, mime, len(data), filename, license)
+
+
+def ingest_file(staged: Path, digest: str, declared_type: str, filename: str | None, license: dict | None = None):
+    """Store a verified file from the asset folder: small ones through ingest, large ones by rename after a magic-byte check on the first bytes. The file is consumed."""
+    try:
+        size = staged.stat().st_size
+        if size <= MAX_IMAGE_BYTES:
+            return ingest(staged.read_bytes(), declared_type, filename, license)
+        with staged.open('rb') as stream:
+            head = stream.read(64)
+        extension = sniff_extension(head, declared_type)
+        if extension not in ('mp4', 'webm', 'woff2'):
+            raise EngineError('Asset is too large.', 413)
+        mime = MIME_TYPES[extension]
+        if declared_type not in (mime, 'application/octet-stream'):
+            raise EngineError('Asset content does not match its declared media type.', 415)
+        if size > SIZE_LIMITS.get(extension, MAX_IMAGE_BYTES):
+            raise EngineError('Asset is too large.', 413)
+        target = DATA_DIR / 'assets' / (digest + '.' + extension)
+        if not target.exists():
+            os.replace(staged, target)
+        return write_metadata(target.name, mime, size, filename, license)
+    finally:
+        staged.unlink(missing_ok=True)
 
 
 def list_assets():
@@ -430,8 +460,9 @@ def check_archive_asset(entry: dict, data_size: int, digest: str):
         raise EngineError('Native project image type is invalid.')
 
 
-def read_project_archive(path: Path) -> dict:
-    """Validate a version 2 archive on disk without loading assets into memory; return its project.json object."""
+def read_project_archive(path: Path, staged: dict | None = None) -> dict:
+    """Validate a version 2 archive on disk without loading assets into memory; return its project.json object.
+    With a staged dict each asset is also copied, in the same single read, to a temporary file in the asset folder (id -> path); the caller removes what is left."""
     try:
         with zipfile.ZipFile(path) as archive:
             infos = archive.infolist()
@@ -471,18 +502,44 @@ def read_project_archive(path: Path) -> dict:
                 if info.file_size > SIZE_LIMITS.get(entry['id'].split('.')[-1], MAX_IMAGE_BYTES):
                     raise EngineError('Native project asset is too large.', 413)
                 digest, counted = hashlib.sha256(), 0
-                with archive.open(info) as stream:
-                    while chunk := stream.read(1024 * 1024):
-                        counted += len(chunk)
-                        digest.update(chunk)
+                if staged is None:
+                    with archive.open(info) as stream:
+                        while chunk := stream.read(1024 * 1024):
+                            counted += len(chunk)
+                            digest.update(chunk)
+                else:
+                    folder = DATA_DIR / 'assets'
+                    folder.mkdir(parents=True, exist_ok=True)
+                    handle, temporary = tempfile.mkstemp(prefix='.stage-', suffix='.part', dir=folder)
+                    staged[entry['id']] = Path(temporary)
+                    with archive.open(info) as stream, os.fdopen(handle, 'wb') as out:
+                        while chunk := stream.read(1024 * 1024):
+                            counted += len(chunk)
+                            if counted > SIZE_LIMITS.get(entry['id'].split('.')[-1], MAX_IMAGE_BYTES):
+                                break
+                            digest.update(chunk)
+                            out.write(chunk)
                 check_archive_asset(entry, counted, digest.hexdigest())
             return native
     except (zipfile.BadZipFile, zlib.error, EOFError, NotImplementedError, RuntimeError, OSError) as error:
         raise EngineError('Native archive is not a valid, readable zip file.') from error
 
 
-def restore_archive_assets(path: Path, native: dict):
-    """Store the assets of an archive already accepted by read_project_archive, one at a time."""
+def restore_archive_assets(path: Path, native: dict, staged: dict | None = None):
+    """Store the assets of an archive already accepted by read_project_archive, one at a time (from the staged files when given)."""
+    if staged is not None:
+        try:
+            for entry in native['assets']:
+                licence = entry.get('license') if isinstance(entry.get('license'), dict) else None
+                digest = entry['id'].split('.')[0]
+                stored = ingest_file(staged.pop(entry['id']), digest, entry['mime'], entry.get('name'), licence)
+                if stored['id'] != entry['id']:
+                    raise EngineError('Native project image extension does not match its content.')
+        finally:
+            for left in staged.values():
+                left.unlink(missing_ok=True)
+            staged.clear()
+        return
     with zipfile.ZipFile(path) as archive:
         for entry in native['assets']:
             licence = entry.get('license') if isinstance(entry.get('license'), dict) else None

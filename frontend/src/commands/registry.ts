@@ -19,6 +19,7 @@ export interface Command {
   global?: boolean;
   passive?: boolean;
   repeat?: boolean;
+  native?: () => boolean;
 }
 
 export const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
