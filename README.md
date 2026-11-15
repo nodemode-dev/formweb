@@ -173,7 +173,7 @@ Settings live in `backend/.env` (see `backend/.env.example`): `FORMWEB_DATA_DIR`
 > [!IMPORTANT]
 > **Status:** pre-launch. The Windows launchers and native desktop bundles are unverified, and provider adapters need server credentials. See the [Studio guide](docs/ADVANCED_GUIDE.md).
 
-**Contributing:** branch from `main`, keep changes to source here, and leave packaging and releases to formcompiler. See [`.docs/BRANCHING.md`](.docs/BRANCHING.md) and [`AGENTS.md`](AGENTS.md).
+**Contributing:** branch from `main`, keep changes to source here, and leave packaging and releases to formcompiler. See [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), [`.docs/BRANCHING.md`](.docs/BRANCHING.md) and [`AGENTS.md`](AGENTS.md). Report security issues privately as [`SECURITY.md`](SECURITY.md) describes.
 
 ## Repository
 
