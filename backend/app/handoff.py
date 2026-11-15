@@ -119,8 +119,9 @@ async def send_to_formpublisher(locale: str | None = None):
         'X-FormWeb-Site-Name': quote(name, safe=''),
         'X-FormWeb-Project': quote(str(project), safe=''),
     }
+    local_forms = [str(page) for page in (manifest.get('localForms') or [])][:20] if isinstance(manifest, dict) else []
     receipt = await asyncio.to_thread(_post, publisher_url(), data, headers)
     if receipt is not None:
-        return {'delivered': 'live', 'site': receipt.get('site'), 'revision': receipt.get('revision'), 'warnings': warnings}
+        return {'delivered': 'live', 'site': receipt.get('site'), 'revision': receipt.get('revision'), 'warnings': warnings, 'localForms': local_forms}
     path = await asyncio.to_thread(_to_inbox, data, name, str(project))
-    return {'delivered': 'inbox', 'path': str(path), 'warnings': warnings}
+    return {'delivered': 'inbox', 'path': str(path), 'warnings': warnings, 'localForms': local_forms}

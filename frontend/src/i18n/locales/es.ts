@@ -2563,4 +2563,5 @@ export default [
   "Cargando la vista previa...",
   "Cerrar la vista previa de la demo",
   "El formulario de {0} envía a este ordenador y dejará de funcionar cuando el sitio esté en otro alojamiento. Dele una respuesta con guion (Movimiento > Guion, disparador Enviar) o mantenga el sitio en este ordenador con Publicar.",
+  "Sitio estático exportado para {0}.",
 ] as readonly string[];

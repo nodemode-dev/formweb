@@ -2,7 +2,7 @@
 
 FormWeb is the form family's visual website authoring application. A Rust engine owns editable sites and exports browser-native HTML, CSS and JavaScript. A Python/FastAPI service supplies projects, local publications, forms and MCP. A vanilla TypeScript/Vite window displays and changes the same engine state.
 
-Release version: 0.21.0. Author: nodemode-ai. The repository README and changelog record this release.
+Release version: 0.21.1. Author: nodemode-ai. The repository README and changelog record this release.
 
 | Surface | Current boundary |
 | --- | --- |
@@ -11,7 +11,7 @@ Release version: 0.21.0. Author: nodemode-ai. The repository README and changelo
 | Python service | Scoped projects/branches, releases/forms/delivery, visitor services and configured adapters |
 | MCP | 87 official SDK tools, 17 resources and 5 prompts over HTTP and stdio, with attributed project roles |
 | Hosting | Versioned local publication; no external hosting account provisioned |
-| Desktop | Browser application, plus a desktop app built locally by `./build_app` with a frozen engine (built on Linux, not launched here, not run on Windows); no prebuilt bundles shipped |
+| Desktop | Browser application, plus desktop packages for macOS, Windows and Linux that formcompiler builds and releases (the README's Download table links them; the macOS build is signed there). `./build_app` builds the same desktop app locally with a frozen engine; this repository's checks do not launch a package, and the Windows launchers and native bundles stay unverified here |
 | Editor | Agent dock (terminal, Claude Code, Chat), vector tools, one command registry with real shortcuts, 26 interface languages ([[Languages]]) |
 | Vendor parity | `docs/comparisons/` holds the current `FormWeb-Parity_v[version].html` (Framer, Figma, Webflow and Canva, the only comparison targets, with every release's score) and the FormAI matrix beside it, both built from `docs/comparisons/data/formweb-parity.json` plus the vendor lanes in `vendor-lanes.json` by `./formweb comparisons build` and `embed`; research, audits and verification records ship in the planning sidecar |
 

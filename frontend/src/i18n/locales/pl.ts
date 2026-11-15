@@ -2563,4 +2563,5 @@ export default [
   "Wczytywanie podglądu...",
   "Zamknij podgląd dema",
   "Formularz na stronie {0} wysyła dane do tego komputera i nie będzie działać, gdy witryna trafi na inny hosting. Nadaj mu odpowiedź ze skryptu (Ruch > Skrypt, wyzwalacz Wysłanie) albo pozostaw witrynę na tym komputerze za pomocą polecenia Publikuj.",
+  "Wyeksportowano witrynę statyczną dla {0}.",
 ] as readonly string[];

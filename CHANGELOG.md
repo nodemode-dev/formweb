@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.21.1 · 2026-11-15
+
+- Export static site and Send to FormPublisher now say it when a form would post to this computer. A form with no scripted reply and no address of its own gets this computer's FormWeb address in the export, and does nothing once the site is on another host. The status line after the export or the send names each such page and says what to do (give the form a scripted reply, or keep the site on this computer with Publish). It is the sentence the audit already shows, in your language, after any warning about the 404 page's base URL; a site without such a form shows nothing new. A local publication and Preview are not flagged.
+- The first half of the status line after Export static site, "Static site exported for ...", is now translated in all 26 languages. It stayed in English before.
+- Demo pictures: the record of every picture in the three demo sites was checked again at its source. Pictures made for the demos are recorded as Apache-2.0, and each NASA picture carries the credit line its own NASA page gives. The Hubble Ultra Deep Field was recorded as public domain; ESA/Hubble publishes it under Creative Commons Attribution 4.0, so it now carries that licence and the credit "NASA, ESA, and S. Beckwith (STScI) and the HUDF Team". The credits shown inside the demos match the records: Lowlight's footer shows the Ultra Deep Field credit, and Looking Back's credits now agree with the records (the Pale Blue Dot is credited NASA/JPL-Caltech). The demo preview was rebuilt from the same sites. NOTICE.md and `frontend/public/demos/CREDITS.md` list every picture with its source and terms.
+- New for contributors: CODE_OF_CONDUCT.md, CONTRIBUTING.md and SECURITY.md, in the shape the other Form apps use. The README links them.
+- Release notes in the docs: formcompiler, which builds and releases the desktop packages, is at `nodemode-dev/formcompiler` (two pages named the wrong owner). The wiki says which desktop packages ship and that the macOS build is signed there. The skillset's release checklist no longer asks for attribution lines in commits.
+
 ## 0.21.0 · 2026-11-15
 
 - Home is rebuilt: Start, Recent and Projects pages beside a navigation column you can resize or hide, a real Recent list (the newest twelve projects), and it works down to the smallest window. File > Home (Alt+Ctrl+H, Alt+Cmd+H on macOS) and the command palette open it. Escape no longer closes a menu or Preferences and Home at once.

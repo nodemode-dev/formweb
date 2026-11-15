@@ -2563,4 +2563,5 @@ export default [
   "Carregando a visualização...",
   "Fechar a visualização da demo",
   "O formulário em {0} envia para este computador e não vai funcionar quando o site estiver em outro host. Dê a ele uma resposta por script (Movimento > Script, gatilho Enviar) ou mantenha o site neste computador com Publicar.",
+  "Site estático exportado para {0}.",
 ] as readonly string[];

@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.21.0" src="https://img.shields.io/badge/version-0.21.0-eef0f4?style=flat-square">
+  <img alt="version 0.21.1" src="https://img.shields.io/badge/version-0.21.1-eef0f4?style=flat-square">
   <img alt="TypeScript 7" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
   <img alt="Rust engine" src="https://img.shields.io/badge/Rust-engine-b7410e?style=flat-square">
   <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/macOS%20%C2%B7%20Linux%20%C2%B7%20Windows-native-2f7bf5?style=flat-square">
@@ -173,7 +173,7 @@ Settings live in `backend/.env` (see `backend/.env.example`): `FORMWEB_DATA_DIR`
 > [!IMPORTANT]
 > **Status:** pre-launch. The Windows launchers and native desktop bundles are unverified, and provider adapters need server credentials. See the [Studio guide](docs/ADVANCED_GUIDE.md).
 
-**Contributing:** branch from `main`, keep changes to source here, and leave packaging and releases to formcompiler. See [`.docs/BRANCHING.md`](.docs/BRANCHING.md) and [`AGENTS.md`](AGENTS.md).
+**Contributing:** branch from `main`, keep changes to source here, and leave packaging and releases to formcompiler. See [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), [`.docs/BRANCHING.md`](.docs/BRANCHING.md) and [`AGENTS.md`](AGENTS.md). Report security issues privately as [`SECURITY.md`](SECURITY.md) describes.
 
 ## Repository
 
@@ -186,7 +186,7 @@ Settings live in `backend/.env` (see `backend/.env.example`): `FORMWEB_DATA_DIR`
 | `setup/` | Install, build, doctor, stdio proxy and skill mirroring |
 | `docs/` | Manual, guides and parity comparisons |
 
-Docs: [`.docs/wiki`](.docs/wiki) · Agents: [`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md) · Contributing: [`.docs/BRANCHING.md`](.docs/BRANCHING.md)
+Docs: [`.docs/wiki`](.docs/wiki) · Agents: [`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md) · Contributing: [`CONTRIBUTING.md`](CONTRIBUTING.md), [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md), [`SECURITY.md`](SECURITY.md), [`.docs/BRANCHING.md`](.docs/BRANCHING.md)
 
 <br>
 

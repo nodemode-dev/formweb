@@ -2563,4 +2563,5 @@ export default [
   "Läser in förhandsgranskningen...",
   "Stäng förhandsgranskningen av demon",
   "Formuläret på {0} skickar till den här datorn och fungerar inte när webbplatsen ligger hos en annan värd. Ge det ett skriptat svar (Rörelse > Skript, utlösare Skicka), eller behåll webbplatsen på den här datorn med Publicera.",
+  "Statisk webbplats exporterad för {0}.",
 ] as readonly string[];

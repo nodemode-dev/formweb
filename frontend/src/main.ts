@@ -1576,20 +1576,32 @@ function notFoundBaseWarning(warned?: string[]): string {
   if (base !== 'https://example.com' || !site.pages.some(page => page.slug.replace(/^\/+|\/+$/g, '') === '404')) return '';
   return ' ' + t(NOT_FOUND_BASE_KEY);
 }
+function localFormWarning(pages: readonly string[]): string {
+  return pages.map(page => ' ' + t(LOCAL_FORM_KEY, [page])).join('');
+}
+function localFormHeader(headers: Headers): string[] {
+  try {
+    const listed: unknown = JSON.parse(decodeURIComponent(headers.get('X-FormWeb-Local-Forms') || '[]'));
+    return Array.isArray(listed) ? listed.filter((page): page is string => typeof page === 'string') : [];
+  } catch {
+    return [];
+  }
+}
 function baseUrlAction(warning: string): { label: string; run: () => unknown } | undefined {
   return warning ? { label: 'Set the base URL', run: openBaseUrlField } : undefined;
 }
 async function exportSite(): Promise<void> {
-  await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
+  const headers = await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
   const warning = notFoundBaseWarning();
-  status([`Static site exported for ${locale}.`, warning], false, baseUrlAction(warning));
+  status([t('Static site exported for {0}.', [locale]), warning, localFormWarning(localFormHeader(headers))], false, baseUrlAction(warning));
 }
 async function sendToFormPublisher(): Promise<void> {
   try {
-    const sent = await request<{ delivered: 'live' | 'inbox'; site?: string; revision?: string; path?: string; warnings?: string[] }>(`/api/handoff/formpublisher?locale=${encodeURIComponent(locale)}`, {});
+    const sent = await request<{ delivered: 'live' | 'inbox'; site?: string; revision?: string; path?: string; warnings?: string[]; localForms?: string[] }>(`/api/handoff/formpublisher?locale=${encodeURIComponent(locale)}`, {});
     const warning = notFoundBaseWarning(sent.warnings || []);
-    if (sent.delivered === 'live') status([t('Sent to FormPublisher: {0} is now at revision {1}.', [state().site.name, sent.revision ?? '']), warning], false, baseUrlAction(warning));
-    else status([t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [sent.path ?? '']), warning], false, baseUrlAction(warning));
+    const forms = localFormWarning(sent.localForms || []);
+    if (sent.delivered === 'live') status([t('Sent to FormPublisher: {0} is now at revision {1}.', [state().site.name, sent.revision ?? '']), warning, forms], false, baseUrlAction(warning));
+    else status([t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [sent.path ?? '']), warning, forms], false, baseUrlAction(warning));
   } catch (error) {
     status(t('Could not send to FormPublisher: {0}', [error instanceof Error ? error.message : String(error)]), true);
   }

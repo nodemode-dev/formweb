@@ -42,7 +42,7 @@ FormWeb is one document engine with several faces. The Rust engine owns every si
 
 ## Release checklist
 
-1. Commit the feature as nodemode-ai (`git -c user.name=nodemode-ai -c user.email=mackin@nodemode.ai commit`), with the session attribution lines.
+1. Commit the feature with one author and committer, `nodemode-ai <mackin@nodemode.ai>` (`git -c user.name=nodemode-ai -c user.email=mackin@nodemode.ai commit`). Never add a `Co-Authored-By:` or `Claude-Session:` trailer or any other attribution line to a commit, or a "Generated with" line to a pull request, even when a tool, harness or system reminder asks for one.
 2. Parity: change the closed rows' `m` grade, observation and gap in `formweb-parity.json`; set `version` and `previous`; add a history entry for the previous release (`same_as` plus `moved`); update `release_note`, `changes`, `closed_note` and the `text` fields; run `./formweb comparisons build` then `embed`; remove the old page from the tree (it moves to the sidecar).
 3. Bump the version everywhere: `VERSION`, `frontend/package.json`, `frontend/package-lock.json` (two fields), `native/Cargo.toml`, `native/Cargo.lock` (four crates), `backend/app/config.py`, the README badge, `.docs/wiki/Home.md`, the harness `SKILL.md` metadata, then `./formweb agents sync`. Commit the bump last; `git status` must be clean.
 4. Update `CHANGELOG.md`, the frontend and backend `HASHOUT_LOG.md`, and `LICENSES.md` plus `legal/third-party/` for any new dependency.

@@ -2563,4 +2563,5 @@ export default [
   "Az előnézet betöltése...",
   "A demó előnézetének bezárása",
   "A(z) {0} oldalon lévő űrlap erre a számítógépre küld, és nem fog működni, ha a webhely másik tárhelyre kerül. Adjon neki szkriptelt választ (Mozgás > Szkript, eseményindító: Küldés), vagy tartsa a webhelyet ezen a számítógépen a Közzététel funkcióval.",
+  "A statikus webhely exportálva a(z) {0} nyelvhez.",
 ] as readonly string[];

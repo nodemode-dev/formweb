@@ -2563,4 +2563,5 @@ export default [
   "Caricamento dell'anteprima...",
   "Chiudi l'anteprima della demo",
   "Il modulo in {0} invia i dati a questo computer e non funzionerà quando il sito sarà su un altro host. Dagli una risposta con script (Movimento > Script, trigger Invio) oppure tieni il sito su questo computer con Pubblica.",
+  "Sito statico esportato per {0}.",
 ] as readonly string[];
