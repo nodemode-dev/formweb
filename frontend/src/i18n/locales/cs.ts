@@ -2563,4 +2563,5 @@ export default [
   "Načítání náhledu...",
   "Zavřít náhled ukázky",
   "Formulář na stránce {0} odesílá data do tohoto počítače a po přesunu webu na jiný hosting nebude fungovat. Dejte mu skriptovanou odpověď (Pohyb > Skript, spouštěč Odeslání), nebo web ponechte na tomto počítači pomocí funkce Publikovat.",
+  "Statický web byl exportován pro {0}.",
 ] as readonly string[];

@@ -1593,7 +1593,7 @@ function baseUrlAction(warning: string): { label: string; run: () => unknown } |
 async function exportSite(): Promise<void> {
   const headers = await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
   const warning = notFoundBaseWarning();
-  status([`Static site exported for ${locale}.`, warning, localFormWarning(localFormHeader(headers))], false, baseUrlAction(warning));
+  status([t('Static site exported for {0}.', [locale]), warning, localFormWarning(localFormHeader(headers))], false, baseUrlAction(warning));
 }
 async function sendToFormPublisher(): Promise<void> {
   try {
