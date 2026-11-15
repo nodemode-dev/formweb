@@ -1,0 +1,216 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formdam-capture-wall",
+  "name": "FormDAM capture wall",
+  "category": "product-site",
+  "tags": ["showcase", "pinned", "scroll", "zoom", "screenshots", "wall"],
+  "product": "formdam",
+  "description": "A pinned wall of FormDAM captures that pulls back from one screen to the whole library.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formdam-capture-wall",
+  "preset": "formai-studio",
+  "components": [],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#7fdc6a" },
+    "name_form": { "label": "Product name, first part", "type": "text", "default": "Form" },
+    "name_suffix": { "label": "Product name, tinted part", "type": "text", "default": "DAM" },
+    "line": { "label": "Line over the wall", "type": "text", "default": "keeps every photo and video you own in one local library." }
+  },
+  "tree": {
+    "key": "runway",
+    "tag": "section",
+    "name": "Capture wall scene",
+    "attrs": {},
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "position": "relative",
+      "background": "var(--inset)"
+    },
+    "breakpoints": {},
+    "children": [
+      {
+        "key": "stage",
+        "tag": "div",
+        "name": "Pinned stage",
+        "attrs": {},
+        "styles": {
+          "container-type": "inline-size",
+          "--pw": "60cqw",
+          "--pr": "16px",
+          "--pg": "15px"
+        },
+        "breakpoints": {
+          "tablet": { "--pw": "100cqw" },
+          "mobile": { "--pw": "200cqw", "--pr": "8px", "--pg": "20px" }
+        },
+        "children": [
+          {
+            "key": "zoom",
+            "tag": "div",
+            "name": "Zoom layer",
+            "attrs": {},
+            "styles": {
+              "display": "flex",
+              "flex-direction": "column",
+              "justify-content": "center",
+              "gap": "var(--pg)",
+              "height": "100%",
+              "transform-origin": "50% 50%",
+              "will-change": "transform"
+            },
+            "breakpoints": {},
+            "children": [
+              {
+                "key": "row-top",
+                "tag": "div",
+                "name": "Top row",
+                "attrs": {},
+                "styles": { "display": "flex", "flex": "none", "gap": "var(--pg)", "width": "max-content", "margin-left": "50%", "translate": "-15.8% 0", "will-change": "transform" },
+                "breakpoints": {},
+                "children": [
+                  {
+                    "key": "shot-viewer", "tag": "div", "name": "Shot viewer", "attrs": {},
+                    "styles": { "position": "relative", "flex": "none", "width": "var(--pw)", "aspect-ratio": "13 / 6", "overflow": "hidden", "border-radius": "var(--pr)", "background": "var(--pane)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "pic-viewer", "tag": "img", "name": "Picture viewer", "attrs": { "src": "https://media.formai.studio/media/formdam/ui-viewer-2/10f4fcdbfd12.w1024.webp", "srcset": "https://media.formai.studio/media/formdam/ui-viewer-2/10f4fcdbfd12.w640.webp 640w, https://media.formai.studio/media/formdam/ui-viewer-2/10f4fcdbfd12.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-viewer-2/10f4fcdbfd12.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1500", "alt": "FormDAM's viewer with its info panel", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] }
+                    ]
+                  },
+                  {
+                    "key": "shot-editor2", "tag": "div", "name": "Shot editor second photo", "attrs": {},
+                    "styles": { "position": "relative", "flex": "none", "width": "var(--pw)", "aspect-ratio": "13 / 6", "overflow": "hidden", "border-radius": "var(--pr)", "background": "var(--pane)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "pic-editor2", "tag": "img", "name": "Picture editor second photo", "attrs": { "src": "https://media.formai.studio/media/formdam/ui-editor-2/8540579984d3.w1024.webp", "srcset": "https://media.formai.studio/media/formdam/ui-editor-2/8540579984d3.w640.webp 640w, https://media.formai.studio/media/formdam/ui-editor-2/8540579984d3.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-editor-2/8540579984d3.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1500", "alt": "FormDAM's non-destructive editor on a second photo", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] }
+                    ]
+                  },
+                  {
+                    "key": "shot-places", "tag": "div", "name": "Shot places", "attrs": {},
+                    "styles": { "position": "relative", "flex": "none", "width": "var(--pw)", "aspect-ratio": "13 / 6", "overflow": "hidden", "border-radius": "var(--pr)", "background": "var(--pane)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "pic-places", "tag": "img", "name": "Picture places", "attrs": { "src": "https://media.formai.studio/media/formdam/ui-places-2/e06ec57950e5.w1024.webp", "srcset": "https://media.formai.studio/media/formdam/ui-places-2/e06ec57950e5.w640.webp 640w, https://media.formai.studio/media/formdam/ui-places-2/e06ec57950e5.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-places-2/e06ec57950e5.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1500", "alt": "FormDAM's offline places view", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "row-mid",
+                "tag": "div",
+                "name": "Middle row",
+                "attrs": {},
+                "styles": { "display": "flex", "flex": "none", "gap": "var(--pg)", "width": "max-content", "margin-left": "50%", "translate": "-50% 0", "will-change": "transform" },
+                "breakpoints": {},
+                "children": [
+                  {
+                    "key": "shot-grid", "tag": "div", "name": "Shot library grid", "attrs": {},
+                    "styles": { "position": "relative", "flex": "none", "width": "var(--pw)", "aspect-ratio": "13 / 6", "overflow": "hidden", "border-radius": "var(--pr)", "background": "var(--pane)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "pic-grid", "tag": "img", "name": "Picture library grid", "attrs": { "src": "https://media.formai.studio/media/formdam/ui-library/f553b72c6382.w1024.webp", "srcset": "https://media.formai.studio/media/formdam/ui-library/f553b72c6382.w640.webp 640w, https://media.formai.studio/media/formdam/ui-library/f553b72c6382.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-library/f553b72c6382.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1500", "alt": "The FormDAM library grid, photos grouped by day", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] }
+                    ]
+                  },
+                  {
+                    "key": "shot-hero", "tag": "div", "name": "Shot library window", "attrs": {},
+                    "styles": { "position": "relative", "flex": "none", "width": "var(--pw)", "aspect-ratio": "13 / 6", "overflow": "hidden", "border-radius": "var(--pr)", "background": "var(--pane)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "pic-hero-dark", "tag": "img", "name": "Picture library window dark", "attrs": { "data-fw-theme-only": "dark", "src": "https://media.formai.studio/media/formdam/ui-hero-2/48bfcb8b51e6.w2400.webp", "srcset": "https://media.formai.studio/media/formdam/ui-hero-2/48bfcb8b51e6.w640.webp 640w, https://media.formai.studio/media/formdam/ui-hero-2/48bfcb8b51e6.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-hero-2/48bfcb8b51e6.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1350", "alt": "The FormDAM library window with a grid of photos", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] },
+                      { "key": "pic-hero-light", "tag": "img", "name": "Picture library window light", "attrs": { "data-fw-theme-only": "light", "src": "https://media.formai.studio/media/formdam/ui-hero-light-2/6746e07c8f39.w2400.webp", "srcset": "https://media.formai.studio/media/formdam/ui-hero-light-2/6746e07c8f39.w640.webp 640w, https://media.formai.studio/media/formdam/ui-hero-light-2/6746e07c8f39.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-hero-light-2/6746e07c8f39.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1350", "alt": "The FormDAM library window with a grid of photos", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] },
+                      {
+                        "key": "veil", "tag": "div", "name": "Title veil", "attrs": {},
+                        "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "box-sizing": "border-box", "display": "grid", "place-items": "center", "padding": "68px", "background": "color-mix(in srgb, var(--black) 62%, transparent)", "text-align": "center", "pointer-events": "none" },
+                        "breakpoints": { "tablet": { "padding": "106px" }, "mobile": { "padding": "47px" } },
+                        "children": [
+                          {
+                            "key": "line", "tag": "h1", "name": "Title line", "attrs": {},
+                            "styles": { "margin": "0", "max-width": "min(670px, calc(100cqw - 48px))", "color": "var(--footage-ink)", "font-size": "clamp(1.5rem, 2.9cqw, 3rem)", "line-height": "1.08", "text-wrap": "balance" },
+                            "breakpoints": { "tablet": { "max-width": "min(50%, calc(100cqw - 48px))" } },
+                            "children": [
+                              { "key": "line-form", "tag": "span", "name": "Product name first part", "text": "{{name_form}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                              { "key": "line-suffix", "tag": "span", "name": "Product name tinted part", "text": "{{name_suffix}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                              { "key": "line-rest", "tag": "span", "name": "Title sentence", "text": " {{line}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "shot-editor", "tag": "div", "name": "Shot editor", "attrs": {},
+                    "styles": { "position": "relative", "flex": "none", "width": "var(--pw)", "aspect-ratio": "13 / 6", "overflow": "hidden", "border-radius": "var(--pr)", "background": "var(--pane)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "pic-editor", "tag": "img", "name": "Picture editor", "attrs": { "src": "https://media.formai.studio/media/formdam/ui-editor/15bb59c673f9.w1024.webp", "srcset": "https://media.formai.studio/media/formdam/ui-editor/15bb59c673f9.w640.webp 640w, https://media.formai.studio/media/formdam/ui-editor/15bb59c673f9.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-editor/15bb59c673f9.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1500", "alt": "The FormDAM editor with the adjustment panels open beside a photo", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "row-bot",
+                "tag": "div",
+                "name": "Bottom row",
+                "attrs": {},
+                "styles": { "display": "flex", "flex": "none", "gap": "var(--pg)", "width": "max-content", "margin-left": "50%", "translate": "-85.7% 0", "will-change": "transform" },
+                "breakpoints": {},
+                "children": [
+                  {
+                    "key": "shot-privacy", "tag": "div", "name": "Shot private albums", "attrs": {},
+                    "styles": { "position": "relative", "flex": "none", "width": "var(--pw)", "aspect-ratio": "13 / 6", "overflow": "hidden", "border-radius": "var(--pr)", "background": "var(--pane)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "pic-privacy", "tag": "img", "name": "Picture private albums", "attrs": { "src": "https://media.formai.studio/media/formdam/ui-privacy/936c66893699.w1024.webp", "srcset": "https://media.formai.studio/media/formdam/ui-privacy/936c66893699.w640.webp 640w, https://media.formai.studio/media/formdam/ui-privacy/936c66893699.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-privacy/936c66893699.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1500", "alt": "FormDAM's private albums view", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] }
+                    ]
+                  },
+                  {
+                    "key": "shot-editor-b", "tag": "div", "name": "Shot editor repeat", "attrs": {},
+                    "styles": { "position": "relative", "flex": "none", "width": "var(--pw)", "aspect-ratio": "13 / 6", "overflow": "hidden", "border-radius": "var(--pr)", "background": "var(--pane)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "pic-editor-b", "tag": "img", "name": "Picture editor repeat", "attrs": { "src": "https://media.formai.studio/media/formdam/ui-editor-2/8540579984d3.w1024.webp", "srcset": "https://media.formai.studio/media/formdam/ui-editor-2/8540579984d3.w640.webp 640w, https://media.formai.studio/media/formdam/ui-editor-2/8540579984d3.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-editor-2/8540579984d3.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1500", "alt": "", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] }
+                    ]
+                  },
+                  {
+                    "key": "shot-viewer-b", "tag": "div", "name": "Shot viewer repeat", "attrs": {},
+                    "styles": { "position": "relative", "flex": "none", "width": "var(--pw)", "aspect-ratio": "13 / 6", "overflow": "hidden", "border-radius": "var(--pr)", "background": "var(--pane)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "pic-viewer-b", "tag": "img", "name": "Picture viewer repeat", "attrs": { "src": "https://media.formai.studio/media/formdam/ui-viewer-2/10f4fcdbfd12.w1024.webp", "srcset": "https://media.formai.studio/media/formdam/ui-viewer-2/10f4fcdbfd12.w640.webp 640w, https://media.formai.studio/media/formdam/ui-viewer-2/10f4fcdbfd12.w1024.webp 1024w, https://media.formai.studio/media/formdam/ui-viewer-2/10f4fcdbfd12.w2400.webp 2400w", "sizes": "(max-width: 480px) 200vw, (max-width: 767px) 120vw, (max-width: 991px) 100vw, 60vw", "width": "2400", "height": "1500", "alt": "", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover" }, "breakpoints": {}, "children": [] }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@line@@", "name": "heading" } },
+    { "command": "node.update", "params": { "id": "@@line@@", "patch": { "styles": { "font-size": "clamp(1.5rem, 2.9cqw, 3rem)", "line-height": "1.08", "color": "var(--footage-ink)", "max-width": "min(670px, calc(100cqw - 48px))" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@line-form@@", "name": "app-form" } },
+    { "command": "node.update", "params": { "id": "@@line-form@@", "patch": { "styles": { "color": "var(--footage-ink)" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@line-suffix@@", "name": "app-suffix" } },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "scenes",
+        "node": "@@runway@@",
+        "value": {
+          "stage": "@@stage@@",
+          "length": 300,
+          "offset": "65px",
+          "smoothing": 200,
+          "reducedAt": 1,
+          "tracks": [
+            { "node": "@@zoom@@", "keyframes": [ { "at": 0, "styles": { "scale": "2.75" } }, { "at": 0.8403, "styles": { "scale": "1" } }, { "at": 1, "styles": { "scale": "1" } } ] },
+            { "node": "@@row-top@@", "keyframes": [ { "at": 0, "styles": { "translate": "-130% 0" } }, { "at": 1, "styles": { "translate": "-15.76% 0" } } ] },
+            { "node": "@@row-bot@@", "keyframes": [ { "at": 0, "styles": { "translate": "0% 0" } }, { "at": 1, "styles": { "translate": "-85.68% 0" } } ] },
+            { "node": "@@veil@@", "keyframes": [ { "at": 0, "styles": { "opacity": "0" } }, { "at": 0.5252, "styles": { "opacity": "0" } }, { "at": 0.7353, "styles": { "opacity": "1" } }, { "at": 1, "styles": { "opacity": "1" } } ] }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -30,12 +30,13 @@ try {
     fields.push(JSON.stringify(name) + (descriptor.required ? '' : '?') + ': ' + types[descriptor.type]);
   }
   workspace = await mkdtemp(join(tmpdir(), 'formweb-component-'));
-  const sourcePath = join(workspace, 'component.ts');
+  const plain = input.language === 'javascript';
+  const sourcePath = join(workspace, plain ? 'component.js' : 'component.ts');
   const context = 'interface FormWebComponentContext { host: HTMLElement; id: string; readonly reduced: boolean; theme(): "dark" | "light"; onTheme(fn: (mode: "dark" | "light") => void): () => void; token(name: string): string; asset(path: string): string; progress(scene?: string): number; onProgress(fn: (p: number) => void, scene?: string): () => void; onFrame(fn: (now: number) => void): () => void; visible(): boolean; onVisible(fn: (v: boolean) => void): () => void; size(): { width: number; height: number }; onResize(fn: (s: { width: number; height: number }) => void): () => void; variable(name: string): unknown; onVariable(name: string, fn: (v: unknown) => void): () => void; ready(): void }\n';
   const signature = page ? '(root: HTMLElement, props: FormWebComponentProps, ctx: FormWebComponentContext) => unknown' : '(root: HTMLElement, props: FormWebComponentProps) => void';
-  const contract = '\ntype FormWebComponentProps = {' + fields.join('; ') + '};\n' + (page ? context : '') + 'const formwebMountContract: ' + signature + ' = mount;\nexport { formwebMountContract };\n';
+  const contract = plain ? '\nconst formwebMountContract = mount;\nexport { formwebMountContract };\n' : '\ntype FormWebComponentProps = {' + fields.join('; ') + '};\n' + (page ? context : '') + 'const formwebMountContract: ' + signature + ' = mount;\nexport { formwebMountContract };\n';
   await writeFile(sourcePath, input.source + contract);
-  await writeFile(join(workspace, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ES2022', moduleResolution: 'bundler', strict: true, noImplicitAny: input.language === 'typescript', noEmitOnError: true, isolatedModules: true, noResolve: true, types: [], typeRoots: [], lib: ['ES2022', 'DOM'], rootDir: workspace, outDir: join(workspace, 'out'), skipLibCheck: true, declaration: false, sourceMap: false }, files: [sourcePath] }));
+  await writeFile(join(workspace, 'tsconfig.json'), JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ES2022', moduleResolution: 'bundler', strict: true, noImplicitAny: input.language === 'typescript', allowJs: plain, checkJs: false, noEmitOnError: true, isolatedModules: true, noResolve: true, types: [], typeRoots: [], lib: ['ES2022', 'DOM'], rootDir: workspace, outDir: join(workspace, 'out'), skipLibCheck: true, declaration: false, sourceMap: false }, files: [sourcePath] }));
   const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
   const compiler = join(root, 'frontend', 'node_modules', 'typescript', 'bin', 'tsc');
   const result = await new Promise((resolveResult, reject) => {

@@ -1,0 +1,102 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formcad-plan",
+  "name": "FormCAD drawing sheet",
+  "category": "portfolio-hero",
+  "tags": ["cad", "plan", "axonometric", "shadows", "sun", "parts"],
+  "product": "formcad",
+  "description": "A FormCAD drawing sheet that folds from a flat plan into a tilted model, with a sun slider that recasts every shadow and six parts to open.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formcad-plan",
+  "preset": "formai-studio",
+  "components": ["fold-plan"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#9a7bd8" },
+    "name": { "label": "Product name", "type": "text", "default": "FormCAD" },
+    "descr": { "label": "Title block description", "type": "text", "default": "CAD studio" },
+    "note": { "label": "Title block note", "type": "text", "default": "Parts, sheets and surfaces explored" },
+    "avail": { "label": "Availability line", "type": "text", "default": "Free, no account needed" },
+    "link": { "label": "Product link", "type": "url", "default": "https://formai.studio/formcad/" },
+    "download": { "label": "Download link", "type": "url", "default": "https://formai.studio/download/" }
+  },
+  "tree": {
+    "key": "section",
+    "tag": "section",
+    "name": "Drawing sheet",
+    "attrs": { "aria-label": "{{name}} drawing sheet" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--fold-plan-tokens": "var(--pane) var(--inset) var(--on-ink) var(--bar-veil) var(--shade-strong) var(--radius-l) var(--radius-m) var(--z-raised) var(--z-overlay) var(--z-tooltip) var(--track-display) var(--fs-m) var(--fs-l) var(--fs-xl) var(--control-hover) var(--shadow-window)",
+      "position": "relative",
+      "display": "block",
+      "box-sizing": "border-box",
+      "isolation": "isolate",
+      "overflow": "clip",
+      "height": "max(680px, calc(100svh - var(--bar-h)))",
+      "background": "var(--ground)",
+      "color": "var(--ink)",
+      "font-family": "var(--font-ui)",
+      "border-bottom": "1px solid var(--edge)"
+    },
+    "breakpoints": {
+      "mobile": { "height": "calc(min(86vw, 600px) * 0.95 + 672px)" }
+    },
+    "children": [
+      {
+        "key": "title",
+        "tag": "h1",
+        "name": "Screen reader title",
+        "text": "A {{name}} drawing sheet with six parts",
+        "styles": {
+          "position": "absolute",
+          "width": "1px",
+          "height": "1px",
+          "margin": "0",
+          "overflow": "hidden",
+          "clip-path": "inset(50%)",
+          "white-space": "nowrap"
+        }
+      },
+      {
+        "key": "host",
+        "tag": "div",
+        "name": "Fold plan",
+        "styles": { "position": "relative", "width": "100%", "height": "100%" }
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@host@@",
+        "value": {
+          "component": "fold-plan",
+          "props": {
+            "name": "{{name}}",
+            "icon": "/api/assets/218d3c48b834e2d4e36bd64fe4caa0abfeae4ffedc5e4d93d1b525d64d1dd0a3.webp",
+            "descr": "{{descr}}",
+            "note": "{{note}}",
+            "avail": "{{avail}}",
+            "link": "{{link}}",
+            "downloadHref": "{{download}}",
+            "parts": [
+              { "t": "Bracket", "type": "Part", "ws": "Modelling", "flag": "3D", "img": { "640": "https://media.formai.studio/media/formcad/ui-hero-2/f0fcfc251ec1.w640.webp", "1024": "https://media.formai.studio/media/formcad/ui-hero-2/f0fcfc251ec1.w1024.webp" }, "alt": "The FormCAD workspace with an L-shaped bracket with a gusset and three holes in the viewport and its feature tree at the right", "d": "A parametric part with a feature tree on an OpenCascade kernel. Open any feature, change its radius or depth, and the rest of the part rebuilds.", "exp": "STEP, IGES, STL", "tag": [40, 46, 24],
+                "parts": [{ "x": 22, "y": 34, "w": 36, "d": 24, "h": 4 }, { "x": 22, "y": 34, "w": 36, "d": 5, "h": 22, "m": "b" }, { "x": 36, "y": 39, "w": 6, "d": 19, "z": 4, "h": 10 }] },
+              { "t": "Feature tree", "type": "Part", "ws": "Features", "flag": "3D", "img": { "640": "https://media.formai.studio/media/formcad/ui-feature-tree-2/03115b51ed14.w640.webp", "1024": "https://media.formai.studio/media/formcad/ui-feature-tree-2/03115b51ed14.w1024.webp" }, "alt": "The FormCAD feature tree open on a bent plate, with a fillet dialog over the viewport", "d": "Roll back through the feature tree to see the part at any step. A failed feature is marked with its reason and never silently changes the model.", "exp": "STEP, 3MF, GLB", "tag": [87, 31, 16],
+                "parts": [{ "x": 72, "y": 16, "w": 30, "d": 30, "h": 3 }, { "x": 80, "y": 24, "w": 14, "d": 14, "z": 3, "h": 12, "m": "b" }, { "x": 72, "y": 16, "w": 30, "d": 4, "z": 3, "h": 8, "m": "c" }] },
+              { "t": "Drawing sheet", "type": "Layout", "ws": "Drafting", "flag": "2D", "img": { "640": "https://media.formai.studio/media/formcad/ui-drawing-2/7263fab296b8.w640.webp", "1024": "https://media.formai.studio/media/formcad/ui-drawing-2/7263fab296b8.w1024.webp" }, "alt": "A FormCAD drawing layout with front, top, side and isometric views of a bracket and a title block", "d": "Place base, projected, section and detail views in first or third angle on a layout. Views update when the part changes.", "exp": "PDF, PNG, SVG", "tag": [151, 36, 13],
+                "parts": [{ "x": 118, "y": 14, "w": 66, "d": 44, "h": 1, "m": "c" }, { "x": 122, "y": 19, "w": 18, "d": 14, "z": 1, "h": 5 }, { "x": 146, "y": 19, "w": 14, "d": 14, "z": 1, "h": 11 }, { "x": 164, "y": 19, "w": 16, "d": 14, "z": 1, "h": 7, "m": "b" }, { "x": 122, "y": 39, "w": 58, "d": 14, "z": 1, "h": 2 }] },
+              { "t": "Node graph", "type": "Graph", "ws": "Nodes", "flag": "3D", "img": { "640": "https://media.formai.studio/media/formcad/ui-graph-2/8c27f8b85e82.w640.webp", "1024": "https://media.formai.studio/media/formcad/ui-graph-2/8c27f8b85e82.w1024.webp" }, "alt": "The FormCAD node graph: wired nodes for a plate with holes, with data flowing into cut, mesh and section length nodes", "d": "Build geometry from wired nodes with data trees. The window, the command line and an MCP server all call the same commands.", "exp": "DXF, SVG", "tag": [52, 88, 16],
+                "parts": [{ "x": 18, "y": 78, "w": 16, "d": 10, "h": 6 }, { "x": 44, "y": 74, "w": 16, "d": 10, "h": 10, "m": "b" }, { "x": 44, "y": 90, "w": 16, "d": 10, "h": 6 }, { "x": 70, "y": 82, "w": 16, "d": 14, "h": 12, "g": 5, "m": "c" }] },
+              { "t": "Surface", "type": "Surface", "ws": "NURBS", "flag": "3D", "img": { "640": "https://media.formai.studio/media/formcad/ui-surface-2/22c7c43d04d8.w640.webp", "1024": "https://media.formai.studio/media/formcad/ui-surface-2/22c7c43d04d8.w1024.webp" }, "alt": "A FormCAD NURBS surface rendered with black and white zebra stripes to check continuity", "d": "Loft, sweep, blend and match surfaces to G2, then read continuity at the seams with zebra, curvature, draft and deviation.", "exp": "3DM, STEP", "tag": [143, 89, 18],
+                "parts": [{ "x": 118, "y": 78, "w": 10, "d": 22, "h": 6, "m": "b" }, { "x": 128, "y": 78, "w": 10, "d": 22, "h": 10, "m": "b" }, { "x": 138, "y": 78, "w": 10, "d": 22, "h": 12, "g": 4, "m": "b" }, { "x": 148, "y": 78, "w": 10, "d": 22, "h": 10, "m": "b" }, { "x": 158, "y": 78, "w": 10, "d": 22, "h": 6, "m": "b" }] },
+              { "t": "Light workspace", "type": "Appearance", "ws": "Light", "flag": "3D", "img": { "640": "https://media.formai.studio/media/formcad/ui-hero-light-2/580e29d14ea0.w640.webp", "1024": "https://media.formai.studio/media/formcad/ui-hero-light-2/580e29d14ea0.w1024.webp" }, "alt": "The FormCAD workspace in the light appearance with the same bracket on a pale grid", "d": "The same bracket in the light workspace. FormCAD runs on your own computer with no account, and saves its own .fcad projects.", "exp": "STL, OBJ, PLY", "tag": [183, 93, 18],
+                "parts": [{ "x": 172, "y": 84, "w": 22, "d": 18, "h": 8, "m": "c" }, { "x": 177, "y": 88, "w": 12, "d": 10, "z": 8, "h": 8 }] }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

@@ -64,4 +64,10 @@ export default {
   "Add a value or formula first.": "Agrega primero un valor o una fórmula.",
   "Add entry": "Agregar entrada",
   "Add property": "Agregar propiedad",
+  "Enter a hex color such as #ff9a3c.": "Ingresa un color hexadecimal, como #ff9a3c.",
+  "Enter a number.": "Ingresa un número.",
+  "Add pages": "Agregar páginas",
+  "Starter added: {0} page.": "Plantilla agregada: {0} página.",
+  "Starter added: {0} pages.": "Plantilla agregada: {0} páginas.",
+  "A page-not-found screen that searches the site and prints the closest pages on a receipt you can pull down to tear.": "Una pantalla de página no encontrada que busca en el sitio e imprime las páginas más cercanas en un recibo que puedes jalar hacia abajo para rasgar.",
 } as Record<string, string>;

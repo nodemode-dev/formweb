@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.19.1" src="https://img.shields.io/badge/version-0.19.1-eef0f4?style=flat-square">
+  <img alt="version 0.19.2" src="https://img.shields.io/badge/version-0.19.2-eef0f4?style=flat-square">
   <img alt="TypeScript 7" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
   <img alt="Rust engine" src="https://img.shields.io/badge/Rust-engine-b7410e?style=flat-square">
   <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/macOS%20%C2%B7%20Linux%20%C2%B7%20Windows-native-2f7bf5?style=flat-square">
@@ -68,6 +68,18 @@
       <h3>SEO and accessibility audit</h3>Check meta descriptions, base URL and text contrast before you publish.
     </td>
   </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/images/formweb-library.png" alt="The Library panel searching for a filmstrip section, with the inserted section on the canvas" width="100%">
+      <br><sub>The Library panel, filtered by search, with the section inserted on the canvas.</sub>
+      <h3>Section library</h3>Start from 35 animated, restylable sections, a design preset and a starter site, each inserted as one undo step.
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/images/formweb-library-detail.png" alt="A library section's detail with its re-castable fields beside the inserted section" width="100%">
+      <br><sub>Re-cast the tint, name and copy before you insert.</sub>
+      <h3>Fields before insert</h3>Each section opens with the few fields a designer changes first; everything else is edited on the canvas.
+    </td>
+  </tr>
 </table>
 
 ## Everything in the box
@@ -81,6 +93,8 @@
 </table>
 
 The editor runs in 26 languages, switched live from Settings.
+
+A built-in library adds 35 section templates from the formai.studio sites, 21 first-party page components, a design-system preset, a product-site starter and Import HTML; see [docs/LIBRARY.md](docs/LIBRARY.md).
 
 ## Built for agents
 

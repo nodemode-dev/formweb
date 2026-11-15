@@ -1,0 +1,560 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formcel-feature-rows",
+  "name": "FormCel feature rows",
+  "category": "product-site",
+  "tags": ["features", "rows", "screenshots", "reveal", "theme twins"],
+  "product": "formcel",
+  "description": "Two FormCel feature rows: opening the workbooks you already have, and starting from templates with charts.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formcel-feature-rows",
+  "preset": "formai-studio",
+  "components": [],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#3ecf8e" },
+    "name_form": { "label": "Product name, first part", "type": "text", "default": "Form" },
+    "name_suffix": { "label": "Product name, tinted part", "type": "text", "default": "Cel" },
+    "heading": { "label": "Heading", "type": "text", "default": "Bring your workbooks in as they are. Send them out whole." },
+    "row1_title": { "label": "Row 1 title", "type": "text", "default": "Open the workbook you already have" },
+    "row1_text": { "label": "Row 1 text", "type": "longtext", "default": "Open .xlsx and .xlsm, or drop one on Home. .ods opens and downloads, .xls opens with its last saved values, and CSV and TSV open with a preview first." },
+    "row2_title": { "label": "Row 2 title", "type": "text", "default": "Charts that stay tied to your data" },
+    "row2_text": { "label": "Row 2 text", "type": "longtext", "default": "Start from one of 76 templates, including finished workbooks with a formula dashboard and charts tied to the data, and save the result as .xlsx." }
+  },
+  "tree": {
+    "key": "section",
+    "tag": "section",
+    "name": "Feature rows",
+    "attrs": {},
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "position": "relative",
+      "box-sizing": "border-box",
+      "padding-top": "var(--sp-8)",
+      "padding-bottom": "var(--sp-8)",
+      "border-bottom": "1px solid var(--edge)"
+    },
+    "breakpoints": {},
+    "children": [
+      {
+        "key": "wrap",
+        "tag": "div",
+        "name": "Page frame",
+        "attrs": {},
+        "styles": {
+          "position": "relative",
+          "box-sizing": "border-box",
+          "width": "100%",
+          "max-width": "var(--page-max)",
+          "margin-left": "auto",
+          "margin-right": "auto",
+          "padding-left": "var(--gutter)",
+          "padding-right": "var(--gutter)",
+          "border-left": "1px solid var(--edge)",
+          "border-right": "1px solid var(--edge)"
+        },
+        "breakpoints": {},
+        "children": [
+          {
+            "key": "mark-left",
+            "tag": "span",
+            "name": "Crop mark left",
+            "attrs": { "aria-hidden": "true" },
+            "styles": {
+              "position": "absolute",
+              "bottom": "calc(var(--sp-2) * -1 - 0.5px)",
+              "left": "calc(var(--sp-2) * -1 - 0.5px)",
+              "width": "calc(var(--sp-4) + 1px)",
+              "height": "calc(var(--sp-4) + 1px)",
+              "pointer-events": "none",
+              "background": "linear-gradient(var(--ink-faint), var(--ink-faint)) center / 1px 100% no-repeat, linear-gradient(var(--ink-faint), var(--ink-faint)) center / 100% 1px no-repeat"
+            },
+            "breakpoints": {},
+            "children": []
+          },
+          {
+            "key": "mark-right",
+            "tag": "span",
+            "name": "Crop mark right",
+            "attrs": { "aria-hidden": "true" },
+            "styles": {
+              "position": "absolute",
+              "bottom": "calc(var(--sp-2) * -1 - 0.5px)",
+              "right": "calc(var(--sp-2) * -1 - 0.5px)",
+              "width": "calc(var(--sp-4) + 1px)",
+              "height": "calc(var(--sp-4) + 1px)",
+              "pointer-events": "none",
+              "background": "linear-gradient(var(--ink-faint), var(--ink-faint)) center / 1px 100% no-repeat, linear-gradient(var(--ink-faint), var(--ink-faint)) center / 100% 1px no-repeat"
+            },
+            "breakpoints": {},
+            "children": []
+          },
+          {
+            "key": "head",
+            "tag": "header",
+            "name": "Section head",
+            "attrs": {},
+            "styles": {
+              "display": "grid",
+              "justify-items": "center",
+              "gap": "var(--sp-3)",
+              "max-width": "50rem",
+              "margin-left": "auto",
+              "margin-right": "auto",
+              "text-align": "center"
+            },
+            "breakpoints": {},
+            "children": [
+              {
+                "key": "label",
+                "tag": "p",
+                "name": "Product label",
+                "attrs": {},
+                "styles": {
+                  "margin": "0",
+                  "font-size": "var(--fs-l)",
+                  "font-weight": "var(--weight-display)",
+                  "letter-spacing": "var(--track-tight)"
+                },
+                "breakpoints": {},
+                "children": [
+                  { "key": "label-form", "tag": "span", "name": "Product name first part", "text": "{{name_form}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "label-suffix", "tag": "span", "name": "Product name tinted part", "text": "{{name_suffix}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "label-meta", "tag": "span", "name": "Product category", "text": "Spreadsheets / Free", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              {
+                "key": "title",
+                "tag": "h2",
+                "name": "Section heading",
+                "text": "{{heading}}",
+                "attrs": {},
+                "styles": { "margin": "0", "text-wrap": "balance" },
+                "breakpoints": {},
+                "children": []
+              }
+            ]
+          },
+          {
+            "key": "list",
+            "tag": "div",
+            "name": "Feature rows",
+            "attrs": {},
+            "styles": {
+              "display": "grid",
+              "gap": "var(--sp-5)",
+              "margin-top": "var(--sp-7)"
+            },
+            "breakpoints": {
+              "tablet": { "gap": "var(--sp-7)" },
+              "mobile": { "margin-top": "var(--sp-6)" }
+            },
+            "children": [
+              {
+                "key": "row1",
+                "tag": "article",
+                "name": "Row 1 import",
+                "attrs": {},
+                "styles": {
+                  "display": "grid",
+                  "grid-template-columns": "minmax(0, 1fr) minmax(0, 1fr)",
+                  "gap": "var(--sp-8)",
+                  "align-items": "stretch"
+                },
+                "breakpoints": {
+                  "tablet": { "grid-template-columns": "minmax(0, 1fr)", "gap": "var(--sp-5)" }
+                },
+                "children": [
+                  {
+                    "key": "card1",
+                    "tag": "div",
+                    "name": "Row 1 picture card",
+                    "attrs": {},
+                    "styles": {
+                      "display": "grid",
+                      "place-items": "center",
+                      "box-sizing": "border-box",
+                      "min-width": "0",
+                      "aspect-ratio": "555 / 538",
+                      "padding": "var(--sp-7)",
+                      "border-radius": "var(--radius-l)",
+                      "background": "var(--pane)",
+                      "box-shadow": "inset 0 0 0 1px var(--edge)"
+                    },
+                    "breakpoints": {
+                      "tablet": { "padding": "var(--sp-6)" },
+                      "mobile": { "aspect-ratio": "auto", "padding": "var(--sp-4)" }
+                    },
+                    "children": [
+                      {
+                        "key": "panel1",
+                        "tag": "div",
+                        "name": "Row 1 window",
+                        "attrs": {},
+                        "styles": {
+                          "position": "relative",
+                          "width": "100%",
+                          "aspect-ratio": "395 / 378",
+                          "overflow": "hidden",
+                          "border-radius": "14px",
+                          "background": "var(--inset)",
+                          "box-shadow": "var(--shadow-window, 0 1px 1px rgb(0 0 0 / 0.3), 0 28px 64px -28px rgb(0 0 0 / 0.8))"
+                        },
+                        "breakpoints": { "mobile": { "border-radius": "var(--radius-m)" } },
+                        "children": [
+                          {
+                            "key": "pic1-dark",
+                            "tag": "img",
+                            "name": "Row 1 picture dark",
+                            "attrs": {
+                              "data-fw-theme-only": "dark",
+                              "src": "https://media.formai.studio/media/formcel/ui-import/ae9ce34656db.w1024.webp",
+                              "srcset": "https://media.formai.studio/media/formcel/ui-import/ae9ce34656db.w640.webp 640w, https://media.formai.studio/media/formcel/ui-import/ae9ce34656db.w1024.webp 1024w, https://media.formai.studio/media/formcel/ui-import/ae9ce34656db.w2400.webp 2400w",
+                              "sizes": "(max-width: 991px) 90vw, 440px",
+                              "width": "2400",
+                              "height": "1500",
+                              "alt": "FormCel's open dialog for a CSV file, showing a semicolon separator, a column type for each column and a preview of eight rows",
+                              "loading": "lazy",
+                              "decoding": "async"
+                            },
+                            "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover", "object-position": "36% 40%" },
+                            "breakpoints": {},
+                            "children": []
+                          },
+                          {
+                            "key": "pic1-light",
+                            "tag": "img",
+                            "name": "Row 1 picture light",
+                            "attrs": {
+                              "data-fw-theme-only": "light",
+                              "src": "https://media.formai.studio/media/formcel/ui-import-light/bc36fc2c633b.w1024.webp",
+                              "srcset": "https://media.formai.studio/media/formcel/ui-import-light/bc36fc2c633b.w640.webp 640w, https://media.formai.studio/media/formcel/ui-import-light/bc36fc2c633b.w1024.webp 1024w, https://media.formai.studio/media/formcel/ui-import-light/bc36fc2c633b.w2400.webp 2400w",
+                              "sizes": "(max-width: 991px) 90vw, 440px",
+                              "width": "2400",
+                              "height": "1500",
+                              "alt": "FormCel's open dialog for a CSV file, showing a semicolon separator, a column type for each column and a preview of eight rows",
+                              "loading": "lazy",
+                              "decoding": "async"
+                            },
+                            "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover", "object-position": "36% 40%" },
+                            "breakpoints": {},
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "text1",
+                    "tag": "div",
+                    "name": "Row 1 text",
+                    "attrs": {},
+                    "styles": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "justify-content": "space-between",
+                      "gap": "var(--sp-6)",
+                      "min-width": "0",
+                      "padding-top": "var(--sp-7)",
+                      "padding-bottom": "var(--sp-7)"
+                    },
+                    "breakpoints": { "tablet": { "padding-top": "0", "padding-bottom": "0" } },
+                    "children": [
+                      {
+                        "key": "copy1",
+                        "tag": "div",
+                        "name": "Row 1 copy",
+                        "attrs": {},
+                        "styles": { "display": "grid", "align-content": "start", "gap": "var(--sp-4)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "title1", "tag": "h3", "name": "Row 1 title", "text": "{{row1_title}}", "attrs": {}, "styles": { "margin": "0", "text-wrap": "balance" }, "breakpoints": {}, "children": [] },
+                          { "key": "para1", "tag": "p", "name": "Row 1 paragraph", "text": "{{row1_text}}", "attrs": {}, "styles": { "margin": "0" }, "breakpoints": {}, "children": [] }
+                        ]
+                      },
+                      {
+                        "key": "checks1",
+                        "tag": "ul",
+                        "name": "Row 1 checks",
+                        "attrs": {},
+                        "styles": { "display": "grid", "gap": "var(--sp-4)", "margin": "0", "padding": "0", "list-style": "none" },
+                        "breakpoints": {},
+                        "children": [
+                          {
+                            "key": "check1a",
+                            "tag": "li",
+                            "name": "Row 1 check 1",
+                            "attrs": {},
+                            "styles": { "display": "grid", "grid-template-columns": "var(--icon-m) minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "start", "color": "var(--ink-soft)" },
+                            "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "tick1a", "tag": "svg", "name": "Tick", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)", "margin-top": "0.15em", "color": "var(--hue)" }, "breakpoints": {},
+                                "children": [ { "key": "tick1a-d", "tag": "path", "name": "Tick stroke", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                              },
+                              { "key": "check1a-t", "tag": "span", "name": "Check text", "text": "Opens and saves .xlsx and .xlsm.", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          {
+                            "key": "check1b",
+                            "tag": "li",
+                            "name": "Row 1 check 2",
+                            "attrs": {},
+                            "styles": { "display": "grid", "grid-template-columns": "var(--icon-m) minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "start", "color": "var(--ink-soft)" },
+                            "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "tick1b", "tag": "svg", "name": "Tick", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)", "margin-top": "0.15em", "color": "var(--hue)" }, "breakpoints": {},
+                                "children": [ { "key": "tick1b-d", "tag": "path", "name": "Tick stroke", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                              },
+                              { "key": "check1b-t", "tag": "span", "name": "Check text", "text": "Opens .ods and .xls files.", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          {
+                            "key": "check1c",
+                            "tag": "li",
+                            "name": "Row 1 check 3",
+                            "attrs": {},
+                            "styles": { "display": "grid", "grid-template-columns": "var(--icon-m) minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "start", "color": "var(--ink-soft)" },
+                            "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "tick1c", "tag": "svg", "name": "Tick", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)", "margin-top": "0.15em", "color": "var(--hue)" }, "breakpoints": {},
+                                "children": [ { "key": "tick1c-d", "tag": "path", "name": "Tick stroke", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                              },
+                              { "key": "check1c-t", "tag": "span", "name": "Check text", "text": "Previews CSV and TSV before import.", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "row2",
+                "tag": "article",
+                "name": "Row 2 templates",
+                "attrs": {},
+                "styles": {
+                  "display": "grid",
+                  "grid-template-columns": "minmax(0, 1fr) minmax(0, 1fr)",
+                  "gap": "var(--sp-8)",
+                  "align-items": "stretch"
+                },
+                "breakpoints": {
+                  "tablet": { "grid-template-columns": "minmax(0, 1fr)", "gap": "var(--sp-5)" }
+                },
+                "children": [
+                  {
+                    "key": "card2",
+                    "tag": "div",
+                    "name": "Row 2 picture card",
+                    "attrs": {},
+                    "styles": {
+                      "display": "grid",
+                      "place-items": "center",
+                      "box-sizing": "border-box",
+                      "min-width": "0",
+                      "order": "2",
+                      "aspect-ratio": "555 / 538",
+                      "padding": "var(--sp-7)",
+                      "border-radius": "var(--radius-l)",
+                      "background": "var(--pane)",
+                      "box-shadow": "inset 0 0 0 1px var(--edge)"
+                    },
+                    "breakpoints": {
+                      "tablet": { "order": "0", "padding": "var(--sp-6)" },
+                      "mobile": { "aspect-ratio": "auto", "padding": "var(--sp-4)" }
+                    },
+                    "children": [
+                      {
+                        "key": "panel2",
+                        "tag": "div",
+                        "name": "Row 2 window",
+                        "attrs": {},
+                        "styles": {
+                          "position": "relative",
+                          "width": "100%",
+                          "aspect-ratio": "395 / 378",
+                          "overflow": "hidden",
+                          "border-radius": "14px",
+                          "background": "var(--inset)",
+                          "box-shadow": "var(--shadow-window, 0 1px 1px rgb(0 0 0 / 0.3), 0 28px 64px -28px rgb(0 0 0 / 0.8))"
+                        },
+                        "breakpoints": { "mobile": { "border-radius": "var(--radius-m)" } },
+                        "children": [
+                          {
+                            "key": "pic2-dark",
+                            "tag": "img",
+                            "name": "Row 2 picture dark",
+                            "attrs": {
+                              "data-fw-theme-only": "dark",
+                              "src": "https://media.formai.studio/media/formcel/ui-hero-2/c29707ac02cc.w1024.webp",
+                              "srcset": "https://media.formai.studio/media/formcel/ui-hero-2/c29707ac02cc.w640.webp 640w, https://media.formai.studio/media/formcel/ui-hero-2/c29707ac02cc.w1024.webp 1024w, https://media.formai.studio/media/formcel/ui-hero-2/c29707ac02cc.w2400.webp 2400w",
+                              "sizes": "(max-width: 991px) 90vw, 440px",
+                              "width": "2400",
+                              "height": "1350",
+                              "alt": "FormCel's template gallery: cards with live charts, a funnel, a histogram and a combo chart, each with its sheet and row counts",
+                              "loading": "lazy",
+                              "decoding": "async"
+                            },
+                            "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover", "object-position": "100% 0%" },
+                            "breakpoints": {},
+                            "children": []
+                          },
+                          {
+                            "key": "pic2-light",
+                            "tag": "img",
+                            "name": "Row 2 picture light",
+                            "attrs": {
+                              "data-fw-theme-only": "light",
+                              "src": "https://media.formai.studio/media/formcel/ui-hero-light-2/a66b1e40ff5d.w1024.webp",
+                              "srcset": "https://media.formai.studio/media/formcel/ui-hero-light-2/a66b1e40ff5d.w640.webp 640w, https://media.formai.studio/media/formcel/ui-hero-light-2/a66b1e40ff5d.w1024.webp 1024w, https://media.formai.studio/media/formcel/ui-hero-light-2/a66b1e40ff5d.w2400.webp 2400w",
+                              "sizes": "(max-width: 991px) 90vw, 440px",
+                              "width": "2400",
+                              "height": "1350",
+                              "alt": "FormCel's template gallery: cards with live charts, a funnel, a histogram and a combo chart, each with its sheet and row counts",
+                              "loading": "lazy",
+                              "decoding": "async"
+                            },
+                            "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover", "object-position": "100% 0%" },
+                            "breakpoints": {},
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "text2",
+                    "tag": "div",
+                    "name": "Row 2 text",
+                    "attrs": {},
+                    "styles": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "justify-content": "space-between",
+                      "gap": "var(--sp-6)",
+                      "min-width": "0",
+                      "padding-top": "var(--sp-7)",
+                      "padding-bottom": "var(--sp-7)"
+                    },
+                    "breakpoints": { "tablet": { "padding-top": "0", "padding-bottom": "0" } },
+                    "children": [
+                      {
+                        "key": "copy2",
+                        "tag": "div",
+                        "name": "Row 2 copy",
+                        "attrs": {},
+                        "styles": { "display": "grid", "align-content": "start", "gap": "var(--sp-4)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "title2", "tag": "h3", "name": "Row 2 title", "text": "{{row2_title}}", "attrs": {}, "styles": { "margin": "0", "text-wrap": "balance" }, "breakpoints": {}, "children": [] },
+                          { "key": "para2", "tag": "p", "name": "Row 2 paragraph", "text": "{{row2_text}}", "attrs": {}, "styles": { "margin": "0" }, "breakpoints": {}, "children": [] }
+                        ]
+                      },
+                      {
+                        "key": "checks2",
+                        "tag": "ul",
+                        "name": "Row 2 checks",
+                        "attrs": {},
+                        "styles": { "display": "grid", "gap": "var(--sp-4)", "margin": "0", "padding": "0", "list-style": "none" },
+                        "breakpoints": {},
+                        "children": [
+                          {
+                            "key": "check2a",
+                            "tag": "li",
+                            "name": "Row 2 check 1",
+                            "attrs": {},
+                            "styles": { "display": "grid", "grid-template-columns": "var(--icon-m) minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "start", "color": "var(--ink-soft)" },
+                            "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "tick2a", "tag": "svg", "name": "Tick", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)", "margin-top": "0.15em", "color": "var(--hue)" }, "breakpoints": {},
+                                "children": [ { "key": "tick2a-d", "tag": "path", "name": "Tick stroke", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                              },
+                              { "key": "check2a-t", "tag": "span", "name": "Check text", "text": "76 templates ship in the gallery.", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          {
+                            "key": "check2b",
+                            "tag": "li",
+                            "name": "Row 2 check 2",
+                            "attrs": {},
+                            "styles": { "display": "grid", "grid-template-columns": "var(--icon-m) minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "start", "color": "var(--ink-soft)" },
+                            "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "tick2b", "tag": "svg", "name": "Tick", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)", "margin-top": "0.15em", "color": "var(--hue)" }, "breakpoints": {},
+                                "children": [ { "key": "tick2b-d", "tag": "path", "name": "Tick stroke", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                              },
+                              { "key": "check2b-t", "tag": "span", "name": "Check text", "text": "Formula dashboards and charts included.", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          {
+                            "key": "check2c",
+                            "tag": "li",
+                            "name": "Row 2 check 3",
+                            "attrs": {},
+                            "styles": { "display": "grid", "grid-template-columns": "var(--icon-m) minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "start", "color": "var(--ink-soft)" },
+                            "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "tick2c", "tag": "svg", "name": "Tick", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)", "margin-top": "0.15em", "color": "var(--hue)" }, "breakpoints": {},
+                                "children": [ { "key": "tick2c-d", "tag": "path", "name": "Tick stroke", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                              },
+                              { "key": "check2c-t", "tag": "span", "name": "Check text", "text": "Saves .xlsx and notes what is left out.", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@label-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@label-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@label-meta@@", "name": "mono" } },
+    { "command": "node.update", "params": { "id": "@@label-meta@@", "patch": { "styles": { "display": "block", "margin-top": "var(--sp-1)", "color": "var(--ink-faint)", "font-size": "var(--fs-xs)", "font-weight": "400", "letter-spacing": "0.14em", "text-transform": "uppercase" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@title@@", "name": "heading" } },
+    { "command": "node.update", "params": { "id": "@@title@@", "patch": { "styles": { "line-height": "1.05" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@title1@@", "name": "heading" } },
+    { "command": "node.update", "params": { "id": "@@title1@@", "patch": { "styles": { "font-size": "clamp(1.5rem, 1rem + 1.6vw, 2.25rem)", "line-height": "1.1" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@title2@@", "name": "heading" } },
+    { "command": "node.update", "params": { "id": "@@title2@@", "patch": { "styles": { "font-size": "clamp(1.5rem, 1rem + 1.6vw, 2.25rem)", "line-height": "1.1" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@para1@@", "name": "lead" } },
+    { "command": "node.update", "params": { "id": "@@para1@@", "patch": { "styles": { "max-width": "28rem", "line-height": "1.55" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@para2@@", "name": "lead" } },
+    { "command": "node.update", "params": { "id": "@@para2@@", "patch": { "styles": { "max-width": "28rem", "line-height": "1.55" } } } },
+
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@label@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@title@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@card1@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -15% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@panel1@@", "value": { "from": { "opacity": "0", "transform": "translateY(100px)" }, "children": true, "duration": 1000, "delay": 150, "easing": "cubic-bezier(0.165, 0.84, 0.44, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@title1@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@para1@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@check1a@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@check1b@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@check1c@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@card2@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -15% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@panel2@@", "value": { "from": { "opacity": "0", "transform": "translateY(100px)" }, "children": true, "duration": 1000, "delay": 150, "easing": "cubic-bezier(0.165, 0.84, 0.44, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@title2@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@para2@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@check2a@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@check2b@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@check2c@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px" } } }
+  ]
+}

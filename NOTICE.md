@@ -4,6 +4,8 @@ FormWeb · Copyright 2026 NodeAgentc, Inc. Licensed under Apache-2.0, see LICENS
 
 FormDesign v0.19.0 and FormPath v0.23.0, supplied by the owner, were studied as read-only family architecture references. Their documents, source trees and git histories are not included in this new repository. The Apache license text is preserved from the supplied family repository. New identity SVG and starter website content are original to this build.
 
+The section library in `library/` (page components, section templates, the formai.studio preset and the product-site starter) is ported from formai-xmental-webspun v3.1.0, NodeAgentc, Inc.'s own section pack, and is distributed here under Apache-2.0 with the owner's clearance of 2026-11-09. It bundles the Inter typeface (SIL Open Font License 1.1, Copyright (c) 2016 The Inter Project Authors), whose licence text sits beside the font in `library/presets/fonts/`.
+
 Direct dependencies are registered in LICENSES.md. Build outputs and installed dependencies are omitted from source archives; installers use locked Rust/frontend versions and pinned direct Python requirements. Python transitive versions may change. Dependency notices must accompany any later compiled distribution.
 
 ## Trademarks

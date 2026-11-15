@@ -1,0 +1,71 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "receipt-printer",
+  "code": "C20",
+  "name": "Receipt printer",
+  "description": "A small receipt printer that prints the closest pages for a search, row by row, and lets the visitor pull the receipt down to tear it off.",
+  "props": {
+    "pages": { "type": "json", "default": [
+      { "t": "FormTxt", "p": "/formtxt/", "k": "word processor docx pages ribbon overview writing" },
+      { "t": "Features", "p": "/formtxt/features/", "k": "features pages ribbon review tables pictures references proofing mail merge templates" },
+      { "t": "Download", "p": "/formtxt/download/", "k": "download install macos windows linux get" },
+      { "t": "Docs", "p": "/formtxt/docs/", "k": "docs documentation guide commands wiki help" },
+      { "t": "Open source", "p": "/formtxt/open-source/", "k": "source github licence repository code" },
+      { "t": "Releases", "p": "/formtxt/releases/", "k": "releases versions changelog notes updates" },
+      { "t": "Every app", "p": "/apps/", "k": "apps family formai every app list" },
+      { "t": "Support us", "p": "/support/", "k": "support gift donate amount help" },
+      { "t": "Portal", "p": "/portal/", "k": "portal formportal install update" },
+      { "t": "Home", "p": "/", "k": "home formai studio start" }
+    ] },
+    "fallback": { "type": "json", "default": ["Home", "FormTxt", "Every app"] },
+    "baseUrl": { "type": "string", "default": "https://formai.studio" },
+    "placeholder": { "type": "string", "default": "/formtxt/docs/old-draft/" },
+    "brandForm": { "type": "string", "default": "Form" },
+    "brandSuffix": { "type": "string", "default": "Txt" },
+    "model": { "type": "string", "default": "FT-404" },
+    "icon": { "type": "string", "default": "" },
+    "firstTicket": { "type": "number", "default": 404 },
+    "labels": { "type": "json", "default": {
+      "title": "lost page desk", "subtitle": "Closest matches, printed", "date": "Date", "ticket": "Ticket",
+      "requested": "Requested", "searched": "You searched for", "status": "Status", "notFound": "Not found",
+      "noMatch": "No match", "below": "below", "pagesSearched": "Pages searched", "matches": "Matches",
+      "closest": "Closest pages", "shown": "Shown", "total": "Total pages", "free": "Free and open source",
+      "thanks": "Thank you for reading", "pull": "Pull down to tear", "release": "Release to tear",
+      "reprint": "Reprint", "newPrint": "New print"
+    } },
+    "searchInput": { "type": "string", "default": "" },
+    "searchButton": { "type": "string", "default": "" },
+    "addressNode": { "type": "string", "default": "" },
+    "siteResults": { "type": "string", "default": "" }
+  },
+  "labels": {
+    "pages": "Pages to search",
+    "fallback": "Fallback page titles",
+    "baseUrl": "Address the page paths belong to",
+    "placeholder": "Address shown when none is known",
+    "brandForm": "Brand, first part",
+    "brandSuffix": "Brand, second part",
+    "model": "Printer model",
+    "icon": "Printer icon",
+    "firstTicket": "First ticket number",
+    "labels": "Receipt wording",
+    "searchInput": "Search field node",
+    "searchButton": "Print button node",
+    "addressNode": "Address text node",
+    "siteResults": "Site search results node"
+  },
+  "propDocs": {
+    "pages": "Array of {t, p, k}: page title, path and keywords. The receipt scores every query against title, path and keywords with the same fuzzy rules as the original.",
+    "fallback": "Titles from the pages list used to pad the receipt to three pages.",
+    "labels": "Object with every word printed on the receipt and the tear hints.",
+    "searchInput": "Node id of the search field. Typing prints after a short pause and Enter prints at once; the field's words become the receipt query.",
+    "searchButton": "Node id of the button that prints the receipt.",
+    "addressNode": "Node id of a text element that receives the address that was not found (the from parameter, else the placeholder).",
+    "siteResults": "Node id of the hidden list that the native site search action fills. Its results are printed first, ahead of the pages list."
+  },
+  "poster": "poster.webp",
+  "sections": ["formtxt-404"],
+  "fallback": "With reduced motion the receipt prints fully at once, the lamp does not blink and the tear drop is instant. The tear gesture and the Reprint button stay usable.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formtxt-404 (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

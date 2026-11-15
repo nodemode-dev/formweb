@@ -1,0 +1,658 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formmcp-prompt",
+  "name": "FormMCP prompt",
+  "category": "prompt-hero",
+  "tags": ["prompt", "autocomplete", "slash command", "mention", "agent", "script"],
+  "product": "formmcp",
+  "description": "Type a task for an agent and watch it go through FormMCP: one family list, one app started, one result returned unchanged.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formmcp-prompt",
+  "preset": "formai-studio",
+  "components": ["token-prompt"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#9fe7ff" },
+    "name": { "label": "Product name (after Form)", "type": "text", "default": "MCP" },
+    "version": { "label": "Version tag", "type": "text", "default": "0.7.7" },
+    "badge": { "label": "Badge text", "type": "text", "default": "One MCP connection to every Form app" },
+    "headline": { "label": "Headline, first line", "type": "text", "default": "One short list" },
+    "headline2": { "label": "Headline, second line", "type": "text", "default": "for every agent" },
+    "intro": { "label": "Intro", "type": "longtext", "default": "is the one server you add. Agents see every FormAI app in one short list and load an app's own tools only when a task needs them." },
+    "command": { "label": "Install command", "type": "text", "default": "./formmcp cli agents install" }
+  },
+  "tree": {
+    "key": "kn", "tag": "section", "name": "FormMCP prompt",
+    "attrs": { "aria-labelledby": "@@h@@" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--kx": "50%", "--ky": "30%",
+      "--hue-line": "color-mix(in srgb, var(--hue) 42%, transparent)",
+      "--shadow-window": "0 1px 1px rgb(0 0 0 / 0.3), 0 28px 64px -28px rgb(0 0 0 / 0.8)",
+      "position": "relative", "isolation": "isolate", "display": "flex", "flex-direction": "column",
+      "min-height": "calc(100svh - var(--bar-h))", "overflow": "clip"
+    },
+    "children": [
+      {
+        "key": "grid", "tag": "div", "name": "Dot grid", "attrs": { "aria-hidden": "true" },
+        "styles": {
+          "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "pointer-events": "none",
+          "background-image": "radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--ink) 55%, transparent) 1px, transparent 1.6px)",
+          "background-size": "24px 24px",
+          "-webkit-mask-image": "radial-gradient(circle 420px at var(--kx) var(--ky), #000 0, rgb(0 0 0 / 0.25) 60%, rgb(0 0 0 / 0.12) 100%)",
+          "mask-image": "radial-gradient(circle 420px at var(--kx) var(--ky), #000 0, rgb(0 0 0 / 0.25) 60%, rgb(0 0 0 / 0.12) 100%)"
+        }
+      },
+      {
+        "key": "glow", "tag": "div", "name": "Glow", "attrs": { "aria-hidden": "true" },
+        "styles": {
+          "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "pointer-events": "none",
+          "background-image": "radial-gradient(circle 300px at var(--kx) var(--ky), color-mix(in srgb, var(--hue) 11%, transparent), transparent), radial-gradient(ellipse 50% 36% at 50% 0, color-mix(in srgb, var(--hue) 12%, transparent), transparent)"
+        }
+      },
+      {
+        "key": "hero", "tag": "div", "name": "Hero",
+        "styles": {
+          "flex": "1 1 0%", "display": "flex", "flex-direction": "column", "align-items": "center",
+          "padding": "clamp(24px, 6vh, 64px) 16px 40px", "text-align": "center"
+        },
+        "children": [
+          {
+            "key": "badge", "tag": "a", "name": "Badge", "attrs": { "href": "https://formai.studio/formmcp/" },
+            "styles": {
+              "display": "inline-flex", "align-items": "center", "gap": "10px", "padding": "6px 12px 6px 6px",
+              "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)",
+              "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em",
+              "text-transform": "uppercase", "text-decoration": "none",
+              "transition": "border-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out)"
+            },
+            "children": [
+              { "key": "ver", "tag": "span", "name": "Version", "text": "{{version}}", "styles": { "padding": "2px 8px", "border": "1px solid var(--hue-line)", "color": "var(--hue)" } },
+              { "key": "badgel", "tag": "span", "name": "Badge text", "text": "{{badge}}" },
+              {
+                "key": "arr", "tag": "svg", "name": "Arrow",
+                "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                "styles": { "flex": "none", "width": "14px", "height": "14px" },
+                "children": [ { "key": "arrp", "tag": "path", "attrs": { "d": "M5 12h14M13 6l6 6-6 6" } } ]
+              }
+            ]
+          },
+          {
+            "key": "h", "tag": "h1", "name": "Headline",
+            "styles": {
+              "margin": "22px 0 0", "font-size": "clamp(38px, 6.2vw, 76px)", "font-weight": "720", "line-height": "1.02",
+              "letter-spacing": "var(--track-display)"
+            },
+            "children": [
+              { "key": "l1", "tag": "span", "name": "Line one", "text": "{{headline}}", "styles": { "display": "block" } },
+              { "key": "l2", "tag": "span", "name": "Line two", "text": "{{headline2}}", "styles": { "display": "block", "color": "var(--hue)" } }
+            ]
+          },
+          {
+            "key": "sub", "tag": "p", "name": "Intro",
+            "styles": { "max-width": "520px", "margin": "18px 0 0", "color": "var(--ink-soft)", "font-size": "15.5px" },
+            "children": [
+              { "key": "subf", "tag": "span", "name": "Name, form", "text": "Form" },
+              { "key": "subs", "tag": "span", "name": "Name, suffix", "text": "{{name}}" },
+              { "key": "subt", "tag": "span", "name": "Intro text", "text": " {{intro}}" }
+            ]
+          },
+          {
+            "key": "install", "tag": "p", "name": "Install", "styles": { "margin": "20px 0 0" },
+            "children": [
+              {
+                "key": "copy", "tag": "button", "name": "Copy command", "attrs": { "type": "button", "aria-label": "Copy the install command" },
+                "styles": {
+                  "border": "1px solid var(--edge)", "cursor": "pointer", "font-family": "inherit",
+                  "transition": "border-color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out)"
+                },
+                "children": [
+                  {
+                    "key": "copyl", "tag": "span", "name": "Copy label", "text": "Copy",
+                    "styles": { "order": "2", "padding": "2px 8px", "border": "1px solid var(--edge-strong)" }
+                  },
+                  {
+                    "key": "code", "tag": "code", "name": "Command", "text": "{{command}}",
+                    "styles": { "order": "1", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0", "text-transform": "none" },
+                    "breakpoints": { "mobile": { "display": "none" } }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "box", "tag": "form", "name": "Prompt box", "attrs": { "autocomplete": "off" },
+            "styles": {
+              "position": "relative", "z-index": "var(--z-field)", "width": "min(680px, 100%)",
+              "margin": "clamp(26px, 5vh, 44px) 0 0", "padding": "1px", "border-radius": "16px", "text-align": "left"
+            },
+            "children": [
+              { "key": "task", "tag": "input", "name": "Task value", "attrs": { "type": "hidden" } },
+              { "key": "count", "tag": "input", "name": "App count value", "attrs": { "type": "hidden" } },
+              { "key": "files", "tag": "input", "name": "App list value", "attrs": { "type": "hidden" } },
+              {
+                "key": "beam", "tag": "div", "name": "Beam", "attrs": { "aria-hidden": "true" },
+                "styles": {
+                  "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "border-radius": "16px",
+                  "background": "conic-gradient(from var(--kn-a), transparent 0deg, transparent 250deg, var(--hue) 360deg)",
+                  "opacity": "calc(1 - var(--fw-v-running))", "transition": "opacity 0.3s var(--ease-out)"
+                }
+              },
+              {
+                "key": "beam2", "tag": "div", "name": "Beam, running", "attrs": { "aria-hidden": "true" },
+                "styles": {
+                  "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "border-radius": "16px",
+                  "background": "conic-gradient(from var(--kn-a), transparent 0deg, transparent 250deg, var(--ink) 310deg, var(--hue) 360deg)",
+                  "opacity": "var(--fw-v-running)", "transition": "opacity 0.3s var(--ease-out)"
+                }
+              },
+              {
+                "key": "halo", "tag": "div", "name": "Halo", "attrs": { "aria-hidden": "true" },
+                "styles": {
+                  "position": "absolute", "inset": "-6px", "z-index": "var(--z-behind)", "border-radius": "20px",
+                  "background": "color-mix(in srgb, var(--hue) 10%, transparent)", "filter": "blur(22px)", "pointer-events": "none"
+                }
+              },
+              {
+                "key": "in", "tag": "div", "name": "Pane", "styles": { "position": "relative", "border-radius": "15px", "background": "var(--pane)" },
+                "children": [
+                  { "key": "ed", "tag": "div", "name": "Prompt field", "styles": { "position": "relative", "height": "104px" } },
+                  {
+                    "key": "bar", "tag": "div", "name": "Prompt bar",
+                    "styles": { "display": "flex", "align-items": "center", "gap": "10px", "padding": "10px 12px", "border-top": "1px solid var(--edge)" },
+                    "children": [
+                      {
+                        "key": "repo", "tag": "span", "name": "Agent",
+                        "styles": { "display": "inline-flex", "align-items": "center", "gap": "8px", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" },
+                        "breakpoints": { "mobile": { "display": "none" } },
+                        "children": [
+                          { "key": "sdot", "tag": "span", "name": "Status dot", "attrs": { "aria-hidden": "true" }, "styles": { "display": "block", "width": "7px", "height": "7px", "border-radius": "50%", "background": "var(--terminal-ok)" } },
+                          { "key": "repot", "tag": "span", "name": "Agent name", "text": "Claude Code" },
+                          {
+                            "key": "branch", "tag": "span", "name": "Agent note", "text": "All apps on",
+                            "styles": { "padding": "1px 8px", "border": "1px solid var(--edge-strong)", "color": "var(--ink-faint)", "font-size": "11px", "letter-spacing": "0.14em", "text-transform": "uppercase" }
+                          }
+                        ]
+                      },
+                      {
+                        "key": "seg", "tag": "div", "name": "Transport", "attrs": { "role": "radiogroup", "aria-label": "Transport" },
+                        "styles": { "position": "relative", "display": "inline-flex", "margin-left": "auto", "padding": "2px", "border": "1px solid var(--edge)" },
+                        "breakpoints": { "mobile": { "margin-left": "0" } },
+                        "children": [
+                          {
+                            "key": "segi", "tag": "span", "name": "Transport marker", "attrs": { "aria-hidden": "true" },
+                            "styles": {
+                              "position": "absolute", "top": "2px", "bottom": "2px", "left": "2px", "width": "70px", "background": "var(--control-hover)",
+                              "transform": "translateX(calc(var(--fw-v-http) * 70px))", "transition": "transform 0.25s var(--ease-out)", "pointer-events": "none"
+                            }
+                          },
+                          {
+                            "key": "lab0", "tag": "button", "name": "Transport stdio", "text": "stdio",
+                            "attrs": { "type": "button", "role": "radio", "aria-checked": "true" },
+                            "styles": {
+                              "position": "relative", "display": "block", "width": "70px", "height": "23px", "padding": "0", "border": "0", "background": "transparent", "text-align": "center", "cursor": "pointer",
+                              "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.14em", "text-transform": "uppercase",
+                              "color": "color-mix(in srgb, var(--ink) calc((1 - var(--fw-v-http)) * 100%), var(--ink-soft))"
+                            }
+                          },
+                          {
+                            "key": "lab1", "tag": "button", "name": "Transport HTTP", "text": "HTTP",
+                            "attrs": { "type": "button", "role": "radio", "aria-checked": "false" },
+                            "styles": {
+                              "position": "relative", "display": "block", "width": "70px", "height": "23px", "padding": "0", "border": "0", "background": "transparent", "text-align": "center", "cursor": "pointer",
+                              "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.14em", "text-transform": "uppercase",
+                              "color": "color-mix(in srgb, var(--ink) calc(var(--fw-v-http) * 100%), var(--ink-soft))"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "key": "run", "tag": "button", "name": "Run", "attrs": { "type": "submit" },
+                        "styles": {
+                          "position": "relative", "overflow": "hidden", "gap": "10px", "border": "0", "cursor": "pointer", "font-family": "inherit",
+                          "transition": "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow var(--dur) var(--ease-out), opacity var(--dur-fast) var(--ease-out)"
+                        },
+                        "breakpoints": { "mobile": { "margin-left": "auto" } },
+                        "children": [
+                          { "key": "runl", "tag": "span", "name": "Run label", "text": "Run" },
+                          { "key": "sc", "tag": "span", "name": "Run shortcut", "text": "Enter", "attrs": { "aria-hidden": "true" }, "styles": { "opacity": "0.6", "font-size": "11px" } }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "log", "tag": "div", "name": "Run log", "attrs": { "aria-live": "polite" },
+            "styles": {
+              "width": "min(680px, 100%)", "margin": "calc(var(--fw-v-started) * 14px) 0 0", "padding": "calc(var(--fw-v-started) * 14px) 16px",
+              "border": "calc(var(--fw-v-started) * 1px) solid var(--edge)", "border-radius": "14px",
+              "background": "color-mix(in srgb, var(--pane) 82%, transparent)", "text-align": "left", "overflow": "hidden",
+              "max-height": "calc(var(--fw-v-started) * 1800px)", "opacity": "var(--fw-v-started)",
+              "box-sizing": "border-box",
+              "transition": "max-height 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.5s cubic-bezier(0.22, 1, 0.36, 1), padding 0.5s cubic-bezier(0.22, 1, 0.36, 1)"
+            },
+            "children": [
+              {
+                "key": "echo", "tag": "p", "name": "Echo",
+                "styles": { "display": "flex", "gap": "10px", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-s)" },
+                "children": [
+                  { "key": "pm", "tag": "span", "name": "Prompt mark", "text": ">", "attrs": { "aria-hidden": "true" }, "styles": { "color": "var(--hue)" } },
+                  { "key": "echot", "tag": "span", "name": "Echo text", "text": "Run /app_tools on @formcut and list what it can do" }
+                ]
+              },
+              {
+                "key": "rows", "tag": "ol", "name": "Steps", "styles": { "margin": "12px 0 0", "padding": "0", "list-style": "none" },
+                "children": [
+                  {
+                    "key": "row1", "tag": "li", "name": "Step, read",
+                    "styles": {
+                      "position": "relative", "display": "grid", "grid-template-columns": "20px minmax(0, 1fr)", "column-gap": "12px",
+                      "padding-bottom": "calc(var(--fw-v-r1) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-r1) * 400px)", "opacity": "var(--fw-v-r1)",
+                      "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), padding-bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
+                    },
+                    "children": [
+                      { "key": "line1", "tag": "span", "name": "Connector", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "22px", "bottom": "2px", "left": "9px", "width": "1px", "background": "var(--edge-strong)", "opacity": "var(--fw-v-r2)" } },
+                      {
+                        "key": "mk1", "tag": "span", "name": "Marker", "attrs": { "aria-hidden": "true" },
+                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-d1) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
+                        "children": [
+                          { "key": "ring1", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-r1) - var(--fw-v-d1))" } },
+                          {
+                            "key": "ck1", "tag": "svg", "name": "Check",
+                            "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "2.2", "stroke-linecap": "round", "stroke-linejoin": "round" },
+                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-d1)", "transition": "opacity 0.2s var(--ease-out)" },
+                            "children": [ { "key": "ckp1", "tag": "path", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" } } ]
+                          }
+                        ]
+                      },
+                      {
+                        "key": "body1", "tag": "div", "name": "Step body", "styles": { "min-width": "0" },
+                        "children": [
+                          {
+                            "key": "head1", "tag": "div", "name": "Step head", "styles": { "display": "flex", "align-items": "baseline", "gap": "12px" },
+                            "children": [
+                              { "key": "rl1", "tag": "span", "name": "Step label", "text": "read 2 apps", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-d1) * 100%), var(--ink))" } }
+                            ]
+                          },
+                          {
+                            "key": "chips", "tag": "ul", "name": "Apps read", "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "var(--sp-2)", "margin": "8px 0 0", "padding": "0", "list-style": "none" },
+                            "children": [
+                              { "key": "chip1", "tag": "li", "name": "Apps read chip", "text": "formcut, formportal", "styles": { "padding": "var(--sp-1) var(--sp-3)", "border": "1px solid var(--edge)", "border-radius": "var(--radius-pill)", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" } }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "row2", "tag": "li", "name": "Step, plan",
+                    "styles": {
+                      "position": "relative", "display": "grid", "grid-template-columns": "20px minmax(0, 1fr)", "column-gap": "12px",
+                      "padding-bottom": "calc(var(--fw-v-r2) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-r2) * 400px)", "opacity": "var(--fw-v-r2)",
+                      "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), padding-bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
+                    },
+                    "children": [
+                      { "key": "line2", "tag": "span", "name": "Connector", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "22px", "bottom": "2px", "left": "9px", "width": "1px", "background": "var(--edge-strong)", "opacity": "var(--fw-v-r3)" } },
+                      {
+                        "key": "mk2", "tag": "span", "name": "Marker", "attrs": { "aria-hidden": "true" },
+                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-d2) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
+                        "children": [
+                          { "key": "ring2", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-r2) - var(--fw-v-d2))" } },
+                          {
+                            "key": "ck2", "tag": "svg", "name": "Check",
+                            "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "2.2", "stroke-linecap": "round", "stroke-linejoin": "round" },
+                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-d2)", "transition": "opacity 0.2s var(--ease-out)" },
+                            "children": [ { "key": "ckp2", "tag": "path", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" } } ]
+                          }
+                        ]
+                      },
+                      {
+                        "key": "body2", "tag": "div", "name": "Step body", "styles": { "min-width": "0" },
+                        "children": [
+                          {
+                            "key": "head2", "tag": "div", "name": "Step head", "styles": { "display": "flex", "align-items": "baseline", "gap": "12px" },
+                            "children": [
+                              { "key": "rl2", "tag": "span", "name": "Step label", "text": "plan", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-d2) * 100%), var(--ink))" } }
+                            ]
+                          },
+                          {
+                            "key": "plan", "tag": "ol", "name": "Plan", "styles": { "display": "grid", "gap": "4px", "margin": "8px 0 0", "padding": "0", "color": "var(--ink)", "font-size": "var(--fs-s)", "list-style": "none" },
+                            "children": [
+                              {
+                                "key": "plan1", "tag": "li", "name": "Plan step",
+                                "styles": { "display": "flex", "gap": "10px", "opacity": "var(--fw-v-r2)", "translate": "0 calc((1 - var(--fw-v-r2)) * 8px)", "transition": "opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0ms, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0ms" },
+                                "children": [
+                                  { "key": "pn1", "tag": "span", "name": "Number", "text": "1", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)" } },
+                                  { "key": "pt1", "tag": "span", "name": "Text", "text": "Read the family list: one line per app, no tools loaded." }
+                                ]
+                              },
+                              {
+                                "key": "plan2", "tag": "li", "name": "Plan step",
+                                "styles": { "display": "flex", "gap": "10px", "opacity": "var(--fw-v-r2)", "translate": "0 calc((1 - var(--fw-v-r2)) * 8px)", "transition": "opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 260ms, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 260ms" },
+                                "children": [
+                                  { "key": "pn2", "tag": "span", "name": "Number", "text": "2", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)" } },
+                                  { "key": "pt2", "tag": "span", "name": "Text", "text": "Start only the app the task needs and list its tools." }
+                                ]
+                              },
+                              {
+                                "key": "plan3", "tag": "li", "name": "Plan step",
+                                "styles": { "display": "flex", "gap": "10px", "opacity": "var(--fw-v-r2)", "translate": "0 calc((1 - var(--fw-v-r2)) * 8px)", "transition": "opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 520ms, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 520ms" },
+                                "children": [
+                                  { "key": "pn3", "tag": "span", "name": "Number", "text": "3", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)" } },
+                                  { "key": "pt3", "tag": "span", "name": "Text", "text": "Run one tool and return the app's result unchanged." }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "row3", "tag": "li", "name": "Step, profile",
+                    "styles": {
+                      "position": "relative", "display": "grid", "grid-template-columns": "20px minmax(0, 1fr)", "column-gap": "12px",
+                      "padding-bottom": "calc(var(--fw-v-r3) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-r3) * 600px)", "opacity": "var(--fw-v-r3)",
+                      "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), padding-bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
+                    },
+                    "children": [
+                      { "key": "line3", "tag": "span", "name": "Connector", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "22px", "bottom": "2px", "left": "9px", "width": "1px", "background": "var(--edge-strong)", "opacity": "var(--fw-v-r4)" } },
+                      {
+                        "key": "mk3", "tag": "span", "name": "Marker", "attrs": { "aria-hidden": "true" },
+                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-d3) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
+                        "children": [
+                          { "key": "ring3", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-r3) - var(--fw-v-d3))" } },
+                          {
+                            "key": "ck3", "tag": "svg", "name": "Check",
+                            "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "2.2", "stroke-linecap": "round", "stroke-linejoin": "round" },
+                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-d3)", "transition": "opacity 0.2s var(--ease-out)" },
+                            "children": [ { "key": "ckp3", "tag": "path", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" } } ]
+                          }
+                        ]
+                      },
+                      {
+                        "key": "body3", "tag": "div", "name": "Step body", "styles": { "min-width": "0" },
+                        "children": [
+                          {
+                            "key": "head3", "tag": "div", "name": "Step head", "styles": { "display": "flex", "align-items": "baseline", "gap": "12px" },
+                            "children": [
+                              { "key": "rl3", "tag": "span", "name": "Step label", "text": "apply profile", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-d3) * 100%), var(--ink))" } },
+                              {
+                                "key": "cnt3", "tag": "span", "name": "Diff count", "styles": { "display": "flex", "margin-left": "auto", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" },
+                                "children": [
+                                  { "key": "addn", "tag": "span", "name": "Added", "text": "+3", "styles": { "color": "var(--terminal-ok)" } },
+                                  { "key": "remn", "tag": "span", "name": "Removed", "text": "-2", "styles": { "margin-left": "0.5em", "color": "var(--fault)" } }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "key": "diff", "tag": "div", "name": "Diff", "styles": { "margin-top": "8px", "overflow-x": "auto", "border": "1px solid var(--edge)", "background": "var(--inset)", "font-family": "var(--font-mono)", "font-size": "12.5px", "line-height": "1.7" },
+                            "children": [
+                              { "key": "dl1", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 170ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 170ms" },
+                                "children": [ { "key": "ds1", "tag": "span", "name": "Sign", "text": " ", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt1", "tag": "span", "name": "Text", "text": "profile   review" } ] },
+                              { "key": "dl2", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 340ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 340ms" },
+                                "children": [ { "key": "ds2", "tag": "span", "name": "Sign", "text": " ", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt2", "tag": "span", "name": "Text", "text": "agent     codex" } ] },
+                              { "key": "dl3", "tag": "div", "name": "Diff line, removed", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--fault) 12%, transparent)", "color": "var(--ink-soft)", "text-decoration": "line-through", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 510ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 510ms" },
+                                "children": [ { "key": "ds3", "tag": "span", "name": "Sign", "text": "-", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt3", "tag": "span", "name": "Text", "text": "formvis   on" } ] },
+                              { "key": "dl4", "tag": "div", "name": "Diff line, added", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--terminal-ok) 12%, transparent)", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 680ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 680ms" },
+                                "children": [ { "key": "ds4", "tag": "span", "name": "Sign", "text": "+", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt4", "tag": "span", "name": "Text", "text": "formvis   off" } ] },
+                              { "key": "dl5", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 850ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 850ms" },
+                                "children": [ { "key": "ds5", "tag": "span", "name": "Sign", "text": " ", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt5", "tag": "span", "name": "Text", "text": "formcut   on" } ] },
+                              { "key": "dl6", "tag": "div", "name": "Diff line, removed", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--fault) 12%, transparent)", "color": "var(--ink-soft)", "text-decoration": "line-through", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1020ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1020ms" },
+                                "children": [ { "key": "ds6", "tag": "span", "name": "Sign", "text": "-", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt6", "tag": "span", "name": "Text", "text": "delete    on" } ] },
+                              { "key": "dl7", "tag": "div", "name": "Diff line, added", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--terminal-ok) 12%, transparent)", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1190ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1190ms" },
+                                "children": [ { "key": "ds7", "tag": "span", "name": "Sign", "text": "+", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt7", "tag": "span", "name": "Text", "text": "delete    off" } ] },
+                              { "key": "dl8", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1360ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1360ms" },
+                                "children": [ { "key": "ds8", "tag": "span", "name": "Sign", "text": " ", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt8", "tag": "span", "name": "Text", "text": "start     on demand" } ] },
+                              { "key": "dl9", "tag": "div", "name": "Diff line, added", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--terminal-ok) 12%, transparent)", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1530ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1530ms" },
+                                "children": [ { "key": "ds9", "tag": "span", "name": "Sign", "text": "+", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt9", "tag": "span", "name": "Text", "text": "stop      after 10 idle minutes" } ] }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "row4", "tag": "li", "name": "Step, checks",
+                    "styles": {
+                      "position": "relative", "display": "grid", "grid-template-columns": "20px minmax(0, 1fr)", "column-gap": "12px",
+                      "padding-bottom": "calc(var(--fw-v-r4) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-r4) * 400px)", "opacity": "var(--fw-v-r4)",
+                      "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), padding-bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
+                    },
+                    "children": [
+                      {
+                        "key": "mk4", "tag": "span", "name": "Marker", "attrs": { "aria-hidden": "true" },
+                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-d4) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
+                        "children": [
+                          { "key": "ring4", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-r4) - var(--fw-v-d4))" } },
+                          {
+                            "key": "ck4", "tag": "svg", "name": "Check",
+                            "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "2.2", "stroke-linecap": "round", "stroke-linejoin": "round" },
+                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-d4)", "transition": "opacity 0.2s var(--ease-out)" },
+                            "children": [ { "key": "ckp4", "tag": "path", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" } } ]
+                          }
+                        ]
+                      },
+                      {
+                        "key": "body4", "tag": "div", "name": "Step body", "styles": { "min-width": "0" },
+                        "children": [
+                          {
+                            "key": "head4", "tag": "div", "name": "Step head", "styles": { "display": "flex", "align-items": "baseline", "gap": "12px" },
+                            "children": [
+                              { "key": "rl4", "tag": "span", "name": "Step label", "text": "checks", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-d4) * 100%), var(--ink))" } },
+                              { "key": "cnt4", "tag": "span", "name": "Checks count", "text": "14 of 14", "styles": { "margin-left": "auto", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" } }
+                            ]
+                          },
+                          {
+                            "key": "cells", "tag": "div", "name": "Checks", "attrs": { "aria-hidden": "true" }, "styles": { "display": "grid", "grid-template-columns": "repeat(14, minmax(0, 1fr))", "gap": "3px", "margin-top": "10px" },
+                            "children": [
+                              { "key": "c1", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 70ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 70ms" } },
+                              { "key": "c2", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 140ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 140ms" } },
+                              { "key": "c3", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 210ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 210ms" } },
+                              { "key": "c4", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 280ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 280ms" } },
+                              { "key": "c5", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 350ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 350ms" } },
+                              { "key": "c6", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 420ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 420ms" } },
+                              { "key": "c7", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 490ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 490ms" } },
+                              { "key": "c8", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 560ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 560ms" } },
+                              { "key": "c9", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 630ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 630ms" } },
+                              { "key": "c10", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 700ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 700ms" } },
+                              { "key": "c11", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 770ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 770ms" } },
+                              { "key": "c12", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 840ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 840ms" } },
+                              { "key": "c13", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 910ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 910ms" } },
+                              { "key": "c14", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 980ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 980ms" } }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "done", "tag": "div", "name": "Done bar",
+                "styles": {
+                  "display": "flex", "flex-wrap": "wrap", "align-items": "center", "gap": "10px",
+                  "padding-top": "calc(var(--fw-v-finished) * 4px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-finished) * 200px)", "opacity": "var(--fw-v-finished)",
+                  "transition": "max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), padding-top 0.5s cubic-bezier(0.22, 1, 0.36, 1)"
+                },
+                "children": [
+                  {
+                    "key": "open", "tag": "a", "name": "Open product", "attrs": { "href": "https://formai.studio/formmcp/" },
+                    "styles": { "transition": "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity var(--dur-fast) var(--ease-out)" },
+                    "children": [
+                      { "key": "openl", "tag": "span", "name": "Open label", "text": "Open FormMCP" },
+                      {
+                        "key": "openi", "tag": "svg", "name": "Arrow",
+                        "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                        "styles": { "flex": "none", "display": "block", "width": "16px", "height": "16px" },
+                        "children": [ { "key": "openp", "tag": "path", "attrs": { "d": "M7 17L17 7M8 7h9v9" } } ]
+                      }
+                    ]
+                  },
+                  { "key": "newtask", "tag": "button", "name": "New task", "text": "New task", "attrs": { "type": "button" }, "styles": { "border": "0", "cursor": "pointer", "font-family": "inherit" } },
+                  {
+                    "key": "sum", "tag": "p", "name": "Summary", "text": "1.8 s over stdio, 1 app started",
+                    "styles": { "margin": "0 0 0 auto", "color": "var(--ink-faint)", "font-size": "var(--fs-xs)" },
+                    "breakpoints": { "mobile": { "margin-left": "0", "width": "100%" } }
+                  }
+                ]
+              }
+            ]
+          },
+          { "key": "fine", "tag": "p", "name": "Fine print", "text": "A scripted preview. Nothing is sent anywhere.", "styles": { "margin": "18px 0 0", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+        ]
+      }
+    ]
+  },
+  "behaviors": {
+    "@@badge@@": { "states": { "hover": { "border-color": "var(--hue)", "color": "var(--ink)" } } },
+    "@@copy@@": { "states": { "hover": { "border-color": "var(--edge-strong)" } } },
+    "@@run@@": { "states": { "hover": { "transform": "translateY(-1px)", "box-shadow": "0 0 0 3px color-mix(in srgb, var(--hue) 35%, transparent)" }, "press": { "transform": "scale(0.96)" } } },
+    "@@lab0@@": { "states": { "focus": { "outline": "2px solid var(--ink)" } } },
+    "@@lab1@@": { "states": { "focus": { "outline": "2px solid var(--ink)" } } },
+    "@@open@@": { "states": { "hover": { "transform": "translateY(-2px)" } } },
+    "@@newtask@@": { "states": { "hover": { "background": "var(--control-hover)" } } }
+  },
+  "properties": {
+    "--kn-a": { "syntax": "<angle>", "inherits": false, "initial": "0deg" }
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@subf@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@subs@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@copy@@", "name": "button-quiet" } },
+    { "command": "textpreset.apply", "params": { "id": "@@run@@", "name": "button" } },
+    { "command": "textpreset.apply", "params": { "id": "@@open@@", "name": "button" } },
+    { "command": "textpreset.apply", "params": { "id": "@@newtask@@", "name": "button-quiet" } },
+    { "command": "node.update", "params": { "id": "@@copy@@", "patch": { "styles": { "gap": "12px" } } } },
+    { "command": "node.update", "params": { "id": "@@run@@", "patch": { "styles": { "gap": "10px" } } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "started", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "finished", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "running", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "r1", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "r2", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "r3", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "r4", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "d1", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "d2", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "d3", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "d4", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "http", "value": { "type": "number", "initial": 0, "min": 0, "max": 1, "step": 1, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "adds", "value": { "type": "number", "initial": 0, "min": 0, "max": 9 } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "rems", "value": { "type": "number", "initial": 0, "min": 0, "max": 9 } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "checks", "value": { "type": "number", "initial": 0, "min": 0, "max": 14 } } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "timing", "value": "if(http, \"2.7 s over HTTP\", \"1.8 s over stdio\")" } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@lab0@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "http", "value": 0 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@lab1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "http", "value": 1 } ] } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@addn@@", "value": { "from": "adds", "decimals": 0, "prefix": "+" } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@remn@@", "value": { "from": "rems", "decimals": 0, "prefix": "-" } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@cnt4@@", "value": { "from": "checks", "decimals": 0, "suffix": " of 14" } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@sum@@", "value": { "from": "timing", "suffix": ", 1 app started" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@badge@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 900, "delay": 100, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@h@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 1000, "delay": 200, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@sub@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 1000, "delay": 300, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@install@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 1000, "delay": 350, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@box@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 1000, "delay": 400, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@beam@@", "value": { "type": "keyframes", "duration": 4000, "easing": "linear", "keyframes": [ { "at": 0, "styles": { "--kn-a": "0deg" } }, { "at": 1, "styles": { "--kn-a": "360deg" } } ] } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@beam2@@", "value": { "type": "keyframes", "duration": 1000, "easing": "linear", "keyframes": [ { "at": 0, "styles": { "--kn-a": "0deg" } }, { "at": 1, "styles": { "--kn-a": "360deg" } } ] } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@ring1@@", "value": { "type": "spin", "duration": 800 } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@ring2@@", "value": { "type": "spin", "duration": 800 } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@ring3@@", "value": { "type": "spin", "duration": 800 } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@ring4@@", "value": { "type": "spin", "duration": 800 } } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@copy@@", "value": [ { "trigger": "click", "action": "copy", "text": "{{command}}", "feedback": "Copied", "duration": 1500 } ] } },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "actions", "node": "@@newtask@@",
+        "value": [
+          { "trigger": "click", "action": "set-variable", "variable": "started", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "finished", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "running", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "r1", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "r2", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "r3", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "r4", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "d1", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "d2", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "d3", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "d4", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "adds", "value": 0 },
+          { "trigger": "click", "action": "set-variable", "variable": "rems", "value": 0 },
+          { "trigger": "click", "action": "set-variable", "variable": "checks", "value": 0 }
+        ]
+      }
+    },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "scripts", "node": "@@box@@",
+        "value": {
+          "trigger": "submit",
+          "steps": [
+            { "type": "action", "action": { "action": "set-variable", "variable": "started", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "running", "value": true } },
+            { "type": "stream", "target": "@@echot@@", "text": "{input:@@task@@}", "speed": 2000 },
+            { "type": "stream", "target": "@@runl@@", "text": "Running", "speed": 2000 },
+            { "type": "stream", "target": "@@rl1@@", "text": "read {input:@@count@@} apps", "speed": 2000 },
+            { "type": "stream", "target": "@@chip1@@", "text": "{input:@@files@@}", "speed": 2000 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "r1", "value": true } },
+            { "type": "wait", "ms": 1100 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "d1", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "r2", "value": true } },
+            { "type": "wait", "ms": 1500 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "d2", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "r3", "value": true } },
+            { "type": "wait", "ms": 510 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "rems", "value": 1 } },
+            { "type": "wait", "ms": 170 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "adds", "value": 1 } },
+            { "type": "wait", "ms": 340 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "rems", "value": 2 } },
+            { "type": "wait", "ms": 170 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "adds", "value": 2 } },
+            { "type": "wait", "ms": 340 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "adds", "value": 3 } },
+            { "type": "wait", "ms": 400 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "d3", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "r4", "value": true } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 1 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 2 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 3 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 4 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 5 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 6 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 7 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 8 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 9 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 10 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 11 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 12 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 13 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 14 } },
+            { "type": "wait", "ms": 300 },
+            { "type": "action", "action": { "action": "set-variable", "variable": "d4", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "finished", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "running", "value": false } },
+            { "type": "stream", "target": "@@runl@@", "text": "Run", "speed": 2000 }
+          ]
+        }
+      }
+    },
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@ed@@",
+        "value": {
+          "component": "token-prompt",
+          "props": {
+            "taskNode": "@@task@@", "countNode": "@@count@@", "filesNode": "@@files@@", "runNode": "@@run@@",
+            "logNode": "@@log@@", "doneNode": "@@done@@", "scopeNode": "@@kn@@",
+            "transportNodes": ["@@lab0@@", "@@lab1@@"]
+          }
+        }
+      }
+    }
+  ]
+}

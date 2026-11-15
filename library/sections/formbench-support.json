@@ -1,0 +1,663 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formbench-support",
+  "name": "FormBench savings",
+  "category": "support",
+  "tags": ["savings", "calculator", "slider", "odometer", "variables", "support"],
+  "product": "formbench",
+  "description": "What you would save by switching from the paid apps the Form family is instead of: slide through the apps, set the years, read the monthly, yearly and total savings, with supporting FormAI as a separate optional suggestion.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formbench-support",
+  "preset": "formai-studio",
+  "components": ["ruler-slider"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#5ee0e0" },
+    "name": { "label": "Product name (tinted part)", "type": "text", "default": "Bench" },
+    "status": { "label": "Status pill", "type": "text", "default": "Always free" },
+    "lead1": { "label": "Heading, first line", "type": "text", "default": "What would you stop paying for?" },
+    "lead2": { "label": "Heading, second line", "type": "text", "default": "Count what you save." },
+    "lede": { "label": "Intro", "type": "longtext", "default": "Every Form app stands in for a paid app. Slide through the apps a creative usually switches from, in the order they usually switch, and see what you would no longer pay." },
+    "supportHeading": { "label": "Support heading", "type": "text", "default": "Support FormAI, if the savings were worth it" },
+    "supportUrl": { "label": "Support link", "type": "url", "default": "https://formai.studio/support/" }
+  },
+  "tree": {
+    "key": "section",
+    "tag": "section",
+    "name": "Savings",
+    "attrs": { "aria-label": "{{name}} savings" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--hue-wash": "color-mix(in srgb, var(--hue) 14%, transparent)",
+      "--hue-line": "color-mix(in srgb, var(--hue) 42%, transparent)",
+      "--glow-soft": "0 var(--sp-2) var(--sp-6) calc(var(--sp-2) * -1) color-mix(in srgb, var(--hue) 38%, transparent)",
+      "--bench-tokens": "var(--pane) var(--float) var(--ease-out) var(--dur) var(--dur-fast) var(--shadow-tile) var(--font-mono)",
+      "position": "relative",
+      "padding-top": "var(--sp-9)",
+      "padding-bottom": "var(--sp-9)",
+      "border-bottom": "1px solid var(--edge)",
+      "color": "var(--ink)"
+    },
+    "breakpoints": { "mobile": { "padding-top": "var(--sp-7)", "padding-bottom": "var(--sp-7)" } },
+    "children": [
+      {
+        "key": "wrap", "tag": "div", "name": "Wrap", "attrs": {},
+        "styles": { "position": "relative", "box-sizing": "border-box", "width": "100%", "max-width": "var(--page-max)", "margin-left": "auto", "margin-right": "auto", "padding-left": "var(--gutter)", "padding-right": "var(--gutter)", "border-left": "1px solid var(--edge)", "border-right": "1px solid var(--edge)" },
+        "breakpoints": {},
+        "children": [
+          {
+            "key": "head", "tag": "header", "name": "Intro", "attrs": {},
+            "styles": { "display": "grid", "justify-items": "center", "max-width": "760px", "margin-left": "auto", "margin-right": "auto", "gap": "var(--sp-5)", "text-align": "center" },
+            "breakpoints": {},
+            "children": [
+              {
+                "key": "label", "tag": "p", "name": "Label", "attrs": {},
+                "styles": { "margin": "0", "font-size": "var(--fs-l)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-tight)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "label-form", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                  { "key": "label-suffix", "tag": "span", "name": "Product", "text": "{{name}}", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] },
+                  { "key": "label-meta", "tag": "span", "name": "Meta", "text": "Savings / Support is optional", "attrs": {}, "styles": { "display": "block", "margin-top": "var(--sp-1)", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "400", "letter-spacing": "0.14em", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                ]
+              },
+              {
+                "key": "status", "tag": "p", "name": "Status", "attrs": {},
+                "styles": { "display": "inline-flex", "align-items": "center", "gap": "var(--sp-2)", "margin": "0", "padding": "5px var(--sp-3)", "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "status-dot", "tag": "i", "name": "Dot", "attrs": { "aria-hidden": "true" }, "styles": { "width": "8px", "height": "8px", "background": "var(--hue)" }, "breakpoints": {}, "children": [] },
+                  { "key": "status-text", "tag": "span", "name": "Status text", "text": "{{status}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              {
+                "key": "h1", "tag": "h1", "name": "Heading", "attrs": {},
+                "styles": { "margin": "0", "font-size": "clamp(2.5rem, 1rem + 4.8vw, 4.75rem)", "font-weight": "var(--weight-display)", "line-height": "0.98", "letter-spacing": "var(--track-display)", "text-wrap": "balance" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "h1-a", "tag": "span", "name": "Line one", "text": "{{lead1}}", "attrs": {}, "styles": { "display": "block", "color": "var(--ink-faint)" }, "breakpoints": {}, "children": [] },
+                  { "key": "h1-b", "tag": "b", "name": "Line two", "text": "{{lead2}}", "attrs": {}, "styles": { "display": "block", "font-weight": "inherit", "color": "var(--ink)" }, "breakpoints": {}, "children": [] }
+                ]
+              },
+              { "key": "lede", "tag": "p", "name": "Intro text", "text": "{{lede}}", "attrs": {}, "styles": { "margin": "0", "max-width": "38rem", "color": "var(--ink-soft)", "font-size": "var(--fs-l)" }, "breakpoints": {}, "children": [] }
+            ]
+          },
+          {
+            "key": "card", "tag": "div", "name": "Calculator", "attrs": {},
+            "styles": { "box-sizing": "border-box", "width": "min(100%, 960px)", "margin": "var(--sp-7) auto 0", "padding": "clamp(20px, 4vw, 40px)", "border-radius": "var(--radius-l)", "background": "var(--pane)", "box-shadow": "inset 0 0 0 1px var(--edge)" },
+            "breakpoints": {},
+            "children": [
+              {
+                "key": "top", "tag": "div", "name": "Top row", "attrs": {},
+                "styles": { "display": "flex", "align-items": "center", "justify-content": "space-between", "gap": "var(--sp-4)" },
+                "breakpoints": { "mobile": { "flex-direction": "column", "align-items": "stretch" } },
+                "children": [
+                  {
+                    "key": "count", "tag": "p", "name": "Count", "attrs": {},
+                    "styles": { "display": "flex", "flex-wrap": "wrap", "align-items": "baseline", "gap": "var(--sp-2)", "margin": "0" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "count-l1", "tag": "span", "name": "Label", "text": "Switching from", "attrs": {}, "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "white-space": "nowrap" }, "breakpoints": {}, "children": [] },
+                      { "key": "count-out", "tag": "span", "name": "Apps count", "text": "7 of 13", "attrs": {}, "styles": { "color": "var(--ink)", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [] },
+                      { "key": "count-l2", "tag": "span", "name": "Label", "text": "paid apps", "attrs": {}, "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "white-space": "nowrap" }, "breakpoints": {}, "children": [] }
+                    ]
+                  },
+                  {
+                    "key": "fieldw", "tag": "div", "name": "Years field", "attrs": {},
+                    "styles": { "position": "relative" },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "field", "tag": "label", "name": "Years label", "attrs": {},
+                        "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-3)", "box-sizing": "border-box", "height": "44px", "padding": "0 var(--sp-3)", "background": "var(--inset)", "box-shadow": "inset 0 0 0 1px var(--edge-strong)" },
+                        "breakpoints": { "mobile": { "justify-content": "space-between" } },
+                        "children": [
+                          { "key": "field-l", "tag": "span", "name": "Label", "text": "Years", "attrs": {}, "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "white-space": "nowrap" }, "breakpoints": {}, "children": [] },
+                          {
+                            "key": "years", "tag": "input", "name": "Years input",
+                            "attrs": { "type": "number", "min": "1", "max": "10", "step": "1", "value": "3", "autocomplete": "off", "aria-label": "Years" },
+                            "styles": { "width": "6ch", "padding": "0", "border": "0", "background": "transparent", "color": "var(--ink)", "font": "inherit", "font-weight": "var(--weight-strong)", "font-variant-numeric": "tabular-nums", "text-align": "right", "outline": "none" },
+                            "breakpoints": { "mobile": { "flex": "1" } },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "prow", "tag": "div", "name": "Figures row", "attrs": {},
+                "styles": { "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-5)", "margin-top": "var(--sp-7)" },
+                "breakpoints": { "mobile": { "flex-direction": "column", "align-items": "flex-start", "gap": "var(--sp-3)" } },
+                "children": [
+                  {
+                    "key": "pwrap", "tag": "div", "name": "Total", "attrs": {},
+                    "styles": { "display": "grid", "min-width": "0", "min-height": "clamp(4.5rem, 3rem + 5vw, 7rem)" },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "price", "tag": "div", "name": "Price", "attrs": {},
+                        "styles": { "display": "flex", "align-items": "flex-end", "flex-wrap": "wrap", "column-gap": "var(--sp-3)", "align-self": "end" },
+                        "breakpoints": { "mobile": { "flex-direction": "column", "align-items": "flex-start" } },
+                        "children": [
+                          {
+                            "key": "fig", "tag": "span", "name": "Total figure", "attrs": { "aria-label": "Total saved" },
+                            "styles": { "display": "flex", "min-height": "1.52em", "font-size": "clamp(3rem, 1.5rem + 5vw, 5.75rem)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-display)", "line-height": "1.1" },
+                            "breakpoints": {},
+                            "children": [
+                              { "key": "fig-cur", "tag": "span", "name": "Dollar sign", "text": "$", "attrs": {}, "styles": { "align-self": "flex-start", "font-size": "0.4em", "margin-top": "0.35em" }, "breakpoints": {}, "children": [] },
+                              { "key": "fig-main", "tag": "span", "name": "Dollars", "text": "2,819", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                              {
+                                "key": "fig-cents", "tag": "span", "name": "Cents", "attrs": {},
+                                "styles": { "align-self": "flex-start", "font-size": "0.4em", "margin-top": "0.35em" },
+                                "breakpoints": {},
+                                "children": [
+                                  { "key": "fig-dot", "tag": "span", "name": "Point", "text": ".", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                                  { "key": "fig-tens", "tag": "span", "name": "Cents tens", "text": "5", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                                  { "key": "fig-ones", "tag": "span", "name": "Cents ones", "text": "2", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                                ]
+                              }
+                            ]
+                          },
+                          { "key": "per", "tag": "span", "name": "Saved over", "text": "saved over 3 years", "attrs": {}, "styles": { "padding-bottom": "0.7em", "color": "var(--ink-soft)", "font-size": "var(--fs-s)", "white-space": "nowrap" }, "breakpoints": { "mobile": { "padding-bottom": "0" } }, "children": [] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "unitst", "tag": "div", "name": "Plan and rates", "attrs": {},
+                    "styles": { "display": "grid", "justify-items": "end", "gap": "var(--sp-2)", "padding-bottom": "var(--sp-2)", "text-align": "right" },
+                    "breakpoints": { "mobile": { "justify-items": "start", "text-align": "left", "padding-bottom": "0" } },
+                    "children": [
+                      { "key": "pill", "tag": "span", "name": "Plan", "text": "Creative Cloud Pro", "attrs": {}, "styles": { "padding": "3px var(--sp-3)", "border": "1px solid var(--hue-line)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "white-space": "nowrap" }, "breakpoints": {}, "children": [] },
+                      {
+                        "key": "mo", "tag": "span", "name": "Monthly", "attrs": {},
+                        "styles": { "display": "flex", "align-items": "baseline", "justify-content": "flex-end", "gap": "var(--sp-2)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                        "breakpoints": { "mobile": { "justify-content": "flex-start" } },
+                        "children": [
+                          { "key": "mo-out", "tag": "span", "name": "Monthly figure", "text": "$78.32", "attrs": {}, "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)", "line-height": "1.1" }, "breakpoints": {}, "children": [] },
+                          { "key": "mo-l", "tag": "span", "name": "Label", "text": "a month", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                        ]
+                      },
+                      {
+                        "key": "yr", "tag": "span", "name": "Yearly", "attrs": {},
+                        "styles": { "display": "flex", "align-items": "baseline", "justify-content": "flex-end", "gap": "var(--sp-2)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                        "breakpoints": { "mobile": { "justify-content": "flex-start" } },
+                        "children": [
+                          { "key": "yr-out", "tag": "span", "name": "Yearly figure", "text": "$939.84", "attrs": {}, "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)", "line-height": "1.1" }, "breakpoints": {}, "children": [] },
+                          { "key": "yr-l", "tag": "span", "name": "Label", "text": "a year", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "bill", "tag": "div", "name": "Price note", "attrs": {},
+                "styles": { "display": "flex", "flex-wrap": "wrap", "align-items": "flex-start", "gap": "var(--sp-3)", "min-height": "72px", "margin-top": "var(--sp-3)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                "breakpoints": { "mobile": { "min-height": "150px" } },
+                "children": [
+                  { "key": "note", "tag": "p", "name": "Note", "text": "Photoshop and Lightroom Classic count once as the Photography plan. Your 6 Adobe apps then come to $103.95 a month, so Creative Cloud Pro at $69.99 is counted instead.", "attrs": { "aria-live": "polite" }, "styles": { "flex": "1 1 22rem", "margin": "0" }, "breakpoints": {}, "children": [] },
+                  { "key": "save", "tag": "span", "name": "Cap flag", "text": "Pro cap applied", "attrs": {}, "styles": { "padding": "2px var(--sp-2)", "border": "1px solid var(--hue-line)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "0.6875rem", "letter-spacing": "0.1em", "text-transform": "uppercase", "white-space": "nowrap", "opacity": "clamp(0, calc(var(--fw-v-apps) - 4), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }
+                ]
+              },
+              {
+                "key": "ruler", "tag": "div", "name": "Ruler", "attrs": {},
+                "styles": { "position": "relative", "height": "118px", "margin-top": "var(--sp-5)" },
+                "breakpoints": { "mobile": { "margin-top": "14px" } },
+                "children": []
+              },
+              {
+                "key": "foot", "tag": "div", "name": "Apps", "attrs": {},
+                "styles": { "margin-top": "var(--sp-5)", "padding-top": "28px", "border-top": "1px solid var(--edge)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "listh", "tag": "p", "name": "List label", "text": "Each paid app, and the Form app that replaces it", "attrs": {}, "styles": { "margin": "0 0 var(--sp-4)", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] },
+                  {
+                    "key": "list", "tag": "ul", "name": "Apps list", "attrs": {},
+                    "styles": { "display": "grid", "grid-template-columns": "repeat(2, minmax(0, 1fr))", "gap": "16px 28px", "margin": "0", "padding": "0", "list-style": "none" },
+                    "breakpoints": { "mobile": { "grid-template-columns": "minmax(0, 1fr)" } },
+                    "children": [
+                      {
+                        "key": "it0", "tag": "li", "name": "Photoshop", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #a98bf0 calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 0), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci0", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 0), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 0), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck0", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 0), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl0", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r10", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a0", "tag": "a", "name": "Paid app name", "text": "Adobe Photoshop", "attrs": { "href": "https://www.toolsurf.com/adobe-cloud-pricing-2026/", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p0", "tag": "span", "name": "Price", "text": "$22.99", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r20", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by0", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf0", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs0", "tag": "span", "name": "Suffix", "text": "Vis", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] },
+                              { "key": "tg0", "tag": "span", "name": "Plan tag", "text": "", "attrs": {}, "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "0.6875rem", "letter-spacing": "0.1em", "text-align": "right", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it1", "tag": "li", "name": "Illustrator", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #ff8a4c calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 1), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci1", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 1), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 1), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck1", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 1), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl1", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r11", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a1", "tag": "a", "name": "Paid app name", "text": "Adobe Illustrator", "attrs": { "href": "https://www.toolsurf.com/adobe-cloud-pricing-2026/", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p1", "tag": "span", "name": "Price", "text": "$22.99", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r21", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by1", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf1", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs1", "tag": "span", "name": "Suffix", "text": "Path", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] },
+                              { "key": "tg1", "tag": "span", "name": "Plan tag", "text": "", "attrs": {}, "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "0.6875rem", "letter-spacing": "0.1em", "text-align": "right", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it2", "tag": "li", "name": "Acrobat Pro", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #ff5d7a calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 2), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci2", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 2), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 2), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck2", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 2), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl2", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r12", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a2", "tag": "a", "name": "Paid app name", "text": "Adobe Acrobat Pro", "attrs": { "href": "https://redresscompliance.com/adobe-acrobat-pro-current-pricing-2026", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p2", "tag": "span", "name": "Price", "text": "$19.99", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r22", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by2", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf2", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs2", "tag": "span", "name": "Suffix", "text": "PDF", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] },
+                              { "key": "tg2", "tag": "span", "name": "Plan tag", "text": "", "attrs": {}, "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "0.6875rem", "letter-spacing": "0.1em", "text-align": "right", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it3", "tag": "li", "name": "Lightroom Classic", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #5cb8ff calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 3), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci3", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 3), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 3), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck3", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 3), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl3", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r13", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a3", "tag": "a", "name": "Paid app name", "text": "Adobe Lightroom Classic", "attrs": { "href": "https://www.activepieces.com/blog/lightroom-pricing-in-2026-what-every-plan-costs-you.md", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p3", "tag": "span", "name": "Price", "text": "$14.99", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r23", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by3", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf3", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs3", "tag": "span", "name": "Suffix", "text": "Lit", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] },
+                              { "key": "tg3", "tag": "span", "name": "Plan tag", "text": "", "attrs": {}, "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "0.6875rem", "letter-spacing": "0.1em", "text-align": "right", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it4", "tag": "li", "name": "InDesign", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #ff6fae calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 4), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci4", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 4), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 4), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck4", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 4), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl4", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r14", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a4", "tag": "a", "name": "Paid app name", "text": "Adobe InDesign", "attrs": { "href": "https://www.toolsurf.com/adobe-cloud-pricing-2026/", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p4", "tag": "span", "name": "Price", "text": "$22.99", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r24", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by4", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf4", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs4", "tag": "span", "name": "Suffix", "text": "Design", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] },
+                              { "key": "tg4", "tag": "span", "name": "Plan tag", "text": "", "attrs": {}, "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "0.6875rem", "letter-spacing": "0.1em", "text-align": "right", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it5", "tag": "li", "name": "After Effects", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #d86bff calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 5), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci5", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 5), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 5), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck5", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 5), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl5", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r15", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a5", "tag": "a", "name": "Paid app name", "text": "Adobe After Effects", "attrs": { "href": "https://www.toolsurf.com/adobe-cloud-pricing-2026/", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p5", "tag": "span", "name": "Price", "text": "$22.99", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r25", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by5", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf5", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs5", "tag": "span", "name": "Suffix", "text": "VFX", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] },
+                              { "key": "tg5", "tag": "span", "name": "Plan tag", "text": "", "attrs": {}, "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "0.6875rem", "letter-spacing": "0.1em", "text-align": "right", "text-transform": "uppercase" }, "breakpoints": {}, "children": [] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it6", "tag": "li", "name": "Microsoft 365", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #7aa2ff calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 6), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci6", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 6), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 6), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck6", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 6), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl6", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r16", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a6", "tag": "a", "name": "Paid app name", "text": "Microsoft 365 (Word, Excel, PowerPoint)", "attrs": { "href": "https://recurdash.com/subscription-pricing/microsoft-365", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p6", "tag": "span", "name": "Price", "text": "$8.33", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r26", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by6", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf6", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs6", "tag": "span", "name": "Suffix", "text": "Txt", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bc6", "tag": "span", "name": "Separator", "text": ", ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                                { "key": "bf6b", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs6b", "tag": "span", "name": "Suffix", "text": "Cel", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bc6b", "tag": "span", "name": "Separator", "text": ", ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                                { "key": "bf6c", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs6c", "tag": "span", "name": "Suffix", "text": "Deck", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it7", "tag": "li", "name": "Notion Plus", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #d8d2c4 calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 7), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci7", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 7), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 7), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck7", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 7), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl7", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r17", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a7", "tag": "a", "name": "Paid app name", "text": "Notion Plus", "attrs": { "href": "https://www.lilachbullock.com/?p=176975", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p7", "tag": "span", "name": "Price", "text": "$10.00", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r27", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by7", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf7", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs7", "tag": "span", "name": "Suffix", "text": ".md", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it8", "tag": "li", "name": "CapCut Pro", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #ffae2b calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 8), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci8", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 8), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 8), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck8", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 8), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl8", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r18", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a8", "tag": "a", "name": "Paid app name", "text": "CapCut Pro", "attrs": { "href": "https://capcut.com/resource/capcut-standard-vs-pro", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p8", "tag": "span", "name": "Price", "text": "$15.00", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r28", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by8", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf8", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs8", "tag": "span", "name": "Suffix", "text": "Cut", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it9", "tag": "li", "name": "Substance 3D Painter", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #f58f7c calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 9), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci9", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 9), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 9), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck9", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 9), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl9", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r19", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a9", "tag": "a", "name": "Paid app name", "text": "Substance 3D Painter", "attrs": { "href": "https://blog.adobe.com/en/publish/2025/02/20/substance-3d-innovations-pricing-updates", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p9", "tag": "span", "name": "Price", "text": "$20.82", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r29", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by9", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf9", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs9", "tag": "span", "name": "Suffix", "text": "Surface", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it10", "tag": "li", "name": "ZBrush", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #f7d08a calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 10), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci10", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 10), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 10), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck10", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 10), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl10", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r110", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a10", "tag": "a", "name": "Paid app name", "text": "ZBrush", "attrs": { "href": "https://www.softwares.com/software/zbrush", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p10", "tag": "span", "name": "Price", "text": "$29.92", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r210", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by10", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf10", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs10", "tag": "span", "name": "Suffix", "text": "Sculpt", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it11", "tag": "li", "name": "Milanote", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #c9a27a calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 11), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci11", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 11), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 11), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck11", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 11), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl11", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r111", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a11", "tag": "a", "name": "Paid app name", "text": "Milanote", "attrs": { "href": "https://getpulsesignal.com/compare/milanote-vs-whimsical", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p11", "tag": "span", "name": "Price", "text": "$9.99", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r211", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by11", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf11", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs11", "tag": "span", "name": "Suffix", "text": "Ref", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] }
+                            ] }
+                          ] }
+                        ]
+                      },
+                      {
+                        "key": "it12", "tag": "li", "name": "Framer or Webflow", "attrs": {},
+                        "styles": { "--hue": "color-mix(in oklab, #36d3f5 calc(100% - var(--hue-depth)), #000)", "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "font-size": "var(--fs-s)", "color": "color-mix(in srgb, var(--ink) calc(clamp(0, calc(var(--fw-v-apps) - 12), 1) * 100%), var(--ink-faint))", "transition": "color 240ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "ci12", "tag": "span", "name": "Mark", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "20px", "height": "20px", "margin-top": "1px", "box-sizing": "border-box", "border": "1px dashed color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 12), 1) * 100%), var(--edge-strong))", "border-radius": "50%", "background": "color-mix(in srgb, var(--hue) calc(clamp(0, calc(var(--fw-v-apps) - 12), 1) * 100%), transparent)", "transition": "background-color 240ms var(--ease-out), border-color 240ms var(--ease-out)" }, "breakpoints": {}, "children": [{ "key": "ck12", "tag": "span", "name": "Tick", "attrs": {}, "styles": { "width": "4px", "height": "8px", "margin-top": "-2px", "border-right": "1.75px solid var(--on-ink)", "border-bottom": "1.75px solid var(--on-ink)", "transform": "rotate(45deg)", "opacity": "clamp(0, calc(var(--fw-v-apps) - 12), 1)", "transition": "opacity 240ms var(--ease-out)" }, "breakpoints": {}, "children": [] }] },
+                          { "key": "tl12", "tag": "span", "name": "Tool", "attrs": {}, "styles": { "display": "grid", "flex": "1", "gap": "2px", "min-width": "0" }, "breakpoints": {}, "children": [
+                            { "key": "r112", "tag": "span", "name": "Paid app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "a12", "tag": "a", "name": "Paid app name", "text": "Framer or Webflow (Framer Basic)", "attrs": { "href": "https://www.softwares.com/compare/framer-vs-webflow", "rel": "noopener" }, "styles": { "min-width": "0", "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+                              { "key": "p12", "tag": "span", "name": "Price", "text": "$10.00", "attrs": {}, "styles": { "flex": "none", "font-variant-numeric": "tabular-nums" }, "breakpoints": {}, "children": [] }
+                            ] },
+                            { "key": "r212", "tag": "span", "name": "Form app", "attrs": {}, "styles": { "display": "flex", "align-items": "baseline", "justify-content": "space-between", "gap": "var(--sp-3)", "min-height": "1.4em" }, "breakpoints": {}, "children": [
+                              { "key": "by12", "tag": "span", "name": "Form app name", "attrs": {}, "styles": { "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [
+                                { "key": "bf12", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": { "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+                                { "key": "bs12", "tag": "span", "name": "Suffix", "text": "Web", "attrs": {}, "styles": { "color": "var(--hue)" }, "breakpoints": {}, "children": [] }
+                              ] }
+                            ] }
+                          ] }
+                        ]
+                      }
+                    ]
+                  },
+                  { "key": "fnote", "tag": "p", "name": "Price note", "text": "Prices are US list prices for one person per month, checked 2026-11-09. Tap a tool name for its price source.", "attrs": {}, "styles": { "margin": "var(--sp-5) 0 0", "color": "var(--ink-faint)", "font-size": "var(--fs-xs)" }, "breakpoints": {}, "children": [] }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "sup", "tag": "aside", "name": "Support", "attrs": {},
+            "styles": { "display": "grid", "grid-template-columns": "minmax(0, 1fr) auto", "align-items": "center", "gap": "var(--sp-5)", "box-sizing": "border-box", "width": "min(100%, 960px)", "margin": "var(--sp-7) auto 0", "padding-top": "var(--sp-5)", "border-top": "1px solid var(--edge)" },
+            "breakpoints": { "tablet": { "grid-template-columns": "minmax(0, 1fr)" } },
+            "children": [
+              {
+                "key": "sup-copy", "tag": "div", "name": "Support copy", "attrs": {},
+                "styles": {},
+                "breakpoints": {},
+                "children": [
+                  { "key": "sup-k", "tag": "p", "name": "Kicker", "text": "Optional, and separate", "attrs": {}, "styles": { "margin": "0", "color": "var(--hue)", "font-size": "var(--fs-s)", "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [] },
+                  { "key": "sup-h", "tag": "h2", "name": "Support heading", "text": "{{supportHeading}}", "attrs": {}, "styles": { "margin": "var(--sp-2) 0", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [] },
+                  {
+                    "key": "sugp", "tag": "p", "name": "Suggestion", "attrs": {},
+                    "styles": { "margin": "0", "max-width": "46rem", "min-height": "3.2em", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                    "breakpoints": { "mobile": { "min-height": "9.6em" } },
+                    "children": [
+                      { "key": "sug-a", "tag": "span", "name": "Before", "text": "A suggestion: ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                      { "key": "sug", "tag": "span", "name": "Suggested amount", "text": "$50", "attrs": {}, "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [] },
+                      { "key": "sug-b", "tag": "span", "name": "After", "text": ", given once, about 5 percent of one year of your savings and rounded to $5, $10, $25 or $50. It is never added to any figure above, and nothing is gated: every Form app is free whether you give or not.", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "sup-btn", "tag": "a", "name": "Support button", "attrs": { "href": "{{supportUrl}}" },
+                "styles": { "display": "inline-flex", "align-items": "center", "justify-content": "center", "gap": "var(--sp-2)", "box-sizing": "border-box", "height": "48px", "padding": "0 var(--sp-5)", "background": "transparent", "box-shadow": "inset 0 0 0 1px var(--edge-strong)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-decoration": "none", "white-space": "nowrap", "transition": "background-color var(--dur-fast) var(--ease-out)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "sup-btn-t", "tag": "span", "name": "Label", "text": "Support us", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  {
+                    "key": "sup-ic", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                    "styles": { "flex": "none", "display": "block", "width": "var(--icon-s)", "height": "var(--icon-s)" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "sup-ic-a", "tag": "path", "name": "Shaft", "attrs": { "d": "M5 12h14" }, "styles": {}, "breakpoints": {}, "children": [] },
+                      { "key": "sup-ic-b", "tag": "path", "name": "Head", "attrs": { "d": "M13 6l6 6-6 6" }, "styles": {}, "breakpoints": {}, "children": [] }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "shotw", "tag": "div", "name": "Screenshot block", "attrs": {},
+            "styles": { "margin-top": "var(--sp-9)" },
+            "breakpoints": {},
+            "children": [
+              { "key": "shot-k", "tag": "p", "name": "Kicker", "text": "FormBench, one of the Form family", "attrs": {}, "styles": { "margin": "0", "color": "var(--hue)", "font-size": "var(--fs-s)", "font-weight": "var(--weight-strong)" }, "breakpoints": {}, "children": [] },
+              {
+                "key": "shot", "tag": "figure", "name": "Screenshot", "attrs": {},
+                "styles": { "margin": "var(--sp-6) 0 0", "overflow": "hidden", "border-radius": "var(--radius-l)", "box-shadow": "var(--shadow-tile), var(--glow-soft)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "shot-dark", "tag": "img", "name": "Screenshot dark", "attrs": { "data-fw-theme-only": "dark", "src": "https://media.formai.studio/media/formranker/ui-parity-1/b2609c971747.w1024.webp", "srcset": "https://media.formai.studio/media/formranker/ui-parity-1/b2609c971747.w1024.webp 1024w, https://media.formai.studio/media/formranker/ui-parity-1/b2609c971747.w2400.webp 2400w", "sizes": "(max-width: 1120px) 100vw, 1040px", "width": "2400", "height": "1500", "alt": "FormBench parity view: capability rows graded Full, Partial or None for a FormAI app beside the software it replaces", "loading": "lazy" }, "styles": { "display": "block", "width": "100%", "height": "auto" }, "breakpoints": {}, "children": [] },
+                  { "key": "shot-light", "tag": "img", "name": "Screenshot light", "attrs": { "data-fw-theme-only": "light", "src": "https://media.formai.studio/media/formranker/ui-parity-light-1/194485ede52c.w1024.webp", "srcset": "https://media.formai.studio/media/formranker/ui-parity-light-1/194485ede52c.w1024.webp 1024w, https://media.formai.studio/media/formranker/ui-parity-light-1/194485ede52c.w2400.webp 2400w", "sizes": "(max-width: 1120px) 100vw, 1040px", "width": "2400", "height": "1500", "alt": "FormBench parity view in the light theme: capability rows graded Full, Partial or None", "loading": "lazy" }, "styles": { "display": "block", "width": "100%", "height": "auto" }, "breakpoints": {}, "children": [] }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "fine", "tag": "p", "name": "Fine print", "attrs": {},
+            "styles": { "max-width": "56ch", "margin": "var(--sp-7) auto 0", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-align": "center", "text-wrap": "balance" },
+            "breakpoints": {},
+            "children": [
+              { "key": "fine-a", "tag": "span", "name": "Fine print", "text": "Savings are an estimate of what you stop paying, not a quote. Yearly is monthly times 12. Free tools, and tools bundled with another, such as Adobe Media Encoder, count as 0 and are not listed. Framer or Webflow is counted at Framer Basic, the lower of the two. Substance 3D Painter is its own plan, so it sits outside the Adobe single-app count and the Creative Cloud Pro cap. The Creative Cloud Pro price comes from ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+              { "key": "fine-l", "tag": "a", "name": "Source link", "text": "its source", "attrs": { "href": "https://www.lilachbullock.com/?p=159023", "rel": "noopener" }, "styles": { "color": "inherit", "text-decoration": "underline" }, "breakpoints": {}, "children": [] },
+              { "key": "fine-b", "tag": "span", "name": "Fine print end", "text": ".", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    { "command": "variables.set", "params": { "kind": "values", "name": "apps", "value": { "type": "number", "initial": 7, "min": 0, "max": 13, "step": 1, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "years", "value": { "type": "number", "initial": 3, "min": 1, "max": 10, "step": 1 } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "proCap", "value": { "type": "number", "initial": 6999 } } },
+    { "command": "variables.set", "params": { "kind": "tables", "name": "adobeSum", "value": { "0": 0, "1": 2299, "2": 4598, "3": 6597, "4": 8096, "5": 10395, "6": 12694, "7": 12694, "8": 12694, "9": 12694, "10": 12694, "11": 12694, "12": 12694, "13": 12694 } } },
+    { "command": "variables.set", "params": { "kind": "tables", "name": "adobeCount", "value": { "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 6, "8": 6, "9": 6, "10": 6, "11": 6, "12": 6, "13": 6 } } },
+    { "command": "variables.set", "params": { "kind": "tables", "name": "otherSum", "value": { "0": 0, "1": 0, "2": 0, "3": 0, "4": 0, "5": 0, "6": 0, "7": 833, "8": 1833, "9": 3333, "10": 5415, "11": 8407, "12": 9406, "13": 10406 } } },
+    { "command": "variables.set", "params": { "kind": "tables", "name": "tierName", "value": { "0": "List prices", "1": "Photography plan", "2": "Creative Cloud Pro" } } },
+    { "command": "variables.set", "params": { "kind": "tables", "name": "yearsText", "value": { "1": "saved over 1 year", "2": "saved over 2 years", "3": "saved over 3 years", "4": "saved over 4 years", "5": "saved over 5 years", "6": "saved over 6 years", "7": "saved over 7 years", "8": "saved over 8 years", "9": "saved over 9 years", "10": "saved over 10 years" } } },
+    { "command": "variables.set", "params": { "kind": "tables", "name": "sugText", "value": { "0": "none yet", "5": "$5", "10": "$10", "25": "$25", "50": "$50" } } },
+    { "command": "variables.set", "params": { "kind": "tables", "name": "noteText", "value": {
+      "0": "Slide right to add the paid apps you use today. Each one you switch from has a Form app that stands in for it.",
+      "1": "Each app is counted at its list price, $22.99 a month in all.",
+      "2": "Each app is counted at its list price, $45.98 a month in all.",
+      "3": "Each app is counted at its list price, $65.97 a month in all.",
+      "4": "Photoshop and Lightroom Classic count once as the Photography plan, $14.99 a month. Adding Lightroom Classic lowers the total, because the plan costs less than Photoshop alone.",
+      "5": "Photoshop and Lightroom Classic count once as the Photography plan. Your 5 Adobe apps then come to $80.96 a month, so Creative Cloud Pro at $69.99 is counted instead.",
+      "6": "Photoshop and Lightroom Classic count once as the Photography plan. Your 6 Adobe apps then come to $103.95 a month, so Creative Cloud Pro at $69.99 is counted instead.",
+      "7": "Photoshop and Lightroom Classic count once as the Photography plan. Your 6 Adobe apps then come to $103.95 a month, so Creative Cloud Pro at $69.99 is counted instead.",
+      "8": "Photoshop and Lightroom Classic count once as the Photography plan. Your 6 Adobe apps then come to $103.95 a month, so Creative Cloud Pro at $69.99 is counted instead.",
+      "9": "Photoshop and Lightroom Classic count once as the Photography plan. Your 6 Adobe apps then come to $103.95 a month, so Creative Cloud Pro at $69.99 is counted instead.",
+      "10": "Photoshop and Lightroom Classic count once as the Photography plan. Your 6 Adobe apps then come to $103.95 a month, so Creative Cloud Pro at $69.99 is counted instead.",
+      "11": "Photoshop and Lightroom Classic count once as the Photography plan. Your 6 Adobe apps then come to $103.95 a month, so Creative Cloud Pro at $69.99 is counted instead.",
+      "12": "Photoshop and Lightroom Classic count once as the Photography plan. Your 6 Adobe apps then come to $103.95 a month, so Creative Cloud Pro at $69.99 is counted instead.",
+      "13": "Photoshop and Lightroom Classic count once as the Photography plan. Your 6 Adobe apps then come to $103.95 a month, so Creative Cloud Pro at $69.99 is counted instead."
+    } } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "photo", "value": "if(apps >= 4, 1, 0)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "base", "value": "lookup(adobeSum, apps) - photo * 2299" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "acount", "value": "lookup(adobeCount, apps)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "cap", "value": "if(acount >= 4 && proCap < base, 1, 0)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "adobe", "value": "if(cap, proCap, base)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "monthly", "value": "adobe + lookup(otherSum, apps)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "yearly", "value": "monthly * 12" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "total", "value": "yearly * years" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "monthlyUsd", "value": "monthly / 100" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "yearlyUsd", "value": "yearly / 100" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "totalUsd", "value": "total / 100" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "totalDollars", "value": "floor(total / 100)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "totalCents", "value": "total % 100" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "centsTens", "value": "floor(totalCents / 10)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "centsOnes", "value": "totalCents % 10" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "tier", "value": "if(cap, 2, photo)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "tierLabel", "value": "lookup(tierName, tier)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "noteLabel", "value": "lookup(noteText, apps)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "perLabel", "value": "lookup(yearsText, years)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "sugKey", "value": "if(yearly == 0, 0, if(yearly / 100 * 0.05 <= 7.5, 5, if(yearly / 100 * 0.05 <= 17.5, 10, if(yearly / 100 * 0.05 <= 37.5, 25, 50))))" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "sugLabel", "value": "lookup(sugText, sugKey)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "tag0", "value": "if(apps > 0, if(cap, \"In the Pro cap\", if(photo, \"In the Photography plan\", \"\")), \"\")" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "tag1", "value": "if(apps > 1 && cap, \"In the Pro cap\", \"\")" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "tag2", "value": "if(apps > 2 && cap, \"In the Pro cap\", \"\")" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "tag3", "value": "if(apps > 3, if(cap, \"In the Pro cap\", if(photo, \"In the Photography plan\", \"\")), \"\")" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "tag4", "value": "if(apps > 4 && cap, \"In the Pro cap\", \"\")" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "tag5", "value": "if(apps > 5 && cap, \"In the Pro cap\", \"\")" } },
+    { "command": "variables.set", "params": { "kind": "inputs", "name": "@@years@@", "value": { "variable": "years", "event": "input" } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@count-out@@", "value": { "from": "apps", "decimals": 0, "suffix": " of 13", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@fig-main@@", "value": { "from": "totalDollars", "decimals": 0, "grouping": true, "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@fig-tens@@", "value": { "from": "centsTens", "decimals": 0, "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@fig-ones@@", "value": { "from": "centsOnes", "decimals": 0, "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@per@@", "value": { "from": "perLabel", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@pill@@", "value": { "from": "tierLabel", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@mo-out@@", "value": { "from": "monthlyUsd", "decimals": 2, "prefix": "$", "grouping": true, "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@yr-out@@", "value": { "from": "yearlyUsd", "decimals": 2, "prefix": "$", "grouping": true, "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@note@@", "value": { "from": "noteLabel", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@sug@@", "value": { "from": "sugLabel", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@tg0@@", "value": { "from": "tag0", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@tg1@@", "value": { "from": "tag1", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@tg2@@", "value": { "from": "tag2", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@tg3@@", "value": { "from": "tag3", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@tg4@@", "value": { "from": "tag4", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@tg5@@", "value": { "from": "tag5", "reserve": 1 } } },
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@ruler@@",
+        "value": {
+          "component": "ruler-slider",
+          "props": {
+            "odometers": [
+              { "node": "@@fig@@", "source": "totalUsd", "prefix": "$", "decimals": 2, "grouping": true, "big": true },
+              { "node": "@@mo-out@@", "source": "monthlyUsd", "prefix": "$", "decimals": 2, "grouping": true },
+              { "node": "@@yr-out@@", "source": "yearlyUsd", "prefix": "$", "decimals": 2, "grouping": true }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "behaviors": {
+    "@@sup-btn@@": { "states": { "hover": { "background": "var(--control-hover)" } } }
+  }
+}

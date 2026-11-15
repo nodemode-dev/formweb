@@ -1,0 +1,43 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "filmstrip",
+  "code": "C5",
+  "name": "Filmstrip scrub",
+  "description": "A row of plates that scrubs with the page scroll, magnifying the plate in focus, skewing with scroll speed and ending on a full-bleed video.",
+  "props": {
+    "frames": { "type": "json", "required": true },
+    "video": { "type": "asset", "default": "/api/assets/8c0d84fba3ffe523f51881099dcb964de29deaad36e9ff9e171284ef4f3e7950.mp4" },
+    "videoPoster": { "type": "asset", "default": "/api/assets/ec8441222f896380eb15470c0db161986ca379155b704fd75b77ac5efe3cab22.webp" },
+    "videoLabel": { "type": "string", "default": "The FORMAI intro: a hand-drawn gem and the FORMAI wordmark animate in on black" },
+    "replayLabel": { "type": "string", "default": "Replay the video" },
+    "plateLabel": { "type": "string", "default": "Plate" },
+    "loadingLabel": { "type": "string", "default": "Loading frames" },
+    "counterLabel": { "type": "string", "default": "Frame counter, running from frame 0 to frame 72" },
+    "hint": { "type": "string", "default": "Scroll to scrub the frames, or use the left and right arrow keys" },
+    "accent": { "type": "color", "default": "var(--hue)" }
+  },
+  "labels": {
+    "frames": "Frames",
+    "video": "End video",
+    "videoPoster": "End video poster",
+    "videoLabel": "Video description",
+    "replayLabel": "Replay button label",
+    "plateLabel": "Plate word",
+    "loadingLabel": "Loading text",
+    "counterLabel": "Counter description",
+    "hint": "Hint under the counter",
+    "accent": "Accent"
+  },
+  "propDocs": {
+    "frames": "Array of {src, srcLight, srcset, srcsetLight, alt, title, loc, frame, w, h, fx, fy, zoom} in plate order. fx and fy are the focus point in percent, zoom is the crop scale, frame is the number the counter shows. srcLight is the light theme twin of src.",
+    "video": "The clip the last plate opens into when the scroll ends. It plays once, muted.",
+    "videoPoster": "Still shown over the clip before it plays and under reduced motion.",
+    "counterLabel": "Spoken description of the big frame counter.",
+    "accent": "Colour of the counter progress line and the plate type label."
+  },
+  "poster": "poster.webp",
+  "sections": ["formmorpheus-filmstrip"],
+  "fallback": "Without scripting the host stays empty. With reduced motion the strip is drawn at its settled end: the last plate opened into the video poster with the replay button, and no clip autoplays.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formmorpheus-filmstrip (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

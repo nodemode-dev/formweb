@@ -1,0 +1,42 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "noise-band",
+  "code": "C1",
+  "name": "Noise band backdrop",
+  "description": "A tinted fbm noise band that rises up the backdrop, leans toward the pointer, swells while you type and surges while a prompt runs.",
+  "props": {
+    "tint": { "type": "color", "default": "var(--hue)" },
+    "ground": { "type": "color", "default": "var(--ground)" },
+    "stateVariable": { "type": "string", "default": "phase" },
+    "activityVariable": { "type": "string", "default": "q" },
+    "surgeBusy": { "type": "number", "default": 1 },
+    "surgeDone": { "type": "number", "default": 0.18 },
+    "pointer": { "type": "boolean", "default": true },
+    "speed": { "type": "number", "default": 1 }
+  },
+  "labels": {
+    "tint": "Edge tint",
+    "ground": "Ground colour",
+    "stateVariable": "State variable",
+    "activityVariable": "Activity variable",
+    "surgeBusy": "Surge while busy",
+    "surgeDone": "Surge when done",
+    "pointer": "Follow the pointer",
+    "speed": "Drift speed"
+  },
+  "propDocs": {
+    "tint": "Colour of the band edge and its wash. The default follows the section tint.",
+    "ground": "Colour the band is mixed from. The default follows the page ground.",
+    "stateVariable": "Name of a text variable. The value searching raises the band by Surge while busy, answer by Surge when done, anything else lowers it. A number variable is used as the surge directly.",
+    "activityVariable": "Name of a variable whose changes make the band swell for a moment, for example the text typed into a prompt.",
+    "surgeBusy": "How far the band rises while the state variable reads searching, as a fraction of the height.",
+    "surgeDone": "How far the band stays risen when the state variable reads answer.",
+    "pointer": "The band leans toward the pointer when on.",
+    "speed": "Multiplier for the slow drift of the noise. 1 is the original pace."
+  },
+  "poster": "poster.webp",
+  "sections": ["formmd-prompt"],
+  "fallback": "Without WebGL the same field is painted on a small 2D canvas on the CPU; if that fails too, a plain ground gradient shows. With reduced motion one still frame is drawn and it only repaints when the state variable, the theme or the size changes.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formmd-prompt (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

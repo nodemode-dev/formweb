@@ -118,6 +118,16 @@ export function mutateVia<T extends { state: EditorState }>(path: string, body: 
   queue = work;
   return work;
 }
+/** Library routes (section insert, preset and starter apply, Import HTML) answer with the /api/batch state plus extras (`root`, `pages`, `warnings`, `changed`). The state is accepted when the answer carries one; the whole answer comes back. */
+export function libraryMutate<T extends object>(path: string, body: unknown): Promise<T> {
+  const work = queue.catch(() => undefined).then(async () => {
+    const result = await request<T>(path, body);
+    if ('site' in result && 'revision' in result) accept(result as unknown as EditorState);
+    return result;
+  });
+  queue = work;
+  return work;
+}
 let events: EventSource | undefined;
 let connectionListener: (connected: boolean) => void = () => undefined;
 export function reconnect(): Promise<void> { return connect(connectionListener); }

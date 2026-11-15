@@ -1,0 +1,389 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formmcp-faq",
+  "name": "FormMCP questions",
+  "category": "product-site",
+  "tags": ["faq", "accordion", "questions", "reveal", "button hover"],
+  "product": "formmcp",
+  "description": "Four questions about FormMCP, answered from what it does: one short list for agents, tools on demand, three clients, one command to connect.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formmcp-faq",
+  "preset": "formai-studio",
+  "components": [],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#9fe7ff" },
+    "name_form": { "label": "Product name, first part", "type": "text", "default": "Form" },
+    "name_suffix": { "label": "Product name, tinted part", "type": "text", "default": "MCP" },
+    "heading": { "label": "Heading", "type": "text", "default": "Questions about FormMCP." },
+    "cta_label": { "label": "Button text", "type": "text", "default": "Read the full page" },
+    "cta_link": { "label": "Button link", "type": "url", "default": "https://formai.studio/formmcp/" }
+  },
+  "tree": {
+    "key": "band",
+    "tag": "section",
+    "name": "FAQ band",
+    "attrs": {},
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "box-sizing": "border-box",
+      "padding-top": "clamp(104px, 13vw, 168px)",
+      "padding-bottom": "clamp(104px, 13vw, 168px)",
+      "background": "var(--inset)",
+      "border-top": "1px solid var(--edge)",
+      "border-bottom": "1px solid var(--edge)"
+    },
+    "breakpoints": {},
+    "children": [
+      {
+        "key": "grid",
+        "tag": "div",
+        "name": "FAQ grid",
+        "attrs": {},
+        "styles": {
+          "box-sizing": "border-box",
+          "display": "grid",
+          "grid-template-columns": "minmax(0, 0.8fr) minmax(0, 1.2fr)",
+          "gap": "clamp(32px, 5vw, 88px)",
+          "align-items": "start",
+          "width": "100%",
+          "max-width": "var(--page-max)",
+          "margin-left": "auto",
+          "margin-right": "auto",
+          "padding-left": "var(--gutter)",
+          "padding-right": "var(--gutter)"
+        },
+        "breakpoints": { "tablet": { "grid-template-columns": "minmax(0, 1fr)" } },
+        "children": [
+          {
+            "key": "side",
+            "tag": "div",
+            "name": "Heading block",
+            "attrs": {},
+            "styles": { "display": "grid", "gap": "var(--sp-3)", "align-content": "start" },
+            "breakpoints": {},
+            "children": [
+              {
+                "key": "label", "tag": "p", "name": "Product label", "attrs": {},
+                "styles": { "margin": "0", "font-size": "var(--fs-l)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-tight)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "label-form", "tag": "span", "name": "Product name first part", "text": "{{name_form}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "label-suffix", "tag": "span", "name": "Product name tinted part", "text": "{{name_suffix}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "label-meta", "tag": "span", "name": "Product category", "text": "Four questions / Free", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              { "key": "title", "tag": "h2", "name": "Heading", "text": "{{heading}}", "attrs": {}, "styles": { "margin": "0" }, "breakpoints": {}, "children": [] }
+            ]
+          },
+          {
+            "key": "faq",
+            "tag": "div",
+            "name": "Questions panel",
+            "attrs": {},
+            "styles": { "display": "block", "overflow": "hidden", "border-radius": "14px", "border": "1px solid var(--edge)", "background": "var(--pane)" },
+            "breakpoints": {},
+            "children": [
+              {
+                "key": "row1", "tag": "div", "name": "Question 1", "attrs": {}, "styles": {}, "breakpoints": {},
+                "children": [
+                  {
+                    "key": "h1", "tag": "h3", "name": "Question 1 heading", "attrs": {}, "styles": { "margin": "0", "font-size": "inherit", "font-weight": "inherit" }, "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "q1", "tag": "button", "name": "Question 1 button", "attrs": { "type": "button" },
+                        "styles": { "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "box-sizing": "border-box", "width": "100%", "padding": "var(--sp-5)", "border": "0", "background": "transparent", "color": "var(--ink)", "font-family": "inherit", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)", "line-height": "20px", "text-align": "start", "cursor": "pointer" },
+                        "breakpoints": { "mobile": { "padding": "var(--sp-3)", "font-size": "var(--fs-m)" } },
+                        "children": [
+                          {
+                            "key": "plus1", "tag": "svg", "name": "Question 1 plus", "attrs": { "viewBox": "0 0 12 12", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true" },
+                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-faq_open1) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-faq_open1) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
+                            "breakpoints": {},
+                            "children": [
+                              { "key": "plus1-v", "tag": "path", "name": "Plus vertical", "attrs": { "d": "M6 1v10" }, "styles": {}, "breakpoints": {}, "children": [] },
+                              { "key": "plus1-h", "tag": "path", "name": "Plus horizontal", "attrs": { "d": "M1 6h10" }, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          { "key": "q1-t", "tag": "span", "name": "Question 1 text", "text": "What does an agent see?", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "a1", "tag": "div", "name": "Answer 1 panel", "attrs": { "role": "region" },
+                    "styles": { "opacity": "var(--fw-v-faq_open1)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "a1-in", "tag": "div", "name": "Answer 1 content", "attrs": {},
+                        "styles": { "display": "flex", "align-items": "flex-start", "gap": "var(--sp-2)", "padding": "0 var(--sp-5) var(--sp-5) calc(var(--sp-5) + 29px)", "color": "var(--ink-soft)" },
+                        "breakpoints": { "mobile": { "padding": "0 var(--sp-3) var(--sp-3) calc(var(--sp-3) + 29px)" } },
+                        "children": [
+                          {
+                            "key": "elbow1", "tag": "svg", "name": "Answer 1 elbow", "attrs": { "viewBox": "0 0 14 14", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                            "styles": { "flex": "none", "width": "14px", "height": "14px", "margin-top": "3px", "opacity": "0.7" }, "breakpoints": {},
+                            "children": [ { "key": "elbow1-d", "tag": "path", "name": "Elbow stroke", "attrs": { "d": "M2 1v8a2 2 0 0 0 2 2h8" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                          },
+                          { "key": "a1-p", "tag": "p", "name": "Answer 1 text", "text": "One short list. family_apps returns a line for every FormAI app and no app's tools, whether or not any of them is installed.", "attrs": {}, "styles": { "margin": "0", "line-height": "20px" }, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "row2", "tag": "div", "name": "Question 2", "attrs": {}, "styles": { "border-top": "1px solid var(--edge)" }, "breakpoints": {},
+                "children": [
+                  {
+                    "key": "h2", "tag": "h3", "name": "Question 2 heading", "attrs": {}, "styles": { "margin": "0", "font-size": "inherit", "font-weight": "inherit" }, "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "q2", "tag": "button", "name": "Question 2 button", "attrs": { "type": "button" },
+                        "styles": { "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "box-sizing": "border-box", "width": "100%", "padding": "var(--sp-5)", "border": "0", "background": "transparent", "color": "var(--ink)", "font-family": "inherit", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)", "line-height": "20px", "text-align": "start", "cursor": "pointer" },
+                        "breakpoints": { "mobile": { "padding": "var(--sp-3)", "font-size": "var(--fs-m)" } },
+                        "children": [
+                          {
+                            "key": "plus2", "tag": "svg", "name": "Question 2 plus", "attrs": { "viewBox": "0 0 12 12", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true" },
+                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-faq_open2) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-faq_open2) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
+                            "breakpoints": {},
+                            "children": [
+                              { "key": "plus2-v", "tag": "path", "name": "Plus vertical", "attrs": { "d": "M6 1v10" }, "styles": {}, "breakpoints": {}, "children": [] },
+                              { "key": "plus2-h", "tag": "path", "name": "Plus horizontal", "attrs": { "d": "M1 6h10" }, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          { "key": "q2-t", "tag": "span", "name": "Question 2 text", "text": "When do an app's tools load?", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "a2", "tag": "div", "name": "Answer 2 panel", "attrs": { "role": "region" },
+                    "styles": { "opacity": "var(--fw-v-faq_open2)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "a2-in", "tag": "div", "name": "Answer 2 content", "attrs": {},
+                        "styles": { "display": "flex", "align-items": "flex-start", "gap": "var(--sp-2)", "padding": "0 var(--sp-5) var(--sp-5) calc(var(--sp-5) + 29px)", "color": "var(--ink-soft)" },
+                        "breakpoints": { "mobile": { "padding": "0 var(--sp-3) var(--sp-3) calc(var(--sp-3) + 29px)" } },
+                        "children": [
+                          {
+                            "key": "elbow2", "tag": "svg", "name": "Answer 2 elbow", "attrs": { "viewBox": "0 0 14 14", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                            "styles": { "flex": "none", "width": "14px", "height": "14px", "margin-top": "3px", "opacity": "0.7" }, "breakpoints": {},
+                            "children": [ { "key": "elbow2-d", "tag": "path", "name": "Elbow stroke", "attrs": { "d": "M2 1v8a2 2 0 0 0 2 2h8" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                          },
+                          { "key": "a2-p", "tag": "p", "name": "Answer 2 text", "text": "Only when a task needs them. app_tools starts that app's own MCP server and lists its tools, and call_app runs one and returns its result unchanged.", "attrs": {}, "styles": { "margin": "0", "line-height": "20px" }, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "row3", "tag": "div", "name": "Question 3", "attrs": {}, "styles": { "border-top": "1px solid var(--edge)" }, "breakpoints": {},
+                "children": [
+                  {
+                    "key": "h3", "tag": "h3", "name": "Question 3 heading", "attrs": {}, "styles": { "margin": "0", "font-size": "inherit", "font-weight": "inherit" }, "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "q3", "tag": "button", "name": "Question 3 button", "attrs": { "type": "button" },
+                        "styles": { "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "box-sizing": "border-box", "width": "100%", "padding": "var(--sp-5)", "border": "0", "background": "transparent", "color": "var(--ink)", "font-family": "inherit", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)", "line-height": "20px", "text-align": "start", "cursor": "pointer" },
+                        "breakpoints": { "mobile": { "padding": "var(--sp-3)", "font-size": "var(--fs-m)" } },
+                        "children": [
+                          {
+                            "key": "plus3", "tag": "svg", "name": "Question 3 plus", "attrs": { "viewBox": "0 0 12 12", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true" },
+                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-faq_open3) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-faq_open3) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
+                            "breakpoints": {},
+                            "children": [
+                              { "key": "plus3-v", "tag": "path", "name": "Plus vertical", "attrs": { "d": "M6 1v10" }, "styles": {}, "breakpoints": {}, "children": [] },
+                              { "key": "plus3-h", "tag": "path", "name": "Plus horizontal", "attrs": { "d": "M1 6h10" }, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          { "key": "q3-t", "tag": "span", "name": "Question 3 text", "text": "Which agents can connect?", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "a3", "tag": "div", "name": "Answer 3 panel", "attrs": { "role": "region" },
+                    "styles": { "opacity": "var(--fw-v-faq_open3)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "a3-in", "tag": "div", "name": "Answer 3 content", "attrs": {},
+                        "styles": { "display": "flex", "align-items": "flex-start", "gap": "var(--sp-2)", "padding": "0 var(--sp-5) var(--sp-5) calc(var(--sp-5) + 29px)", "color": "var(--ink-soft)" },
+                        "breakpoints": { "mobile": { "padding": "0 var(--sp-3) var(--sp-3) calc(var(--sp-3) + 29px)" } },
+                        "children": [
+                          {
+                            "key": "elbow3", "tag": "svg", "name": "Answer 3 elbow", "attrs": { "viewBox": "0 0 14 14", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                            "styles": { "flex": "none", "width": "14px", "height": "14px", "margin-top": "3px", "opacity": "0.7" }, "breakpoints": {},
+                            "children": [ { "key": "elbow3-d", "tag": "path", "name": "Elbow stroke", "attrs": { "d": "M2 1v8a2 2 0 0 0 2 2h8" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                          },
+                          { "key": "a3-p", "tag": "p", "name": "Answer 3 text", "text": "Claude Code, Codex and Cursor, over stdio or over HTTP on 127.0.0.1:5625 with an access token.", "attrs": {}, "styles": { "margin": "0", "line-height": "20px" }, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "row4", "tag": "div", "name": "Question 4", "attrs": {}, "styles": { "border-top": "1px solid var(--edge)" }, "breakpoints": {},
+                "children": [
+                  {
+                    "key": "h4", "tag": "h3", "name": "Question 4 heading", "attrs": {}, "styles": { "margin": "0", "font-size": "inherit", "font-weight": "inherit" }, "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "q4", "tag": "button", "name": "Question 4 button", "attrs": { "type": "button" },
+                        "styles": { "display": "flex", "align-items": "flex-start", "gap": "var(--sp-3)", "box-sizing": "border-box", "width": "100%", "padding": "var(--sp-5)", "border": "0", "background": "transparent", "color": "var(--ink)", "font-family": "inherit", "font-size": "var(--fs-l)", "font-weight": "var(--weight-strong)", "line-height": "20px", "text-align": "start", "cursor": "pointer" },
+                        "breakpoints": { "mobile": { "padding": "var(--sp-3)", "font-size": "var(--fs-m)" } },
+                        "children": [
+                          {
+                            "key": "plus4", "tag": "svg", "name": "Question 4 plus", "attrs": { "viewBox": "0 0 12 12", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true" },
+                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-faq_open4) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-faq_open4) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
+                            "breakpoints": {},
+                            "children": [
+                              { "key": "plus4-v", "tag": "path", "name": "Plus vertical", "attrs": { "d": "M6 1v10" }, "styles": {}, "breakpoints": {}, "children": [] },
+                              { "key": "plus4-h", "tag": "path", "name": "Plus horizontal", "attrs": { "d": "M1 6h10" }, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          { "key": "q4-t", "tag": "span", "name": "Question 4 text", "text": "How do I connect them?", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "a4", "tag": "div", "name": "Answer 4 panel", "attrs": { "role": "region" },
+                    "styles": { "opacity": "var(--fw-v-faq_open4)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "a4-in", "tag": "div", "name": "Answer 4 content", "attrs": {},
+                        "styles": { "display": "flex", "align-items": "flex-start", "gap": "var(--sp-2)", "padding": "0 var(--sp-5) var(--sp-5) calc(var(--sp-5) + 29px)", "color": "var(--ink-soft)" },
+                        "breakpoints": { "mobile": { "padding": "0 var(--sp-3) var(--sp-3) calc(var(--sp-3) + 29px)" } },
+                        "children": [
+                          {
+                            "key": "elbow4", "tag": "svg", "name": "Answer 4 elbow", "attrs": { "viewBox": "0 0 14 14", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                            "styles": { "flex": "none", "width": "14px", "height": "14px", "margin-top": "3px", "opacity": "0.7" }, "breakpoints": {},
+                            "children": [ { "key": "elbow4-d", "tag": "path", "name": "Elbow stroke", "attrs": { "d": "M2 1v8a2 2 0 0 0 2 2h8" }, "styles": {}, "breakpoints": {}, "children": [] } ]
+                          },
+                          { "key": "a4-p", "tag": "p", "name": "Answer 4 text", "text": "Run ./formmcp cli agents install, or use the one button each in the window, to add FormMCP to Claude Code, Codex and Cursor.", "attrs": {}, "styles": { "margin": "0", "line-height": "20px" }, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "prompt", "tag": "div", "name": "More questions row", "attrs": {},
+                "styles": { "box-sizing": "border-box", "display": "flex", "align-items": "center", "justify-content": "space-between", "gap": "var(--sp-5)", "padding": "var(--sp-5)", "border-top": "1px solid var(--edge)" },
+                "breakpoints": { "tablet": { "flex-direction": "column", "align-items": "stretch" }, "mobile": { "padding": "var(--sp-3)" } },
+                "children": [
+                  {
+                    "key": "prompt-t", "tag": "div", "name": "More questions copy", "attrs": {}, "styles": { "display": "grid", "gap": "var(--sp-1)" }, "breakpoints": {},
+                    "children": [
+                      { "key": "prompt-h", "tag": "p", "name": "More questions title", "text": "More questions?", "attrs": {}, "styles": { "margin": "0", "font-size": "var(--fs-l)", "font-weight": "var(--weight-display)" }, "breakpoints": {}, "children": [] },
+                      { "key": "prompt-s", "tag": "p", "name": "More questions line", "text": "Everything else is on FormMCP's own page.", "attrs": {}, "styles": { "margin": "0", "color": "var(--ink-soft)" }, "breakpoints": {}, "children": [] }
+                    ]
+                  },
+                  {
+                    "key": "cta", "tag": "a", "name": "Read the full page button", "attrs": { "href": "{{cta_link}}" },
+                    "styles": { "position": "relative", "overflow": "hidden", "flex": "none", "box-sizing": "border-box", "min-width": "15rem", "justify-content": "flex-start", "--cta": "0" },
+                    "breakpoints": { "tablet": { "min-width": "0" }, "mobile": { "width": "100%" } },
+                    "children": [
+                      {
+                        "key": "badge-a", "tag": "span", "name": "Arrow badge rest", "attrs": {},
+                        "styles": { "display": "inline-grid", "place-items": "center", "flex": "none", "width": "24px", "height": "24px", "pointer-events": "none", "box-shadow": "inset 0 0 0 1px color-mix(in srgb, currentColor 40%, transparent)", "transform": "translateX(calc(var(--cta, 0) * 32rem))", "transition": "transform 900ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          {
+                            "key": "arrow-a", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                            "styles": { "display": "block", "flex": "none", "width": "var(--icon-s)", "height": "var(--icon-s)" }, "breakpoints": {},
+                            "children": [
+                              { "key": "arrow-a-1", "tag": "path", "name": "Arrow shaft", "attrs": { "d": "M4.5 12h15" }, "styles": {}, "breakpoints": {}, "children": [] },
+                              { "key": "arrow-a-2", "tag": "path", "name": "Arrow head", "attrs": { "d": "M13.5 6l6 6-6 6" }, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "key": "cta-label", "tag": "span", "name": "Button label", "attrs": {},
+                        "styles": { "position": "relative", "display": "inline-block", "pointer-events": "none" }, "breakpoints": { "mobile": { "margin-left": "auto", "margin-right": "auto" } },
+                        "children": [
+                          { "key": "label-rest", "tag": "span", "name": "Label rest", "text": "{{cta_label}}", "attrs": {}, "styles": { "display": "inline-block", "opacity": "calc(1 - var(--cta, 0))", "transition": "opacity 600ms var(--ease-out)" }, "breakpoints": {}, "children": [] },
+                          { "key": "label-hover", "tag": "span", "name": "Label hover", "text": "{{cta_label}}", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "white-space": "nowrap", "opacity": "var(--cta, 0)", "transform": "translateX(calc(-30px + var(--cta, 0) * 36px))", "transition": "opacity 600ms var(--ease-out), transform 900ms var(--ease-out)" }, "breakpoints": {}, "children": [] }
+                        ]
+                      },
+                      {
+                        "key": "badge-b", "tag": "span", "name": "Arrow badge hover", "attrs": { "aria-hidden": "true" },
+                        "styles": { "position": "absolute", "left": "var(--sp-4)", "top": "50%", "margin-top": "-12px", "display": "inline-grid", "place-items": "center", "flex": "none", "width": "24px", "height": "24px", "pointer-events": "none", "box-shadow": "inset 0 0 0 1px color-mix(in srgb, currentColor 40%, transparent)", "opacity": "var(--cta, 0)", "transform": "translateX(calc(-70px + var(--cta, 0) * 70px))", "transition": "opacity 600ms var(--ease-out), transform 900ms var(--ease-out)" },
+                        "breakpoints": {},
+                        "children": [
+                          {
+                            "key": "arrow-b", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                            "styles": { "display": "block", "flex": "none", "width": "var(--icon-s)", "height": "var(--icon-s)" }, "breakpoints": {},
+                            "children": [
+                              { "key": "arrow-b-1", "tag": "path", "name": "Arrow shaft", "attrs": { "d": "M4.5 12h15" }, "styles": {}, "breakpoints": {}, "children": [] },
+                              { "key": "arrow-b-2", "tag": "path", "name": "Arrow head", "attrs": { "d": "M13.5 6l6 6-6 6" }, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          }
+                        ]
+                      },
+                      { "key": "label-wide", "tag": "span", "name": "Label hover wide", "text": "{{cta_label}}", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "pointer-events": "none", "white-space": "nowrap", "opacity": "var(--cta, 0)", "transform": "translateX(calc(-30px + var(--cta, 0) * 36px))", "transition": "opacity 600ms var(--ease-out), transform 900ms var(--ease-out)" }, "breakpoints": {}, "children": [] }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "behaviors": {
+    "@@cta@@": { "states": { "hover": { "--cta": "1", "opacity": "0.88" }, "focus": { "--cta": "1", "opacity": "0.88" } } },
+    "@@q1@@": { "states": { "focus": { "outline": "2px solid var(--focus)", "outline-offset": "-2px" } } },
+    "@@q2@@": { "states": { "focus": { "outline": "2px solid var(--focus)", "outline-offset": "-2px" } } },
+    "@@q3@@": { "states": { "focus": { "outline": "2px solid var(--focus)", "outline-offset": "-2px" } } },
+    "@@q4@@": { "states": { "focus": { "outline": "2px solid var(--focus)", "outline-offset": "-2px" } } }
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@label-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@label-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@label-meta@@", "name": "mono" } },
+    { "command": "node.update", "params": { "id": "@@label-meta@@", "patch": { "styles": { "display": "block", "margin-top": "var(--sp-1)", "color": "var(--ink-faint)", "font-size": "var(--fs-xs)", "font-weight": "400", "letter-spacing": "0.14em", "text-transform": "uppercase" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@title@@", "name": "heading" } },
+    { "command": "node.update", "params": { "id": "@@title@@", "patch": { "styles": { "font-size": "clamp(2rem, 1.1rem + 3.2vw, 3.8rem)", "font-weight": "700", "letter-spacing": "-0.036em", "line-height": "1.02" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@cta@@", "name": "button" } },
+    { "command": "node.update", "params": { "id": "@@cta@@", "patch": { "styles": { "position": "relative", "overflow": "hidden", "flex": "none", "min-width": "15rem", "justify-content": "flex-start" } } } },
+
+    { "command": "variables.set", "params": { "kind": "values", "name": "faq_open1", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "faq_open2", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "faq_open3", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "faq_open4", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "faq_open1", "formula": "!faq_open1" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q2@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "faq_open2", "formula": "!faq_open2" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q3@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "faq_open3", "formula": "!faq_open3" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q4@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "faq_open4", "formula": "!faq_open4" } ] } },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "disclosure",
+        "node": "@@faq@@",
+        "value": {
+          "type": "accordion",
+          "items": [
+            { "trigger": "@@q1@@", "panel": "@@a1@@" },
+            { "trigger": "@@q2@@", "panel": "@@a2@@" },
+            { "trigger": "@@q3@@", "panel": "@@a3@@" },
+            { "trigger": "@@q4@@", "panel": "@@a4@@" }
+          ]
+        }
+      }
+    },
+
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@side@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.15 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@row1@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.15 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@row2@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.15 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@row3@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.15 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@row4@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.15 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@prompt@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.15 } } }
+  ]
+}

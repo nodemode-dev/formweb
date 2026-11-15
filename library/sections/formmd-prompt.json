@@ -1,0 +1,365 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formmd-prompt",
+  "name": "Form.md prompt",
+  "category": "prompt-hero",
+  "tags": ["prompt", "hero", "noise", "webgl", "script", "workspace"],
+  "product": "formmd",
+  "description": "Ask a Form.md workspace a question and watch it read pages before it writes a summary note.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formmd-prompt",
+  "preset": "formai-studio",
+  "components": ["noise-band"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#d8d2c4" },
+    "name": { "label": "Product name", "type": "text", "default": "Form" },
+    "suffix": { "label": "Product name suffix", "type": "text", "default": ".md" },
+    "version": { "label": "Version in the badge", "type": "text", "default": "0.47.9" },
+    "tagline": { "label": "Badge tagline", "type": "text", "default": "Reads pages, writes a note" },
+    "intro": { "label": "Intro after the name", "type": "longtext", "default": " reads your pages and database rows like a teammate, then writes the answer as a summary note. One Go binary and one SQLite file, on your own machine." },
+    "link": { "label": "Product link", "type": "url", "default": "https://formai.studio/formmd/" }
+  },
+  "tree": {
+    "key": "pt", "tag": "section", "name": "Prompt hero", "attrs": { "aria-labelledby": "@@heading@@" },
+    "styles": { "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)", "position": "relative", "isolation": "isolate", "display": "flex", "flex-direction": "column", "min-height": "calc(100svh - var(--bar-h))", "overflow": "clip" },
+    "children": [
+      { "key": "back", "tag": "div", "name": "Backdrop", "attrs": { "aria-hidden": "true" },
+        "styles": { "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "pointer-events": "none" },
+        "children": [
+          { "key": "shot-dark", "tag": "img", "name": "Picture, dark", "attrs": { "src": "https://media.formai.studio/media/formmd/ui-hero-2/c146a71090cc.w2400.webp", "width": "2400", "height": "1500", "alt": "", "decoding": "async", "data-fw-theme-only": "dark" },
+            "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "max-width": "none", "opacity": "0.62", "object-fit": "cover", "object-position": "50% 0" } },
+          { "key": "shot-light", "tag": "img", "name": "Picture, light", "attrs": { "src": "https://media.formai.studio/media/formmd/ui-hero-light-2/947d4c010834.w2400.webp", "width": "2400", "height": "1500", "alt": "", "decoding": "async", "data-fw-theme-only": "light" },
+            "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "max-width": "none", "opacity": "0.62", "object-fit": "cover", "object-position": "50% 0" } },
+          { "key": "band", "tag": "div", "name": "Noise band", "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%" } }
+        ] },
+      { "key": "hero", "tag": "div", "name": "Hero",
+        "styles": { "flex": "1", "display": "flex", "flex-direction": "column", "align-items": "center", "padding-top": "clamp(18px, 5vh, 56px)", "padding-right": "16px", "padding-bottom": "24px", "padding-left": "16px", "text-align": "center" },
+        "children": [
+          { "key": "badge", "tag": "a", "name": "Badge", "attrs": { "href": "{{link}}" },
+            "styles": { "position": "relative", "display": "inline-flex", "align-items": "center", "gap": "10px", "padding": "8px 14px", "overflow": "hidden", "border": "1px solid var(--edge-strong)", "background": "color-mix(in srgb, var(--pane) 86%, transparent)", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-decoration": "none", "transition": "border-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out)" },
+            "children": [
+              { "key": "b-dot", "tag": "span", "name": "Status dot", "attrs": { "aria-hidden": "true" }, "styles": { "position": "relative", "flex": "none", "width": "10px", "height": "10px", "border": "1px solid var(--hue)", "border-radius": "50%" },
+                "children": [ { "key": "b-core", "tag": "span", "name": "Dot core", "styles": { "position": "absolute", "inset": "2px", "border-radius": "50%", "background": "var(--hue)" } } ] },
+              { "key": "b-name", "tag": "span", "name": "Name and version", "styles": { "white-space": "nowrap" },
+                "children": [
+                  { "key": "b-form", "tag": "span", "name": "Name", "text": "{{name}}", "styles": { "color": "var(--ink)", "font-weight": "var(--weight-strong)" } },
+                  { "key": "b-suffix", "tag": "span", "name": "Name suffix", "text": "{{suffix}}", "styles": { "margin-left": "-0.14em" } },
+                  { "key": "b-ver", "tag": "span", "name": "Version", "text": " {{version}}" }
+                ] },
+              { "key": "b-tag", "tag": "span", "name": "Tagline", "text": "{{tagline}}" },
+              { "key": "b-chev", "tag": "svg", "name": "Chevron", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "flex": "none", "width": "14px", "height": "14px" },
+                "children": [ { "key": "b-chev-p", "tag": "path", "name": "Chevron path", "attrs": { "d": "M9 6l6 6-6 6" } } ] },
+              { "key": "b-sweep", "tag": "span", "name": "Sweep", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "inset": "0", "background": "linear-gradient(105deg, transparent 35%, color-mix(in srgb, var(--ink) 22%, transparent) 50%, transparent 65%)", "transform": "translateX(-120%)", "pointer-events": "none" } }
+            ] },
+          { "key": "heading", "tag": "h1", "name": "Heading", "attrs": { "aria-label": "Ask your workspace. Get a note back." },
+            "styles": { "margin": "20px 0 0", "font-size": "clamp(36px, 6.2vw, 76px)", "font-weight": "var(--weight-display)", "line-height": "1.04", "letter-spacing": "var(--track-display)", "text-wrap": "balance" },
+            "children": [
+              { "key": "line-1", "tag": "span", "name": "Line 1", "attrs": { "aria-hidden": "true" }, "styles": { "display": "block" },
+                "children": [
+                  { "key": "w-ask", "tag": "span", "name": "Word", "text": "Ask", "styles": { "display": "inline-block" } },
+                  { "key": "sp-1", "tag": "span", "name": "Space", "text": " " },
+                  { "key": "w-your", "tag": "span", "name": "Word", "text": "your", "styles": { "display": "inline-block" } },
+                  { "key": "sp-2", "tag": "span", "name": "Space", "text": " " },
+                  { "key": "w-workspace", "tag": "span", "name": "Tinted word", "text": "workspace.", "styles": { "display": "inline-block", "color": "var(--hue)" } }
+                ] },
+              { "key": "line-2", "tag": "span", "name": "Line 2", "attrs": { "aria-hidden": "true" }, "styles": { "display": "block" },
+                "children": [
+                  { "key": "w-get", "tag": "span", "name": "Word", "text": "Get", "styles": { "display": "inline-block" } },
+                  { "key": "sp-3", "tag": "span", "name": "Space", "text": " " },
+                  { "key": "w-a", "tag": "span", "name": "Word", "text": "a", "styles": { "display": "inline-block" } },
+                  { "key": "sp-4", "tag": "span", "name": "Space", "text": " " },
+                  { "key": "w-note", "tag": "span", "name": "Gradient word", "text": "note", "styles": { "display": "inline-block", "color": "color-mix(in srgb, var(--hue) 50%, var(--ink))" } },
+                  { "key": "sp-5", "tag": "span", "name": "Space", "text": " " },
+                  { "key": "w-back", "tag": "span", "name": "Gradient word", "text": "back.", "styles": { "display": "inline-block", "color": "color-mix(in srgb, var(--hue) 50%, var(--ink))" } }
+                ] }
+            ] },
+          { "key": "sub", "tag": "p", "name": "Intro", "styles": { "max-width": "460px", "margin": "18px 0 0", "color": "var(--ink-soft)", "font-size": "15px" },
+            "children": [
+              { "key": "s-form", "tag": "span", "name": "Name", "text": "{{name}}" },
+              { "key": "s-suffix", "tag": "span", "name": "Name suffix", "text": "{{suffix}}" },
+              { "key": "s-rest", "tag": "span", "name": "Intro text", "text": "{{intro}}" }
+            ] },
+          { "key": "box", "tag": "form", "name": "Prompt box",
+            "styles": { "position": "relative", "width": "min(640px, 100%)", "margin": "clamp(26px, 5vh, 48px) 0 0", "padding": "10px", "border": "1px solid var(--edge-strong)", "border-radius": "var(--radius-l)", "background": "color-mix(in srgb, var(--pane) 94%, transparent)", "box-shadow": "var(--shadow-window, 0 1px 1px rgb(0 0 0 / 0.3), 0 28px 64px -28px rgb(0 0 0 / 0.8))", "text-align": "left" },
+            "children": [
+              { "key": "modes", "tag": "div", "name": "Modes", "attrs": { "aria-label": "Mode" },
+                "styles": { "position": "relative", "display": "inline-flex", "padding": "3px", "border": "1px solid var(--edge)", "background": "var(--pane)", "isolation": "isolate" },
+                "children": [
+                  { "key": "m-sel", "tag": "span", "name": "Mode indicator", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "3px", "bottom": "3px", "left": "3px", "width": "1px", "background": "var(--ink)", "pointer-events": "none" } },
+                  { "key": "m-ask", "tag": "button", "name": "Mode, Ask", "text": "Ask", "attrs": { "type": "button" }, "styles": { "position": "relative", "padding": "7px 16px", "border": "0", "background": "transparent", "color": "#ffffff", "mix-blend-mode": "difference", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" } },
+                  { "key": "m-find", "tag": "button", "name": "Mode, Find", "text": "Find", "attrs": { "type": "button" }, "styles": { "position": "relative", "padding": "7px 16px", "border": "0", "background": "transparent", "color": "#ffffff", "mix-blend-mode": "difference", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" } },
+                  { "key": "m-write", "tag": "button", "name": "Mode, Write", "text": "Write", "attrs": { "type": "button" }, "styles": { "position": "relative", "padding": "7px 16px", "border": "0", "background": "transparent", "color": "#ffffff", "mix-blend-mode": "difference", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "cursor": "pointer" } }
+                ] },
+              { "key": "top", "tag": "div", "name": "Input area", "styles": { "max-height": "calc((1 - var(--fw-v-fmd_running, 0)) * 600px)", "overflow": "hidden" },
+                "children": [
+                  { "key": "p-ask", "tag": "div", "name": "Ask panel", "children": [
+                    { "key": "r-ask", "tag": "div", "name": "Row", "styles": { "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "gap": "12px", "padding": "14px 6px 6px" },
+                    "children": [
+                      { "key": "sp-ask", "tag": "svg", "name": "Spark", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "width": "18px", "height": "18px", "margin-top": "3px", "color": "var(--hue)" },
+                        "children": [ { "key": "sp-ask-p", "tag": "path", "name": "Spark path", "attrs": { "d": "M12 3v6M12 15v6M3 12h6M15 12h6M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3" } } ] },
+                      { "key": "wrap-ask", "tag": "div", "name": "Field", "styles": { "position": "relative", "height": "48px" },
+                        "children": [
+                          { "key": "lb-ask", "tag": "label", "name": "Label", "text": "Your question", "attrs": { "for": "@@in-ask@@" }, "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } },
+                          { "key": "in-ask", "tag": "input", "name": "Question, Ask", "attrs": { "type": "text", "name": "q", "autocomplete": "off","placeholder": "" }, "styles": { "display": "block", "width": "100%", "height": "48px", "margin": "0", "padding": "0 0 24px", "border": "0", "outline": "0", "background": "transparent", "color": "var(--ink)", "font-size": "16px", "line-height": "24px" } }
+                        ] }
+                    ] } ] },
+                  { "key": "p-find", "tag": "div", "name": "Find panel", "children": [
+                    { "key": "r-find", "tag": "div", "name": "Row", "styles": { "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "gap": "12px", "padding": "14px 6px 6px" },
+                    "children": [
+                      { "key": "sp-find", "tag": "svg", "name": "Spark", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "width": "18px", "height": "18px", "margin-top": "3px", "color": "var(--hue)" },
+                        "children": [ { "key": "sp-find-p", "tag": "path", "name": "Spark path", "attrs": { "d": "M12 3v6M12 15v6M3 12h6M15 12h6M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3" } } ] },
+                      { "key": "wrap-find", "tag": "div", "name": "Field", "styles": { "position": "relative", "height": "48px" },
+                        "children": [
+                          { "key": "lb-find", "tag": "label", "name": "Label", "text": "Your question", "attrs": { "for": "@@in-find@@" }, "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } },
+                          { "key": "in-find", "tag": "input", "name": "Question, Find", "attrs": { "type": "text", "name": "q-find", "autocomplete": "off","placeholder": "" }, "styles": { "display": "block", "width": "100%", "height": "48px", "margin": "0", "padding": "0 0 24px", "border": "0", "outline": "0", "background": "transparent", "color": "var(--ink)", "font-size": "16px", "line-height": "24px" } }
+                        ] }
+                    ] } ] },
+                  { "key": "p-write", "tag": "div", "name": "Write panel", "children": [
+                    { "key": "r-write", "tag": "div", "name": "Row", "styles": { "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "gap": "12px", "padding": "14px 6px 6px" },
+                    "children": [
+                      { "key": "sp-write", "tag": "svg", "name": "Spark", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "width": "18px", "height": "18px", "margin-top": "3px", "color": "var(--hue)" },
+                        "children": [ { "key": "sp-write-p", "tag": "path", "name": "Spark path", "attrs": { "d": "M12 3v6M12 15v6M3 12h6M15 12h6M6 6l3 3M15 15l3 3M18 6l-3 3M9 15l-3 3" } } ] },
+                      { "key": "wrap-write", "tag": "div", "name": "Field", "styles": { "position": "relative", "height": "48px" },
+                        "children": [
+                          { "key": "lb-write", "tag": "label", "name": "Label", "text": "Your question", "attrs": { "for": "@@in-write@@" }, "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } },
+                          { "key": "in-write", "tag": "input", "name": "Question, Write", "attrs": { "type": "text", "name": "q-write", "autocomplete": "off","placeholder": "" }, "styles": { "display": "block", "width": "100%", "height": "48px", "margin": "0", "padding": "0 0 24px", "border": "0", "outline": "0", "background": "transparent", "color": "var(--ink)", "font-size": "16px", "line-height": "24px" } }
+                        ] }
+                    ] } ] }
+                ] },
+              { "key": "att", "tag": "ul", "name": "Attached", "attrs": { "aria-label": "Attached" }, "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "8px", "margin": "0", "padding": "0 6px", "list-style": "none" } },
+              { "key": "foot", "tag": "div", "name": "Controls", "styles": { "max-height": "calc((1 - var(--fw-v-fmd_running, 0)) * 400px)", "overflow": "visible" },
+                "children": [
+                  { "key": "foot-in", "tag": "div", "name": "Controls row", "styles": { "display": "flex", "align-items": "center", "gap": "8px", "padding": "8px 0 0", "opacity": "calc(1 - var(--fw-v-fmd_running, 0))" },
+                    "children": [
+                      { "key": "attach", "tag": "details", "name": "Attach menu", "styles": { "position": "relative" },
+                        "children": [
+                          { "key": "plus", "tag": "summary", "name": "Attach button", "attrs": { "aria-label": "Attach" }, "styles": { "display": "grid", "place-items": "center", "width": "36px", "height": "36px", "padding": "0", "border": "1px solid var(--edge)", "background": "transparent", "color": "var(--ink)", "cursor": "pointer", "list-style": "none" },
+                            "children": [
+                              { "key": "plus-svg", "tag": "svg", "name": "Plus", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "width": "18px", "height": "18px" },
+                                "children": [ { "key": "plus-p", "tag": "path", "name": "Plus path", "attrs": { "d": "M12 5v14M5 12h14" } } ] }
+                            ] },
+                          { "key": "menu", "tag": "div", "name": "Menu", "styles": { "position": "absolute", "left": "0", "bottom": "calc(100% + 8px)", "z-index": "var(--z-popover)", "display": "grid", "width": "220px", "padding": "6px", "border": "1px solid var(--edge-strong)", "background": "var(--float)", "box-shadow": "var(--shadow-window, 0 1px 1px rgb(0 0 0 / 0.3), 0 28px 64px -28px rgb(0 0 0 / 0.8))" },
+                            "children": [
+                              { "key": "it-up", "tag": "button", "name": "Menu item, upload", "text": "Upload a file", "attrs": { "type": "button" }, "styles": { "display": "flex", "align-items": "center", "gap": "10px", "padding": "9px 10px", "border": "0", "background": "transparent", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-align": "left", "text-transform": "uppercase", "cursor": "pointer" } },
+                              { "key": "it-link", "tag": "button", "name": "Menu item, link", "text": "Link a page", "attrs": { "type": "button" }, "styles": { "display": "flex", "align-items": "center", "gap": "10px", "padding": "9px 10px", "border": "0", "background": "transparent", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-align": "left", "text-transform": "uppercase", "cursor": "pointer" } },
+                              { "key": "it-notes", "tag": "button", "name": "Menu item, notes", "text": "Add notes", "attrs": { "type": "button" }, "styles": { "display": "flex", "align-items": "center", "gap": "10px", "padding": "9px 10px", "border": "0", "background": "transparent", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-align": "left", "text-transform": "uppercase", "cursor": "pointer" } }
+                            ] }
+                        ] },
+                      { "key": "hint-wrap", "tag": "span", "name": "Hint", "styles": { "margin-left": "auto", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" }, "breakpoints": { "mobile": { "display": "none" } },
+                        "children": [ { "key": "hint", "tag": "span", "name": "Hint text" } ] },
+                      { "key": "send", "tag": "button", "name": "Send", "attrs": { "type": "submit", "aria-label": "Send" }, "styles": { "display": "grid", "place-items": "center", "overflow": "hidden", "width": "36px", "height": "36px", "padding": "0", "border": "0", "background": "var(--ink)", "color": "var(--on-ink)", "cursor": "pointer", "transition": "transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity var(--dur-fast) var(--ease-out)" }, "breakpoints": { "mobile": { "margin-left": "auto" } },
+                        "children": [
+                          { "key": "send-svg", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }, "styles": { "width": "18px", "height": "18px" },
+                            "children": [ { "key": "send-p", "tag": "path", "name": "Arrow path", "attrs": { "d": "M5 12h14M13 6l6 6-6 6" } } ] }
+                        ] }
+                    ] }
+                ] },
+              { "key": "run", "tag": "div", "name": "Run area", "attrs": { "aria-live": "polite" }, "styles": { "max-height": "calc(var(--fw-v-fmd_running, 1) * 1400px)", "overflow": "hidden" },
+                "children": [
+                  { "key": "run-in", "tag": "div", "name": "Run content", "styles": { "padding": "14px 6px 4px" },
+                    "children": [
+                      { "key": "q-out", "tag": "p", "name": "Question asked", "attrs": { "tabindex": "-1" }, "styles": { "margin": "0", "outline": "0", "font-size": "17px", "font-weight": "var(--weight-strong)", "letter-spacing": "var(--track-tight)" } },
+                      { "key": "status", "tag": "div", "name": "Status", "styles": { "display": "flex", "align-items": "center", "gap": "12px", "margin-top": "14px", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" },
+                        "children": [
+                          { "key": "pulse", "tag": "span", "name": "Pulse", "attrs": { "aria-hidden": "true" }, "styles": { "position": "relative", "flex": "none", "width": "8px", "height": "8px", "border-radius": "50%", "background": "color-mix(in srgb, var(--ink) calc(var(--fw-v-fmd_done, 0) * 100%), var(--hue))" },
+                            "children": [ { "key": "pulse-ring", "tag": "span", "name": "Pulse ring", "styles": { "position": "absolute", "inset": "0", "border-radius": "50%", "border": "1px solid color-mix(in srgb, transparent calc(var(--fw-v-fmd_done, 0) * 100%), var(--hue))" } } ] },
+                          { "key": "st-out", "tag": "span", "name": "Status text" },
+                          { "key": "bar", "tag": "span", "name": "Progress", "attrs": { "aria-hidden": "true" }, "styles": { "flex": "1", "max-width": "160px", "margin-left": "auto", "height": "3px", "background": "var(--edge)" },
+                            "children": [ { "key": "fill", "tag": "i", "name": "Progress fill", "styles": { "display": "block", "width": "100%", "height": "100%", "background": "var(--hue)", "transform": "scaleX(calc(var(--fw-v-fmd_read, 8) / 8))", "transform-origin": "0 50%", "transition": "transform 0.35s ease" } } ] }
+                        ] },
+                      { "key": "src", "tag": "ul", "name": "Pages read", "attrs": { "aria-label": "Pages read" }, "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "6px", "margin": "12px 0 0", "padding": "0", "list-style": "none" } },
+                      { "key": "answer", "tag": "div", "name": "Answer", "styles": { "max-height": "calc(var(--fw-v-fmd_done, 1) * 800px)", "overflow": "hidden" },
+                        "children": [
+                          { "key": "ans-in", "tag": "div", "name": "Answer content", "styles": { "margin-top": "14px", "padding-top": "14px", "border-top": "1px solid var(--edge)" },
+                            "children": [
+                              { "key": "ans-h", "tag": "p", "name": "Answer label", "text": "Summary note", "styles": { "margin": "0 0 8px", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } },
+                              { "key": "ans", "tag": "p", "name": "Answer text", "attrs": { "aria-live": "polite" }, "styles": { "margin": "0", "color": "var(--ink)", "font-size": "15px", "line-height": "1.55" } }
+                            ] },
+                          { "key": "acts", "tag": "div", "name": "Actions", "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "8px", "margin-top": "16px" },
+                            "children": [
+                              { "key": "copy", "tag": "button", "name": "Copy note", "text": "Copy note", "attrs": { "type": "button" }, "styles": { "border": "0", "cursor": "pointer", "font-family": "inherit" } },
+                              { "key": "about", "tag": "a", "name": "About link", "text": "About Form.md", "attrs": { "href": "{{link}}" } },
+                              { "key": "reset", "tag": "button", "name": "New question", "text": "New question", "attrs": { "type": "button" }, "styles": { "margin-left": "auto", "border": "0", "cursor": "pointer", "font-family": "inherit" }, "breakpoints": { "mobile": { "margin-left": "0" } } }
+                            ] }
+                        ] }
+                    ] }
+                ] },
+              { "key": "tpl", "tag": "div", "name": "Templates, not shown", "attrs": { "hidden": "" },
+                "children": [
+                  { "key": "t-s1", "tag": "li", "name": "Page chip 1", "attrs": { "hidden": "" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "8px", "padding": "3px 10px 3px 3px", "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                    "children": [ { "key": "t-s1-m", "tag": "span", "name": "Mark", "text": "D", "attrs": { "aria-hidden": "true" }, "styles": { "display": "inline-grid", "place-items": "center", "width": "20px", "height": "20px", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "11px" } }, { "key": "t-s1-t", "tag": "span", "name": "Label", "text": "Documents" } ] },
+                  { "key": "t-s2", "tag": "li", "name": "Page chip 2", "attrs": { "hidden": "" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "8px", "padding": "3px 10px 3px 3px", "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                    "children": [ { "key": "t-s2-m", "tag": "span", "name": "Mark", "text": "D", "attrs": { "aria-hidden": "true" }, "styles": { "display": "inline-grid", "place-items": "center", "width": "20px", "height": "20px", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "11px" } }, { "key": "t-s2-t", "tag": "span", "name": "Label", "text": "Databases" } ] },
+                  { "key": "t-s3", "tag": "li", "name": "Page chip 3", "attrs": { "hidden": "" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "8px", "padding": "3px 10px 3px 3px", "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                    "children": [ { "key": "t-s3-m", "tag": "span", "name": "Mark", "text": "A", "attrs": { "aria-hidden": "true" }, "styles": { "display": "inline-grid", "place-items": "center", "width": "20px", "height": "20px", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "11px" } }, { "key": "t-s3-t", "tag": "span", "name": "Label", "text": "Agents" } ] },
+                  { "key": "t-s4", "tag": "li", "name": "Page chip 4", "attrs": { "hidden": "" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "8px", "padding": "3px 10px 3px 3px", "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                    "children": [ { "key": "t-s4-m", "tag": "span", "name": "Mark", "text": "B", "attrs": { "aria-hidden": "true" }, "styles": { "display": "inline-grid", "place-items": "center", "width": "20px", "height": "20px", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "11px" } }, { "key": "t-s4-t", "tag": "span", "name": "Label", "text": "Block editor" } ] },
+                  { "key": "t-s5", "tag": "li", "name": "Page chip 5", "attrs": { "hidden": "" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "8px", "padding": "3px 10px 3px 3px", "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                    "children": [ { "key": "t-s5-m", "tag": "span", "name": "Mark", "text": "S", "attrs": { "aria-hidden": "true" }, "styles": { "display": "inline-grid", "place-items": "center", "width": "20px", "height": "20px", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "11px" } }, { "key": "t-s5-t", "tag": "span", "name": "Label", "text": "Sharing and collaboration" } ] },
+                  { "key": "t-s6", "tag": "li", "name": "Page chip 6", "attrs": { "hidden": "" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "8px", "padding": "3px 10px 3px 3px", "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                    "children": [ { "key": "t-s6-m", "tag": "span", "name": "Mark", "text": "H", "attrs": { "aria-hidden": "true" }, "styles": { "display": "inline-grid", "place-items": "center", "width": "20px", "height": "20px", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "11px" } }, { "key": "t-s6-t", "tag": "span", "name": "Label", "text": "History and offline" } ] },
+                  { "key": "t-s7", "tag": "li", "name": "Page chip 7", "attrs": { "hidden": "" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "8px", "padding": "3px 10px 3px 3px", "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                    "children": [ { "key": "t-s7-m", "tag": "span", "name": "Mark", "text": "S", "attrs": { "aria-hidden": "true" }, "styles": { "display": "inline-grid", "place-items": "center", "width": "20px", "height": "20px", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "11px" } }, { "key": "t-s7-t", "tag": "span", "name": "Label", "text": "Search and commands" } ] },
+                  { "key": "t-s8", "tag": "li", "name": "Page chip 8", "attrs": { "hidden": "" }, "styles": { "display": "inline-flex", "align-items": "center", "gap": "8px", "padding": "3px 10px 3px 3px", "border": "1px solid var(--edge-strong)", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" },
+                    "children": [ { "key": "t-s8-m", "tag": "span", "name": "Mark", "text": "T", "attrs": { "aria-hidden": "true" }, "styles": { "display": "inline-grid", "place-items": "center", "width": "20px", "height": "20px", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "11px" } }, { "key": "t-s8-t", "tag": "span", "name": "Label", "text": "Templates and examples" } ] },
+                  { "key": "t-a1", "tag": "li", "name": "Attachment chip, upload", "text": "trail-survey.csv", "attrs": { "hidden": "" }, "styles": { "padding": "4px 12px", "border": "1px solid var(--edge)", "border-radius": "var(--radius-pill)", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" } },
+                  { "key": "t-a2", "tag": "li", "name": "Attachment chip, link", "text": "Spring trail report", "attrs": { "hidden": "" }, "styles": { "padding": "4px 12px", "border": "1px solid var(--edge)", "border-radius": "var(--radius-pill)", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" } },
+                  { "key": "t-a3", "tag": "li", "name": "Attachment chip, notes", "text": "field-notes.md", "attrs": { "hidden": "" }, "styles": { "padding": "4px 12px", "border": "1px solid var(--edge)", "border-radius": "var(--radius-pill)", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" } },
+                  { "key": "t-g1", "tag": "span", "name": "Answer part 1", "text": "Form.md ships as one Go binary with one SQLite file. ", "attrs": { "hidden": "" } },
+                  { "key": "t-g2", "tag": "span", "name": "Answer part 2", "text": "Each page body is a CRDT the server applies itself,", "attrs": { "hidden": "" },
+                    "children": [ { "key": "t-g2-c", "tag": "span", "name": "Citation 1", "text": "1", "styles": { "display": "inline-grid", "place-items": "center", "width": "16px", "height": "16px", "margin": "0 4px 0 3px", "border": "1px solid var(--hue)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "10px", "vertical-align": "2px" } }, { "key": "t-g2-s", "tag": "span", "name": "Gap", "text": " " } ] },
+                  { "key": "t-g3", "tag": "span", "name": "Answer part 3", "text": "so an agent's edit merges into what a person is typing. ", "attrs": { "hidden": "" } },
+                  { "key": "t-g4", "tag": "span", "name": "Answer part 4", "text": "Rows are pages, shown as seven views on one query engine.", "attrs": { "hidden": "" },
+                    "children": [ { "key": "t-g4-c", "tag": "span", "name": "Citation 2", "text": "2", "styles": { "display": "inline-grid", "place-items": "center", "width": "16px", "height": "16px", "margin": "0 4px 0 3px", "border": "1px solid var(--hue)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "10px", "vertical-align": "2px" } } ] }
+                ] }
+            ] },
+          { "key": "fine", "tag": "p", "name": "Fine print", "text": "A scripted preview. Nothing is sent anywhere.", "styles": { "margin": "14px 0 0", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+        ] },
+      { "key": "trust", "tag": "div", "name": "Trust strip", "styles": { "padding-bottom": "24px", "text-align": "center" },
+        "children": [
+          { "key": "trust-in", "tag": "div", "name": "Trust content", "styles": { "opacity": "calc(1 - var(--fw-v-fmd_running, 0) * 0.65)", "transition": "opacity 0.6s var(--ease-out)" },
+            "children": [
+              { "key": "cap", "tag": "p", "name": "Caption", "text": "Opens and saves the files you already have", "styles": { "margin": "0 0 14px", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } },
+              { "key": "marq", "tag": "div", "name": "File types", "attrs": { "role": "img", "aria-label": "Form.md opens and saves Markdown, HTML, CSV, ENEX, OPML, Word, Excel and PDF" },
+                "styles": { "overflow": "hidden", "mask-image": "linear-gradient(90deg, transparent 0, #000 18%, #000 82%, transparent 100%)" },
+                "children": [
+                  { "key": "f1", "tag": "span", "name": "Type", "text": "Markdown", "styles": { "flex": "none", "margin-right": "clamp(36px, 6vw, 72px)", "color": "var(--ink-soft)", "opacity": "0.6", "white-space": "nowrap", "font-size": "22px", "font-weight": "720", "letter-spacing": "-0.04em" } },
+                  { "key": "f2", "tag": "span", "name": "Type", "text": "HTML", "styles": { "flex": "none", "margin-right": "clamp(36px, 6vw, 72px)", "color": "var(--ink-soft)", "opacity": "0.6", "white-space": "nowrap", "font-family": "var(--font-mono)", "font-size": "12px", "font-weight": "400", "letter-spacing": "0.22em", "text-transform": "uppercase" } },
+                  { "key": "f3", "tag": "span", "name": "Type", "text": "CSV", "styles": { "flex": "none", "margin-right": "clamp(36px, 6vw, 72px)", "color": "var(--ink-soft)", "opacity": "0.6", "white-space": "nowrap", "font-size": "20px", "font-weight": "520", "letter-spacing": "-0.02em" } },
+                  { "key": "f4", "tag": "span", "name": "Type", "text": "ENEX", "styles": { "flex": "none", "margin-right": "clamp(36px, 6vw, 72px)", "color": "var(--ink-soft)", "opacity": "0.6", "white-space": "nowrap", "font-size": "24px", "font-weight": "640", "letter-spacing": "-0.03em" } },
+                  { "key": "f5", "tag": "span", "name": "Type", "text": "OPML", "styles": { "flex": "none", "margin-right": "clamp(36px, 6vw, 72px)", "color": "var(--ink-soft)", "opacity": "0.6", "white-space": "nowrap", "font-size": "22px", "font-weight": "720", "letter-spacing": "-0.04em" } },
+                  { "key": "f6", "tag": "span", "name": "Type", "text": "Word", "styles": { "flex": "none", "margin-right": "clamp(36px, 6vw, 72px)", "color": "var(--ink-soft)", "opacity": "0.6", "white-space": "nowrap", "font-family": "var(--font-mono)", "font-size": "12px", "font-weight": "400", "letter-spacing": "0.22em", "text-transform": "uppercase" } },
+                  { "key": "f7", "tag": "span", "name": "Type", "text": "Excel", "styles": { "flex": "none", "margin-right": "clamp(36px, 6vw, 72px)", "color": "var(--ink-soft)", "opacity": "0.6", "white-space": "nowrap", "font-size": "20px", "font-weight": "520", "letter-spacing": "-0.02em" } },
+                  { "key": "f8", "tag": "span", "name": "Type", "text": "PDF", "styles": { "flex": "none", "margin-right": "clamp(36px, 6vw, 72px)", "color": "var(--ink-soft)", "opacity": "0.6", "white-space": "nowrap", "font-size": "24px", "font-weight": "640", "letter-spacing": "-0.03em" } }
+                ] }
+            ] }
+        ] }
+    ]
+  },
+  "behaviors": {
+    "@@badge@@": { "states": { "hover": { "border-color": "var(--hue)", "color": "var(--ink)" } } },
+    "@@plus@@": { "states": { "hover": { "background": "var(--control)" } } },
+    "@@it-up@@": { "states": { "hover": { "background": "var(--control)" } } },
+    "@@it-link@@": { "states": { "hover": { "background": "var(--control)" } } },
+    "@@it-notes@@": { "states": { "hover": { "background": "var(--control)" } } },
+    "@@send@@": { "states": { "hover": { "transform": "scale(1.08) rotate(-8deg)" }, "press": { "transform": "scale(0.92)" } } },
+    "@@copy@@": { "states": { "hover": { "transform": "translateY(-2px)", "background": "var(--control-hover)" } } },
+    "@@about@@": { "states": { "hover": { "transform": "translateY(-2px)", "background": "var(--control-hover)" } } },
+    "@@reset@@": { "states": { "hover": { "transform": "translateY(-2px)", "opacity": "0.88" } } }
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@b-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@b-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@s-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@s-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@copy@@", "name": "button-quiet" } },
+    { "command": "textpreset.apply", "params": { "id": "@@about@@", "name": "button-quiet" } },
+    { "command": "textpreset.apply", "params": { "id": "@@reset@@", "name": "button" } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "fmd_q", "value": { "type": "text", "initial": "" } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "fmd_mode", "value": { "type": "text", "initial": "ask", "options": ["ask", "find", "write"] } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "fmd_phase", "value": { "type": "text", "initial": "idle", "options": ["idle", "searching", "answer"] } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "fmd_running", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "fmd_done", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "fmd_read", "value": { "type": "number", "initial": 0, "min": 0, "max": 8, "step": 1, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "fmd_status", "value": { "type": "text", "initial": "Reading, 0 of 8" } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "fmd_hint", "value": { "type": "text", "initial": "Ask mode, enter to send" } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "fmd_asked", "value": { "type": "text", "initial": "How do agents edit beside people in realtime?" } } },
+    { "command": "variables.set", "params": { "kind": "tables", "name": "fmd_first", "value": { "ask": "How do agents edit beside people in realtime?", "find": "Find pages that mention relations and rollups.", "write": "Write a summary note from these pages." } } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "fmd_shown", "value": "if(fmd_q == \"\", lookup(fmd_first, fmd_mode), fmd_q)" } },
+    { "command": "variables.set", "params": { "kind": "inputs", "name": "@@in-ask@@", "value": { "variable": "fmd_q" } } },
+    { "command": "variables.set", "params": { "kind": "inputs", "name": "@@in-find@@", "value": { "variable": "fmd_q" } } },
+    { "command": "variables.set", "params": { "kind": "inputs", "name": "@@in-write@@", "value": { "variable": "fmd_q" } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@q-out@@", "value": { "from": "fmd_asked", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@st-out@@", "value": { "from": "fmd_status", "reserve": 1 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@hint@@", "value": { "from": "fmd_hint", "reserve": 1 } } },
+    { "command": "code.instance.set", "params": { "node": "@@band@@", "value": { "component": "noise-band", "props": { "stateVariable": "fmd_phase", "activityVariable": "fmd_q" } } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@badge@@", "value": { "from": { "opacity": "0","transform": "translateY(14px)" }, "duration": 900, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@w-ask@@", "value": { "from": { "opacity": "0","transform": "translateY(0.4em)", "filter": "blur(10px)" }, "duration": 1100, "delay": 120, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@w-your@@", "value": { "from": { "opacity": "0","transform": "translateY(0.4em)", "filter": "blur(10px)" }, "duration": 1100, "delay": 210, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@w-workspace@@", "value": { "from": { "opacity": "0","transform": "translateY(0.4em)", "filter": "blur(10px)" }, "duration": 1100, "delay": 300, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@w-get@@", "value": { "from": { "opacity": "0","transform": "translateY(0.4em)", "filter": "blur(10px)" }, "duration": 1100, "delay": 420, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@w-a@@", "value": { "from": { "opacity": "0","transform": "translateY(0.4em)", "filter": "blur(10px)" }, "duration": 1100, "delay": 490, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@w-note@@", "value": { "from": { "opacity": "0","transform": "translateY(0.4em)", "filter": "blur(10px)" }, "duration": 1100, "delay": 560, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@w-back@@", "value": { "from": { "opacity": "0","transform": "translateY(0.4em)", "filter": "blur(10px)" }, "duration": 1100, "delay": 640, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@sub@@", "value": { "from": { "opacity": "0","transform": "translateY(14px)" }, "duration": 1000, "delay": 600, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@box@@", "value": { "from": { "opacity": "0","transform": "translateY(14px)" }, "duration": 1100, "delay": 750, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@trust@@", "value": { "from": { "opacity": "0","transform": "translateY(14px)" }, "duration": 1000, "delay": 1000, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@b-sweep@@", "value": { "type": "keyframes", "duration": 4500, "keyframes": [ { "at": 0, "styles": { "transform": "translateX(-120%)" } }, { "at": 0.6, "styles": { "transform": "translateX(-120%)" } }, { "at": 1, "styles": { "transform": "translateX(120%)" } } ], "easing": "linear", "iterations": "infinite" } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@b-core@@", "value": { "type": "keyframes", "duration": 2000, "keyframes": [ { "at": 0, "styles": { "transform": "scale(1)" } }, { "at": 0.5, "styles": { "transform": "scale(0.55)" } }, { "at": 1, "styles": { "transform": "scale(1)" } } ], "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "iterations": "infinite" } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@pulse-ring@@", "value": { "type": "keyframes", "duration": 1200, "keyframes": [ { "at": 0, "styles": { "opacity": "0.8", "transform": "scale(1)" } }, { "at": 1, "styles": { "opacity": "0","transform": "scale(2.6)" } } ], "easing": "cubic-bezier(0.2, 0.7, 0.2, 1)", "iterations": "infinite" } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@sp-ask@@", "value": { "type": "spin", "duration": 9000, "amount": 360 } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@sp-find@@", "value": { "type": "spin", "duration": 9000, "amount": 360 } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@sp-write@@", "value": { "type": "spin", "duration": 9000, "amount": 360 } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@marq@@", "value": { "type": "marquee", "direction": "left", "speed": 27, "pauseOnHover": true, "pauseOffscreen": true } } },
+    { "command": "motion.set", "params": { "kind": "text", "node": "@@in-ask@@", "value": { "type": "ghost", "strings": ["How do agents edit beside people in realtime?", "What lives in the one SQLite file?", "Which access levels can a shared page have?"], "speed": 58, "erase": 16, "hold": 1900 } } },
+    { "command": "motion.set", "params": { "kind": "text", "node": "@@in-find@@", "value": { "type": "ghost", "strings": ["Find pages that mention relations and rollups.", "Find databases shown as a board view.", "Find the pages an agent edited."], "speed": 58, "erase": 16, "hold": 1900 } } },
+    { "command": "motion.set", "params": { "kind": "text", "node": "@@in-write@@", "value": { "type": "ghost", "strings": ["Write a summary note from these pages.", "Draft a short brief on the seven views.", "Turn these rows into a one page report."], "speed": 58, "erase": 16, "hold": 1900 } } },
+    { "command": "motion.set", "params": { "kind": "disclosure", "node": "@@modes@@", "value": { "type": "tabs", "indicator": "@@m-sel@@", "initial": 0, "items": [ { "trigger": "@@m-ask@@", "panel": "@@p-ask@@" }, { "trigger": "@@m-find@@", "panel": "@@p-find@@" }, { "trigger": "@@m-write@@", "panel": "@@p-write@@" } ] } } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@m-ask@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "fmd_mode", "value": "ask" }, { "trigger": "click", "action": "set-variable", "variable": "fmd_hint", "value": "Ask mode, enter to send" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@m-find@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "fmd_mode", "value": "find" }, { "trigger": "click", "action": "set-variable", "variable": "fmd_hint", "value": "Find mode, enter to send" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@m-write@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "fmd_mode", "value": "write" }, { "trigger": "click", "action": "set-variable", "variable": "fmd_hint", "value": "Write mode, enter to send" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@copy@@", "value": [ { "trigger": "click", "action": "copy", "from": "@@ans@@", "feedback": "Copied" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@reset@@", "value": [
+      { "trigger": "click", "action": "set-variable", "variable": "fmd_phase", "value": "idle" },
+      { "trigger": "click", "action": "set-variable", "variable": "fmd_running", "value": false },
+      { "trigger": "click", "action": "set-variable", "variable": "fmd_done", "value": false },
+      { "trigger": "click", "action": "set-variable", "variable": "fmd_read", "value": 0 },
+      { "trigger": "click", "action": "set-variable", "variable": "fmd_status", "value": "Reading, 0 of 8" } ] } },
+    { "command": "motion.set", "params": { "kind": "scripts", "node": "@@it-up@@", "value": { "trigger": "click", "once": true, "steps": [ { "type": "append", "template": "@@t-a1@@", "into": "@@att@@" } ] } } },
+    { "command": "motion.set", "params": { "kind": "scripts", "node": "@@it-link@@", "value": { "trigger": "click", "once": true, "steps": [ { "type": "append", "template": "@@t-a2@@", "into": "@@att@@" } ] } } },
+    { "command": "motion.set", "params": { "kind": "scripts", "node": "@@it-notes@@", "value": { "trigger": "click", "once": true, "steps": [ { "type": "append", "template": "@@t-a3@@", "into": "@@att@@" } ] } } },
+    { "command": "motion.set", "params": { "kind": "scripts", "node": "@@box@@", "value": { "trigger": "submit", "reset": true, "steps": [
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_asked", "formula": "fmd_shown" } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_read", "value": 0 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Reading, 0 of 8" } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_done", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_phase", "value": "searching" } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_running", "value": true } },
+      { "type": "clear", "target": "@@in-ask@@" },
+      { "type": "focus", "target": "@@q-out@@" },
+      { "type": "wait", "ms": 260 },
+      { "type": "append", "template": "@@t-s1@@", "into": "@@src@@" },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_read", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Reading, 1 of 8" } },
+      { "type": "wait", "ms": 230 },
+      { "type": "append", "template": "@@t-s2@@", "into": "@@src@@" },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_read", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Reading, 2 of 8" } },
+      { "type": "wait", "ms": 230 },
+      { "type": "append", "template": "@@t-s3@@", "into": "@@src@@" },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_read", "value": 3 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Reading, 3 of 8" } },
+      { "type": "wait", "ms": 230 },
+      { "type": "append", "template": "@@t-s4@@", "into": "@@src@@" },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_read", "value": 4 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Reading, 4 of 8" } },
+      { "type": "wait", "ms": 230 },
+      { "type": "append", "template": "@@t-s5@@", "into": "@@src@@" },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_read", "value": 5 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Reading, 5 of 8" } },
+      { "type": "wait", "ms": 230 },
+      { "type": "append", "template": "@@t-s6@@", "into": "@@src@@" },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_read", "value": 6 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Reading, 6 of 8" } },
+      { "type": "wait", "ms": 230 },
+      { "type": "append", "template": "@@t-s7@@", "into": "@@src@@" },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_read", "value": 7 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Reading, 7 of 8" } },
+      { "type": "wait", "ms": 230 },
+      { "type": "append", "template": "@@t-s8@@", "into": "@@src@@" },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_read", "value": 8 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Reading, 8 of 8" } },
+      { "type": "wait", "ms": 730 },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_phase", "value": "answer" } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_status", "value": "Read 8 pages, wrote one summary note" } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "fmd_done", "value": true } },
+      { "type": "append", "template": "@@t-g1@@", "into": "@@ans@@" },
+      { "type": "wait", "ms": 250 },
+      { "type": "append", "template": "@@t-g2@@", "into": "@@ans@@" },
+      { "type": "wait", "ms": 250 },
+      { "type": "append", "template": "@@t-g3@@", "into": "@@ans@@" },
+      { "type": "wait", "ms": 250 },
+      { "type": "append", "template": "@@t-g4@@", "into": "@@ans@@" }
+    ] } } }
+  ]
+}

@@ -1,0 +1,685 @@
+{
+ "builtDigest": "ce4226e1d02d9277a9a03da1e82ddf4a1f3c4edd84368510cdeb4517b34792fd",
+ "enabled": true,
+ "javascript": "// tube-travel: shots line the inside of a long CSS 3D tube. Scroll (through the enclosing scene) travels along it,\n// a click flies one shot out beside its details. Ported from formai-xmental-webspun v3.1.0\n// assets/sections/formvfx-vortex. Open, index and share state are page variables so native buttons can bind.\nconst SHEET = `\n.fwc-tt { position: absolute; inset: 0; overflow: hidden; isolation: isolate; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; container-type: inline-size; color: var(--ink, #eef0f4); font-family: var(--font-ui, system-ui, sans-serif); font-weight: var(--weight-body, 420); line-height: 1.55; text-align: start; --vx-g: clamp(16px, 3vw, 40px);\n  & *, & *::before, & *::after { box-sizing: border-box; }\n  & p, & h2, & dl, & dd, & ol { margin: 0; }\n  & button { font: inherit; color: inherit; }\n  &[data-fwc-theme=\"light\"] .shot-dark, &:not([data-fwc-theme=\"light\"]) .shot-light { display: none !important; }\n  &.is-press { cursor: grabbing; }\n  &.is-hover { cursor: pointer; }\n  &:focus { outline: none; }\n  &:focus-visible::after { content: \"\"; position: absolute; inset: 10px; border: 2px solid var(--hue, #eef0f4); pointer-events: none; z-index: var(--z-toast, 800); }\n  .vx-world { position: absolute; inset: 0; perspective: 1400px; transition: filter .6s var(--ease-out, ease-out); }\n  .vx-scene { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 0 0; }\n  &.is-open .vx-world { filter: blur(6px) brightness(.5); }\n  &[data-fwc-theme=\"light\"].is-open .vx-world { filter: blur(6px) brightness(.7); }\n  .vx-cap, .vx-meter { z-index: var(--z-raised, 100); }\n  .vx-cap { position: absolute; inset-inline-start: var(--vx-g); inset-block-end: clamp(22px, 4.5vh, 44px); inline-size: min(760px, 66vw); display: grid; gap: var(--sp-3, 12px); transition: opacity .3s var(--ease-out, ease-out), translate .3s var(--ease-out, ease-out); }\n  &.is-open .vx-cap, &.is-index .vx-cap { opacity: 0; translate: 0 8px; pointer-events: none; }\n  .vx-count, .vx-m, .vx-tick span, .vx-pill, .vx-k, .vx-nextcap, .vx-hint, .vx-tip { font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-xs, 0.8125rem); letter-spacing: .14em; text-transform: uppercase; }\n  .vx-count { display: flex; gap: .6em; color: var(--ink-soft, #a4aab8); align-items: baseline; transition: opacity .4s var(--ease-out, ease-out); }\n  .vx-digits { display: block; block-size: 1.3em; overflow: hidden; color: var(--ink, #eef0f4); }\n  .vx-strip { display: grid; transition: transform .55s cubic-bezier(.16, 1, .3, 1); }\n  .vx-strip span { block-size: 1.3em; line-height: 1.3em; font-variant-numeric: tabular-nums; }\n  .vx-titles { --vx-ts: clamp(44px, 6.6vw, 96px); display: grid; overflow: hidden; padding-block: .06em; block-size: calc(var(--vx-ts) * 1.1 + 40px); }\n  .vx-ent { grid-area: 1 / 1; align-self: end; transition: transform .6s cubic-bezier(.16, 1, .3, 1), opacity .3s var(--ease-out, ease-out); opacity: 0; translate: 0 42%; pointer-events: none; }\n  .vx-ent.is-now { opacity: 1; translate: 0; transition-delay: .06s; }\n  .vx-ent.is-past { translate: 0 -42%; }\n  .vx-t { font-size: clamp(44px, 6.6vw, 96px); font-weight: var(--weight-display, 640); letter-spacing: -.04em; line-height: 1.02; white-space: nowrap; overflow: hidden; text-overflow: clip; }\n  .vx-m { margin: var(--sp-2, 8px) 0 0; display: flex; flex-wrap: wrap; gap: 0 .8em; color: var(--ink-soft, #a4aab8); align-items: center; }\n  .vx-m span + span::before { content: \"\"; display: inline-block; inline-size: 3px; block-size: 3px; background: currentColor; margin-inline-end: .8em; vertical-align: middle; }\n  .vx-sw { display: inline-block; inline-size: 9px; block-size: 9px; background: var(--hue, #eef0f4); margin-inline-end: .8em; }\n  .vx-hint { color: var(--ink-faint, #6b7283); display: flex; align-items: center; gap: var(--sp-3, 12px); transition: opacity .5s var(--ease-out, ease-out); }\n  .vx-dash { position: relative; display: block; inline-size: 48px; block-size: 1px; background: var(--edge-strong, rgb(255 255 255 / 0.18)); overflow: hidden; }\n  .vx-dash::after { content: \"\"; position: absolute; inset: 0 auto 0 0; inline-size: 20px; background: var(--ink, #eef0f4); animation: fwc-tt-scan 1.8s var(--ease-out, ease-out) infinite; }\n  &.is-gone .vx-hint { opacity: 0; }\n  .vx-pill { position: absolute; inset: 0 auto auto 0; z-index: var(--z-popover, 700); pointer-events: none; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--pane, #1b1e25); color: var(--ink, #eef0f4); box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)); transform-origin: 0 0; opacity: 0; scale: .8; transition: opacity .16s var(--ease-out, ease-out), scale .24s var(--ease-out, ease-out); white-space: nowrap; }\n  .vx-pill.is-on { opacity: 1; scale: 1; }\n  .vx-pill i { inline-size: 8px; block-size: 8px; background: var(--hue, #eef0f4); }\n  .vx-heldwrap { position: absolute; inset: 0; z-index: var(--z-sticky, 200); pointer-events: none; }\n  .vx-held { position: absolute; inset: 0 auto auto 0; transform-origin: 50% 50%; will-change: transform; }\n  .vx-detail { position: absolute; inset: 0; z-index: var(--z-overlay, 600); opacity: 0; visibility: hidden; transition: opacity .22s var(--ease-out, ease-out), visibility 0s .22s; }\n  .vx-detail.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }\n  .vx-slot { position: absolute; inset-block: 104px 80px; inset-inline: clamp(16px, 4vw, 72px) calc(var(--vx-g) + min(420px, 34vw) + 32px); cursor: pointer; }\n  .vx-slothint { position: absolute; inset-inline: 0; inset-block-end: -36px; text-align: center; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-xs, 0.8125rem); letter-spacing: .14em; text-transform: uppercase; opacity: 0; transition: opacity .6s var(--ease-out, ease-out) 1s; }\n  .vx-detail.is-open .vx-slothint { opacity: 1; }\n  .vx-panel { position: absolute; inset-block: 104px 80px; inset-inline-end: var(--vx-g); inline-size: min(420px, 34vw); display: flex; flex-direction: column; justify-content: center; overflow: auto; overscroll-behavior: contain; padding-inline-end: 2px; scrollbar-width: none; }\n  .vx-panel > div { display: grid; gap: var(--sp-4, 16px); margin-block: auto; }\n  .vx-r { opacity: 0; translate: 0 16px; }\n  .vx-panel.is-in .vx-r { opacity: 1; translate: 0; transition: opacity .75s var(--ease-out, ease-out) calc(.42s + var(--k, 0) * 55ms), translate .75s var(--ease-out, ease-out) calc(.42s + var(--k, 0) * 55ms); }\n  .vx-k { display: flex; align-items: center; gap: var(--sp-2, 8px); color: var(--hue, #eef0f4); }\n  .vx-k i { inline-size: 9px; block-size: 9px; background: var(--hue, #eef0f4); }\n  .vx-pt { font-size: clamp(40px, 4.4vw, 70px); font-weight: var(--weight-display, 640); letter-spacing: -.04em; line-height: 1.02; text-wrap: balance; }\n  .vx-pl { font-size: 20px; color: var(--ink, #eef0f4); }\n  .vx-pp { max-inline-size: 38ch; font-size: 15px; line-height: 1.55; color: var(--ink-soft, #a4aab8); }\n  .vx-dl { display: grid; }\n  .vx-dl div { display: flex; justify-content: space-between; gap: var(--sp-4, 16px); padding-block: 10px; border-block-start: 1px solid var(--edge, rgb(255 255 255 / 0.09)); font-size: var(--fs-s, 0.875rem); }\n  .vx-dl div:last-child { border-block-end: 1px solid var(--edge, rgb(255 255 255 / 0.09)); }\n  .vx-dl dt { color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-xs, 0.8125rem); letter-spacing: .14em; text-transform: uppercase; align-self: center; }\n  .vx-dl dd { text-align: end; }\n  .vx-act { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4, 16px); flex-wrap: wrap; }\n  .vx-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2, 8px); block-size: var(--control-h, 40px); padding-inline: var(--sp-4, 16px); border-radius: var(--radius-m, 10px); font-size: var(--fs-s, 0.875rem); font-weight: var(--weight-strong, 560); text-decoration: none; white-space: nowrap; background: var(--ink, #eef0f4); color: var(--on-ink, #14161b); transition: opacity var(--dur-fast, 140ms) var(--ease-out, ease-out); }\n  .vx-btn:hover { opacity: .88; }\n  .vx-btn svg { inline-size: var(--icon-m, 20px); block-size: var(--icon-m, 20px); transition: translate var(--dur, 240ms) var(--ease-out, ease-out); }\n  .vx-btn:hover svg { translate: 2px -2px; }\n  .vx-pager { display: flex; gap: var(--sp-2, 8px); }\n  .vx-ibtn { inline-size: 46px; block-size: 46px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-pill, 999px); background: transparent; color: var(--ink-soft, #a4aab8); cursor: pointer; transition: color var(--dur-fast, 140ms) var(--ease-out, ease-out), background-color var(--dur-fast, 140ms) var(--ease-out, ease-out); }\n  .vx-ibtn:hover { color: var(--ink, #eef0f4); background: var(--control, #2b303c); }\n  .vx-ibtn svg { inline-size: var(--icon-m, 20px); block-size: var(--icon-m, 20px); }\n  .vx-close { position: absolute; inset-block-start: 18px; inset-inline-end: var(--vx-g); inline-size: 42px; block-size: 42px; scale: .8; rotate: -45deg; opacity: 0; }\n  .vx-detail.is-open .vx-close { opacity: 1; scale: 1; rotate: 0; transition: opacity .2s var(--ease-out, ease-out) .3s, scale .35s var(--ease-out, ease-out) .3s, rotate .35s var(--ease-out, ease-out) .3s, color var(--dur-fast, 140ms), background-color var(--dur-fast, 140ms); }\n  .vx-pop { position: absolute; z-index: var(--z-popover, 700); opacity: 0; visibility: hidden; pointer-events: none; }\n  .vx-pop.is-open { opacity: 1; visibility: visible; pointer-events: auto; }\n  .vx-index { inset-block: 96px clamp(22px, 4.5vh, 44px); inset-inline-start: var(--vx-g); inline-size: min(480px, calc(100% - var(--vx-g) * 2)); display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; transition: opacity .2s var(--ease-out, ease-out), visibility 0s .2s; }\n  .vx-index.is-open { transition-delay: 0s; }\n  .vx-index > ol { padding: 0; list-style: none; max-block-size: 100%; overflow: auto; overscroll-behavior: contain; background: var(--pane, #1b1e25); box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)); border-radius: var(--radius-m, 10px); transform-origin: 0 100%; translate: 0 10px; scale: .97; transition: translate .35s var(--ease-out, ease-out), scale .35s var(--ease-out, ease-out); scrollbar-width: none; }\n  .vx-index.is-open > ol { translate: 0; scale: 1; pointer-events: auto; }\n  .vx-row { display: grid; grid-template-columns: 28px 12px minmax(0, 1fr) minmax(0, 130px) minmax(0, 90px); align-items: center; gap: var(--sp-3, 12px); inline-size: 100%; padding: 10px var(--sp-4, 16px); border: 0; border-block-end: 1px solid var(--edge, rgb(255 255 255 / 0.09)); background: none; color: var(--ink, #eef0f4); text-align: start; cursor: pointer; font: inherit; font-size: var(--fs-s, 0.875rem); opacity: 0; translate: 0 8px; }\n  .vx-index.is-open .vx-row { opacity: 1; translate: 0; transition: opacity .4s var(--ease-out, ease-out) calc(60ms + var(--k, 0) * 18ms), translate .4s var(--ease-out, ease-out) calc(60ms + var(--k, 0) * 18ms), background-color var(--dur-fast, 140ms); }\n  .vx-row:hover, .vx-row:focus-visible { background: var(--control, #2b303c); }\n  .vx-row:focus-visible { outline: 2px solid var(--hue, #eef0f4); outline-offset: -2px; }\n  .vx-row .n { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--ink-faint, #6b7283); }\n  .vx-row .d { inline-size: 9px; block-size: 9px; background: var(--hue, #eef0f4); transition: scale var(--dur, 240ms) var(--ease-out, ease-out); }\n  .vx-row:hover .d, .vx-row[aria-current=\"true\"] .d { scale: 1.35; }\n  .vx-row b { font-weight: var(--weight-strong, 560); color: var(--ink, #eef0f4); transition: translate var(--dur, 240ms) var(--ease-out, ease-out); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n  .vx-row:hover b { translate: 4px 0; }\n  .vx-row .ty, .vx-row .yr { color: var(--ink-soft, #a4aab8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n  .vx-flat { display: none; }\n  &.is-flat .vx-world { display: none; }\n  &.is-flat .vx-flat { display: flex; flex-wrap: wrap; gap: var(--sp-3, 12px); position: absolute; inset: 80px var(--vx-g) 120px; overflow: auto; align-content: flex-start; z-index: var(--z-raised, 100); }\n  .vx-flat button { inline-size: min(160px, 40%); padding: 0; border: 0; border-block-start: 2px solid var(--hue, #eef0f4); background: var(--pane, #1b1e25); color: var(--ink, #eef0f4); cursor: pointer; text-align: start; font-size: var(--fs-s, 0.875rem); }\n  .vx-flat span { display: block; padding: var(--sp-2, 8px) var(--sp-3, 12px); }\n  .vx-face { position: relative; overflow: hidden; background: var(--inset, #101216); box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); }\n  .vx-face img { position: absolute; max-inline-size: none; block-size: auto; }\n  &.vx-pre .vx-count, &.vx-pre .vx-titles, &.vx-pre .vx-hint, &.vx-pre .vx-meter { opacity: 0; translate: 0 12px; }\n  &.vx-ready .vx-count, &.vx-ready .vx-titles, &.vx-ready .vx-hint, &.vx-ready .vx-meter { opacity: 1; translate: 0; transition: opacity .9s var(--ease-out, ease-out) var(--dl, 0s), translate .9s var(--ease-out, ease-out) var(--dl, 0s); }\n  &.vx-ready .vx-count { --dl: 1.5s; }\n  &.vx-ready .vx-titles { --dl: 1.58s; }\n  &.vx-ready .vx-hint { --dl: 1.9s; }\n  &.vx-ready .vx-meter { --dl: 1.7s; }\n  .vx-card { position: absolute; overflow: hidden; border-radius: 8px; background: var(--inset, #101216); box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); pointer-events: none; will-change: transform, opacity; }\n  .vx-card img { position: absolute; max-inline-size: none; block-size: auto; }\n  .vx-card.is-pick { pointer-events: auto; }\n  .vx-meter { position: absolute; inset-inline-end: var(--vx-g); inset-block-end: clamp(22px, 4.5vh, 44px); display: grid; gap: var(--sp-2, 8px); justify-items: end; transition: opacity .3s var(--ease-out, ease-out); }\n  &.is-open .vx-meter, &.is-index .vx-meter { opacity: 0; pointer-events: none; }\n  .vx-ticks { display: flex; }\n  .vx-mt { position: relative; inline-size: 14px; block-size: 30px; padding: 0; border: 0; background: none; color: var(--ink-faint, #6b7283); cursor: pointer; display: flex; align-items: flex-end; }\n  .vx-mt i { display: block; inline-size: 2px; block-size: 12px; margin-inline: auto; background: currentColor; transform-origin: 50% 100%; opacity: .6; transition: transform var(--dur, 240ms) var(--ease-out, ease-out), opacity var(--dur, 240ms) var(--ease-out, ease-out), color var(--dur, 240ms) var(--ease-out, ease-out); }\n  .vx-mt:hover i, .vx-mt:focus-visible i { transform: scaleY(1.45); opacity: 1; }\n  .vx-mt[aria-current=\"true\"] i { transform: scaleY(2.2); opacity: 1; color: var(--hue, #eef0f4); }\n  .vx-mt:focus-visible { outline: 2px solid var(--hue, #eef0f4); outline-offset: -2px; }\n  .vx-tip { position: absolute; inset-block-end: 100%; inset-inline-end: 0; padding: 6px 10px; background: var(--pane, #1b1e25); color: var(--ink, #eef0f4); box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)); white-space: nowrap; opacity: 0; translate: 0 4px; pointer-events: none; transition: opacity .2s var(--ease-out, ease-out), translate .2s var(--ease-out, ease-out); }\n  .vx-mt:hover .vx-tip, .vx-mt:focus-visible .vx-tip { opacity: 1; translate: 0; }\n  .vx-bar { display: block; inline-size: 196px; block-size: 1px; background: var(--edge-strong, rgb(255 255 255 / 0.18)); overflow: hidden; }\n  .vx-bar i { display: block; inline-size: 100%; block-size: 100%; background: var(--ink, #eef0f4); transform-origin: 0 50%; transform: scaleX(0); }\n  .vx-stats { display: grid; grid-template-columns: 1fr 1fr; border-block-start: 1px solid var(--edge, rgb(255 255 255 / 0.09)); padding-block-start: var(--sp-3, 12px); }\n  .vx-stats div { display: grid; gap: 4px; }\n  .vx-stats dt { order: 2; font-size: var(--fs-xs, 0.8125rem); color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); letter-spacing: .14em; text-transform: uppercase; }\n  .vx-stats dd { font-size: clamp(40px, 4vw, 64px); font-weight: var(--weight-display, 640); letter-spacing: -.04em; line-height: 1; color: var(--hue, #eef0f4); font-variant-numeric: tabular-nums; }\n  .vx-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }\n  &[data-fwc-reduced] { & *, & *::before, & *::after { transition-duration: 1ms !important; transition-delay: 0s !important; animation-duration: 1ms !important; } .vx-dash::after { animation: none; } }\n  @container (max-width: 760px) {\n    .vx-titles { --vx-ts: clamp(38px, 11.5vw, 56px); block-size: calc(var(--vx-ts) * 2.2 + 56px); }\n    .vx-t { white-space: normal; }\n    .vx-m { margin-top: var(--sp-1, 4px); }\n    .vx-cap { inset-inline-end: var(--vx-g); inline-size: auto; inset-block-end: 46px; }\n    .vx-hint { display: none; }\n    .vx-slot { inset-block: 72px auto; inset-inline: var(--vx-g); block-size: calc((100cqw - var(--vx-g) * 2) * .8); }\n    .vx-panel { inset-block: calc(72px + (100cqw - var(--vx-g) * 2) * .8 + 18px) 0; inset-inline: var(--vx-g); inline-size: auto; justify-content: flex-start; }\n    .vx-pt { font-size: 44px; }\n    .vx-row { grid-template-columns: 28px 12px minmax(0, 1fr) minmax(0, 90px); }\n    .vx-row .ty { display: none; }\n    .vx-close { inset-block-start: 12px; }\n    .vx-meter { inset-inline: var(--vx-g); inset-block-end: 22px; justify-items: stretch; }\n    .vx-ticks { display: none; }\n    .vx-bar { inline-size: 100%; }\n  }\n}\n@keyframes fwc-tt-scan { from { translate: -20px; } to { translate: 48px; } }\n`;\nconst ARROW = '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M7 17L17 7\"/><path d=\"M8 7h9v9\"/></svg>';\nconst CHL = '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M14.5 6l-6 6 6 6\"/></svg>';\nconst CHR = '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9.5 6l6 6-6 6\"/></svg>';\nconst CLOSE = '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M6 6l12 12\"/><path d=\"M18 6L6 18\"/></svg>';\nconst clamp = (v, a, b) => Math.min(b, Math.max(a, v));\nconst lerp = (a, b, t) => a + (b - a) * t;\nconst smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\nconst pad2 = (n) => String(n + 1).padStart(2, '0');\nexport function mount(root, props, ctx) {\n    const p = props || {};\n    const CAPS = p.captures && typeof p.captures === 'object' ? p.captures : {};\n    const DATA = Array.isArray(p.shots) ? p.shots.filter((d) => d && d.face && CAPS[d.face.c]) : [];\n    const N = DATA.length;\n    if (!N) {\n        ctx.ready();\n        return () => { };\n    }\n    const kind = p.kind ?? 'Composition';\n    const ofWord = p.ofWord ?? '/';\n    const hintText = p.hint ?? 'Scroll to travel the tube';\n    const openWord = p.openWord ?? 'Open';\n    const groupLabel = p.groupLabel ?? 'Shots along a tube';\n    const detailLabel = p.detailLabel ?? 'Detail';\n    const indexLabel = p.indexLabel ?? 'Index';\n    const closeLabel = p.closeLabel ?? 'Close';\n    const prevLabel = p.prevLabel ?? 'Previous composition';\n    const nextLabel = p.nextLabel ?? 'Next composition';\n    const ctaText = p.ctaText ?? 'Every feature';\n    const ctaHref = p.ctaHref ?? '#';\n    const openVar = p.openVariable ?? 'tubeOpen';\n    const indexVar = p.indexVariable ?? 'tubeIndex';\n    const shareVar = p.shareVariable ?? 'tubeShare';\n    const vars = globalThis.__formwebVariables;\n    const setVar = (name, v) => { if (name && vars && typeof vars.set === 'function') {\n        try {\n            vars.set(name, v);\n        }\n        catch (e) { /* variable missing on this page */ }\n    } };\n    const motion = () => globalThis.__formwebMotion;\n    const offs = [];\n    const listeners = [];\n    const on = (target, type, fn, opts) => { target.addEventListener(type, fn, opts); listeners.push(() => target.removeEventListener(type, fn, opts)); };\n    const style = document.createElement('style');\n    style.textContent = SHEET;\n    root.appendChild(style);\n    const stage = document.createElement('div');\n    stage.className = 'fwc-tt';\n    stage.tabIndex = 0;\n    stage.setAttribute('role', 'group');\n    stage.setAttribute('aria-roledescription', 'carousel');\n    stage.setAttribute('aria-label', groupLabel);\n    stage.setAttribute('data-fwc-theme', ctx.theme());\n    if (ctx.reduced)\n        stage.setAttribute('data-fwc-reduced', '');\n    stage.innerHTML = '<div class=\"vx-world\" aria-hidden=\"true\"><div class=\"vx-scene\"></div></div>'\n        + '<div class=\"vx-cap\"><p class=\"vx-count\" aria-hidden=\"true\"><span class=\"vx-digits\"><span class=\"vx-strip\"></span></span><span></span></p><div class=\"vx-titles\"></div><p class=\"vx-hint\"><span class=\"vx-dash\"></span><span class=\"vx-hinttext\"></span></p></div>'\n        + '<div class=\"vx-meter\"><div class=\"vx-ticks\" role=\"group\"></div><span class=\"vx-bar\" aria-hidden=\"true\"><i></i></span></div>'\n        + '<div class=\"vx-pill\" aria-hidden=\"true\"><i></i><span></span><b></b></div>'\n        + '<div class=\"vx-heldwrap\" aria-hidden=\"true\"></div>'\n        + '<div class=\"vx-detail\" role=\"dialog\" aria-modal=\"true\"><div class=\"vx-slot\"><p class=\"vx-slothint\"></p></div><div class=\"vx-panel\"></div><button class=\"vx-ibtn vx-close\" type=\"button\">' + CLOSE + '</button></div>'\n        + '<div class=\"vx-pop vx-index\" role=\"dialog\"><ol class=\"vx-ol\"></ol></div>'\n        + '<p class=\"vx-live vx-sr\" aria-live=\"polite\"></p><div class=\"vx-flat\"></div>';\n    root.appendChild(stage);\n    const $ = (s) => stage.querySelector(s);\n    const sceneEl = $('.vx-scene');\n    const worldEl = $('.vx-world');\n    const detail = $('.vx-detail');\n    const slot = $('.vx-slot');\n    const panel = $('.vx-panel');\n    const heldWrap = $('.vx-heldwrap');\n    const pill = $('.vx-pill');\n    const live = $('.vx-live');\n    const idxPop = $('.vx-index');\n    $('.vx-count > span:last-child').textContent = ofWord + ' ' + N;\n    $('.vx-hinttext').textContent = hintText;\n    $('.vx-pill > span').textContent = openWord;\n    $('.vx-ticks').setAttribute('aria-label', p.shotsLabel ?? 'Compositions');\n    detail.setAttribute('aria-label', detailLabel);\n    idxPop.setAttribute('aria-label', indexLabel);\n    $('.vx-close').setAttribute('aria-label', closeLabel);\n    // ---- picture helpers ----------------------------------------------------------\n    const capUrl = (n, w) => ctx.asset(CAPS[n].u[w] || CAPS[n].u[1024]);\n    const cropBox = (c, W, H) => {\n        const ca = CAPS[c.c].w / CAPS[c.c].h;\n        const iw = Math.max(W / c.w, H * ca);\n        const ih = iw / ca;\n        const l = Math.min(0, Math.max(W - iw, W / 2 - c.x * iw));\n        const t = Math.min(0, Math.max(H - ih, H / 2 - c.y * ih));\n        return { iw, ih, l, t };\n    };\n    const imgTag = (name, cls, W, H, c, size, alt) => {\n        const b = cropBox(c, W, H);\n        return '<img class=\"' + cls + '\" src=\"' + esc(capUrl(name, size)) + '\" width=\"' + CAPS[name].w + '\" height=\"' + CAPS[name].h + '\" alt=\"' + esc(alt) + '\" decoding=\"async\" draggable=\"false\" data-iw=\"' + b.iw.toFixed(1) + '\" data-il=\"' + b.l.toFixed(1) + '\" data-it=\"' + b.t.toFixed(1) + '\">';\n    };\n    const placeImgs = (el) => {\n        el.querySelectorAll('img[data-iw]').forEach((im) => {\n            im.style.setProperty('inline-size', im.dataset.iw + 'px');\n            im.style.setProperty('inset-inline-start', im.dataset.il + 'px');\n            im.style.setProperty('inset-block-start', im.dataset.it + 'px');\n        });\n    };\n    const faceImgs = (c, W, H, size, alt) => {\n        let h = imgTag(c.c, c.l ? 'shot-dark' : '', W, H, c, size, alt);\n        if (c.l && CAPS[c.l])\n            h += imgTag(c.l, 'shot-light', W, H, c, size, alt);\n        return h;\n    };\n    const rectIn = (el) => {\n        const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();\n        return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height };\n    };\n    const fitRect = (r, a, k = 0.94) => {\n        let w = r.w * k, h = w / a;\n        if (h > r.h * k) {\n            h = r.h * k;\n            w = h * a;\n        }\n        return { x: r.x + (r.w - w) / 2, y: r.y + (r.h - h) / 2, w, h };\n    };\n    // ---- configuration (the original's constants) -----------------------------------\n    const CFG = {\n        dispStart: -1.6, omega: 5, omegaRed: 60, vmax: 3.2, ptrRate: 3, pillLerp: 0.22, openDur: 0.95,\n        pOf: (t) => t * (N - 1), tOf: (q) => q / (N - 1),\n        active: (q) => Math.max(0, Math.min(N - 1, Math.round(q))),\n        drag: (dx, dy) => -(2.2 * dy + 1.4 * dx)\n    };\n    const S = { disp: ctx.reduced ? 0 : CFG.dispStart, mid: ctx.reduced ? 0 : CFG.dispStart, vel: 0, time: 0, hover: -1, open: -1, held: [], ptr: { x: 0, y: 0, sx: 0, sy: 0 }, reduced: ctx.reduced, active: -2, locked: null, ready: false, index: false, dt: 0.016 };\n    const E = {};\n    const flat = !(window.CSS && CSS.supports('transform-style', 'preserve-3d'));\n    if (flat)\n        stage.classList.add('is-flat');\n    // ---- scroll geometry through the enclosing scene --------------------------------------\n    let trackEl = null, stickyEl = null;\n    const geometry = () => {\n        if (!trackEl || !trackEl.isConnected) {\n            const m = motion();\n            const key = m && m.sceneOf ? m.sceneOf(ctx.host) : null;\n            trackEl = key ? document.querySelector('[data-fw-node=\"' + CSS.escape(key) + '\"]') : null;\n            stickyEl = null;\n            for (let n = ctx.host; n && n !== trackEl; n = n.parentElement) {\n                if (getComputedStyle(n).position === 'sticky') {\n                    stickyEl = n;\n                    break;\n                }\n            }\n        }\n        return trackEl;\n    };\n    const pOf = () => CFG.pOf(ctx.progress());\n    const scrollP = (q, instant) => {\n        const tr = geometry();\n        if (!tr)\n            return;\n        const st = stickyEl || stage;\n        const r = tr.getBoundingClientRect();\n        const span = Math.max(1, r.height - st.offsetHeight);\n        const top = parseFloat(getComputedStyle(st).top) || 0;\n        const y = window.scrollY + r.top - top + CFG.tOf(q) * span;\n        window.scrollTo({ top: Math.round(y), behavior: instant || S.reduced ? 'instant' : 'smooth' });\n    };\n    // ---- caption, ticks, index ------------------------------------------------------------\n    const strip = $('.vx-strip');\n    strip.innerHTML = DATA.map((d, i) => '<span>' + pad2(i) + '</span>').join('');\n    $('.vx-titles').innerHTML = DATA.map((d, i) => '<div class=\"vx-ent\" data-ent=\"' + i + '\" aria-hidden=\"true\"><p class=\"vx-t\">' + esc(d.title) + '</p><p class=\"vx-m\"><i class=\"vx-sw\"></i>' + (d.meta || []).map((m) => '<span>' + esc(m) + '</span>').join('') + '</p></div>').join('');\n    $('.vx-ticks').innerHTML = DATA.map((d, i) => '<button class=\"vx-mt\" type=\"button\" data-go=\"' + i + '\" aria-label=\"' + esc(d.title) + '\"><i></i><span class=\"vx-tip\" role=\"tooltip\">' + esc(d.title) + '</span></button>').join('');\n    $('.vx-ol').innerHTML = DATA.map((d, i) => '<li><button class=\"vx-row\" type=\"button\" data-row=\"' + i + '\" style=\"--k:' + i + '\"><span class=\"n\">' + pad2(i) + '</span><span class=\"d\"></span><b>' + esc(d.title) + '</b><span class=\"ty\">' + esc((d.meta || [])[0]) + '</span><span class=\"yr\">' + esc((d.meta || [])[2]) + '</span></button></li>').join('');\n    $('.vx-flat').innerHTML = DATA.map((d, i) => '<button type=\"button\" data-flat=\"' + i + '\"><span>' + esc(d.title) + '</span></button>').join('');\n    const ents = [...stage.querySelectorAll('.vx-ent')];\n    const ticks = [...stage.querySelectorAll('[data-go]')];\n    const rows = [...stage.querySelectorAll('.vx-row')];\n    const barFill = $('.vx-bar i');\n    const setActive = (a) => {\n        if (a === S.active)\n            return;\n        S.active = a;\n        strip.style.transform = 'translateY(' + (-1.3 * Math.max(0, a)) + 'em)';\n        $('.vx-count').style.opacity = a < 0 ? '0' : '';\n        for (const e of ents) {\n            const i = +e.dataset.ent;\n            e.classList.toggle('is-now', i === a);\n            e.classList.toggle('is-past', i < a);\n            e.setAttribute('aria-hidden', String(i !== a));\n        }\n        for (const t of ticks)\n            t.setAttribute('aria-current', String(+t.dataset.go === a));\n        for (const r of rows)\n            r.setAttribute('aria-current', String(+r.dataset.row === a));\n        live.textContent = kind + ' ' + (a + 1) + ' ' + (p.ofLongWord ?? 'of') + ' ' + N + ': ' + DATA[a].title + ', ' + (DATA[a].meta || [])[0];\n    };\n    const stopIdx = (q) => {\n        let b = 0;\n        for (let i = 1; i < N; i++)\n            if (Math.abs(i - q) < Math.abs(b - q))\n                b = i;\n        return b;\n    };\n    const goStop = (i) => scrollP(clamp(i, 0, N - 1));\n    // ---- the 3D scene (the original's SCENE) ------------------------------------------------\n    const CW = 700, CH = CW / 1.6;\n    const SPK = 0.5;\n    let W = 1, H = 1, F = 900, D0 = 1000, SP = 500, RX = 300, RY = 120;\n    const cards = DATA.map((d, i) => ({ i, el: null, img: null, hv: 0, on: true, op: 1, ang: 0.35 + i * 2.5133 }));\n    const faceSrc = (d, light) => capUrl(light && d.face.l && CAPS[d.face.l] ? d.face.l : d.face.c, d.face.w < 0.6 ? 2400 : 1024);\n    const isLight = () => ctx.theme() === 'light';\n    cards.forEach((c) => {\n        const d = DATA[c.i];\n        const el = document.createElement('div');\n        el.className = 'vx-card';\n        el.dataset.i = c.i;\n        el.style.cssText = 'inline-size:' + CW + 'px;block-size:' + CH + 'px;inset-inline-start:' + (-CW / 2) + 'px;inset-block-start:' + (-CH / 2) + 'px';\n        el.innerHTML = imgTag(d.face.c, '', CW, CH, d.face, 1024, d.alt);\n        placeImgs(el);\n        sceneEl.appendChild(el);\n        c.el = el;\n        c.img = el.querySelector('img');\n        c.img.src = faceSrc(d, isLight());\n    });\n    offs.push(ctx.onTheme((mode) => {\n        stage.setAttribute('data-fwc-theme', mode);\n        cards.forEach((c) => { c.img.src = faceSrc(DATA[c.i], mode === 'light'); });\n    }));\n    let roll = 0;\n    const scene = {\n        resize() {\n            const r = stage.getBoundingClientRect();\n            W = r.width;\n            H = r.height;\n            const mobile = W / H < 0.85;\n            F = H / 2 / Math.tan(((mobile ? 64 : 60) * Math.PI) / 360);\n            D0 = (2 * F * CW) / W;\n            SP = D0 * SPK;\n            const k = D0 / F;\n            const sw = (F * CW) / D0 / 2;\n            const sh = sw / 1.6;\n            RX = Math.max(0, W / 2 - sw - 14) * k;\n            RY = Math.max(0, H / 2 - sh - 96) * k;\n            worldEl.style.perspective = F + 'px';\n        },\n        frame(dt) {\n            const zc = S.disp * SP, red = S.reduced;\n            const openAmt = Math.max(0, ...S.held.map((h) => h.a));\n            if (!red)\n                roll += 0.05 * dt * (1 - 0.7 * openAmt);\n            for (const c of cards) {\n                const held = S.held.some((h) => h.i === c.i);\n                const Dist = D0 + c.i * SP - zc;\n                const op = smooth(D0 - 0.34 * SP, D0 - 0.02 * SP, Dist) * (1 - smooth(D0 + 1.6 * SP, D0 + 3.6 * SP, Dist));\n                c.op = op;\n                if (op < 0.002 && !held) {\n                    if (c.on) {\n                        c.el.style.display = 'none';\n                        c.on = false;\n                    }\n                    continue;\n                }\n                if (!c.on) {\n                    c.el.style.display = '';\n                    c.on = true;\n                }\n                c.el.style.visibility = held ? 'hidden' : 'visible';\n                c.hv += ((S.hover === c.i ? 1 : 0) - c.hv) * (1 - Math.exp(-9 * dt));\n                if (c.hv < 0.002)\n                    c.hv = 0;\n                const a = c.ang + roll;\n                const dd = Math.max(Dist, 60) - c.hv * 0.08 * D0;\n                c.el.style.transform = 'translate3d(' + (RX * Math.cos(a)).toFixed(2) + 'px,' + (RY * Math.sin(a)).toFixed(2) + 'px,' + (-dd).toFixed(2) + 'px)';\n                c.el.style.opacity = (op * (1 - openAmt * 0.64)).toFixed(3);\n                const pe = op > 0.35 && !held;\n                if (pe !== c.pe) {\n                    c.pe = pe;\n                    c.el.classList.toggle('is-pick', pe);\n                }\n            }\n            sceneEl.style.transform = 'translate3d(' + (W / 2) + 'px,' + (H / 2) + 'px,' + F + 'px)';\n        },\n        heldFor(i, holder) {\n            const d = DATA[i];\n            const r = fitRect(slotRect(), 1.6, 0.96);\n            const Wf = Math.round(r.w), Hf = Math.round(Wf / 1.6);\n            holder.style.width = Wf + 'px';\n            holder.style.height = Hf + 'px';\n            holder.innerHTML = '<div class=\"vx-face\">' + faceImgs(d.face, Wf, Hf, 2400, d.alt) + '</div>';\n            const faceEl = holder.firstElementChild;\n            faceEl.style.setProperty('inline-size', Wf + 'px');\n            faceEl.style.setProperty('block-size', Hf + 'px');\n            faceEl.style.setProperty('border-radius', '8px');\n            placeImgs(holder);\n            const fly = cards[i].op > 0.25;\n            return {\n                update(a) {\n                    const e = smooth(0, 1, S.reduced ? 1 : a);\n                    const s1 = fitRect(slotRect(), 1.6, 0.96);\n                    let x = s1.x + s1.w / 2, y = s1.y + s1.h / 2, w = s1.w, o = 1;\n                    if (fly) {\n                        const s0 = rectIn(cards[i].el);\n                        x = lerp(s0.x + s0.w / 2, x, e);\n                        y = lerp(s0.y + s0.h / 2, y, e);\n                        w = lerp(s0.w, w, e);\n                        if (S.reduced)\n                            o = clamp(a * 2, 0, 1);\n                    }\n                    else {\n                        w = lerp(s1.w * 0.88, s1.w, e);\n                        o = clamp(a * 2.5, 0, 1);\n                    }\n                    holder.style.opacity = o;\n                    holder.style.transform = 'translate(' + (x - Wf / 2) + 'px,' + (y - Hf / 2) + 'px) scale(' + (w / Wf) + ')';\n                }\n            };\n        }\n    };\n    const slotRect = () => {\n        const s = stage.getBoundingClientRect(), r = slot.getBoundingClientRect();\n        return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height };\n    };\n    // ---- pointer ------------------------------------------------------------------------------------\n    const hit = (el) => { const n = el && el.closest ? el.closest('.vx-card[data-i]') : null; return n && stage.contains(n) ? +n.dataset.i : -1; };\n    const hoverApply = (i) => {\n        if (i === S.hover)\n            return;\n        S.hover = i;\n        stage.classList.toggle('is-hover', i >= 0);\n        pill.classList.toggle('is-on', i >= 0 && S.open < 0);\n        if (i >= 0)\n            pill.querySelector('b').textContent = DATA[i].title;\n    };\n    let drag = null;\n    const pillPos = { x: -99, y: -99, tx: -99, ty: -99 };\n    on(stage, 'pointerdown', (e) => {\n        if (S.open >= 0 || e.target.closest('button,a,.vx-pop'))\n            return;\n        if (e.pointerType === 'mouse' && e.button !== 0)\n            return;\n        drag = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, type: e.pointerType };\n        if (e.pointerType === 'mouse')\n            stage.classList.add('is-press');\n    });\n    on(window, 'pointermove', (e) => {\n        if (e.pointerType === 'mouse' || e.pointerType === 'pen') {\n            const r = stage.getBoundingClientRect();\n            S.ptr.x = clamp(((e.clientX - r.left) / r.width) * 2 - 1, -1, 1);\n            S.ptr.y = clamp(((e.clientY - r.top) / r.height) * 2 - 1, -1, 1);\n            pillPos.tx = e.clientX - r.left + 18;\n            pillPos.ty = e.clientY - r.top + 18;\n            if (!drag && S.open < 0 && e.pointerType === 'mouse') {\n                const el = document.elementFromPoint(e.clientX, e.clientY);\n                hoverApply(stage.contains(el) ? hit(el) : -1);\n            }\n        }\n        if (drag && drag.type === 'mouse') {\n            const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly;\n            if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 5) {\n                drag.moved = true;\n                hoverApply(-1);\n            }\n            if (drag.moved) {\n                drag.lx = e.clientX;\n                drag.ly = e.clientY;\n                window.scrollBy({ top: CFG.drag(dx, dy), behavior: 'instant' });\n            }\n        }\n    });\n    on(window, 'pointerup', (e) => {\n        if (!drag)\n            return;\n        const d = drag;\n        drag = null;\n        stage.classList.remove('is-press');\n        if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8) {\n            const el = document.elementFromPoint(e.clientX, e.clientY);\n            const i = stage.contains(el) ? hit(el) : -1;\n            if (i >= 0)\n                openItem(i);\n        }\n    });\n    on(window, 'pointercancel', () => { drag = null; stage.classList.remove('is-press'); });\n    on(stage, 'pointerleave', () => hoverApply(-1));\n    // ---- detail panel ---------------------------------------------------------------------------------------\n    const panelHtml = (d, i, nx) => '<p class=\"vx-k vx-r\"><i></i>' + esc(kind) + ' ' + (i + 1) + ' ' + esc(ofWord) + ' ' + N + '</p><h2 class=\"vx-pt vx-r\">' + esc(d.title) + '</h2><p class=\"vx-pl vx-r\">' + esc(d.line) + '</p><p class=\"vx-pp vx-r\">' + esc(d.desc) + '</p>'\n        + '<dl class=\"vx-stats vx-r\">' + (d.stats || []).map((s) => '<div><dt>' + esc(s[1]) + '</dt><dd data-count=\"' + esc(s[0]) + '\">' + esc(s[0]) + '</dd></div>').join('') + '</dl>'\n        + '<dl class=\"vx-dl vx-r\">' + (d.dl || []).map((r) => '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>').join('') + '</dl>'\n        + '<div class=\"vx-act vx-r\"><a class=\"vx-btn\" href=\"' + esc(ctaHref) + '\"><span>' + esc(ctaText) + '</span>' + ARROW + '</a><div class=\"vx-pager\"><button class=\"vx-ibtn\" type=\"button\" data-prev aria-label=\"' + esc(prevLabel) + '\">' + CHL + '</button><button class=\"vx-ibtn\" type=\"button\" data-next aria-label=\"' + esc(nextLabel) + ': ' + esc(nx.title) + '\">' + CHR + '</button></div></div>';\n    const renderPanel = (i) => {\n        const d = DATA[i];\n        panel.classList.remove('is-in');\n        panel.innerHTML = '<div>' + panelHtml(d, i, DATA[(i + 1) % N]) + '</div>';\n        panel.querySelectorAll('.vx-r').forEach((el, k) => el.style.setProperty('--k', k));\n        panel.scrollTop = 0;\n        void panel.offsetWidth;\n        requestAnimationFrame(() => panel.classList.add('is-in'));\n        panel.querySelectorAll('[data-prev]').forEach((b) => b.addEventListener('click', () => stepOpen(-1)));\n        const nb = panel.querySelector('[data-next]');\n        if (nb)\n            nb.addEventListener('click', () => stepOpen(1));\n        panel.querySelectorAll('[data-count]').forEach((el) => {\n            const m = /^(\\D*)([\\d.,]+)(.*)$/.exec(el.dataset.count);\n            if (!m || S.reduced) {\n                el.textContent = el.dataset.count;\n                return;\n            }\n            const target = parseFloat(m[2].replace(/,/g, ''));\n            const dec = (m[2].split('.')[1] || '').length;\n            const t0 = performance.now() + 420;\n            const run = (now) => {\n                if (!el.isConnected)\n                    return;\n                const t = clamp((now - t0) / 900, 0, 1);\n                const v = target * (1 - Math.pow(1 - t, 3));\n                el.textContent = m[1] + v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + m[3];\n                if (t < 1)\n                    requestAnimationFrame(run);\n            };\n            el.textContent = m[1] + '0' + m[3];\n            requestAnimationFrame(run);\n        });\n    };\n    const makeHeld = (i) => {\n        const h = { i, a: 0, target: 1, el: document.createElement('div'), obj: null };\n        h.el.className = 'vx-held';\n        heldWrap.appendChild(h.el);\n        h.obj = scene.heldFor(i, h.el);\n        S.held.push(h);\n        return h;\n    };\n    function openItem(i) {\n        if (i < 0 || i >= N)\n            return;\n        hoverApply(-1);\n        S.open = i;\n        closeIndex();\n        setVar(shareVar, false);\n        setVar(openVar, true);\n        stage.classList.add('is-open');\n        detail.classList.add('is-open');\n        detail.inert = false;\n        S.locked = i;\n        scrollP(i, true);\n        scene.frame(0.016);\n        for (const h of S.held)\n            if (h.i !== i)\n                h.target = 0;\n        const ex = S.held.find((h) => h.i === i);\n        if (ex)\n            ex.target = 1;\n        else\n            makeHeld(i);\n        renderPanel(i);\n        $('.vx-close').focus({ preventScroll: true });\n    }\n    function closeItem() {\n        if (S.open < 0)\n            return;\n        S.open = -1;\n        S.locked = null;\n        setVar(openVar, false);\n        stage.classList.remove('is-open');\n        detail.classList.remove('is-open');\n        detail.inert = true;\n        for (const h of S.held)\n            h.target = 0;\n        stage.focus({ preventScroll: true });\n    }\n    function stepOpen(d) { if (S.open >= 0)\n        openItem((S.open + d + N) % N); }\n    detail.inert = true;\n    on($('.vx-close'), 'click', closeItem);\n    on(slot, 'click', closeItem);\n    on(detail, 'click', (e) => { if (e.target === detail)\n        closeItem(); });\n    function openIndex() {\n        setVar(shareVar, false);\n        S.index = true;\n        idxPop.classList.add('is-open');\n        stage.classList.add('is-index');\n        idxPop.inert = false;\n    }\n    function closeIndex() {\n        if (!S.index)\n            return;\n        S.index = false;\n        idxPop.classList.remove('is-open');\n        stage.classList.remove('is-index');\n        idxPop.inert = true;\n        setVar(indexVar, false);\n    }\n    idxPop.inert = true;\n    offs.push(ctx.onVariable(indexVar, (v) => { if (v && !S.index && S.open < 0)\n        openIndex();\n    else if (!v && S.index)\n        closeIndex();\n    else if (v && S.open >= 0)\n        setVar(indexVar, false); }));\n    offs.push(ctx.onVariable(shareVar, (v) => { if (v && S.index)\n        closeIndex(); if (v && S.open >= 0)\n        setVar(shareVar, false); }));\n    rows.forEach((r) => {\n        const i = +r.dataset.row;\n        const prev = () => { if (S.open < 0)\n            scrollP(i); };\n        r.addEventListener('mouseenter', prev);\n        r.addEventListener('focus', prev);\n        r.addEventListener('click', () => openItem(i));\n    });\n    on(document, 'pointerdown', (e) => {\n        if (!e.target.closest || e.target.closest('[data-vx-keep]'))\n            return;\n        if (vars && vars.get && vars.get(shareVar))\n            setVar(shareVar, false);\n    });\n    ticks.forEach((t) => t.addEventListener('click', () => scrollP(+t.dataset.go)));\n    stage.querySelectorAll('[data-flat]').forEach((b) => b.addEventListener('click', () => openItem(+b.dataset.flat)));\n    on(stage, 'keydown', (e) => {\n        if (S.open >= 0)\n            return;\n        const k = e.key;\n        const cur = stopIdx(pOf());\n        let used = true;\n        if (k === 'ArrowDown' || k === 'ArrowRight')\n            goStop(cur + 1);\n        else if (k === 'ArrowUp' || k === 'ArrowLeft')\n            goStop(cur - 1);\n        else if (k === 'PageDown')\n            goStop(cur + 1);\n        else if (k === 'PageUp')\n            goStop(cur - 1);\n        else if (k === 'Home')\n            goStop(0);\n        else if (k === 'End')\n            goStop(N - 1);\n        else if (k === 'Enter' || k === ' ')\n            openItem(Math.max(0, S.active));\n        else\n            used = false;\n        if (used)\n            e.preventDefault();\n    });\n    on(window, 'keydown', (e) => {\n        if (e.key === 'Escape') {\n            if (S.open >= 0)\n                closeItem();\n            else if (S.index)\n                closeIndex();\n            else if (vars && vars.get && vars.get(shareVar))\n                setVar(shareVar, false);\n            return;\n        }\n        if (S.open >= 0) {\n            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {\n                stepOpen(1);\n                e.preventDefault();\n            }\n            else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {\n                stepOpen(-1);\n                e.preventDefault();\n            }\n            if ([' ', 'PageUp', 'PageDown', 'Home', 'End'].includes(e.key) && !(e.target.closest && e.target.closest('button,a')))\n                e.preventDefault();\n        }\n    });\n    const lockWheel = (e) => {\n        if (S.open < 0 && !S.index)\n            return;\n        if (e.target.closest && e.target.closest('.vx-panel,.vx-index > ol'))\n            return;\n        e.preventDefault();\n    };\n    on(window, 'wheel', lockWheel, { passive: false });\n    on(window, 'touchmove', lockWheel, { passive: false });\n    // ---- frame loop -------------------------------------------------------------------------------------------------\n    let last = 0;\n    offs.push(ctx.onFrame((now) => {\n        if (!ctx.visible()) {\n            last = now;\n            return;\n        }\n        const dt = Math.min(0.05, (now - last) / 1000 || 0.016);\n        last = now;\n        S.dt = dt;\n        S.time += dt;\n        S.reduced = ctx.reduced;\n        const tgt = S.locked != null ? S.locked : pOf();\n        const w = S.reduced ? CFG.omegaRed : CFG.omega;\n        const lim = (S.reduced ? 1e3 : CFG.vmax) * dt;\n        S.mid += clamp((tgt - S.mid) * (1 - Math.exp(-w * dt)), -lim, lim);\n        const ex = Math.exp(-w * dt), dl = S.disp - S.mid, tm = (S.vel + w * dl) * dt;\n        S.vel = (S.vel - w * tm) * ex;\n        S.disp = S.mid + (dl + tm) * ex;\n        const ps = S.reduced ? 0 : 1 - Math.exp(-CFG.ptrRate * dt);\n        S.ptr.sx += (S.ptr.x - S.ptr.sx) * ps;\n        S.ptr.sy += (S.ptr.y - S.ptr.sy) * ps;\n        setActive(CFG.active(S.disp));\n        if (S.disp > 0.05)\n            stage.classList.add('is-gone');\n        const pl = S.reduced ? 1 : CFG.pillLerp;\n        pillPos.x += (pillPos.tx - pillPos.x) * pl;\n        pillPos.y += (pillPos.ty - pillPos.y) * pl;\n        pill.style.translate = pillPos.x + 'px ' + pillPos.y + 'px';\n        for (const h of S.held) {\n            const dur = S.reduced ? 0.2 : CFG.openDur;\n            h.a = clamp(h.a + Math.sign(h.target - h.a) * dt / dur, 0, 1);\n            if (h.target === 0 && h.a === 0)\n                h.dead = true;\n        }\n        scene.frame(dt);\n        for (const h of S.held)\n            h.obj.update(h.a);\n        for (const h of S.held)\n            if (h.dead)\n                h.el.remove();\n        S.held = S.held.filter((h) => !h.dead);\n        barFill.style.transform = 'scaleX(' + clamp(S.disp / (N - 1), 0, 1).toFixed(4) + ')';\n    }));\n    offs.push(ctx.onResize(() => scene.resize()));\n    scene.resize();\n    if (!flat)\n        scene.frame(0.016);\n    stage.classList.add('vx-pre');\n    const imgs = [...stage.querySelectorAll('img')];\n    const waits = imgs.slice(0, 24).map((im) => (im.decode ? im.decode().catch(() => { }) : Promise.resolve()));\n    const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();\n    let dead = false;\n    Promise.race([Promise.all([...waits, fonts]), new Promise((r) => setTimeout(r, 1200))]).then(() => {\n        if (dead)\n            return;\n        S.ready = true;\n        stage.classList.remove('vx-pre');\n        stage.classList.add('vx-ready');\n        ctx.ready();\n    });\n    return () => {\n        dead = true;\n        for (const off of offs) {\n            try {\n                off();\n            }\n            catch (e) { /* already removed */ }\n        }\n        for (const off of listeners)\n            off();\n        root.replaceChildren();\n    };\n}\nconst formwebMountContract = mount;\nexport { formwebMountContract };\n",
+ "language": "javascript",
+ "mode": "page",
+ "props": {
+  "captures": {
+   "default": {
+    "ui-comp": {
+     "h": 1500,
+     "u": {
+      "1024": "https://media.formai.studio/media/formvfx/ui-comp/57ae465091f3.w1024.webp",
+      "2400": "https://media.formai.studio/media/formvfx/ui-comp/57ae465091f3.w2400.webp"
+     },
+     "w": 2400
+    },
+    "ui-comp-light": {
+     "h": 1500,
+     "u": {
+      "1024": "https://media.formai.studio/media/formvfx/ui-comp-light/8c7b898a3f0d.w1024.webp",
+      "2400": "https://media.formai.studio/media/formvfx/ui-comp-light/8c7b898a3f0d.w2400.webp"
+     },
+     "w": 2400
+    },
+    "ui-flow": {
+     "h": 1500,
+     "u": {
+      "1024": "https://media.formai.studio/media/formvfx/ui-flow/1d864093c368.w1024.webp",
+      "2400": "https://media.formai.studio/media/formvfx/ui-flow/1d864093c368.w2400.webp"
+     },
+     "w": 2400
+    },
+    "ui-flow-light": {
+     "h": 1500,
+     "u": {
+      "1024": "https://media.formai.studio/media/formvfx/ui-flow-light/46170694abda.w1024.webp",
+      "2400": "https://media.formai.studio/media/formvfx/ui-flow-light/46170694abda.w2400.webp"
+     },
+     "w": 2400
+    },
+    "ui-flowchart-2": {
+     "h": 1500,
+     "u": {
+      "1024": "https://media.formai.studio/media/formvfx/ui-flowchart-2/1bb5a6c7df8e.w1024.webp",
+      "2400": "https://media.formai.studio/media/formvfx/ui-flowchart-2/1bb5a6c7df8e.w2400.webp"
+     },
+     "w": 2400
+    },
+    "ui-graph-editor-2": {
+     "h": 1500,
+     "u": {
+      "1024": "https://media.formai.studio/media/formvfx/ui-graph-editor-2/00384381dfe3.w1024.webp",
+      "2400": "https://media.formai.studio/media/formvfx/ui-graph-editor-2/00384381dfe3.w2400.webp"
+     },
+     "w": 2400
+    },
+    "ui-hero-2": {
+     "h": 1350,
+     "u": {
+      "1024": "https://media.formai.studio/media/formvfx/ui-hero-2/f7a598c5e1b6.w1024.webp",
+      "2400": "https://media.formai.studio/media/formvfx/ui-hero-2/f7a598c5e1b6.w2400.webp"
+     },
+     "w": 2400
+    },
+    "ui-hero-light-2": {
+     "h": 1350,
+     "u": {
+      "1024": "https://media.formai.studio/media/formvfx/ui-hero-light-2/c3da93778da2.w1024.webp",
+      "2400": "https://media.formai.studio/media/formvfx/ui-hero-light-2/c3da93778da2.w2400.webp"
+     },
+     "w": 2400
+    }
+   },
+   "type": "json"
+  },
+  "closeLabel": {
+   "default": "Close",
+   "type": "string"
+  },
+  "ctaHref": {
+   "default": "https://formai.studio/formvfx/features/",
+   "type": "string"
+  },
+  "ctaText": {
+   "default": "Every feature",
+   "type": "string"
+  },
+  "detailLabel": {
+   "default": "Detail",
+   "type": "string"
+  },
+  "groupLabel": {
+   "default": "FormVFX shots along a tube",
+   "type": "string"
+  },
+  "hint": {
+   "default": "Scroll to travel the tube",
+   "type": "string"
+  },
+  "indexLabel": {
+   "default": "Index",
+   "type": "string"
+  },
+  "indexVariable": {
+   "default": "tubeIndex",
+   "type": "string"
+  },
+  "kind": {
+   "default": "Composition",
+   "type": "string"
+  },
+  "nextLabel": {
+   "default": "Next composition",
+   "type": "string"
+  },
+  "ofLongWord": {
+   "default": "of",
+   "type": "string"
+  },
+  "ofWord": {
+   "default": "/",
+   "type": "string"
+  },
+  "openVariable": {
+   "default": "tubeOpen",
+   "type": "string"
+  },
+  "openWord": {
+   "default": "Open",
+   "type": "string"
+  },
+  "prevLabel": {
+   "default": "Previous composition",
+   "type": "string"
+  },
+  "shareVariable": {
+   "default": "tubeShare",
+   "type": "string"
+  },
+  "shots": {
+   "default": [
+    {
+     "alt": "A Launch Week title comp in FormVFX: white text over a sunset photograph, with the Effects and Presets panel and the timeline",
+     "desc": "A Launch Week title comp: text over a photo, with the Bounce In Characters animation preset in the Effects and Presets panel. Text animators come with 169 presets.",
+     "dl": [
+      [
+       "Panel",
+       "Composition"
+      ],
+      [
+       "Presets",
+       "Effects and Presets"
+      ]
+     ],
+     "face": {
+      "c": "ui-hero-2",
+      "l": "ui-hero-light-2",
+      "w": 1.0,
+      "x": 0.5,
+      "y": 0.5
+     },
+     "line": "A title comp, Bounce In Characters.",
+     "meta": [
+      "Composition",
+      "Text animators",
+      "169 presets"
+     ],
+     "stats": [
+      [
+       "169",
+       "Text animator presets"
+      ],
+      [
+       "39",
+       "Blend modes"
+      ]
+     ],
+     "title": "Launch Week"
+    },
+    {
+     "alt": "The FormVFX Composition viewer showing a Launch Week title over a photograph, with the viewer controls below it",
+     "desc": "The Composition viewer shows the comp with zoom, quality and view controls beneath it, and the on-screen handles of the selected layer drawn over the picture.",
+     "dl": [
+      [
+       "Panel",
+       "Composition viewer"
+      ],
+      [
+       "Draws",
+       "Layer handles"
+      ]
+     ],
+     "face": {
+      "c": "ui-hero-2",
+      "l": "ui-hero-light-2",
+      "w": 0.5,
+      "x": 0.5,
+      "y": 0.42
+     },
+     "line": "The comp, as it will render.",
+     "meta": [
+      "Composition",
+      "Viewer",
+      "Quality controls"
+     ],
+     "stats": [
+      [
+       "306",
+       "Effects"
+      ],
+      [
+       "8",
+       "Panels"
+      ]
+     ],
+     "title": "The viewer"
+    },
+    {
+     "alt": "The FormVFX window with an intro composition of an orange orb and a ring, the layer stack and graph beneath it",
+     "desc": "Compositions hold layers, precomps, shapes and text, animated with keyframes. This intro has a ring and an orb over a backdrop, laid out in the layer stack under the viewer.",
+     "dl": [
+      [
+       "Panel",
+       "Timeline"
+      ],
+      [
+       "Holds",
+       "Layers and precomps"
+      ]
+     ],
+     "face": {
+      "c": "ui-comp",
+      "l": "ui-comp-light",
+      "w": 1.0,
+      "x": 0.5,
+      "y": 0.5
+     },
+     "line": "Layers, keyframes, one comp.",
+     "meta": [
+      "Composition",
+      "Layers",
+      "Keyframes"
+     ],
+     "stats": [
+      [
+       "39",
+       "Blend modes"
+      ],
+      [
+       "306",
+       "Effects"
+      ]
+     ],
+     "title": "Intro comp"
+    },
+    {
+     "alt": "A close view of the FormVFX viewer with an orange orb inside a ring and the formvfx wordmark below it",
+     "desc": "Shape layers, text, masks and track mattes composite on the GPU through wgpu, or on the CPU when that is faster for the comp, in a compositor written in Rust.",
+     "dl": [
+      [
+       "Engine",
+       "Rust, wgpu or CPU"
+      ],
+      [
+       "Plug-ins",
+       "OpenFX, WebAssembly"
+      ]
+     ],
+     "face": {
+      "c": "ui-comp",
+      "l": "ui-comp-light",
+      "w": 0.5,
+      "x": 0.5,
+      "y": 0.35
+     },
+     "line": "Shapes, drawn on the GPU.",
+     "meta": [
+      "Composition",
+      "Shape layers",
+      "Handles"
+     ],
+     "stats": [
+      [
+       "2",
+       "Plug-in kinds"
+      ],
+      [
+       "32",
+       "Bit, at most"
+      ]
+     ],
+     "title": "The orb"
+    },
+    {
+     "alt": "The FormVFX Flowchart tab under the viewer, with solids, effects and layers wired into an intro composition",
+     "desc": "The Flowchart wires solids, effects and layers into a composition. Drag a link to parent a layer or set a track matte, and drag effects to reorder a stack.",
+     "dl": [
+      [
+       "Panel",
+       "Flowchart"
+      ],
+      [
+       "Drag",
+       "Links, effects"
+      ]
+     ],
+     "face": {
+      "c": "ui-flow",
+      "l": "ui-flow-light",
+      "w": 1.0,
+      "x": 0.5,
+      "y": 0.5
+     },
+     "line": "The comp, seen as a graph.",
+     "meta": [
+      "Flowchart",
+      "Node view",
+      "Same project"
+     ],
+     "stats": [
+      [
+       "8",
+       "Panels"
+      ],
+      [
+       "306",
+       "Effects"
+      ]
+     ],
+     "title": "Flowchart"
+    },
+    {
+     "alt": "Solid, effect and layer nodes in the FormVFX Flowchart connected by links into the formvfx intro comp",
+     "desc": "It is the same project, seen as a graph, so a change in the Flowchart is a change in the timeline. Links parent layers and set track mattes, and effects reorder by dragging.",
+     "dl": [
+      [
+       "Shows",
+       "Solids, effects, layers"
+      ],
+      [
+       "Links",
+       "Parent, track matte"
+      ]
+     ],
+     "face": {
+      "c": "ui-flow",
+      "l": "ui-flow-light",
+      "w": 0.7,
+      "x": 0.5,
+      "y": 0.78
+     },
+     "line": "Drag a link, set a matte.",
+     "meta": [
+      "Flowchart",
+      "Links",
+      "Mattes"
+     ],
+     "stats": [
+      [
+       "39",
+       "Blend modes"
+      ],
+      [
+       "169",
+       "Presets"
+      ]
+     ],
+     "title": "Nodes"
+    },
+    {
+     "alt": "The FormVFX window with the Flowchart open, showing Backdrop, Glow, Gradient Ramp and layers wired into a composition",
+     "desc": "Solids, effects and layers are wired into a composition, with Glow and Gradient Ramp effects feeding the layers that make up the intro, all in one view.",
+     "dl": [
+      [
+       "View",
+       "Flowchart"
+      ],
+      [
+       "Reorder",
+       "By dragging effects"
+      ]
+     ],
+     "face": {
+      "c": "ui-flowchart-2",
+      "l": null,
+      "w": 1.0,
+      "x": 0.5,
+      "y": 0.5
+     },
+     "line": "Every layer, wired.",
+     "meta": [
+      "Flowchart",
+      "Whole comp",
+      "Reorder"
+     ],
+     "stats": [
+      [
+       "306",
+       "Effects"
+      ],
+      [
+       "3",
+       "Agent apps"
+      ]
+     ],
+     "title": "A node view"
+    },
+    {
+     "alt": "The FormVFX Graph Editor beside the layer stack, showing an ease curve between two keyframes",
+     "desc": "Shape every ease on a curve, with Hold, Linear, Ease In and Ease Out one click away. The work area renders into the preview cache while you work.",
+     "dl": [
+      [
+       "Panel",
+       "Graph Editor"
+      ],
+      [
+       "Eases",
+       "Hold, Linear, In, Out"
+      ]
+     ],
+     "face": {
+      "c": "ui-graph-editor-2",
+      "l": null,
+      "w": 1.0,
+      "x": 0.5,
+      "y": 0.5
+     },
+     "line": "Shape every ease.",
+     "meta": [
+      "Animation",
+      "Graph Editor",
+      "Ease curves"
+     ],
+     "stats": [
+      [
+       "4",
+       "Quick eases"
+      ],
+      [
+       "306",
+       "Effects"
+      ]
+     ],
+     "title": "Graph Editor"
+    },
+    {
+     "alt": "A close view of the FormVFX Graph Editor with an ease curve and the Hold, Linear and Ease buttons above it",
+     "desc": "Keyframes carry eases and roving keys, and the Graph Editor, Wiggler, Smoother and Motion Sketch refine them. Expressions run on FormVFX's own interpreter.",
+     "dl": [
+      [
+       "Tools",
+       "Wiggler, Smoother"
+      ],
+      [
+       "Expressions",
+       "Own interpreter"
+      ]
+     ],
+     "face": {
+      "c": "ui-graph-editor-2",
+      "l": null,
+      "w": 0.6,
+      "x": 0.4,
+      "y": 0.82
+     },
+     "line": "Keyframes, up close.",
+     "meta": [
+      "Animation",
+      "Keyframes",
+      "Roving keys"
+     ],
+     "stats": [
+      [
+       "4",
+       "Quick eases"
+      ],
+      [
+       "169",
+       "Presets"
+      ]
+     ],
+     "title": "Ease curves"
+    },
+    {
+     "alt": "The FormVFX Effects and Presets panel listing categories such as Animation Presets, 3D Channel, Audio, Blur and Sharpen, and Keying",
+     "desc": "306 effects, from keying and Color Grade to OCIO transforms, blurs, distortions and particles, listed by category in the Effects and Presets panel beside the viewer.",
+     "dl": [
+      [
+       "Panel",
+       "Effects and Presets"
+      ],
+      [
+       "Includes",
+       "Keying, Color Grade, OCIO"
+      ]
+     ],
+     "face": {
+      "c": "ui-comp",
+      "l": "ui-comp-light",
+      "w": 0.32,
+      "x": 0.86,
+      "y": 0.3
+     },
+     "line": "Three hundred and six effects.",
+     "meta": [
+      "Effects",
+      "306 effects",
+      "By category"
+     ],
+     "stats": [
+      [
+       "306",
+       "Effects"
+      ],
+      [
+       "13",
+       "Audio effects"
+      ]
+     ],
+     "title": "Effects list"
+    },
+    {
+     "alt": "The FormVFX timeline with a Headline layer and a photo layer, a playhead, and the viewer above them",
+     "desc": "A headline layer and a photo layer sit on the timeline under the viewer, with the playhead on the title. Render settings and the Render Queue sit in the next tab.",
+     "dl": [
+      [
+       "Panel",
+       "Timeline"
+      ],
+      [
+       "Next tab",
+       "Render Queue"
+      ]
+     ],
+     "face": {
+      "c": "ui-hero-2",
+      "l": "ui-hero-light-2",
+      "w": 0.7,
+      "x": 0.5,
+      "y": 0.9
+     },
+     "line": "Where the time goes.",
+     "meta": [
+      "Timeline",
+      "Layers",
+      "Playhead"
+     ],
+     "stats": [
+      [
+       "8",
+       "Panels"
+      ],
+      [
+       "39",
+       "Blend modes"
+      ]
+     ],
+     "title": "Timeline"
+    },
+    {
+     "alt": "The FormVFX layer stack with Orb, Ring, formvfx and Backdrop layers and their parent and link settings, beside the time ruler",
+     "desc": "The layer stack lists each layer with its switches, mode and parent, with keyframes on the time ruler beside it and an ease curve for the selected property.",
+     "dl": [
+      [
+       "Shows",
+       "Switches, mode, parent"
+      ],
+      [
+       "Beside",
+       "Time ruler"
+      ]
+     ],
+     "face": {
+      "c": "ui-comp",
+      "l": "ui-comp-light",
+      "w": 0.8,
+      "x": 0.5,
+      "y": 0.84
+     },
+     "line": "Layers in order.",
+     "meta": [
+      "Timeline",
+      "Layer stack",
+      "Parent and link"
+     ],
+     "stats": [
+      [
+       "39",
+       "Blend modes"
+      ],
+      [
+       "2",
+       "Plug-in kinds"
+      ]
+     ],
+     "title": "Layer stack"
+    },
+    {
+     "alt": "Nodes in the FormVFX Flowchart: motion graphics layers and a composition node joined by links",
+     "desc": "Drag an effect to reorder a stack, or drag a link to set a track matte. The graph and the timeline are two views of one project, so neither goes out of date.",
+     "dl": [
+      [
+       "Panel",
+       "Flowchart"
+      ],
+      [
+       "Same as",
+       "The timeline"
+      ]
+     ],
+     "face": {
+      "c": "ui-flowchart-2",
+      "l": null,
+      "w": 0.55,
+      "x": 0.5,
+      "y": 0.8
+     },
+     "line": "Reorder by dragging.",
+     "meta": [
+      "Flowchart",
+      "Effects",
+      "Order"
+     ],
+     "stats": [
+      [
+       "306",
+       "Effects"
+      ],
+      [
+       "169",
+       "Presets"
+      ]
+     ],
+     "title": "Wiring"
+    },
+    {
+     "alt": "The FormVFX Effects and Presets panel searched for bounce, listing Text Animate In, Bounce In Characters, Bounce In Lines and Scale Bounce Loop",
+     "desc": "Text animators come with 169 presets, such as Bounce In Characters and Bounce In Lines, found in the Effects and Presets panel with a search box above it.",
+     "dl": [
+      [
+       "Panel",
+       "Effects and Presets"
+      ],
+      [
+       "Search",
+       "Bounce"
+      ]
+     ],
+     "face": {
+      "c": "ui-hero-2",
+      "l": "ui-hero-light-2",
+      "w": 0.35,
+      "x": 0.8,
+      "y": 0.45
+     },
+     "line": "Type that moves.",
+     "meta": [
+      "Text",
+      "Animators",
+      "Presets"
+     ],
+     "stats": [
+      [
+       "169",
+       "Presets"
+      ],
+      [
+       "26",
+       "Languages"
+      ]
+     ],
+     "title": "Presets"
+    }
+   ],
+   "type": "json"
+  },
+  "shotsLabel": {
+   "default": "Compositions",
+   "type": "string"
+  }
+ },
+ "source": "// tube-travel: shots line the inside of a long CSS 3D tube. Scroll (through the enclosing scene) travels along it,\n// a click flies one shot out beside its details. Ported from formai-xmental-webspun v3.1.0\n// assets/sections/formvfx-vortex. Open, index and share state are page variables so native buttons can bind.\n\nconst SHEET = `\n.fwc-tt { position: absolute; inset: 0; overflow: hidden; isolation: isolate; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; container-type: inline-size; color: var(--ink, #eef0f4); font-family: var(--font-ui, system-ui, sans-serif); font-weight: var(--weight-body, 420); line-height: 1.55; text-align: start; --vx-g: clamp(16px, 3vw, 40px);\n  & *, & *::before, & *::after { box-sizing: border-box; }\n  & p, & h2, & dl, & dd, & ol { margin: 0; }\n  & button { font: inherit; color: inherit; }\n  &[data-fwc-theme=\"light\"] .shot-dark, &:not([data-fwc-theme=\"light\"]) .shot-light { display: none !important; }\n  &.is-press { cursor: grabbing; }\n  &.is-hover { cursor: pointer; }\n  &:focus { outline: none; }\n  &:focus-visible::after { content: \"\"; position: absolute; inset: 10px; border: 2px solid var(--hue, #eef0f4); pointer-events: none; z-index: var(--z-toast, 800); }\n  .vx-world { position: absolute; inset: 0; perspective: 1400px; transition: filter .6s var(--ease-out, ease-out); }\n  .vx-scene { position: absolute; inset: 0; transform-style: preserve-3d; transform-origin: 0 0; }\n  &.is-open .vx-world { filter: blur(6px) brightness(.5); }\n  &[data-fwc-theme=\"light\"].is-open .vx-world { filter: blur(6px) brightness(.7); }\n  .vx-cap, .vx-meter { z-index: var(--z-raised, 100); }\n  .vx-cap { position: absolute; inset-inline-start: var(--vx-g); inset-block-end: clamp(22px, 4.5vh, 44px); inline-size: min(760px, 66vw); display: grid; gap: var(--sp-3, 12px); transition: opacity .3s var(--ease-out, ease-out), translate .3s var(--ease-out, ease-out); }\n  &.is-open .vx-cap, &.is-index .vx-cap { opacity: 0; translate: 0 8px; pointer-events: none; }\n  .vx-count, .vx-m, .vx-tick span, .vx-pill, .vx-k, .vx-nextcap, .vx-hint, .vx-tip { font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-xs, 0.8125rem); letter-spacing: .14em; text-transform: uppercase; }\n  .vx-count { display: flex; gap: .6em; color: var(--ink-soft, #a4aab8); align-items: baseline; transition: opacity .4s var(--ease-out, ease-out); }\n  .vx-digits { display: block; block-size: 1.3em; overflow: hidden; color: var(--ink, #eef0f4); }\n  .vx-strip { display: grid; transition: transform .55s cubic-bezier(.16, 1, .3, 1); }\n  .vx-strip span { block-size: 1.3em; line-height: 1.3em; font-variant-numeric: tabular-nums; }\n  .vx-titles { --vx-ts: clamp(44px, 6.6vw, 96px); display: grid; overflow: hidden; padding-block: .06em; block-size: calc(var(--vx-ts) * 1.1 + 40px); }\n  .vx-ent { grid-area: 1 / 1; align-self: end; transition: transform .6s cubic-bezier(.16, 1, .3, 1), opacity .3s var(--ease-out, ease-out); opacity: 0; translate: 0 42%; pointer-events: none; }\n  .vx-ent.is-now { opacity: 1; translate: 0; transition-delay: .06s; }\n  .vx-ent.is-past { translate: 0 -42%; }\n  .vx-t { font-size: clamp(44px, 6.6vw, 96px); font-weight: var(--weight-display, 640); letter-spacing: -.04em; line-height: 1.02; white-space: nowrap; overflow: hidden; text-overflow: clip; }\n  .vx-m { margin: var(--sp-2, 8px) 0 0; display: flex; flex-wrap: wrap; gap: 0 .8em; color: var(--ink-soft, #a4aab8); align-items: center; }\n  .vx-m span + span::before { content: \"\"; display: inline-block; inline-size: 3px; block-size: 3px; background: currentColor; margin-inline-end: .8em; vertical-align: middle; }\n  .vx-sw { display: inline-block; inline-size: 9px; block-size: 9px; background: var(--hue, #eef0f4); margin-inline-end: .8em; }\n  .vx-hint { color: var(--ink-faint, #6b7283); display: flex; align-items: center; gap: var(--sp-3, 12px); transition: opacity .5s var(--ease-out, ease-out); }\n  .vx-dash { position: relative; display: block; inline-size: 48px; block-size: 1px; background: var(--edge-strong, rgb(255 255 255 / 0.18)); overflow: hidden; }\n  .vx-dash::after { content: \"\"; position: absolute; inset: 0 auto 0 0; inline-size: 20px; background: var(--ink, #eef0f4); animation: fwc-tt-scan 1.8s var(--ease-out, ease-out) infinite; }\n  &.is-gone .vx-hint { opacity: 0; }\n  .vx-pill { position: absolute; inset: 0 auto auto 0; z-index: var(--z-popover, 700); pointer-events: none; display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--pane, #1b1e25); color: var(--ink, #eef0f4); box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)); transform-origin: 0 0; opacity: 0; scale: .8; transition: opacity .16s var(--ease-out, ease-out), scale .24s var(--ease-out, ease-out); white-space: nowrap; }\n  .vx-pill.is-on { opacity: 1; scale: 1; }\n  .vx-pill i { inline-size: 8px; block-size: 8px; background: var(--hue, #eef0f4); }\n  .vx-heldwrap { position: absolute; inset: 0; z-index: var(--z-sticky, 200); pointer-events: none; }\n  .vx-held { position: absolute; inset: 0 auto auto 0; transform-origin: 50% 50%; will-change: transform; }\n  .vx-detail { position: absolute; inset: 0; z-index: var(--z-overlay, 600); opacity: 0; visibility: hidden; transition: opacity .22s var(--ease-out, ease-out), visibility 0s .22s; }\n  .vx-detail.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }\n  .vx-slot { position: absolute; inset-block: 104px 80px; inset-inline: clamp(16px, 4vw, 72px) calc(var(--vx-g) + min(420px, 34vw) + 32px); cursor: pointer; }\n  .vx-slothint { position: absolute; inset-inline: 0; inset-block-end: -36px; text-align: center; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-xs, 0.8125rem); letter-spacing: .14em; text-transform: uppercase; opacity: 0; transition: opacity .6s var(--ease-out, ease-out) 1s; }\n  .vx-detail.is-open .vx-slothint { opacity: 1; }\n  .vx-panel { position: absolute; inset-block: 104px 80px; inset-inline-end: var(--vx-g); inline-size: min(420px, 34vw); display: flex; flex-direction: column; justify-content: center; overflow: auto; overscroll-behavior: contain; padding-inline-end: 2px; scrollbar-width: none; }\n  .vx-panel > div { display: grid; gap: var(--sp-4, 16px); margin-block: auto; }\n  .vx-r { opacity: 0; translate: 0 16px; }\n  .vx-panel.is-in .vx-r { opacity: 1; translate: 0; transition: opacity .75s var(--ease-out, ease-out) calc(.42s + var(--k, 0) * 55ms), translate .75s var(--ease-out, ease-out) calc(.42s + var(--k, 0) * 55ms); }\n  .vx-k { display: flex; align-items: center; gap: var(--sp-2, 8px); color: var(--hue, #eef0f4); }\n  .vx-k i { inline-size: 9px; block-size: 9px; background: var(--hue, #eef0f4); }\n  .vx-pt { font-size: clamp(40px, 4.4vw, 70px); font-weight: var(--weight-display, 640); letter-spacing: -.04em; line-height: 1.02; text-wrap: balance; }\n  .vx-pl { font-size: 20px; color: var(--ink, #eef0f4); }\n  .vx-pp { max-inline-size: 38ch; font-size: 15px; line-height: 1.55; color: var(--ink-soft, #a4aab8); }\n  .vx-dl { display: grid; }\n  .vx-dl div { display: flex; justify-content: space-between; gap: var(--sp-4, 16px); padding-block: 10px; border-block-start: 1px solid var(--edge, rgb(255 255 255 / 0.09)); font-size: var(--fs-s, 0.875rem); }\n  .vx-dl div:last-child { border-block-end: 1px solid var(--edge, rgb(255 255 255 / 0.09)); }\n  .vx-dl dt { color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--fs-xs, 0.8125rem); letter-spacing: .14em; text-transform: uppercase; align-self: center; }\n  .vx-dl dd { text-align: end; }\n  .vx-act { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4, 16px); flex-wrap: wrap; }\n  .vx-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2, 8px); block-size: var(--control-h, 40px); padding-inline: var(--sp-4, 16px); border-radius: var(--radius-m, 10px); font-size: var(--fs-s, 0.875rem); font-weight: var(--weight-strong, 560); text-decoration: none; white-space: nowrap; background: var(--ink, #eef0f4); color: var(--on-ink, #14161b); transition: opacity var(--dur-fast, 140ms) var(--ease-out, ease-out); }\n  .vx-btn:hover { opacity: .88; }\n  .vx-btn svg { inline-size: var(--icon-m, 20px); block-size: var(--icon-m, 20px); transition: translate var(--dur, 240ms) var(--ease-out, ease-out); }\n  .vx-btn:hover svg { translate: 2px -2px; }\n  .vx-pager { display: flex; gap: var(--sp-2, 8px); }\n  .vx-ibtn { inline-size: 46px; block-size: 46px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: var(--radius-pill, 999px); background: transparent; color: var(--ink-soft, #a4aab8); cursor: pointer; transition: color var(--dur-fast, 140ms) var(--ease-out, ease-out), background-color var(--dur-fast, 140ms) var(--ease-out, ease-out); }\n  .vx-ibtn:hover { color: var(--ink, #eef0f4); background: var(--control, #2b303c); }\n  .vx-ibtn svg { inline-size: var(--icon-m, 20px); block-size: var(--icon-m, 20px); }\n  .vx-close { position: absolute; inset-block-start: 18px; inset-inline-end: var(--vx-g); inline-size: 42px; block-size: 42px; scale: .8; rotate: -45deg; opacity: 0; }\n  .vx-detail.is-open .vx-close { opacity: 1; scale: 1; rotate: 0; transition: opacity .2s var(--ease-out, ease-out) .3s, scale .35s var(--ease-out, ease-out) .3s, rotate .35s var(--ease-out, ease-out) .3s, color var(--dur-fast, 140ms), background-color var(--dur-fast, 140ms); }\n  .vx-pop { position: absolute; z-index: var(--z-popover, 700); opacity: 0; visibility: hidden; pointer-events: none; }\n  .vx-pop.is-open { opacity: 1; visibility: visible; pointer-events: auto; }\n  .vx-index { inset-block: 96px clamp(22px, 4.5vh, 44px); inset-inline-start: var(--vx-g); inline-size: min(480px, calc(100% - var(--vx-g) * 2)); display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none; transition: opacity .2s var(--ease-out, ease-out), visibility 0s .2s; }\n  .vx-index.is-open { transition-delay: 0s; }\n  .vx-index > ol { padding: 0; list-style: none; max-block-size: 100%; overflow: auto; overscroll-behavior: contain; background: var(--pane, #1b1e25); box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)); border-radius: var(--radius-m, 10px); transform-origin: 0 100%; translate: 0 10px; scale: .97; transition: translate .35s var(--ease-out, ease-out), scale .35s var(--ease-out, ease-out); scrollbar-width: none; }\n  .vx-index.is-open > ol { translate: 0; scale: 1; pointer-events: auto; }\n  .vx-row { display: grid; grid-template-columns: 28px 12px minmax(0, 1fr) minmax(0, 130px) minmax(0, 90px); align-items: center; gap: var(--sp-3, 12px); inline-size: 100%; padding: 10px var(--sp-4, 16px); border: 0; border-block-end: 1px solid var(--edge, rgb(255 255 255 / 0.09)); background: none; color: var(--ink, #eef0f4); text-align: start; cursor: pointer; font: inherit; font-size: var(--fs-s, 0.875rem); opacity: 0; translate: 0 8px; }\n  .vx-index.is-open .vx-row { opacity: 1; translate: 0; transition: opacity .4s var(--ease-out, ease-out) calc(60ms + var(--k, 0) * 18ms), translate .4s var(--ease-out, ease-out) calc(60ms + var(--k, 0) * 18ms), background-color var(--dur-fast, 140ms); }\n  .vx-row:hover, .vx-row:focus-visible { background: var(--control, #2b303c); }\n  .vx-row:focus-visible { outline: 2px solid var(--hue, #eef0f4); outline-offset: -2px; }\n  .vx-row .n { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--ink-faint, #6b7283); }\n  .vx-row .d { inline-size: 9px; block-size: 9px; background: var(--hue, #eef0f4); transition: scale var(--dur, 240ms) var(--ease-out, ease-out); }\n  .vx-row:hover .d, .vx-row[aria-current=\"true\"] .d { scale: 1.35; }\n  .vx-row b { font-weight: var(--weight-strong, 560); color: var(--ink, #eef0f4); transition: translate var(--dur, 240ms) var(--ease-out, ease-out); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n  .vx-row:hover b { translate: 4px 0; }\n  .vx-row .ty, .vx-row .yr { color: var(--ink-soft, #a4aab8); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n  .vx-flat { display: none; }\n  &.is-flat .vx-world { display: none; }\n  &.is-flat .vx-flat { display: flex; flex-wrap: wrap; gap: var(--sp-3, 12px); position: absolute; inset: 80px var(--vx-g) 120px; overflow: auto; align-content: flex-start; z-index: var(--z-raised, 100); }\n  .vx-flat button { inline-size: min(160px, 40%); padding: 0; border: 0; border-block-start: 2px solid var(--hue, #eef0f4); background: var(--pane, #1b1e25); color: var(--ink, #eef0f4); cursor: pointer; text-align: start; font-size: var(--fs-s, 0.875rem); }\n  .vx-flat span { display: block; padding: var(--sp-2, 8px) var(--sp-3, 12px); }\n  .vx-face { position: relative; overflow: hidden; background: var(--inset, #101216); box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); }\n  .vx-face img { position: absolute; max-inline-size: none; block-size: auto; }\n  &.vx-pre .vx-count, &.vx-pre .vx-titles, &.vx-pre .vx-hint, &.vx-pre .vx-meter { opacity: 0; translate: 0 12px; }\n  &.vx-ready .vx-count, &.vx-ready .vx-titles, &.vx-ready .vx-hint, &.vx-ready .vx-meter { opacity: 1; translate: 0; transition: opacity .9s var(--ease-out, ease-out) var(--dl, 0s), translate .9s var(--ease-out, ease-out) var(--dl, 0s); }\n  &.vx-ready .vx-count { --dl: 1.5s; }\n  &.vx-ready .vx-titles { --dl: 1.58s; }\n  &.vx-ready .vx-hint { --dl: 1.9s; }\n  &.vx-ready .vx-meter { --dl: 1.7s; }\n  .vx-card { position: absolute; overflow: hidden; border-radius: 8px; background: var(--inset, #101216); box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); pointer-events: none; will-change: transform, opacity; }\n  .vx-card img { position: absolute; max-inline-size: none; block-size: auto; }\n  .vx-card.is-pick { pointer-events: auto; }\n  .vx-meter { position: absolute; inset-inline-end: var(--vx-g); inset-block-end: clamp(22px, 4.5vh, 44px); display: grid; gap: var(--sp-2, 8px); justify-items: end; transition: opacity .3s var(--ease-out, ease-out); }\n  &.is-open .vx-meter, &.is-index .vx-meter { opacity: 0; pointer-events: none; }\n  .vx-ticks { display: flex; }\n  .vx-mt { position: relative; inline-size: 14px; block-size: 30px; padding: 0; border: 0; background: none; color: var(--ink-faint, #6b7283); cursor: pointer; display: flex; align-items: flex-end; }\n  .vx-mt i { display: block; inline-size: 2px; block-size: 12px; margin-inline: auto; background: currentColor; transform-origin: 50% 100%; opacity: .6; transition: transform var(--dur, 240ms) var(--ease-out, ease-out), opacity var(--dur, 240ms) var(--ease-out, ease-out), color var(--dur, 240ms) var(--ease-out, ease-out); }\n  .vx-mt:hover i, .vx-mt:focus-visible i { transform: scaleY(1.45); opacity: 1; }\n  .vx-mt[aria-current=\"true\"] i { transform: scaleY(2.2); opacity: 1; color: var(--hue, #eef0f4); }\n  .vx-mt:focus-visible { outline: 2px solid var(--hue, #eef0f4); outline-offset: -2px; }\n  .vx-tip { position: absolute; inset-block-end: 100%; inset-inline-end: 0; padding: 6px 10px; background: var(--pane, #1b1e25); color: var(--ink, #eef0f4); box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)); white-space: nowrap; opacity: 0; translate: 0 4px; pointer-events: none; transition: opacity .2s var(--ease-out, ease-out), translate .2s var(--ease-out, ease-out); }\n  .vx-mt:hover .vx-tip, .vx-mt:focus-visible .vx-tip { opacity: 1; translate: 0; }\n  .vx-bar { display: block; inline-size: 196px; block-size: 1px; background: var(--edge-strong, rgb(255 255 255 / 0.18)); overflow: hidden; }\n  .vx-bar i { display: block; inline-size: 100%; block-size: 100%; background: var(--ink, #eef0f4); transform-origin: 0 50%; transform: scaleX(0); }\n  .vx-stats { display: grid; grid-template-columns: 1fr 1fr; border-block-start: 1px solid var(--edge, rgb(255 255 255 / 0.09)); padding-block-start: var(--sp-3, 12px); }\n  .vx-stats div { display: grid; gap: 4px; }\n  .vx-stats dt { order: 2; font-size: var(--fs-xs, 0.8125rem); color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); letter-spacing: .14em; text-transform: uppercase; }\n  .vx-stats dd { font-size: clamp(40px, 4vw, 64px); font-weight: var(--weight-display, 640); letter-spacing: -.04em; line-height: 1; color: var(--hue, #eef0f4); font-variant-numeric: tabular-nums; }\n  .vx-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }\n  &[data-fwc-reduced] { & *, & *::before, & *::after { transition-duration: 1ms !important; transition-delay: 0s !important; animation-duration: 1ms !important; } .vx-dash::after { animation: none; } }\n  @container (max-width: 760px) {\n    .vx-titles { --vx-ts: clamp(38px, 11.5vw, 56px); block-size: calc(var(--vx-ts) * 2.2 + 56px); }\n    .vx-t { white-space: normal; }\n    .vx-m { margin-top: var(--sp-1, 4px); }\n    .vx-cap { inset-inline-end: var(--vx-g); inline-size: auto; inset-block-end: 46px; }\n    .vx-hint { display: none; }\n    .vx-slot { inset-block: 72px auto; inset-inline: var(--vx-g); block-size: calc((100cqw - var(--vx-g) * 2) * .8); }\n    .vx-panel { inset-block: calc(72px + (100cqw - var(--vx-g) * 2) * .8 + 18px) 0; inset-inline: var(--vx-g); inline-size: auto; justify-content: flex-start; }\n    .vx-pt { font-size: 44px; }\n    .vx-row { grid-template-columns: 28px 12px minmax(0, 1fr) minmax(0, 90px); }\n    .vx-row .ty { display: none; }\n    .vx-close { inset-block-start: 12px; }\n    .vx-meter { inset-inline: var(--vx-g); inset-block-end: 22px; justify-items: stretch; }\n    .vx-ticks { display: none; }\n    .vx-bar { inline-size: 100%; }\n  }\n}\n@keyframes fwc-tt-scan { from { translate: -20px; } to { translate: 48px; } }\n`;\n\nconst ARROW = '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M7 17L17 7\"/><path d=\"M8 7h9v9\"/></svg>';\nconst CHL = '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M14.5 6l-6 6 6 6\"/></svg>';\nconst CHR = '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9.5 6l6 6-6 6\"/></svg>';\nconst CLOSE = '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M6 6l12 12\"/><path d=\"M18 6L6 18\"/></svg>';\n\nconst clamp = (v, a, b) => Math.min(b, Math.max(a, v));\nconst lerp = (a, b, t) => a + (b - a) * t;\nconst smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');\nconst pad2 = (n) => String(n + 1).padStart(2, '0');\n\nexport function mount(root, props, ctx) {\n  const p = props || {};\n  const CAPS = p.captures && typeof p.captures === 'object' ? p.captures : {};\n  const DATA = Array.isArray(p.shots) ? p.shots.filter((d) => d && d.face && CAPS[d.face.c]) : [];\n  const N = DATA.length;\n  if (!N) { ctx.ready(); return () => {}; }\n  const kind = p.kind ?? 'Composition';\n  const ofWord = p.ofWord ?? '/';\n  const hintText = p.hint ?? 'Scroll to travel the tube';\n  const openWord = p.openWord ?? 'Open';\n  const groupLabel = p.groupLabel ?? 'Shots along a tube';\n  const detailLabel = p.detailLabel ?? 'Detail';\n  const indexLabel = p.indexLabel ?? 'Index';\n  const closeLabel = p.closeLabel ?? 'Close';\n  const prevLabel = p.prevLabel ?? 'Previous composition';\n  const nextLabel = p.nextLabel ?? 'Next composition';\n  const ctaText = p.ctaText ?? 'Every feature';\n  const ctaHref = p.ctaHref ?? '#';\n  const openVar = p.openVariable ?? 'tubeOpen';\n  const indexVar = p.indexVariable ?? 'tubeIndex';\n  const shareVar = p.shareVariable ?? 'tubeShare';\n  const vars = globalThis.__formwebVariables;\n  const setVar = (name, v) => { if (name && vars && typeof vars.set === 'function') { try { vars.set(name, v); } catch (e) { /* variable missing on this page */ } } };\n  const motion = () => globalThis.__formwebMotion;\n  const offs = [];\n  const listeners = [];\n  const on = (target, type, fn, opts) => { target.addEventListener(type, fn, opts); listeners.push(() => target.removeEventListener(type, fn, opts)); };\n\n  const style = document.createElement('style');\n  style.textContent = SHEET;\n  root.appendChild(style);\n  const stage = document.createElement('div');\n  stage.className = 'fwc-tt';\n  stage.tabIndex = 0;\n  stage.setAttribute('role', 'group');\n  stage.setAttribute('aria-roledescription', 'carousel');\n  stage.setAttribute('aria-label', groupLabel);\n  stage.setAttribute('data-fwc-theme', ctx.theme());\n  if (ctx.reduced) stage.setAttribute('data-fwc-reduced', '');\n  stage.innerHTML = '<div class=\"vx-world\" aria-hidden=\"true\"><div class=\"vx-scene\"></div></div>'\n    + '<div class=\"vx-cap\"><p class=\"vx-count\" aria-hidden=\"true\"><span class=\"vx-digits\"><span class=\"vx-strip\"></span></span><span></span></p><div class=\"vx-titles\"></div><p class=\"vx-hint\"><span class=\"vx-dash\"></span><span class=\"vx-hinttext\"></span></p></div>'\n    + '<div class=\"vx-meter\"><div class=\"vx-ticks\" role=\"group\"></div><span class=\"vx-bar\" aria-hidden=\"true\"><i></i></span></div>'\n    + '<div class=\"vx-pill\" aria-hidden=\"true\"><i></i><span></span><b></b></div>'\n    + '<div class=\"vx-heldwrap\" aria-hidden=\"true\"></div>'\n    + '<div class=\"vx-detail\" role=\"dialog\" aria-modal=\"true\"><div class=\"vx-slot\"><p class=\"vx-slothint\"></p></div><div class=\"vx-panel\"></div><button class=\"vx-ibtn vx-close\" type=\"button\">' + CLOSE + '</button></div>'\n    + '<div class=\"vx-pop vx-index\" role=\"dialog\"><ol class=\"vx-ol\"></ol></div>'\n    + '<p class=\"vx-live vx-sr\" aria-live=\"polite\"></p><div class=\"vx-flat\"></div>';\n  root.appendChild(stage);\n  const $ = (s) => stage.querySelector(s);\n  const sceneEl = $('.vx-scene');\n  const worldEl = $('.vx-world');\n  const detail = $('.vx-detail');\n  const slot = $('.vx-slot');\n  const panel = $('.vx-panel');\n  const heldWrap = $('.vx-heldwrap');\n  const pill = $('.vx-pill');\n  const live = $('.vx-live');\n  const idxPop = $('.vx-index');\n  $('.vx-count > span:last-child').textContent = ofWord + ' ' + N;\n  $('.vx-hinttext').textContent = hintText;\n  $('.vx-pill > span').textContent = openWord;\n  $('.vx-ticks').setAttribute('aria-label', p.shotsLabel ?? 'Compositions');\n  detail.setAttribute('aria-label', detailLabel);\n  idxPop.setAttribute('aria-label', indexLabel);\n  $('.vx-close').setAttribute('aria-label', closeLabel);\n\n  // ---- picture helpers ----------------------------------------------------------\n  const capUrl = (n, w) => ctx.asset(CAPS[n].u[w] || CAPS[n].u[1024]);\n  const cropBox = (c, W, H) => {\n    const ca = CAPS[c.c].w / CAPS[c.c].h;\n    const iw = Math.max(W / c.w, H * ca);\n    const ih = iw / ca;\n    const l = Math.min(0, Math.max(W - iw, W / 2 - c.x * iw));\n    const t = Math.min(0, Math.max(H - ih, H / 2 - c.y * ih));\n    return { iw, ih, l, t };\n  };\n  const imgTag = (name, cls, W, H, c, size, alt) => {\n    const b = cropBox(c, W, H);\n    return '<img class=\"' + cls + '\" src=\"' + esc(capUrl(name, size)) + '\" width=\"' + CAPS[name].w + '\" height=\"' + CAPS[name].h + '\" alt=\"' + esc(alt) + '\" decoding=\"async\" draggable=\"false\" data-iw=\"' + b.iw.toFixed(1) + '\" data-il=\"' + b.l.toFixed(1) + '\" data-it=\"' + b.t.toFixed(1) + '\">';\n  };\n  const placeImgs = (el) => {\n    el.querySelectorAll('img[data-iw]').forEach((im) => {\n      im.style.setProperty('inline-size', im.dataset.iw + 'px');\n      im.style.setProperty('inset-inline-start', im.dataset.il + 'px');\n      im.style.setProperty('inset-block-start', im.dataset.it + 'px');\n    });\n  };\n  const faceImgs = (c, W, H, size, alt) => {\n    let h = imgTag(c.c, c.l ? 'shot-dark' : '', W, H, c, size, alt);\n    if (c.l && CAPS[c.l]) h += imgTag(c.l, 'shot-light', W, H, c, size, alt);\n    return h;\n  };\n  const rectIn = (el) => {\n    const s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();\n    return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height };\n  };\n  const fitRect = (r, a, k = 0.94) => {\n    let w = r.w * k, h = w / a;\n    if (h > r.h * k) { h = r.h * k; w = h * a; }\n    return { x: r.x + (r.w - w) / 2, y: r.y + (r.h - h) / 2, w, h };\n  };\n\n  // ---- configuration (the original's constants) -----------------------------------\n  const CFG = {\n    dispStart: -1.6, omega: 5, omegaRed: 60, vmax: 3.2, ptrRate: 3, pillLerp: 0.22, openDur: 0.95,\n    pOf: (t) => t * (N - 1), tOf: (q) => q / (N - 1),\n    active: (q) => Math.max(0, Math.min(N - 1, Math.round(q))),\n    drag: (dx, dy) => -(2.2 * dy + 1.4 * dx)\n  };\n  const S = { disp: ctx.reduced ? 0 : CFG.dispStart, mid: ctx.reduced ? 0 : CFG.dispStart, vel: 0, time: 0, hover: -1, open: -1, held: [], ptr: { x: 0, y: 0, sx: 0, sy: 0 }, reduced: ctx.reduced, active: -2, locked: null, ready: false, index: false, dt: 0.016 };\n  const E = {};\n  const flat = !(window.CSS && CSS.supports('transform-style', 'preserve-3d'));\n  if (flat) stage.classList.add('is-flat');\n\n  // ---- scroll geometry through the enclosing scene --------------------------------------\n  let trackEl = null, stickyEl = null;\n  const geometry = () => {\n    if (!trackEl || !trackEl.isConnected) {\n      const m = motion();\n      const key = m && m.sceneOf ? m.sceneOf(ctx.host) : null;\n      trackEl = key ? document.querySelector('[data-fw-node=\"' + CSS.escape(key) + '\"]') : null;\n      stickyEl = null;\n      for (let n = ctx.host; n && n !== trackEl; n = n.parentElement) { if (getComputedStyle(n).position === 'sticky') { stickyEl = n; break; } }\n    }\n    return trackEl;\n  };\n  const pOf = () => CFG.pOf(ctx.progress());\n  const scrollP = (q, instant) => {\n    const tr = geometry();\n    if (!tr) return;\n    const st = stickyEl || stage;\n    const r = tr.getBoundingClientRect();\n    const span = Math.max(1, r.height - st.offsetHeight);\n    const top = parseFloat(getComputedStyle(st).top) || 0;\n    const y = window.scrollY + r.top - top + CFG.tOf(q) * span;\n    window.scrollTo({ top: Math.round(y), behavior: instant || S.reduced ? 'instant' : 'smooth' });\n  };\n\n  // ---- caption, ticks, index ------------------------------------------------------------\n  const strip = $('.vx-strip');\n  strip.innerHTML = DATA.map((d, i) => '<span>' + pad2(i) + '</span>').join('');\n  $('.vx-titles').innerHTML = DATA.map((d, i) => '<div class=\"vx-ent\" data-ent=\"' + i + '\" aria-hidden=\"true\"><p class=\"vx-t\">' + esc(d.title) + '</p><p class=\"vx-m\"><i class=\"vx-sw\"></i>' + (d.meta || []).map((m) => '<span>' + esc(m) + '</span>').join('') + '</p></div>').join('');\n  $('.vx-ticks').innerHTML = DATA.map((d, i) => '<button class=\"vx-mt\" type=\"button\" data-go=\"' + i + '\" aria-label=\"' + esc(d.title) + '\"><i></i><span class=\"vx-tip\" role=\"tooltip\">' + esc(d.title) + '</span></button>').join('');\n  $('.vx-ol').innerHTML = DATA.map((d, i) => '<li><button class=\"vx-row\" type=\"button\" data-row=\"' + i + '\" style=\"--k:' + i + '\"><span class=\"n\">' + pad2(i) + '</span><span class=\"d\"></span><b>' + esc(d.title) + '</b><span class=\"ty\">' + esc((d.meta || [])[0]) + '</span><span class=\"yr\">' + esc((d.meta || [])[2]) + '</span></button></li>').join('');\n  $('.vx-flat').innerHTML = DATA.map((d, i) => '<button type=\"button\" data-flat=\"' + i + '\"><span>' + esc(d.title) + '</span></button>').join('');\n  const ents = [...stage.querySelectorAll('.vx-ent')];\n  const ticks = [...stage.querySelectorAll('[data-go]')];\n  const rows = [...stage.querySelectorAll('.vx-row')];\n  const barFill = $('.vx-bar i');\n\n  const setActive = (a) => {\n    if (a === S.active) return;\n    S.active = a;\n    strip.style.transform = 'translateY(' + (-1.3 * Math.max(0, a)) + 'em)';\n    $('.vx-count').style.opacity = a < 0 ? '0' : '';\n    for (const e of ents) {\n      const i = +e.dataset.ent;\n      e.classList.toggle('is-now', i === a);\n      e.classList.toggle('is-past', i < a);\n      e.setAttribute('aria-hidden', String(i !== a));\n    }\n    for (const t of ticks) t.setAttribute('aria-current', String(+t.dataset.go === a));\n    for (const r of rows) r.setAttribute('aria-current', String(+r.dataset.row === a));\n    live.textContent = kind + ' ' + (a + 1) + ' ' + (p.ofLongWord ?? 'of') + ' ' + N + ': ' + DATA[a].title + ', ' + (DATA[a].meta || [])[0];\n  };\n  const stopIdx = (q) => {\n    let b = 0;\n    for (let i = 1; i < N; i++) if (Math.abs(i - q) < Math.abs(b - q)) b = i;\n    return b;\n  };\n  const goStop = (i) => scrollP(clamp(i, 0, N - 1));\n\n  // ---- the 3D scene (the original's SCENE) ------------------------------------------------\n  const CW = 700, CH = CW / 1.6;\n  const SPK = 0.5;\n  let W = 1, H = 1, F = 900, D0 = 1000, SP = 500, RX = 300, RY = 120;\n  const cards = DATA.map((d, i) => ({ i, el: null, img: null, hv: 0, on: true, op: 1, ang: 0.35 + i * 2.5133 }));\n  const faceSrc = (d, light) => capUrl(light && d.face.l && CAPS[d.face.l] ? d.face.l : d.face.c, d.face.w < 0.6 ? 2400 : 1024);\n  const isLight = () => ctx.theme() === 'light';\n  cards.forEach((c) => {\n    const d = DATA[c.i];\n    const el = document.createElement('div');\n    el.className = 'vx-card';\n    el.dataset.i = c.i;\n    el.style.cssText = 'inline-size:' + CW + 'px;block-size:' + CH + 'px;inset-inline-start:' + (-CW / 2) + 'px;inset-block-start:' + (-CH / 2) + 'px';\n    el.innerHTML = imgTag(d.face.c, '', CW, CH, d.face, 1024, d.alt);\n    placeImgs(el);\n    sceneEl.appendChild(el);\n    c.el = el;\n    c.img = el.querySelector('img');\n    c.img.src = faceSrc(d, isLight());\n  });\n  offs.push(ctx.onTheme((mode) => {\n    stage.setAttribute('data-fwc-theme', mode);\n    cards.forEach((c) => { c.img.src = faceSrc(DATA[c.i], mode === 'light'); });\n  }));\n  let roll = 0;\n  const scene = {\n    resize() {\n      const r = stage.getBoundingClientRect();\n      W = r.width; H = r.height;\n      const mobile = W / H < 0.85;\n      F = H / 2 / Math.tan(((mobile ? 64 : 60) * Math.PI) / 360);\n      D0 = (2 * F * CW) / W;\n      SP = D0 * SPK;\n      const k = D0 / F;\n      const sw = (F * CW) / D0 / 2;\n      const sh = sw / 1.6;\n      RX = Math.max(0, W / 2 - sw - 14) * k;\n      RY = Math.max(0, H / 2 - sh - 96) * k;\n      worldEl.style.perspective = F + 'px';\n    },\n    frame(dt) {\n      const zc = S.disp * SP, red = S.reduced;\n      const openAmt = Math.max(0, ...S.held.map((h) => h.a));\n      if (!red) roll += 0.05 * dt * (1 - 0.7 * openAmt);\n      for (const c of cards) {\n        const held = S.held.some((h) => h.i === c.i);\n        const Dist = D0 + c.i * SP - zc;\n        const op = smooth(D0 - 0.34 * SP, D0 - 0.02 * SP, Dist) * (1 - smooth(D0 + 1.6 * SP, D0 + 3.6 * SP, Dist));\n        c.op = op;\n        if (op < 0.002 && !held) { if (c.on) { c.el.style.display = 'none'; c.on = false; } continue; }\n        if (!c.on) { c.el.style.display = ''; c.on = true; }\n        c.el.style.visibility = held ? 'hidden' : 'visible';\n        c.hv += ((S.hover === c.i ? 1 : 0) - c.hv) * (1 - Math.exp(-9 * dt));\n        if (c.hv < 0.002) c.hv = 0;\n        const a = c.ang + roll;\n        const dd = Math.max(Dist, 60) - c.hv * 0.08 * D0;\n        c.el.style.transform = 'translate3d(' + (RX * Math.cos(a)).toFixed(2) + 'px,' + (RY * Math.sin(a)).toFixed(2) + 'px,' + (-dd).toFixed(2) + 'px)';\n        c.el.style.opacity = (op * (1 - openAmt * 0.64)).toFixed(3);\n        const pe = op > 0.35 && !held;\n        if (pe !== c.pe) { c.pe = pe; c.el.classList.toggle('is-pick', pe); }\n      }\n      sceneEl.style.transform = 'translate3d(' + (W / 2) + 'px,' + (H / 2) + 'px,' + F + 'px)';\n    },\n    heldFor(i, holder) {\n      const d = DATA[i];\n      const r = fitRect(slotRect(), 1.6, 0.96);\n      const Wf = Math.round(r.w), Hf = Math.round(Wf / 1.6);\n      holder.style.width = Wf + 'px';\n      holder.style.height = Hf + 'px';\n      holder.innerHTML = '<div class=\"vx-face\">' + faceImgs(d.face, Wf, Hf, 2400, d.alt) + '</div>';\n      const faceEl = holder.firstElementChild;\n      faceEl.style.setProperty('inline-size', Wf + 'px');\n      faceEl.style.setProperty('block-size', Hf + 'px');\n      faceEl.style.setProperty('border-radius', '8px');\n      placeImgs(holder);\n      const fly = cards[i].op > 0.25;\n      return {\n        update(a) {\n          const e = smooth(0, 1, S.reduced ? 1 : a);\n          const s1 = fitRect(slotRect(), 1.6, 0.96);\n          let x = s1.x + s1.w / 2, y = s1.y + s1.h / 2, w = s1.w, o = 1;\n          if (fly) {\n            const s0 = rectIn(cards[i].el);\n            x = lerp(s0.x + s0.w / 2, x, e); y = lerp(s0.y + s0.h / 2, y, e); w = lerp(s0.w, w, e);\n            if (S.reduced) o = clamp(a * 2, 0, 1);\n          } else {\n            w = lerp(s1.w * 0.88, s1.w, e);\n            o = clamp(a * 2.5, 0, 1);\n          }\n          holder.style.opacity = o;\n          holder.style.transform = 'translate(' + (x - Wf / 2) + 'px,' + (y - Hf / 2) + 'px) scale(' + (w / Wf) + ')';\n        }\n      };\n    }\n  };\n  const slotRect = () => {\n    const s = stage.getBoundingClientRect(), r = slot.getBoundingClientRect();\n    return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height };\n  };\n\n  // ---- pointer ------------------------------------------------------------------------------------\n  const hit = (el) => { const n = el && el.closest ? el.closest('.vx-card[data-i]') : null; return n && stage.contains(n) ? +n.dataset.i : -1; };\n  const hoverApply = (i) => {\n    if (i === S.hover) return;\n    S.hover = i;\n    stage.classList.toggle('is-hover', i >= 0);\n    pill.classList.toggle('is-on', i >= 0 && S.open < 0);\n    if (i >= 0) pill.querySelector('b').textContent = DATA[i].title;\n  };\n  let drag = null;\n  const pillPos = { x: -99, y: -99, tx: -99, ty: -99 };\n  on(stage, 'pointerdown', (e) => {\n    if (S.open >= 0 || e.target.closest('button,a,.vx-pop')) return;\n    if (e.pointerType === 'mouse' && e.button !== 0) return;\n    drag = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, moved: false, type: e.pointerType };\n    if (e.pointerType === 'mouse') stage.classList.add('is-press');\n  });\n  on(window, 'pointermove', (e) => {\n    if (e.pointerType === 'mouse' || e.pointerType === 'pen') {\n      const r = stage.getBoundingClientRect();\n      S.ptr.x = clamp(((e.clientX - r.left) / r.width) * 2 - 1, -1, 1);\n      S.ptr.y = clamp(((e.clientY - r.top) / r.height) * 2 - 1, -1, 1);\n      pillPos.tx = e.clientX - r.left + 18;\n      pillPos.ty = e.clientY - r.top + 18;\n      if (!drag && S.open < 0 && e.pointerType === 'mouse') {\n        const el = document.elementFromPoint(e.clientX, e.clientY);\n        hoverApply(stage.contains(el) ? hit(el) : -1);\n      }\n    }\n    if (drag && drag.type === 'mouse') {\n      const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly;\n      if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 5) { drag.moved = true; hoverApply(-1); }\n      if (drag.moved) {\n        drag.lx = e.clientX; drag.ly = e.clientY;\n        window.scrollBy({ top: CFG.drag(dx, dy), behavior: 'instant' });\n      }\n    }\n  });\n  on(window, 'pointerup', (e) => {\n    if (!drag) return;\n    const d = drag;\n    drag = null;\n    stage.classList.remove('is-press');\n    if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 8) {\n      const el = document.elementFromPoint(e.clientX, e.clientY);\n      const i = stage.contains(el) ? hit(el) : -1;\n      if (i >= 0) openItem(i);\n    }\n  });\n  on(window, 'pointercancel', () => { drag = null; stage.classList.remove('is-press'); });\n  on(stage, 'pointerleave', () => hoverApply(-1));\n\n  // ---- detail panel ---------------------------------------------------------------------------------------\n  const panelHtml = (d, i, nx) => '<p class=\"vx-k vx-r\"><i></i>' + esc(kind) + ' ' + (i + 1) + ' ' + esc(ofWord) + ' ' + N + '</p><h2 class=\"vx-pt vx-r\">' + esc(d.title) + '</h2><p class=\"vx-pl vx-r\">' + esc(d.line) + '</p><p class=\"vx-pp vx-r\">' + esc(d.desc) + '</p>'\n    + '<dl class=\"vx-stats vx-r\">' + (d.stats || []).map((s) => '<div><dt>' + esc(s[1]) + '</dt><dd data-count=\"' + esc(s[0]) + '\">' + esc(s[0]) + '</dd></div>').join('') + '</dl>'\n    + '<dl class=\"vx-dl vx-r\">' + (d.dl || []).map((r) => '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>').join('') + '</dl>'\n    + '<div class=\"vx-act vx-r\"><a class=\"vx-btn\" href=\"' + esc(ctaHref) + '\"><span>' + esc(ctaText) + '</span>' + ARROW + '</a><div class=\"vx-pager\"><button class=\"vx-ibtn\" type=\"button\" data-prev aria-label=\"' + esc(prevLabel) + '\">' + CHL + '</button><button class=\"vx-ibtn\" type=\"button\" data-next aria-label=\"' + esc(nextLabel) + ': ' + esc(nx.title) + '\">' + CHR + '</button></div></div>';\n  const renderPanel = (i) => {\n    const d = DATA[i];\n    panel.classList.remove('is-in');\n    panel.innerHTML = '<div>' + panelHtml(d, i, DATA[(i + 1) % N]) + '</div>';\n    panel.querySelectorAll('.vx-r').forEach((el, k) => el.style.setProperty('--k', k));\n    panel.scrollTop = 0;\n    void panel.offsetWidth;\n    requestAnimationFrame(() => panel.classList.add('is-in'));\n    panel.querySelectorAll('[data-prev]').forEach((b) => b.addEventListener('click', () => stepOpen(-1)));\n    const nb = panel.querySelector('[data-next]');\n    if (nb) nb.addEventListener('click', () => stepOpen(1));\n    panel.querySelectorAll('[data-count]').forEach((el) => {\n      const m = /^(\\D*)([\\d.,]+)(.*)$/.exec(el.dataset.count);\n      if (!m || S.reduced) { el.textContent = el.dataset.count; return; }\n      const target = parseFloat(m[2].replace(/,/g, ''));\n      const dec = (m[2].split('.')[1] || '').length;\n      const t0 = performance.now() + 420;\n      const run = (now) => {\n        if (!el.isConnected) return;\n        const t = clamp((now - t0) / 900, 0, 1);\n        const v = target * (1 - Math.pow(1 - t, 3));\n        el.textContent = m[1] + v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + m[3];\n        if (t < 1) requestAnimationFrame(run);\n      };\n      el.textContent = m[1] + '0' + m[3];\n      requestAnimationFrame(run);\n    });\n  };\n  const makeHeld = (i) => {\n    const h = { i, a: 0, target: 1, el: document.createElement('div'), obj: null };\n    h.el.className = 'vx-held';\n    heldWrap.appendChild(h.el);\n    h.obj = scene.heldFor(i, h.el);\n    S.held.push(h);\n    return h;\n  };\n  function openItem(i) {\n    if (i < 0 || i >= N) return;\n    hoverApply(-1);\n    S.open = i;\n    closeIndex();\n    setVar(shareVar, false);\n    setVar(openVar, true);\n    stage.classList.add('is-open');\n    detail.classList.add('is-open');\n    detail.inert = false;\n    S.locked = i;\n    scrollP(i, true);\n    scene.frame(0.016);\n    for (const h of S.held) if (h.i !== i) h.target = 0;\n    const ex = S.held.find((h) => h.i === i);\n    if (ex) ex.target = 1; else makeHeld(i);\n    renderPanel(i);\n    $('.vx-close').focus({ preventScroll: true });\n  }\n  function closeItem() {\n    if (S.open < 0) return;\n    S.open = -1;\n    S.locked = null;\n    setVar(openVar, false);\n    stage.classList.remove('is-open');\n    detail.classList.remove('is-open');\n    detail.inert = true;\n    for (const h of S.held) h.target = 0;\n    stage.focus({ preventScroll: true });\n  }\n  function stepOpen(d) { if (S.open >= 0) openItem((S.open + d + N) % N); }\n  detail.inert = true;\n  on($('.vx-close'), 'click', closeItem);\n  on(slot, 'click', closeItem);\n  on(detail, 'click', (e) => { if (e.target === detail) closeItem(); });\n\n  function openIndex() {\n    setVar(shareVar, false);\n    S.index = true;\n    idxPop.classList.add('is-open');\n    stage.classList.add('is-index');\n    idxPop.inert = false;\n  }\n  function closeIndex() {\n    if (!S.index) return;\n    S.index = false;\n    idxPop.classList.remove('is-open');\n    stage.classList.remove('is-index');\n    idxPop.inert = true;\n    setVar(indexVar, false);\n  }\n  idxPop.inert = true;\n  offs.push(ctx.onVariable(indexVar, (v) => { if (v && !S.index && S.open < 0) openIndex(); else if (!v && S.index) closeIndex(); else if (v && S.open >= 0) setVar(indexVar, false); }));\n  offs.push(ctx.onVariable(shareVar, (v) => { if (v && S.index) closeIndex(); if (v && S.open >= 0) setVar(shareVar, false); }));\n  rows.forEach((r) => {\n    const i = +r.dataset.row;\n    const prev = () => { if (S.open < 0) scrollP(i); };\n    r.addEventListener('mouseenter', prev);\n    r.addEventListener('focus', prev);\n    r.addEventListener('click', () => openItem(i));\n  });\n  on(document, 'pointerdown', (e) => {\n    if (!e.target.closest || e.target.closest('[data-vx-keep]')) return;\n    if (vars && vars.get && vars.get(shareVar)) setVar(shareVar, false);\n  });\n  ticks.forEach((t) => t.addEventListener('click', () => scrollP(+t.dataset.go)));\n  stage.querySelectorAll('[data-flat]').forEach((b) => b.addEventListener('click', () => openItem(+b.dataset.flat)));\n\n  on(stage, 'keydown', (e) => {\n    if (S.open >= 0) return;\n    const k = e.key;\n    const cur = stopIdx(pOf());\n    let used = true;\n    if (k === 'ArrowDown' || k === 'ArrowRight') goStop(cur + 1);\n    else if (k === 'ArrowUp' || k === 'ArrowLeft') goStop(cur - 1);\n    else if (k === 'PageDown') goStop(cur + 1);\n    else if (k === 'PageUp') goStop(cur - 1);\n    else if (k === 'Home') goStop(0);\n    else if (k === 'End') goStop(N - 1);\n    else if (k === 'Enter' || k === ' ') openItem(Math.max(0, S.active));\n    else used = false;\n    if (used) e.preventDefault();\n  });\n  on(window, 'keydown', (e) => {\n    if (e.key === 'Escape') {\n      if (S.open >= 0) closeItem();\n      else if (S.index) closeIndex();\n      else if (vars && vars.get && vars.get(shareVar)) setVar(shareVar, false);\n      return;\n    }\n    if (S.open >= 0) {\n      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { stepOpen(1); e.preventDefault(); }\n      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { stepOpen(-1); e.preventDefault(); }\n      if ([' ', 'PageUp', 'PageDown', 'Home', 'End'].includes(e.key) && !(e.target.closest && e.target.closest('button,a'))) e.preventDefault();\n    }\n  });\n  const lockWheel = (e) => {\n    if (S.open < 0 && !S.index) return;\n    if (e.target.closest && e.target.closest('.vx-panel,.vx-index > ol')) return;\n    e.preventDefault();\n  };\n  on(window, 'wheel', lockWheel, { passive: false });\n  on(window, 'touchmove', lockWheel, { passive: false });\n\n  // ---- frame loop -------------------------------------------------------------------------------------------------\n  let last = 0;\n  offs.push(ctx.onFrame((now) => {\n    if (!ctx.visible()) { last = now; return; }\n    const dt = Math.min(0.05, (now - last) / 1000 || 0.016);\n    last = now;\n    S.dt = dt;\n    S.time += dt;\n    S.reduced = ctx.reduced;\n    const tgt = S.locked != null ? S.locked : pOf();\n    const w = S.reduced ? CFG.omegaRed : CFG.omega;\n    const lim = (S.reduced ? 1e3 : CFG.vmax) * dt;\n    S.mid += clamp((tgt - S.mid) * (1 - Math.exp(-w * dt)), -lim, lim);\n    const ex = Math.exp(-w * dt), dl = S.disp - S.mid, tm = (S.vel + w * dl) * dt;\n    S.vel = (S.vel - w * tm) * ex;\n    S.disp = S.mid + (dl + tm) * ex;\n    const ps = S.reduced ? 0 : 1 - Math.exp(-CFG.ptrRate * dt);\n    S.ptr.sx += (S.ptr.x - S.ptr.sx) * ps;\n    S.ptr.sy += (S.ptr.y - S.ptr.sy) * ps;\n    setActive(CFG.active(S.disp));\n    if (S.disp > 0.05) stage.classList.add('is-gone');\n    const pl = S.reduced ? 1 : CFG.pillLerp;\n    pillPos.x += (pillPos.tx - pillPos.x) * pl;\n    pillPos.y += (pillPos.ty - pillPos.y) * pl;\n    pill.style.translate = pillPos.x + 'px ' + pillPos.y + 'px';\n    for (const h of S.held) {\n      const dur = S.reduced ? 0.2 : CFG.openDur;\n      h.a = clamp(h.a + Math.sign(h.target - h.a) * dt / dur, 0, 1);\n      if (h.target === 0 && h.a === 0) h.dead = true;\n    }\n    scene.frame(dt);\n    for (const h of S.held) h.obj.update(h.a);\n    for (const h of S.held) if (h.dead) h.el.remove();\n    S.held = S.held.filter((h) => !h.dead);\n    barFill.style.transform = 'scaleX(' + clamp(S.disp / (N - 1), 0, 1).toFixed(4) + ')';\n  }));\n  offs.push(ctx.onResize(() => scene.resize()));\n\n  scene.resize();\n  if (!flat) scene.frame(0.016);\n  stage.classList.add('vx-pre');\n  const imgs = [...stage.querySelectorAll('img')];\n  const waits = imgs.slice(0, 24).map((im) => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()));\n  const fonts = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();\n  let dead = false;\n  Promise.race([Promise.all([...waits, fonts]), new Promise((r) => setTimeout(r, 1200))]).then(() => {\n    if (dead) return;\n    S.ready = true;\n    stage.classList.remove('vx-pre');\n    stage.classList.add('vx-ready');\n    ctx.ready();\n  });\n\n  return () => {\n    dead = true;\n    for (const off of offs) { try { off(); } catch (e) { /* already removed */ } }\n    for (const off of listeners) off();\n    root.replaceChildren();\n  };\n}\n",
+ "sourceDigest": "72c7160eba2694738f939bfd94d06cb9b8628a5744ae406ed17314169d7a8817"
+}

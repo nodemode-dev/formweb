@@ -161,6 +161,16 @@ The shell's lock contains neither `ring` nor `webpki-roots` (no updater), so the
 
 `backend/app/stock/lucide.json` holds the drawing data and tags of 1,877 icons from lucide-static 1.55.0 (npm). Licence: ISC (Copyright (c) 2026 Lucide Icons and Contributors). The 88 icons listed as derived from the Feather project are MIT (Copyright (c) 2013-present Cole Bemis). This was checked against the package's own LICENSE file and https://lucide.dev/license on 12 October 2026. The full text is kept beside the data as `backend/app/stock/LICENSE-lucide.txt`, copied byte-for-byte. Every exported site that uses an icon includes that text in its `CREDITS.txt`. `setup/stock_icons.py` regenerates both files from the npm package. Photos inserted from formlit carry whatever rights their owner recorded there; FormWeb stores them with the asset and does not grant any licence of its own.
 
+## Bundled content: section library
+
+`library/` holds the first-party section library (DEV_PLAN AD7): page components, section templates, the formai.studio preset and the product-site starter.
+
+| Item | Source | Licence | Notes |
+| --- | --- | --- | --- |
+| `library/presets/fonts/inter-4-var-latin.woff2` | Inter 4 variable, latin subset, as shipped in the formai-xmental-webspun kit (`_kit/public/fonts`); SHA-256 `2c295d99e26dcf357d4d01bcf270fd6924b600c9a13dd8c363ef114f4c6976fa` | SIL OFL 1.1 (Copyright (c) 2016 The Inter Project Authors) | full text beside it as `LICENSE-Inter.txt`; a site that applies the preset embeds the font file in its export, and adding the OFL text to that export's credits is listed as open work in the planning sidecar |
+| `library/components/*`, `library/sections/*`, `library/presets/formai-studio.json`, `library/starters/*` | ported from formai-xmental-webspun v3.1.0 (`assets/sections/*`, `_kit/site.css`) | Apache-2.0 as part of FormWeb | the pack is NodeAgentc, Inc.'s own work, cleared by the owner on 2026-11-09 to come into FormWeb (DEV_PLAN dependencies table) |
+| pictures referenced by template defaults | `https://media.formai.studio/media/...` | owner's captures, linked, not bundled | the formai and Form app names and marks stay trademarks of NodeAgentc, Inc. |
+
 ## License text integrity
 
 The preserved legal texts were copied byte-for-byte from installed upstream packages. The planning sidecar's dependency audit records SHA-256 hashes and source provenance for the inspected texts. Do not remove notices while shrinking archives, and do not modify upstream MPL files. Future package changes need an updated inventory and matching legal texts.

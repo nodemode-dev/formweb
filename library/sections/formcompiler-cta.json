@@ -1,0 +1,340 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formcompiler-cta",
+  "name": "FormCompiler call to action",
+  "category": "product-site",
+  "tags": ["cta", "closing", "button", "hover"],
+  "product": "formcompiler",
+  "description": "A closing call to action for FormCompiler: push a compile branch and get a draft release.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formcompiler-cta",
+  "preset": "formai-studio",
+  "components": [],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#9aa6b8" },
+    "name": { "label": "Product name", "type": "text", "default": "Compiler" },
+    "headline": { "label": "Headline", "type": "text", "default": "What if a release took one push?" },
+    "intro": { "label": "Intro after the name", "type": "longtext", "default": "checks it, builds every listed platform, signs it and leaves a draft release for you to publish." },
+    "lead": { "label": "Intro before the name", "type": "text", "default": "Push a compile branch from main." },
+    "button": { "label": "Button text", "type": "text", "default": "See FormCompiler" },
+    "link": { "label": "Button link", "type": "url", "default": "https://formai.studio/formcompiler/" },
+    "fine": { "label": "Small print", "type": "text", "default": "Free, open source, no account needed." },
+    "imageDark": { "label": "Picture, dark theme", "type": "asset", "default": "https://media.formai.studio/media/formcompiler/ui-hero-2/101e896ccdc3.w2400.webp" },
+    "imageLight": { "label": "Picture, light theme", "type": "asset", "default": "https://media.formai.studio/media/formcompiler/ui-hero-light-2/1f76356049b4.w2400.webp" }
+  },
+  "tree": {
+    "key": "band",
+    "tag": "section",
+    "name": "Call to action",
+    "attrs": {},
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "position": "relative",
+      "isolation": "isolate",
+      "display": "grid",
+      "align-content": "end",
+      "min-height": "680px",
+      "margin": "0",
+      "padding-top": "300px",
+      "padding-bottom": "90px",
+      "background": "var(--ground)",
+      "overflow": "hidden"
+    },
+    "breakpoints": {
+      "tablet": { "min-height": "600px", "padding-top": "100px", "padding-bottom": "70px" }
+    },
+    "children": [
+      {
+        "key": "media",
+        "tag": "figure",
+        "name": "Picture frame",
+        "attrs": {},
+        "styles": { "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "margin": "0", "overflow": "hidden", "background": "var(--ground)" },
+        "breakpoints": {},
+        "children": [
+          {
+            "key": "shot-dark",
+            "tag": "img",
+            "name": "Picture dark",
+            "attrs": { "src": "{{imageDark}}", "width": "2400", "height": "1500", "alt": "FormCompiler's registry check passing for 26 apps, beside the three apps the catalogue lists", "decoding": "async", "data-fw-theme-only": "dark" },
+            "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "50% 30%" },
+            "breakpoints": {},
+            "children": []
+          },
+          {
+            "key": "shot-light",
+            "tag": "img",
+            "name": "Picture light",
+            "attrs": { "src": "{{imageLight}}", "width": "2400", "height": "1500", "alt": "FormCompiler's registry check passing for 26 apps, beside the three apps the catalogue lists", "decoding": "async", "data-fw-theme-only": "light" },
+            "styles": { "position": "absolute", "inset": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "50% 30%" },
+            "breakpoints": {},
+            "children": []
+          }
+        ]
+      },
+      {
+        "key": "veil",
+        "tag": "div",
+        "name": "Veil",
+        "attrs": { "aria-hidden": "true" },
+        "styles": {
+          "position": "absolute",
+          "inset": "0",
+          "z-index": "var(--z-behind)",
+          "pointer-events": "none",
+          "background": "linear-gradient(to bottom, var(--ground) 0%, transparent 27%), linear-gradient(to top, var(--ground) 9%, transparent 49%), color-mix(in srgb, var(--ground) 62%, transparent)"
+        },
+        "breakpoints": {},
+        "children": []
+      },
+      {
+        "key": "in",
+        "tag": "div",
+        "name": "Content",
+        "attrs": {},
+        "styles": {
+          "position": "relative",
+          "z-index": "var(--z-raised)",
+          "box-sizing": "border-box",
+          "width": "100%",
+          "max-width": "var(--page-max)",
+          "margin-left": "auto",
+          "margin-right": "auto",
+          "display": "grid",
+          "justify-items": "center",
+          "gap": "var(--sp-3)",
+          "padding-left": "var(--sp-5)",
+          "padding-right": "var(--sp-5)",
+          "text-align": "center",
+          "transform": "translateY(-30px)"
+        },
+        "breakpoints": {
+          "tablet": { "padding-left": "40px", "padding-right": "40px" },
+          "mobile": { "padding-left": "27px", "padding-right": "27px" }
+        },
+        "children": [
+          {
+            "key": "h",
+            "tag": "h1",
+            "name": "Headline",
+            "text": "{{headline}}",
+            "attrs": { "id": "cc-h" },
+            "styles": {
+              "margin": "0",
+              "max-width": "52rem",
+              "font-size": "clamp(2rem, 4vw, 3.5rem)",
+              "font-weight": "var(--weight-display)",
+              "line-height": "1.05",
+              "letter-spacing": "var(--track-display)",
+              "text-wrap": "balance"
+            },
+            "breakpoints": {},
+            "children": []
+          },
+          {
+            "key": "p",
+            "tag": "p",
+            "name": "Intro",
+            "attrs": {},
+            "styles": { "margin": "0", "max-width": "30rem", "color": "var(--ink-soft)", "font-size": "var(--fs-l)", "text-wrap": "balance" },
+            "breakpoints": { "mobile": { "font-size": "var(--fs-s)" } },
+            "children": [
+              { "key": "p-lead", "tag": "span", "name": "Lead", "text": "{{lead}} ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+              { "key": "p-form", "tag": "span", "name": "Name first part", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+              { "key": "p-suffix", "tag": "span", "name": "Name second part", "text": "{{name}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+              { "key": "p-rest", "tag": "span", "name": "Rest", "text": " {{intro}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+            ]
+          },
+          {
+            "key": "group",
+            "tag": "div",
+            "name": "Button group",
+            "attrs": {},
+            "styles": { "display": "grid", "justify-items": "center", "gap": "var(--sp-4)", "margin-top": "var(--sp-6)" },
+            "breakpoints": {},
+            "children": [
+              {
+                "key": "btn",
+                "tag": "a",
+                "name": "Button",
+                "attrs": { "href": "{{link}}" },
+                "styles": {
+                  "--cc-h": "0",
+                  "--cc-dur": "0.6s",
+                  "--cc-d2": "0s",
+                  "position": "relative",
+                  "overflow": "hidden",
+                  "padding-left": "calc(var(--control-h) + var(--sp-4))",
+                  "padding-right": "var(--sp-5)"
+                },
+                "breakpoints": {},
+                "children": [
+                  {
+                    "key": "run",
+                    "tag": "span",
+                    "name": "Sweep",
+                    "attrs": { "aria-hidden": "true" },
+                    "styles": {
+                      "position": "absolute",
+                      "inset": "0",
+                      "pointer-events": "none",
+                      "transform": "translateX(calc(var(--cc-h) * 100%))",
+                      "transition": "transform var(--cc-dur) cubic-bezier(0.16, 1, 0.3, 1)"
+                    },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "mask",
+                        "tag": "span",
+                        "name": "Sweep shade",
+                        "attrs": {},
+                        "styles": {
+                          "position": "absolute",
+                          "top": "0",
+                          "bottom": "0",
+                          "left": "0",
+                          "width": "100%",
+                          "background": "linear-gradient(to right, color-mix(in srgb, var(--on-ink) 14%, transparent), transparent 70%)",
+                          "opacity": "var(--cc-h)",
+                          "transition": "opacity var(--cc-dur) cubic-bezier(0.16, 1, 0.3, 1)"
+                        },
+                        "breakpoints": {},
+                        "children": []
+                      },
+                      {
+                        "key": "badge",
+                        "tag": "span",
+                        "name": "Arrow badge",
+                        "attrs": {},
+                        "styles": {
+                          "position": "absolute",
+                          "top": "5px",
+                          "bottom": "5px",
+                          "left": "5px",
+                          "width": "calc(var(--control-h) - 10px)",
+                          "display": "grid",
+                          "place-items": "center",
+                          "background": "var(--on-ink)",
+                          "color": "var(--ink)",
+                          "pointer-events": "none"
+                        },
+                        "breakpoints": {},
+                        "children": [
+                          {
+                            "key": "arrow",
+                            "tag": "svg",
+                            "name": "Arrow",
+                            "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round" },
+                            "styles": { "display": "block", "flex": "none", "width": "18px", "height": "18px" },
+                            "breakpoints": {},
+                            "children": [
+                              { "key": "arrow-a", "tag": "path", "name": "Shaft", "attrs": { "d": "M5 12h14" }, "styles": {}, "breakpoints": {}, "children": [] },
+                              { "key": "arrow-b", "tag": "path", "name": "Head", "attrs": { "d": "M13 6l6 6-6 6" }, "styles": {}, "breakpoints": {}, "children": [] }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "badge2",
+                    "tag": "span",
+                    "name": "Arrow badge on hover",
+                    "attrs": { "aria-hidden": "true" },
+                    "styles": {
+                      "position": "absolute",
+                      "top": "5px",
+                      "bottom": "5px",
+                      "left": "5px",
+                      "width": "calc(var(--control-h) - 10px)",
+                      "display": "grid",
+                      "place-items": "center",
+                      "background": "var(--on-ink)",
+                      "color": "var(--ink)",
+                      "pointer-events": "none",
+                      "opacity": "var(--cc-h)",
+                      "transform": "translateX(calc((1 - var(--cc-h)) * -70px))",
+                      "transition": "opacity var(--cc-dur) cubic-bezier(0.16, 1, 0.3, 1) var(--cc-d2), transform var(--cc-dur) cubic-bezier(0.16, 1, 0.3, 1) var(--cc-d2)"
+                    },
+                    "breakpoints": {},
+                    "children": [
+                      {
+                        "key": "arrow2",
+                        "tag": "svg",
+                        "name": "Arrow",
+                        "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round" },
+                        "styles": { "display": "block", "flex": "none", "width": "18px", "height": "18px" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "arrow2-a", "tag": "path", "name": "Shaft", "attrs": { "d": "M5 12h14" }, "styles": {}, "breakpoints": {}, "children": [] },
+                          { "key": "arrow2-b", "tag": "path", "name": "Head", "attrs": { "d": "M13 6l6 6-6 6" }, "styles": {}, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "key": "lab",
+                    "tag": "span",
+                    "name": "Label",
+                    "attrs": {},
+                    "styles": { "position": "relative", "display": "grid" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "lab1", "tag": "span", "name": "Label text", "text": "{{button}}", "attrs": {}, "styles": { "grid-column": "1", "grid-row": "1" }, "breakpoints": {}, "children": [] },
+                      {
+                        "key": "lab2",
+                        "tag": "span",
+                        "name": "Label text on hover",
+                        "text": "{{button}}",
+                        "attrs": { "aria-hidden": "true" },
+                        "styles": {
+                          "grid-column": "1",
+                          "grid-row": "1",
+                          "opacity": "var(--cc-h)",
+                          "transform": "translateX(calc((1 - var(--cc-h)) * -30px))",
+                          "transition": "opacity var(--cc-dur) cubic-bezier(0.16, 1, 0.3, 1) var(--cc-d2), transform var(--cc-dur) cubic-bezier(0.16, 1, 0.3, 1) var(--cc-d2)"
+                        },
+                        "breakpoints": {},
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "fine",
+                "tag": "p",
+                "name": "Small print",
+                "text": "{{fine}}",
+                "attrs": {},
+                "styles": {
+                  "margin": "0",
+                  "color": "var(--ink-faint)",
+                  "font-family": "var(--font-mono)",
+                  "font-size": "var(--fs-xs)",
+                  "font-weight": "500",
+                  "letter-spacing": "0.14em",
+                  "text-transform": "uppercase"
+                },
+                "breakpoints": {},
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@p-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@p-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@btn@@", "name": "button" } },
+    { "command": "node.update", "params": { "id": "@@btn@@", "patch": { "styles": { "padding-left": "calc(var(--control-h) + var(--sp-4))", "padding-right": "var(--sp-5)" } } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@h@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "rootMargin": "0px 0px -10% 0px", "threshold": 0, "once": true, "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@p@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "rootMargin": "0px 0px -10% 0px", "threshold": 0, "once": true, "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@group@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "rootMargin": "0px 0px -10% 0px", "threshold": 0, "once": true, "trigger": "view" } } }
+  ],
+  "behaviors": {
+    "@@btn@@": { "states": { "hover": { "--cc-h": "1", "--cc-dur": "1.2s", "--cc-d2": "0.25s" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "3px" } } }
+  }
+}

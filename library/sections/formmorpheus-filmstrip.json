@@ -1,0 +1,187 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formmorpheus-filmstrip",
+  "name": "FormMorpheus filmstrip",
+  "category": "scroll-story",
+  "tags": ["filmstrip", "scrub", "video", "scroll"],
+  "product": "formmorpheus",
+  "description": "Ten frames from FormMorpheus on a filmstrip that scrubs as you scroll, from the Stage and Timeline to the Export dialog.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formmorpheus-filmstrip",
+  "preset": "formai-studio",
+  "components": ["filmstrip"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#857cf3" },
+    "name": { "label": "Product name", "type": "text", "default": "Morpheus" },
+    "tag": { "label": "Top left label", "type": "text", "default": "Animation studio" },
+    "tagline": { "label": "Top right label", "type": "text", "default": "Draw it, key it, perform it" },
+    "introTitle": { "label": "Intro title", "type": "text", "default": "One screen for the whole movie." },
+    "introText": { "label": "Intro text", "type": "longtext", "default": "The movie frame sits on a Stage above a Timeline of tracks, offline and with no account." },
+    "endKick": { "label": "Closing label", "type": "text", "default": "Plate 10 / frame 072 / Quick share" },
+    "endText": { "label": "Closing text", "type": "longtext", "default": "Export writes MP4, WebM, MOV, GIF or image frames. ProRes and HEVC export use your own ffmpeg." }
+  },
+  "tree": {
+    "key": "section", "tag": "section", "name": "Filmstrip",
+    "attrs": { "aria-label": "Form{{name}} filmstrip" },
+    "styles": { "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)", "scroll-margin-top": "64px", "background": "var(--ground)", "color": "var(--ink)" },
+    "breakpoints": {},
+    "children": [
+      {
+        "key": "stage", "tag": "div", "name": "Stage",
+        "attrs": {},
+        "styles": { "background": "var(--ground)", "isolation": "isolate" },
+        "breakpoints": {},
+        "children": [
+          {
+            "key": "host", "tag": "div", "name": "Filmstrip",
+            "attrs": {},
+            "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "z-index": "var(--z-raised)" },
+            "breakpoints": {},
+            "children": []
+          },
+          {
+            "key": "top", "tag": "div", "name": "Top bar",
+            "attrs": {},
+            "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "z-index": "var(--z-raised)", "display": "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center", "gap": "var(--sp-4)", "padding": "var(--sp-4) var(--sp-6)", "border-bottom": "1px solid var(--edge)" },
+            "breakpoints": { "tablet": { "grid-template-columns": "1fr auto", "padding": "var(--sp-3) var(--sp-4)" } },
+            "children": [
+              { "key": "tag", "tag": "p", "name": "Tag", "text": "{{tag}}", "attrs": {}, "styles": { "margin": "0", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "var(--hue)" }, "breakpoints": {}, "children": [] },
+              {
+                "key": "name", "tag": "p", "name": "Product name",
+                "attrs": {},
+                "styles": { "margin": "0", "font-weight": "var(--weight-display)", "font-size": "var(--fs-l)", "letter-spacing": "var(--track-tight)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "name-form", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "name-suffix", "tag": "span", "name": "Suffix", "text": "{{name}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              { "key": "tagline", "tag": "p", "name": "Tagline", "text": "{{tagline}}", "attrs": {}, "styles": { "margin": "0", "text-align": "right", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "var(--ink-soft)" }, "breakpoints": { "tablet": { "display": "none" } }, "children": [] }
+            ]
+          },
+          {
+            "key": "intro", "tag": "div", "name": "Intro",
+            "attrs": {},
+            "styles": { "position": "absolute", "left": "var(--sp-6)", "top": "42%", "transform": "translateY(-50%)", "width": "min(24vw, 300px)", "z-index": "var(--z-raised)", "font-size": "var(--fs-m)", "line-height": "1.5", "color": "var(--ink-soft)" },
+            "breakpoints": { "tablet": { "display": "none" } },
+            "children": [
+              { "key": "intro-title", "tag": "p", "name": "Intro title", "text": "{{introTitle}}", "attrs": {}, "styles": { "display": "block", "margin": "0 0 var(--sp-3)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-tight)", "font-size": "var(--fs-xl)", "line-height": "1.15", "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
+              { "key": "intro-text", "tag": "p", "name": "Intro text", "text": "{{introText}}", "attrs": {}, "styles": { "margin": "0" }, "breakpoints": {}, "children": [] }
+            ]
+          },
+          {
+            "key": "end", "tag": "div", "name": "Closing copy",
+            "attrs": { "data-fs-end": "" },
+            "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "z-index": "var(--z-sticky)", "display": "grid", "grid-template-columns": "minmax(0, 1fr) minmax(0, 46ch)", "align-items": "end", "column-gap": "var(--sp-6)", "row-gap": "var(--sp-3)", "padding": "0 var(--sp-6) var(--sp-5)" },
+            "breakpoints": { "tablet": { "grid-template-columns": "minmax(0, 1fr)", "padding": "0 var(--sp-4) var(--sp-4)" } },
+            "children": [
+              { "key": "end-kick", "tag": "p", "name": "Closing label", "text": "{{endKick}}", "attrs": {}, "styles": { "margin": "0", "grid-column": "1 / -1", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "var(--hue)" }, "breakpoints": {}, "children": [] },
+              {
+                "key": "end-head", "tag": "h2", "name": "Closing heading",
+                "attrs": {},
+                "styles": { "margin": "0", "max-width": "16ch", "line-height": "1.05" },
+                "breakpoints": { "tablet": { "max-width": "none" } },
+                "children": [
+                  { "key": "end-a", "tag": "span", "name": "Lead", "text": "Write it out as ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "end-form", "tag": "span", "name": "Form", "text": "Form", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "end-suffix", "tag": "span", "name": "Suffix", "text": "{{name}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "end-b", "tag": "span", "name": "Tail", "text": " video", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              { "key": "end-sum", "tag": "p", "name": "Closing text", "text": "{{endText}}", "attrs": {}, "styles": { "margin": "0", "color": "var(--ink-soft)" }, "breakpoints": {}, "children": [] },
+              {
+                "key": "end-act", "tag": "p", "name": "Closing action",
+                "attrs": {},
+                "styles": { "margin": "0", "grid-column": "2" },
+                "breakpoints": { "tablet": { "grid-column": "1" } },
+                "children": [
+                  {
+                    "key": "back", "tag": "button", "name": "Back to frame 0",
+                    "attrs": { "type": "button" },
+                    "styles": { "border": "0", "cursor": "pointer", "font-family": "inherit" },
+                    "breakpoints": {},
+                    "children": [
+                      { "key": "back-text", "tag": "span", "name": "Label", "text": "Back to frame 0", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                      {
+                        "key": "back-icon", "tag": "svg", "name": "Arrow",
+                        "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                        "styles": { "width": "var(--icon-s)", "height": "var(--icon-s)" },
+                        "breakpoints": {},
+                        "children": [
+                          { "key": "back-p1", "tag": "path", "name": "Stem", "attrs": { "d": "M12 19V5" }, "styles": {}, "breakpoints": {}, "children": [] },
+                          { "key": "back-p2", "tag": "path", "name": "Head", "attrs": { "d": "M5.5 11.5L12 5l6.5 6.5" }, "styles": {}, "breakpoints": {}, "children": [] }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@name-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@name-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@end-head@@", "name": "heading" } },
+    { "command": "textpreset.apply", "params": { "id": "@@end-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@end-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@back@@", "name": "button-quiet" } },
+    { "command": "node.update", "params": { "id": "@@end-head@@", "patch": { "styles": { "line-height": "1.05" } } } },
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@host@@",
+        "value": {
+          "component": "filmstrip",
+          "props": {
+            "frames": [
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w2400.webp 2400w", "srcLight": "https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w1024.webp", "srcsetLight": "https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w2400.webp 2400w", "alt": "The movie frame on the Stage above a timeline of tracks", "title": "Stage over Timeline", "loc": "Stage", "frame": 0, "w": 2400, "h": 1500, "fx": 50, "fy": 50, "zoom": 1 },
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w2400.webp 2400w", "srcLight": "https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w1024.webp", "srcsetLight": "https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w2400.webp 2400w", "alt": "Drawing, text and effect tracks on the timeline", "title": "Tracks of content", "loc": "Timeline", "frame": 8, "w": 2400, "h": 1500, "fx": 30, "fy": 88, "zoom": 1.9 },
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-hero-2/69106ccf033c.w2400.webp 2400w", "srcLight": "https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w1024.webp", "srcsetLight": "https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-hero-light-2/ac666c8ae572.w2400.webp 2400w", "alt": "The frame-accurate timecode under the movie frame", "title": "Frame-accurate timecode", "loc": "Stage", "frame": 16, "w": 2400, "h": 1500, "fx": 9, "fy": 57, "zoom": 2.2 },
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w2400.webp 2400w", "alt": "A flipbook drawing on the paint canvas with its neighbours as ghosts", "title": "Draw frame by frame", "loc": "Flipbook", "frame": 24, "w": 2400, "h": 1500, "fx": 50, "fy": 50, "zoom": 1 },
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w2400.webp 2400w", "alt": "The flipbook frame strip with the current drawing selected", "title": "Hold and onion skins", "loc": "Frame strip", "frame": 32, "w": 2400, "h": 1500, "fx": 50, "fy": 95, "zoom": 2.1 },
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-onion-2/b7244c7bfbdf.w2400.webp 2400w", "alt": "The paint tools and colour swatch above the flipbook", "title": "A paint canvas", "loc": "Toolbar", "frame": 40, "w": 2400, "h": 1500, "fx": 92, "fy": 7, "zoom": 2.4 },
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w2400.webp 2400w", "alt": "Keyframe lanes under each block with ease labels between keys", "title": "Keyframe mode", "loc": "Lanes", "frame": 48, "w": 2400, "h": 1500, "fx": 50, "fy": 50, "zoom": 1 },
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w2400.webp 2400w", "alt": "A motion path with smooth, corner and linear point options", "title": "Ease between keys", "loc": "Motion path", "frame": 56, "w": 2400, "h": 1500, "fx": 50, "fy": 45, "zoom": 2 },
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-writeon-2/9a290fdb0b47.w2400.webp 2400w", "alt": "The Compose, Perform and Keyframe mode switch", "title": "Compose, Perform, Keyframe", "loc": "Modes", "frame": 64, "w": 2400, "h": 1500, "fx": 50, "fy": 96, "zoom": 2.2 },
+              { "src": "https://media.formai.studio/media/formmorpheus/ui-export-2/e5b2f1c564e7.w1024.webp", "srcset": "https://media.formai.studio/media/formmorpheus/ui-export-2/e5b2f1c564e7.w640.webp 640w, https://media.formai.studio/media/formmorpheus/ui-export-2/e5b2f1c564e7.w1024.webp 1024w, https://media.formai.studio/media/formmorpheus/ui-export-2/e5b2f1c564e7.w2400.webp 2400w", "alt": "The Export dialog with video, GIF, frames, sprite sheet and sound options", "title": "Export", "loc": "Quick share", "frame": 72, "w": 2400, "h": 1500, "fx": 50, "fy": 50, "zoom": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "scenes",
+        "node": "@@section@@",
+        "value": {
+          "stage": "@@stage@@",
+          "length": 439,
+          "offset": "64px",
+          "smoothing": 200,
+          "reducedAt": 1,
+          "tracks": [
+            { "node": "@@top@@", "easing": "ease-in-out", "keyframes": [ { "at": 0, "styles": { "opacity": "1" } }, { "at": 0.86, "styles": { "opacity": "1" } }, { "at": 0.995, "styles": { "opacity": "0" } }, { "at": 1, "styles": { "opacity": "0" } } ] },
+            { "node": "@@intro@@", "easing": "ease-in-out", "keyframes": [ { "at": 0, "styles": { "opacity": "1", "translate": "0px 0px" } }, { "at": 0.05, "styles": { "opacity": "0", "translate": "-40px 0px" } }, { "at": 1, "styles": { "opacity": "0", "translate": "-40px 0px" } } ] },
+            { "node": "@@end@@", "easing": "ease-in-out", "keyframes": [ { "at": 0, "styles": { "opacity": "0", "translate": "0px 30px" } }, { "at": 0.93, "styles": { "opacity": "0", "translate": "0px 30px" } }, { "at": 1, "styles": { "opacity": "1", "translate": "0px 0px" } } ] }
+          ]
+        }
+      }
+    },
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "actions",
+        "node": "@@back@@",
+        "value": [ { "trigger": "click", "action": "scroll-to", "to": "@@section@@", "progress": 0, "duration": 1400, "easing": "ease-in-out" } ]
+      }
+    }
+  ],
+  "behaviors": {
+    "@@back@@": { "states": { "hover": { "background": "var(--control-hover)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "3px" } } }
+  }
+}

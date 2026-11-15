@@ -1,0 +1,42 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "scripted-desktop",
+  "code": "C17",
+  "name": "Scripted desktop",
+  "description": "A small desk with icons, draggable windows, a taskbar and an assistant whose fake pointer tidies the icons, opens captures, empties the bin and spins a turntable on request.",
+  "props": {
+    "brandForm": { "type": "string", "default": "Form" },
+    "brandSuffix": { "type": "string", "default": "Surface" },
+    "accent": { "type": "color", "default": "var(--hue)" },
+    "strings": { "type": "json", "default": {} },
+    "replies": { "type": "json", "default": {} },
+    "suggestions": { "type": "json", "default": [] },
+    "patterns": { "type": "json", "default": {} },
+    "media": { "type": "json", "default": {} }
+  },
+  "labels": {
+    "brandForm": "Brand, first part",
+    "brandSuffix": "Brand, second part",
+    "accent": "Accent",
+    "strings": "Interface text",
+    "replies": "Assistant replies",
+    "suggestions": "Suggestion chips",
+    "patterns": "Intent patterns",
+    "media": "Pictures"
+  },
+  "propDocs": {
+    "brandForm": "First half of the two-tone product name shown in the desk window title and on the fake pointer tag.",
+    "brandSuffix": "Second half of the two-tone product name, drawn in the accent colour.",
+    "accent": "Accent colour for the pointer ring, focus outlines, badge and equaliser. Defaults to the section tint.",
+    "strings": "Object that overrides any label: layers, captures, turntable, exports, bin, layersAria, capturesAria, turntableAria, exportsAria, binFullAria, binEmptyAria, badge, deskTitle, assistantLabel, minimise, maximise, close, conversation, askLabel, askPlaceholder, send, suggestionsLabel, start, taskDesk, taskCaptures, taskTurntable, capturesTitle, turntableTitle, playLabel, trackTitle, trackSub, frameLabel, discAlt. Missing keys keep the English default.",
+    "replies": "Object that overrides any assistant line: hello, tidyStart, tidyDone, picsStart, picsDone, binEmpty, binAlready, musicStart, musicDone, resetDone, other, layersOnly, exportsOnly. Missing keys keep the English default.",
+    "suggestions": "Array of {label, intent} with intent one of tidy, pics, bin, music, reset. An empty array keeps the four defaults.",
+    "patterns": "Object of intent name to a regular expression source, matched case insensitively against typed text. Missing keys keep the English patterns for tidy, pics, bin, music and reset.",
+    "media": "Object with capturesIconDark, capturesIconLight, capturesIconW, capturesIconH, knot, knotW, knotH, knotAlt and thumbs, an array of {dark, light, alt, altLight, origin, w, h} for the three captures. Missing keys keep the defaults."
+  },
+  "poster": "poster.webp",
+  "sections": ["formsurface-prompt"],
+  "fallback": "The poster shows the desk at rest. Under reduced motion the desk works the same but every script step runs at once and the loops and transitions are switched off.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formsurface-prompt (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

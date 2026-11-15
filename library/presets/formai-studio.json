@@ -1,0 +1,398 @@
+{
+  "format": "formweb-preset",
+  "version": 1,
+  "id": "formai-studio",
+  "name": "formai.studio",
+  "description": "The formai.studio design system: graphite surfaces, Inter at variable weights, one product tint per section, dark and light themes.",
+  "source": "formai-xmental-webspun v3.1.0, assets/sections/_kit/site.css (NodeAgentc, Inc.)",
+  "tokens": {
+    "ground": "#0f0e0d",
+    "inset": "#0b0a09",
+    "pane": "#161412",
+    "float": "#1d1a17",
+    "control": "#24211d",
+    "control-hover": "#2d2924",
+    "control-press": "#36312b",
+    "edge": "rgb(243 235 227 / 0.1)",
+    "edge-strong": "rgb(243 235 227 / 0.22)",
+    "ink": "#f3ebe3",
+    "ink-soft": "#a39a92",
+    "ink-faint": "#857e77",
+    "on-ink": "#0f0e0d",
+    "fault": "#ff5d6c",
+    "veil": "rgb(8 9 12 / 0.6)",
+    "bar-veil": "rgb(15 14 13 / 0.92)",
+    "focus": "#f3ebe3",
+    "hue-cut": "#ffae2b",
+    "hue-vis": "#a98bf0",
+    "hue-wav": "#1fe5c0",
+    "hue-portal": "#f3ebe3",
+    "hue": "var(--hue-portal)",
+    "hue-depth": "0%",
+    "hue-wash": "color-mix(in srgb, var(--hue) 14%, transparent)",
+    "hue-line": "color-mix(in srgb, var(--hue) 42%, transparent)",
+    "glow": "0 0 var(--sp-3) color-mix(in srgb, var(--hue) 30%, transparent), 0 var(--sp-2) var(--sp-7) calc(var(--sp-2) * -1) color-mix(in srgb, var(--hue) 62%, transparent)",
+    "glow-soft": "0 var(--sp-2) var(--sp-6) calc(var(--sp-2) * -1) color-mix(in srgb, var(--hue) 38%, transparent)",
+    "radius-s": "6px",
+    "radius-m": "10px",
+    "radius-l": "16px",
+    "radius-pill": "999px",
+    "sp-1": "4px",
+    "sp-2": "8px",
+    "sp-3": "12px",
+    "sp-4": "16px",
+    "sp-5": "24px",
+    "sp-6": "32px",
+    "sp-7": "48px",
+    "sp-8": "64px",
+    "sp-9": "96px",
+    "sp-10": "128px",
+    "icon-s": "16px",
+    "icon-m": "20px",
+    "control-h": "40px",
+    "control-h-compact": "32px",
+    "bar-h": "64px",
+    "rail-w": "208px",
+    "row-h": "88px",
+    "motif-w": "160px",
+    "motif-h": "40px",
+    "page-max": "1120px",
+    "prose-max": "62ch",
+    "gutter": "clamp(20px, 4vw, 40px)",
+    "band-pad": "clamp(64px, 10vw, 128px)",
+    "font-ui": "\"Inter Web\", \"Inter Fallback\", \"Segoe UI\", system-ui, -apple-system, sans-serif",
+    "font-mono": "\"SF Mono\", \"Cascadia Mono\", ui-monospace, Menlo, Consolas, monospace",
+    "fs-xs": "0.8125rem",
+    "fs-s": "0.875rem",
+    "fs-m": "1rem",
+    "fs-l": "1.125rem",
+    "fs-xl": "clamp(1.375rem, 1.15rem + 0.8vw, 1.75rem)",
+    "fs-2xl": "clamp(1.875rem, 1.3rem + 2.2vw, 2.75rem)",
+    "fs-hero": "clamp(2.5rem, 1.1rem + 5.2vw, 5rem)",
+    "weight-body": "420",
+    "weight-strong": "560",
+    "weight-display": "640",
+    "track-display": "-0.035em",
+    "track-tight": "-0.015em",
+    "ease-out": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+    "dur-fast": "140ms",
+    "dur": "240ms",
+    "black": "#000000",
+    "footage-ink": "#ffffff",
+    "footage-hue": "#ffae2b",
+    "footage-soft": "rgb(255 255 255 / 0.78)",
+    "footage-faint": "rgb(255 255 255 / 0.5)",
+    "footage-line": "rgb(255 255 255 / 0.16)",
+    "footage-glass": "rgb(10 12 13 / 0.45)",
+    "footage-edge": "rgb(255 255 255 / 0.55)",
+    "shade-strong": "rgb(0 0 0 / 0.8)",
+    "shade-mid": "rgb(0 0 0 / 0.45)",
+    "shade-soft": "rgb(0 0 0 / 0.25)",
+    "terminal": "#0c0f10",
+    "terminal-bar": "#161c1d",
+    "terminal-ink": "#f3ebe3",
+    "terminal-faint": "#88827b",
+    "terminal-key": "#ffae2b",
+    "terminal-ok": "#1fe5c0",
+    "paper": "var(--inset)",
+    "paper-ink": "var(--ink)",
+    "paper-soft": "var(--ink-soft)",
+    "paper-edge": "var(--edge)",
+    "rail-dark": "var(--pane)",
+    "rail-ink": "var(--ink-soft)",
+    "card-light": "var(--pane)",
+    "card-light-ink": "var(--ink)",
+    "card-light-soft": "var(--ink-soft)",
+    "shadow-tile": "none",
+    "shadow-window": "0 1px 1px rgb(0 0 0 / 0.3), 0 28px 64px -28px rgb(0 0 0 / 0.8)",
+    "shadow-shot": "0 30px 80px -40px rgb(0 0 0 / 0.55)",
+    "shadow-frame": "0 40px 100px -50px rgb(0 0 0 / 0.9)",
+    "z-behind": "-1",
+    "z-base": "0",
+    "z-raised": "100",
+    "z-field": "150",
+    "z-sticky": "200",
+    "z-chrome": "300",
+    "z-dropdown": "400",
+    "z-scrim": "500",
+    "z-overlay": "600",
+    "z-popover": "700",
+    "z-toast": "800",
+    "z-tooltip": "900",
+    "z-debug": "1000"
+  },
+  "themes": {
+    "default": "dark",
+    "followSystem": false,
+    "values": {
+      "light": {
+        "ground": "#f2f1ee",
+        "inset": "#e9e7e2",
+        "pane": "#f7f6f3",
+        "float": "#fbfaf8",
+        "control": "#e5e3dd",
+        "control-hover": "#dbd8d1",
+        "control-press": "#d0ccc4",
+        "edge": "rgb(16 16 20 / 0.13)",
+        "edge-strong": "rgb(16 16 20 / 0.3)",
+        "ink": "#101014",
+        "ink-soft": "#55544f",
+        "ink-faint": "#6a6861",
+        "on-ink": "#f2f1ee",
+        "fault": "#c9283a",
+        "veil": "rgb(20 22 27 / 0.4)",
+        "bar-veil": "rgb(242 241 238 / 0.92)",
+        "focus": "#101014",
+        "shadow-tile": "none",
+        "shadow-window": "0 1px 1px rgb(40 32 20 / 0.04), 0 28px 64px -28px rgb(40 32 20 / 0.3)",
+        "paper": "#edeae2",
+        "paper-edge": "rgb(20 24 25 / 0.12)",
+        "rail-dark": "#ffffff",
+        "rail-ink": "#465052",
+        "hue-cut": "#844e00",
+        "hue-vis": "#6343bc",
+        "hue-wav": "#006654",
+        "hue-portal": "#101014",
+        "hue-depth": "48%"
+      }
+    }
+  },
+  "fonts": {
+    "inter": {
+      "family": "Inter Web",
+      "file": "fonts/inter-4-var-latin.woff2",
+      "weight": "100 900",
+      "style": "normal",
+      "display": "optional"
+    }
+  },
+  "textPresets": {
+    "display": {
+      "styles": {
+        "font-size": "var(--fs-hero)",
+        "font-weight": "var(--weight-display)",
+        "line-height": "1.02",
+        "letter-spacing": "var(--track-display)",
+        "max-width": "17ch"
+      }
+    },
+    "heading": {
+      "styles": {
+        "font-size": "var(--fs-2xl)",
+        "font-weight": "var(--weight-display)",
+        "line-height": "1.08",
+        "letter-spacing": "var(--track-display)"
+      }
+    },
+    "title": {
+      "styles": {
+        "font-size": "var(--fs-xl)",
+        "font-weight": "var(--weight-strong)",
+        "line-height": "1.2",
+        "letter-spacing": "var(--track-tight)"
+      }
+    },
+    "body": {
+      "styles": {
+        "font-size": "var(--fs-m)",
+        "font-weight": "var(--weight-body)",
+        "line-height": "1.55"
+      }
+    },
+    "lead": {
+      "styles": {
+        "font-size": "var(--fs-l)",
+        "font-weight": "var(--weight-body)",
+        "line-height": "1.5",
+        "color": "var(--ink-soft)",
+        "max-width": "var(--prose-max)"
+      }
+    },
+    "small": {
+      "styles": {
+        "font-size": "var(--fs-s)",
+        "line-height": "1.45",
+        "color": "var(--ink-soft)"
+      }
+    },
+    "eyebrow": {
+      "styles": {
+        "font-size": "var(--fs-xs)",
+        "font-weight": "var(--weight-strong)",
+        "letter-spacing": "0.04em",
+        "color": "var(--ink-soft)"
+      }
+    },
+    "mono": {
+      "styles": {
+        "font-family": "var(--font-mono)",
+        "font-size": "var(--fs-s)"
+      }
+    },
+    "app-form": {
+      "styles": {
+        "color": "var(--ink)"
+      }
+    },
+    "app-suffix": {
+      "styles": {
+        "color": "var(--hue)"
+      }
+    },
+    "button": {
+      "styles": {
+        "display": "inline-flex",
+        "align-items": "center",
+        "justify-content": "center",
+        "gap": "var(--sp-2)",
+        "height": "48px",
+        "padding-left": "var(--sp-5)",
+        "padding-right": "var(--sp-5)",
+        "border-radius": "0",
+        "background": "var(--ink)",
+        "color": "var(--on-ink)",
+        "font-family": "var(--font-mono)",
+        "font-size": "var(--fs-xs)",
+        "font-weight": "500",
+        "letter-spacing": "0.14em",
+        "text-transform": "uppercase",
+        "line-height": "1.55",
+        "text-decoration": "none",
+        "white-space": "nowrap",
+        "transition": "background-color var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out)"
+      }
+    },
+    "button-quiet": {
+      "styles": {
+        "display": "inline-flex",
+        "align-items": "center",
+        "justify-content": "center",
+        "gap": "var(--sp-2)",
+        "height": "48px",
+        "padding-left": "var(--sp-5)",
+        "padding-right": "var(--sp-5)",
+        "border-radius": "0",
+        "background": "transparent",
+        "box-shadow": "inset 0 0 0 1px var(--edge-strong)",
+        "color": "var(--ink)",
+        "font-family": "var(--font-mono)",
+        "font-size": "var(--fs-xs)",
+        "font-weight": "500",
+        "letter-spacing": "0.14em",
+        "text-transform": "uppercase",
+        "line-height": "1.55",
+        "text-decoration": "none",
+        "white-space": "nowrap",
+        "transition": "background-color var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out)"
+      }
+    },
+    "chip": {
+      "styles": {
+        "display": "inline-flex",
+        "align-items": "center",
+        "height": "var(--sp-5)",
+        "padding-left": "var(--sp-3)",
+        "padding-right": "var(--sp-3)",
+        "border-radius": "var(--radius-pill)",
+        "background": "var(--hue)",
+        "color": "var(--on-ink)",
+        "font-size": "var(--fs-xs)",
+        "font-weight": "var(--weight-strong)",
+        "line-height": "1.55",
+        "white-space": "nowrap"
+      }
+    },
+    "brand-word": {
+      "styles": {
+        "display": "block",
+        "flex": "none",
+        "height": "round(down, min(var(--brand-h, 2.5rem), calc(var(--brand-cap, 8rem) / 1.87)), 2px)",
+        "aspect-ratio": "2465 / 1318",
+        "color": "inherit"
+      }
+    },
+    "nav-link": {
+      "styles": {
+        "display": "inline-flex",
+        "align-items": "center",
+        "height": "var(--control-h-compact)",
+        "padding-left": "var(--sp-3)",
+        "padding-right": "var(--sp-3)",
+        "white-space": "nowrap",
+        "border-radius": "var(--radius-s)",
+        "color": "var(--ink-soft)",
+        "font-family": "var(--font-mono)",
+        "font-size": "var(--fs-xs)",
+        "font-weight": "500",
+        "letter-spacing": "0.14em",
+        "text-transform": "uppercase",
+        "line-height": "1.55",
+        "text-decoration": "none",
+        "transition": "color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out)"
+      }
+    },
+    "foot-heading": {
+      "styles": {
+        "margin": "0 0 var(--sp-2)",
+        "color": "var(--ink)",
+        "font-size": "var(--fs-s)",
+        "font-weight": "var(--weight-strong)",
+        "line-height": "1.55",
+        "white-space": "nowrap"
+      }
+    }
+  },
+  "page": {
+    "background": "var(--ground)",
+    "color": "var(--ink)",
+    "font-family": "var(--font-ui)",
+    "font-weight": "var(--weight-body)",
+    "line-height": "1.55",
+    "margin": "0",
+    "padding": "0",
+    "min-height": "100vh",
+    "overflow-x": "clip"
+  },
+  "products": {
+    "formlit": "#5cb8ff",
+    "formdesign": "#ff6fae",
+    "formpath": "#ff8a4c",
+    "formvfx": "#d86bff",
+    "formmd": "#d8d2c4",
+    "formdam": "#7fdc6a",
+    "formdeck": "#c8ee4f",
+    "formencoder": "#f2545b",
+    "formsurface": "#f58f7c",
+    "formweb": "#36d3f5",
+    "formmcp": "#9fe7ff",
+    "formskills": "#ffc069",
+    "format": "#e6c34a",
+    "formcel": "#3ecf8e",
+    "formpdf": "#ff5d7a",
+    "formtxt": "#7aa2ff",
+    "formref": "#c9a27a",
+    "formtray": "#e08bd8",
+    "formsculpt": "#f7d08a",
+    "formcompiler": "#9aa6b8",
+    "formpromo": "#ff4f7a",
+    "formbench": "#5ee0e0",
+    "formcad": "#9a7bd8",
+    "formcraft": "#9f75e7",
+    "formfabric": "#eda146",
+    "formmorpheus": "#857cf3",
+    "formnet": "#8681dd",
+    "formrig": "#de72ba",
+    "formslot": "#aa75d2",
+    "formtools": "#de6c94",
+    "subform": "#a077e0",
+    "formext": "#bca8fd",
+    "formcut": "#ffae2b",
+    "formvis": "#a98bf0",
+    "formwav": "#1fe5c0",
+    "formportal": "#eef0f4"
+  },
+  "hueDepth": {
+    "dark": "0%",
+    "light": "48%"
+  }
+}

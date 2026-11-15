@@ -17,6 +17,7 @@ if /i "%FORMWEB_COMMAND%"=="mcp" goto mcp
 if /i "%FORMWEB_COMMAND%"=="agents" goto agents
 if /i "%FORMWEB_COMMAND%"=="comparisons" goto comparisons
 if /i "%FORMWEB_COMMAND%"=="run" goto run
+if /i "%FORMWEB_COMMAND%"=="library" goto library
 if /i "%FORMWEB_COMMAND%"=="render" goto render
 if /i "%FORMWEB_COMMAND%"=="desktop" goto desktop
 if /i "%FORMWEB_COMMAND%"=="doctor" goto doctor
@@ -62,6 +63,9 @@ backend\venv\Scripts\python.exe setup\comparisons.py %2 %3 %4 %5
 exit /b %errorlevel%
 :run
 backend\venv\Scripts\python.exe setup\run.py %2 %3 %4 %5 %6 %7 %8 %9
+exit /b %errorlevel%
+:library
+backend\venv\Scripts\python.exe setup\library_tool.py %2 %3 %4 %5 %6
 exit /b %errorlevel%
 :render
 if not exist native\crates\formweb-render\target\release\formweb-render.exe cargo build --release --manifest-path native\crates\formweb-render\Cargo.toml

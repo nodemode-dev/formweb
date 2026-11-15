@@ -15,6 +15,7 @@ rm -rf build/pyinstaller dist-engine
   --distpath dist-engine --workpath build/pyinstaller --specpath build/pyinstaller --paths "$FORMWEB_ROOT/backend" \
   --add-data "$FORMWEB_ROOT/frontend/dist:frontend_dist" \
   --add-data "$FORMWEB_ROOT/backend/app/stock:app/stock" \
+  --add-data "$FORMWEB_ROOT/library:library" \
   --add-binary "$core:bin" \
   --collect-submodules app --collect-submodules uvicorn --collect-data mcp --exclude-module mcp.cli \
   "$FORMWEB_ROOT/backend/formweb_engine.py"

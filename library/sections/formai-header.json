@@ -1,0 +1,384 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formai-header",
+  "name": "formai.studio header",
+  "category": "chrome",
+  "tags": ["header", "navigation", "search", "theme toggle"],
+  "product": "formportal",
+  "description": "The formai.studio top bar: brand mark and wordmark, site search, reviews link, navigation links and the light and dark toggle.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/_kit chrome (.bar header)",
+  "preset": "formai-studio",
+  "components": [],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#eef0f4" },
+    "name": { "label": "Brand name", "type": "text", "default": "formai" },
+    "home": { "label": "Home link", "type": "url", "default": "https://formai.studio/" },
+    "placeholder": { "label": "Search placeholder", "type": "text", "default": "Search apps and docs" }
+  },
+  "tree": {
+    "key": "bar",
+    "tag": "header",
+    "name": "Header",
+    "attrs": {},
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "position": "sticky",
+      "top": "0",
+      "z-index": "var(--z-sticky)",
+      "background": "var(--bar-veil)",
+      "backdrop-filter": "blur(12px)",
+      "border-bottom": "1px solid var(--edge)",
+      "color": "var(--ink)"
+    },
+    "breakpoints": {},
+    "children": [
+      {
+        "key": "bar-in",
+        "tag": "div",
+        "name": "Bar grid",
+        "attrs": {},
+        "styles": {
+          "--bar-gap": "var(--sp-3)",
+          "box-sizing": "border-box",
+          "width": "100%",
+          "padding-left": "clamp(var(--sp-3), 2vw, var(--sp-5))",
+          "padding-right": "clamp(var(--sp-3), 2vw, var(--sp-5))",
+          "min-height": "var(--bar-h)",
+          "display": "grid",
+          "grid-template-columns": "auto minmax(0, 22rem) auto 1fr auto",
+          "align-items": "center",
+          "column-gap": "var(--bar-gap)"
+        },
+        "breakpoints": {
+          "mobile": {
+            "--bar-gap": "var(--sp-2)",
+            "grid-template-columns": "auto minmax(0, 1fr) auto",
+            "grid-template-rows": "var(--control-h) var(--control-h)",
+            "row-gap": "var(--sp-1)",
+            "padding-top": "var(--sp-2)",
+            "padding-bottom": "var(--sp-1)"
+          }
+        },
+        "children": [
+          {
+            "key": "brand",
+            "tag": "a",
+            "name": "Brand",
+            "attrs": { "href": "{{home}}", "aria-label": "{{name}}, home" },
+            "styles": {
+              "--brand-cap": "8rem",
+              "box-sizing": "border-box",
+              "display": "inline-flex",
+              "align-items": "center",
+              "gap": "var(--bar-gap)",
+              "min-height": "var(--control-h)",
+              "color": "var(--ink)",
+              "font-weight": "var(--weight-display)",
+              "letter-spacing": "var(--track-tight)",
+              "text-decoration": "none",
+              "user-select": "none"
+            },
+            "breakpoints": {
+              "mobile": { "--brand-cap": "6rem", "grid-row": "1", "grid-column": "1" }
+            },
+            "children": [
+              {
+                "key": "mark",
+                "tag": "svg",
+                "name": "Brand mark",
+                "attrs": { "viewBox": "0 0 24 24", "aria-hidden": "true" },
+                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "mark-cut", "tag": "path", "name": "Cut bar", "attrs": { "fill": "currentColor", "d": "M4 5h16a1.5 1.5 0 0 1 0 3H4a1.5 1.5 0 0 1 0-3z" }, "styles": { "color": "var(--hue-cut)" }, "breakpoints": {}, "children": [] },
+                  { "key": "mark-vis", "tag": "path", "name": "Vis bar", "attrs": { "fill": "currentColor", "d": "M4 10.5h11a1.5 1.5 0 0 1 0 3H4a1.5 1.5 0 0 1 0-3z" }, "styles": { "color": "var(--hue-vis)" }, "breakpoints": {}, "children": [] },
+                  { "key": "mark-wav", "tag": "path", "name": "Wav bar", "attrs": { "fill": "currentColor", "d": "M4 16h6a1.5 1.5 0 0 1 0 3H4a1.5 1.5 0 0 1 0-3z" }, "styles": { "color": "var(--hue-wav)" }, "breakpoints": {}, "children": [] }
+                ]
+              },
+              {
+                "key": "word",
+                "tag": "svg",
+                "name": "Wordmark",
+                "attrs": { "viewBox": "0 0 2465 1318", "role": "img", "aria-label": "{{name}}", "fill": "currentColor" },
+                "styles": {},
+                "breakpoints": {},
+                "children": [
+                  { "key": "word-path", "tag": "path", "name": "Wordmark outline", "attrs": { "fill": "currentColor", "fill-rule": "evenodd", "d": "M450 1278C428 1276 419 1274 406 1270C400 1268 395 1266 394 1265C383 1262 369 1251 360 1240C355 1232 353 1227 349 1214C348 1209 347 1191 348 1184C351 1171 355 1156 358 1149C359 1146 361 1141 363 1137C365 1133 367 1128 368 1126C370 1123 373 1118 375 1114C382 1100 393 1083 401 1071C404 1067 408 1060 411 1056C435 1022 486 967 559 898C597 861 598 860 622 859C660 858 661 858 678 854C687 853 691 854 693 858C695 862 693 866 681 879C664 896 658 903 649 914C644 921 638 927 637 929C614 957 589 997 580 1018C579 1022 577 1028 576 1031C568 1052 569 1078 578 1096C590 1117 604 1127 636 1133C658 1137 657 1137 681 1137C703 1137 704 1137 720 1135C724 1134 732 1133 737 1132C757 1130 766 1129 782 1125C787 1124 796 1122 802 1121C815 1119 819 1118 831 1115C836 1113 845 1111 850 1110C855 1109 863 1107 868 1105C873 1103 882 1101 887 1100C893 1098 900 1096 904 1094C908 1093 916 1090 921 1089C926 1088 933 1085 937 1084C940 1083 947 1080 952 1079C956 1078 963 1075 967 1074C971 1072 978 1070 982 1068C986 1067 991 1066 994 1065C1001 1062 1009 1059 1014 1058C1017 1057 1023 1055 1028 1053C1032 1051 1039 1048 1043 1047C1047 1046 1053 1044 1057 1042C1061 1040 1067 1038 1070 1037C1072 1036 1078 1034 1082 1032C1085 1030 1091 1028 1095 1027C1098 1026 1104 1023 1107 1022C1111 1020 1116 1018 1120 1016C1123 1015 1129 1013 1132 1011C1135 1010 1140 1007 1144 1006C1147 1005 1153 1002 1156 1001C1160 999 1166 997 1168 996C1171 994 1176 992 1178 991C1181 990 1186 988 1189 986C1195 984 1211 977 1222 971C1226 969 1230 967 1232 966C1235 964 1256 954 1276 943C1284 940 1291 936 1294 935C1296 934 1300 932 1302 930C1305 929 1309 927 1313 925C1330 917 1362 900 1370 896C1372 894 1376 892 1378 891C1381 890 1384 888 1385 888C1386 887 1390 885 1394 882C1398 880 1403 878 1405 876C1407 875 1411 873 1414 871C1417 869 1421 867 1423 866C1425 864 1428 863 1431 861C1433 860 1438 858 1441 856C1449 851 1464 844 1468 843C1474 841 1504 841 1510 843C1519 846 1515 854 1502 861C1489 868 1479 874 1461 885C1457 888 1445 895 1436 901C1432 903 1427 906 1424 908C1422 909 1418 912 1416 912C1415 913 1411 915 1408 917C1405 919 1401 922 1399 922C1398 923 1394 925 1390 928C1386 930 1380 933 1377 935C1364 942 1360 944 1356 947C1353 949 1348 952 1344 954C1340 956 1335 959 1334 959C1332 960 1328 962 1324 964C1321 966 1316 969 1313 970C1311 972 1307 974 1304 975C1302 976 1297 979 1294 981C1291 982 1287 984 1285 985C1283 986 1279 989 1276 990C1272 992 1268 995 1265 996C1263 997 1260 999 1258 1000C1256 1000 1250 1004 1244 1007C1238 1010 1223 1017 1211 1024C1199 1030 1187 1036 1184 1037C1182 1038 1177 1040 1174 1042C1171 1044 1167 1046 1166 1046C1160 1049 1126 1065 1110 1073C1106 1075 1101 1077 1099 1078C1097 1079 1092 1081 1088 1083C1084 1085 1079 1088 1077 1089C1074 1090 1069 1092 1066 1094C1062 1096 1057 1098 1054 1099C1052 1100 1047 1102 1044 1104C1040 1106 1034 1109 1031 1110C1028 1111 1023 1113 1020 1115C1017 1116 1012 1118 1008 1120C1005 1121 999 1124 996 1125C992 1127 987 1129 984 1130C980 1132 975 1134 972 1136C968 1137 962 1140 959 1141C956 1142 950 1144 946 1146C942 1148 937 1150 934 1151C930 1153 925 1155 922 1156C918 1158 912 1160 909 1162C905 1163 899 1165 896 1166C893 1168 886 1170 882 1172C878 1173 872 1175 870 1177C867 1178 861 1180 856 1182C852 1183 846 1185 842 1187C838 1189 831 1191 827 1192C823 1194 816 1196 812 1198C808 1199 802 1202 798 1203C793 1204 787 1206 783 1208C780 1209 773 1212 768 1213C763 1214 756 1217 753 1218C749 1219 744 1221 740 1222C728 1225 726 1226 719 1229C715 1230 707 1232 701 1234C694 1236 686 1238 681 1240C677 1241 669 1243 663 1245C658 1246 650 1248 647 1249C637 1252 634 1253 623 1255C618 1256 609 1258 605 1260C596 1262 585 1264 572 1266C568 1267 561 1268 556 1270C544 1272 540 1273 518 1275C480 1279 469 1279 450 1278ZM148 954C137 952 129 948 126 940C122 932 124 914 130 899C132 896 134 891 135 887C136 883 139 876 141 872C143 868 145 864 146 862C147 858 160 833 162 830C163 829 165 825 166 823C167 820 170 815 172 812C174 808 176 803 178 800C179 798 181 794 182 793C184 790 187 784 198 763C200 758 202 754 203 752C204 751 206 747 208 744C210 740 214 731 218 724C222 716 227 707 229 702C233 694 238 686 243 676C264 639 265 631 254 620C244 610 245 610 199 610C131 611 54 611 49 610C37 609 37 604 49 597C59 590 65 588 86 587C95 586 104 586 108 586C112 585 120 585 125 584C141 584 150 581 152 577C153 573 160 572 176 571C189 570 194 570 209 568C223 567 223 567 230 561C235 557 239 555 243 554C247 553 274 552 285 552C300 552 304 549 312 535C315 531 320 522 323 517C327 511 330 505 332 502C333 500 335 496 337 493C339 490 341 486 342 483C344 480 346 475 348 472C350 469 352 464 353 461C354 458 357 454 358 451C360 448 362 444 363 442C365 437 379 411 380 408C381 406 383 403 385 399C386 396 389 391 390 388C392 386 395 381 396 378C401 368 406 363 415 362C421 360 500 361 503 362C509 365 510 370 503 380C501 383 499 387 498 390C497 392 495 396 493 399C491 402 489 407 488 410C486 413 482 421 478 429C474 436 470 444 469 446C468 449 466 454 464 457C462 460 459 467 457 471C455 476 452 480 451 481C451 482 448 487 447 490C445 494 442 499 441 501C440 503 438 506 436 509C435 512 432 517 430 521C418 543 417 546 424 549C425 550 454 550 597 550C692 550 791 550 818 551C866 551 866 551 869 550C874 547 876 544 880 533C891 501 921 477 958 470C971 467 1011 467 1020 469C1031 472 1032 481 1022 500C1020 504 1017 509 1016 512C1015 515 1013 519 1011 522C1000 541 999 546 1006 549C1010 551 1014 551 1048 552C1127 552 1146 552 1149 554C1156 557 1155 563 1148 576C1145 582 1143 587 1141 590C1140 593 1134 607 1127 619C1126 623 1122 629 1106 661C1103 669 1083 707 1077 720C1071 732 1070 734 1071 739C1072 743 1077 746 1085 746C1100 746 1162 746 1164 745C1171 743 1176 737 1182 722C1184 718 1186 713 1187 710C1189 707 1191 703 1192 700C1194 696 1196 691 1198 687C1200 683 1202 678 1204 676C1205 673 1206 669 1208 667C1209 664 1211 660 1213 657C1214 654 1217 648 1219 644C1221 640 1223 635 1224 633C1225 631 1227 626 1229 621C1231 617 1234 611 1236 608C1237 605 1239 601 1240 600C1240 598 1243 593 1244 589C1246 585 1249 580 1250 577C1252 574 1254 569 1256 566C1261 556 1265 552 1272 550C1276 549 1357 550 1360 551C1365 553 1367 556 1367 561C1367 564 1359 581 1354 590C1353 592 1350 596 1348 600C1346 605 1343 610 1341 613C1340 616 1338 620 1336 623C1335 625 1333 629 1331 631C1324 643 1326 651 1335 646C1339 644 1349 635 1374 611C1401 586 1421 570 1440 559C1443 557 1447 555 1449 554C1452 552 1470 546 1479 543C1483 542 1493 541 1499 541C1529 541 1543 564 1529 592C1528 595 1526 599 1525 602C1524 606 1521 611 1519 615C1505 640 1511 644 1533 625C1585 579 1600 568 1627 553C1642 545 1668 540 1680 543C1699 548 1711 566 1707 586C1706 594 1699 613 1695 622C1693 627 1691 632 1690 633C1689 636 1682 650 1677 661C1670 675 1664 685 1659 696C1653 708 1648 719 1643 729C1639 737 1643 743 1652 745C1654 745 1696 746 1716 746C1729 746 1731 744 1733 727C1734 721 1735 714 1736 711C1743 685 1744 682 1747 676C1747 675 1750 670 1752 666C1766 634 1799 597 1826 582C1828 581 1833 578 1836 576C1846 570 1863 563 1869 561C1872 560 1879 558 1884 556C1902 550 1918 548 1967 549C1981 550 2014 550 2040 550C2093 550 2090 550 2093 553C2095 557 2094 562 2090 570C2088 572 2086 577 2085 579C2084 581 2081 587 2079 591C2076 596 2072 606 2068 612C2065 620 2061 629 2059 633C2057 637 2054 643 2052 646C2051 649 2049 654 2047 657C2046 660 2044 664 2042 667C2041 670 2039 675 2038 678C2036 680 2034 685 2032 688C2031 691 2029 695 2027 698C2026 701 2023 706 2022 709C2021 712 2018 717 2016 720C2008 734 2008 742 2017 745C2021 746 2098 746 2101 745C2105 743 2110 736 2115 725C2116 722 2119 716 2120 712C2122 708 2124 704 2125 702C2126 699 2135 680 2139 673C2151 649 2160 631 2162 627C2164 624 2166 620 2167 618C2168 615 2170 610 2172 607C2174 604 2176 598 2178 595C2179 592 2181 587 2183 584C2184 581 2186 576 2188 573C2192 564 2197 556 2200 553C2205 550 2203 550 2242 550C2262 550 2280 549 2283 549C2303 548 2307 554 2297 574C2294 580 2291 586 2291 588C2290 590 2288 594 2286 597C2285 600 2283 604 2282 606C2281 608 2278 613 2276 617C2275 620 2272 625 2272 627C2270 631 2262 647 2256 660C2254 664 2251 669 2250 671C2250 673 2247 679 2245 684C2242 688 2240 694 2239 696C2238 698 2236 702 2235 704C2233 706 2231 711 2230 714C2229 716 2226 721 2225 724C2218 734 2218 741 2225 744C2227 745 2227 745 2322 746C2413 746 2417 746 2420 747C2428 749 2427 753 2417 760C2415 762 2411 765 2409 767C2400 775 2386 784 2377 787C2376 788 2371 790 2367 791C2353 798 2353 798 2322 798C2295 799 2298 799 2275 802C2254 806 2246 806 2202 807C2184 807 2164 807 2157 807C2129 808 2119 804 2108 790C2100 781 2098 781 2086 791C2077 798 2067 802 2051 805C2046 806 2014 807 1962 807C1921 807 1913 806 1906 803C1899 800 1896 797 1889 788C1884 781 1881 782 1870 790C1850 806 1816 816 1794 814C1770 812 1755 803 1744 785C1737 775 1732 774 1723 782C1707 796 1692 803 1673 806C1666 807 1569 807 1563 806C1544 803 1527 790 1525 776C1524 767 1525 756 1531 744C1532 741 1534 736 1535 733C1537 726 1542 715 1549 701C1558 684 1563 670 1561 668C1558 664 1549 671 1512 706C1508 710 1502 716 1498 720C1494 723 1480 736 1467 750C1425 792 1420 796 1401 803C1388 809 1363 809 1351 803C1335 795 1333 784 1343 762C1345 758 1347 753 1348 750C1349 747 1350 743 1352 740C1353 738 1355 733 1357 728C1359 724 1362 718 1364 715C1366 712 1368 707 1369 704C1371 701 1373 695 1375 692C1381 679 1384 669 1381 668C1377 666 1371 671 1354 688C1336 706 1322 719 1314 726C1302 737 1283 756 1270 770C1249 793 1243 799 1234 802C1227 806 1226 806 1187 806C1146 807 1149 807 1143 802C1137 797 1135 797 1122 802C1112 807 1117 807 1050 807C983 807 988 807 979 803C964 795 956 779 960 763C962 755 967 740 969 735C970 732 972 726 974 722C978 711 993 680 1000 668C1002 665 1004 660 1006 657C1008 653 1010 649 1012 646C1016 639 1024 623 1024 621C1024 618 1023 615 1020 613C1015 611 979 612 974 615C968 617 962 626 954 640C947 654 942 664 939 670C937 673 934 679 932 682C916 710 900 731 890 735C882 739 856 741 850 737C844 734 844 730 849 718C855 706 871 675 876 666C878 664 881 660 882 657C884 654 886 650 887 648C890 644 899 625 900 623C901 618 898 614 893 612C889 611 796 611 793 612C788 615 787 619 790 626C796 643 797 651 795 666C795 671 789 692 787 698C784 708 770 730 760 744C743 766 726 779 696 795C695 796 690 798 687 799C683 800 678 802 674 804C646 814 590 814 563 803C560 802 554 800 552 799C528 791 506 769 500 747C493 724 496 693 506 667C512 651 518 640 528 629C536 620 537 615 532 612C529 610 420 610 416 612C410 615 411 620 418 631C426 644 430 658 430 676C431 692 426 721 420 737C418 741 416 746 415 750C413 755 404 776 400 783C399 784 396 788 394 792C378 820 348 857 321 879C319 880 315 884 313 886C288 908 262 925 242 934C238 935 233 938 229 939C224 942 213 945 198 950C188 952 160 955 148 954ZM230 878C239 874 268 845 282 827C296 809 315 776 323 756C331 736 331 737 333 723C335 707 333 699 327 699C323 699 319 703 314 713C312 716 309 722 307 725C305 729 302 733 301 736C300 739 297 743 296 745C294 747 292 751 291 754C289 756 287 760 286 762C285 764 282 768 280 772C275 780 268 791 264 798C262 800 260 803 260 805C259 806 257 810 254 814C252 817 249 822 248 825C242 835 238 842 234 849C222 870 220 874 222 878C223 880 226 880 230 878ZM636 749C644 747 650 742 654 733C655 730 658 725 660 722C664 715 682 678 685 671C686 669 688 665 690 662C692 659 694 653 696 650C697 647 700 642 702 638C710 622 711 615 703 612C701 611 698 611 680 611C655 610 652 611 647 616C642 620 632 638 624 654C623 656 620 662 618 666C616 671 613 677 612 680C611 683 608 688 607 692C605 695 603 700 602 703C601 706 599 710 598 712C589 733 597 746 622 751C625 751 633 751 636 749ZM1889 744C1894 742 1902 733 1907 721C1908 718 1911 712 1913 708C1915 703 1920 694 1923 686C1927 679 1930 672 1931 670C1937 660 1942 649 1944 646C1961 619 1960 613 1938 611C1927 611 1910 612 1905 613C1894 616 1885 626 1877 644C1876 647 1873 652 1872 655C1870 659 1867 664 1866 667C1865 670 1863 675 1862 678C1854 695 1850 715 1852 723C1856 739 1874 749 1889 744ZM2283 501C2266 498 2261 497 2252 491C2224 472 2217 431 2235 396C2242 382 2247 376 2255 368C2277 348 2313 338 2334 346C2368 359 2382 386 2376 423C2371 457 2343 490 2313 498C2304 500 2289 502 2283 501ZM1086 494C1078 492 1083 485 1097 477C1106 472 1110 468 1116 464C1120 459 1132 452 1140 447C1144 445 1148 442 1150 441C1152 440 1156 438 1158 436C1161 435 1165 432 1168 430C1171 429 1176 426 1178 424C1184 421 1194 415 1202 410C1205 408 1209 406 1211 405C1213 404 1217 401 1220 399C1224 397 1228 395 1230 394C1233 392 1236 390 1238 389C1241 388 1244 386 1246 384C1249 383 1254 381 1258 378C1268 372 1277 367 1286 362C1291 360 1299 356 1304 353C1309 350 1314 348 1314 348C1314 347 1323 343 1334 338C1344 332 1353 327 1355 327C1356 326 1360 324 1364 322C1367 321 1372 318 1375 317C1377 315 1382 313 1384 312C1386 311 1390 309 1393 307C1396 305 1401 303 1404 301C1408 299 1412 297 1413 296C1416 294 1435 284 1441 282C1444 280 1448 278 1451 277C1454 275 1458 273 1460 272C1463 271 1468 268 1472 266C1476 264 1482 261 1486 260C1489 258 1494 256 1496 255C1498 253 1503 251 1506 250C1509 249 1514 246 1518 244C1521 242 1527 240 1530 238C1532 237 1537 235 1539 234C1541 232 1546 230 1549 229C1553 228 1558 225 1561 224C1564 222 1569 220 1572 218C1575 217 1580 215 1583 213C1586 211 1591 209 1594 208C1597 207 1602 204 1605 203C1609 201 1614 199 1617 198C1620 197 1625 194 1630 192C1634 190 1640 188 1643 187C1646 186 1650 184 1653 182C1656 181 1662 178 1666 177C1671 175 1677 173 1681 171C1684 169 1690 167 1694 166C1698 164 1703 162 1706 161C1710 159 1715 157 1719 156C1722 155 1728 152 1732 151C1736 149 1742 147 1746 145C1749 144 1755 142 1758 140C1761 139 1767 137 1771 135C1775 134 1781 131 1784 130C1789 128 1796 125 1802 124C1803 124 1808 122 1812 120C1817 118 1824 116 1829 114C1833 113 1840 111 1843 109C1847 108 1854 106 1858 104C1862 103 1869 101 1873 99C1877 97 1884 95 1889 94C1893 92 1900 90 1902 89C1912 86 1914 85 1923 83C1928 82 1935 80 1940 78C1945 76 1954 74 1959 73C1964 72 1970 70 1974 69C1984 66 1990 64 1999 63C2009 61 2012 61 2023 58C2030 56 2033 55 2055 52C2061 51 2069 49 2073 48C2085 45 2095 44 2122 41C2173 36 2219 44 2244 61C2260 71 2269 85 2272 103C2275 119 2272 146 2266 160C2265 163 2263 169 2261 172C2253 193 2230 232 2210 259C2178 302 2148 336 2109 374C2103 379 2089 393 2078 404C2032 448 2016 463 1994 480C1979 491 1977 492 1935 493C1907 494 1904 494 1902 493C1896 490 1898 484 1911 471C1924 457 1946 434 1951 428C1969 407 1994 376 2002 365C2013 349 2026 327 2033 311C2035 307 2037 302 2038 298C2044 287 2049 260 2048 248C2046 224 2038 207 2022 196C2010 188 2007 187 1986 183C1959 177 1921 177 1887 182C1880 184 1868 185 1861 186C1847 188 1838 190 1826 193C1822 194 1814 196 1808 197C1801 198 1793 201 1788 202C1780 205 1775 206 1764 208C1761 209 1754 211 1748 213C1742 215 1733 217 1728 219C1723 220 1716 222 1712 224C1708 225 1701 227 1696 228C1691 230 1685 232 1682 233C1676 235 1668 238 1660 240C1658 241 1653 243 1649 245C1646 246 1640 248 1637 249C1633 250 1628 252 1624 254C1621 256 1615 258 1613 258C1604 261 1602 262 1596 265C1593 266 1587 268 1583 270C1579 271 1573 273 1570 275C1566 277 1560 279 1557 280C1554 281 1548 284 1543 286C1539 288 1534 290 1532 290C1530 291 1525 293 1521 295C1517 297 1511 299 1508 301C1505 302 1500 304 1496 306C1492 308 1486 310 1483 311C1480 312 1474 315 1471 316C1467 318 1462 320 1459 321C1457 322 1451 325 1448 327C1444 328 1439 331 1436 332C1432 334 1428 336 1425 337C1422 339 1417 341 1414 342C1412 343 1406 346 1402 348C1399 349 1388 355 1380 359C1371 363 1361 368 1358 370C1356 371 1351 373 1348 375C1346 376 1340 378 1337 380C1333 382 1328 385 1326 386C1323 387 1320 389 1318 390C1315 391 1311 393 1307 395C1299 399 1280 409 1278 411C1277 411 1273 413 1270 415C1266 417 1262 419 1259 421C1257 422 1253 425 1250 426C1248 427 1244 429 1242 430C1240 432 1235 434 1231 436C1227 438 1223 440 1221 442C1219 443 1215 445 1211 447C1207 449 1203 451 1202 452C1200 453 1197 454 1195 456C1192 457 1188 459 1186 460C1181 463 1176 466 1173 467C1171 468 1167 470 1163 472C1159 473 1152 476 1148 478C1144 479 1138 481 1135 482C1131 484 1125 486 1122 486C1119 487 1110 489 1104 490C1090 494 1088 494 1086 494Z" }, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "search",
+            "tag": "div",
+            "name": "Search",
+            "attrs": { "role": "search" },
+            "styles": {
+              "position": "relative",
+              "display": "grid",
+              "grid-template-columns": "minmax(0, 1fr)",
+              "align-items": "center",
+              "justify-self": "start",
+              "width": "100%",
+              "height": "var(--control-h)",
+              "max-width": "22rem"
+            },
+            "breakpoints": {
+              "mobile": { "grid-row": "1", "grid-column": "2", "position": "static", "max-width": "none" }
+            },
+            "children": [
+              {
+                "key": "search-ic",
+                "tag": "svg",
+                "name": "Search icon",
+                "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                "styles": {
+                  "position": "relative",
+                  "grid-column": "1",
+                  "grid-row": "1",
+                  "margin-left": "var(--sp-3)",
+                  "display": "block",
+                  "flex": "none",
+                  "width": "var(--icon-s)",
+                  "height": "var(--icon-s)",
+                  "color": "var(--ink-faint)",
+                  "pointer-events": "none"
+                },
+                "breakpoints": {},
+                "children": [
+                  { "key": "search-ic-a", "tag": "path", "name": "Lens", "attrs": { "d": "M10.5 4a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13z" }, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "search-ic-b", "tag": "path", "name": "Handle", "attrs": { "d": "M15.5 15.5L20 20" }, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              {
+                "key": "q",
+                "tag": "input",
+                "name": "Search field",
+                "attrs": { "type": "search", "name": "q", "placeholder": "{{placeholder}}", "aria-label": "Search", "autocomplete": "off" },
+                "styles": {
+                  "display": "block",
+                  "grid-column": "1",
+                  "grid-row": "1",
+                  "box-sizing": "border-box",
+                  "width": "100%",
+                  "height": "var(--control-h)",
+                  "margin": "0",
+                  "padding-top": "0",
+                  "padding-bottom": "0",
+                  "padding-left": "calc(var(--sp-3) + var(--icon-s) + var(--sp-2))",
+                  "padding-right": "var(--sp-3)",
+                  "border": "1px solid var(--edge-strong)",
+                  "border-radius": "0",
+                  "background": "transparent",
+                  "color": "var(--ink)",
+                  "font": "inherit",
+                  "font-size": "var(--fs-s)",
+                  "transition": "border-color var(--dur-fast) var(--ease-out)"
+                },
+                "breakpoints": {},
+                "children": []
+              },
+              {
+                "key": "results",
+                "tag": "div",
+                "name": "Search results",
+                "attrs": { "aria-live": "polite" },
+                "styles": {
+                  "position": "absolute",
+                  "z-index": "var(--z-dropdown)",
+                  "top": "calc(100% + var(--sp-2))",
+                  "left": "0",
+                  "width": "max(100%, 28rem)",
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "box-shadow": "var(--shadow-tile)"
+                },
+                "breakpoints": {
+                  "mobile": { "top": "100%", "left": "var(--sp-2)", "right": "var(--sp-2)", "width": "auto" }
+                },
+                "children": []
+              },
+              {
+                "key": "hit",
+                "tag": "a",
+                "name": "Result template",
+                "attrs": { "href": "#", "hidden": "", "data-fw-slot": "link" },
+                "styles": {
+                  "padding": "var(--sp-2) var(--sp-3)",
+                  "border": "1px solid var(--edge-strong)",
+                  "background": "var(--float)",
+                  "color": "var(--ink)",
+                  "text-decoration": "none"
+                },
+                "breakpoints": {},
+                "children": [
+                  { "key": "hit-title", "tag": "span", "name": "Result title", "text": "Title", "attrs": { "data-fw-slot": "title" }, "styles": { "display": "block", "overflow": "hidden", "white-space": "nowrap", "text-overflow": "ellipsis", "font-size": "var(--fs-s)", "font-weight": "var(--weight-strong)", "line-height": "1.25rem" }, "breakpoints": {}, "children": [] },
+                  { "key": "hit-path", "tag": "span", "name": "Result path", "text": "/path", "attrs": { "data-fw-slot": "path" }, "styles": { "display": "block", "overflow": "hidden", "white-space": "nowrap", "text-overflow": "ellipsis", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "line-height": "1.25rem" }, "breakpoints": {}, "children": [] },
+                  { "key": "hit-text", "tag": "span", "name": "Result excerpt", "text": "Excerpt", "attrs": { "data-fw-slot": "excerpt" }, "styles": { "display": "block", "overflow": "hidden", "white-space": "nowrap", "text-overflow": "ellipsis", "color": "var(--ink-soft)", "font-size": "var(--fs-xs)", "line-height": "1.125rem" }, "breakpoints": {}, "children": [] }
+                ]
+              },
+              {
+                "key": "none",
+                "tag": "div",
+                "name": "No results",
+                "text": "No matches",
+                "attrs": { "hidden": "" },
+                "styles": {
+                  "position": "absolute",
+                  "z-index": "var(--z-dropdown)",
+                  "top": "calc(100% + var(--sp-2))",
+                  "left": "0",
+                  "width": "max(100%, 28rem)",
+                  "box-sizing": "border-box",
+                  "padding": "var(--sp-3)",
+                  "border": "1px solid var(--edge-strong)",
+                  "background": "var(--float)",
+                  "color": "var(--ink-faint)",
+                  "font-family": "var(--font-mono)",
+                  "font-size": "var(--fs-xs)"
+                },
+                "breakpoints": {
+                  "mobile": { "top": "100%", "left": "var(--sp-2)", "width": "auto", "right": "var(--sp-2)" }
+                },
+                "children": []
+              }
+            ]
+          },
+          {
+            "key": "reviews",
+            "tag": "a",
+            "name": "Reviews link",
+            "attrs": { "href": "https://formai.studio/reviews/", "aria-label": "Reviews" },
+            "styles": {
+              "width": "var(--control-h)",
+              "height": "var(--control-h)",
+              "display": "inline-flex",
+              "align-items": "center",
+              "justify-content": "center",
+              "border-radius": "var(--radius-s)",
+              "color": "var(--ink-soft)",
+              "text-decoration": "none",
+              "transition": "color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out)"
+            },
+            "breakpoints": {
+              "mobile": { "grid-row": "1", "grid-column": "3" }
+            },
+            "children": [
+              {
+                "key": "reviews-ic",
+                "tag": "svg",
+                "name": "Star icon",
+                "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" },
+                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "reviews-ic-a", "tag": "path", "name": "Star", "attrs": { "d": "M12 3.8l2.5 5.1 5.6.8-4.05 3.95.95 5.6L12 16.6l-5 2.65.95-5.6L3.9 9.7l5.6-.8z" }, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              }
+            ]
+          },
+          {
+            "key": "nav",
+            "tag": "nav",
+            "name": "Site navigation",
+            "attrs": { "aria-label": "Site" },
+            "styles": {
+              "display": "flex",
+              "align-items": "center",
+              "justify-content": "flex-end",
+              "gap": "var(--bar-gap)"
+            },
+            "breakpoints": {
+              "mobile": { "grid-row": "2", "grid-column": "1 / 3", "justify-content": "flex-start", "gap": "0", "padding-left": "var(--sp-1)", "padding-right": "var(--sp-1)" }
+            },
+            "children": [
+              { "key": "nav-home", "tag": "a", "name": "Home link", "text": "Home", "attrs": { "href": "https://formai.studio/" }, "styles": {}, "breakpoints": { "mobile": { "padding-left": "var(--sp-1)", "padding-right": "var(--sp-1)", "letter-spacing": "0.04em" } }, "children": [] },
+              { "key": "nav-apps", "tag": "a", "name": "Apps link", "text": "Apps", "attrs": { "href": "https://formai.studio/apps/" }, "styles": {}, "breakpoints": { "mobile": { "padding-left": "var(--sp-1)", "padding-right": "var(--sp-1)", "letter-spacing": "0.04em" } }, "children": [] },
+              { "key": "nav-download", "tag": "a", "name": "Download link", "text": "Download", "attrs": { "href": "https://formai.studio/download/" }, "styles": {}, "breakpoints": { "mobile": { "padding-left": "var(--sp-1)", "padding-right": "var(--sp-1)", "letter-spacing": "0.04em" } }, "children": [] },
+              { "key": "nav-portal", "tag": "a", "name": "Portal link", "text": "Portal", "attrs": { "href": "https://formai.studio/portal/" }, "styles": {}, "breakpoints": { "mobile": { "padding-left": "var(--sp-1)", "padding-right": "var(--sp-1)", "letter-spacing": "0.04em" } }, "children": [] },
+              { "key": "nav-support", "tag": "a", "name": "Support link", "text": "Support us", "attrs": { "href": "https://formai.studio/support/" }, "styles": {}, "breakpoints": { "mobile": { "padding-left": "var(--sp-1)", "padding-right": "var(--sp-1)", "letter-spacing": "0.04em" } }, "children": [] }
+            ]
+          },
+          {
+            "key": "theme",
+            "tag": "button",
+            "name": "Theme toggle",
+            "attrs": { "type": "button", "aria-label": "Switch colour theme" },
+            "styles": {
+              "width": "var(--control-h)",
+              "height": "var(--control-h)",
+              "display": "inline-flex",
+              "align-items": "center",
+              "justify-content": "center",
+              "padding": "0",
+              "border": "0",
+              "border-radius": "var(--radius-s)",
+              "background": "transparent",
+              "color": "var(--ink-soft)",
+              "cursor": "pointer",
+              "transition": "color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out)"
+            },
+            "breakpoints": {
+              "mobile": { "grid-row": "2", "grid-column": "3" }
+            },
+            "children": [
+              {
+                "key": "sun",
+                "tag": "svg",
+                "name": "Sun icon",
+                "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true", "data-fw-theme-only": "dark" },
+                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "sun-a", "tag": "path", "name": "Disc", "attrs": { "d": "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" }, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "sun-b", "tag": "path", "name": "Ray top", "attrs": { "d": "M12 2.5v2" }, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "sun-c", "tag": "path", "name": "Ray bottom", "attrs": { "d": "M12 19.5v2" }, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "sun-d", "tag": "path", "name": "Ray left", "attrs": { "d": "M2.5 12h2" }, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "sun-e", "tag": "path", "name": "Ray right", "attrs": { "d": "M19.5 12h2" }, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "sun-f", "tag": "path", "name": "Ray top left", "attrs": { "d": "M5.3 5.3l1.4 1.4" }, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "sun-g", "tag": "path", "name": "Ray bottom right", "attrs": { "d": "M17.3 17.3l1.4 1.4" }, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "sun-h", "tag": "path", "name": "Ray bottom left", "attrs": { "d": "M5.3 18.7l1.4-1.4" }, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "sun-i", "tag": "path", "name": "Ray top right", "attrs": { "d": "M17.3 6.7l1.4-1.4" }, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              {
+                "key": "moon",
+                "tag": "svg",
+                "name": "Moon icon",
+                "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true", "data-fw-theme-only": "light" },
+                "styles": { "display": "block", "flex": "none", "width": "var(--icon-m)", "height": "var(--icon-m)" },
+                "breakpoints": {},
+                "children": [
+                  { "key": "moon-a", "tag": "path", "name": "Crescent", "attrs": { "d": "M19.5 14.2A7.8 7.8 0 0 1 9.8 4.5a7.8 7.8 0 1 0 9.7 9.7z" }, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@word@@", "name": "brand-word" } },
+    { "command": "textpreset.apply", "params": { "id": "@@nav-home@@", "name": "nav-link" } },
+    { "command": "textpreset.apply", "params": { "id": "@@nav-apps@@", "name": "nav-link" } },
+    { "command": "textpreset.apply", "params": { "id": "@@nav-download@@", "name": "nav-link" } },
+    { "command": "textpreset.apply", "params": { "id": "@@nav-portal@@", "name": "nav-link" } },
+    { "command": "textpreset.apply", "params": { "id": "@@nav-support@@", "name": "nav-link" } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q@@", "value": [ { "trigger": "input", "action": "search", "input": "@@q@@", "results": "@@results@@", "template": "@@hit@@", "limit": 8, "empty": "@@none@@", "fromParam": false } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@theme@@", "value": [ { "trigger": "click", "action": "toggle-theme" } ] } }
+  ],
+  "behaviors": {
+    "@@q@@": { "states": { "hover": { "border-color": "var(--ink-faint)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "-1px" } } },
+    "@@reviews@@": { "states": { "hover": { "color": "var(--ink)", "background": "var(--control)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@theme@@": { "states": { "hover": { "color": "var(--ink)", "background": "var(--control)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@brand@@": { "states": { "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@nav-home@@": { "states": { "hover": { "color": "var(--ink)", "background": "var(--control)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@nav-apps@@": { "states": { "hover": { "color": "var(--ink)", "background": "var(--control)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@nav-download@@": { "states": { "hover": { "color": "var(--ink)", "background": "var(--control)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@nav-portal@@": { "states": { "hover": { "color": "var(--ink)", "background": "var(--control)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@nav-support@@": { "states": { "hover": { "color": "var(--ink)", "background": "var(--control)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@hit@@": { "states": { "hover": { "background": "var(--control)" } } }
+  }
+}

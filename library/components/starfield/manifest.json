@@ -1,0 +1,33 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "starfield",
+  "code": "C3",
+  "name": "Starfield backdrop",
+  "description": "A canvas backdrop of pulsing squares laid out on a grid, thickest toward both side edges and fading downward, with four faint rings behind them and a glow that swells around the pointer.",
+  "props": {
+    "accent": { "type": "color", "default": "var(--hue)" },
+    "spark": { "type": "color", "default": "var(--ink)" },
+    "line": { "type": "color", "default": "var(--edge-strong)" },
+    "seed": { "type": "number", "default": 404 },
+    "reach": { "type": "number", "default": 220 }
+  },
+  "labels": {
+    "accent": "Square colour",
+    "spark": "Pointer glow colour",
+    "line": "Ring colour",
+    "seed": "Pattern seed",
+    "reach": "Pointer reach (px)"
+  },
+  "propDocs": {
+    "accent": "Colour of the squares. A colour or var(--token); the default follows the product tint.",
+    "spark": "Colour of the glow that lights squares near the pointer.",
+    "line": "Colour of the four faint rings.",
+    "seed": "Whole number that picks which squares exist and how they pulse. The same seed always gives the same sky.",
+    "reach": "How far from the pointer squares brighten and grow, in pixels."
+  },
+  "poster": "poster.webp",
+  "sections": ["formslot-support"],
+  "fallback": "With reduced motion the squares are drawn once at a steady brightness and the pointer boost is off.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formslot-support (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

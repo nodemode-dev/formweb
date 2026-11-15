@@ -1,0 +1,379 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formpromo-use-cases",
+  "name": "FormPromo use cases",
+  "category": "product-site",
+  "tags": ["use cases", "cards", "grid", "reveal", "hover lift"],
+  "product": "formpromo",
+  "description": "Three things FormPromo makes: a kit of your media and sourced claims, 76 templates in every size, and a film, a project or a delivery.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formpromo-use-cases",
+  "preset": "formai-studio",
+  "components": [],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#ff4f7a" },
+    "name_form": { "label": "Product name, first part", "type": "text", "default": "Form" },
+    "name_suffix": { "label": "Product name, tinted part", "type": "text", "default": "Promo" },
+    "icon": { "label": "Product icon", "type": "url", "default": "/api/assets/ecfd83d9dd79976308f88962e54764b4ae22342d39994c4752f22236a55698ff.webp" },
+    "intro": { "label": "Intro", "type": "longtext", "default": "Gather a kit of your media, style and sourced claims, pick one of 76 templates, then end with a rendered film, a real project or a delivery." },
+    "title1": { "label": "Card 1 title", "type": "text", "default": "A kit of your own media and sourced claims" },
+    "title2": { "label": "Card 2 title", "type": "text", "default": "76 templates, watched in every size they make" },
+    "title3": { "label": "Card 3 title", "type": "text", "default": "A film, a project or a delivery" },
+    "note": { "label": "Closing note", "type": "text", "default": "Free, no account. macOS 12+, Windows and Linux." }
+  },
+  "tree": {
+    "key": "section",
+    "tag": "section",
+    "name": "Use cases",
+    "attrs": {},
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "position": "relative",
+      "box-sizing": "border-box",
+      "padding-top": "var(--sp-9)",
+      "padding-bottom": "var(--sp-9)",
+      "border-bottom": "1px solid var(--edge)"
+    },
+    "breakpoints": { "mobile": { "padding-top": "var(--sp-7)", "padding-bottom": "var(--sp-7)" } },
+    "children": [
+      {
+        "key": "wrap",
+        "tag": "div",
+        "name": "Page frame",
+        "attrs": {},
+        "styles": {
+          "position": "relative",
+          "box-sizing": "border-box",
+          "width": "100%",
+          "max-width": "var(--page-max)",
+          "margin-left": "auto",
+          "margin-right": "auto",
+          "padding-left": "var(--gutter)",
+          "padding-right": "var(--gutter)",
+          "border-left": "1px solid var(--edge)",
+          "border-right": "1px solid var(--edge)"
+        },
+        "breakpoints": {},
+        "children": [
+          {
+            "key": "mark-left", "tag": "span", "name": "Crop mark left", "attrs": { "aria-hidden": "true" },
+            "styles": { "position": "absolute", "bottom": "calc(var(--sp-2) * -1 - 0.5px)", "left": "calc(var(--sp-2) * -1 - 0.5px)", "width": "calc(var(--sp-4) + 1px)", "height": "calc(var(--sp-4) + 1px)", "pointer-events": "none", "background": "linear-gradient(var(--ink-faint), var(--ink-faint)) center / 1px 100% no-repeat, linear-gradient(var(--ink-faint), var(--ink-faint)) center / 100% 1px no-repeat" },
+            "breakpoints": {}, "children": []
+          },
+          {
+            "key": "mark-right", "tag": "span", "name": "Crop mark right", "attrs": { "aria-hidden": "true" },
+            "styles": { "position": "absolute", "bottom": "calc(var(--sp-2) * -1 - 0.5px)", "right": "calc(var(--sp-2) * -1 - 0.5px)", "width": "calc(var(--sp-4) + 1px)", "height": "calc(var(--sp-4) + 1px)", "pointer-events": "none", "background": "linear-gradient(var(--ink-faint), var(--ink-faint)) center / 1px 100% no-repeat, linear-gradient(var(--ink-faint), var(--ink-faint)) center / 100% 1px no-repeat" },
+            "breakpoints": {}, "children": []
+          },
+          {
+            "key": "head",
+            "tag": "div",
+            "name": "Section head",
+            "attrs": {},
+            "styles": { "display": "grid", "justify-items": "start", "gap": "var(--sp-3)", "max-width": "34rem" },
+            "breakpoints": {},
+            "children": [
+              { "key": "kicker", "tag": "p", "name": "Kicker", "text": "Use cases / Kits, templates, outputs", "attrs": {}, "styles": { "margin": "0 0 var(--sp-3)" }, "breakpoints": {}, "children": [] },
+              {
+                "key": "title", "tag": "h1", "name": "Section heading", "attrs": {},
+                "styles": { "margin": "0" }, "breakpoints": {},
+                "children": [
+                  { "key": "title-lead", "tag": "span", "name": "Heading lead", "text": "What ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "title-form", "tag": "span", "name": "Product name first part", "text": "{{name_form}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "title-suffix", "tag": "span", "name": "Product name tinted part", "text": "{{name_suffix}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                  { "key": "title-tail", "tag": "span", "name": "Heading tail", "text": " makes", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] }
+                ]
+              },
+              { "key": "intro", "tag": "p", "name": "Intro", "text": "{{intro}}", "attrs": {}, "styles": { "margin": "0" }, "breakpoints": {}, "children": [] }
+            ]
+          },
+          {
+            "key": "grid",
+            "tag": "ul",
+            "name": "Use case cards",
+            "attrs": {},
+            "styles": { "display": "grid", "grid-template-columns": "repeat(3, minmax(0, 1fr))", "gap": "40px", "margin": "40px 0 0", "padding": "0", "list-style": "none" },
+            "breakpoints": {
+              "tablet": { "grid-template-columns": "repeat(2, minmax(0, 1fr))", "margin-top": "30px" },
+              "mobile": { "grid-template-columns": "minmax(0, 1fr)", "gap": "30px", "margin-top": "12px" }
+            },
+            "children": [
+              {
+                "key": "item1", "tag": "li", "name": "Card 1 item", "attrs": {}, "styles": {}, "breakpoints": {},
+                "children": [
+                  {
+                    "key": "card1", "tag": "a", "name": "Card 1 kits",
+                    "attrs": { "href": "https://formai.studio/formpromo/features/#kits" },
+                    "styles": { "position": "relative", "display": "block", "height": "580px", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--black)", "color": "var(--footage-ink)", "text-decoration": "none", "isolation": "isolate", "transition": "transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.28)" },
+                    "breakpoints": { "mobile": { "height": "410px", "border-radius": "8px" } },
+                    "children": [
+                      { "key": "pic1", "tag": "img", "name": "Card 1 picture", "attrs": { "src": "https://media.formai.studio/media/formpromo/ui-kits-2/cea27ab94f79.w1024.webp", "srcset": "https://media.formai.studio/media/formpromo/ui-kits-2/cea27ab94f79.w640.webp 640w, https://media.formai.studio/media/formpromo/ui-kits-2/cea27ab94f79.w1024.webp 1024w, https://media.formai.studio/media/formpromo/ui-kits-2/cea27ab94f79.w2400.webp 2400w", "sizes": "(max-width: 767px) 100vw, 33vw", "width": "1024", "height": "640", "alt": "FormPromo's Kits view: the sample kit's assets listed with their kind, role, size, licence and credit, and tabs for music, targets and sourced claims", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover", "object-position": "12% 40%" }, "breakpoints": {}, "children": [] },
+                      { "key": "shade1-top", "tag": "div", "name": "Card 1 shade top", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "pointer-events": "none", "z-index": "var(--z-behind)", "background": "linear-gradient(to bottom, color-mix(in srgb, var(--black) 78%, transparent) 22%, transparent 65%)" }, "breakpoints": {}, "children": [] },
+                      { "key": "shade1-bottom", "tag": "div", "name": "Card 1 shade bottom", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "pointer-events": "none", "background": "linear-gradient(to top, color-mix(in srgb, var(--black) 72%, transparent), transparent 36%)" }, "breakpoints": {}, "children": [] },
+                      {
+                        "key": "in1", "tag": "div", "name": "Card 1 content", "attrs": {},
+                        "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "box-sizing": "border-box", "z-index": "var(--z-raised)", "display": "flex", "flex-direction": "column", "justify-content": "space-between", "padding": "32px" },
+                        "breakpoints": { "mobile": { "padding": "17px" } },
+                        "children": [
+                          {
+                            "key": "top1", "tag": "div", "name": "Card 1 top", "attrs": {}, "styles": {}, "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "mark1", "tag": "p", "name": "Card 1 product mark", "attrs": {},
+                                "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-2)", "margin": "0 0 var(--sp-5)", "font-size": "var(--fs-m)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-tight)" },
+                                "breakpoints": {},
+                                "children": [
+                                  { "key": "icon1", "tag": "img", "name": "Card 1 product icon", "attrs": { "src": "{{icon}}", "width": "128", "height": "128", "alt": "", "decoding": "async" }, "styles": { "display": "block", "width": "28px", "height": "28px" }, "breakpoints": {}, "children": [] },
+                                  {
+                                    "key": "name1", "tag": "span", "name": "Card 1 product name", "attrs": {}, "styles": {}, "breakpoints": {},
+                                    "children": [
+                                      { "key": "name1-form", "tag": "span", "name": "Product name first part", "text": "{{name_form}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                                      { "key": "name1-dark", "tag": "span", "name": "Product name tinted part dark", "text": "{{name_suffix}}", "attrs": { "data-fw-theme-only": "dark" }, "styles": {}, "breakpoints": {}, "children": [] },
+                                      { "key": "name1-light", "tag": "span", "name": "Product name tinted part light", "text": "{{name_suffix}}", "attrs": { "data-fw-theme-only": "light" }, "styles": {}, "breakpoints": {}, "children": [] }
+                                    ]
+                                  }
+                                ]
+                              },
+                              { "key": "ctitle1", "tag": "h2", "name": "Card 1 title", "text": "{{title1}}", "attrs": {}, "styles": { "margin": "0", "max-width": "14em", "text-wrap": "balance", "color": "var(--footage-ink)" }, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          {
+                            "key": "foot1", "tag": "div", "name": "Card 1 footer", "attrs": {},
+                            "styles": { "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-3)" }, "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "who1", "tag": "div", "name": "Card 1 caption", "attrs": {}, "styles": {}, "breakpoints": {},
+                                "children": [
+                                  { "key": "who1-b", "tag": "b", "name": "Card 1 caption label", "text": "Kits", "attrs": {}, "styles": { "display": "block", "color": "var(--footage-ink)", "font-weight": "400" }, "breakpoints": {}, "children": [] },
+                                  { "key": "who1-s", "tag": "span", "name": "Card 1 caption line", "text": "Claims, style, assets", "attrs": {}, "styles": { "display": "block", "margin-top": "var(--sp-1)", "color": "var(--footage-soft)", "font-size": "var(--fs-s)" }, "breakpoints": {}, "children": [] }
+                                ]
+                              },
+                              {
+                                "key": "go1", "tag": "span", "name": "Card 1 arrow", "attrs": { "aria-hidden": "true" },
+                                "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "52px", "height": "52px", "background": "var(--footage-ink)", "color": "var(--black)" }, "breakpoints": {},
+                                "children": [
+                                  {
+                                    "key": "arrow1", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round" },
+                                    "styles": { "display": "block", "width": "24px", "height": "24px" }, "breakpoints": {},
+                                    "children": [
+                                      { "key": "arrow1-a", "tag": "path", "name": "Arrow shaft", "attrs": { "d": "M5 12h14" }, "styles": {}, "breakpoints": {}, "children": [] },
+                                      { "key": "arrow1-b", "tag": "path", "name": "Arrow head", "attrs": { "d": "M13 6l6 6-6 6" }, "styles": {}, "breakpoints": {}, "children": [] }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "item2", "tag": "li", "name": "Card 2 item", "attrs": {}, "styles": {}, "breakpoints": {},
+                "children": [
+                  {
+                    "key": "card2", "tag": "a", "name": "Card 2 templates",
+                    "attrs": { "href": "https://formai.studio/formpromo/features/#templates" },
+                    "styles": { "position": "relative", "display": "block", "height": "580px", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--black)", "color": "var(--footage-ink)", "text-decoration": "none", "isolation": "isolate", "transition": "transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.28)" },
+                    "breakpoints": { "mobile": { "height": "410px", "border-radius": "8px" } },
+                    "children": [
+                      { "key": "pic2", "tag": "img", "name": "Card 2 picture", "attrs": { "src": "https://media.formai.studio/media/formpromo/ui-templates-2/c6e537d2b357.w1024.webp", "srcset": "https://media.formai.studio/media/formpromo/ui-templates-2/c6e537d2b357.w640.webp 640w, https://media.formai.studio/media/formpromo/ui-templates-2/c6e537d2b357.w1024.webp 1024w, https://media.formai.studio/media/formpromo/ui-templates-2/c6e537d2b357.w2400.webp 2400w", "sizes": "(max-width: 767px) 100vw, 33vw", "width": "1024", "height": "640", "alt": "FormPromo's template gallery: cards for a launch film, logo sting, end card and feature spotlight, each with its aspect ratios and a Use button", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover", "object-position": "50% 40%" }, "breakpoints": {}, "children": [] },
+                      { "key": "shade2-top", "tag": "div", "name": "Card 2 shade top", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "pointer-events": "none", "z-index": "var(--z-behind)", "background": "linear-gradient(to bottom, color-mix(in srgb, var(--black) 78%, transparent) 22%, transparent 65%)" }, "breakpoints": {}, "children": [] },
+                      { "key": "shade2-bottom", "tag": "div", "name": "Card 2 shade bottom", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "pointer-events": "none", "background": "linear-gradient(to top, color-mix(in srgb, var(--black) 72%, transparent), transparent 36%)" }, "breakpoints": {}, "children": [] },
+                      {
+                        "key": "in2", "tag": "div", "name": "Card 2 content", "attrs": {},
+                        "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "box-sizing": "border-box", "z-index": "var(--z-raised)", "display": "flex", "flex-direction": "column", "justify-content": "space-between", "padding": "32px" },
+                        "breakpoints": { "mobile": { "padding": "17px" } },
+                        "children": [
+                          {
+                            "key": "top2", "tag": "div", "name": "Card 2 top", "attrs": {}, "styles": {}, "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "mark2", "tag": "p", "name": "Card 2 product mark", "attrs": {},
+                                "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-2)", "margin": "0 0 var(--sp-5)", "font-size": "var(--fs-m)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-tight)" },
+                                "breakpoints": {},
+                                "children": [
+                                  { "key": "icon2", "tag": "img", "name": "Card 2 product icon", "attrs": { "src": "{{icon}}", "width": "128", "height": "128", "alt": "", "decoding": "async" }, "styles": { "display": "block", "width": "28px", "height": "28px" }, "breakpoints": {}, "children": [] },
+                                  {
+                                    "key": "name2", "tag": "span", "name": "Card 2 product name", "attrs": {}, "styles": {}, "breakpoints": {},
+                                    "children": [
+                                      { "key": "name2-form", "tag": "span", "name": "Product name first part", "text": "{{name_form}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                                      { "key": "name2-dark", "tag": "span", "name": "Product name tinted part dark", "text": "{{name_suffix}}", "attrs": { "data-fw-theme-only": "dark" }, "styles": {}, "breakpoints": {}, "children": [] },
+                                      { "key": "name2-light", "tag": "span", "name": "Product name tinted part light", "text": "{{name_suffix}}", "attrs": { "data-fw-theme-only": "light" }, "styles": {}, "breakpoints": {}, "children": [] }
+                                    ]
+                                  }
+                                ]
+                              },
+                              { "key": "ctitle2", "tag": "h2", "name": "Card 2 title", "text": "{{title2}}", "attrs": {}, "styles": { "margin": "0", "max-width": "14em", "text-wrap": "balance", "color": "var(--footage-ink)" }, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          {
+                            "key": "foot2", "tag": "div", "name": "Card 2 footer", "attrs": {},
+                            "styles": { "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-3)" }, "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "who2", "tag": "div", "name": "Card 2 caption", "attrs": {}, "styles": {}, "breakpoints": {},
+                                "children": [
+                                  { "key": "who2-b", "tag": "b", "name": "Card 2 caption label", "text": "Templates", "attrs": {}, "styles": { "display": "block", "color": "var(--footage-ink)", "font-weight": "400" }, "breakpoints": {}, "children": [] },
+                                  { "key": "who2-s", "tag": "span", "name": "Card 2 caption line", "text": "16:9, 9:16 and 1:1", "attrs": {}, "styles": { "display": "block", "margin-top": "var(--sp-1)", "color": "var(--footage-soft)", "font-size": "var(--fs-s)" }, "breakpoints": {}, "children": [] }
+                                ]
+                              },
+                              {
+                                "key": "go2", "tag": "span", "name": "Card 2 arrow", "attrs": { "aria-hidden": "true" },
+                                "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "52px", "height": "52px", "background": "var(--footage-ink)", "color": "var(--black)" }, "breakpoints": {},
+                                "children": [
+                                  {
+                                    "key": "arrow2", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round" },
+                                    "styles": { "display": "block", "width": "24px", "height": "24px" }, "breakpoints": {},
+                                    "children": [
+                                      { "key": "arrow2-a", "tag": "path", "name": "Arrow shaft", "attrs": { "d": "M5 12h14" }, "styles": {}, "breakpoints": {}, "children": [] },
+                                      { "key": "arrow2-b", "tag": "path", "name": "Arrow head", "attrs": { "d": "M13 6l6 6-6 6" }, "styles": {}, "breakpoints": {}, "children": [] }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "key": "item3", "tag": "li", "name": "Card 3 item", "attrs": {}, "styles": {}, "breakpoints": {},
+                "children": [
+                  {
+                    "key": "card3", "tag": "a", "name": "Card 3 outputs",
+                    "attrs": { "href": "https://formai.studio/formpromo/features/#film" },
+                    "styles": { "position": "relative", "display": "block", "height": "580px", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--black)", "color": "var(--footage-ink)", "text-decoration": "none", "isolation": "isolate", "transition": "transform 350ms cubic-bezier(0.18, 0.89, 0.32, 1.28)" },
+                    "breakpoints": { "mobile": { "height": "410px", "border-radius": "8px" } },
+                    "children": [
+                      { "key": "pic3", "tag": "img", "name": "Card 3 picture", "attrs": { "src": "https://media.formai.studio/media/formpromo/ui-outputs/2ddf896d5a13.w1024.webp", "srcset": "https://media.formai.studio/media/formpromo/ui-outputs/2ddf896d5a13.w640.webp 640w, https://media.formai.studio/media/formpromo/ui-outputs/2ddf896d5a13.w1024.webp 1024w, https://media.formai.studio/media/formpromo/ui-outputs/2ddf896d5a13.w2400.webp 2400w", "sizes": "(max-width: 767px) 100vw, 33vw", "width": "1024", "height": "640", "alt": "FormPromo's Outputs view: Film with a Render film button, then FormCut and FormVFX project exports", "loading": "lazy", "decoding": "async" }, "styles": { "position": "absolute", "top": "0", "left": "0", "width": "100%", "height": "100%", "display": "block", "object-fit": "cover", "object-position": "55% 30%" }, "breakpoints": {}, "children": [] },
+                      { "key": "shade3-top", "tag": "div", "name": "Card 3 shade top", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "pointer-events": "none", "z-index": "var(--z-behind)", "background": "linear-gradient(to bottom, color-mix(in srgb, var(--black) 78%, transparent) 22%, transparent 65%)" }, "breakpoints": {}, "children": [] },
+                      { "key": "shade3-bottom", "tag": "div", "name": "Card 3 shade bottom", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "pointer-events": "none", "background": "linear-gradient(to top, color-mix(in srgb, var(--black) 72%, transparent), transparent 36%)" }, "breakpoints": {}, "children": [] },
+                      {
+                        "key": "in3", "tag": "div", "name": "Card 3 content", "attrs": {},
+                        "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "box-sizing": "border-box", "z-index": "var(--z-raised)", "display": "flex", "flex-direction": "column", "justify-content": "space-between", "padding": "32px" },
+                        "breakpoints": { "mobile": { "padding": "17px" } },
+                        "children": [
+                          {
+                            "key": "top3", "tag": "div", "name": "Card 3 top", "attrs": {}, "styles": {}, "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "mark3", "tag": "p", "name": "Card 3 product mark", "attrs": {},
+                                "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-2)", "margin": "0 0 var(--sp-5)", "font-size": "var(--fs-m)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-tight)" },
+                                "breakpoints": {},
+                                "children": [
+                                  { "key": "icon3", "tag": "img", "name": "Card 3 product icon", "attrs": { "src": "{{icon}}", "width": "128", "height": "128", "alt": "", "decoding": "async" }, "styles": { "display": "block", "width": "28px", "height": "28px" }, "breakpoints": {}, "children": [] },
+                                  {
+                                    "key": "name3", "tag": "span", "name": "Card 3 product name", "attrs": {}, "styles": {}, "breakpoints": {},
+                                    "children": [
+                                      { "key": "name3-form", "tag": "span", "name": "Product name first part", "text": "{{name_form}}", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
+                                      { "key": "name3-dark", "tag": "span", "name": "Product name tinted part dark", "text": "{{name_suffix}}", "attrs": { "data-fw-theme-only": "dark" }, "styles": {}, "breakpoints": {}, "children": [] },
+                                      { "key": "name3-light", "tag": "span", "name": "Product name tinted part light", "text": "{{name_suffix}}", "attrs": { "data-fw-theme-only": "light" }, "styles": {}, "breakpoints": {}, "children": [] }
+                                    ]
+                                  }
+                                ]
+                              },
+                              { "key": "ctitle3", "tag": "h2", "name": "Card 3 title", "text": "{{title3}}", "attrs": {}, "styles": { "margin": "0", "max-width": "14em", "text-wrap": "balance", "color": "var(--footage-ink)" }, "breakpoints": {}, "children": [] }
+                            ]
+                          },
+                          {
+                            "key": "foot3", "tag": "div", "name": "Card 3 footer", "attrs": {},
+                            "styles": { "display": "flex", "align-items": "flex-end", "justify-content": "space-between", "gap": "var(--sp-3)" }, "breakpoints": {},
+                            "children": [
+                              {
+                                "key": "who3", "tag": "div", "name": "Card 3 caption", "attrs": {}, "styles": {}, "breakpoints": {},
+                                "children": [
+                                  { "key": "who3-b", "tag": "b", "name": "Card 3 caption label", "text": "Outputs", "attrs": {}, "styles": { "display": "block", "color": "var(--footage-ink)", "font-weight": "400" }, "breakpoints": {}, "children": [] },
+                                  { "key": "who3-s", "tag": "span", "name": "Card 3 caption line", "text": "MP4, FormCut, FormVFX, FormEncoder", "attrs": {}, "styles": { "display": "block", "margin-top": "var(--sp-1)", "color": "var(--footage-soft)", "font-size": "var(--fs-s)" }, "breakpoints": {}, "children": [] }
+                                ]
+                              },
+                              {
+                                "key": "go3", "tag": "span", "name": "Card 3 arrow", "attrs": { "aria-hidden": "true" },
+                                "styles": { "flex": "none", "display": "grid", "place-items": "center", "width": "52px", "height": "52px", "background": "var(--footage-ink)", "color": "var(--black)" }, "breakpoints": {},
+                                "children": [
+                                  {
+                                    "key": "arrow3", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round" },
+                                    "styles": { "display": "block", "width": "24px", "height": "24px" }, "breakpoints": {},
+                                    "children": [
+                                      { "key": "arrow3-a", "tag": "path", "name": "Arrow shaft", "attrs": { "d": "M5 12h14" }, "styles": {}, "breakpoints": {}, "children": [] },
+                                      { "key": "arrow3-b", "tag": "path", "name": "Arrow head", "attrs": { "d": "M13 6l6 6-6 6" }, "styles": {}, "breakpoints": {}, "children": [] }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          { "key": "note", "tag": "p", "name": "Closing note", "text": "{{note}}", "attrs": {}, "styles": { "margin": "var(--sp-6) 0 0" }, "breakpoints": {}, "children": [] }
+        ]
+      }
+    ]
+  },
+  "behaviors": {
+    "@@card1@@": { "states": { "hover": { "transform": "translateY(-10px)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "3px" } } },
+    "@@card2@@": { "states": { "hover": { "transform": "translateY(-10px)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "3px" } } },
+    "@@card3@@": { "states": { "hover": { "transform": "translateY(-10px)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "3px" } } }
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@kicker@@", "name": "mono" } },
+    { "command": "node.update", "params": { "id": "@@kicker@@", "patch": { "styles": { "color": "var(--ink-faint)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@title@@", "name": "heading" } },
+    { "command": "node.update", "params": { "id": "@@title@@", "patch": { "styles": { "line-height": "1.05" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@title-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@title-suffix@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@intro@@", "name": "lead" } },
+    { "command": "node.update", "params": { "id": "@@intro@@", "patch": { "styles": { "max-width": "34rem", "line-height": "1.55" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@note@@", "name": "mono" } },
+    { "command": "node.update", "params": { "id": "@@note@@", "patch": { "styles": { "color": "var(--ink-faint)", "font-size": "var(--fs-xs)", "font-weight": "500", "letter-spacing": "0.14em", "text-transform": "uppercase" } } } },
+
+    { "command": "textpreset.apply", "params": { "id": "@@name1-form@@", "name": "app-form" } },
+    { "command": "node.update", "params": { "id": "@@name1-form@@", "patch": { "styles": { "color": "var(--footage-ink)" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@name1-dark@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@name1-light@@", "name": "app-suffix" } },
+    { "command": "node.update", "params": { "id": "@@name1-light@@", "patch": { "styles": { "color": "color-mix(in srgb, var(--hue) 40%, var(--footage-ink))" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@ctitle1@@", "name": "title" } },
+    { "command": "node.update", "params": { "id": "@@ctitle1@@", "patch": { "styles": { "font-size": "clamp(1.375rem, 1rem + 1vw, 1.75rem)", "font-weight": "var(--weight-display)", "line-height": "1.15", "color": "var(--footage-ink)" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@who1-b@@", "name": "mono" } },
+    { "command": "node.update", "params": { "id": "@@who1-b@@", "patch": { "styles": { "color": "var(--footage-ink)", "font-size": "var(--fs-xs)", "font-weight": "400", "letter-spacing": "0.14em", "text-transform": "uppercase" } } } },
+
+    { "command": "textpreset.apply", "params": { "id": "@@name2-form@@", "name": "app-form" } },
+    { "command": "node.update", "params": { "id": "@@name2-form@@", "patch": { "styles": { "color": "var(--footage-ink)" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@name2-dark@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@name2-light@@", "name": "app-suffix" } },
+    { "command": "node.update", "params": { "id": "@@name2-light@@", "patch": { "styles": { "color": "color-mix(in srgb, var(--hue) 40%, var(--footage-ink))" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@ctitle2@@", "name": "title" } },
+    { "command": "node.update", "params": { "id": "@@ctitle2@@", "patch": { "styles": { "font-size": "clamp(1.375rem, 1rem + 1vw, 1.75rem)", "font-weight": "var(--weight-display)", "line-height": "1.15", "color": "var(--footage-ink)" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@who2-b@@", "name": "mono" } },
+    { "command": "node.update", "params": { "id": "@@who2-b@@", "patch": { "styles": { "color": "var(--footage-ink)", "font-size": "var(--fs-xs)", "font-weight": "400", "letter-spacing": "0.14em", "text-transform": "uppercase" } } } },
+
+    { "command": "textpreset.apply", "params": { "id": "@@name3-form@@", "name": "app-form" } },
+    { "command": "node.update", "params": { "id": "@@name3-form@@", "patch": { "styles": { "color": "var(--footage-ink)" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@name3-dark@@", "name": "app-suffix" } },
+    { "command": "textpreset.apply", "params": { "id": "@@name3-light@@", "name": "app-suffix" } },
+    { "command": "node.update", "params": { "id": "@@name3-light@@", "patch": { "styles": { "color": "color-mix(in srgb, var(--hue) 40%, var(--footage-ink))" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@ctitle3@@", "name": "title" } },
+    { "command": "node.update", "params": { "id": "@@ctitle3@@", "patch": { "styles": { "font-size": "clamp(1.375rem, 1rem + 1vw, 1.75rem)", "font-weight": "var(--weight-display)", "line-height": "1.15", "color": "var(--footage-ink)" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@who3-b@@", "name": "mono" } },
+    { "command": "node.update", "params": { "id": "@@who3-b@@", "patch": { "styles": { "color": "var(--footage-ink)", "font-size": "var(--fs-xs)", "font-weight": "400", "letter-spacing": "0.14em", "text-transform": "uppercase" } } } },
+
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@kicker@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.1 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@title@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.1 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@intro@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.1 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@item1@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.15 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@item2@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.15 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@item3@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.15 } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@note@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0.1 } } }
+  ]
+}

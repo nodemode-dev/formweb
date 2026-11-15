@@ -37,7 +37,10 @@ pub fn configuration(site: &Site, root: &str, records: Vec<Value>, context: Valu
         let component = instance.get("component").and_then(Value::as_str)?;
         let definition = code?.get("components")?.get(component)?;
         if definition.get("enabled").and_then(Value::as_bool) != Some(true) || definition.get("mode").and_then(Value::as_str) != Some("page") { return None; }
-        Some((host.clone(), json!({"component": component, "props": instance.get("props").cloned().unwrap_or_else(|| json!({}))})))
+        // Declared defaults first, then the instance's own values, so mount() always sees every prop that has a default.
+        let mut props: serde_json::Map<String, Value> = definition.get("props").and_then(Value::as_object).map(|d| d.iter().filter_map(|(name, p)| Some((name.clone(), p.get("default")?.clone()))).collect()).unwrap_or_default();
+        if let Some(own) = instance.get("props").and_then(Value::as_object) { for (name, value) in own { props.insert(name.clone(), value.clone()); } }
+        Some((host.clone(), json!({"component": component, "props": props})))
     }).collect()).unwrap_or_default();
     if !page_hosts.is_empty() { config["components"]["page"] = Value::Object(page_hosts); }
     config

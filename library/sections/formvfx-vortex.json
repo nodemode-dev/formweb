@@ -1,0 +1,103 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formvfx-vortex",
+  "name": "FormVFX vortex",
+  "category": "portfolio-hero",
+  "tags": ["tube", "3d", "scroll", "gallery", "portfolio"],
+  "product": "formvfx",
+  "description": "Fourteen FormVFX shots line the inside of a long tube: scroll to travel it, click one to fly it out beside its details.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formvfx-vortex",
+  "preset": "formai-studio",
+  "components": ["tube-travel"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#d86bff" },
+    "name": { "label": "Product name (second part)", "type": "text", "default": "VFX" },
+    "role": { "label": "Tagline", "type": "text", "default": "Compositions, along a tube" },
+    "link": { "label": "Product page", "type": "url", "default": "https://formai.studio/formvfx/" }
+  },
+  "tree": {
+    "key": "section", "tag": "section", "name": "Vortex", "attrs": { "aria-label": "Form{{name}} shots along a tube" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "--vx-g": "clamp(16px, 3vw, 40px)",
+      "position": "relative", "background": "var(--ground)", "color": "var(--ink)", "font-family": "var(--font-ui)"
+    },
+    "children": [
+      { "key": "stage", "tag": "div", "name": "Stage",
+        "styles": { "background": "var(--ground)", "isolation": "isolate", "min-height": "560px" },
+        "children": [
+          { "key": "host", "tag": "div", "name": "Tube", "attrs": { "aria-label": "Form{{name}} shots along a tube" },
+            "styles": { "position": "relative", "width": "100%", "height": "100%", "--fwc-uses": "var(--pane) var(--black) var(--inset) var(--on-ink) var(--control) var(--radius-m) var(--radius-pill) var(--icon-m) var(--control-h) var(--shadow-shot) var(--z-raised) var(--z-toast) var(--z-popover) var(--z-sticky) var(--z-overlay) var(--sp-1) var(--sp-2) var(--sp-3) var(--sp-4) var(--edge) var(--edge-strong) var(--ink-faint) var(--ink-soft) var(--weight-strong) var(--weight-display) var(--fs-xs) var(--fs-s) var(--font-mono) var(--ease-out) var(--dur) var(--dur-fast)" } },
+          { "key": "head", "tag": "div", "name": "Head",
+            "styles": { "position": "absolute", "top": "16px", "left": "var(--vx-g)", "right": "var(--vx-g)", "display": "flex", "justify-content": "space-between", "align-items": "flex-start", "gap": "var(--sp-4)", "pointer-events": "none", "z-index": "var(--z-raised)", "opacity": "calc(1 - var(--fw-v-tubeOpen, 0))", "translate": "0 calc(var(--fw-v-tubeOpen, 0) * -120px)", "transition": "opacity .3s var(--ease-out), translate .3s var(--ease-out)" },
+            "breakpoints": { "mobile": { "flex-wrap": "wrap" } },
+            "children": [
+              { "key": "brand", "tag": "div", "name": "Brand", "styles": { "display": "grid", "gap": "4px", "pointer-events": "auto" },
+                "children": [
+                  { "key": "title", "tag": "h1", "name": "Product name", "styles": { "margin": "0", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-display)", "line-height": "1.1" },
+                    "children": [
+                      { "key": "titleform", "tag": "span", "name": "Form", "text": "Form", "styles": { "color": "var(--ink)" } },
+                      { "key": "titlesuffix", "tag": "span", "name": "Suffix", "text": "{{name}}", "styles": { "color": "var(--hue)" } }
+                    ] },
+                  { "key": "role", "tag": "p", "name": "Tagline", "text": "{{role}}", "styles": { "margin": "0", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": ".14em", "text-transform": "uppercase" } }
+                ] },
+              { "key": "nav", "tag": "div", "name": "Buttons", "styles": { "display": "flex", "gap": "6px", "pointer-events": "auto" },
+                "children": [
+                  { "key": "idx", "tag": "button", "name": "Index button", "attrs": { "type": "button", "data-vx-keep": "" },
+                    "styles": { "display": "inline-flex", "align-items": "center", "justify-content": "center", "gap": "var(--sp-2)", "height": "var(--control-h-compact)", "padding": "0 var(--sp-3)", "border": "0", "border-radius": "var(--radius-m)", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-ui)", "font-size": "var(--fs-s)", "font-weight": "var(--weight-strong)", "white-space": "nowrap", "cursor": "pointer", "transition": "background-color var(--dur-fast) var(--ease-out)" },
+                    "children": [
+                      { "key": "idxlabel", "tag": "span", "name": "Label", "text": "Index" },
+                      { "key": "idxsup", "tag": "sup", "name": "Count", "text": "14", "styles": { "font-size": ".8em", "color": "var(--hue)", "margin-left": "2px" } }
+                    ] },
+                  { "key": "shr", "tag": "button", "name": "Share button", "text": "Share", "attrs": { "type": "button", "data-vx-keep": "" },
+                    "styles": { "display": "inline-flex", "align-items": "center", "justify-content": "center", "gap": "var(--sp-2)", "height": "var(--control-h-compact)", "padding": "0 var(--sp-3)", "border": "0", "border-radius": "var(--radius-m)", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-ui)", "font-size": "var(--fs-s)", "font-weight": "var(--weight-strong)", "white-space": "nowrap", "cursor": "pointer", "transition": "background-color var(--dur-fast) var(--ease-out)" } }
+                ] }
+            ] },
+          { "key": "share", "tag": "div", "name": "Share popover", "attrs": { "role": "dialog", "aria-label": "Share", "data-vx-keep": "" },
+            "styles": { "position": "absolute", "top": "60px", "right": "var(--vx-g)", "width": "min(320px, calc(100% - 32px))", "padding": "var(--sp-4)", "display": "grid", "gap": "var(--sp-3)", "background": "var(--pane)", "box-shadow": "inset 0 0 0 1px var(--edge-strong)", "border-radius": "var(--radius-m)", "box-sizing": "border-box", "z-index": "var(--z-popover)", "transform-origin": "100% 0", "opacity": "var(--fw-v-tubeShare, 0)", "scale": "calc(.94 + .06 * var(--fw-v-tubeShare, 0))", "translate": "calc((1 - var(--fw-v-tubeShare, 0)) * 9999px) calc((1 - var(--fw-v-tubeShare, 0)) * 4px)", "transition": "opacity .22s var(--ease-out), scale .22s var(--ease-out), translate 0s calc((1 - var(--fw-v-tubeShare, 0)) * .22s)" },
+            "children": [
+              { "key": "sharep", "tag": "p", "name": "Share text", "text": "Form{{name}} is free, open source and runs on your computer. Copy the address of its page to share it, or open the page for downloads and docs.", "styles": { "margin": "0", "font-size": "var(--fs-s)", "color": "var(--ink-soft)" } },
+              { "key": "copy", "tag": "button", "name": "Copy button", "attrs": { "type": "button" },
+                "styles": { "display": "inline-flex", "align-items": "center", "justify-content": "center", "gap": "var(--sp-2)", "height": "var(--control-h-compact)", "padding": "0 var(--sp-3)", "border": "0", "border-radius": "var(--radius-m)", "background": "var(--control)", "color": "var(--ink)", "font-family": "var(--font-ui)", "font-size": "var(--fs-s)", "font-weight": "var(--weight-strong)", "white-space": "nowrap", "cursor": "pointer", "transition": "background-color var(--dur-fast) var(--ease-out)" },
+                "children": [
+                  { "key": "copysvg", "tag": "svg", "name": "Copy icon", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true", "width": "20", "height": "20" },
+                    "children": [
+                      { "key": "copyp1", "tag": "path", "name": "Front", "attrs": { "d": "M8 8h11v11H8z" } },
+                      { "key": "copyp2", "tag": "path", "name": "Back", "attrs": { "d": "M5 15V5h10" } }
+                    ] },
+                  { "key": "copylabel", "tag": "span", "name": "Label", "text": "Copy page address" }
+                ] },
+              { "key": "links", "tag": "nav", "name": "Links", "attrs": { "aria-label": "More" }, "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "var(--sp-3)" },
+                "children": [
+                  { "key": "l1", "tag": "a", "name": "Link", "text": "Form{{name}}", "attrs": { "href": "{{link}}" }, "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": ".14em", "text-transform": "uppercase", "color": "var(--ink-faint)", "text-decoration": "none" } },
+                  { "key": "l2", "tag": "a", "name": "Link", "text": "Features", "attrs": { "href": "{{link}}features/" }, "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": ".14em", "text-transform": "uppercase", "color": "var(--ink-faint)", "text-decoration": "none" } },
+                  { "key": "l3", "tag": "a", "name": "Link", "text": "Download", "attrs": { "href": "{{link}}download/" }, "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": ".14em", "text-transform": "uppercase", "color": "var(--ink-faint)", "text-decoration": "none" } }
+                ] }
+            ] }
+        ] }
+    ]
+  },
+  "behaviors": {
+    "@@idx@@": { "states": { "hover": { "background-color": "var(--control-hover)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@shr@@": { "states": { "hover": { "background-color": "var(--control-hover)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@copy@@": { "states": { "hover": { "background-color": "var(--control-hover)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@l1@@": { "states": { "hover": { "color": "var(--ink)" } } },
+    "@@l2@@": { "states": { "hover": { "color": "var(--ink)" } } },
+    "@@l3@@": { "states": { "hover": { "color": "var(--ink)" } } }
+  },
+  "commands": [
+    { "command": "variables.set", "params": { "kind": "values", "name": "tubeOpen", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "tubeIndex", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "tubeShare", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "textpreset.apply", "params": { "id": "@@titleform@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@titlesuffix@@", "name": "app-suffix" } },
+    { "command": "code.instance.set", "params": { "node": "@@host@@", "value": { "component": "tube-travel", "props": { "groupLabel": "Form{{name}} shots along a tube", "ctaHref": "{{link}}features/" } } } },
+    { "command": "motion.set", "params": { "kind": "scenes", "node": "@@section@@", "value": { "stage": "@@stage@@", "length": 698, "offset": "65px", "tracks": [ { "node": "@@host@@", "keyframes": [ { "at": 0, "styles": { "--tube-p": "0" } }, { "at": 1, "styles": { "--tube-p": "1" } } ] } ] } } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@idx@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "tubeIndex", "formula": "!tubeIndex" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@shr@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "tubeShare", "formula": "!tubeShare" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@copy@@", "value": [ { "trigger": "click", "action": "copy", "text": "{{link}}", "feedback": "Address copied" } ] } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@brand@@", "value": { "from": { "opacity": "0", "translate": "0 12px" }, "duration": 900, "delay": 1000, "easing": "ease-out", "trigger": "load", "once": true } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@nav@@", "value": { "from": { "opacity": "0", "translate": "0 12px" }, "duration": 900, "delay": 1160, "easing": "ease-out", "trigger": "load", "once": true } } }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formpath-knockout",
+  "name": "FormPath knockout",
+  "category": "scroll-story",
+  "tags": ["knockout", "artboard", "drag", "hold", "scroll", "vector", "pathfinder"],
+  "product": "formpath",
+  "description": "Drag vector shapes onto an artboard, hold to subtract them from the fill, and scroll to rinse the sheet down to single-colour artwork with clean holes.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formpath-knockout",
+  "preset": "formai-studio",
+  "components": ["knockout-artboard"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#ff8a4c" },
+    "name": { "label": "Product name (after Form)", "type": "text", "default": "Path" },
+    "headA": { "label": "Heading, line one", "type": "text", "default": "Cut out" },
+    "headB": { "label": "Heading, line two", "type": "text", "default": "your art" },
+    "copy": { "label": "Intro text", "type": "longtext", "default": "Drag the shapes onto the artboard, then hold to subtract them from the fill. Click a shape to turn it, or focus one and use the arrow keys." },
+    "finTitleA": { "label": "Closing title, line one", "type": "text", "default": "One colour," },
+    "finTitleB": { "label": "Closing title, line two", "type": "text", "default": "clean holes" },
+    "learn": { "label": "Closing link", "type": "url", "default": "https://formai.studio/formpath/" }
+  },
+  "tree": {
+    "key": "section",
+    "tag": "section",
+    "name": "Knockout story",
+    "attrs": { "aria-label": "Knockout story" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "margin": "0",
+      "padding": "0",
+      "scroll-margin-top": "64px",
+      "background": "var(--ground)",
+      "color": "var(--ink)"
+    },
+    "breakpoints": {},
+    "children": [
+      {
+        "key": "stage",
+        "tag": "div",
+        "name": "Stage",
+        "attrs": {},
+        "styles": {
+          "background": "var(--terminal)",
+          "--kn-tokens": "var(--pane) var(--inset) var(--on-ink) var(--terminal-ink) var(--terminal-faint) var(--track-display) var(--dur) var(--z-base) var(--z-behind) var(--z-chrome) var(--z-field) var(--z-overlay) var(--z-raised) var(--black)",
+          "isolation": "isolate",
+          "user-select": "none",
+          "touch-action": "pan-y"
+        },
+        "breakpoints": {},
+        "children": []
+      }
+    ]
+  },
+  "commands": [
+    {
+      "command": "motion.set",
+      "params": {
+        "kind": "scenes",
+        "node": "@@section@@",
+        "value": { "stage": "@@stage@@", "length": 390, "offset": "64px", "smoothing": 0, "reducedAt": 0, "tracks": [{ "node": "@@stage@@", "keyframes": [{ "at": 0, "styles": { "opacity": "1" } }, { "at": 1, "styles": { "opacity": "1" } }] }] }
+      }
+    },
+    {
+      "command": "code.instance.set",
+      "params": {
+        "node": "@@stage@@",
+        "value": {
+          "component": "knockout-artboard",
+          "props": {
+            "nameSuffix": "{{name}}",
+            "headA": "{{headA}}",
+            "headB": "{{headB}}",
+            "copy": "{{copy}}",
+            "finTitleA": "{{finTitleA}}",
+            "finTitleB": "{{finTitleB}}",
+            "finLinkUrl": "{{learn}}"
+          }
+        }
+      }
+    }
+  ]
+}

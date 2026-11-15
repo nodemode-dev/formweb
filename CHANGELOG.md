@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.19.2 · 2026-11-10
+
+- A Library tab holds the 35 animated sections of the formai.studio sites as templates, plus their header and footer. Pick one, re-cast its tint, product name, copy and links, and insert it as one undo step; two copies stay independent. Each keeps the original's motion and interaction and binds its look to your tokens and text presets, so another preset or a theme change restyles it.
+- 21 first-party page components (noise band, specks, starfield, physics deck, filmstrip, tile cut, knockout artboard, fog-wipe monitor, glyph lens, paint sim, orbit constellation, infinite board, page turn, tube travel, fold plan, forecast chart, scripted desktop, develop frame, token prompt, receipt printer, ruler slider) run the effects data alone cannot describe, each with a poster on the canvas, a reduced-motion end state and a fallback without WebGL.
+- The formai.studio design system ships as a preset (tokens with light values, Inter, 16 text presets, product tints), and a product-site starter adds six pages built from the library. Inserting a section adds only what the site lacks; Apply preset sets everything.
+- Import HTML turns a whole page into one code section, keeping its markup, styles and script and standing in for the formai kit's helpers.
+- `./formweb library check` and `./formweb library build` validate the library and compile its components, so the server needs no Node to insert them; CI runs both. New routes under `/api/library` do everything the panel does.
+- Exports keep tokens that only a page component or code section reads, page components receive their declared defaults, and a site whose only search runs from a motion action now ships the script that runs it.
+- Every template was compared with its original in four runs at 8 steps; `docs/SECTION_PARITY.md` lists the results, with no console errors and layout shift under 0.001 throughout. The Library panel is in all 26 languages.
+
 ## 0.19.1 · 2026-11-10
 
 - A Motion tab edits every kind of motion for the selected element: one-click presets (including the classic effects), reveals, scroll scenes, loops, counters, text motion, drag, pointer effects, accordions, tabs and filters, actions and scripts.

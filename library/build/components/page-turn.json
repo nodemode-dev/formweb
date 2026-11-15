@@ -1,0 +1,566 @@
+{
+ "builtDigest": "c441312d18e96294c3a9b33ce0765b8846b9d2441feccc0a7d3d4b2672c7ef21",
+ "enabled": true,
+ "javascript": "// page-turn: a publication turned page by page in 3D, with drag, keys, arrows and a swipe deck on narrow screens.\n// Ported from formai-xmental-webspun v3.1.0 assets/sections/formdesign-spreads. Spread state is shared through\n// the page variable named by props.spreadVariable so native dots and labels can bind to it.\nconst CSS = `\n.fwc-pt { position: absolute; inset: 0; container: fwcpt / inline-size; color: var(--ink, #eef0f4); font-family: var(--font-ui, system-ui, sans-serif); font-weight: var(--weight-body, 420); line-height: 1.55; text-align: start;\n  --fd-pw: min(29vw, calc((100svh - var(--bar-h, 64px) - 230px) * 0.75), 460px); --fd-ph: calc(var(--fd-pw) * 1.33); --fd-shift: -0.5; --fd-t: 4px;\n  --fd-edge: color-mix(in srgb, var(--pane, #1b1e25) 74%, var(--black, #000)); --fd-edge-line: color-mix(in srgb, var(--pane, #1b1e25) 82%, var(--ink, #eef0f4));\n  & *, & *::before, & *::after { box-sizing: border-box; }\n  & p, & h2, & figure { margin: 0; }\n  & button { font: inherit; color: inherit; }\n  & a { color: inherit; }\n  & :focus-visible { outline: 2px solid var(--focus, #eef0f4); outline-offset: 2px; }\n  &[data-fwc-theme=\"light\"] .shot-dark, &:not([data-fwc-theme=\"light\"]) .shot-light { display: none !important; }\n  .fd-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }\n  .fd-rise { position: absolute; inset: 0; }\n  .fd-book { position: absolute; inset-inline-start: 50%; inset-block-start: 50%; inline-size: calc(var(--fd-pw) * 2); block-size: var(--fd-ph); margin-inline-start: calc(var(--fd-pw) * -1); margin-block-start: calc(var(--fd-ph) / -2); transform: translateX(calc(var(--fd-shift) * 50%)); cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }\n  .fd-book.fd-drag { cursor: grabbing; }\n  .fd-slab { position: absolute; inset-block: 1.2% -1.2%; inline-size: 50%; background: var(--pane, #1b1e25); box-shadow: inset 0 0 0 1px var(--edge, rgb(255 255 255 / 0.09)), 0 24px 60px -12px color-mix(in srgb, var(--black, #000) 55%, transparent); opacity: 0; }\n  .fd-slab-l { inset-inline-start: 0; border-radius: 3px 0 0 3px; }\n  .fd-slab-r { inset-inline-start: 50%; border-radius: 0 3px 3px 0; opacity: 1; }\n  .fd-cast { position: absolute; inset-block: 0; opacity: 0; pointer-events: none; }\n  .fd-cast-r { inset-inline-start: 50%; background: linear-gradient(90deg, color-mix(in srgb, var(--black, #000) 38%, transparent), transparent); }\n  .fd-cast-l { inset-inline-end: 50%; background: linear-gradient(270deg, color-mix(in srgb, var(--black, #000) 38%, transparent), transparent); }\n  .fd-leaf { position: absolute; inset-block: 0; inset-inline-start: 50%; inline-size: 50%; transform-origin: left center; transform-style: preserve-3d; }\n  .fd-blk { position: absolute; inset-block: 0; inline-size: 50%; pointer-events: none; opacity: 0; }\n  .fd-blk-r { inset-inline-start: 50%; }\n  .fd-blk-l { inset-inline-start: 0; }\n  .fd-blk::before, .fd-blk::after { content: \"\"; position: absolute; background-color: var(--fd-edge); }\n  .fd-blk::before { inset-block: 2px calc(var(--n, 0) * var(--fd-t) * -0.35); inline-size: calc(var(--n, 0) * var(--fd-t)); background-image: repeating-linear-gradient(90deg, transparent 0 calc(var(--fd-t) - 1px), var(--fd-edge-line) calc(var(--fd-t) - 1px) var(--fd-t)); }\n  .fd-blk-r::before { inset-inline-start: 100%; }\n  .fd-blk-l::before { inset-inline-end: 100%; }\n  .fd-blk::after { inset-block-start: 100%; block-size: calc(var(--n, 0) * var(--fd-t) * 0.35); background-image: repeating-linear-gradient(0deg, transparent 0 calc(var(--fd-t) * 0.35 - 1px), var(--fd-edge-line) calc(var(--fd-t) * 0.35 - 1px) calc(var(--fd-t) * 0.35)); }\n  .fd-blk-r::after { inset-inline: 0 calc(var(--n, 0) * var(--fd-t) * -1); }\n  .fd-blk-l::after { inset-inline: calc(var(--n, 0) * var(--fd-t) * -1) 0; }\n  .fd-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }\n  .fd-face-f { transform: translateZ(0.5px); }\n  .fd-face-b { transform: translateZ(-0.5px) rotateY(180deg); }\n  .fd-leaf.fd-turning .fd-face { visibility: hidden; }\n  .fd-sheet { position: absolute; inset: 0; display: none; transform-style: preserve-3d; }\n  .fd-leaf.fd-turning .fd-sheet { display: block; }\n  .fd-strip { position: absolute; inset-block: 0; inset-inline-start: 100%; inline-size: 100%; transform-origin: left center; transform-style: preserve-3d; }\n  .fd-strip-0 { inset-inline-start: 0; inline-size: 16.6667%; }\n  .fd-sf, .fd-sb { position: absolute; inset-block: 0; inset-inline: 0 -1.2px; overflow: hidden; background: var(--pane, #1b1e25); backface-visibility: hidden; -webkit-backface-visibility: hidden; }\n  .fd-sf { transform: translateZ(calc(var(--fd-t) / 2)); }\n  .fd-sb { transform: translateZ(calc(var(--fd-t) / -2)) rotateY(180deg); }\n  .fd-se { position: absolute; inset-block: 0; inset-inline-start: calc(100% - var(--fd-t) / 2); inline-size: var(--fd-t); transform: rotateY(90deg); background: var(--fd-edge); box-shadow: inset 0 0 0 0.5px var(--fd-edge-line); }\n  .fd-strip-0::before { content: \"\"; position: absolute; inset-block: 0; inset-inline-start: calc(var(--fd-t) / -2); inline-size: var(--fd-t); transform: rotateY(-90deg); background: var(--fd-edge); }\n  .fd-sf .fd-page, .fd-sb .fd-page { position: absolute; inset-block: 0; inline-size: 600%; block-size: 100%; }\n  .fd-sf .fd-page *, .fd-sb .fd-page * { box-shadow: none; transition: none; }\n  .fd-sh { position: absolute; inset: 0; pointer-events: none; }\n  .fd-corner { position: absolute; inset-inline-end: 0; inset-block-end: 0; inline-size: 28px; block-size: 28px; clip-path: polygon(100% 0, 100% 100%, 0 100%); background: color-mix(in oklab, var(--hue, #eef0f4) 60%, transparent); pointer-events: none; transition: inline-size 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), block-size 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity var(--dur, 240ms); }\n  .fd-book:hover .fd-corner { inline-size: 46px; block-size: 46px; }\n  .fd-book[data-end] .fd-corner { opacity: 0; }\n  .fd-arrow { position: absolute; inset-block-start: 50%; margin-block-start: -27px; inline-size: 54px; block-size: 54px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--ink, #eef0f4); cursor: pointer; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity var(--dur, 240ms); z-index: var(--z-raised, 100); }\n  .fd-arrow svg { inline-size: 30px; block-size: 30px; }\n  .fd-prev { inset-inline-start: 0; }\n  .fd-next { inset-inline-end: 0; }\n  .fd-prev:hover:not(:disabled) { transform: translateX(-6px); }\n  .fd-next:hover:not(:disabled) { transform: translateX(6px); }\n  .fd-arrow:disabled { opacity: 0.25; cursor: default; }\n  .fd-deck { display: none; }\n\n  .fd-page { container-type: inline-size; position: relative; inline-size: 100%; block-size: 100%; overflow: hidden; background: var(--pane, #1b1e25); box-shadow: inset 0 0 0 1px var(--edge, rgb(255 255 255 / 0.09)); color: var(--ink, #eef0f4); }\n  .fd-face-f .fd-page { border-radius: 0 3px 3px 0; }\n  .fd-face-b .fd-page, .fd-sb .fd-page { border-radius: 3px 0 0 3px; }\n  .fd-page::after { content: \"\"; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, color-mix(in srgb, var(--black, #000) 26%, transparent), transparent 12%); }\n  .fd-face-b .fd-page::after, .fd-sb .fd-page::after { background: linear-gradient(270deg, color-mix(in srgb, var(--black, #000) 34%, transparent), transparent 12%); }\n  .fd-in { position: relative; display: flex; flex-direction: column; block-size: 100%; padding: 9cqw 8cqw 10cqw; font-size: 3.4cqw; line-height: 1.4; }\n  .fd-in > * { margin: 0; }\n  .fd-k { color: var(--hue, #eef0f4); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-mono { display: flex; justify-content: space-between; gap: 1em; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-hd { margin-block-start: 0.5em; font-size: 2em; font-weight: var(--weight-display, 640); letter-spacing: var(--track-display, -0.035em); line-height: 1.05; text-wrap: balance; }\n  .fd-p { margin-block-start: 0.8em; color: var(--ink-soft, #a4aab8); }\n  .fd-num { margin-block-start: auto; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; }\n  .fd-mast { margin-block-start: 0.6em; font-size: 4em; font-weight: 700; letter-spacing: -0.045em; line-height: 1; white-space: nowrap; }\n  .fd-mast .fd-form { color: var(--ink, #eef0f4); }\n  .fd-mast .fd-suffix { color: var(--hue, #eef0f4); }\n  .fd-cshot { margin: 1.4em 0 0; overflow: hidden; border-radius: 1.6cqw; box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); }\n  .fd-cshot img, .fd-fig img, .fd-thumb img { display: block; inline-size: 100%; block-size: auto; }\n  .fd-cline { margin-block-start: auto; font-size: 1.4em; font-weight: var(--weight-strong, 560); letter-spacing: var(--track-tight, -0.015em); line-height: 1.2; }\n  .fd-by { margin-block-start: 0.8em; }\n  .fd-chip { margin-block-start: 1em; display: inline-flex; align-items: center; gap: 0.7em; align-self: flex-start; padding: 0.4em 0.9em; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hue, #eef0f4) 42%, transparent); color: var(--hue, #eef0f4); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-chip i { inline-size: 0.6em; block-size: 0.6em; border-radius: 50%; background: var(--hue, #eef0f4); animation: fwc-pt-blink 1.6s ease-in-out infinite; }\n  .fd-sig { margin-block-start: 1em; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-list { display: flex; flex-direction: column; margin-block-start: 1.2em; border-block-start: 1px solid var(--edge-strong, rgb(255 255 255 / 0.18)); }\n  .fd-row { display: grid; grid-template-columns: 2.4em 1fr auto; align-items: baseline; gap: 1em; padding: 1em 0; border: 0; border-block-end: 1px solid var(--edge-strong, rgb(255 255 255 / 0.18)); background: none; color: var(--ink, #eef0f4); font: inherit; text-align: start; cursor: pointer; }\n  .fd-row span { transition: transform var(--dur, 240ms) var(--ease-out, ease-out); }\n  .fd-row span:nth-child(2) { font-weight: var(--weight-strong, 560); font-size: 1.2em; letter-spacing: var(--track-tight, -0.015em); }\n  .fd-row span:first-child, .fd-row span:last-child { color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-row:hover span { transform: translateX(2cqw); }\n  .fd-tip { margin-block-start: auto; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-bleed { position: absolute; inset: 0; }\n  .fd-bleed img { display: block; inline-size: 100%; block-size: 100%; object-fit: cover; }\n  .fd-card { position: relative; margin-block-start: auto; padding: 1.4em 1.6em; border-radius: 1.6cqw; background: var(--pane, #1b1e25); box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)), var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); }\n  .fd-card .fd-hd { margin-block-start: 0.3em; font-size: 2.6em; }\n  .fd-in-bleed { justify-content: flex-end; }\n  .fd-lede { margin-block-start: 0.8em; font-size: 1.22em; line-height: 1.38; letter-spacing: var(--track-tight, -0.015em); }\n  .fd-pull { margin-block: 1.2em; padding-block: 1em; border-block: 1px solid var(--edge-strong, rgb(255 255 255 / 0.18)); font-size: 1.15em; font-weight: var(--weight-strong, 560); letter-spacing: var(--track-tight, -0.015em); line-height: 1.25; color: var(--ink, #eef0f4); }\n  .fd-link { margin-block-start: auto; align-self: flex-start; color: var(--ink, #eef0f4); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; border-block-end: 1px solid var(--hue, #eef0f4); }\n  .fd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; margin-block-start: 1em; }\n  .fd-fig img { aspect-ratio: 1; object-fit: cover; border-radius: 1.2cqw; box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); }\n  .fd-fig-w { grid-column: 1 / -1; }\n  .fd-fig-w img { aspect-ratio: 2 / 1; }\n  .fd-fig figcaption { margin-block-start: 0.5em; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-thumb { margin: 1.4em 0 1.6em; overflow: hidden; border-radius: 1.6cqw; box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); transform: rotate(-3deg); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }\n  .fd-page:hover .fd-thumb { transform: rotate(0) scale(1.03); }\n  .fd-rel { margin-block-start: 0.9em; }\n  .fd-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2, 8px); align-self: flex-start; margin-block-start: auto; block-size: 10cqw; min-block-size: 0; padding-inline: 4cqw; border-radius: var(--radius-m, 10px); font-size: 2.8cqw; font-weight: var(--weight-strong, 560); text-decoration: none; white-space: nowrap; transition: background-color var(--dur-fast, 140ms) var(--ease-out, ease-out), opacity var(--dur-fast, 140ms) var(--ease-out, ease-out); }\n  .fd-btn-ink { background: var(--ink, #eef0f4); color: var(--on-ink, #14161b); }\n  .fd-btn-ink:hover { opacity: 0.88; }\n  .fd-btn-quiet { background: var(--control, #2b303c); color: var(--ink, #eef0f4); }\n  .fd-btn-quiet:hover { background: var(--control-hover, #343a48); }\n  .fd-quote { margin-block-start: 1.1em; padding-inline-start: 1em; border-inline-start: 1px solid var(--edge-strong, rgb(255 255 255 / 0.18)); }\n  .fd-quote p { line-height: 1.35; }\n  .fd-quote .fd-src { margin-block-start: 0.4em; color: var(--hue, #eef0f4); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-seps { margin-block-start: auto; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-copy { display: flex; justify-content: space-between; align-items: baseline; gap: 1em; margin-block-start: 1.2em; padding: 0.9em 1em; border: 0; box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)); background: none; color: var(--ink, #eef0f4); font: inherit; font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.9em; text-align: start; cursor: pointer; }\n  .fd-copy b { color: var(--hue, #eef0f4); font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.85em; }\n  .fd-btns { display: flex; gap: 2cqw; margin-block-start: 1.2em; }\n  .fd-btns .fd-btn { margin-block-start: 0; }\n  .fd-socials { margin-block-start: auto; display: flex; gap: 1em; font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint, #6b7283); }\n  .fd-socials a { color: inherit; text-decoration: none; }\n  .fd-socials a:hover { color: var(--ink, #eef0f4); }\n  .fd-sign-off { margin-block-start: 0.6em; font-size: 3.2em; font-weight: 700; letter-spacing: -0.04em; line-height: 1; text-wrap: balance; }\n  .fd-ruler { margin-block-start: auto; display: flex; align-items: flex-end; justify-content: space-between; block-size: 8cqw; }\n  .fd-ruler i { display: block; background: var(--ink-faint, #6b7283); }\n  .fd-colo { margin-block-start: 1em; color: var(--ink-soft, #a4aab8); }\n  .fd-price { margin-block-start: 1em; }\n\n  &.fd-narrow {\n    .fd-book, .fd-arrow { display: none; }\n    .fd-deck { --fd-pw: min(78vw, calc((100svh - 100px - 230px) * 0.75)); display: flex; position: absolute; inset-inline: -16px; inset-block: 0; gap: 16px; padding-inline: 11vw; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; align-items: center; }\n    .fd-deck::-webkit-scrollbar { display: none; }\n    .fd-dp { flex: 0 0 var(--fd-pw); inline-size: var(--fd-pw); aspect-ratio: 3 / 4; scroll-snap-align: center; }\n    .fd-dp .fd-page { border-radius: 3px; }\n    .fd-dp .fd-page::after { display: none; }\n  }\n  &[data-fwc-reduced] .fd-chip i { animation: none; }\n}\n@keyframes fwc-pt-blink { 50% { opacity: 0.3; } }\n`;\nconst NAMES = ['Cover', 'Letter and contents', 'Make', 'Pages and publishing', 'Facts and get it', 'Back cover'];\nconst ARROW_L = '<svg viewBox=\"0 0 30 30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M18 6l-9 9 9 9\"/></svg>';\nconst ARROW_R = '<svg viewBox=\"0 0 30 30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 6l9 9-9 9\"/></svg>';\nconst clamp = (v, a, b) => Math.min(b, Math.max(a, v));\nconst smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };\nconst h = (tag, cls, text) => {\n    const e = document.createElement(tag);\n    if (cls)\n        e.className = cls;\n    if (text != null)\n        e.textContent = String(text);\n    return e;\n};\nconst svgFrom = (markup) => {\n    const t = document.createElement('template');\n    t.innerHTML = markup;\n    return t.content.firstElementChild;\n};\nexport function mount(root, props, ctx) {\n    const p = props || {};\n    const brand = p.brand ?? 'Form';\n    const suffix = p.suffix ?? 'Design';\n    const bookLabel = p.bookLabel ?? 'FormDesign publication';\n    const prevLabel = p.prevLabel ?? 'Previous spread';\n    const nextLabel = p.nextLabel ?? 'Next spread';\n    const deckLabel = p.deckLabel ?? 'FormDesign publication, swipe to turn pages';\n    const ofWord = p.ofWord ?? 'of';\n    const spreadVar = p.spreadVariable ?? 'spread';\n    const savedVar = p.savedVariable ?? 'saved';\n    let pagesData = Array.isArray(p.pages) ? p.pages.slice() : [];\n    if (pagesData.length % 2)\n        pagesData.push({ blocks: [] });\n    const LEAVES = Math.max(1, pagesData.length / 2);\n    const MAXF = LEAVES;\n    const names = Array.isArray(p.names) && p.names.length ? p.names.map(String) : NAMES;\n    const vars = globalThis.__formwebVariables;\n    const setVar = (name, value) => { if (name && vars && typeof vars.set === 'function') {\n        try {\n            vars.set(name, value);\n        }\n        catch (e) { /* the variable may not exist on this page */ }\n    } };\n    const style = h('style');\n    style.textContent = CSS;\n    root.appendChild(style);\n    const wrap = h('div', 'fwc-pt');\n    wrap.setAttribute('data-fwc-theme', ctx.theme());\n    if (ctx.reduced)\n        wrap.setAttribute('data-fwc-reduced', '');\n    root.appendChild(wrap);\n    const rise = h('div', 'fd-rise');\n    wrap.appendChild(rise);\n    // ---- page content -------------------------------------------------------\n    const imgs = (parent, d) => {\n        const make = (src, theme) => {\n            const im = document.createElement('img');\n            im.src = ctx.asset(src);\n            if (d.w)\n                im.width = d.w;\n            if (d.h)\n                im.height = d.h;\n            im.alt = d.alt || '';\n            im.decoding = 'async';\n            im.draggable = false;\n            if (theme)\n                im.className = theme;\n            return im;\n        };\n        if (d.light)\n            parent.append(make(d.src, 'shot-dark'), make(d.light, 'shot-light'));\n        else\n            parent.append(make(d.src, ''));\n    };\n    const copyButton = (btn, b) => {\n        const url = b.url || '';\n        const word = btn.querySelector('b');\n        const rest = b.label ?? 'Copy';\n        let tm = 0;\n        const say = (t, ms) => { word.textContent = t; clearTimeout(tm); tm = setTimeout(() => { word.textContent = rest; }, ms); };\n        const ok = () => say(b.done ?? 'Copied', 2200);\n        const fail = () => {\n            const r = document.createRange();\n            r.selectNodeContents(btn.firstElementChild);\n            const s = getSelection();\n            s.removeAllRanges();\n            s.addRange(r);\n            say(b.fail ?? 'Select to copy', 6000);\n        };\n        const old = () => {\n            const ta = document.createElement('textarea');\n            ta.value = url;\n            ta.style.cssText = 'position:fixed;opacity:0';\n            document.body.appendChild(ta);\n            ta.select();\n            let good = false;\n            try {\n                good = document.execCommand('copy');\n            }\n            catch (e) {\n                good = false;\n            }\n            ta.remove();\n            if (good)\n                ok();\n            else\n                fail();\n        };\n        btn.addEventListener('click', () => {\n            if (navigator.clipboard && navigator.clipboard.writeText)\n                navigator.clipboard.writeText(url).then(ok, old);\n            else\n                old();\n        });\n    };\n    const button = (b, extra) => {\n        const a = h('a', 'fd-btn fd-btn-' + (b.kind === 'quiet' ? 'quiet' : 'ink'), b.text);\n        a.href = b.href || '#';\n        if (extra)\n            a.classList.add(extra);\n        return a;\n    };\n    const BLOCKS = {\n        k: (b) => h('p', 'fd-k', b.text),\n        mono: (b) => { const e = h('p', 'fd-mono' + (b.cls ? ' ' + b.cls : '')); for (const s of b.spans || [])\n            e.append(h('span', '', s)); return e; },\n        mast: () => { const e = h('p', 'fd-mast'); e.append(h('span', 'fd-form', brand), h('span', 'fd-suffix', suffix)); return e; },\n        shot: (b) => { const f = h('figure', 'fd-cshot'); imgs(f, b); return f; },\n        thumb: (b) => { const f = h('figure', 'fd-thumb'); imgs(f, b); return f; },\n        cline: (b) => { const e = h('p', 'fd-cline'); String(b.text || '').split('\\n').forEach((line, i) => { if (i)\n            e.append(document.createElement('br')); e.append(line); }); return e; },\n        hd: (b) => h('h2', 'fd-hd', b.text),\n        p: (b) => h('p', 'fd-p', b.text),\n        num: (b) => h('p', 'fd-num', b.text),\n        tip: (b) => h('p', 'fd-tip', b.text),\n        sig: (b) => h('p', 'fd-sig', b.text),\n        chip: (b) => { const e = h('p', 'fd-chip'); e.append(document.createElement('i'), b.text || ''); return e; },\n        lede: (b) => h('p', 'fd-lede', b.text),\n        pull: (b) => h('p', 'fd-pull', b.text),\n        colo: (b) => h('p', 'fd-colo', b.text),\n        seps: (b) => h('p', 'fd-seps', b.text),\n        signoff: (b) => h('p', 'fd-sign-off', b.text),\n        link: (b) => { const a = h('a', 'fd-link', b.text); a.href = b.href || '#'; return a; },\n        button: (b) => button(b),\n        btns: (b) => { const d = h('div', 'fd-btns'); for (const x of b.buttons || [])\n            d.append(button(x)); return d; },\n        socials: (b) => { const e = h('p', 'fd-socials'); for (const x of b.links || []) {\n            const a = h('a', '', x.text);\n            a.href = x.href || '#';\n            e.append(a);\n        } return e; },\n        list: (b) => {\n            const d = h('div', 'fd-list');\n            for (const r of b.rows || []) {\n                const btn = h('button', 'fd-row');\n                btn.type = 'button';\n                btn.dataset.go = String(r.go ?? 0);\n                btn.append(h('span', '', r.a), h('span', '', r.b), h('span', '', r.c));\n                d.append(btn);\n            }\n            return d;\n        },\n        grid: (b) => {\n            const d = h('div', 'fd-grid');\n            for (const f of b.figs || []) {\n                const fig = h('figure', 'fd-fig' + (f.wide ? ' fd-fig-w' : ''));\n                imgs(fig, f);\n                fig.append(h('figcaption', '', f.caption));\n                d.append(fig);\n            }\n            return d;\n        },\n        quote: (b) => { const q = h('div', 'fd-quote'); q.append(h('p', '', b.text), h('p', 'fd-src', b.src)); return q; },\n        copy: (b) => {\n            const btn = h('button', 'fd-copy');\n            btn.type = 'button';\n            btn.append(h('span', '', b.text), h('b', '', b.label ?? 'Copy'));\n            copyButton(btn, b);\n            return btn;\n        },\n        ruler: (b) => {\n            const d = h('div', 'fd-ruler');\n            d.setAttribute('aria-hidden', 'true');\n            for (const bar of b.bars || []) {\n                const i = document.createElement('i');\n                i.style.blockSize = bar[0] + '%';\n                i.style.inlineSize = bar[1] + 'px';\n                d.append(i);\n            }\n            return d;\n        },\n        card: (b) => { const d = h('div', 'fd-card'); d.append(h('p', 'fd-k', b.k), h('h2', 'fd-hd', b.hd)); return d; }\n    };\n    const renderPage = (desc, n) => {\n        const page = h('div', 'fd-page');\n        page.dataset.p = String(n + 1);\n        if (desc.bleed) {\n            const bl = h('div', 'fd-bleed');\n            imgs(bl, desc.bleed);\n            page.append(bl);\n        }\n        const inner = h('div', 'fd-in' + (desc.bleed ? ' fd-in-bleed' : ''));\n        for (const b of desc.blocks || []) {\n            const make = BLOCKS[b.t];\n            if (make)\n                inner.append(make(b));\n        }\n        page.append(inner);\n        return page;\n    };\n    // ---- book structure ------------------------------------------------------\n    const prev = h('button', 'fd-arrow fd-prev');\n    prev.type = 'button';\n    prev.setAttribute('aria-label', prevLabel);\n    prev.append(svgFrom(ARROW_L));\n    const next = h('button', 'fd-arrow fd-next');\n    next.type = 'button';\n    next.setAttribute('aria-label', nextLabel);\n    next.append(svgFrom(ARROW_R));\n    const book = h('div', 'fd-book');\n    book.setAttribute('role', 'group');\n    book.setAttribute('aria-label', bookLabel);\n    const slabL = h('div', 'fd-slab fd-slab-l');\n    const slabR = h('div', 'fd-slab fd-slab-r');\n    const blkL = h('div', 'fd-blk fd-blk-l');\n    const blkR = h('div', 'fd-blk fd-blk-r');\n    const castL = h('div', 'fd-cast fd-cast-l');\n    const castR = h('div', 'fd-cast fd-cast-r');\n    for (const e of [slabL, slabR, blkL, blkR, castL, castR]) {\n        e.setAttribute('aria-hidden', 'true');\n        book.append(e);\n    }\n    const leaves = [];\n    for (let i = 0; i < LEAVES; i++) {\n        const leaf = h('div', 'fd-leaf');\n        leaf.dataset.i = String(i);\n        const ff = h('div', 'fd-face fd-face-f');\n        ff.append(renderPage(pagesData[2 * i] || { blocks: [] }, 2 * i));\n        const fb = h('div', 'fd-face fd-face-b');\n        fb.append(renderPage(pagesData[2 * i + 1] || { blocks: [] }, 2 * i + 1));\n        leaf.append(ff, fb);\n        book.append(leaf);\n        leaves.push(leaf);\n    }\n    const corner = h('div', 'fd-corner');\n    corner.setAttribute('aria-hidden', 'true');\n    book.append(corner);\n    const deck = h('div', 'fd-deck');\n    deck.setAttribute('role', 'group');\n    deck.setAttribute('aria-label', deckLabel);\n    pagesData.forEach(() => deck.append(h('div', 'fd-dp')));\n    const deckCells = [...deck.children];\n    deckCells.forEach((cell, i) => cell.append(renderPage(pagesData[i] || { blocks: [] }, i)));\n    const live = h('p', 'fd-sr');\n    live.setAttribute('aria-live', 'polite');\n    rise.append(prev, next, book, deck, live);\n    // ---- state ----------------------------------------------------------------\n    let f = 0, vel = 0, target = 0, dirv = -1, running = false, last = 0, shown = -1, narrow = false, sig = '';\n    let dead = false;\n    const cache = leaves.map(() => ({ mode: '', t: -1 }));\n    const sheets = leaves.map(() => null);\n    const offs = [];\n    let stopFrame = null;\n    const buildSheet = (i) => {\n        const leaf = leaves[i];\n        const sheet = h('div', 'fd-sheet');\n        sheet.setAttribute('aria-hidden', 'true');\n        sheet.inert = true;\n        const fp = leaf.querySelector('.fd-face-f .fd-page');\n        const bp = leaf.querySelector('.fd-face-b .fd-page');\n        const strips = [];\n        let parent = sheet;\n        for (let k = 0; k < 6; k++) {\n            const s = h('div', 'fd-strip' + (k === 0 ? ' fd-strip-0' : ''));\n            const mk = (cls, src, shift) => {\n                const face = h('div', cls);\n                const c = src.cloneNode(true);\n                for (const im of c.querySelectorAll('img'))\n                    im.removeAttribute('loading');\n                c.style.marginInlineStart = (-shift * 100) + '%';\n                c.style.insetInlineStart = '0';\n                const sh = h('div', 'fd-sh');\n                face.append(c, sh);\n                return face;\n            };\n            const fF = mk('fd-sf', fp, k);\n            const bF = mk('fd-sb', bp, 5 - k);\n            const se = h('div', 'fd-se');\n            s.append(fF, bF, se);\n            parent.appendChild(s);\n            strips.push({ el: s, fs: fF.querySelector('.fd-sh'), bs: bF.querySelector('.fd-sh') });\n            parent = s;\n        }\n        leaf.appendChild(sheet);\n        sheets[i] = { sheet, strips };\n    };\n    const shade = (a) => 'color-mix(in srgb, var(--black, #000) ' + (a * 100).toFixed(1) + '%, transparent)';\n    const reorder = (turning) => {\n        const s = leaves.map((_, i) => (turning === i ? 't' : f - i >= 0.999 ? 'l' : 'r')).join('');\n        if (s === sig)\n            return;\n        sig = s;\n        const act = document.activeElement;\n        const left = leaves.filter((_, i) => s[i] === 'l');\n        const right = leaves.filter((_, i) => s[i] === 'r').reverse();\n        const tl = leaves.filter((_, i) => s[i] === 't');\n        for (const e of [...right, ...left, castL, castR, ...tl, corner])\n            book.appendChild(e);\n        if (act && act !== document.body && act.isConnected && book.contains(act)) {\n            try {\n                act.focus({ preventScroll: true });\n            }\n            catch (e) { /* focus may be refused */ }\n        }\n    };\n    const sync = (idx) => {\n        shown = idx;\n        leaves.forEach((leaf, i) => {\n            leaf.querySelector('.fd-face-f').inert = !(i === idx);\n            leaf.querySelector('.fd-face-b').inert = !(i === idx - 1);\n        });\n        prev.disabled = idx === 0;\n        next.disabled = idx === MAXF;\n        book.toggleAttribute('data-end', idx === MAXF);\n        const name = names[idx] ?? '';\n        book.setAttribute('aria-label', bookLabel + ', ' + name + ', ' + (idx + 1) + ' ' + ofWord + ' ' + (MAXF + 1));\n        live.textContent = name + ', ' + (idx + 1) + ' ' + ofWord + ' ' + (MAXF + 1);\n        setVar(spreadVar, idx);\n        if (!narrow)\n            setVar(savedVar, false);\n    };\n    const render = () => {\n        const F = clamp(f, 0, MAXF);\n        let turning = -1;\n        leaves.forEach((leaf, i) => {\n            const t = clamp(F - i, 0, 1);\n            const c = cache[i];\n            if (t <= 0.001 || t >= 0.999) {\n                const mode = t <= 0.001 ? 'r' : 'l';\n                if (c.mode !== mode) {\n                    leaf.classList.remove('fd-turning');\n                    const z = ((mode === 'l' ? i : MAXF - 1 - i) * 0.4).toFixed(1);\n                    leaf.style.transform = 'perspective(2600px) translateZ(' + z + 'px) rotateY(' + (mode === 'l' ? -180 : 0) + 'deg)';\n                    c.mode = mode;\n                }\n                return;\n            }\n            turning = i;\n            if (!sheets[i])\n                buildSheet(i);\n            if (c.mode !== 't') {\n                leaf.classList.add('fd-turning');\n                leaf.style.transform = 'perspective(2600px)';\n                c.mode = 't';\n            }\n            const { strips } = sheets[i];\n            const sp = Math.sin(Math.PI * t);\n            let ang = 0;\n            const angles = [];\n            for (let k = 0; k < 6; k++) {\n                const bend = k === 0 ? -180 * t : -34 * sp * dirv * (k / 15);\n                ang += bend;\n                angles.push(ang);\n                strips[k].el.style.transform = 'rotateY(' + bend.toFixed(3) + 'deg)';\n            }\n            const al = angles.map((a) => 0.34 * Math.abs(Math.sin((a * Math.PI) / 180)));\n            for (let k = 0; k < 6; k++) {\n                const a0 = al[k], a1 = al[Math.min(5, k + 1)];\n                strips[k].fs.style.background = 'linear-gradient(90deg,' + shade(a0) + ',' + shade(a1) + ')';\n                strips[k].bs.style.background = 'linear-gradient(90deg,' + shade(a1) + ',' + shade(a0) + ')';\n            }\n        });\n        reorder(turning);\n        const shift = F <= 1 ? -0.5 + 0.5 * F : F <= MAXF - 1 ? 0 : 0.5 * (F - (MAXF - 1));\n        book.style.setProperty('--fd-shift', shift.toFixed(4));\n        blkR.style.setProperty('--n', (MAXF - F).toFixed(3));\n        blkL.style.setProperty('--n', F.toFixed(3));\n        blkR.style.opacity = Math.min(1, (MAXF - F) * 4).toFixed(3);\n        blkL.style.opacity = Math.min(1, F * 4).toFixed(3);\n        slabL.style.opacity = smooth(0.82, 1, F).toFixed(3);\n        slabR.style.opacity = (1 - smooth(MAXF - 1, MAXF - 0.82, F)).toFixed(3);\n        if (turning >= 0) {\n            const fr = F - turning;\n            const rv = turning < MAXF - 1 ? Math.sin(Math.PI * fr) * (1 - fr) : 0;\n            const lv = turning > 0 ? Math.sin(Math.PI * fr) * fr : 0;\n            castR.style.opacity = rv.toFixed(3);\n            castR.style.inlineSize = (50 * (1 - 0.85 * fr)).toFixed(2) + '%';\n            castL.style.opacity = lv.toFixed(3);\n            castL.style.inlineSize = (50 * (0.15 + 0.85 * fr)).toFixed(2) + '%';\n        }\n        else {\n            castR.style.opacity = '0';\n            castL.style.opacity = '0';\n        }\n        const idx = clamp(Math.round(F), 0, MAXF);\n        if (idx !== shown)\n            sync(idx);\n    };\n    // ---- spring motion ------------------------------------------------------------\n    const step = (now) => {\n        let el = last ? clamp((now - last) / 1000, 0.001, 0.25) : 0.016;\n        last = now;\n        while (el > 0) {\n            const dt = Math.min(0.0125, el);\n            el -= dt;\n            const acc = 90 * (target - f) - 19.5 * vel;\n            vel += acc * dt;\n            f += vel * dt;\n            if (Math.abs(vel) > 0.01)\n                dirv = vel > 0 ? -1 : 1;\n            if (Math.abs(target - f) < 0.0005 && Math.abs(vel) < 0.001) {\n                f = target;\n                vel = 0;\n                running = false;\n                break;\n            }\n        }\n        render();\n        if (!running && stopFrame) {\n            stopFrame();\n            stopFrame = null;\n        }\n    };\n    const kick = () => {\n        if (running)\n            return;\n        running = true;\n        last = 0;\n        if (!stopFrame)\n            stopFrame = ctx.onFrame(step);\n    };\n    const deckPage = (n) => (n === 0 ? 0 : 2 * n - 1);\n    const deckTo = (n) => {\n        const el = deck.children[deckPage(n)];\n        if (el)\n            deck.scrollTo({ left: el.offsetLeft - (deck.clientWidth - el.offsetWidth) / 2, behavior: ctx.reduced ? 'auto' : 'smooth' });\n    };\n    const go = (n) => {\n        n = clamp(Math.round(n), 0, MAXF);\n        if (narrow) {\n            deckTo(n);\n            return;\n        }\n        if (n !== target)\n            dirv = n > target ? -1 : 1;\n        target = n;\n        if (ctx.reduced) {\n            f = n;\n            vel = 0;\n            running = false;\n            render();\n            return;\n        }\n        kick();\n    };\n    let rafD = 0;\n    const onDeckScroll = () => {\n        if (!narrow || rafD)\n            return;\n        rafD = requestAnimationFrame(() => {\n            rafD = 0;\n            const mid = deck.scrollLeft + deck.clientWidth / 2;\n            let best = 0, bd = 1e9;\n            [...deck.children].forEach((c, i) => { const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid); if (d < bd) {\n                bd = d;\n                best = i;\n            } });\n            const idx = Math.floor((best + 1) / 2);\n            if (idx !== shown)\n                sync(idx);\n        });\n    };\n    deck.addEventListener('scroll', onDeckScroll, { passive: true });\n    prev.addEventListener('click', () => go(Math.round(target) - 1));\n    next.addEventListener('click', () => go(Math.round(target) + 1));\n    const onClick = (e) => {\n        const g = e.target.closest && e.target.closest('[data-go]');\n        if (g && wrap.contains(g))\n            go(Number(g.dataset.go));\n    };\n    wrap.addEventListener('click', onClick);\n    const scope = () => ctx.host.closest('section') || ctx.host;\n    const onKey = (e) => {\n        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')\n            return;\n        const a = document.activeElement;\n        if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))\n            return;\n        if (a && a !== document.body && !scope().contains(a))\n            return;\n        const r = ctx.host.getBoundingClientRect();\n        if (r.bottom < 0 || r.top > innerHeight)\n            return;\n        e.preventDefault();\n        go((narrow ? shown : Math.round(target)) + (e.key === 'ArrowRight' ? 1 : -1));\n    };\n    addEventListener('keydown', onKey);\n    // ---- drag -------------------------------------------------------------------\n    let drag = null;\n    book.addEventListener('pointerdown', (e) => {\n        if (e.button !== 0 || e.target.closest('a, button, input, textarea'))\n            return;\n        drag = { x: e.clientX, start: Math.round(f), id: e.pointerId, on: false, pf: f, pt: performance.now(), v: 0 };\n    });\n    book.addEventListener('pointermove', (e) => {\n        if (!drag)\n            return;\n        const dx = e.clientX - drag.x;\n        if (!drag.on) {\n            if (Math.abs(dx) <= 6)\n                return;\n            drag.on = true;\n            vel = 0;\n            running = false;\n            if (stopFrame) {\n                stopFrame();\n                stopFrame = null;\n            }\n            book.setPointerCapture(e.pointerId);\n            book.classList.add('fd-drag');\n        }\n        const pw = book.clientWidth / 2;\n        const nf = clamp(drag.start - dx / (1.6 * pw), Math.max(0, drag.start - 1), Math.min(MAXF, drag.start + 1));\n        const now = performance.now();\n        const dt = Math.max(0.001, (now - drag.pt) / 1000);\n        drag.v = drag.v * 0.6 + ((nf - drag.pf) / dt) * 0.4;\n        drag.pf = nf;\n        drag.pt = now;\n        if (Math.abs(nf - f) > 0.0005)\n            dirv = nf > f ? -1 : 1;\n        f = nf;\n        target = Math.round(f);\n        render();\n    });\n    const release = (e) => {\n        if (!drag)\n            return;\n        const d = drag;\n        drag = null;\n        book.classList.remove('fd-drag');\n        if (!d.on) {\n            const r = book.getBoundingClientRect();\n            const x = (e.clientX - r.left) / r.width;\n            if (x > 0.72)\n                go(Math.round(target) + 1);\n            else if (x < 0.28)\n                go(Math.round(target) - 1);\n            return;\n        }\n        const proj = f + clamp(0.15 * d.v, -0.6, 0.6);\n        const t = clamp(Math.round(proj), Math.max(0, d.start - 1), Math.min(MAXF, d.start + 1));\n        target = t;\n        vel = d.v;\n        if (ctx.reduced) {\n            f = t;\n            vel = 0;\n            render();\n            return;\n        }\n        kick();\n    };\n    book.addEventListener('pointerup', release);\n    book.addEventListener('pointercancel', release);\n    // ---- layout mode, theme, variable ---------------------------------------------------\n    const mode = () => {\n        const pad = clamp(innerWidth * 0.03, 16, 44);\n        const n = ctx.size().width + 2 * pad < 720;\n        if (n === narrow)\n            return;\n        narrow = n;\n        wrap.classList.toggle('fd-narrow', n);\n        if (n)\n            deckTo(shown < 0 ? 0 : shown);\n    };\n    offs.push(ctx.onResize(mode));\n    offs.push(ctx.onTheme((m) => wrap.setAttribute('data-fwc-theme', m)));\n    offs.push(ctx.onVariable(spreadVar, (v) => {\n        const n = Math.round(Number(v));\n        if (!Number.isFinite(n) || n === shown)\n            return;\n        go(n);\n    }));\n    const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));\n    let pre = 0;\n    const warm = () => { if (!dead && pre < leaves.length) {\n        if (!sheets[pre])\n            buildSheet(pre);\n        pre++;\n        idle(warm);\n    } };\n    mode();\n    render();\n    idle(warm);\n    requestAnimationFrame(() => { if (!dead)\n        ctx.ready(); });\n    return () => {\n        dead = true;\n        removeEventListener('keydown', onKey);\n        if (stopFrame) {\n            stopFrame();\n            stopFrame = null;\n        }\n        cancelAnimationFrame(rafD);\n        for (const off of offs) {\n            try {\n                off();\n            }\n            catch (e) { /* already removed */ }\n        }\n        root.replaceChildren();\n    };\n}\nconst formwebMountContract = mount;\nexport { formwebMountContract };\n",
+ "language": "javascript",
+ "mode": "page",
+ "props": {
+  "bookLabel": {
+   "default": "FormDesign publication",
+   "type": "string"
+  },
+  "brand": {
+   "default": "Form",
+   "type": "string"
+  },
+  "deckLabel": {
+   "default": "FormDesign publication, swipe to turn pages",
+   "type": "string"
+  },
+  "names": {
+   "default": [
+    "Cover",
+    "Letter and contents",
+    "Make",
+    "Pages and publishing",
+    "Facts and get it",
+    "Back cover"
+   ],
+   "type": "json"
+  },
+  "nextLabel": {
+   "default": "Next spread",
+   "type": "string"
+  },
+  "ofWord": {
+   "default": "of",
+   "type": "string"
+  },
+  "pages": {
+   "default": [
+    {
+     "blocks": [
+      {
+       "spans": [
+        "Version 0.85.4",
+        "Free"
+       ],
+       "t": "mono"
+      },
+      {
+       "t": "mast"
+      },
+      {
+       "alt": "The FormDesign editor with a magazine spread open, the panels around it",
+       "h": 1500,
+       "light": "https://media.formai.studio/media/formdesign/ui-hero-light-2/b4a4e884250a.w1024.webp",
+       "src": "https://media.formai.studio/media/formdesign/ui-hero-2/3c7192b07f3f.w1024.webp",
+       "t": "shot",
+       "w": 2400
+      },
+      {
+       "t": "cline",
+       "text": "Page layout and publishing\nfor the web and the desktop"
+      },
+      {
+       "cls": "fd-by",
+       "spans": [
+        "Instead of InDesign and Affinity"
+       ],
+       "t": "mono"
+      }
+     ]
+    },
+    {
+     "blocks": [
+      {
+       "t": "k",
+       "text": "What it is"
+      },
+      {
+       "t": "hd",
+       "text": "A page-layout application for magazines, books, reports, print and websites."
+      },
+      {
+       "t": "p",
+       "text": "It is made for people and their agents. Drop content on the Make panel, write a brief, pick a template and press Make layout, then refine the result in a full editor."
+      },
+      {
+       "t": "p",
+       "text": "The layout core is FormDesign's own Rust engine with 394 commands and 41 tools, and the interface comes in 26 languages."
+      },
+      {
+       "t": "chip",
+       "text": "Available on macOS, Windows and Linux"
+      },
+      {
+       "t": "sig",
+       "text": "FormDesign 0.85.4"
+      },
+      {
+       "t": "num",
+       "text": "02"
+      }
+     ]
+    },
+    {
+     "blocks": [
+      {
+       "t": "k",
+       "text": "Contents"
+      },
+      {
+       "rows": [
+        {
+         "a": "02",
+         "b": "Letter",
+         "c": "Intro",
+         "go": 1
+        },
+        {
+         "a": "04",
+         "b": "Make",
+         "c": "Chapter",
+         "go": 2
+        },
+        {
+         "a": "06",
+         "b": "Pages",
+         "c": "Captures",
+         "go": 3
+        },
+        {
+         "a": "07",
+         "b": "Publishing",
+         "c": "Chapter",
+         "go": 3
+        },
+        {
+         "a": "08",
+         "b": "Facts",
+         "c": "Checks",
+         "go": 4
+        },
+        {
+         "a": "09",
+         "b": "Get it",
+         "c": "Download",
+         "go": 4
+        }
+       ],
+       "t": "list"
+      },
+      {
+       "t": "tip",
+       "text": "Tip: drag a page, or use the arrow keys."
+      },
+      {
+       "t": "num",
+       "text": "03"
+      }
+     ]
+    },
+    {
+     "bleed": {
+      "alt": "The FormDesign start screen with the Make panel for files and a brief",
+      "h": 1500,
+      "light": "https://media.formai.studio/media/formdesign/ui-start-light/1dd433b5b605.w1024.webp",
+      "src": "https://media.formai.studio/media/formdesign/ui-start/3b5a1f756846.w1024.webp",
+      "w": 2400
+     },
+     "blocks": [
+      {
+       "hd": "Make",
+       "k": "From a brief to a layout",
+       "t": "card"
+      }
+     ]
+    },
+    {
+     "blocks": [
+      {
+       "t": "k",
+       "text": "The Make pass"
+      },
+      {
+       "t": "lede",
+       "text": "Intake reads your files and brief for kind, size, page count, tone, colours and brand. The Make pass ranks templates, fills them, threads the article through continuation pages, matches images to frames, fits copy and reports what is still sample text."
+      },
+      {
+       "t": "pull",
+       "text": "71 templates across magazine, newsletter, book, report, print, ad and web."
+      },
+      {
+       "t": "p",
+       "text": "Turns Markdown, Word, RTF, text, HTML, CSV, spreadsheets, PDFs, images and a plain-words brief into one content pack. Text is composed with a Knuth-Plass paragraph composer."
+      },
+      {
+       "href": "https://formai.studio/formdesign/",
+       "t": "link",
+       "text": "Read the FormDesign page"
+      },
+      {
+       "t": "num",
+       "text": "05"
+      }
+     ]
+    },
+    {
+     "blocks": [
+      {
+       "t": "k",
+       "text": "In the window"
+      },
+      {
+       "figs": [
+        {
+         "alt": "The FormDesign template browser",
+         "caption": "71 templates",
+         "h": 1500,
+         "light": "https://media.formai.studio/media/formdesign/ui-templates-light/1d93c6c48547.w1024.webp",
+         "src": "https://media.formai.studio/media/formdesign/ui-templates/73632c9fa127.w1024.webp",
+         "w": 2400
+        },
+        {
+         "alt": "The FormDesign inspector beside a page",
+         "caption": "The inspector",
+         "h": 1500,
+         "src": "https://media.formai.studio/media/formdesign/ui-inspector-2/2e9e7f4cf8df.w1024.webp",
+         "w": 2400
+        },
+        {
+         "alt": "The FormDesign export dialog",
+         "caption": "Export and publish",
+         "h": 1500,
+         "src": "https://media.formai.studio/media/formdesign/ui-export-2/b7b84168009c.w1024.webp",
+         "w": 2400,
+         "wide": true
+        }
+       ],
+       "t": "grid"
+      },
+      {
+       "t": "num",
+       "text": "06"
+      }
+     ]
+    },
+    {
+     "blocks": [
+      {
+       "t": "k",
+       "text": "Publishing"
+      },
+      {
+       "alt": "The FormDesign editor with a layout open",
+       "h": 1500,
+       "src": "https://media.formai.studio/media/formdesign/ui-editor/f8ffaa7a8128.w1024.webp",
+       "t": "thumb",
+       "w": 2400
+      },
+      {
+       "t": "hd",
+       "text": "Print, PDF and the web"
+      },
+      {
+       "t": "p",
+       "text": "Any layout can become a responsive multi-page site with a sitemap and feed, and File > Publish Online gives a link served from this computer."
+      },
+      {
+       "cls": "fd-rel",
+       "spans": [
+        "Version 0.85.4",
+        "macOS, Windows, Linux"
+       ],
+       "t": "mono"
+      },
+      {
+       "href": "https://formai.studio/formdesign/",
+       "kind": "ink",
+       "t": "button",
+       "text": "Explore FormDesign"
+      }
+     ]
+    },
+    {
+     "blocks": [
+      {
+       "t": "k",
+       "text": "Facts"
+      },
+      {
+       "src": "Intake",
+       "t": "quote",
+       "text": "Turns Markdown, Word, RTF, text, HTML, CSV, PDFs and images into one content pack."
+      },
+      {
+       "src": "Text",
+       "t": "quote",
+       "text": "Composes text with a Knuth-Plass paragraph composer, styles, tables and footnotes."
+      },
+      {
+       "src": "Websites",
+       "t": "quote",
+       "text": "Exports layouts as responsive multi-page websites and publishes a link served from this computer."
+      },
+      {
+       "t": "seps",
+       "text": "Magazine · Newsletter · Book · Report · Presentation"
+      },
+      {
+       "t": "num",
+       "text": "08"
+      }
+     ]
+    },
+    {
+     "blocks": [
+      {
+       "t": "k",
+       "text": "Get FormDesign"
+      },
+      {
+       "t": "hd",
+       "text": "Runs on macOS, Windows and Linux, with its source open on GitHub."
+      },
+      {
+       "t": "chip",
+       "text": "Version 0.85.4, available"
+      },
+      {
+       "done": "Copied",
+       "fail": "Select to copy",
+       "label": "Copy",
+       "t": "copy",
+       "text": "formai.studio/formdesign/",
+       "url": "https://formai.studio/formdesign/"
+      },
+      {
+       "buttons": [
+        {
+         "href": "https://formai.studio/download/",
+         "kind": "ink",
+         "text": "Download"
+        },
+        {
+         "href": "https://formai.studio/apps/",
+         "kind": "quiet",
+         "text": "Every app"
+        }
+       ],
+       "t": "btns"
+      },
+      {
+       "links": [
+        {
+         "href": "https://formai.studio/apps/",
+         "text": "Apps"
+        },
+        {
+         "href": "https://formai.studio/docs/",
+         "text": "Docs"
+        },
+        {
+         "href": "https://formai.studio/releases/",
+         "text": "Releases"
+        }
+       ],
+       "t": "socials"
+      },
+      {
+       "t": "num",
+       "text": "09"
+      }
+     ]
+    },
+    {
+     "blocks": [
+      {
+       "spans": [
+        "FormDesign",
+        "Back cover"
+       ],
+       "t": "mono"
+      },
+      {
+       "t": "signoff",
+       "text": "Page after page."
+      },
+      {
+       "t": "colo",
+       "text": "FormDesign 0.85.4 is built with TypeScript, Vite, Python, FastAPI, Rust and Tauri 2."
+      },
+      {
+       "bars": [
+        [
+         70,
+         1
+        ],
+        [
+         85,
+         1
+        ],
+        [
+         40,
+         1
+        ],
+        [
+         70,
+         1
+        ],
+        [
+         100,
+         1
+        ],
+        [
+         40,
+         1
+        ],
+        [
+         85,
+         3
+        ],
+        [
+         40,
+         1
+        ],
+        [
+         40,
+         3
+        ],
+        [
+         40,
+         1
+        ],
+        [
+         55,
+         1
+        ],
+        [
+         100,
+         3
+        ],
+        [
+         40,
+         1
+        ],
+        [
+         40,
+         1
+        ],
+        [
+         70,
+         3
+        ],
+        [
+         55,
+         1
+        ],
+        [
+         100,
+         2
+        ],
+        [
+         100,
+         1
+        ],
+        [
+         40,
+         1
+        ],
+        [
+         70,
+         1
+        ],
+        [
+         100,
+         1
+        ],
+        [
+         100,
+         1
+        ],
+        [
+         100,
+         1
+        ],
+        [
+         85,
+         3
+        ],
+        [
+         70,
+         3
+        ],
+        [
+         100,
+         3
+        ],
+        [
+         70,
+         2
+        ],
+        [
+         55,
+         1
+        ],
+        [
+         55,
+         1
+        ],
+        [
+         100,
+         2
+        ],
+        [
+         100,
+         3
+        ],
+        [
+         70,
+         3
+        ],
+        [
+         70,
+         1
+        ],
+        [
+         40,
+         3
+        ]
+       ],
+       "t": "ruler"
+      },
+      {
+       "cls": "fd-price",
+       "spans": [
+        "Free",
+        "No account"
+       ],
+       "t": "mono"
+      }
+     ]
+    }
+   ],
+   "type": "json"
+  },
+  "prevLabel": {
+   "default": "Previous spread",
+   "type": "string"
+  },
+  "savedVariable": {
+   "default": "saved",
+   "type": "string"
+  },
+  "spreadVariable": {
+   "default": "spread",
+   "type": "string"
+  },
+  "suffix": {
+   "default": "Design",
+   "type": "string"
+  }
+ },
+ "source": "// page-turn: a publication turned page by page in 3D, with drag, keys, arrows and a swipe deck on narrow screens.\n// Ported from formai-xmental-webspun v3.1.0 assets/sections/formdesign-spreads. Spread state is shared through\n// the page variable named by props.spreadVariable so native dots and labels can bind to it.\n\nconst CSS = `\n.fwc-pt { position: absolute; inset: 0; container: fwcpt / inline-size; color: var(--ink, #eef0f4); font-family: var(--font-ui, system-ui, sans-serif); font-weight: var(--weight-body, 420); line-height: 1.55; text-align: start;\n  --fd-pw: min(29vw, calc((100svh - var(--bar-h, 64px) - 230px) * 0.75), 460px); --fd-ph: calc(var(--fd-pw) * 1.33); --fd-shift: -0.5; --fd-t: 4px;\n  --fd-edge: color-mix(in srgb, var(--pane, #1b1e25) 74%, var(--black, #000)); --fd-edge-line: color-mix(in srgb, var(--pane, #1b1e25) 82%, var(--ink, #eef0f4));\n  & *, & *::before, & *::after { box-sizing: border-box; }\n  & p, & h2, & figure { margin: 0; }\n  & button { font: inherit; color: inherit; }\n  & a { color: inherit; }\n  & :focus-visible { outline: 2px solid var(--focus, #eef0f4); outline-offset: 2px; }\n  &[data-fwc-theme=\"light\"] .shot-dark, &:not([data-fwc-theme=\"light\"]) .shot-light { display: none !important; }\n  .fd-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }\n  .fd-rise { position: absolute; inset: 0; }\n  .fd-book { position: absolute; inset-inline-start: 50%; inset-block-start: 50%; inline-size: calc(var(--fd-pw) * 2); block-size: var(--fd-ph); margin-inline-start: calc(var(--fd-pw) * -1); margin-block-start: calc(var(--fd-ph) / -2); transform: translateX(calc(var(--fd-shift) * 50%)); cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; }\n  .fd-book.fd-drag { cursor: grabbing; }\n  .fd-slab { position: absolute; inset-block: 1.2% -1.2%; inline-size: 50%; background: var(--pane, #1b1e25); box-shadow: inset 0 0 0 1px var(--edge, rgb(255 255 255 / 0.09)), 0 24px 60px -12px color-mix(in srgb, var(--black, #000) 55%, transparent); opacity: 0; }\n  .fd-slab-l { inset-inline-start: 0; border-radius: 3px 0 0 3px; }\n  .fd-slab-r { inset-inline-start: 50%; border-radius: 0 3px 3px 0; opacity: 1; }\n  .fd-cast { position: absolute; inset-block: 0; opacity: 0; pointer-events: none; }\n  .fd-cast-r { inset-inline-start: 50%; background: linear-gradient(90deg, color-mix(in srgb, var(--black, #000) 38%, transparent), transparent); }\n  .fd-cast-l { inset-inline-end: 50%; background: linear-gradient(270deg, color-mix(in srgb, var(--black, #000) 38%, transparent), transparent); }\n  .fd-leaf { position: absolute; inset-block: 0; inset-inline-start: 50%; inline-size: 50%; transform-origin: left center; transform-style: preserve-3d; }\n  .fd-blk { position: absolute; inset-block: 0; inline-size: 50%; pointer-events: none; opacity: 0; }\n  .fd-blk-r { inset-inline-start: 50%; }\n  .fd-blk-l { inset-inline-start: 0; }\n  .fd-blk::before, .fd-blk::after { content: \"\"; position: absolute; background-color: var(--fd-edge); }\n  .fd-blk::before { inset-block: 2px calc(var(--n, 0) * var(--fd-t) * -0.35); inline-size: calc(var(--n, 0) * var(--fd-t)); background-image: repeating-linear-gradient(90deg, transparent 0 calc(var(--fd-t) - 1px), var(--fd-edge-line) calc(var(--fd-t) - 1px) var(--fd-t)); }\n  .fd-blk-r::before { inset-inline-start: 100%; }\n  .fd-blk-l::before { inset-inline-end: 100%; }\n  .fd-blk::after { inset-block-start: 100%; block-size: calc(var(--n, 0) * var(--fd-t) * 0.35); background-image: repeating-linear-gradient(0deg, transparent 0 calc(var(--fd-t) * 0.35 - 1px), var(--fd-edge-line) calc(var(--fd-t) * 0.35 - 1px) calc(var(--fd-t) * 0.35)); }\n  .fd-blk-r::after { inset-inline: 0 calc(var(--n, 0) * var(--fd-t) * -1); }\n  .fd-blk-l::after { inset-inline: calc(var(--n, 0) * var(--fd-t) * -1) 0; }\n  .fd-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }\n  .fd-face-f { transform: translateZ(0.5px); }\n  .fd-face-b { transform: translateZ(-0.5px) rotateY(180deg); }\n  .fd-leaf.fd-turning .fd-face { visibility: hidden; }\n  .fd-sheet { position: absolute; inset: 0; display: none; transform-style: preserve-3d; }\n  .fd-leaf.fd-turning .fd-sheet { display: block; }\n  .fd-strip { position: absolute; inset-block: 0; inset-inline-start: 100%; inline-size: 100%; transform-origin: left center; transform-style: preserve-3d; }\n  .fd-strip-0 { inset-inline-start: 0; inline-size: 16.6667%; }\n  .fd-sf, .fd-sb { position: absolute; inset-block: 0; inset-inline: 0 -1.2px; overflow: hidden; background: var(--pane, #1b1e25); backface-visibility: hidden; -webkit-backface-visibility: hidden; }\n  .fd-sf { transform: translateZ(calc(var(--fd-t) / 2)); }\n  .fd-sb { transform: translateZ(calc(var(--fd-t) / -2)) rotateY(180deg); }\n  .fd-se { position: absolute; inset-block: 0; inset-inline-start: calc(100% - var(--fd-t) / 2); inline-size: var(--fd-t); transform: rotateY(90deg); background: var(--fd-edge); box-shadow: inset 0 0 0 0.5px var(--fd-edge-line); }\n  .fd-strip-0::before { content: \"\"; position: absolute; inset-block: 0; inset-inline-start: calc(var(--fd-t) / -2); inline-size: var(--fd-t); transform: rotateY(-90deg); background: var(--fd-edge); }\n  .fd-sf .fd-page, .fd-sb .fd-page { position: absolute; inset-block: 0; inline-size: 600%; block-size: 100%; }\n  .fd-sf .fd-page *, .fd-sb .fd-page * { box-shadow: none; transition: none; }\n  .fd-sh { position: absolute; inset: 0; pointer-events: none; }\n  .fd-corner { position: absolute; inset-inline-end: 0; inset-block-end: 0; inline-size: 28px; block-size: 28px; clip-path: polygon(100% 0, 100% 100%, 0 100%); background: color-mix(in oklab, var(--hue, #eef0f4) 60%, transparent); pointer-events: none; transition: inline-size 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), block-size 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity var(--dur, 240ms); }\n  .fd-book:hover .fd-corner { inline-size: 46px; block-size: 46px; }\n  .fd-book[data-end] .fd-corner { opacity: 0; }\n  .fd-arrow { position: absolute; inset-block-start: 50%; margin-block-start: -27px; inline-size: 54px; block-size: 54px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--ink, #eef0f4); cursor: pointer; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity var(--dur, 240ms); z-index: var(--z-raised, 100); }\n  .fd-arrow svg { inline-size: 30px; block-size: 30px; }\n  .fd-prev { inset-inline-start: 0; }\n  .fd-next { inset-inline-end: 0; }\n  .fd-prev:hover:not(:disabled) { transform: translateX(-6px); }\n  .fd-next:hover:not(:disabled) { transform: translateX(6px); }\n  .fd-arrow:disabled { opacity: 0.25; cursor: default; }\n  .fd-deck { display: none; }\n\n  .fd-page { container-type: inline-size; position: relative; inline-size: 100%; block-size: 100%; overflow: hidden; background: var(--pane, #1b1e25); box-shadow: inset 0 0 0 1px var(--edge, rgb(255 255 255 / 0.09)); color: var(--ink, #eef0f4); }\n  .fd-face-f .fd-page { border-radius: 0 3px 3px 0; }\n  .fd-face-b .fd-page, .fd-sb .fd-page { border-radius: 3px 0 0 3px; }\n  .fd-page::after { content: \"\"; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, color-mix(in srgb, var(--black, #000) 26%, transparent), transparent 12%); }\n  .fd-face-b .fd-page::after, .fd-sb .fd-page::after { background: linear-gradient(270deg, color-mix(in srgb, var(--black, #000) 34%, transparent), transparent 12%); }\n  .fd-in { position: relative; display: flex; flex-direction: column; block-size: 100%; padding: 9cqw 8cqw 10cqw; font-size: 3.4cqw; line-height: 1.4; }\n  .fd-in > * { margin: 0; }\n  .fd-k { color: var(--hue, #eef0f4); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-mono { display: flex; justify-content: space-between; gap: 1em; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-hd { margin-block-start: 0.5em; font-size: 2em; font-weight: var(--weight-display, 640); letter-spacing: var(--track-display, -0.035em); line-height: 1.05; text-wrap: balance; }\n  .fd-p { margin-block-start: 0.8em; color: var(--ink-soft, #a4aab8); }\n  .fd-num { margin-block-start: auto; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; }\n  .fd-mast { margin-block-start: 0.6em; font-size: 4em; font-weight: 700; letter-spacing: -0.045em; line-height: 1; white-space: nowrap; }\n  .fd-mast .fd-form { color: var(--ink, #eef0f4); }\n  .fd-mast .fd-suffix { color: var(--hue, #eef0f4); }\n  .fd-cshot { margin: 1.4em 0 0; overflow: hidden; border-radius: 1.6cqw; box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); }\n  .fd-cshot img, .fd-fig img, .fd-thumb img { display: block; inline-size: 100%; block-size: auto; }\n  .fd-cline { margin-block-start: auto; font-size: 1.4em; font-weight: var(--weight-strong, 560); letter-spacing: var(--track-tight, -0.015em); line-height: 1.2; }\n  .fd-by { margin-block-start: 0.8em; }\n  .fd-chip { margin-block-start: 1em; display: inline-flex; align-items: center; gap: 0.7em; align-self: flex-start; padding: 0.4em 0.9em; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hue, #eef0f4) 42%, transparent); color: var(--hue, #eef0f4); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-chip i { inline-size: 0.6em; block-size: 0.6em; border-radius: 50%; background: var(--hue, #eef0f4); animation: fwc-pt-blink 1.6s ease-in-out infinite; }\n  .fd-sig { margin-block-start: 1em; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-list { display: flex; flex-direction: column; margin-block-start: 1.2em; border-block-start: 1px solid var(--edge-strong, rgb(255 255 255 / 0.18)); }\n  .fd-row { display: grid; grid-template-columns: 2.4em 1fr auto; align-items: baseline; gap: 1em; padding: 1em 0; border: 0; border-block-end: 1px solid var(--edge-strong, rgb(255 255 255 / 0.18)); background: none; color: var(--ink, #eef0f4); font: inherit; text-align: start; cursor: pointer; }\n  .fd-row span { transition: transform var(--dur, 240ms) var(--ease-out, ease-out); }\n  .fd-row span:nth-child(2) { font-weight: var(--weight-strong, 560); font-size: 1.2em; letter-spacing: var(--track-tight, -0.015em); }\n  .fd-row span:first-child, .fd-row span:last-child { color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-row:hover span { transform: translateX(2cqw); }\n  .fd-tip { margin-block-start: auto; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-bleed { position: absolute; inset: 0; }\n  .fd-bleed img { display: block; inline-size: 100%; block-size: 100%; object-fit: cover; }\n  .fd-card { position: relative; margin-block-start: auto; padding: 1.4em 1.6em; border-radius: 1.6cqw; background: var(--pane, #1b1e25); box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)), var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); }\n  .fd-card .fd-hd { margin-block-start: 0.3em; font-size: 2.6em; }\n  .fd-in-bleed { justify-content: flex-end; }\n  .fd-lede { margin-block-start: 0.8em; font-size: 1.22em; line-height: 1.38; letter-spacing: var(--track-tight, -0.015em); }\n  .fd-pull { margin-block: 1.2em; padding-block: 1em; border-block: 1px solid var(--edge-strong, rgb(255 255 255 / 0.18)); font-size: 1.15em; font-weight: var(--weight-strong, 560); letter-spacing: var(--track-tight, -0.015em); line-height: 1.25; color: var(--ink, #eef0f4); }\n  .fd-link { margin-block-start: auto; align-self: flex-start; color: var(--ink, #eef0f4); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; border-block-end: 1px solid var(--hue, #eef0f4); }\n  .fd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3cqw; margin-block-start: 1em; }\n  .fd-fig img { aspect-ratio: 1; object-fit: cover; border-radius: 1.2cqw; box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); }\n  .fd-fig-w { grid-column: 1 / -1; }\n  .fd-fig-w img { aspect-ratio: 2 / 1; }\n  .fd-fig figcaption { margin-block-start: 0.5em; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-thumb { margin: 1.4em 0 1.6em; overflow: hidden; border-radius: 1.6cqw; box-shadow: var(--shadow-window, var(--shadow-shot, 0 30px 80px -40px rgb(0 0 0 / 0.55))); transform: rotate(-3deg); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }\n  .fd-page:hover .fd-thumb { transform: rotate(0) scale(1.03); }\n  .fd-rel { margin-block-start: 0.9em; }\n  .fd-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2, 8px); align-self: flex-start; margin-block-start: auto; block-size: 10cqw; min-block-size: 0; padding-inline: 4cqw; border-radius: var(--radius-m, 10px); font-size: 2.8cqw; font-weight: var(--weight-strong, 560); text-decoration: none; white-space: nowrap; transition: background-color var(--dur-fast, 140ms) var(--ease-out, ease-out), opacity var(--dur-fast, 140ms) var(--ease-out, ease-out); }\n  .fd-btn-ink { background: var(--ink, #eef0f4); color: var(--on-ink, #14161b); }\n  .fd-btn-ink:hover { opacity: 0.88; }\n  .fd-btn-quiet { background: var(--control, #2b303c); color: var(--ink, #eef0f4); }\n  .fd-btn-quiet:hover { background: var(--control-hover, #343a48); }\n  .fd-quote { margin-block-start: 1.1em; padding-inline-start: 1em; border-inline-start: 1px solid var(--edge-strong, rgb(255 255 255 / 0.18)); }\n  .fd-quote p { line-height: 1.35; }\n  .fd-quote .fd-src { margin-block-start: 0.4em; color: var(--hue, #eef0f4); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-seps { margin-block-start: auto; color: var(--ink-faint, #6b7283); font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; }\n  .fd-copy { display: flex; justify-content: space-between; align-items: baseline; gap: 1em; margin-block-start: 1.2em; padding: 0.9em 1em; border: 0; box-shadow: inset 0 0 0 1px var(--edge-strong, rgb(255 255 255 / 0.18)); background: none; color: var(--ink, #eef0f4); font: inherit; font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.9em; text-align: start; cursor: pointer; }\n  .fd-copy b { color: var(--hue, #eef0f4); font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.85em; }\n  .fd-btns { display: flex; gap: 2cqw; margin-block-start: 1.2em; }\n  .fd-btns .fd-btn { margin-block-start: 0; }\n  .fd-socials { margin-block-start: auto; display: flex; gap: 1em; font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint, #6b7283); }\n  .fd-socials a { color: inherit; text-decoration: none; }\n  .fd-socials a:hover { color: var(--ink, #eef0f4); }\n  .fd-sign-off { margin-block-start: 0.6em; font-size: 3.2em; font-weight: 700; letter-spacing: -0.04em; line-height: 1; text-wrap: balance; }\n  .fd-ruler { margin-block-start: auto; display: flex; align-items: flex-end; justify-content: space-between; block-size: 8cqw; }\n  .fd-ruler i { display: block; background: var(--ink-faint, #6b7283); }\n  .fd-colo { margin-block-start: 1em; color: var(--ink-soft, #a4aab8); }\n  .fd-price { margin-block-start: 1em; }\n\n  &.fd-narrow {\n    .fd-book, .fd-arrow { display: none; }\n    .fd-deck { --fd-pw: min(78vw, calc((100svh - 100px - 230px) * 0.75)); display: flex; position: absolute; inset-inline: -16px; inset-block: 0; gap: 16px; padding-inline: 11vw; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; align-items: center; }\n    .fd-deck::-webkit-scrollbar { display: none; }\n    .fd-dp { flex: 0 0 var(--fd-pw); inline-size: var(--fd-pw); aspect-ratio: 3 / 4; scroll-snap-align: center; }\n    .fd-dp .fd-page { border-radius: 3px; }\n    .fd-dp .fd-page::after { display: none; }\n  }\n  &[data-fwc-reduced] .fd-chip i { animation: none; }\n}\n@keyframes fwc-pt-blink { 50% { opacity: 0.3; } }\n`;\n\nconst NAMES = ['Cover', 'Letter and contents', 'Make', 'Pages and publishing', 'Facts and get it', 'Back cover'];\nconst ARROW_L = '<svg viewBox=\"0 0 30 30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M18 6l-9 9 9 9\"/></svg>';\nconst ARROW_R = '<svg viewBox=\"0 0 30 30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 6l9 9-9 9\"/></svg>';\n\nconst clamp = (v, a, b) => Math.min(b, Math.max(a, v));\nconst smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };\nconst h = (tag, cls, text) => {\n  const e = document.createElement(tag);\n  if (cls) e.className = cls;\n  if (text != null) e.textContent = String(text);\n  return e;\n};\nconst svgFrom = (markup) => {\n  const t = document.createElement('template');\n  t.innerHTML = markup;\n  return t.content.firstElementChild;\n};\n\nexport function mount(root, props, ctx) {\n  const p = props || {};\n  const brand = p.brand ?? 'Form';\n  const suffix = p.suffix ?? 'Design';\n  const bookLabel = p.bookLabel ?? 'FormDesign publication';\n  const prevLabel = p.prevLabel ?? 'Previous spread';\n  const nextLabel = p.nextLabel ?? 'Next spread';\n  const deckLabel = p.deckLabel ?? 'FormDesign publication, swipe to turn pages';\n  const ofWord = p.ofWord ?? 'of';\n  const spreadVar = p.spreadVariable ?? 'spread';\n  const savedVar = p.savedVariable ?? 'saved';\n  let pagesData = Array.isArray(p.pages) ? p.pages.slice() : [];\n  if (pagesData.length % 2) pagesData.push({ blocks: [] });\n  const LEAVES = Math.max(1, pagesData.length / 2);\n  const MAXF = LEAVES;\n  const names = Array.isArray(p.names) && p.names.length ? p.names.map(String) : NAMES;\n  const vars = globalThis.__formwebVariables;\n  const setVar = (name, value) => { if (name && vars && typeof vars.set === 'function') { try { vars.set(name, value); } catch (e) { /* the variable may not exist on this page */ } } };\n\n  const style = h('style');\n  style.textContent = CSS;\n  root.appendChild(style);\n  const wrap = h('div', 'fwc-pt');\n  wrap.setAttribute('data-fwc-theme', ctx.theme());\n  if (ctx.reduced) wrap.setAttribute('data-fwc-reduced', '');\n  root.appendChild(wrap);\n  const rise = h('div', 'fd-rise');\n  wrap.appendChild(rise);\n\n  // ---- page content -------------------------------------------------------\n  const imgs = (parent, d) => {\n    const make = (src, theme) => {\n      const im = document.createElement('img');\n      im.src = ctx.asset(src);\n      if (d.w) im.width = d.w;\n      if (d.h) im.height = d.h;\n      im.alt = d.alt || '';\n      im.decoding = 'async';\n      im.draggable = false;\n      if (theme) im.className = theme;\n      return im;\n    };\n    if (d.light) parent.append(make(d.src, 'shot-dark'), make(d.light, 'shot-light'));\n    else parent.append(make(d.src, ''));\n  };\n  const copyButton = (btn, b) => {\n    const url = b.url || '';\n    const word = btn.querySelector('b');\n    const rest = b.label ?? 'Copy';\n    let tm = 0;\n    const say = (t, ms) => { word.textContent = t; clearTimeout(tm); tm = setTimeout(() => { word.textContent = rest; }, ms); };\n    const ok = () => say(b.done ?? 'Copied', 2200);\n    const fail = () => {\n      const r = document.createRange();\n      r.selectNodeContents(btn.firstElementChild);\n      const s = getSelection();\n      s.removeAllRanges();\n      s.addRange(r);\n      say(b.fail ?? 'Select to copy', 6000);\n    };\n    const old = () => {\n      const ta = document.createElement('textarea');\n      ta.value = url;\n      ta.style.cssText = 'position:fixed;opacity:0';\n      document.body.appendChild(ta);\n      ta.select();\n      let good = false;\n      try { good = document.execCommand('copy'); } catch (e) { good = false; }\n      ta.remove();\n      if (good) ok(); else fail();\n    };\n    btn.addEventListener('click', () => {\n      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok, old);\n      else old();\n    });\n  };\n  const button = (b, extra) => {\n    const a = h('a', 'fd-btn fd-btn-' + (b.kind === 'quiet' ? 'quiet' : 'ink'), b.text);\n    a.href = b.href || '#';\n    if (extra) a.classList.add(extra);\n    return a;\n  };\n  const BLOCKS = {\n    k: (b) => h('p', 'fd-k', b.text),\n    mono: (b) => { const e = h('p', 'fd-mono' + (b.cls ? ' ' + b.cls : '')); for (const s of b.spans || []) e.append(h('span', '', s)); return e; },\n    mast: () => { const e = h('p', 'fd-mast'); e.append(h('span', 'fd-form', brand), h('span', 'fd-suffix', suffix)); return e; },\n    shot: (b) => { const f = h('figure', 'fd-cshot'); imgs(f, b); return f; },\n    thumb: (b) => { const f = h('figure', 'fd-thumb'); imgs(f, b); return f; },\n    cline: (b) => { const e = h('p', 'fd-cline'); String(b.text || '').split('\\n').forEach((line, i) => { if (i) e.append(document.createElement('br')); e.append(line); }); return e; },\n    hd: (b) => h('h2', 'fd-hd', b.text),\n    p: (b) => h('p', 'fd-p', b.text),\n    num: (b) => h('p', 'fd-num', b.text),\n    tip: (b) => h('p', 'fd-tip', b.text),\n    sig: (b) => h('p', 'fd-sig', b.text),\n    chip: (b) => { const e = h('p', 'fd-chip'); e.append(document.createElement('i'), b.text || ''); return e; },\n    lede: (b) => h('p', 'fd-lede', b.text),\n    pull: (b) => h('p', 'fd-pull', b.text),\n    colo: (b) => h('p', 'fd-colo', b.text),\n    seps: (b) => h('p', 'fd-seps', b.text),\n    signoff: (b) => h('p', 'fd-sign-off', b.text),\n    link: (b) => { const a = h('a', 'fd-link', b.text); a.href = b.href || '#'; return a; },\n    button: (b) => button(b),\n    btns: (b) => { const d = h('div', 'fd-btns'); for (const x of b.buttons || []) d.append(button(x)); return d; },\n    socials: (b) => { const e = h('p', 'fd-socials'); for (const x of b.links || []) { const a = h('a', '', x.text); a.href = x.href || '#'; e.append(a); } return e; },\n    list: (b) => {\n      const d = h('div', 'fd-list');\n      for (const r of b.rows || []) {\n        const btn = h('button', 'fd-row');\n        btn.type = 'button';\n        btn.dataset.go = String(r.go ?? 0);\n        btn.append(h('span', '', r.a), h('span', '', r.b), h('span', '', r.c));\n        d.append(btn);\n      }\n      return d;\n    },\n    grid: (b) => {\n      const d = h('div', 'fd-grid');\n      for (const f of b.figs || []) {\n        const fig = h('figure', 'fd-fig' + (f.wide ? ' fd-fig-w' : ''));\n        imgs(fig, f);\n        fig.append(h('figcaption', '', f.caption));\n        d.append(fig);\n      }\n      return d;\n    },\n    quote: (b) => { const q = h('div', 'fd-quote'); q.append(h('p', '', b.text), h('p', 'fd-src', b.src)); return q; },\n    copy: (b) => {\n      const btn = h('button', 'fd-copy');\n      btn.type = 'button';\n      btn.append(h('span', '', b.text), h('b', '', b.label ?? 'Copy'));\n      copyButton(btn, b);\n      return btn;\n    },\n    ruler: (b) => {\n      const d = h('div', 'fd-ruler');\n      d.setAttribute('aria-hidden', 'true');\n      for (const bar of b.bars || []) { const i = document.createElement('i'); i.style.blockSize = bar[0] + '%'; i.style.inlineSize = bar[1] + 'px'; d.append(i); }\n      return d;\n    },\n    card: (b) => { const d = h('div', 'fd-card'); d.append(h('p', 'fd-k', b.k), h('h2', 'fd-hd', b.hd)); return d; }\n  };\n  const renderPage = (desc, n) => {\n    const page = h('div', 'fd-page');\n    page.dataset.p = String(n + 1);\n    if (desc.bleed) { const bl = h('div', 'fd-bleed'); imgs(bl, desc.bleed); page.append(bl); }\n    const inner = h('div', 'fd-in' + (desc.bleed ? ' fd-in-bleed' : ''));\n    for (const b of desc.blocks || []) { const make = BLOCKS[b.t]; if (make) inner.append(make(b)); }\n    page.append(inner);\n    return page;\n  };\n\n  // ---- book structure ------------------------------------------------------\n  const prev = h('button', 'fd-arrow fd-prev');\n  prev.type = 'button';\n  prev.setAttribute('aria-label', prevLabel);\n  prev.append(svgFrom(ARROW_L));\n  const next = h('button', 'fd-arrow fd-next');\n  next.type = 'button';\n  next.setAttribute('aria-label', nextLabel);\n  next.append(svgFrom(ARROW_R));\n  const book = h('div', 'fd-book');\n  book.setAttribute('role', 'group');\n  book.setAttribute('aria-label', bookLabel);\n  const slabL = h('div', 'fd-slab fd-slab-l');\n  const slabR = h('div', 'fd-slab fd-slab-r');\n  const blkL = h('div', 'fd-blk fd-blk-l');\n  const blkR = h('div', 'fd-blk fd-blk-r');\n  const castL = h('div', 'fd-cast fd-cast-l');\n  const castR = h('div', 'fd-cast fd-cast-r');\n  for (const e of [slabL, slabR, blkL, blkR, castL, castR]) { e.setAttribute('aria-hidden', 'true'); book.append(e); }\n  const leaves = [];\n  for (let i = 0; i < LEAVES; i++) {\n    const leaf = h('div', 'fd-leaf');\n    leaf.dataset.i = String(i);\n    const ff = h('div', 'fd-face fd-face-f');\n    ff.append(renderPage(pagesData[2 * i] || { blocks: [] }, 2 * i));\n    const fb = h('div', 'fd-face fd-face-b');\n    fb.append(renderPage(pagesData[2 * i + 1] || { blocks: [] }, 2 * i + 1));\n    leaf.append(ff, fb);\n    book.append(leaf);\n    leaves.push(leaf);\n  }\n  const corner = h('div', 'fd-corner');\n  corner.setAttribute('aria-hidden', 'true');\n  book.append(corner);\n  const deck = h('div', 'fd-deck');\n  deck.setAttribute('role', 'group');\n  deck.setAttribute('aria-label', deckLabel);\n  pagesData.forEach(() => deck.append(h('div', 'fd-dp')));\n  const deckCells = [...deck.children];\n  deckCells.forEach((cell, i) => cell.append(renderPage(pagesData[i] || { blocks: [] }, i)));\n  const live = h('p', 'fd-sr');\n  live.setAttribute('aria-live', 'polite');\n  rise.append(prev, next, book, deck, live);\n\n  // ---- state ----------------------------------------------------------------\n  let f = 0, vel = 0, target = 0, dirv = -1, running = false, last = 0, shown = -1, narrow = false, sig = '';\n  let dead = false;\n  const cache = leaves.map(() => ({ mode: '', t: -1 }));\n  const sheets = leaves.map(() => null);\n  const offs = [];\n  let stopFrame = null;\n\n  const buildSheet = (i) => {\n    const leaf = leaves[i];\n    const sheet = h('div', 'fd-sheet');\n    sheet.setAttribute('aria-hidden', 'true');\n    sheet.inert = true;\n    const fp = leaf.querySelector('.fd-face-f .fd-page');\n    const bp = leaf.querySelector('.fd-face-b .fd-page');\n    const strips = [];\n    let parent = sheet;\n    for (let k = 0; k < 6; k++) {\n      const s = h('div', 'fd-strip' + (k === 0 ? ' fd-strip-0' : ''));\n      const mk = (cls, src, shift) => {\n        const face = h('div', cls);\n        const c = src.cloneNode(true);\n        for (const im of c.querySelectorAll('img')) im.removeAttribute('loading');\n        c.style.marginInlineStart = (-shift * 100) + '%';\n        c.style.insetInlineStart = '0';\n        const sh = h('div', 'fd-sh');\n        face.append(c, sh);\n        return face;\n      };\n      const fF = mk('fd-sf', fp, k);\n      const bF = mk('fd-sb', bp, 5 - k);\n      const se = h('div', 'fd-se');\n      s.append(fF, bF, se);\n      parent.appendChild(s);\n      strips.push({ el: s, fs: fF.querySelector('.fd-sh'), bs: bF.querySelector('.fd-sh') });\n      parent = s;\n    }\n    leaf.appendChild(sheet);\n    sheets[i] = { sheet, strips };\n  };\n\n  const shade = (a) => 'color-mix(in srgb, var(--black, #000) ' + (a * 100).toFixed(1) + '%, transparent)';\n\n  const reorder = (turning) => {\n    const s = leaves.map((_, i) => (turning === i ? 't' : f - i >= 0.999 ? 'l' : 'r')).join('');\n    if (s === sig) return;\n    sig = s;\n    const act = document.activeElement;\n    const left = leaves.filter((_, i) => s[i] === 'l');\n    const right = leaves.filter((_, i) => s[i] === 'r').reverse();\n    const tl = leaves.filter((_, i) => s[i] === 't');\n    for (const e of [...right, ...left, castL, castR, ...tl, corner]) book.appendChild(e);\n    if (act && act !== document.body && act.isConnected && book.contains(act)) { try { act.focus({ preventScroll: true }); } catch (e) { /* focus may be refused */ } }\n  };\n\n  const sync = (idx) => {\n    shown = idx;\n    leaves.forEach((leaf, i) => {\n      leaf.querySelector('.fd-face-f').inert = !(i === idx);\n      leaf.querySelector('.fd-face-b').inert = !(i === idx - 1);\n    });\n    prev.disabled = idx === 0;\n    next.disabled = idx === MAXF;\n    book.toggleAttribute('data-end', idx === MAXF);\n    const name = names[idx] ?? '';\n    book.setAttribute('aria-label', bookLabel + ', ' + name + ', ' + (idx + 1) + ' ' + ofWord + ' ' + (MAXF + 1));\n    live.textContent = name + ', ' + (idx + 1) + ' ' + ofWord + ' ' + (MAXF + 1);\n    setVar(spreadVar, idx);\n    if (!narrow) setVar(savedVar, false);\n  };\n\n  const render = () => {\n    const F = clamp(f, 0, MAXF);\n    let turning = -1;\n    leaves.forEach((leaf, i) => {\n      const t = clamp(F - i, 0, 1);\n      const c = cache[i];\n      if (t <= 0.001 || t >= 0.999) {\n        const mode = t <= 0.001 ? 'r' : 'l';\n        if (c.mode !== mode) {\n          leaf.classList.remove('fd-turning');\n          const z = ((mode === 'l' ? i : MAXF - 1 - i) * 0.4).toFixed(1);\n          leaf.style.transform = 'perspective(2600px) translateZ(' + z + 'px) rotateY(' + (mode === 'l' ? -180 : 0) + 'deg)';\n          c.mode = mode;\n        }\n        return;\n      }\n      turning = i;\n      if (!sheets[i]) buildSheet(i);\n      if (c.mode !== 't') { leaf.classList.add('fd-turning'); leaf.style.transform = 'perspective(2600px)'; c.mode = 't'; }\n      const { strips } = sheets[i];\n      const sp = Math.sin(Math.PI * t);\n      let ang = 0;\n      const angles = [];\n      for (let k = 0; k < 6; k++) {\n        const bend = k === 0 ? -180 * t : -34 * sp * dirv * (k / 15);\n        ang += bend;\n        angles.push(ang);\n        strips[k].el.style.transform = 'rotateY(' + bend.toFixed(3) + 'deg)';\n      }\n      const al = angles.map((a) => 0.34 * Math.abs(Math.sin((a * Math.PI) / 180)));\n      for (let k = 0; k < 6; k++) {\n        const a0 = al[k], a1 = al[Math.min(5, k + 1)];\n        strips[k].fs.style.background = 'linear-gradient(90deg,' + shade(a0) + ',' + shade(a1) + ')';\n        strips[k].bs.style.background = 'linear-gradient(90deg,' + shade(a1) + ',' + shade(a0) + ')';\n      }\n    });\n    reorder(turning);\n    const shift = F <= 1 ? -0.5 + 0.5 * F : F <= MAXF - 1 ? 0 : 0.5 * (F - (MAXF - 1));\n    book.style.setProperty('--fd-shift', shift.toFixed(4));\n    blkR.style.setProperty('--n', (MAXF - F).toFixed(3));\n    blkL.style.setProperty('--n', F.toFixed(3));\n    blkR.style.opacity = Math.min(1, (MAXF - F) * 4).toFixed(3);\n    blkL.style.opacity = Math.min(1, F * 4).toFixed(3);\n    slabL.style.opacity = smooth(0.82, 1, F).toFixed(3);\n    slabR.style.opacity = (1 - smooth(MAXF - 1, MAXF - 0.82, F)).toFixed(3);\n    if (turning >= 0) {\n      const fr = F - turning;\n      const rv = turning < MAXF - 1 ? Math.sin(Math.PI * fr) * (1 - fr) : 0;\n      const lv = turning > 0 ? Math.sin(Math.PI * fr) * fr : 0;\n      castR.style.opacity = rv.toFixed(3);\n      castR.style.inlineSize = (50 * (1 - 0.85 * fr)).toFixed(2) + '%';\n      castL.style.opacity = lv.toFixed(3);\n      castL.style.inlineSize = (50 * (0.15 + 0.85 * fr)).toFixed(2) + '%';\n    } else { castR.style.opacity = '0'; castL.style.opacity = '0'; }\n    const idx = clamp(Math.round(F), 0, MAXF);\n    if (idx !== shown) sync(idx);\n  };\n\n  // ---- spring motion ------------------------------------------------------------\n  const step = (now) => {\n    let el = last ? clamp((now - last) / 1000, 0.001, 0.25) : 0.016;\n    last = now;\n    while (el > 0) {\n      const dt = Math.min(0.0125, el);\n      el -= dt;\n      const acc = 90 * (target - f) - 19.5 * vel;\n      vel += acc * dt;\n      f += vel * dt;\n      if (Math.abs(vel) > 0.01) dirv = vel > 0 ? -1 : 1;\n      if (Math.abs(target - f) < 0.0005 && Math.abs(vel) < 0.001) { f = target; vel = 0; running = false; break; }\n    }\n    render();\n    if (!running && stopFrame) { stopFrame(); stopFrame = null; }\n  };\n  const kick = () => {\n    if (running) return;\n    running = true;\n    last = 0;\n    if (!stopFrame) stopFrame = ctx.onFrame(step);\n  };\n\n  const deckPage = (n) => (n === 0 ? 0 : 2 * n - 1);\n  const deckTo = (n) => {\n    const el = deck.children[deckPage(n)];\n    if (el) deck.scrollTo({ left: el.offsetLeft - (deck.clientWidth - el.offsetWidth) / 2, behavior: ctx.reduced ? 'auto' : 'smooth' });\n  };\n  const go = (n) => {\n    n = clamp(Math.round(n), 0, MAXF);\n    if (narrow) { deckTo(n); return; }\n    if (n !== target) dirv = n > target ? -1 : 1;\n    target = n;\n    if (ctx.reduced) { f = n; vel = 0; running = false; render(); return; }\n    kick();\n  };\n\n  let rafD = 0;\n  const onDeckScroll = () => {\n    if (!narrow || rafD) return;\n    rafD = requestAnimationFrame(() => {\n      rafD = 0;\n      const mid = deck.scrollLeft + deck.clientWidth / 2;\n      let best = 0, bd = 1e9;\n      [...deck.children].forEach((c, i) => { const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = i; } });\n      const idx = Math.floor((best + 1) / 2);\n      if (idx !== shown) sync(idx);\n    });\n  };\n  deck.addEventListener('scroll', onDeckScroll, { passive: true });\n  prev.addEventListener('click', () => go(Math.round(target) - 1));\n  next.addEventListener('click', () => go(Math.round(target) + 1));\n  const onClick = (e) => {\n    const g = e.target.closest && e.target.closest('[data-go]');\n    if (g && wrap.contains(g)) go(Number(g.dataset.go));\n  };\n  wrap.addEventListener('click', onClick);\n\n  const scope = () => ctx.host.closest('section') || ctx.host;\n  const onKey = (e) => {\n    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;\n    const a = document.activeElement;\n    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;\n    if (a && a !== document.body && !scope().contains(a)) return;\n    const r = ctx.host.getBoundingClientRect();\n    if (r.bottom < 0 || r.top > innerHeight) return;\n    e.preventDefault();\n    go((narrow ? shown : Math.round(target)) + (e.key === 'ArrowRight' ? 1 : -1));\n  };\n  addEventListener('keydown', onKey);\n\n  // ---- drag -------------------------------------------------------------------\n  let drag = null;\n  book.addEventListener('pointerdown', (e) => {\n    if (e.button !== 0 || e.target.closest('a, button, input, textarea')) return;\n    drag = { x: e.clientX, start: Math.round(f), id: e.pointerId, on: false, pf: f, pt: performance.now(), v: 0 };\n  });\n  book.addEventListener('pointermove', (e) => {\n    if (!drag) return;\n    const dx = e.clientX - drag.x;\n    if (!drag.on) {\n      if (Math.abs(dx) <= 6) return;\n      drag.on = true;\n      vel = 0;\n      running = false;\n      if (stopFrame) { stopFrame(); stopFrame = null; }\n      book.setPointerCapture(e.pointerId);\n      book.classList.add('fd-drag');\n    }\n    const pw = book.clientWidth / 2;\n    const nf = clamp(drag.start - dx / (1.6 * pw), Math.max(0, drag.start - 1), Math.min(MAXF, drag.start + 1));\n    const now = performance.now();\n    const dt = Math.max(0.001, (now - drag.pt) / 1000);\n    drag.v = drag.v * 0.6 + ((nf - drag.pf) / dt) * 0.4;\n    drag.pf = nf;\n    drag.pt = now;\n    if (Math.abs(nf - f) > 0.0005) dirv = nf > f ? -1 : 1;\n    f = nf;\n    target = Math.round(f);\n    render();\n  });\n  const release = (e) => {\n    if (!drag) return;\n    const d = drag;\n    drag = null;\n    book.classList.remove('fd-drag');\n    if (!d.on) {\n      const r = book.getBoundingClientRect();\n      const x = (e.clientX - r.left) / r.width;\n      if (x > 0.72) go(Math.round(target) + 1);\n      else if (x < 0.28) go(Math.round(target) - 1);\n      return;\n    }\n    const proj = f + clamp(0.15 * d.v, -0.6, 0.6);\n    const t = clamp(Math.round(proj), Math.max(0, d.start - 1), Math.min(MAXF, d.start + 1));\n    target = t;\n    vel = d.v;\n    if (ctx.reduced) { f = t; vel = 0; render(); return; }\n    kick();\n  };\n  book.addEventListener('pointerup', release);\n  book.addEventListener('pointercancel', release);\n\n  // ---- layout mode, theme, variable ---------------------------------------------------\n  const mode = () => {\n    const pad = clamp(innerWidth * 0.03, 16, 44);\n    const n = ctx.size().width + 2 * pad < 720;\n    if (n === narrow) return;\n    narrow = n;\n    wrap.classList.toggle('fd-narrow', n);\n    if (n) deckTo(shown < 0 ? 0 : shown);\n  };\n  offs.push(ctx.onResize(mode));\n  offs.push(ctx.onTheme((m) => wrap.setAttribute('data-fwc-theme', m)));\n  offs.push(ctx.onVariable(spreadVar, (v) => {\n    const n = Math.round(Number(v));\n    if (!Number.isFinite(n) || n === shown) return;\n    go(n);\n  }));\n\n  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 200));\n  let pre = 0;\n  const warm = () => { if (!dead && pre < leaves.length) { if (!sheets[pre]) buildSheet(pre); pre++; idle(warm); } };\n\n  mode();\n  render();\n  idle(warm);\n  requestAnimationFrame(() => { if (!dead) ctx.ready(); });\n\n  return () => {\n    dead = true;\n    removeEventListener('keydown', onKey);\n    if (stopFrame) { stopFrame(); stopFrame = null; }\n    cancelAnimationFrame(rafD);\n    for (const off of offs) { try { off(); } catch (e) { /* already removed */ } }\n    root.replaceChildren();\n  };\n}\n",
+ "sourceDigest": "093274f124afd5623cd4e423b69bc81b83ce5596df11c33a51613b72757d553c"
+}

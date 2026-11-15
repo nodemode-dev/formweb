@@ -1,0 +1,158 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formdesign-spreads",
+  "name": "FormDesign spreads",
+  "category": "portfolio-hero",
+  "tags": ["publication", "page turn", "book", "3d", "spreads"],
+  "product": "formdesign",
+  "description": "A FormDesign publication turned page by page: cover, letter, contents, the Make chapter, captures, facts and a back cover.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formdesign-spreads",
+  "preset": "formai-studio",
+  "components": ["page-turn"],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#ff6fae" },
+    "name": { "label": "Product name (second part)", "type": "text", "default": "Design" },
+    "link": { "label": "Product page", "type": "url", "default": "https://formai.studio/formdesign/" },
+    "linkLabel": { "label": "Link text", "type": "text", "default": "formai.studio" }
+  },
+  "tree": {
+    "key": "section", "tag": "section", "name": "Spreads", "attrs": { "aria-labelledby": "@@h@@" },
+    "styles": {
+      "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
+      "display": "flex", "flex-direction": "column", "position": "relative",
+      "height": "max(640px, calc(100svh - var(--bar-h) - 2px))",
+      "padding": "0 clamp(16px, 3vw, 44px)", "overflow": "clip",
+      "border-top": "1px solid var(--edge)", "box-sizing": "border-box",
+      "background": "var(--ground)", "color": "var(--ink)", "font-family": "var(--font-ui)"
+    },
+    "breakpoints": { "mobile": { "height": "max(560px, calc(100svh - 100px))" } },
+    "children": [
+      { "key": "h", "tag": "h1", "name": "Hidden title", "text": "FormDesign publication, turned page by page",
+        "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap", "margin": "0" } },
+      { "key": "top", "tag": "div", "name": "Top bar",
+        "styles": { "display": "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center", "gap": "var(--sp-4)", "padding": "20px 0 0" },
+        "breakpoints": {
+          "tablet": { "grid-template-columns": "1fr auto" },
+          "mobile": { "grid-template-columns": "1fr", "justify-items": "center", "gap": "var(--sp-2)" }
+        },
+        "children": [
+          { "key": "nav", "tag": "nav", "name": "Links", "attrs": { "aria-label": "Product links" },
+            "styles": { "display": "flex", "gap": "var(--sp-5)" },
+            "breakpoints": { "tablet": { "display": "none" } },
+            "children": [
+              { "key": "nav1", "tag": "a", "name": "Link", "text": "Apps", "attrs": { "href": "https://formai.studio/apps/" }, "styles": { "padding": "4px 0", "background": "linear-gradient(currentColor, currentColor) left bottom / 0 1px no-repeat", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-decoration": "none", "transition": "background-size 0.4s var(--ease-out), color var(--dur-fast)" } },
+              { "key": "nav2", "tag": "a", "name": "Link", "text": "Download", "attrs": { "href": "https://formai.studio/download/" }, "styles": { "padding": "4px 0", "background": "linear-gradient(currentColor, currentColor) left bottom / 0 1px no-repeat", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-decoration": "none", "transition": "background-size 0.4s var(--ease-out), color var(--dur-fast)" } },
+              { "key": "nav3", "tag": "a", "name": "Link", "text": "Docs", "attrs": { "href": "https://formai.studio/docs/" }, "styles": { "padding": "4px 0", "background": "linear-gradient(currentColor, currentColor) left bottom / 0 1px no-repeat", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-decoration": "none", "transition": "background-size 0.4s var(--ease-out), color var(--dur-fast)" } },
+              { "key": "nav4", "tag": "a", "name": "Link", "text": "Releases", "attrs": { "href": "https://formai.studio/releases/" }, "styles": { "padding": "4px 0", "background": "linear-gradient(currentColor, currentColor) left bottom / 0 1px no-repeat", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-decoration": "none", "transition": "background-size 0.4s var(--ease-out), color var(--dur-fast)" } }
+            ] },
+          { "key": "mark", "tag": "a", "name": "Product mark", "attrs": { "href": "{{link}}", "aria-label": "Form{{name}}, page layout and publishing" },
+            "styles": { "justify-self": "center", "font-size": "clamp(24px, 2.6vw, 36px)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-display)", "line-height": "1", "text-decoration": "none", "color": "var(--ink)" },
+            "breakpoints": { "tablet": { "justify-self": "start" }, "mobile": { "justify-self": "center" } },
+            "children": [
+              { "key": "markform", "tag": "span", "name": "Form", "text": "Form", "styles": { "color": "var(--ink)" } },
+              { "key": "marksuffix", "tag": "span", "name": "Suffix", "text": "{{name}}", "styles": { "color": "var(--hue)" } }
+            ] },
+          { "key": "sign", "tag": "div", "name": "Sign-up", "styles": { "position": "relative", "justify-self": "end", "width": "min(100%, 220px)", "overflow": "clip" },
+            "breakpoints": { "tablet": { "grid-column": "2" }, "mobile": { "justify-self": "center", "grid-column": "1" } },
+            "children": [
+              { "key": "news", "tag": "form", "name": "Release note form", "attrs": { "action": "#" },
+                "styles": { "display": "flex", "align-items": "center", "border-bottom": "1px solid var(--edge-strong)", "translate": "calc(var(--fw-v-signed, 0) * -9999px) 0" },
+                "children": [
+                  { "key": "email", "tag": "input", "name": "Email", "attrs": { "type": "email", "required": "", "placeholder": "Email", "aria-label": "Email for the release note" },
+                    "styles": { "flex": "1", "min-width": "0", "height": "36px", "padding": "0", "border": "0", "background": "none", "color": "var(--ink)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "outline": "none" } },
+                  { "key": "send", "tag": "button", "name": "Keep my email", "attrs": { "type": "submit", "aria-label": "Keep my email for the release note" },
+                    "styles": { "display": "grid", "place-items": "center", "width": "32px", "height": "36px", "padding": "0", "border": "0", "background": "none", "color": "var(--ink)", "cursor": "pointer", "transition": "transform var(--dur) var(--ease-out)" },
+                    "children": [
+                      { "key": "sendsvg", "tag": "svg", "name": "Arrow", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true", "width": "20", "height": "20" },
+                        "children": [
+                          { "key": "sendp1", "tag": "path", "name": "Line", "attrs": { "d": "M4 12h15" } },
+                          { "key": "sendp2", "tag": "path", "name": "Head", "attrs": { "d": "M13 6l6 6-6 6" } }
+                        ] }
+                    ] }
+                ] },
+              { "key": "thanks", "tag": "p", "name": "Thanks", "text": "Noted here only. Nothing is sent.", "attrs": { "role": "status" },
+                "styles": { "position": "absolute", "inset": "0", "margin": "0", "display": "flex", "align-items": "center", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "opacity": "var(--fw-v-signed, 0)", "translate": "calc((1 - var(--fw-v-signed, 0)) * 9999px) 0", "transition": "opacity 0.5s var(--ease-out)" } }
+            ] }
+        ] },
+      { "key": "stage", "tag": "div", "name": "Book", "attrs": { "aria-label": "FormDesign publication" },
+        "styles": { "position": "relative", "flex": "1 1 0", "min-height": "0", "margin": "8px 0", "--fwc-uses": "var(--pane) var(--black) var(--on-ink) var(--control) var(--control-hover) var(--radius-m) var(--shadow-shot) var(--z-raised) var(--sp-2) var(--ink-faint) var(--edge) var(--edge-strong)" } },
+      { "key": "bot", "tag": "div", "name": "Bottom bar",
+        "styles": { "display": "grid", "grid-template-columns": "1fr auto 1fr", "align-items": "center", "gap": "var(--sp-4)", "padding": "0 0 22px" },
+        "breakpoints": { "mobile": { "grid-template-columns": "1fr auto", "row-gap": "var(--sp-3)" } },
+        "children": [
+          { "key": "save", "tag": "div", "name": "Save", "styles": { "display": "flex", "align-items": "center", "gap": "var(--sp-3)" }, "breakpoints": { "mobile": { "grid-column": "1", "grid-row": "2" } },
+            "children": [
+              { "key": "heart", "tag": "button", "name": "Heart", "attrs": { "type": "button", "aria-label": "Save this spread" },
+                "styles": { "display": "grid", "place-items": "center", "width": "40px", "height": "40px", "padding": "0", "border": "1px solid color-mix(in oklab, var(--hue) calc(var(--fw-v-saved, 0) * 100%), var(--edge-strong))", "background": "none", "color": "color-mix(in oklab, var(--hue) calc(var(--fw-v-saved, 0) * 100%), var(--ink))", "cursor": "pointer" },
+                "children": [
+                  { "key": "heartsvg", "tag": "svg", "name": "Heart icon", "attrs": { "viewBox": "0 0 24 24", "aria-hidden": "true", "width": "20", "height": "20" },
+                    "children": [
+                      { "key": "heartfill", "tag": "path", "name": "Fill", "attrs": { "d": "M12 20.2s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.6c0 5.6-7.5 10.2-7.5 10.2z", "fill": "currentColor" },
+                        "styles": { "opacity": "var(--fw-v-saved, 0)" } },
+                      { "key": "heartp", "tag": "path", "name": "Outline", "attrs": { "d": "M12 20.2s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.5 2.6c0 5.6-7.5 10.2-7.5 10.2z", "fill": "none", "stroke": "currentColor", "stroke-width": "1.75", "stroke-linejoin": "round" } }
+                    ] }
+                ] },
+              { "key": "meta", "tag": "div", "name": "Spread label", "styles": { "display": "flex", "flex-direction": "column", "gap": "2px", "min-width": "0" },
+                "children": [
+                  { "key": "sname", "tag": "span", "name": "Spread name", "text": "Cover", "attrs": { "aria-live": "polite" }, "styles": { "color": "var(--ink)", "font-size": "var(--fs-s)", "font-weight": "var(--weight-strong)" } },
+                  { "key": "ssub", "tag": "span", "name": "Save text", "text": "Save this spread", "styles": { "white-space": "nowrap", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+                ] }
+            ] },
+          { "key": "dots", "tag": "div", "name": "Dots", "attrs": { "role": "group", "aria-label": "Spreads" }, "styles": { "display": "flex", "gap": "10px" },
+            "breakpoints": { "mobile": { "grid-column": "1 / -1", "grid-row": "1", "justify-self": "center", "gap": "12px" } },
+            "children": [
+              { "key": "dot0", "tag": "button", "name": "Dot 1", "attrs": { "type": "button", "aria-label": "Cover" }, "styles": { "width": "10px", "height": "10px", "padding": "0", "border": "0", "cursor": "pointer", "background": "color-mix(in oklab, var(--hue) calc(clamp(0, 1 - abs(var(--fw-v-spread, 0) - 0), 1) * 100%), var(--edge-strong))", "transition": "background var(--dur-fast), transform var(--dur) var(--ease-out)" }, "breakpoints": { "mobile": { "width": "12px", "height": "12px" } } },
+              { "key": "dot1", "tag": "button", "name": "Dot 2", "attrs": { "type": "button", "aria-label": "Letter and contents" }, "styles": { "width": "10px", "height": "10px", "padding": "0", "border": "0", "cursor": "pointer", "background": "color-mix(in oklab, var(--hue) calc(clamp(0, 1 - abs(var(--fw-v-spread, 0) - 1), 1) * 100%), var(--edge-strong))", "transition": "background var(--dur-fast), transform var(--dur) var(--ease-out)" }, "breakpoints": { "mobile": { "width": "12px", "height": "12px" } } },
+              { "key": "dot2", "tag": "button", "name": "Dot 3", "attrs": { "type": "button", "aria-label": "Make" }, "styles": { "width": "10px", "height": "10px", "padding": "0", "border": "0", "cursor": "pointer", "background": "color-mix(in oklab, var(--hue) calc(clamp(0, 1 - abs(var(--fw-v-spread, 0) - 2), 1) * 100%), var(--edge-strong))", "transition": "background var(--dur-fast), transform var(--dur) var(--ease-out)" }, "breakpoints": { "mobile": { "width": "12px", "height": "12px" } } },
+              { "key": "dot3", "tag": "button", "name": "Dot 4", "attrs": { "type": "button", "aria-label": "Pages and publishing" }, "styles": { "width": "10px", "height": "10px", "padding": "0", "border": "0", "cursor": "pointer", "background": "color-mix(in oklab, var(--hue) calc(clamp(0, 1 - abs(var(--fw-v-spread, 0) - 3), 1) * 100%), var(--edge-strong))", "transition": "background var(--dur-fast), transform var(--dur) var(--ease-out)" }, "breakpoints": { "mobile": { "width": "12px", "height": "12px" } } },
+              { "key": "dot4", "tag": "button", "name": "Dot 5", "attrs": { "type": "button", "aria-label": "Facts and get it" }, "styles": { "width": "10px", "height": "10px", "padding": "0", "border": "0", "cursor": "pointer", "background": "color-mix(in oklab, var(--hue) calc(clamp(0, 1 - abs(var(--fw-v-spread, 0) - 4), 1) * 100%), var(--edge-strong))", "transition": "background var(--dur-fast), transform var(--dur) var(--ease-out)" }, "breakpoints": { "mobile": { "width": "12px", "height": "12px" } } },
+              { "key": "dot5", "tag": "button", "name": "Dot 6", "attrs": { "type": "button", "aria-label": "Back cover" }, "styles": { "width": "10px", "height": "10px", "padding": "0", "border": "0", "cursor": "pointer", "background": "color-mix(in oklab, var(--hue) calc(clamp(0, 1 - abs(var(--fw-v-spread, 0) - 5), 1) * 100%), var(--edge-strong))", "transition": "background var(--dur-fast), transform var(--dur) var(--ease-out)" }, "breakpoints": { "mobile": { "width": "12px", "height": "12px" } } }
+            ] },
+          { "key": "out", "tag": "a", "name": "Product link", "text": "{{linkLabel}}", "attrs": { "href": "{{link}}" },
+            "styles": { "justify-self": "end", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-decoration": "none" },
+            "breakpoints": { "mobile": { "grid-column": "2", "grid-row": "2" } } }
+        ] }
+    ]
+  },
+  "behaviors": {
+    "@@nav1@@": { "states": { "hover": { "background-size": "100% 1px", "color": "var(--ink)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@nav2@@": { "states": { "hover": { "background-size": "100% 1px", "color": "var(--ink)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@nav3@@": { "states": { "hover": { "background-size": "100% 1px", "color": "var(--ink)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@nav4@@": { "states": { "hover": { "background-size": "100% 1px", "color": "var(--ink)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@send@@": { "states": { "hover": { "transform": "translateX(4px)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@heart@@": { "states": { "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@dot0@@": { "states": { "hover": { "transform": "scale(1.3)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@dot1@@": { "states": { "hover": { "transform": "scale(1.3)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@dot2@@": { "states": { "hover": { "transform": "scale(1.3)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@dot3@@": { "states": { "hover": { "transform": "scale(1.3)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@dot4@@": { "states": { "hover": { "transform": "scale(1.3)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@dot5@@": { "states": { "hover": { "transform": "scale(1.3)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@out@@": { "states": { "hover": { "color": "var(--ink)" }, "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } },
+    "@@mark@@": { "states": { "focus": { "outline": "2px solid var(--focus)", "outline-offset": "2px" } } }
+  },
+  "commands": [
+    { "command": "variables.set", "params": { "kind": "values", "name": "spread", "value": { "type": "number", "initial": 0, "min": 0, "max": 5, "step": 1, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "saved", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "signed", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "tables", "name": "spreadNames", "value": { "0": "Cover", "1": "Letter and contents", "2": "Make", "3": "Pages and publishing", "4": "Facts and get it", "5": "Back cover" } } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "spreadName", "value": "lookup(spreadNames, spread)" } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "saveText", "value": "if(saved, \"Saved\", \"Save this spread\")" } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@sname@@", "value": { "from": "spreadName", "reserve": 24 } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@ssub@@", "value": { "from": "saveText", "reserve": 16 } } },
+    { "command": "textpreset.apply", "params": { "id": "@@markform@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@marksuffix@@", "name": "app-suffix" } },
+    { "command": "code.instance.set", "params": { "node": "@@stage@@", "value": { "component": "page-turn", "props": { "suffix": "{{name}}" } } } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@dot0@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "spread", "value": 0 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@dot1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "spread", "value": 1 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@dot2@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "spread", "value": 2 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@dot3@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "spread", "value": 3 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@dot4@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "spread", "value": 4 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@dot5@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "spread", "value": 5 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@heart@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "saved", "formula": "!saved" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@news@@", "value": [ { "trigger": "submit", "action": "set-variable", "variable": "signed", "value": true } ] } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@top@@", "value": { "from": { "opacity": "0" }, "duration": 1000, "delay": 200, "easing": "ease-out", "trigger": "load", "once": true } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@stage@@", "value": { "from": { "opacity": "0", "transform": "translate(-25%, 30px) rotate(-4deg)" }, "duration": 1200, "delay": 100, "easing": "ease-out", "trigger": "load", "once": true } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@bot@@", "value": { "from": { "opacity": "0" }, "duration": 1000, "delay": 400, "easing": "ease-out", "trigger": "load", "once": true } } }
+  ]
+}

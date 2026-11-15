@@ -1,0 +1,91 @@
+{
+  "format": "formweb-component",
+  "version": 1,
+  "id": "tube-travel",
+  "code": "C14",
+  "name": "Tube travel",
+  "description": "Shots line the inside of a long 3D tube; scrolling travels along it and a click flies one shot out beside its details.",
+  "props": {
+    "captures": {
+      "type": "json",
+      "default": {
+        "ui-comp": {"u": {"1024": "https://media.formai.studio/media/formvfx/ui-comp/57ae465091f3.w1024.webp", "2400": "https://media.formai.studio/media/formvfx/ui-comp/57ae465091f3.w2400.webp"}, "w": 2400, "h": 1500},
+        "ui-comp-light": {"u": {"1024": "https://media.formai.studio/media/formvfx/ui-comp-light/8c7b898a3f0d.w1024.webp", "2400": "https://media.formai.studio/media/formvfx/ui-comp-light/8c7b898a3f0d.w2400.webp"}, "w": 2400, "h": 1500},
+        "ui-flow": {"u": {"1024": "https://media.formai.studio/media/formvfx/ui-flow/1d864093c368.w1024.webp", "2400": "https://media.formai.studio/media/formvfx/ui-flow/1d864093c368.w2400.webp"}, "w": 2400, "h": 1500},
+        "ui-flow-light": {"u": {"1024": "https://media.formai.studio/media/formvfx/ui-flow-light/46170694abda.w1024.webp", "2400": "https://media.formai.studio/media/formvfx/ui-flow-light/46170694abda.w2400.webp"}, "w": 2400, "h": 1500},
+        "ui-flowchart-2": {"u": {"1024": "https://media.formai.studio/media/formvfx/ui-flowchart-2/1bb5a6c7df8e.w1024.webp", "2400": "https://media.formai.studio/media/formvfx/ui-flowchart-2/1bb5a6c7df8e.w2400.webp"}, "w": 2400, "h": 1500},
+        "ui-graph-editor-2": {"u": {"1024": "https://media.formai.studio/media/formvfx/ui-graph-editor-2/00384381dfe3.w1024.webp", "2400": "https://media.formai.studio/media/formvfx/ui-graph-editor-2/00384381dfe3.w2400.webp"}, "w": 2400, "h": 1500},
+        "ui-hero-2": {"u": {"1024": "https://media.formai.studio/media/formvfx/ui-hero-2/f7a598c5e1b6.w1024.webp", "2400": "https://media.formai.studio/media/formvfx/ui-hero-2/f7a598c5e1b6.w2400.webp"}, "w": 2400, "h": 1350},
+        "ui-hero-light-2": {"u": {"1024": "https://media.formai.studio/media/formvfx/ui-hero-light-2/c3da93778da2.w1024.webp", "2400": "https://media.formai.studio/media/formvfx/ui-hero-light-2/c3da93778da2.w2400.webp"}, "w": 2400, "h": 1350}
+      }
+    },
+    "shots": {
+      "type": "json",
+      "default": [
+        {"title": "Launch Week", "meta": ["Composition", "Text animators", "169 presets"], "line": "A title comp, Bounce In Characters.", "desc": "A Launch Week title comp: text over a photo, with the Bounce In Characters animation preset in the Effects and Presets panel. Text animators come with 169 presets.", "alt": "A Launch Week title comp in FormVFX: white text over a sunset photograph, with the Effects and Presets panel and the timeline", "stats": [["169", "Text animator presets"], ["39", "Blend modes"]], "dl": [["Panel", "Composition"], ["Presets", "Effects and Presets"]], "face": {"c": "ui-hero-2", "l": "ui-hero-light-2", "x": 0.5, "y": 0.5, "w": 1.0}},
+        {"title": "The viewer", "meta": ["Composition", "Viewer", "Quality controls"], "line": "The comp, as it will render.", "desc": "The Composition viewer shows the comp with zoom, quality and view controls beneath it, and the on-screen handles of the selected layer drawn over the picture.", "alt": "The FormVFX Composition viewer showing a Launch Week title over a photograph, with the viewer controls below it", "stats": [["306", "Effects"], ["8", "Panels"]], "dl": [["Panel", "Composition viewer"], ["Draws", "Layer handles"]], "face": {"c": "ui-hero-2", "l": "ui-hero-light-2", "x": 0.5, "y": 0.42, "w": 0.5}},
+        {"title": "Intro comp", "meta": ["Composition", "Layers", "Keyframes"], "line": "Layers, keyframes, one comp.", "desc": "Compositions hold layers, precomps, shapes and text, animated with keyframes. This intro has a ring and an orb over a backdrop, laid out in the layer stack under the viewer.", "alt": "The FormVFX window with an intro composition of an orange orb and a ring, the layer stack and graph beneath it", "stats": [["39", "Blend modes"], ["306", "Effects"]], "dl": [["Panel", "Timeline"], ["Holds", "Layers and precomps"]], "face": {"c": "ui-comp", "l": "ui-comp-light", "x": 0.5, "y": 0.5, "w": 1.0}},
+        {"title": "The orb", "meta": ["Composition", "Shape layers", "Handles"], "line": "Shapes, drawn on the GPU.", "desc": "Shape layers, text, masks and track mattes composite on the GPU through wgpu, or on the CPU when that is faster for the comp, in a compositor written in Rust.", "alt": "A close view of the FormVFX viewer with an orange orb inside a ring and the formvfx wordmark below it", "stats": [["2", "Plug-in kinds"], ["32", "Bit, at most"]], "dl": [["Engine", "Rust, wgpu or CPU"], ["Plug-ins", "OpenFX, WebAssembly"]], "face": {"c": "ui-comp", "l": "ui-comp-light", "x": 0.5, "y": 0.35, "w": 0.5}},
+        {"title": "Flowchart", "meta": ["Flowchart", "Node view", "Same project"], "line": "The comp, seen as a graph.", "desc": "The Flowchart wires solids, effects and layers into a composition. Drag a link to parent a layer or set a track matte, and drag effects to reorder a stack.", "alt": "The FormVFX Flowchart tab under the viewer, with solids, effects and layers wired into an intro composition", "stats": [["8", "Panels"], ["306", "Effects"]], "dl": [["Panel", "Flowchart"], ["Drag", "Links, effects"]], "face": {"c": "ui-flow", "l": "ui-flow-light", "x": 0.5, "y": 0.5, "w": 1.0}},
+        {"title": "Nodes", "meta": ["Flowchart", "Links", "Mattes"], "line": "Drag a link, set a matte.", "desc": "It is the same project, seen as a graph, so a change in the Flowchart is a change in the timeline. Links parent layers and set track mattes, and effects reorder by dragging.", "alt": "Solid, effect and layer nodes in the FormVFX Flowchart connected by links into the formvfx intro comp", "stats": [["39", "Blend modes"], ["169", "Presets"]], "dl": [["Shows", "Solids, effects, layers"], ["Links", "Parent, track matte"]], "face": {"c": "ui-flow", "l": "ui-flow-light", "x": 0.5, "y": 0.78, "w": 0.7}},
+        {"title": "A node view", "meta": ["Flowchart", "Whole comp", "Reorder"], "line": "Every layer, wired.", "desc": "Solids, effects and layers are wired into a composition, with Glow and Gradient Ramp effects feeding the layers that make up the intro, all in one view.", "alt": "The FormVFX window with the Flowchart open, showing Backdrop, Glow, Gradient Ramp and layers wired into a composition", "stats": [["306", "Effects"], ["3", "Agent apps"]], "dl": [["View", "Flowchart"], ["Reorder", "By dragging effects"]], "face": {"c": "ui-flowchart-2", "l": null, "x": 0.5, "y": 0.5, "w": 1.0}},
+        {"title": "Graph Editor", "meta": ["Animation", "Graph Editor", "Ease curves"], "line": "Shape every ease.", "desc": "Shape every ease on a curve, with Hold, Linear, Ease In and Ease Out one click away. The work area renders into the preview cache while you work.", "alt": "The FormVFX Graph Editor beside the layer stack, showing an ease curve between two keyframes", "stats": [["4", "Quick eases"], ["306", "Effects"]], "dl": [["Panel", "Graph Editor"], ["Eases", "Hold, Linear, In, Out"]], "face": {"c": "ui-graph-editor-2", "l": null, "x": 0.5, "y": 0.5, "w": 1.0}},
+        {"title": "Ease curves", "meta": ["Animation", "Keyframes", "Roving keys"], "line": "Keyframes, up close.", "desc": "Keyframes carry eases and roving keys, and the Graph Editor, Wiggler, Smoother and Motion Sketch refine them. Expressions run on FormVFX's own interpreter.", "alt": "A close view of the FormVFX Graph Editor with an ease curve and the Hold, Linear and Ease buttons above it", "stats": [["4", "Quick eases"], ["169", "Presets"]], "dl": [["Tools", "Wiggler, Smoother"], ["Expressions", "Own interpreter"]], "face": {"c": "ui-graph-editor-2", "l": null, "x": 0.4, "y": 0.82, "w": 0.6}},
+        {"title": "Effects list", "meta": ["Effects", "306 effects", "By category"], "line": "Three hundred and six effects.", "desc": "306 effects, from keying and Color Grade to OCIO transforms, blurs, distortions and particles, listed by category in the Effects and Presets panel beside the viewer.", "alt": "The FormVFX Effects and Presets panel listing categories such as Animation Presets, 3D Channel, Audio, Blur and Sharpen, and Keying", "stats": [["306", "Effects"], ["13", "Audio effects"]], "dl": [["Panel", "Effects and Presets"], ["Includes", "Keying, Color Grade, OCIO"]], "face": {"c": "ui-comp", "l": "ui-comp-light", "x": 0.86, "y": 0.3, "w": 0.32}},
+        {"title": "Timeline", "meta": ["Timeline", "Layers", "Playhead"], "line": "Where the time goes.", "desc": "A headline layer and a photo layer sit on the timeline under the viewer, with the playhead on the title. Render settings and the Render Queue sit in the next tab.", "alt": "The FormVFX timeline with a Headline layer and a photo layer, a playhead, and the viewer above them", "stats": [["8", "Panels"], ["39", "Blend modes"]], "dl": [["Panel", "Timeline"], ["Next tab", "Render Queue"]], "face": {"c": "ui-hero-2", "l": "ui-hero-light-2", "x": 0.5, "y": 0.9, "w": 0.7}},
+        {"title": "Layer stack", "meta": ["Timeline", "Layer stack", "Parent and link"], "line": "Layers in order.", "desc": "The layer stack lists each layer with its switches, mode and parent, with keyframes on the time ruler beside it and an ease curve for the selected property.", "alt": "The FormVFX layer stack with Orb, Ring, formvfx and Backdrop layers and their parent and link settings, beside the time ruler", "stats": [["39", "Blend modes"], ["2", "Plug-in kinds"]], "dl": [["Shows", "Switches, mode, parent"], ["Beside", "Time ruler"]], "face": {"c": "ui-comp", "l": "ui-comp-light", "x": 0.5, "y": 0.84, "w": 0.8}},
+        {"title": "Wiring", "meta": ["Flowchart", "Effects", "Order"], "line": "Reorder by dragging.", "desc": "Drag an effect to reorder a stack, or drag a link to set a track matte. The graph and the timeline are two views of one project, so neither goes out of date.", "alt": "Nodes in the FormVFX Flowchart: motion graphics layers and a composition node joined by links", "stats": [["306", "Effects"], ["169", "Presets"]], "dl": [["Panel", "Flowchart"], ["Same as", "The timeline"]], "face": {"c": "ui-flowchart-2", "l": null, "x": 0.5, "y": 0.8, "w": 0.55}},
+        {"title": "Presets", "meta": ["Text", "Animators", "Presets"], "line": "Type that moves.", "desc": "Text animators come with 169 presets, such as Bounce In Characters and Bounce In Lines, found in the Effects and Presets panel with a search box above it.", "alt": "The FormVFX Effects and Presets panel searched for bounce, listing Text Animate In, Bounce In Characters, Bounce In Lines and Scale Bounce Loop", "stats": [["169", "Presets"], ["26", "Languages"]], "dl": [["Panel", "Effects and Presets"], ["Search", "Bounce"]], "face": {"c": "ui-hero-2", "l": "ui-hero-light-2", "x": 0.8, "y": 0.45, "w": 0.35}}
+      ]
+    },
+    "kind": { "type": "string", "default": "Composition" },
+    "ofWord": { "type": "string", "default": "/" },
+    "ofLongWord": { "type": "string", "default": "of" },
+    "hint": { "type": "string", "default": "Scroll to travel the tube" },
+    "openWord": { "type": "string", "default": "Open" },
+    "groupLabel": { "type": "string", "default": "FormVFX shots along a tube" },
+    "shotsLabel": { "type": "string", "default": "Compositions" },
+    "detailLabel": { "type": "string", "default": "Detail" },
+    "indexLabel": { "type": "string", "default": "Index" },
+    "closeLabel": { "type": "string", "default": "Close" },
+    "prevLabel": { "type": "string", "default": "Previous composition" },
+    "nextLabel": { "type": "string", "default": "Next composition" },
+    "ctaText": { "type": "string", "default": "Every feature" },
+    "ctaHref": { "type": "string", "default": "https://formai.studio/formvfx/features/" },
+    "openVariable": { "type": "string", "default": "tubeOpen" },
+    "indexVariable": { "type": "string", "default": "tubeIndex" },
+    "shareVariable": { "type": "string", "default": "tubeShare" }
+  },
+  "labels": {
+    "captures": "Pictures",
+    "shots": "Shots",
+    "kind": "Kind word",
+    "ofWord": "Counter separator",
+    "ofLongWord": "Spoken separator",
+    "hint": "Scroll hint",
+    "openWord": "Hover pill word",
+    "groupLabel": "Group label",
+    "shotsLabel": "Ticks label",
+    "detailLabel": "Detail label",
+    "indexLabel": "Index label",
+    "closeLabel": "Close label",
+    "prevLabel": "Previous label",
+    "nextLabel": "Next label",
+    "ctaText": "Detail button text",
+    "ctaHref": "Detail button link",
+    "openVariable": "Open variable",
+    "indexVariable": "Index variable",
+    "shareVariable": "Share variable"
+  },
+  "propDocs": {
+    "captures": "Map of picture key to {u:{1024,2400}, w, h}: two widths of the same picture and its pixel size.",
+    "shots": "Array of {title, meta:[3 words], line, desc, alt, stats:[[value,label],[value,label]], dl:[[key,value],[key,value]], face:{c, l, x, y, w}}. face.c and face.l are keys of captures (dark and light picture, l may be null); x and y are the crop centre as fractions and w is the crop width as a fraction.",
+    "openVariable": "Boolean variable the component sets while a shot is flown out, so native chrome can fade away.",
+    "indexVariable": "Boolean variable that opens and closes the index list; a native button can toggle it.",
+    "shareVariable": "Boolean variable the component clears on Escape, outside clicks and when a shot opens; a native popover binds to it."
+  },
+  "poster": "poster.webp",
+  "sections": ["formvfx-vortex"],
+  "fallback": "The poster shows the tube at rest. Without 3D transforms the shots are listed as buttons, and with reduced motion the tube settles at once with a short fade.",
+  "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formvfx-vortex (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
+}

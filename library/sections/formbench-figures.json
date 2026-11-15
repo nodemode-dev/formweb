@@ -1,0 +1,117 @@
+{
+  "format": "formweb-section",
+  "version": 1,
+  "id": "formbench-figures",
+  "name": "FormBench figures",
+  "category": "product-site",
+  "tags": ["figures", "counters", "stats", "reveal"],
+  "product": "formbench",
+  "description": "FormBench grades every FormAI app against the software it replaces, and these are its real figures.",
+  "source": "formai-xmental-webspun v3.1.0 assets/sections/formbench-figures",
+  "preset": "formai-studio",
+  "components": [],
+  "fields": {
+    "tint": { "label": "Tint", "type": "color", "default": "#5ee0e0" },
+    "name": { "label": "Product name after Form", "type": "text", "default": "Bench" },
+    "heading": { "label": "Heading", "type": "text", "default": "How close is each app, really?" },
+    "summary": { "label": "Summary", "type": "text", "default": "Graded Full, Partial or None, row by row." },
+    "figure": { "label": "Big figure", "type": "number", "default": 23 },
+    "note": { "label": "Note", "type": "longtext", "default": "Imported from Parity Tracker v5.16 into data/parity. The command ./formbench tracker writes the tracker back out from FormBench's own grades." },
+    "caption": { "label": "Caption", "type": "longtext", "default": "The leaderboard switches between official parity, community-verified, satisfaction, momentum and open bugs." }
+  },
+  "tree": {
+    "key": "section", "tag": "section", "name": "Figures band", "attrs": { "aria-labelledby": "@@heading@@" },
+    "styles": { "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)", "position": "relative", "border-bottom": "1px solid var(--edge)" },
+    "children": [
+      { "key": "wrap", "tag": "div", "name": "Frame",
+        "styles": { "position": "relative", "width": "100%", "max-width": "var(--page-max)", "margin-left": "auto", "margin-right": "auto", "padding-left": "var(--gutter)", "padding-right": "var(--gutter)", "box-sizing": "border-box", "border-left": "1px solid var(--edge)", "border-right": "1px solid var(--edge)" },
+        "children": [
+          { "key": "mark-l", "tag": "span", "name": "Corner mark left", "attrs": { "aria-hidden": "true" },
+            "styles": { "position": "absolute", "bottom": "calc(var(--sp-2) * -1 - 0.5px)", "left": "calc(var(--sp-2) * -1 - 0.5px)", "width": "calc(var(--sp-4) + 1px)", "height": "calc(var(--sp-4) + 1px)", "background": "linear-gradient(var(--ink-faint), var(--ink-faint)) center / 1px 100% no-repeat, linear-gradient(var(--ink-faint), var(--ink-faint)) center / 100% 1px no-repeat", "pointer-events": "none" } },
+          { "key": "mark-r", "tag": "span", "name": "Corner mark right", "attrs": { "aria-hidden": "true" },
+            "styles": { "position": "absolute", "bottom": "calc(var(--sp-2) * -1 - 0.5px)", "right": "calc(var(--sp-2) * -1 - 0.5px)", "width": "calc(var(--sp-4) + 1px)", "height": "calc(var(--sp-4) + 1px)", "background": "linear-gradient(var(--ink-faint), var(--ink-faint)) center / 1px 100% no-repeat, linear-gradient(var(--ink-faint), var(--ink-faint)) center / 100% 1px no-repeat", "pointer-events": "none" } },
+          { "key": "inner", "tag": "div", "name": "Columns",
+            "styles": { "display": "grid", "grid-template-columns": "minmax(0, 1fr) minmax(0, 1fr)", "gap": "var(--sp-8)", "padding-top": "calc(var(--sp-9) + var(--sp-3))", "padding-bottom": "calc(var(--sp-9) + var(--sp-3))" },
+            "breakpoints": { "mobile": { "grid-template-columns": "minmax(0, 1fr)", "gap": "var(--sp-8)", "padding-top": "var(--sp-8)", "padding-bottom": "var(--sp-8)" } },
+            "children": [
+              { "key": "left", "tag": "div", "name": "Left column",
+                "styles": { "display": "flex", "flex-direction": "column", "justify-content": "space-between", "gap": "var(--sp-8)", "min-width": "0" },
+                "children": [
+                  { "key": "top", "tag": "div", "name": "Heading block", "styles": { "display": "grid", "align-content": "start", "gap": "var(--sp-4)", "min-width": "0" },
+                    "children": [
+                      { "key": "label", "tag": "p", "name": "Chapter label", "styles": { "margin": "0", "font-size": "var(--fs-l)", "font-weight": "var(--weight-display)", "letter-spacing": "var(--track-tight)" },
+                        "children": [
+                          { "key": "label-form", "tag": "span", "name": "Form", "text": "Form" },
+                          { "key": "label-suffix", "tag": "span", "name": "Product suffix", "text": "{{name}}" },
+                          { "key": "label-meta", "tag": "span", "name": "Chapter meta", "text": "Parity / Measured, not claimed", "styles": { "display": "block", "margin-top": "var(--sp-1)", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "font-weight": "400", "letter-spacing": "0.14em", "text-transform": "uppercase" } }
+                        ] },
+                      { "key": "heading", "tag": "h2", "name": "Heading", "text": "{{heading}}", "styles": { "margin": "0", "line-height": "1.05" } },
+                      { "key": "summary", "tag": "p", "name": "Summary", "text": "{{summary}}", "styles": { "margin": "0", "max-width": "20rem", "color": "var(--ink-soft)", "font-size": "var(--fs-l)" } }
+                    ] },
+                  { "key": "bottom", "tag": "div", "name": "Figures block", "styles": { "display": "grid", "align-content": "start", "gap": "var(--sp-4)", "min-width": "0" },
+                    "children": [
+                      { "key": "figure", "tag": "p", "name": "Big figure row", "attrs": { "aria-label": "{{figure}} comparisons" },
+                        "styles": { "margin": "0", "display": "flex", "align-items": "center", "gap": "var(--sp-4)", "padding-top": "var(--sp-5)", "border-top": "1px solid var(--edge-strong)" },
+                        "children": [
+                          { "key": "num", "tag": "span", "name": "Figure", "text": "{{figure}} ", "attrs": { "aria-hidden": "true" },
+                            "styles": { "color": "var(--hue)", "font-size": "5.625rem", "font-weight": "var(--weight-display)", "font-variant-numeric": "tabular-nums", "line-height": "0.95", "letter-spacing": "var(--track-display)" },
+                            "breakpoints": { "mobile": { "font-size": "5rem" } } },
+                          { "key": "unit", "tag": "span", "name": "Figure unit", "attrs": { "aria-hidden": "true" },
+                            "styles": { "display": "grid", "gap": "var(--sp-1)", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase" },
+                            "children": [
+                              { "key": "unit-1", "tag": "span", "name": "Unit", "text": "Comparisons" },
+                              { "key": "unit-2", "tag": "span", "name": "Unit note", "text": "Graded by capability row" }
+                            ] }
+                        ] },
+                      { "key": "note", "tag": "p", "name": "Note", "text": "{{note}}", "styles": { "margin": "0", "max-width": "31rem", "color": "var(--ink-soft)" } },
+                      { "key": "counts", "tag": "dl", "name": "Counts", "styles": { "display": "flex", "flex-wrap": "wrap", "gap": "var(--sp-4) var(--sp-6)", "margin": "var(--sp-3) 0 0" },
+                        "children": [
+                          { "key": "count-1", "tag": "div", "name": "Count",
+                            "children": [
+                              { "key": "count-1-n", "tag": "dt", "name": "Count figure", "text": "26", "styles": { "color": "var(--hue)", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "font-variant-numeric": "tabular-nums", "line-height": "1.1" } },
+                              { "key": "count-1-l", "tag": "dd", "name": "Count label", "text": "products", "styles": { "margin": "0", "color": "var(--ink-faint)", "font-size": "var(--fs-s)" } }
+                            ] },
+                          { "key": "count-2", "tag": "div", "name": "Count",
+                            "children": [
+                              { "key": "count-2-n", "tag": "dt", "name": "Count figure", "text": "76", "styles": { "color": "var(--hue)", "font-size": "var(--fs-xl)", "font-weight": "var(--weight-display)", "font-variant-numeric": "tabular-nums", "line-height": "1.1" } },
+                              { "key": "count-2-l", "tag": "dd", "name": "Count label", "text": "engine commands, served as MCP tools", "styles": { "margin": "0", "color": "var(--ink-faint)", "font-size": "var(--fs-s)" } }
+                            ] }
+                        ] }
+                    ] }
+                ] },
+              { "key": "right", "tag": "div", "name": "Right column", "styles": { "display": "grid", "align-content": "start", "gap": "var(--sp-4)", "min-width": "0" },
+                "children": [
+                  { "key": "shot", "tag": "figure", "name": "Screenshot frame",
+                    "styles": { "display": "block", "margin": "0", "overflow": "hidden", "border-radius": "var(--radius-l)", "background": "var(--pane)", "box-shadow": "var(--shadow-window, 0 1px 1px rgb(0 0 0 / 0.3), 0 28px 64px -28px rgb(0 0 0 / 0.8))" },
+                    "children": [
+                      { "key": "shot-dark", "tag": "img", "name": "Screenshot dark",
+                        "attrs": { "data-fw-theme-only": "dark", "src": "https://media.formai.studio/media/formranker/ui-rankings-1/1c280ee41a28.w1024.webp", "srcset": "https://media.formai.studio/media/formranker/ui-rankings-1/1c280ee41a28.w640.webp 640w, https://media.formai.studio/media/formranker/ui-rankings-1/1c280ee41a28.w1024.webp 1024w, https://media.formai.studio/media/formranker/ui-rankings-1/1c280ee41a28.w2400.webp 2400w", "sizes": "(max-width: 767px) 100vw, 560px", "width": "2400", "height": "1500", "alt": "The rankings view: a podium of three apps with their official parity scores above a leaderboard of rows", "loading": "lazy", "decoding": "async" },
+                        "styles": { "display": "block", "width": "100%", "height": "auto", "aspect-ratio": "1.1 / 1", "object-fit": "cover", "object-position": "34% 0" } },
+                      { "key": "shot-light", "tag": "img", "name": "Screenshot light",
+                        "attrs": { "data-fw-theme-only": "light", "src": "https://media.formai.studio/media/formranker/ui-rankings-light-1/3ec52cca5723.w1024.webp", "srcset": "https://media.formai.studio/media/formranker/ui-rankings-light-1/3ec52cca5723.w640.webp 640w, https://media.formai.studio/media/formranker/ui-rankings-light-1/3ec52cca5723.w1024.webp 1024w, https://media.formai.studio/media/formranker/ui-rankings-light-1/3ec52cca5723.w2400.webp 2400w", "sizes": "(max-width: 767px) 100vw, 560px", "width": "2400", "height": "1500", "alt": "The rankings view: a podium of three apps with their official parity scores above a leaderboard of rows", "loading": "lazy", "decoding": "async" },
+                        "styles": { "display": "block", "width": "100%", "height": "auto", "aspect-ratio": "1.1 / 1", "object-fit": "cover", "object-position": "34% 0" } }
+                    ] },
+                  { "key": "cap", "tag": "p", "name": "Caption", "text": "{{caption}}", "styles": { "margin": "0", "max-width": "31rem", "color": "var(--ink-soft)", "font-size": "var(--fs-s)" } }
+                ] }
+            ] }
+        ] }
+    ]
+  },
+  "commands": [
+    { "command": "textpreset.apply", "params": { "id": "@@heading@@", "name": "heading" } },
+    { "command": "node.update", "params": { "id": "@@heading@@", "patch": { "styles": { "line-height": "1.05" } } } },
+    { "command": "textpreset.apply", "params": { "id": "@@label-form@@", "name": "app-form" } },
+    { "command": "textpreset.apply", "params": { "id": "@@label-suffix@@", "name": "app-suffix" } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@label@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px", "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@heading@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px", "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@summary@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 300, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px", "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@figure@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px", "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@note@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 300, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px", "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@counts@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 300, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px", "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@shot@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 150, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px", "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "reveals", "node": "@@cap@@", "value": { "from": { "opacity": "0", "transform": "translateY(45px)", "filter": "blur(10px)" }, "duration": 800, "delay": 300, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "threshold": 0, "rootMargin": "0px 0px -10% 0px", "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "counters", "node": "@@num@@", "value": { "to": "{{figure}}", "from": 0, "duration": 1400, "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "counters", "node": "@@count-1-n@@", "value": { "to": 26, "from": 0, "duration": 1200, "trigger": "view" } } },
+    { "command": "motion.set", "params": { "kind": "counters", "node": "@@count-2-n@@", "value": { "to": 76, "from": 0, "duration": 1600, "trigger": "view" } } }
+  ]
+}
