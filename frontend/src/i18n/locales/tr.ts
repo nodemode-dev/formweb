@@ -2515,4 +2515,5 @@ export default [
   "Temel URL'yi ayarla",
   "Temel URL ve SEO ayarları",
   "Kanonik bağlantıların, site haritasının, kökteki 404.html dosyasının ve taşınabilir yayımlamanın kullandığı temel URL'yi ayarlayın.",
+  "https://example.com yer tutucusunu korumak için boş bırakın.",
 ] as readonly string[];

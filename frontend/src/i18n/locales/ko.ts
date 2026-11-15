@@ -2515,4 +2515,5 @@ export default [
   "기본 URL 설정",
   "기본 URL 및 SEO 설정",
   "표준 링크, 사이트맵, 루트의 404.html, 이식 가능한 게시에서 사용하는 기본 URL을 설정합니다.",
+  "비워 두면 https://example.com 플레이스홀더가 유지됩니다.",
 ] as readonly string[];

@@ -2515,4 +2515,5 @@ export default [
   "Angi basis-URL-en",
   "Basis-URL og SEO-innstillinger",
   "Angi basis-URL-en som kanoniske lenker, områdekartet, 404.html i roten og portabel publisering bruker.",
+  "La feltet stå tomt for å beholde plassholderen https://example.com.",
 ] as readonly string[];

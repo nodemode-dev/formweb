@@ -2515,4 +2515,5 @@ export default [
   "Aseta perus-URL",
   "Perus-URL ja SEO-asetukset",
   "Aseta perus-URL, jota kanoniset linkit, sivustokartta, juuren 404.html ja siirrettävä julkaisu käyttävät.",
+  "Jätä tyhjäksi, niin paikkamerkki https://example.com säilyy.",
 ] as readonly string[];

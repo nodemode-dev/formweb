@@ -11,7 +11,7 @@ ROOT = Path(os.getenv('FORMWEB_HOME', str(Path.home() / 'FormWeb'))) if FROZEN e
 if FROZEN:
     ROOT.mkdir(parents=True, exist_ok=True)
 load_dotenv(ROOT / 'backend' / '.env')
-VERSION = '0.20.0'
+VERSION = '0.20.1'
 PORT = int(os.getenv('FORMWEB_PORT', '8240'))
 CORE_NAME = 'formweb-core.exe' if os.name == 'nt' else 'formweb-core'
 CORE_BIN = Path(os.getenv('FORMWEB_CORE_BIN', str(BUNDLE / 'bin' / CORE_NAME if FROZEN else ROOT / 'native/target/release' / CORE_NAME)))

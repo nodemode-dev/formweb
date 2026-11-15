@@ -778,7 +778,9 @@ const siteSection = section(pagePane, 'Whole site');
 const baseUrlGrid = element('div', 'form-grid');
 const baseUrlInput = addInspectorInput(baseUrlGrid, 'Base URL', 'site.baseUrl', next => command('site.update', { patch: { settings: { baseUrl: next.trim().replace(/\/+$/, '') || null } } }), undefined, true) as HTMLInputElement;
 baseUrlInput.placeholder = 'https://example.com';
-siteSection.append(baseUrlGrid, element('p', 'micro', 'The site\'s public address. Canonical links, the sitemap and the root 404.html use it. Agents: site.update with settings.baseUrl.'));
+const baseUrlHelp = element('p', 'micro', 'The site\'s public address. Canonical links, the sitemap and the root 404.html use it. Agents: site.update with settings.baseUrl.');
+baseUrlHelp.append(' ', element('span', '', t('Leave it empty to keep the https://example.com placeholder.')));
+siteSection.append(baseUrlGrid, baseUrlHelp);
 function openBaseUrlField(): void {
   openDock('right');
   setInspector('page');

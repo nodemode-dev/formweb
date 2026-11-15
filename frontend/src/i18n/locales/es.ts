@@ -2515,4 +2515,5 @@ export default [
   "Definir la URL base",
   "URL base y ajustes de SEO",
   "Define la URL base que usan los enlaces canónicos, el sitemap, el 404.html de la raíz y la publicación portátil.",
+  "Déjalo vacío para conservar el marcador de posición https://example.com.",
 ] as readonly string[];

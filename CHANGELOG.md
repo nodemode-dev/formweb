@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.20.1 · 2026-11-10
+
+- Pasting a large copy that travels by clip link writes its images and videos straight to disk while they arrive, and stores them only once the paste succeeds, so a 300 MiB copy no longer needs 300 MiB of memory.
+- Copies of copies keep short ids: copying `hero-copy-1` gives `hero-copy-3`, not `hero-copy-1-copy-3`. Your own ids such as `step-copy` or `hero-2` are never shortened, and links inside the copy follow its new ids.
+- Copied buttons keep their actions. Before this release, copying or duplicating an element dropped the actions of the buttons inside it.
+- The Base URL field's help says that leaving it empty keeps the https://example.com placeholder.
+- Every new string is in all 26 languages.
+
 ## 0.20.0 · 2026-11-10
 
 The version moves to 0.20.0 rather than 0.19.10, because FormWeb versions keep a one-digit patch number (as 0.18.9 moved to 0.19.0).
