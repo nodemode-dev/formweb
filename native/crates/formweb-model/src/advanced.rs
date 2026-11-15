@@ -58,7 +58,19 @@ fn step_titles(site: &Site) -> Result<(), String> {
     }
     Ok(())
 }
+thread_local! { static DEFERRED: std::cell::Cell<bool> = const { std::cell::Cell::new(false) }; }
+
+/// While a batch runs, per-command extension checks are deferred and the batch checks once at its end (0.19.3): a
+/// library section with a hundred variables otherwise revalidated every group a hundred times and outran the engine's
+/// 30 s request limit. The batch still fails atomically with the same message.
+pub fn defer_extension_checks(on: bool) { DEFERRED.with(|d| d.set(on)); }
+
 pub fn validate_extensions(site: &Site) -> Result<(), String> {
+    if DEFERRED.with(|d| d.get()) { return Ok(()); }
+    validate_extensions_now(site)
+}
+
+pub fn validate_extensions_now(site: &Site) -> Result<(), String> {
     if serde_json::to_vec(&site.extensions).map_err(|e|e.to_string())?.len()>4*1024*1024 { return Err("extensions exceed 4 MiB".into()); }
     step_titles(site)?;
     for collection in site.collections.values() {

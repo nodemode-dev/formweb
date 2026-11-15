@@ -155,7 +155,7 @@
                 "key": "q",
                 "tag": "input",
                 "name": "Search field",
-                "attrs": { "type": "search", "name": "q", "placeholder": "{{placeholder}}", "aria-label": "Search", "autocomplete": "off" },
+                "attrs": { "type": "search", "name": "q", "placeholder": "{{placeholder}}", "aria-label": "Search", "autocomplete": "off", "spellcheck": "false", "enterkeyhint": "search", "inputmode": "search" },
                 "styles": {
                   "display": "block",
                   "grid-column": "1",

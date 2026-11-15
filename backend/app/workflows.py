@@ -1,6 +1,7 @@
 import json
 
 from .assets import restore_project_assets
+from .authoring_tools import AUTHORING_BY_NAME, dispatch as authoring_dispatch
 from .code_components import build_component
 from .content_services import export_csv, import_csv, import_library, list_libraries, review_library, save_library
 from .engine import EngineError
@@ -133,4 +134,6 @@ async def dispatch(name, args):
         result = await build_component(args)
         studio.access.record('code.build', {'language': args['language'], 'digest': result['component']['sourceDigest']})
         return result
+    if name in AUTHORING_BY_NAME:
+        return await authoring_dispatch(name, args)
     raise EngineError('Unknown workflow.', 404)

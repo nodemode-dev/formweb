@@ -86,10 +86,10 @@
             "children": [
               {
                 "key": "idle", "tag": "div", "name": "Ask",
-                "styles": { "box-sizing": "border-box", "padding": "4px", "margin": "-4px", "overflow": "hidden", "max-height": "calc((1 - clamp(0, var(--fw-v-pe_phase), 1)) * 400px)", "opacity": "calc(1 - clamp(0, var(--fw-v-pe_phase), 1))", "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1)" },
+                "styles": { "box-sizing": "border-box", "padding": "4px", "margin": "-4px", "overflow": "hidden", "max-height": "calc((1 - clamp(0, var(--fw-v-%%pe_phase%%), 1)) * 400px)", "opacity": "calc(1 - clamp(0, var(--fw-v-%%pe_phase%%), 1))", "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1)" },
                 "children": [
                   { "key": "talab", "tag": "label", "name": "Question label", "text": "Your question", "attrs": { "for": "@@ta@@" }, "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap" } },
-                  { "key": "ta", "tag": "textarea", "name": "Question", "attrs": { "placeholder": "How can {{name}} help you today?" }, "styles": { "display": "block", "width": "100%", "box-sizing": "border-box", "min-height": "78px", "margin": "0", "padding": "0", "border": "0", "outline": "0", "background": "transparent", "color": "var(--ink)", "font-family": "inherit", "font-size": "16px", "line-height": "1.5" } },
+                  { "key": "ta", "tag": "textarea", "name": "Question", "attrs": { "placeholder": "How can {{name}} help you today?" }, "styles": { "display": "block", "width": "100%", "box-sizing": "border-box", "min-height": "78px", "margin": "0", "padding": "0", "border": "0", "outline": "0", "resize": "none", "background": "transparent", "color": "var(--ink)", "font-family": "inherit", "font-size": "16px", "line-height": "1.5" } },
                   {
                     "key": "foot", "tag": "div", "name": "Controls",
                     "styles": { "display": "flex", "align-items": "center", "gap": "8px", "margin-top": "10px" },
@@ -116,9 +116,9 @@
               {
                 "key": "run", "tag": "div", "name": "Run",
                 "attrs": { "aria-live": "polite" },
-                "styles": { "box-sizing": "border-box", "overflow": "hidden", "max-height": "calc(clamp(0, var(--fw-v-pe_phase), 1) * 900px)", "opacity": "clamp(0, var(--fw-v-pe_phase), 1)", "transition": "max-height 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.12s" },
+                "styles": { "box-sizing": "border-box", "overflow": "hidden", "max-height": "calc(clamp(0, var(--fw-v-%%pe_phase%%), 1) * 900px)", "opacity": "clamp(0, var(--fw-v-%%pe_phase%%), 1)", "transition": "max-height 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.12s" },
                 "children": [
-                  { "key": "q", "tag": "p", "name": "Question asked", "text": "", "styles": { "margin": "0", "font-size": "17px", "font-weight": "var(--weight-strong)", "line-height": "1.4", "letter-spacing": "var(--track-tight)", "word-break": "break-word" } },
+                  { "key": "q", "tag": "p", "name": "Question asked", "text": "", "styles": { "margin": "0", "font-size": "17px", "font-weight": "var(--weight-strong)", "line-height": "1.4", "letter-spacing": "var(--track-tight)", "overflow-wrap": "anywhere" } },
                   {
                     "key": "th", "tag": "button", "name": "Thinking header", "attrs": { "type": "button" },
                     "styles": { "display": "flex", "align-items": "center", "gap": "12px", "width": "100%", "margin-top": "14px", "padding": "0", "border": "0", "background": "transparent", "color": "var(--ink-soft)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "text-align": "left", "cursor": "pointer" },
@@ -131,12 +131,12 @@
                   { "key": "trace", "tag": "div", "name": "Trace", "children": [ { "key": "steps", "tag": "ol", "name": "Steps", "styles": { "margin": "12px 0 0", "padding": "0", "list-style": "none" } } ] },
                   {
                     "key": "answer", "tag": "div", "name": "Answer",
-                    "styles": { "box-sizing": "border-box", "overflow": "hidden", "max-height": "calc(clamp(0, var(--fw-v-pe_phase) - 1, 1) * 500px)", "opacity": "clamp(0, var(--fw-v-pe_phase) - 1, 1)", "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1)" },
+                    "styles": { "box-sizing": "border-box", "overflow": "hidden", "max-height": "calc(clamp(0, var(--fw-v-%%pe_phase%%) - 1, 1) * 500px)", "opacity": "clamp(0, var(--fw-v-%%pe_phase%%) - 1, 1)", "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1)" },
                     "children": [ { "key": "ans", "tag": "p", "name": "Answer text", "text": "", "styles": { "margin": "6px 0 0", "padding-top": "14px", "border-top": "1px solid var(--edge)", "color": "var(--ink)", "font-size": "15.5px", "line-height": "1.55" } } ]
                   },
                   {
                     "key": "acts", "tag": "div", "name": "Actions",
-                    "styles": { "box-sizing": "border-box", "display": "flex", "flex-wrap": "wrap", "gap": "8px", "padding-top": "16px", "overflow": "hidden", "max-height": "calc(clamp(0, var(--fw-v-pe_phase) - 2, 1) * 120px)", "opacity": "clamp(0, var(--fw-v-pe_phase) - 2, 1)", "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1)" },
+                    "styles": { "box-sizing": "border-box", "display": "flex", "flex-wrap": "wrap", "gap": "8px", "padding-top": "16px", "overflow": "hidden", "max-height": "calc(clamp(0, var(--fw-v-%%pe_phase%%) - 2, 1) * 120px)", "opacity": "clamp(0, var(--fw-v-%%pe_phase%%) - 2, 1)", "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1)" },
                     "children": [
                       { "key": "copy", "tag": "button", "name": "Copy", "text": "Copy", "attrs": { "type": "button" }, "styles": { "border": "0", "cursor": "pointer" } },
                       { "key": "again", "tag": "button", "name": "New question", "text": "New question", "attrs": { "type": "button" }, "styles": { "margin-left": "auto", "border": "0", "cursor": "pointer" }, "breakpoints": { "mobile": { "margin-left": "0" } } }
@@ -152,7 +152,7 @@
             "children": [
               {
                 "key": "ch0", "tag": "ul", "name": "Suggestions, low", "attrs": { "aria-label": "Suggestions" },
-                "styles": { "grid-column": "1", "grid-row": "1", "box-sizing": "border-box", "display": "flex", "flex-wrap": "wrap", "justify-content": "center", "gap": "8px", "margin": "-6px -4px -4px", "padding": "6px 4px 4px", "list-style": "none", "overflow": "hidden", "max-height": "calc(clamp(0, 1 - (var(--fw-v-pe_depth) - 0) * (var(--fw-v-pe_depth) - 0), 1) * (1 - clamp(0, var(--fw-v-pe_phase), 1)) * 140px)", "opacity": "calc(clamp(0, 1 - (var(--fw-v-pe_depth) - 0) * (var(--fw-v-pe_depth) - 0), 1) * (1 - clamp(0, var(--fw-v-pe_phase), 1)))", "transition": "opacity 0.4s var(--ease-out), max-height 0.5s var(--ease-out)" },
+                "styles": { "grid-column": "1", "grid-row": "1", "box-sizing": "border-box", "display": "flex", "flex-wrap": "wrap", "justify-content": "center", "gap": "8px", "margin": "-6px -4px -4px", "padding": "6px 4px 4px", "list-style": "none", "overflow": "hidden", "max-height": "calc(clamp(0, 1 - (var(--fw-v-%%pe_depth%%) - 0) * (var(--fw-v-%%pe_depth%%) - 0), 1) * (1 - clamp(0, var(--fw-v-%%pe_phase%%), 1)) * 140px)", "opacity": "calc(clamp(0, 1 - (var(--fw-v-%%pe_depth%%) - 0) * (var(--fw-v-%%pe_depth%%) - 0), 1) * (1 - clamp(0, var(--fw-v-%%pe_phase%%), 1)))", "transition": "opacity 0.4s var(--ease-out), max-height 0.5s var(--ease-out)" },
                 "children": [
                   { "key": "cl_0_doc", "tag": "li", "name": "Chip", "styles": { "padding": "0", "border": "1px solid color-mix(in srgb, var(--hue) 42%, transparent)", "border-radius": "var(--radius-pill)", "background": "color-mix(in srgb, var(--pane) 86%, transparent)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "line-height": "1.55", "transition": "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), color var(--dur) var(--ease-out)" }, "children": [ { "key": "cb_0_doc", "tag": "button", "name": "Chip button", "text": "Draft a short report document", "attrs": { "type": "button" }, "styles": { "display": "block", "padding": "var(--sp-1) var(--sp-3)", "border": "0", "background": "transparent", "color": "inherit", "font": "inherit", "letter-spacing": "inherit", "text-transform": "inherit", "cursor": "pointer" } } ] },
                   { "key": "cl_0_term", "tag": "li", "name": "Chip", "styles": { "padding": "0", "border": "1px solid color-mix(in srgb, var(--hue) 42%, transparent)", "border-radius": "var(--radius-pill)", "background": "color-mix(in srgb, var(--pane) 86%, transparent)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "line-height": "1.55", "transition": "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), color var(--dur) var(--ease-out)" }, "children": [ { "key": "cb_0_term", "tag": "button", "name": "Chip button", "text": "Run the tests in a terminal", "attrs": { "type": "button" }, "styles": { "display": "block", "padding": "var(--sp-1) var(--sp-3)", "border": "0", "background": "transparent", "color": "inherit", "font": "inherit", "letter-spacing": "inherit", "text-transform": "inherit", "cursor": "pointer" } } ] },
@@ -161,7 +161,7 @@
               },
               {
                 "key": "ch1", "tag": "ul", "name": "Suggestions, medium", "attrs": { "aria-label": "Suggestions" },
-                "styles": { "grid-column": "1", "grid-row": "1", "box-sizing": "border-box", "display": "flex", "flex-wrap": "wrap", "justify-content": "center", "gap": "8px", "margin": "-6px -4px -4px", "padding": "6px 4px 4px", "list-style": "none", "overflow": "hidden", "max-height": "calc(clamp(0, 1 - (var(--fw-v-pe_depth) - 1) * (var(--fw-v-pe_depth) - 1), 1) * (1 - clamp(0, var(--fw-v-pe_phase), 1)) * 140px)", "opacity": "calc(clamp(0, 1 - (var(--fw-v-pe_depth) - 1) * (var(--fw-v-pe_depth) - 1), 1) * (1 - clamp(0, var(--fw-v-pe_phase), 1)))", "transition": "opacity 0.4s var(--ease-out), max-height 0.5s var(--ease-out)" },
+                "styles": { "grid-column": "1", "grid-row": "1", "box-sizing": "border-box", "display": "flex", "flex-wrap": "wrap", "justify-content": "center", "gap": "8px", "margin": "-6px -4px -4px", "padding": "6px 4px 4px", "list-style": "none", "overflow": "hidden", "max-height": "calc(clamp(0, 1 - (var(--fw-v-%%pe_depth%%) - 1) * (var(--fw-v-%%pe_depth%%) - 1), 1) * (1 - clamp(0, var(--fw-v-%%pe_phase%%), 1)) * 140px)", "opacity": "calc(clamp(0, 1 - (var(--fw-v-%%pe_depth%%) - 1) * (var(--fw-v-%%pe_depth%%) - 1), 1) * (1 - clamp(0, var(--fw-v-%%pe_phase%%), 1)))", "transition": "opacity 0.4s var(--ease-out), max-height 0.5s var(--ease-out)" },
                 "children": [
                   { "key": "cl_1_doc", "tag": "li", "name": "Chip", "styles": { "padding": "0", "border": "1px solid color-mix(in srgb, var(--hue) 42%, transparent)", "border-radius": "var(--radius-pill)", "background": "color-mix(in srgb, var(--pane) 86%, transparent)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "line-height": "1.55", "transition": "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), color var(--dur) var(--ease-out)" }, "children": [ { "key": "cb_1_doc", "tag": "button", "name": "Chip button", "text": "Draft a short report document", "attrs": { "type": "button" }, "styles": { "display": "block", "padding": "var(--sp-1) var(--sp-3)", "border": "0", "background": "transparent", "color": "inherit", "font": "inherit", "letter-spacing": "inherit", "text-transform": "inherit", "cursor": "pointer" } } ] },
                   { "key": "cl_1_term", "tag": "li", "name": "Chip", "styles": { "padding": "0", "border": "1px solid color-mix(in srgb, var(--hue) 42%, transparent)", "border-radius": "var(--radius-pill)", "background": "color-mix(in srgb, var(--pane) 86%, transparent)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "line-height": "1.55", "transition": "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), color var(--dur) var(--ease-out)" }, "children": [ { "key": "cb_1_term", "tag": "button", "name": "Chip button", "text": "Run the tests in a terminal", "attrs": { "type": "button" }, "styles": { "display": "block", "padding": "var(--sp-1) var(--sp-3)", "border": "0", "background": "transparent", "color": "inherit", "font": "inherit", "letter-spacing": "inherit", "text-transform": "inherit", "cursor": "pointer" } } ] },
@@ -170,7 +170,7 @@
               },
               {
                 "key": "ch2", "tag": "ul", "name": "Suggestions, high", "attrs": { "aria-label": "Suggestions" },
-                "styles": { "grid-column": "1", "grid-row": "1", "box-sizing": "border-box", "display": "flex", "flex-wrap": "wrap", "justify-content": "center", "gap": "8px", "margin": "-6px -4px -4px", "padding": "6px 4px 4px", "list-style": "none", "overflow": "hidden", "max-height": "calc(clamp(0, 1 - (var(--fw-v-pe_depth) - 2) * (var(--fw-v-pe_depth) - 2), 1) * (1 - clamp(0, var(--fw-v-pe_phase), 1)) * 140px)", "opacity": "calc(clamp(0, 1 - (var(--fw-v-pe_depth) - 2) * (var(--fw-v-pe_depth) - 2), 1) * (1 - clamp(0, var(--fw-v-pe_phase), 1)))", "transition": "opacity 0.4s var(--ease-out), max-height 0.5s var(--ease-out)" },
+                "styles": { "grid-column": "1", "grid-row": "1", "box-sizing": "border-box", "display": "flex", "flex-wrap": "wrap", "justify-content": "center", "gap": "8px", "margin": "-6px -4px -4px", "padding": "6px 4px 4px", "list-style": "none", "overflow": "hidden", "max-height": "calc(clamp(0, 1 - (var(--fw-v-%%pe_depth%%) - 2) * (var(--fw-v-%%pe_depth%%) - 2), 1) * (1 - clamp(0, var(--fw-v-%%pe_phase%%), 1)) * 140px)", "opacity": "calc(clamp(0, 1 - (var(--fw-v-%%pe_depth%%) - 2) * (var(--fw-v-%%pe_depth%%) - 2), 1) * (1 - clamp(0, var(--fw-v-%%pe_phase%%), 1)))", "transition": "opacity 0.4s var(--ease-out), max-height 0.5s var(--ease-out)" },
                 "children": [
                   { "key": "cl_2_doc", "tag": "li", "name": "Chip", "styles": { "padding": "0", "border": "1px solid color-mix(in srgb, var(--hue) 42%, transparent)", "border-radius": "var(--radius-pill)", "background": "color-mix(in srgb, var(--pane) 86%, transparent)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "line-height": "1.55", "transition": "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), color var(--dur) var(--ease-out)" }, "children": [ { "key": "cb_2_doc", "tag": "button", "name": "Chip button", "text": "Draft a short report document", "attrs": { "type": "button" }, "styles": { "display": "block", "padding": "var(--sp-1) var(--sp-3)", "border": "0", "background": "transparent", "color": "inherit", "font": "inherit", "letter-spacing": "inherit", "text-transform": "inherit", "cursor": "pointer" } } ] },
                   { "key": "cl_2_term", "tag": "li", "name": "Chip", "styles": { "padding": "0", "border": "1px solid color-mix(in srgb, var(--hue) 42%, transparent)", "border-radius": "var(--radius-pill)", "background": "color-mix(in srgb, var(--pane) 86%, transparent)", "color": "var(--hue)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "line-height": "1.55", "transition": "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), color var(--dur) var(--ease-out)" }, "children": [ { "key": "cb_2_term", "tag": "button", "name": "Chip button", "text": "Run the tests in a terminal", "attrs": { "type": "button" }, "styles": { "display": "block", "padding": "var(--sp-1) var(--sp-3)", "border": "0", "background": "transparent", "color": "inherit", "font": "inherit", "letter-spacing": "inherit", "text-transform": "inherit", "cursor": "pointer" } } ] },
@@ -224,8 +224,8 @@
     { "command": "textpreset.apply", "params": { "id": "@@copy@@", "name": "button-quiet" } },
     { "command": "textpreset.apply", "params": { "id": "@@again@@", "name": "button" } },
     { "command": "code.instance.set", "params": { "node": "@@specks@@", "value": { "component": "specks", "props": {} } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "pe_phase", "value": { "type": "number", "initial": 0, "min": 0, "max": 3, "step": 1, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "pe_depth", "value": { "type": "number", "initial": 1, "min": 0, "max": 2, "step": 1, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%pe_phase%%", "value": { "type": "number", "initial": 0, "min": 0, "max": 3, "step": 1, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%pe_depth%%", "value": { "type": "number", "initial": 1, "min": 0, "max": 2, "step": 1, "cssVar": true } } },
     { "command": "motion.set", "params": { "kind": "reveals", "node": "@@pic@@", "value": { "from": { "opacity": "0", "filter": "blur(24px)" }, "duration": 2400, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
     { "command": "motion.set", "params": { "kind": "reveals", "node": "@@badge@@", "value": { "from": { "opacity": "0", "transform": "translateY(16px)", "filter": "blur(6px)" }, "duration": 1000, "delay": 350, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
     { "command": "motion.set", "params": { "kind": "reveals", "node": "@@hl1@@", "value": { "from": { "opacity": "0", "transform": "translateY(16px)", "filter": "blur(6px)" }, "duration": 1200, "delay": 450, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
@@ -239,16 +239,16 @@
     { "command": "motion.set", "params": { "kind": "loops", "node": "@@mki@@", "value": { "type": "spin", "duration": 1600 } } },
     { "command": "motion.set", "params": { "kind": "disclosure", "node": "@@depth@@", "value": { "type": "tabs", "indicator": "@@ind@@", "initial": 1, "items": [ { "trigger": "@@opt0@@", "panel": "@@sp0@@" }, { "trigger": "@@opt1@@", "panel": "@@sp1@@" }, { "trigger": "@@opt2@@", "panel": "@@sp2@@" } ] } } },
     { "command": "motion.set", "params": { "kind": "disclosure", "node": "@@trace@@", "value": { "type": "accordion", "initial": 0, "items": [ { "trigger": "@@th@@", "panel": "@@trace@@" } ] } } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@opt0@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "pe_depth", "value": 0 } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@opt1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "pe_depth", "value": 1 } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@opt2@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "pe_depth", "value": 2 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@opt0@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%pe_depth%%", "value": 0 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@opt1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%pe_depth%%", "value": 1 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@opt2@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%pe_depth%%", "value": 2 } ] } },
     { "command": "motion.set", "params": { "kind": "actions", "node": "@@copy@@", "value": [ { "trigger": "click", "action": "copy", "from": "@@ans@@", "feedback": "Copied" } ] } },
-    { "command": "motion.set", "params": { "kind": "scripts", "node": "@@again@@", "value": { "trigger": "click", "restart": true, "steps": [ { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 0 } }, { "type": "focus", "target": "@@ta@@" } ] } } },
+    { "command": "motion.set", "params": { "kind": "scripts", "node": "@@again@@", "value": { "trigger": "click", "restart": true, "steps": [ { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 0 } }, { "type": "focus", "target": "@@ta@@" } ] } } },
 
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@send0@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" },
       { "type": "stream", "target": "@@q@@", "text": "{input:@@ta@@}", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "You asked: \"{input:@@ta@@}\"", "speed": 110 },
@@ -258,16 +258,16 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s3", "text": "​" },
       { "type": "stream", "target": "@s3", "text": "Take the model and effort you set for this reply.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "This is a scripted preview, so it can only narrate the steps. In FormAT the reply streams from the Claude API on your own key, with artifacts, projects and a terminal beside the chat when the task needs them.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 4s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@send1@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" },
       { "type": "stream", "target": "@@q@@", "text": "{input:@@ta@@}", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "You asked: \"{input:@@ta@@}\"", "speed": 110 },
@@ -279,16 +279,16 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s4", "text": "​" },
       { "type": "stream", "target": "@s4", "text": "Stream the reply from the Claude API with your own key.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "This is a scripted preview, so it can only narrate the steps. In FormAT the reply streams from the Claude API on your own key, with artifacts, projects and a terminal beside the chat when the task needs them.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 5s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@send2@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" },
       { "type": "stream", "target": "@@q@@", "text": "{input:@@ta@@}", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "You asked: \"{input:@@ta@@}\"", "speed": 110 },
@@ -304,17 +304,17 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s6", "text": "​" },
       { "type": "stream", "target": "@s6", "text": "Keep the chat in the sidebar for later.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "This is a scripted preview, so it can only narrate the steps. In FormAT the reply streams from the Claude API on your own key, with artifacts, projects and a terminal beside the chat when the task needs them.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 7s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
 
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@cb_0_doc@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" }, { "type": "clear", "target": "@@ta@@" },
       { "type": "stream", "target": "@@q@@", "text": "Draft a short report document", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "Open a document artifact in the side panel beside the chat.", "speed": 110 }, { "type": "wait", "ms": 380 },
@@ -323,16 +323,16 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s3", "text": "​" },
       { "type": "stream", "target": "@s3", "text": "Keep every change as a new version of the artifact.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "I opened the report as a versioned, sandboxed artifact beside this chat and wrote it section by section. It can be exported to Word, Excel, PowerPoint or PDF, and it has a share link whenever you want to send it on.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 4s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@cb_0_term@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" }, { "type": "clear", "target": "@@ta@@" },
       { "type": "stream", "target": "@@q@@", "text": "Run the tests in a terminal", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "Open the terminal dock with the Mod+J shortcut.", "speed": 110 }, { "type": "wait", "ms": 380 },
@@ -341,16 +341,16 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s3", "text": "​" },
       { "type": "stream", "target": "@s3", "text": "Propose the command on an approval card first.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "The command waited behind an approval card, then ran in the dock's real terminal. Claude shows each command it runs and each file it changes, so nothing happens out of sight. Open the dock again any time with Mod+J.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 4s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@cb_0_link@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" }, { "type": "clear", "target": "@@ta@@" },
       { "type": "stream", "target": "@@q@@", "text": "Pair my phone with FormAT", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "Show a QR code to pair your phone.", "speed": 110 }, { "type": "wait", "ms": 380 },
@@ -359,17 +359,17 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s3", "text": "​" },
       { "type": "stream", "target": "@s3", "text": "Serve FormAT as an MCP server while it runs.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "While FormAT runs it is an MCP server at 127.0.0.1:8490/mcp, and every engine command is a tool for Claude Code, Codex and Cursor. Pair your phone with a QR code to carry on a chat there, live.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 4s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
 
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@cb_1_doc@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" }, { "type": "clear", "target": "@@ta@@" },
       { "type": "stream", "target": "@@q@@", "text": "Draft a short report document", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "Open a document artifact in the side panel beside the chat.", "speed": 110 }, { "type": "wait", "ms": 380 },
@@ -380,16 +380,16 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s4", "text": "​" },
       { "type": "stream", "target": "@s4", "text": "Check that the artifact runs sandboxed before it opens.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "I opened the report as a versioned, sandboxed artifact beside this chat and wrote it section by section. It can be exported to Word, Excel, PowerPoint or PDF, and it has a share link whenever you want to send it on.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 5s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@cb_1_term@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" }, { "type": "clear", "target": "@@ta@@" },
       { "type": "stream", "target": "@@q@@", "text": "Run the tests in a terminal", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "Open the terminal dock with the Mod+J shortcut.", "speed": 110 }, { "type": "wait", "ms": 380 },
@@ -400,16 +400,16 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s4", "text": "​" },
       { "type": "stream", "target": "@s4", "text": "Wait for your approval before anything runs.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "The command waited behind an approval card, then ran in the dock's real terminal. Claude shows each command it runs and each file it changes, so nothing happens out of sight. Open the dock again any time with Mod+J.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 5s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@cb_1_link@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" }, { "type": "clear", "target": "@@ta@@" },
       { "type": "stream", "target": "@@q@@", "text": "Pair my phone with FormAT", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "Show a QR code to pair your phone.", "speed": 110 }, { "type": "wait", "ms": 380 },
@@ -420,17 +420,17 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s4", "text": "​" },
       { "type": "stream", "target": "@s4", "text": "Offer every engine command as a tool for agents.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "While FormAT runs it is an MCP server at 127.0.0.1:8490/mcp, and every engine command is a tool for Claude Code, Codex and Cursor. Pair your phone with a QR code to carry on a chat there, live.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 5s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
 
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@cb_2_doc@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" }, { "type": "clear", "target": "@@ta@@" },
       { "type": "stream", "target": "@@q@@", "text": "Draft a short report document", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "Open a document artifact in the side panel beside the chat.", "speed": 110 }, { "type": "wait", "ms": 380 },
@@ -445,16 +445,16 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s6", "text": "​" },
       { "type": "stream", "target": "@s6", "text": "Create a share link for the finished artifact.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "I opened the report as a versioned, sandboxed artifact beside this chat and wrote it section by section. It can be exported to Word, Excel, PowerPoint or PDF, and it has a share link whenever you want to send it on.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 7s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@cb_2_term@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" }, { "type": "clear", "target": "@@ta@@" },
       { "type": "stream", "target": "@@q@@", "text": "Run the tests in a terminal", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "Open the terminal dock with the Mod+J shortcut.", "speed": 110 }, { "type": "wait", "ms": 380 },
@@ -469,16 +469,16 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s6", "text": "​" },
       { "type": "stream", "target": "@s6", "text": "Summarise what the command changed in the files.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "The command waited behind an approval card, then ran in the dock's real terminal. Claude shows each command it runs and each file it changes, so nothing happens out of sight. Open the dock again any time with Mod+J.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 7s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@cb_2_link@@", "value": { "trigger": "click", "restart": true, "steps": [
       { "type": "clear", "target": "@@steps@@" }, { "type": "clear", "target": "@@ans@@" }, { "type": "clear", "target": "@@ta@@" },
       { "type": "stream", "target": "@@q@@", "text": "Pair my phone with FormAT", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 1 } },
       { "type": "stream", "target": "@@lab@@", "text": "Thinking", "speed": 60 },
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s1", "text": "​" },
       { "type": "stream", "target": "@s1", "text": "Show a QR code to pair your phone.", "speed": 110 }, { "type": "wait", "ms": 380 },
@@ -493,11 +493,11 @@
       { "type": "append", "template": "@@tpl@@", "into": "@@steps@@", "as": "s6", "text": "​" },
       { "type": "stream", "target": "@s6", "text": "Print the same tools over stdio for the shell.", "speed": 110 }, { "type": "wait", "ms": 380 },
       { "type": "wait", "ms": 350 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 2 } },
       { "type": "stream", "target": "@@ans@@", "text": "While FormAT runs it is an MCP server at 127.0.0.1:8490/mcp, and every engine command is a tool for Claude Code, Codex and Cursor. Pair your phone with a QR code to carry on a chat there, live.", "speed": 214 },
       { "type": "wait", "ms": 200 },
       { "type": "stream", "target": "@@lab@@", "text": "Thought for 7s", "speed": 60 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "pe_phase", "value": 3 } }
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%pe_phase%%", "value": 3 } }
     ] } } }
   ]
 }

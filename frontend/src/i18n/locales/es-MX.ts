@@ -70,4 +70,6 @@ export default {
   "Starter added: {0} page.": "Plantilla agregada: {0} página.",
   "Starter added: {0} pages.": "Plantilla agregada: {0} páginas.",
   "A page-not-found screen that searches the site and prints the closest pages on a receipt you can pull down to tear.": "Una pantalla de página no encontrada que busca en el sitio e imprime las páginas más cercanas en un recibo que puedes jalar hacia abajo para rasgar.",
+  "Sent to FormPublisher: {0} is now at revision {1}.": "Se envió a FormPublisher: {0} ya está en la revisión {1}.",
+  "Could not send to FormPublisher: {0}": "No se pudo enviar a FormPublisher: {0}",
 } as Record<string, string>;

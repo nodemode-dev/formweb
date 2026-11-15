@@ -65,7 +65,7 @@ exit /b %errorlevel%
 backend\venv\Scripts\python.exe setup\run.py %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %errorlevel%
 :library
-backend\venv\Scripts\python.exe setup\library_tool.py %2 %3 %4 %5 %6
+backend\venv\Scripts\python.exe setup\library_tool.py %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %errorlevel%
 :render
 if not exist native\crates\formweb-render\target\release\formweb-render.exe cargo build --release --manifest-path native\crates\formweb-render\Cargo.toml
@@ -80,5 +80,5 @@ exit /b %errorlevel%
 call setup\doctor.bat
 exit /b %errorlevel%
 :help
-echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, comparisons status, comparisons build, comparisons embed, run, render, desktop, doctor
+echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, comparisons status, comparisons build, comparisons embed, run, library check/build/list/insert/preset/starter, render, desktop, doctor
 exit /b 0

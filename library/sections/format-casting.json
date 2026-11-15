@@ -44,17 +44,17 @@
         { "key": "ctl", "tag": "div", "name": "Controls", "attrs": {}, "styles": { "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "gap": "var(--sp-5)", "align-items": "center", "margin-top": "var(--sp-6)" }, "breakpoints": { "tablet": { "grid-template-columns": "minmax(0, 1fr)" } }, "children": [
           { "key": "roles", "tag": "ul", "name": "Roles", "attrs": { "role": "group", "aria-label": "Choose an agent role" }, "styles": { "display": "grid", "grid-template-columns": "repeat(3, minmax(0, 190px))", "gap": "var(--sp-3)", "margin": "0", "padding": "0", "list-style": "none" }, "breakpoints": { "mobile": { "grid-template-columns": "minmax(0, 1fr)" } }, "children": [
             { "key": "rl0", "tag": "li", "name": "Role Chat", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [
-              { "key": "card0", "tag": "button", "name": "Role card Chat", "attrs": { "type": "button" }, "styles": { "--on": "clamp(0, calc(1 - max(var(--fw-v-role) - 0, 0 - var(--fw-v-role))), 1)", "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "center", "width": "100%", "box-sizing": "border-box", "padding": "var(--sp-3)", "text-align": "left", "font": "inherit", "color": "inherit", "cursor": "pointer", "background": "color-mix(in oklab, var(--float) calc(var(--on) * 100%), var(--pane))", "border": "1px solid color-mix(in oklab, var(--hue) calc(var(--on) * 100%), var(--edge))", "border-radius": "var(--radius-l)", "transition": "border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out)" }, "breakpoints": {}, "children": [
+              { "key": "card0", "tag": "button", "name": "Role card Chat", "attrs": { "type": "button" }, "styles": { "--on": "clamp(0, calc(1 - max(var(--fw-v-%%role%%) - 0, 0 - var(--fw-v-%%role%%))), 1)", "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "center", "width": "100%", "box-sizing": "border-box", "padding": "var(--sp-3)", "text-align": "left", "font": "inherit", "color": "inherit", "cursor": "pointer", "background": "color-mix(in oklab, var(--float) calc(var(--on) * 100%), var(--pane))", "border": "1px solid color-mix(in oklab, var(--hue) calc(var(--on) * 100%), var(--edge))", "border-radius": "var(--radius-l)", "transition": "border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out)" }, "breakpoints": {}, "children": [
                 { "key": "idx0", "tag": "span", "name": "Index", "text": "01", "attrs": {}, "styles": { "grid-row": "span 2", "display": "grid", "place-items": "center", "width": "36px", "height": "36px", "border-radius": "var(--radius-m)", "background": "var(--inset)", "border": "1px solid var(--edge)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.08em", "color": "color-mix(in oklab, var(--hue) calc(var(--on) * 100%), var(--ink-faint))" }, "breakpoints": {}, "children": [] },
                 { "key": "nm0", "tag": "span", "name": "Name", "text": "Chat", "attrs": {}, "styles": { "font-weight": "var(--weight-display)", "font-size": "var(--fs-m)", "letter-spacing": "var(--track-tight)", "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
                 { "key": "rd0", "tag": "span", "name": "Role", "text": "Streaming answers", "attrs": {}, "styles": { "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.06em", "text-transform": "uppercase", "color": "var(--ink-soft)" }, "breakpoints": {}, "children": [] } ] } ] },
             { "key": "rl1", "tag": "li", "name": "Role Artifacts", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [
-              { "key": "card1", "tag": "button", "name": "Role card Artifacts", "attrs": { "type": "button" }, "styles": { "--on": "clamp(0, calc(1 - max(var(--fw-v-role) - 1, 1 - var(--fw-v-role))), 1)", "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "center", "width": "100%", "box-sizing": "border-box", "padding": "var(--sp-3)", "text-align": "left", "font": "inherit", "color": "inherit", "cursor": "pointer", "background": "color-mix(in oklab, var(--float) calc(var(--on) * 100%), var(--pane))", "border": "1px solid color-mix(in oklab, var(--hue) calc(var(--on) * 100%), var(--edge))", "border-radius": "var(--radius-l)", "transition": "border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out)" }, "breakpoints": {}, "children": [
+              { "key": "card1", "tag": "button", "name": "Role card Artifacts", "attrs": { "type": "button" }, "styles": { "--on": "clamp(0, calc(1 - max(var(--fw-v-%%role%%) - 1, 1 - var(--fw-v-%%role%%))), 1)", "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "center", "width": "100%", "box-sizing": "border-box", "padding": "var(--sp-3)", "text-align": "left", "font": "inherit", "color": "inherit", "cursor": "pointer", "background": "color-mix(in oklab, var(--float) calc(var(--on) * 100%), var(--pane))", "border": "1px solid color-mix(in oklab, var(--hue) calc(var(--on) * 100%), var(--edge))", "border-radius": "var(--radius-l)", "transition": "border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out)" }, "breakpoints": {}, "children": [
                 { "key": "idx1", "tag": "span", "name": "Index", "text": "02", "attrs": {}, "styles": { "grid-row": "span 2", "display": "grid", "place-items": "center", "width": "36px", "height": "36px", "border-radius": "var(--radius-m)", "background": "var(--inset)", "border": "1px solid var(--edge)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.08em", "color": "color-mix(in oklab, var(--hue) calc(var(--on) * 100%), var(--ink-faint))" }, "breakpoints": {}, "children": [] },
                 { "key": "nm1", "tag": "span", "name": "Name", "text": "Artifacts", "attrs": {}, "styles": { "font-weight": "var(--weight-display)", "font-size": "var(--fs-m)", "letter-spacing": "var(--track-tight)", "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
                 { "key": "rd1", "tag": "span", "name": "Role", "text": "Docs and slides", "attrs": {}, "styles": { "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.06em", "text-transform": "uppercase", "color": "var(--ink-soft)" }, "breakpoints": {}, "children": [] } ] } ] },
             { "key": "rl2", "tag": "li", "name": "Role Terminal", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [
-              { "key": "card2", "tag": "button", "name": "Role card Terminal", "attrs": { "type": "button" }, "styles": { "--on": "clamp(0, calc(1 - max(var(--fw-v-role) - 2, 2 - var(--fw-v-role))), 1)", "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "center", "width": "100%", "box-sizing": "border-box", "padding": "var(--sp-3)", "text-align": "left", "font": "inherit", "color": "inherit", "cursor": "pointer", "background": "color-mix(in oklab, var(--float) calc(var(--on) * 100%), var(--pane))", "border": "1px solid color-mix(in oklab, var(--hue) calc(var(--on) * 100%), var(--edge))", "border-radius": "var(--radius-l)", "transition": "border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out)" }, "breakpoints": {}, "children": [
+              { "key": "card2", "tag": "button", "name": "Role card Terminal", "attrs": { "type": "button" }, "styles": { "--on": "clamp(0, calc(1 - max(var(--fw-v-%%role%%) - 2, 2 - var(--fw-v-%%role%%))), 1)", "display": "grid", "grid-template-columns": "auto minmax(0, 1fr)", "column-gap": "var(--sp-3)", "align-items": "center", "width": "100%", "box-sizing": "border-box", "padding": "var(--sp-3)", "text-align": "left", "font": "inherit", "color": "inherit", "cursor": "pointer", "background": "color-mix(in oklab, var(--float) calc(var(--on) * 100%), var(--pane))", "border": "1px solid color-mix(in oklab, var(--hue) calc(var(--on) * 100%), var(--edge))", "border-radius": "var(--radius-l)", "transition": "border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out)" }, "breakpoints": {}, "children": [
                 { "key": "idx2", "tag": "span", "name": "Index", "text": "03", "attrs": {}, "styles": { "grid-row": "span 2", "display": "grid", "place-items": "center", "width": "36px", "height": "36px", "border-radius": "var(--radius-m)", "background": "var(--inset)", "border": "1px solid var(--edge)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.08em", "color": "color-mix(in oklab, var(--hue) calc(var(--on) * 100%), var(--ink-faint))" }, "breakpoints": {}, "children": [] },
                 { "key": "nm2", "tag": "span", "name": "Name", "text": "Terminal", "attrs": {}, "styles": { "font-weight": "var(--weight-display)", "font-size": "var(--fs-m)", "letter-spacing": "var(--track-tight)", "color": "var(--ink)" }, "breakpoints": {}, "children": [] },
                 { "key": "rd2", "tag": "span", "name": "Role", "text": "Approved commands", "attrs": {}, "styles": { "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.06em", "text-transform": "uppercase", "color": "var(--ink-soft)" }, "breakpoints": {}, "children": [] } ] } ] }
@@ -136,19 +136,19 @@
                   { "key": "tools", "tag": "div", "name": "Tools", "attrs": {}, "styles": { "display": "flex", "gap": "calc(22 * var(--u))", "margin-left": "auto", "pointer-events": "auto" }, "breakpoints": {}, "children": [
                     { "key": "tl_a", "tag": "span", "name": "Activity", "attrs": { "aria-hidden": "true" }, "styles": { "display": "grid", "place-items": "center", "width": "calc(40 * var(--u))", "height": "calc(40 * var(--u))" }, "breakpoints": {}, "children": [
                       { "key": "i_pulse", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.7", "stroke-linecap": "round", "stroke-linejoin": "round" }, "styles": { "display": "block", "width": "calc(28 * var(--u))", "height": "calc(28 * var(--u))" }, "breakpoints": {}, "children": [ { "key": "i_pulse_p", "tag": "path", "attrs": { "d": "M3 12h4l2.5-6 4 12 2.5-6H21" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] },
-                    { "key": "tooldock", "tag": "button", "name": "Terminal dock toggle", "attrs": { "type": "button", "aria-label": "Terminal dock" }, "styles": { "display": "grid", "place-items": "center", "width": "calc(40 * var(--u))", "height": "calc(40 * var(--u))", "padding": "0", "border": "0", "border-radius": "calc(10 * var(--u))", "color": "inherit", "cursor": "pointer", "background": "color-mix(in srgb, var(--fa-sel) calc(var(--fw-v-dock) * 100%), transparent)" }, "breakpoints": {}, "children": [
+                    { "key": "tooldock", "tag": "button", "name": "Terminal dock toggle", "attrs": { "type": "button", "aria-label": "Terminal dock" }, "styles": { "display": "grid", "place-items": "center", "width": "calc(40 * var(--u))", "height": "calc(40 * var(--u))", "padding": "0", "border": "0", "border-radius": "calc(10 * var(--u))", "color": "inherit", "cursor": "pointer", "background": "color-mix(in srgb, var(--fa-sel) calc(var(--fw-v-%%dock%%) * 100%), transparent)" }, "breakpoints": {}, "children": [
                       { "key": "i_term1", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.7", "stroke-linecap": "round", "stroke-linejoin": "round" }, "styles": { "display": "block", "width": "calc(28 * var(--u))", "height": "calc(28 * var(--u))" }, "breakpoints": {}, "children": [ { "key": "i_term1_p", "tag": "path", "attrs": { "d": "M6.5 4.5h11a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3h-11a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3zM8 10l3 2-3 2M13 15h4" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] },
                     { "key": "tl_g", "tag": "span", "name": "Globe", "attrs": { "aria-hidden": "true" }, "styles": { "display": "grid", "place-items": "center", "width": "calc(40 * var(--u))", "height": "calc(40 * var(--u))" }, "breakpoints": {}, "children": [
                       { "key": "i_globe", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.7", "stroke-linecap": "round", "stroke-linejoin": "round" }, "styles": { "display": "block", "width": "calc(28 * var(--u))", "height": "calc(28 * var(--u))" }, "breakpoints": {}, "children": [ { "key": "i_globe_p", "tag": "path", "attrs": { "d": "M12 3.5a8.5 8.5 0 1 0 0 17a8.5 8.5 0 0 0 0-17zM3.5 12h17M12 3.5c3 3 3 14 0 17c-3-3-3-14 0-17z" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] },
                     { "key": "tl_f", "tag": "span", "name": "Files", "attrs": { "aria-hidden": "true" }, "styles": { "display": "grid", "place-items": "center", "width": "calc(40 * var(--u))", "height": "calc(40 * var(--u))" }, "breakpoints": {}, "children": [
                       { "key": "i_folder2", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.7", "stroke-linecap": "round", "stroke-linejoin": "round" }, "styles": { "display": "block", "width": "calc(28 * var(--u))", "height": "calc(28 * var(--u))" }, "breakpoints": {}, "children": [ { "key": "i_folder2_p", "tag": "path", "attrs": { "d": "M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] },
-                    { "key": "toolart", "tag": "button", "name": "Artifact panel toggle", "attrs": { "type": "button", "aria-label": "Artifact panel" }, "styles": { "display": "grid", "place-items": "center", "width": "calc(40 * var(--u))", "height": "calc(40 * var(--u))", "padding": "0", "border": "0", "border-radius": "calc(10 * var(--u))", "color": "inherit", "cursor": "pointer", "background": "color-mix(in srgb, var(--fa-sel) calc(var(--fw-v-panel) * 100%), transparent)" }, "breakpoints": { "tablet": { "background": "color-mix(in srgb, var(--fa-sel) calc(var(--fw-v-ptab) * 100%), transparent)" } }, "children": [
+                    { "key": "toolart", "tag": "button", "name": "Artifact panel toggle", "attrs": { "type": "button", "aria-label": "Artifact panel" }, "styles": { "display": "grid", "place-items": "center", "width": "calc(40 * var(--u))", "height": "calc(40 * var(--u))", "padding": "0", "border": "0", "border-radius": "calc(10 * var(--u))", "color": "inherit", "cursor": "pointer", "background": "color-mix(in srgb, var(--fa-sel) calc(var(--fw-v-%%panel%%) * 100%), transparent)" }, "breakpoints": { "tablet": { "background": "color-mix(in srgb, var(--fa-sel) calc(var(--fw-v-%%ptab%%) * 100%), transparent)" } }, "children": [
                       { "key": "i_doc", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.7", "stroke-linecap": "round", "stroke-linejoin": "round" }, "styles": { "display": "block", "width": "calc(28 * var(--u))", "height": "calc(28 * var(--u))" }, "breakpoints": {}, "children": [ { "key": "i_doc_p", "tag": "path", "attrs": { "d": "M7 3.5h7l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 5.5 19V5A1.5 1.5 0 0 1 7 3.5zM9 12h6M9 15.5h6" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] }
                   ] } ] },
-                { "key": "body", "tag": "div", "name": "Body", "attrs": {}, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "calc(var(--fw-v-dock) * 330 * var(--u))", "transition": "bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }, "breakpoints": {}, "children": [
-                  { "key": "col", "tag": "div", "name": "Chat column", "attrs": {}, "styles": { "position": "absolute", "top": "0", "bottom": "0", "left": "0", "width": "calc(731 * var(--u))", "display": "flex", "flex-direction": "column", "min-height": "0", "transform": "translateX(calc((1 - var(--fw-v-panel)) * 409 * var(--u)))", "transition": "transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)" }, "breakpoints": { "tablet": { "left": "0", "right": "0", "width": "min(100%, calc(1100 * var(--u)))", "margin-left": "auto", "margin-right": "auto", "transform": "none" } }, "children": [
-                    { "key": "list", "tag": "div", "name": "Conversation", "attrs": { "role": "log", "aria-label": "Conversation, sample" }, "styles": { "position": "relative", "flex": "1", "min-height": "0", "overflow-y": "hidden", "box-sizing": "border-box", "padding": "calc(70 * var(--u)) calc(38 * var(--u)) calc(30 * var(--u))","-webkit-mask-image": "linear-gradient(transparent 0, #000 calc(66 * var(--u)))", "mask-image": "linear-gradient(transparent 0, #000 calc(66 * var(--u)))" }, "breakpoints": {}, "children": [
-                      { "key": "hero", "tag": "div", "name": "Aurora message", "attrs": {}, "styles": { "margin": "0 0 calc(30 * var(--u))", "line-height": "1.5", "font-size": "var(--f1)", "word-break": "break-word" }, "breakpoints": {}, "children": [
+                { "key": "body", "tag": "div", "name": "Body", "attrs": {}, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "calc(var(--fw-v-%%dock%%) * 330 * var(--u))", "transition": "bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }, "breakpoints": {}, "children": [
+                  { "key": "col", "tag": "div", "name": "Chat column", "attrs": {}, "styles": { "position": "absolute", "top": "0", "bottom": "0", "left": "0", "width": "calc(731 * var(--u))", "display": "flex", "flex-direction": "column", "min-height": "0", "transform": "translateX(calc((1 - var(--fw-v-%%panel%%)) * 409 * var(--u)))", "transition": "transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)" }, "breakpoints": { "tablet": { "left": "0", "right": "0", "width": "min(100%, calc(1100 * var(--u)))", "margin-left": "auto", "margin-right": "auto", "transform": "none" } }, "children": [
+                    { "key": "list", "tag": "div", "name": "Conversation", "attrs": { "role": "log", "aria-label": "Conversation, sample" }, "styles": { "position": "relative", "flex": "1", "min-height": "0", "overflow-y": "auto", "scrollbar-width": "none", "box-sizing": "border-box", "padding": "calc(70 * var(--u)) calc(38 * var(--u)) calc(30 * var(--u))","-webkit-mask-image": "linear-gradient(transparent 0, #000 calc(66 * var(--u)))", "mask-image": "linear-gradient(transparent 0, #000 calc(66 * var(--u)))" }, "breakpoints": {}, "children": [
+                      { "key": "hero", "tag": "div", "name": "Aurora message", "attrs": {}, "styles": { "margin": "0 0 calc(30 * var(--u))", "line-height": "1.5", "font-size": "var(--f1)", "overflow-wrap": "anywhere" }, "breakpoints": {}, "children": [
                         { "key": "hp", "tag": "p", "name": "Paragraph", "attrs": {}, "styles": { "margin": "0 0 calc(24 * var(--u))" }, "breakpoints": {}, "children": [
                           { "key": "hp1", "tag": "span", "name": "Text", "text": "I wrote ", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
                           { "key": "hpc", "tag": "code", "name": "Code", "text": "aurora.html", "attrs": {}, "styles": { "padding": "calc(2 * var(--u)) calc(8 * var(--u))", "border-radius": "calc(8 * var(--u))", "background": "var(--fa-comp)", "font-family": "var(--font-mono)", "font-size": "0.92em", "color": "var(--fa-code)" }, "breakpoints": {}, "children": [] },
@@ -164,14 +164,14 @@
                             { "key": "hl3b", "tag": "b", "name": "Lead", "text": "Mountains and lake:", "attrs": {}, "styles": { "font-weight": "600", "color": "inherit" }, "breakpoints": {}, "children": [] },
                             { "key": "hl3t", "tag": "span", "name": "Text", "text": " Three ridges stand in front of each other. The nearest has pine silhouettes and frames the sides, leaving the centre open. The lake mirrors the whole sky and ridgeline in thin strips, each shifted sideways by gentle waves that grow toward the viewer. Drifting glints, a horizon glow, a vignette and a faint grain finish it.", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] } ] } ] } ] }
                     ] },
-                    { "key": "empty", "tag": "p", "name": "Empty state", "text": "Good morning", "attrs": {}, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "calc(212 * var(--u))", "display": "grid", "place-items": "center", "margin": "0", "font-size": "calc(44 * var(--u))", "font-weight": "600", "letter-spacing": "-0.01em", "opacity": "var(--fw-v-empty)", "pointer-events": "none", "transition": "opacity 0.3s var(--ease-out)" }, "breakpoints": {}, "children": [] },
-                    { "key": "scrollbtn", "tag": "button", "name": "Scroll to latest", "attrs": { "type": "button", "aria-label": "Scroll to the latest message" }, "styles": { "position": "absolute", "left": "calc(50% - 27 * var(--u))", "bottom": "calc(212 * var(--u))", "z-index": "3", "display": "grid", "place-items": "center", "width": "calc(54 * var(--u))", "height": "calc(54 * var(--u))", "padding": "0", "border-radius": "50%", "border": "1px solid var(--fa-edge)", "background": "var(--fa-main)", "color": "inherit", "cursor": "pointer", "opacity": "calc(1 - var(--fw-v-empty))" }, "breakpoints": { "tablet": { "bottom": "calc(206 * var(--u))" } }, "children": [
+                    { "key": "empty", "tag": "p", "name": "Empty state", "text": "Good morning", "attrs": {}, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "calc(212 * var(--u))", "display": "grid", "place-items": "center", "margin": "0", "font-size": "calc(44 * var(--u))", "font-weight": "600", "letter-spacing": "-0.01em", "opacity": "var(--fw-v-%%empty%%)", "pointer-events": "none", "transition": "opacity 0.3s var(--ease-out)" }, "breakpoints": {}, "children": [] },
+                    { "key": "scrollbtn", "tag": "button", "name": "Scroll to latest", "attrs": { "type": "button", "aria-label": "Scroll to the latest message" }, "styles": { "position": "absolute", "left": "calc(50% - 27 * var(--u))", "bottom": "calc(212 * var(--u))", "z-index": "3", "display": "grid", "place-items": "center", "width": "calc(54 * var(--u))", "height": "calc(54 * var(--u))", "padding": "0", "border-radius": "50%", "border": "1px solid var(--fa-edge)", "background": "var(--fa-main)", "color": "inherit", "cursor": "pointer", "opacity": "calc(1 - var(--fw-v-%%empty%%))" }, "breakpoints": { "tablet": { "bottom": "calc(206 * var(--u))" } }, "children": [
                       { "key": "i_down", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.7", "stroke-linecap": "round", "stroke-linejoin": "round" }, "styles": { "display": "block", "width": "calc(26 * var(--u))", "height": "calc(26 * var(--u))" }, "breakpoints": {}, "children": [ { "key": "i_down_p", "tag": "path", "attrs": { "d": "M12 5v14M6 13l6 6 6-6" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] },
-                    { "key": "appr", "tag": "div", "name": "Approval slot", "attrs": {}, "styles": { "flex": "none", "overflow": "hidden", "box-sizing": "border-box", "padding": "0 calc(38 * var(--u))", "height": "calc(var(--fw-v-appr) * 170 * var(--u))", "transition": "height 0.3s var(--ease-out)" }, "breakpoints": {}, "children": [
+                    { "key": "appr", "tag": "div", "name": "Approval slot", "attrs": {}, "styles": { "flex": "none", "overflow": "hidden", "box-sizing": "border-box", "padding": "0 calc(38 * var(--u))", "height": "calc(var(--fw-v-%%appr%%) * 170 * var(--u))", "transition": "height 0.3s var(--ease-out)" }, "breakpoints": {}, "children": [
                       { "key": "apprc", "tag": "div", "name": "Approval card", "attrs": {}, "styles": { "display": "grid", "gap": "calc(14 * var(--u))", "padding": "calc(22 * var(--u)) calc(26 * var(--u))", "border": "1px solid var(--fa-edge)", "border-radius": "calc(20 * var(--u))", "background": "var(--fa-comp)" }, "breakpoints": {}, "children": [
                         { "key": "apk", "tag": "span", "name": "Approval label", "text": "Approval needed", "attrs": {}, "styles": { "font-family": "var(--font-mono)", "font-size": "var(--f2)", "letter-spacing": "0.1em", "text-transform": "uppercase", "color": "var(--fa-dim)" }, "breakpoints": {}, "children": [] },
                         { "key": "apc", "tag": "span", "name": "Approval command", "text": "ls", "attrs": {}, "styles": { "font-family": "var(--font-mono)", "font-size": "calc(24 * var(--u))" }, "breakpoints": {}, "children": [] },
-                        { "key": "apr", "tag": "span", "name": "Approval buttons", "attrs": {}, "styles": { "display": "flex", "gap": "calc(14 * var(--u))", "opacity": "calc(1 - 0.55 * var(--fw-v-apprdone))" }, "breakpoints": {}, "children": [
+                        { "key": "apr", "tag": "span", "name": "Approval buttons", "attrs": {}, "styles": { "display": "flex", "gap": "calc(14 * var(--u))", "opacity": "calc(1 - 0.55 * var(--fw-v-%%apprdone%%))" }, "breakpoints": {}, "children": [
                           { "key": "allow", "tag": "button", "name": "Allow", "text": "Allow", "attrs": { "type": "button" }, "styles": { "padding": "calc(10 * var(--u)) calc(26 * var(--u))", "border-radius": "calc(12 * var(--u))", "cursor": "pointer", "border": "1px solid transparent", "font": "inherit", "font-size": "calc(23 * var(--u))", "font-weight": "600", "background": "var(--hue)", "color": "#111111" }, "breakpoints": {}, "children": [] },
                           { "key": "deny", "tag": "button", "name": "Deny", "text": "Deny", "attrs": { "type": "button" }, "styles": { "padding": "calc(10 * var(--u)) calc(26 * var(--u))", "border-radius": "calc(12 * var(--u))", "cursor": "pointer", "border": "1px solid var(--fa-edge)", "font": "inherit", "font-size": "calc(23 * var(--u))", "background": "none", "color": "inherit" }, "breakpoints": {}, "children": [] } ] } ] } ] },
                     { "key": "compw", "tag": "div", "name": "Composer", "attrs": {}, "styles": { "flex": "none", "box-sizing": "border-box", "padding": "0 calc(38 * var(--u))" }, "breakpoints": {}, "children": [
@@ -190,12 +190,12 @@
                         { "key": "i_chevd3", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.7", "stroke-linecap": "round", "stroke-linejoin": "round" }, "styles": { "display": "block", "flex": "none", "width": "calc(20 * var(--u))", "height": "calc(20 * var(--u))" }, "breakpoints": {}, "children": [ { "key": "i_chevd3_p", "tag": "path", "attrs": { "d": "M6 9l6 6 6-6" }, "styles": {}, "breakpoints": {}, "children": [] } ] },
                         { "key": "fall", "tag": "span", "name": "Allow all", "text": "Allow all", "attrs": {}, "styles": { "color": "var(--hue)", "font-size": "calc(22 * var(--u))" }, "breakpoints": {}, "children": [] } ] } ] }
                   ] },
-                  { "key": "pan", "tag": "section", "name": "Artifact panel", "attrs": { "aria-label": "Artifact panel" }, "styles": { "position": "absolute", "top": "calc(69 * var(--u))", "right": "0", "bottom": "0", "width": "calc(819 * var(--u))", "display": "flex", "flex-direction": "column", "background": "var(--fa-panel)", "border-left": "1px solid var(--fa-edge)", "transform": "translateX(calc((1 - var(--fw-v-panel)) * 100%))", "transition": "transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)", "z-index": "2" }, "breakpoints": { "tablet": { "width": "min(100%, calc(1000 * var(--u)))", "transform": "translateX(calc((1 - var(--fw-v-ptab)) * 100%))" } }, "children": [
+                  { "key": "pan", "tag": "section", "name": "Artifact panel", "attrs": { "aria-label": "Artifact panel" }, "styles": { "position": "absolute", "top": "calc(69 * var(--u))", "right": "0", "bottom": "0", "width": "calc(819 * var(--u))", "display": "flex", "flex-direction": "column", "background": "var(--fa-panel)", "border-left": "1px solid var(--fa-edge)", "transform": "translateX(calc((1 - var(--fw-v-%%panel%%)) * 100%))", "transition": "transform 0.55s cubic-bezier(0.16, 1, 0.3, 1)", "z-index": "2" }, "breakpoints": { "tablet": { "width": "min(100%, calc(1000 * var(--u)))", "transform": "translateX(calc((1 - var(--fw-v-%%ptab%%)) * 100%))" } }, "children": [
                     { "key": "ph", "tag": "div", "name": "Panel header", "attrs": {}, "styles": { "display": "flex", "align-items": "center", "gap": "calc(14 * var(--u))", "flex": "none", "height": "calc(67 * var(--u))", "box-sizing": "border-box", "padding": "0 calc(24 * var(--u)) 0 calc(26 * var(--u))", "border-bottom": "1px solid var(--fa-edge)" }, "breakpoints": {}, "children": [
                       { "key": "pt", "tag": "span", "name": "Panel title", "text": "Northern Light", "attrs": {}, "styles": { "font-size": "calc(24 * var(--u))", "font-weight": "500", "margin-right": "auto", "min-width": "0", "overflow": "hidden", "text-overflow": "ellipsis", "white-space": "nowrap" }, "breakpoints": {}, "children": [] },
                       { "key": "tabs", "tag": "div", "name": "View tabs", "attrs": { "aria-label": "View" }, "styles": { "display": "flex", "gap": "calc(6 * var(--u))", "padding": "calc(4 * var(--u))", "border-radius": "calc(12 * var(--u))", "background": "var(--fa-main)" }, "breakpoints": {}, "children": [
-                        { "key": "tabp", "tag": "button", "name": "Preview tab", "text": "Preview", "attrs": { "type": "button" }, "styles": { "padding": "calc(8 * var(--u)) calc(18 * var(--u))", "border": "0", "border-radius": "calc(9 * var(--u))", "cursor": "pointer", "font": "inherit", "font-size": "calc(22 * var(--u))", "color": "color-mix(in srgb, var(--fa-ink) calc((1 - var(--fw-v-pview)) * 100%), var(--fa-dim))", "background": "color-mix(in srgb, var(--fa-sel) calc((1 - var(--fw-v-pview)) * 100%), transparent)" }, "breakpoints": {}, "children": [] },
-                        { "key": "tabc", "tag": "button", "name": "Code tab", "text": "Code", "attrs": { "type": "button" }, "styles": { "padding": "calc(8 * var(--u)) calc(18 * var(--u))", "border": "0", "border-radius": "calc(9 * var(--u))", "cursor": "pointer", "font": "inherit", "font-size": "calc(22 * var(--u))", "color": "color-mix(in srgb, var(--fa-ink) calc(var(--fw-v-pview) * 100%), var(--fa-dim))", "background": "color-mix(in srgb, var(--fa-sel) calc(var(--fw-v-pview) * 100%), transparent)" }, "breakpoints": {}, "children": [] } ] },
+                        { "key": "tabp", "tag": "button", "name": "Preview tab", "text": "Preview", "attrs": { "type": "button" }, "styles": { "padding": "calc(8 * var(--u)) calc(18 * var(--u))", "border": "0", "border-radius": "calc(9 * var(--u))", "cursor": "pointer", "font": "inherit", "font-size": "calc(22 * var(--u))", "color": "color-mix(in srgb, var(--fa-ink) calc((1 - var(--fw-v-%%pview%%)) * 100%), var(--fa-dim))", "background": "color-mix(in srgb, var(--fa-sel) calc((1 - var(--fw-v-%%pview%%)) * 100%), transparent)" }, "breakpoints": {}, "children": [] },
+                        { "key": "tabc", "tag": "button", "name": "Code tab", "text": "Code", "attrs": { "type": "button" }, "styles": { "padding": "calc(8 * var(--u)) calc(18 * var(--u))", "border": "0", "border-radius": "calc(9 * var(--u))", "cursor": "pointer", "font": "inherit", "font-size": "calc(22 * var(--u))", "color": "color-mix(in srgb, var(--fa-ink) calc(var(--fw-v-%%pview%%) * 100%), var(--fa-dim))", "background": "color-mix(in srgb, var(--fa-sel) calc(var(--fw-v-%%pview%%) * 100%), transparent)" }, "breakpoints": {}, "children": [] } ] },
                       { "key": "pi", "tag": "div", "name": "Panel tools", "attrs": {}, "styles": { "display": "flex", "gap": "calc(10 * var(--u))", "color": "var(--fa-ink)" }, "breakpoints": {}, "children": [
                         { "key": "pi1", "tag": "span", "name": "Copy", "attrs": { "aria-hidden": "true" }, "styles": { "display": "grid", "place-items": "center", "width": "calc(40 * var(--u))", "height": "calc(40 * var(--u))" }, "breakpoints": {}, "children": [
                           { "key": "i_copy", "tag": "svg", "name": "Icon", "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "1.7", "stroke-linecap": "round", "stroke-linejoin": "round" }, "styles": { "display": "block", "width": "calc(26 * var(--u))", "height": "calc(26 * var(--u))" }, "breakpoints": {}, "children": [ { "key": "i_copy_p", "tag": "path", "attrs": { "d": "M10.5 8.5h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zM15.5 8.5v-2a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2" }, "styles": {}, "breakpoints": {}, "children": [] } ] } ] },
@@ -212,7 +212,7 @@
                         { "key": "pvi", "tag": "img", "name": "Northern Light capture", "attrs": { "src": "/api/assets/9d9f162ed9299d2d020fc68c4febf62f243df362b13656763d4f6a0081ec8078.webp", "width": "983", "height": "1186", "alt": "The Northern Light artifact in the {{name}} preview: green aurora curtains over a starfield, pine ridges and a mirrored lake" }, "styles": { "position": "absolute", "display": "block", "top": "0", "left": "0", "width": "100%", "height": "100%", "object-fit": "cover", "object-position": "50% 100%" }, "breakpoints": {}, "children": [] } ] },
                       { "key": "cd", "tag": "pre", "name": "Code view", "text": "<canvas id=\"sky\"></canvas>\n<script>\n  const sky = document.getElementById(\"sky\");\n</script>", "attrs": { "aria-label": "Sample code view" }, "styles": { "position": "absolute", "top": "0", "left": "0", "right": "0", "bottom": "0", "box-sizing": "border-box", "margin": "0", "padding": "calc(30 * var(--u))", "overflow": "auto", "background": "var(--fa-term)", "color": "var(--fa-ink)", "font-family": "var(--font-mono)", "font-size": "calc(21 * var(--u))", "line-height": "1.6", "white-space": "pre-wrap" }, "breakpoints": {}, "children": [] } ] } ] }
                 ] },
-                { "key": "dk", "tag": "section", "name": "Terminal dock", "attrs": { "aria-label": "Terminal dock" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "z-index": "5", "display": "flex", "flex-direction": "column", "height": "calc(330 * var(--u))", "background": "var(--fa-term)", "border-top": "1px solid var(--fa-edge)", "transform": "translateY(calc((1 - var(--fw-v-dock)) * 100%))", "transition": "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }, "breakpoints": {}, "children": [
+                { "key": "dk", "tag": "section", "name": "Terminal dock", "attrs": { "aria-label": "Terminal dock" }, "styles": { "position": "absolute", "left": "0", "right": "0", "bottom": "0", "z-index": "5", "display": "flex", "flex-direction": "column", "height": "calc(330 * var(--u))", "background": "var(--fa-term)", "border-top": "1px solid var(--fa-edge)", "transform": "translateY(calc((1 - var(--fw-v-%%dock%%)) * 100%))", "transition": "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }, "breakpoints": {}, "children": [
                   { "key": "dh", "tag": "div", "name": "Dock header", "attrs": {}, "styles": { "display": "flex", "align-items": "center", "gap": "calc(16 * var(--u))", "flex": "none", "height": "calc(58 * var(--u))", "box-sizing": "border-box", "padding": "0 calc(20 * var(--u)) 0 calc(30 * var(--u))", "border-bottom": "1px solid var(--fa-edge)", "font-size": "calc(22 * var(--u))" }, "breakpoints": {}, "children": [
                     { "key": "dht", "tag": "span", "name": "Dock title", "text": "Terminal", "attrs": {}, "styles": {}, "breakpoints": {}, "children": [] },
                     { "key": "dhk", "tag": "span", "name": "Dock shortcut", "text": "Mod+J", "attrs": {}, "styles": { "margin-left": "auto", "font-family": "var(--font-mono)", "font-size": "var(--f2)", "color": "var(--fa-dim)" }, "breakpoints": {}, "children": [] },
@@ -231,8 +231,8 @@
           { "key": "shotl", "tag": "img", "name": "Capture light", "attrs": { "data-fw-theme-only": "light", "src": "https://media.formai.studio/media/format/ui-hero-light-2/9ecb5d806b85.w1024.webp", "srcset": "https://media.formai.studio/media/format/ui-hero-light-2/9ecb5d806b85.w640.webp 640w, https://media.formai.studio/media/format/ui-hero-light-2/9ecb5d806b85.w1024.webp 1024w, https://media.formai.studio/media/format/ui-hero-light-2/9ecb5d806b85.w2400.webp 2400w", "sizes": "(max-width: 1120px) 100vw, 1120px", "width": "2400", "height": "1350", "alt": "The {{name}} window in the light theme: sidebar, the Aurora page chat and the Northern Light artifact open beside it", "loading": "lazy", "decoding": "async" }, "styles": { "display": "block", "width": "100%", "height": "auto" }, "breakpoints": {}, "children": [] },
           { "key": "shotc", "tag": "figcaption", "name": "Caption", "text": "{{capture}}", "attrs": {}, "styles": { "padding": "var(--sp-3) var(--sp-4)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.08em", "color": "var(--ink-soft)", "background": "var(--pane)" }, "breakpoints": {}, "children": [] } ] } ] },
       { "key": "tpls", "tag": "div", "name": "Script templates", "attrs": { "hidden": "" }, "styles": {}, "breakpoints": {}, "children": [
-        { "key": "t_user", "tag": "div", "name": "User bubble template", "text": "Message", "attrs": { "hidden": "" }, "styles": { "box-sizing": "border-box", "max-width": "82%", "margin": "0 0 calc(30 * var(--u)) auto", "padding": "calc(14 * var(--u)) calc(24 * var(--u))", "border-radius": "calc(24 * var(--u)) calc(24 * var(--u)) calc(6 * var(--u)) calc(24 * var(--u))", "background": "var(--fa-bubble)", "line-height": "1.4", "font-size": "var(--f1)", "word-break": "break-word" }, "breakpoints": {}, "children": [] },
-        { "key": "t_bot", "tag": "div", "name": "Reply template", "attrs": { "hidden": "" }, "styles": { "margin": "0 0 calc(30 * var(--u))", "line-height": "1.5", "font-size": "var(--f1)", "word-break": "break-word" }, "breakpoints": {}, "children": [
+        { "key": "t_user", "tag": "div", "name": "User bubble template", "text": "Message", "attrs": { "hidden": "" }, "styles": { "box-sizing": "border-box", "max-width": "82%", "margin": "0 0 calc(30 * var(--u)) auto", "padding": "calc(14 * var(--u)) calc(24 * var(--u))", "border-radius": "calc(24 * var(--u)) calc(24 * var(--u)) calc(6 * var(--u)) calc(24 * var(--u))", "background": "var(--fa-bubble)", "line-height": "1.4", "font-size": "var(--f1)", "overflow-wrap": "anywhere" }, "breakpoints": {}, "children": [] },
+        { "key": "t_bot", "tag": "div", "name": "Reply template", "attrs": { "hidden": "" }, "styles": { "margin": "0 0 calc(30 * var(--u))", "line-height": "1.5", "font-size": "var(--f1)", "overflow-wrap": "anywhere" }, "breakpoints": {}, "children": [
           { "key": "t_dots", "tag": "span", "name": "Thinking dots", "attrs": { "aria-label": "Thinking" }, "styles": { "display": "inline-flex", "gap": "calc(8 * var(--u))", "padding": "calc(14 * var(--u)) 0" }, "breakpoints": {}, "children": [
             { "key": "t_d1", "tag": "i", "name": "Dot", "attrs": {}, "styles": { "width": "calc(10 * var(--u))", "height": "calc(10 * var(--u))", "border-radius": "50%", "background": "var(--fa-dim)" }, "breakpoints": {}, "children": [] },
             { "key": "t_d2", "tag": "i", "name": "Dot", "attrs": {}, "styles": { "width": "calc(10 * var(--u))", "height": "calc(10 * var(--u))", "border-radius": "50%", "background": "var(--fa-dim)" }, "breakpoints": {}, "children": [] },
@@ -243,16 +243,16 @@
   "commands": [
     { "command": "textpreset.apply", "params": { "id": "@@lform@@", "name": "app-form" } },
     { "command": "textpreset.apply", "params": { "id": "@@lsfx@@", "name": "app-suffix" } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "role", "value": { "type": "number", "initial": 1, "min": 0, "max": 2, "step": 1, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "panel", "value": { "type": "boolean", "initial": true, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "ptab", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "dock", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "empty", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "appr", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "apprdone", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "art", "value": { "type": "boolean", "initial": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "pview", "value": { "type": "number", "initial": 0, "min": 0, "max": 1, "step": 1, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "fb", "value": { "type": "text", "initial": "That could become a document, a sheet or a set of slides beside the chat." } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%role%%", "value": { "type": "number", "initial": 1, "min": 0, "max": 2, "step": 1, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%panel%%", "value": { "type": "boolean", "initial": true, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%ptab%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%dock%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%empty%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%appr%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%apprdone%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%art%%", "value": { "type": "boolean", "initial": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%pview%%", "value": { "type": "number", "initial": 0, "min": 0, "max": 1, "step": 1, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%fb%%", "value": { "type": "text", "initial": "That could become a document, a sheet or a set of slides beside the chat." } } },
     { "command": "motion.set", "params": { "kind": "text", "node": "@@h1at@@", "value": { "type": "split", "by": "words", "from": { "opacity": "0", "transform": "translateY(24px)" }, "duration": 800, "stagger": 90, "trigger": "load" } } },
     { "command": "motion.set", "params": { "kind": "text", "node": "@@h1hl@@", "value": { "type": "split", "by": "words", "from": { "opacity": "0", "transform": "translateY(24px)" }, "duration": 800, "stagger": 90, "trigger": "load" } } },
     { "command": "motion.set", "params": { "kind": "text", "node": "@@h1b@@", "value": { "type": "split", "by": "words", "from": { "opacity": "0", "transform": "translateY(24px)" }, "duration": 800, "stagger": 90, "trigger": "load" } } },
@@ -263,65 +263,65 @@
     { "command": "motion.set", "params": { "kind": "reveals", "node": "@@win@@", "value": { "from": { "opacity": "0", "transform": "translateY(24px)" }, "duration": 800, "delay": 300, "easing": "cubic-bezier(0.16, 1, 0.3, 1)", "trigger": "load" } } },
     { "command": "motion.set", "params": { "kind": "disclosure", "node": "@@roles@@", "value": { "type": "tabs", "initial": 1, "items": [ { "trigger": "@@card0@@", "panel": "@@tp0@@" }, { "trigger": "@@card1@@", "panel": "@@tp1@@" }, { "trigger": "@@card2@@", "panel": "@@tp2@@" } ] } } },
     { "command": "motion.set", "params": { "kind": "disclosure", "node": "@@tabs@@", "value": { "type": "tabs", "initial": 0, "items": [ { "trigger": "@@tabp@@", "panel": "@@pv@@" }, { "trigger": "@@tabc@@", "panel": "@@cd@@" } ] } } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@tabp@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "pview", "value": 0 } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@tabc@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "pview", "value": 1 } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@panx@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "panel", "value": false }, { "trigger": "click", "action": "set-variable", "variable": "ptab", "value": false } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@toolart@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "panel", "formula": "if(art, !panel, panel)" }, { "trigger": "click", "action": "set-variable", "variable": "ptab", "formula": "if(art, !ptab, ptab)" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@tooldock@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "dock", "formula": "!dock" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@dockx@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "dock", "value": false } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@tabp@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%pview%%", "value": 0 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@tabc@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%pview%%", "value": 1 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@panx@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%panel%%", "value": false }, { "trigger": "click", "action": "set-variable", "variable": "%%ptab%%", "value": false } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@toolart@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%panel%%", "formula": "if(%%art%%, !%%panel%%, %%panel%%)" }, { "trigger": "click", "action": "set-variable", "variable": "%%ptab%%", "formula": "if(%%art%%, !%%ptab%%, %%ptab%%)" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@tooldock@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%dock%%", "formula": "!%%dock%%" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@dockx@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%dock%%", "value": false } ] } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@scrollbtn@@", "value": { "trigger": "click", "steps": [ { "type": "scroll", "target": "@@list@@", "to": "end" } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@card0@@", "value": { "trigger": "click", "restart": true, "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "role", "value": 0 } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "fb", "value": "I can answer that on your Claude API key, so ask me about a task." } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": true } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "panel", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "ptab", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "dock", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "appr", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "apprdone", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "art", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%role%%", "value": 0 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%fb%%", "value": "I can answer that on your Claude API key, so ask me about a task." } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": true } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%panel%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%ptab%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%dock%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%appr%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%apprdone%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%art%%", "value": false } },
       { "type": "clear", "target": "@@list@@" },
       { "type": "stream", "target": "@@ttl@@", "text": "New chat", "speed": 2000 },
       { "type": "stream", "target": "@@dl@@", "text": "$ ", "speed": 2000 } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@card1@@", "value": { "trigger": "click", "restart": true, "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "role", "value": 1 } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "fb", "value": "That could become a document, a sheet or a set of slides beside the chat." } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": true } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "panel", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "ptab", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "dock", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "appr", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "apprdone", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "art", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%role%%", "value": 1 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%fb%%", "value": "That could become a document, a sheet or a set of slides beside the chat." } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": true } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%panel%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%ptab%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%dock%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%appr%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%apprdone%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%art%%", "value": false } },
       { "type": "clear", "target": "@@list@@" },
       { "type": "stream", "target": "@@ttl@@", "text": "New chat", "speed": 2000 },
       { "type": "stream", "target": "@@dl@@", "text": "$ ", "speed": 2000 } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@card2@@", "value": { "trigger": "click", "restart": true, "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "role", "value": 2 } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "fb", "value": "I have no rule for that, but I can run commands and change files behind approval cards." } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": true } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "panel", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "ptab", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "dock", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "appr", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "apprdone", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "art", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%role%%", "value": 2 } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%fb%%", "value": "I have no rule for that, but I can run commands and change files behind approval cards." } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": true } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%panel%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%ptab%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%dock%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%appr%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%apprdone%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%art%%", "value": false } },
       { "type": "clear", "target": "@@list@@" },
       { "type": "stream", "target": "@@ttl@@", "text": "New chat", "speed": 2000 },
       { "type": "stream", "target": "@@dl@@", "text": "$ ", "speed": 2000 } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@newchat@@", "value": { "trigger": "click", "restart": true, "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": true } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "panel", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "ptab", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "dock", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "appr", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "apprdone", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "art", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": true } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%panel%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%ptab%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%dock%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%appr%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%apprdone%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%art%%", "value": false } },
       { "type": "clear", "target": "@@list@@" },
       { "type": "stream", "target": "@@ttl@@", "text": "New chat", "speed": 2000 },
       { "type": "stream", "target": "@@dl@@", "text": "$ ", "speed": 2000 } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@form@@", "value": { "trigger": "submit", "restart": true, "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "{input:@@input@@}", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "{input:@@input@@}" },
       { "type": "clear", "target": "@@input@@" },
@@ -330,10 +330,10 @@
       { "type": "append", "template": "@@t_bot@@", "into": "@@list@@", "as": "b" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
       { "type": "wait", "ms": 700 },
-      { "type": "stream", "target": "@b", "text": "{var:fb}", "speed": 90 },
+      { "type": "stream", "target": "@b", "text": "{var:%%fb%%}", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@c00@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "What can you do?", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "What can you do?" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
@@ -344,7 +344,7 @@
       { "type": "stream", "target": "@b", "text": "I stream chat on the Claude API, with a sidebar, a composer with the + menu, model and effort, and a side panel for artifacts and files.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@c01@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "Which keys?", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "Which keys?" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
@@ -355,7 +355,7 @@
       { "type": "stream", "target": "@b", "text": "Use your own Anthropic key. Without one, I answer through Claude Code on your Claude plan when it is installed and signed in.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@c02@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "Is it private?", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "Is it private?" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
@@ -366,7 +366,7 @@
       { "type": "stream", "target": "@b", "text": "My engine runs on this computer, on port 8490, and the window talks to it. No account is needed.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@c10@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "Make an aurora page", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "Make an aurora page" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
@@ -377,11 +377,11 @@
       { "type": "stream", "target": "@b", "text": "I wrote aurora.html in this chat's folder. It opens beside the chat as a versioned, sandboxed artifact, with a preview and the code.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
       { "type": "stream", "target": "@@pt@@", "text": "Northern Light", "speed": 2000 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "art", "value": true } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "panel", "value": true } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "ptab", "value": true } } ] } } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%art%%", "value": true } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%panel%%", "value": true } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%ptab%%", "value": true } } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@c11@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "Export it", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "Export it" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
@@ -392,7 +392,7 @@
       { "type": "stream", "target": "@b", "text": "Documents, spreadsheets and slides export to Word, Excel, PowerPoint and PDF.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@c12@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "Share a link", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "Share a link" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
@@ -403,7 +403,7 @@
       { "type": "stream", "target": "@b", "text": "Artifacts have share links, and every artifact is versioned, so you can see how a page changed.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@c20@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "Run a command", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "Run a command" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
@@ -414,10 +414,10 @@
       { "type": "stream", "target": "@b", "text": "I want to list the files in this chat's folder. It waits behind an approval card until you say yes.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
       { "type": "wait", "ms": 300 },
-      { "type": "action", "action": { "action": "set-variable", "variable": "apprdone", "value": false } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "appr", "value": true } } ] } } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%apprdone%%", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%appr%%", "value": true } } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@c21@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "Open the dock", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "Open the dock" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
@@ -427,9 +427,9 @@
       { "type": "wait", "ms": 700 },
       { "type": "stream", "target": "@b", "text": "A real terminal opens in a dock with Mod+J, beside the conversation.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
-      { "type": "action", "action": { "action": "set-variable", "variable": "dock", "value": true } } ] } } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%dock%%", "value": true } } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@c22@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "empty", "value": false } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%empty%%", "value": false } },
       { "type": "stream", "target": "@@ttl@@", "text": "Use my agents", "speed": 2000 },
       { "type": "append", "template": "@@t_user@@", "into": "@@list@@", "as": "u", "text": "Use my agents" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
@@ -440,8 +440,8 @@
       { "type": "stream", "target": "@b", "text": "While FormAT runs it is an MCP server, so Claude Code, Codex and Cursor can use it, and every engine command is a tool.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@allow@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "apprdone", "value": true } },
-      { "type": "action", "action": { "action": "set-variable", "variable": "dock", "value": true } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%apprdone%%", "value": true } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%dock%%", "value": true } },
       { "type": "stream", "target": "@@dl@@", "text": "$ ", "speed": 2000 },
       { "type": "wait", "ms": 600 },
       { "type": "stream", "target": "@@dl@@", "text": "$ ls", "speed": 11 },
@@ -453,7 +453,7 @@
       { "type": "stream", "target": "@b", "text": "Done. The command ran after you approved it, and the folder holds aurora.html.", "speed": 90 },
       { "type": "scroll", "target": "@@list@@", "to": "end" } ] } } },
     { "command": "motion.set", "params": { "kind": "scripts", "node": "@@deny@@", "value": { "trigger": "click", "steps": [
-      { "type": "action", "action": { "action": "set-variable", "variable": "apprdone", "value": true } },
+      { "type": "action", "action": { "action": "set-variable", "variable": "%%apprdone%%", "value": true } },
       { "type": "append", "template": "@@t_bot@@", "into": "@@list@@", "as": "b" },
       { "type": "scroll", "target": "@@list@@", "to": "end" },
       { "type": "wait", "ms": 700 },

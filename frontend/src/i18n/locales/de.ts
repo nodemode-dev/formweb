@@ -2479,4 +2479,8 @@ export default [
   "Das Designsystem von formai.studio: Graphit-Flächen, Inter in variablen Stärken, ein Produktfarbton pro Abschnitt, dunkles und helles Design.",
   "Eine sechsseitige Produktwebsite im Stil von formai.studio: Startseite, Produkt, Über uns, Geschichten, Support und eine Nicht-gefunden-Seite, mit gemeinsamem Kopf- und Fußbereich.",
   "Eine Seite-nicht-gefunden-Ansicht, die die Website durchsucht und die nächstliegenden Seiten auf einen Kassenbon druckt, den du zum Abreißen herunterziehen kannst.",
+  "An FormPublisher senden",
+  "An FormPublisher gesendet: {0} ist jetzt bei Revision {1}.",
+  "FormPublisher läuft nicht. Die Website wurde in dessen Eingang ({0}) gespeichert und wird beim Start von FormPublisher importiert.",
+  "Senden an FormPublisher nicht möglich: {0}",
 ] as readonly string[];

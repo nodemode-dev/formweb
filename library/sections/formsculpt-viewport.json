@@ -133,7 +133,7 @@
         "value": {
           "stage": "@@stage@@",
           "length": 420,
-          "offset": "65px",
+          "offset": "var(--bar-h)",
           "smoothing": 220,
           "reducedAt": 0,
           "tracks": [

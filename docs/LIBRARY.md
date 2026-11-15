@@ -82,6 +82,12 @@ Three placeholders work in any string of `tree`, `commands` and `behaviors`, exp
 
 An unknown `@@key@@` or `{{field}}` fails the check.
 
+A fourth placeholder scopes variables to one insert:
+
+- `%%name%%` expands to `name_<suffix>`, with the same suffix as the node ids of that insert (`name` starts with a letter or `_` and has at most 41 characters). It works in variable names, formulas, actions, scripts, component props and `var(--fw-v-%%name%%)` styles alike, so a template writes every variable it declares as `%%name%%` and two copies of a calculator, a prompt hero or a FAQ on one page keep their own state. A component that reads a variable receives the scoped name as a prop, for example `filterVariable`.
+
+`./formweb library check` fails a `%%name%%` that no `variables.set` in the template declares. Keep names short: the scoped name is still a variable name and must stay within 64 characters.
+
 ### Commands
 
 `commands` are ordinary engine commands: `motion.set`, `motion.track`, `variables.set`, `code.instance.set`, `textpreset.apply`, `node.update` and so on (see [ADVANCED_SCHEMA.md](ADVANCED_SCHEMA.md)). Two are refused in a template: `extension.set` replaces a whole group and would wipe a designer's own entries (use `behaviors` instead), and `design.set` replaces a whole design map (use `properties` or the preset). Code sections (`code.section.set`) are not used in templates; they belong to Import HTML.
@@ -162,7 +168,7 @@ Every subscription returns an off function and is cleaned up when the component 
 
 ### Scroll stories
 
-Pin and progress come from a native motion scene on the template: a `motion.set` of kind `scenes` with the stage pinned and a `length` in `svh` matching the original track height. The component reads `ctx.progress()` or `ctx.onProgress`. A component does not re-implement sticky positioning or scroll maths.
+Pin and progress come from a native motion scene on the template: a `motion.set` of kind `scenes` with the stage pinned and a `length` in `svh` matching the original track height. The scene `offset` may be a length, `var(--token)` or a `calc()` of lengths and tokens, so the shipped stories pin at `var(--bar-h)` and follow the header's height. The component reads `ctx.progress()` or `ctx.onProgress`. A component does not re-implement sticky positioning or scroll maths.
 
 ### Reduced motion, WebGL and posters
 
@@ -180,7 +186,7 @@ Pictures, video and fonts a template needs live in `library/media/` or in a comp
 
 ## The preset
 
-`library/presets/formai-studio.json` carries `tokens` (114 values in the dark theme), `themes` (dark by default, `followSystem` off, and the light overrides), `fonts` (the bundled Inter file, `font-display: optional`), `textPresets` (`display`, `heading`, `title`, `body`, `lead`, `small`, `eyebrow`, `mono`, and the chrome ones `app-form`, `app-suffix`, `button`, `button-quiet`, `chip`, `brand-word`, `nav-link` and `foot-heading`), `page` (root styles), `products` (36 product hues) and `hueDepth` (the dark and light mix depths for `--hue`).
+`library/presets/formai-studio.json` carries `tokens` (114 values in the dark theme), `themes` (dark by default, `followSystem` off, and the light overrides), `fonts` (the bundled Inter file, `font-display: optional`), `textPresets` (`display`, `heading`, `title`, `body`, `lead`, `small`, `eyebrow`, `mono`, and the chrome ones `app-form`, `app-suffix`, `button`, `button-quiet`, `chip`, `brand-word`, `nav-link` and `foot-heading`), `page` (root styles), `pageBreakpoints` (root styles per breakpoint, for example `{"mobile": {"--bar-h": "97px"}}` for the taller two-row header on phones), `products` (36 product hues) and `hueDepth` (the dark and light mix depths for `--hue`). `pageBreakpoints` is applied to the page root together with `page`, merging with what the designer set; in mode `missing` it never overwrites a value the site already has.
 
 A preset applies in one of two modes, and both are one batch:
 
@@ -202,6 +208,21 @@ A preset applies in one of two modes, and both are one batch:
 
 `build` compiles every component with `setup/build_component.mjs` in `page` mode and writes `library/build/components/<id>.json` with the keys `enabled`, `language`, `mode`, `source`, `sourceDigest`, `builtDigest`, `javascript` and `props`, sorted, with a trailing newline. These records are what the routes install, so a running server needs no Node. `build --check` rebuilds in memory and exits 1 if any file is missing, differs or has no component. Run `./formweb install` first; the build needs Node and the pinned compiler. CI runs `./formweb library check && ./formweb library build --check`.
 
+The other four actions go through the running server's API (`FORMWEB_PORT` or `FORMWEB_API` picks it, default 8240), so each write is one undo step in the open editor:
+
+```
+./formweb library list [sections|components|presets|starters] [WORD ...] [--category ID] [--json]
+./formweb library insert SECTION [field=value ...] [--parent ID] [--page ID] [--index N] [--update-components] [--json]
+./formweb library preset PRESET [--all] [--json]
+./formweb library starter STARTER [field=value ...] [--update-components] [--json]
+```
+
+`list` filters by kind, category and words and prints each id with its fields. `insert` re-casts fields given as `name=value`. `preset` applies in mode `missing` unless `--all` asks for every value. `starter` builds the starter's pages.
+
+## MCP tools
+
+The same operations are MCP tools for agents (`./formweb mcp`), part of the 14 authoring tools described in [ADVANCED_SCHEMA.md](ADVANCED_SCHEMA.md): `library_list` (read-only; sections with their fields and page components, presets with their product tints, starters), `library_insert`, `library_apply_preset`, `library_apply_starter` and `library_import_html`, each one undo step, plus `new_site` to start from a blank home page before assembling sections (it replaces the open site and is approval-gated for agents). Errors point back at `library_list`. The `library` sub-skill of the agent harness describes the workflow.
+
 ## HTTP routes
 
 All routes live in `backend/app/library_routes.py`. Reads authorize `read`, writes authorize `edit`, every write records an access entry, and engine errors are returned unchanged. Each write is one `/api/batch` sent with the revision it was computed against, so a concurrent edit is refused, not overwritten.
@@ -216,7 +237,7 @@ All routes live in `backend/app/library_routes.py`. Reads authorize `read`, writ
 | `POST /api/library/starters/{id}/apply` | `{values?, updateComponents?}` | The batch result plus `{pages, warnings}`. `values` re-casts fields shared by the sections, such as tint and name. |
 | `POST /api/library/import-html` | `{html, css?, name?, parent?, index?, page?}` | The batch result plus `{root, warnings}`. |
 
-An insert uploads and owns the bundled media, merges the missing built components into the site's `code` group, applies the preset in mode `missing`, expands the template under `parent`, moves it to `index` if given, and appends the behaviors command, all in the one batch. A component the site already has with a different `sourceDigest` is kept, with a warning, unless the request sets `updateComponents`; a component with no built record is compiled on the spot, with a warning. If the template sets a variable the site already has, the insert warns that every copy shares it.
+An insert uploads and owns the bundled media, merges the missing built components into the site's `code` group, applies the preset in mode `missing`, expands the template under `parent`, moves it to `index` if given, and appends the behaviors command, all in the one batch. A component the site already has with a different `sourceDigest` is kept, with a warning, unless the request sets `updateComponents`; a component with no built record is compiled on the spot, with a warning. If the template sets an unscoped variable (a name written without `%%`) that the site already has, the insert warns that every copy shares it; the shipped templates scope all of theirs.
 
 ## Import HTML
 
@@ -232,8 +253,8 @@ Caps: 512 KiB of markup, 256 KiB of styles and 512 KiB of script; larger input i
 
 ## Known limits
 
-- Variables are site-wide. Two copies of a section that is driven by a variable share its state, so changing it in one changes both. The insert warns when the site already has the variable.
-- A scene offset takes a literal length, not a token or a calculation, so a scroll story keeps the original's offset as written.
+- Variables written without `%%` are still site-wide: two copies of a section that declares an unscoped variable share its state, and the insert warns when the site already has it. Scope every variable a template owns.
+- A document has hard limits (at most 2,000 motion entries and 4 MiB of extension data), so many copies of the variable-heavy formslot-support template (141 variables and formulas each) can fill them; the insert is refused with the limit's message and nothing changes. Batches check and synchronize once at their end, so each insert takes about a second.
 - Page components mount lazily, when the host comes within one viewport, and a component may start from its poster. The first frame of a component section can lag the original, and the parity table records this per section.
-- The style model refuses some properties and tag names the originals used, so templates approximate them. Authors will meet these: logical properties (`margin-inline`, `inset-block` and similar), `background-clip`, `writing-mode`, `scrollbar-width`, `text-underline-offset`, `overflow-wrap`, `appearance`, and the `rect` svg tag. For example, the animated gradient headline in the token prompt is a flat hue because `background-clip` is unavailable.
+- The style model still refuses properties the originals might use. `::placeholder` and other pseudo-element styling is not available, so a placeholder keeps the browser's colour, and a property outside the allow-list (see [ADVANCED_SCHEMA.md](ADVANCED_SCHEMA.md)) must be approximated.
 - A section keeps its effects and logic, not the source page's whole stylesheet. The kit's global rules are not part of a FormWeb export; each node carries its own resets.

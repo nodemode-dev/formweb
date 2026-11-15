@@ -67,7 +67,9 @@ async def call_tool(context, params):
         removes = params.name == 'apply_commands' and any(str(item.get('command', '')).endswith(('.remove', '.delete')) for item in arguments.get('commands', []) if isinstance(item, dict))
         if params.name in DOMAIN_BY_NAME:  # domain tools: judge the one command, not the tool's worst case
             removes = arguments['command'].endswith('.remove') or arguments['command'] == 'site.replace'
-        destructive = BY_NAME[params.name]['annotations'].get('destructiveHint') and params.name not in DOMAIN_BY_NAME
+        if params.name == 'motion_track':  # judged per call like the domain tools: only a null track deletes
+            removes = arguments['track'] is None
+        destructive = BY_NAME[params.name]['annotations'].get('destructiveHint') and params.name not in DOMAIN_BY_NAME and params.name != 'motion_track'
         if (destructive or removes) and studio.approvals.settings()['agentDestructive']:
             # Agent Connect: the owner asked to approve destructive agent calls; this waits for a person's decision.
             await studio.approvals.wait('agent.tool', {'tool': params.name, 'arguments': json.dumps(arguments, ensure_ascii=False)[:1000]})
@@ -255,6 +257,8 @@ def next_step(message, status):
         return 'Tell the person stock photos come from formlit on their computer: start it (./formlit backend in the formlit folder), then retry; icons work without it.'
     if 'formvis' in text and ('not reachable' in text or 'no background engine' in text):
         return 'Tell the person background removal runs in formvis on their computer: start it (./formvis backend in the formvis folder), then retry; remove_background with action status checks it.'
+    if text.startswith('library ') and 'not found' in text or text.startswith(('unknown field', 'invalid library')):
+        return 'Call library_list (with kind, category or query) for the section, preset or starter ids and, for sections, the fields you can re-cast.'
     if 'library' in text and ('changed' in text or 'not found' in text or 'not edit' in text or 'not share' in text):
         return 'Call list_team_libraries (with id for one library) to see current revisions and your role, then retry with that revision as expected_revision; ask the library owner named in the error for more access.'
     if status == 409 or 'revision' in text:

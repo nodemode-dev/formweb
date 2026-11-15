@@ -2479,4 +2479,8 @@ export default [
   "Sistem desain formai.studio: permukaan grafit, Inter dengan bobot variabel, satu rona produk per bagian, tema gelap dan terang.",
   "Situs produk enam halaman bergaya formai.studio: beranda, produk, tentang, kisah, dukungan, dan halaman tidak ditemukan, dengan header dan footer bersama.",
   "Layar halaman tidak ditemukan yang mencari di situs dan mencetak halaman terdekat pada struk yang bisa ditarik ke bawah untuk disobek.",
+  "Kirim ke FormPublisher",
+  "Terkirim ke FormPublisher: {0} kini berada di revisi {1}.",
+  "FormPublisher tidak berjalan. Situs disimpan di kotak masuknya ({0}) dan akan diimpor saat FormPublisher dimulai.",
+  "Tidak dapat mengirim ke FormPublisher: {0}",
 ] as readonly string[];

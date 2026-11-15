@@ -26,6 +26,7 @@ const META: Record<string, Meta> = {
   'file.save': { description: 'Save the open site as a local project.', flags: 'm', when: 'Use after a set of edits the person wants kept.' },
   'file.download': { description: 'Download the open site as a .fweb project file.' },
   'file.export': { description: 'Export the open site as a portable static HTML ZIP.', flags: 'm' },
+  'file.send-formpublisher': { description: 'Export the open site and hand it to FormPublisher, live when it runs or through its inbox folder otherwise.', flags: 'm', when: 'Use when the person asks to send the site to FormPublisher.' },
   'file.publish': { description: 'Open the Publish dialog to create a published snapshot served by this backend.', flags: 'mr', when: 'Use only when the person asks to publish.' },
   'edit.undo': { description: 'Undo the last site change, like Ctrl+Z.', flags: 'm', when: 'Use to reverse the last edit.' },
   'edit.redo': { description: 'Redo the change that was undone.', flags: 'm' },

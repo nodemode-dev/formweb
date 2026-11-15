@@ -56,6 +56,10 @@ Usage: ./formweb COMMAND
   run COMMAND [k=v]   apply one engine command to the open site (--list, --json)
   library check       validate the section library: components, templates, presets, starters (--json)
   library build       compile library components into library/build (--check reports drift only)
+  library list        sections, components, presets and starters of the running API (words, --category)
+  library insert ID [k=v]   insert a section re-cast with field values (--parent, --page, --index)
+  library preset ID [--all]   apply a design preset (--all replaces values the site already has)
+  library starter ID [k=v]   build a starter site's pages
   render probe        GPU renderer: adapter and budget; also thumb IN OUT, diff A B OUT (JSON)
   desktop             open the Tauri desktop shell (starts ./formweb serve if needed)
   build-app           build the desktop app start to finish (same as ./build_app, or desktop build)

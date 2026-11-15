@@ -28,6 +28,10 @@
 | Review the FormWeb branch conflicts and keep the approved content | Branch and review, recovery auditor |
 | Connect the FormWeb form inbox to configured signed delivery | Forms operator |
 | Inspect the configured FormWeb commerce and analytics providers | Release operator, interaction builder |
+| Add a pinned scroll story with a count-up and a marquee to my FormWeb page | Motion director |
+| Build a live price calculator in FormWeb that updates as the slider moves | Motion director, interaction builder |
+| Insert the FormWeb pricing and footer sections from the library, recast for my app | Library |
+| Import this HTML page into FormWeb as a section | Library |
 
 The description auditor checks keyword coverage of these positives. Model selection remains a separate manual check; lexical overlap is not proof of runtime activation.
 

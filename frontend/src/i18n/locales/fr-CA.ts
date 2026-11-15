@@ -24,4 +24,6 @@ export default {
   "Workspace settings": "Paramètres de l’espace de travail",
   "X post": "Publication X",
   "Uploading image...": "Téléversement de l'image...",
+  "FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.": "FormPublisher n'est pas démarré. Le site a été enregistré dans sa boîte de réception ({0}) et sera importé au démarrage de FormPublisher.",
+  "Could not send to FormPublisher: {0}": "Impossible d'envoyer à FormPublisher : {0}",
 } as Record<string, string>;

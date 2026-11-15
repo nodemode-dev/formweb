@@ -23,7 +23,7 @@
   "tree": {
     "key": "section", "tag": "section", "name": "Filmstrip",
     "attrs": { "aria-label": "Form{{name}} filmstrip" },
-    "styles": { "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)", "scroll-margin-top": "64px", "background": "var(--ground)", "color": "var(--ink)" },
+    "styles": { "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)", "scroll-margin-top": "var(--bar-h)", "background": "var(--ground)", "color": "var(--ink)" },
     "breakpoints": {},
     "children": [
       {
@@ -161,7 +161,7 @@
         "value": {
           "stage": "@@stage@@",
           "length": 439,
-          "offset": "64px",
+          "offset": "var(--bar-h)",
           "smoothing": 200,
           "reducedAt": 1,
           "tracks": [

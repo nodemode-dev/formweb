@@ -104,15 +104,25 @@ impl Engine {
         self.check_revision(expected)?;
         if commands.is_empty() || commands.len() > 4000 { return Err("batch needs 1 to 4000 commands".into()); }
         let mut candidate = self.site.clone();
-        for entry in commands {
-            let command = string(entry, "command")?;
-            if command.starts_with("history.") { return Err("history commands cannot be batched".into()); }
-            let params = entry.get("params").ok_or("command params are required")?;
-            advanced::before_command(&mut candidate, command, params)?;
-            apply(&mut candidate, command, params)?;
-            if command=="extension.set" {formweb_model::advanced::validate_extensions(&candidate)?;}
-            advanced::synchronize(&mut candidate)?;
-        }
+        // Linked components need their instances materialized between commands; any other batch synchronizes once at
+        // its end, which leaves the same document and keeps a whole starter site inside the engine's request limit.
+        let stepwise = commands.iter().any(|entry| entry.get("command").and_then(Value::as_str).map(|c| c.starts_with("component.")).unwrap_or(false));
+        formweb_model::advanced::defer_extension_checks(true);
+        let applied = (|| -> Result<(), String> {
+            for entry in commands {
+                let command = string(entry, "command")?;
+                if command.starts_with("history.") { return Err("history commands cannot be batched".into()); }
+                let params = entry.get("params").ok_or("command params are required")?;
+                advanced::before_command(&mut candidate, command, params)?;
+                apply(&mut candidate, command, params)?;
+                if stepwise { advanced::synchronize(&mut candidate)?; }
+            }
+            if !stepwise { advanced::synchronize(&mut candidate)?; }
+            Ok(())
+        })();
+        formweb_model::advanced::defer_extension_checks(false);
+        applied?;
+        formweb_model::advanced::validate_extensions_now(&candidate)?;
         validate(&candidate)?;
         if candidate != self.site {
             self.undo.push(self.site.clone());

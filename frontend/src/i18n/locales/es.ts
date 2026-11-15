@@ -2479,4 +2479,8 @@ export default [
   "El sistema de diseño de formai.studio: superficies grafito, Inter con pesos variables, un tono de producto por sección, temas oscuro y claro.",
   "Un sitio de producto de seis páginas al estilo de formai.studio: inicio, producto, acerca de, historias, soporte y una página no encontrada, con cabecera y pie compartidos.",
   "Una pantalla de página no encontrada que busca en el sitio e imprime las páginas más cercanas en un recibo que puedes tirar hacia abajo para rasgar.",
+  "Enviar a FormPublisher",
+  "Enviado a FormPublisher: {0} está ahora en la revisión {1}.",
+  "FormPublisher no está en ejecución. El sitio se guardó en su bandeja de entrada ({0}) y se importa cuando FormPublisher se inicia.",
+  "No se pudo enviar a FormPublisher: {0}",
 ] as readonly string[];

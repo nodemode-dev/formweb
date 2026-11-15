@@ -2479,4 +2479,8 @@ export default [
   "formai.studio tasarım sistemi: grafit yüzeyler, değişken ağırlıklı Inter, bölüm başına bir ürün tonu, koyu ve açık temalar.",
   "formai.studio tarzında altı sayfalık bir ürün sitesi: ana sayfa, ürün, hakkında, hikâyeler, destek ve bir bulunamadı sayfası; ortak üst ve alt bilgiyle.",
   "Siteyi arayan ve en yakın sayfaları aşağı çekip yırtabileceğiniz bir fişe basan bir sayfa bulunamadı ekranı.",
+  "FormPublisher'a gönder",
+  "FormPublisher'a gönderildi: {0} şimdi {1}. revizyonda.",
+  "FormPublisher çalışmıyor. Site gelen kutusuna ({0}) kaydedildi ve FormPublisher başladığında içe aktarılır.",
+  "FormPublisher'a gönderilemedi: {0}",
 ] as readonly string[];

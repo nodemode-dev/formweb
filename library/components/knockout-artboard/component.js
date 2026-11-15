@@ -1334,13 +1334,7 @@ export function mount(root, props, ctx) {
     return !!(m && m.sceneOf && m.sceneOf(stageEl));
   };
   const targetP = () => {
-    // The scene measures from the stuck offset; the original measured from the track top, so shift back by the offset.
-    let p = scrollP();
-    const sc = !RM && hasScene() ? sceneEl() : null;
-    if (sc) {
-      const sp = span(sc);
-      p = clamp(ctx.progress() - (sp > 0 ? stuckTop() / sp : 0));
-    }
+    let p = !RM && hasScene() ? clamp(ctx.progress()) : scrollP();
     if (RM) p = p < 0.25 ? 0 : p < 0.75 ? 0.5 : 1;
     return p;
   };
@@ -1349,7 +1343,7 @@ export function mount(root, props, ctx) {
   const scrollToP = (p, dur, done) => {
     const track = sceneEl();
     if (!track) return;
-    const to = track.getBoundingClientRect().top + scrollY + p * Math.max(0, span(track));
+    const to = track.getBoundingClientRect().top + scrollY + p * Math.max(0, span(track)) - (hasScene() ? stuckTop() : 0);
     if (RM) {
       scrollTo(0, to);
       if (done) done();

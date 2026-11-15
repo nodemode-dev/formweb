@@ -84,7 +84,7 @@
             },
             "children": [
               { "key": "l1", "tag": "span", "name": "Line one", "text": "{{headline}}", "styles": { "display": "block" } },
-              { "key": "l2", "tag": "span", "name": "Line two", "text": "{{headline2}}", "styles": { "display": "block", "color": "var(--hue)" } }
+              { "key": "l2", "tag": "span", "name": "Line two", "text": "{{headline2}}", "styles": { "display": "block", "color": "transparent", "background": "linear-gradient(90deg, var(--hue) 0%, var(--ink) 25%, var(--hue) 50%, var(--ink) 75%, var(--hue) 100%)", "background-size": "200% 100%", "background-position": "var(--kn-x) 0", "background-clip": "text", "-webkit-background-clip": "text", "-webkit-text-fill-color": "transparent" } }
             ]
           },
           {
@@ -134,7 +134,7 @@
                 "styles": {
                   "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "border-radius": "16px",
                   "background": "conic-gradient(from var(--kn-a), transparent 0deg, transparent 250deg, var(--hue) 360deg)",
-                  "opacity": "calc(1 - var(--fw-v-running))", "transition": "opacity 0.3s var(--ease-out)"
+                  "opacity": "calc(1 - var(--fw-v-%%running%%))", "transition": "opacity 0.3s var(--ease-out)"
                 }
               },
               {
@@ -142,7 +142,7 @@
                 "styles": {
                   "position": "absolute", "inset": "0", "z-index": "var(--z-behind)", "overflow": "hidden", "border-radius": "16px",
                   "background": "conic-gradient(from var(--kn-a), transparent 0deg, transparent 250deg, var(--ink) 310deg, var(--hue) 360deg)",
-                  "opacity": "var(--fw-v-running)", "transition": "opacity 0.3s var(--ease-out)"
+                  "opacity": "var(--fw-v-%%running%%)", "transition": "opacity 0.3s var(--ease-out)"
                 }
               },
               {
@@ -182,7 +182,7 @@
                             "key": "segi", "tag": "span", "name": "Transport marker", "attrs": { "aria-hidden": "true" },
                             "styles": {
                               "position": "absolute", "top": "2px", "bottom": "2px", "left": "2px", "width": "70px", "background": "var(--control-hover)",
-                              "transform": "translateX(calc(var(--fw-v-http) * 70px))", "transition": "transform 0.25s var(--ease-out)", "pointer-events": "none"
+                              "transform": "translateX(calc(var(--fw-v-%%http%%) * 70px))", "transition": "transform 0.25s var(--ease-out)", "pointer-events": "none"
                             }
                           },
                           {
@@ -191,7 +191,7 @@
                             "styles": {
                               "position": "relative", "display": "block", "width": "70px", "height": "23px", "padding": "0", "border": "0", "background": "transparent", "text-align": "center", "cursor": "pointer",
                               "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.14em", "text-transform": "uppercase",
-                              "color": "color-mix(in srgb, var(--ink) calc((1 - var(--fw-v-http)) * 100%), var(--ink-soft))"
+                              "color": "color-mix(in srgb, var(--ink) calc((1 - var(--fw-v-%%http%%)) * 100%), var(--ink-soft))"
                             }
                           },
                           {
@@ -200,7 +200,7 @@
                             "styles": {
                               "position": "relative", "display": "block", "width": "70px", "height": "23px", "padding": "0", "border": "0", "background": "transparent", "text-align": "center", "cursor": "pointer",
                               "font-family": "var(--font-mono)", "font-size": "11px", "letter-spacing": "0.14em", "text-transform": "uppercase",
-                              "color": "color-mix(in srgb, var(--ink) calc(var(--fw-v-http) * 100%), var(--ink-soft))"
+                              "color": "color-mix(in srgb, var(--ink) calc(var(--fw-v-%%http%%) * 100%), var(--ink-soft))"
                             }
                           }
                         ]
@@ -226,10 +226,10 @@
           {
             "key": "log", "tag": "div", "name": "Run log", "attrs": { "aria-live": "polite" },
             "styles": {
-              "width": "min(680px, 100%)", "margin": "calc(var(--fw-v-started) * 14px) 0 0", "padding": "calc(var(--fw-v-started) * 14px) 16px",
-              "border": "calc(var(--fw-v-started) * 1px) solid var(--edge)", "border-radius": "14px",
+              "width": "min(680px, 100%)", "margin": "calc(var(--fw-v-%%started%%) * 14px) 0 0", "padding": "calc(var(--fw-v-%%started%%) * 14px) 16px",
+              "border": "calc(var(--fw-v-%%started%%) * 1px) solid var(--edge)", "border-radius": "14px",
               "background": "color-mix(in srgb, var(--pane) 82%, transparent)", "text-align": "left", "overflow": "hidden",
-              "max-height": "calc(var(--fw-v-started) * 1800px)", "opacity": "var(--fw-v-started)",
+              "max-height": "calc(var(--fw-v-%%started%%) * 1800px)", "opacity": "var(--fw-v-%%started%%)",
               "box-sizing": "border-box",
               "transition": "max-height 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), margin 0.5s cubic-bezier(0.22, 1, 0.36, 1), padding 0.5s cubic-bezier(0.22, 1, 0.36, 1)"
             },
@@ -249,20 +249,20 @@
                     "key": "row1", "tag": "li", "name": "Step, read",
                     "styles": {
                       "position": "relative", "display": "grid", "grid-template-columns": "20px minmax(0, 1fr)", "column-gap": "12px",
-                      "padding-bottom": "calc(var(--fw-v-r1) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-r1) * 400px)", "opacity": "var(--fw-v-r1)",
+                      "padding-bottom": "calc(var(--fw-v-%%r1%%) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-%%r1%%) * 400px)", "opacity": "var(--fw-v-%%r1%%)",
                       "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), padding-bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
                     },
                     "children": [
-                      { "key": "line1", "tag": "span", "name": "Connector", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "22px", "bottom": "2px", "left": "9px", "width": "1px", "background": "var(--edge-strong)", "opacity": "var(--fw-v-r2)" } },
+                      { "key": "line1", "tag": "span", "name": "Connector", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "22px", "bottom": "2px", "left": "9px", "width": "1px", "background": "var(--edge-strong)", "opacity": "var(--fw-v-%%r2%%)" } },
                       {
                         "key": "mk1", "tag": "span", "name": "Marker", "attrs": { "aria-hidden": "true" },
-                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-d1) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
+                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-%%d1%%) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
                         "children": [
-                          { "key": "ring1", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-r1) - var(--fw-v-d1))" } },
+                          { "key": "ring1", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-%%r1%%) - var(--fw-v-%%d1%%))" } },
                           {
                             "key": "ck1", "tag": "svg", "name": "Check",
                             "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "2.2", "stroke-linecap": "round", "stroke-linejoin": "round" },
-                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-d1)", "transition": "opacity 0.2s var(--ease-out)" },
+                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-%%d1%%)", "transition": "opacity 0.2s var(--ease-out)" },
                             "children": [ { "key": "ckp1", "tag": "path", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" } } ]
                           }
                         ]
@@ -273,7 +273,7 @@
                           {
                             "key": "head1", "tag": "div", "name": "Step head", "styles": { "display": "flex", "align-items": "baseline", "gap": "12px" },
                             "children": [
-                              { "key": "rl1", "tag": "span", "name": "Step label", "text": "read 2 apps", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-d1) * 100%), var(--ink))" } }
+                              { "key": "rl1", "tag": "span", "name": "Step label", "text": "read 2 apps", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-%%d1%%) * 100%), var(--ink))" } }
                             ]
                           },
                           {
@@ -290,20 +290,20 @@
                     "key": "row2", "tag": "li", "name": "Step, plan",
                     "styles": {
                       "position": "relative", "display": "grid", "grid-template-columns": "20px minmax(0, 1fr)", "column-gap": "12px",
-                      "padding-bottom": "calc(var(--fw-v-r2) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-r2) * 400px)", "opacity": "var(--fw-v-r2)",
+                      "padding-bottom": "calc(var(--fw-v-%%r2%%) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-%%r2%%) * 400px)", "opacity": "var(--fw-v-%%r2%%)",
                       "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), padding-bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
                     },
                     "children": [
-                      { "key": "line2", "tag": "span", "name": "Connector", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "22px", "bottom": "2px", "left": "9px", "width": "1px", "background": "var(--edge-strong)", "opacity": "var(--fw-v-r3)" } },
+                      { "key": "line2", "tag": "span", "name": "Connector", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "22px", "bottom": "2px", "left": "9px", "width": "1px", "background": "var(--edge-strong)", "opacity": "var(--fw-v-%%r3%%)" } },
                       {
                         "key": "mk2", "tag": "span", "name": "Marker", "attrs": { "aria-hidden": "true" },
-                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-d2) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
+                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-%%d2%%) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
                         "children": [
-                          { "key": "ring2", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-r2) - var(--fw-v-d2))" } },
+                          { "key": "ring2", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-%%r2%%) - var(--fw-v-%%d2%%))" } },
                           {
                             "key": "ck2", "tag": "svg", "name": "Check",
                             "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "2.2", "stroke-linecap": "round", "stroke-linejoin": "round" },
-                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-d2)", "transition": "opacity 0.2s var(--ease-out)" },
+                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-%%d2%%)", "transition": "opacity 0.2s var(--ease-out)" },
                             "children": [ { "key": "ckp2", "tag": "path", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" } } ]
                           }
                         ]
@@ -314,7 +314,7 @@
                           {
                             "key": "head2", "tag": "div", "name": "Step head", "styles": { "display": "flex", "align-items": "baseline", "gap": "12px" },
                             "children": [
-                              { "key": "rl2", "tag": "span", "name": "Step label", "text": "plan", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-d2) * 100%), var(--ink))" } }
+                              { "key": "rl2", "tag": "span", "name": "Step label", "text": "plan", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-%%d2%%) * 100%), var(--ink))" } }
                             ]
                           },
                           {
@@ -322,7 +322,7 @@
                             "children": [
                               {
                                 "key": "plan1", "tag": "li", "name": "Plan step",
-                                "styles": { "display": "flex", "gap": "10px", "opacity": "var(--fw-v-r2)", "translate": "0 calc((1 - var(--fw-v-r2)) * 8px)", "transition": "opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0ms, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0ms" },
+                                "styles": { "display": "flex", "gap": "10px", "opacity": "var(--fw-v-%%r2%%)", "translate": "0 calc((1 - var(--fw-v-%%r2%%)) * 8px)", "transition": "opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0ms, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0ms" },
                                 "children": [
                                   { "key": "pn1", "tag": "span", "name": "Number", "text": "1", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)" } },
                                   { "key": "pt1", "tag": "span", "name": "Text", "text": "Read the family list: one line per app, no tools loaded." }
@@ -330,7 +330,7 @@
                               },
                               {
                                 "key": "plan2", "tag": "li", "name": "Plan step",
-                                "styles": { "display": "flex", "gap": "10px", "opacity": "var(--fw-v-r2)", "translate": "0 calc((1 - var(--fw-v-r2)) * 8px)", "transition": "opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 260ms, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 260ms" },
+                                "styles": { "display": "flex", "gap": "10px", "opacity": "var(--fw-v-%%r2%%)", "translate": "0 calc((1 - var(--fw-v-%%r2%%)) * 8px)", "transition": "opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 260ms, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 260ms" },
                                 "children": [
                                   { "key": "pn2", "tag": "span", "name": "Number", "text": "2", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)" } },
                                   { "key": "pt2", "tag": "span", "name": "Text", "text": "Start only the app the task needs and list its tools." }
@@ -338,7 +338,7 @@
                               },
                               {
                                 "key": "plan3", "tag": "li", "name": "Plan step",
-                                "styles": { "display": "flex", "gap": "10px", "opacity": "var(--fw-v-r2)", "translate": "0 calc((1 - var(--fw-v-r2)) * 8px)", "transition": "opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 520ms, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 520ms" },
+                                "styles": { "display": "flex", "gap": "10px", "opacity": "var(--fw-v-%%r2%%)", "translate": "0 calc((1 - var(--fw-v-%%r2%%)) * 8px)", "transition": "opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1) 520ms, translate 0.5s cubic-bezier(0.22, 1, 0.36, 1) 520ms" },
                                 "children": [
                                   { "key": "pn3", "tag": "span", "name": "Number", "text": "3", "styles": { "color": "var(--ink-faint)", "font-family": "var(--font-mono)" } },
                                   { "key": "pt3", "tag": "span", "name": "Text", "text": "Run one tool and return the app's result unchanged." }
@@ -354,20 +354,20 @@
                     "key": "row3", "tag": "li", "name": "Step, profile",
                     "styles": {
                       "position": "relative", "display": "grid", "grid-template-columns": "20px minmax(0, 1fr)", "column-gap": "12px",
-                      "padding-bottom": "calc(var(--fw-v-r3) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-r3) * 600px)", "opacity": "var(--fw-v-r3)",
+                      "padding-bottom": "calc(var(--fw-v-%%r3%%) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-%%r3%%) * 600px)", "opacity": "var(--fw-v-%%r3%%)",
                       "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), padding-bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
                     },
                     "children": [
-                      { "key": "line3", "tag": "span", "name": "Connector", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "22px", "bottom": "2px", "left": "9px", "width": "1px", "background": "var(--edge-strong)", "opacity": "var(--fw-v-r4)" } },
+                      { "key": "line3", "tag": "span", "name": "Connector", "attrs": { "aria-hidden": "true" }, "styles": { "position": "absolute", "top": "22px", "bottom": "2px", "left": "9px", "width": "1px", "background": "var(--edge-strong)", "opacity": "var(--fw-v-%%r4%%)" } },
                       {
                         "key": "mk3", "tag": "span", "name": "Marker", "attrs": { "aria-hidden": "true" },
-                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-d3) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
+                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-%%d3%%) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
                         "children": [
-                          { "key": "ring3", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-r3) - var(--fw-v-d3))" } },
+                          { "key": "ring3", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-%%r3%%) - var(--fw-v-%%d3%%))" } },
                           {
                             "key": "ck3", "tag": "svg", "name": "Check",
                             "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "2.2", "stroke-linecap": "round", "stroke-linejoin": "round" },
-                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-d3)", "transition": "opacity 0.2s var(--ease-out)" },
+                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-%%d3%%)", "transition": "opacity 0.2s var(--ease-out)" },
                             "children": [ { "key": "ckp3", "tag": "path", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" } } ]
                           }
                         ]
@@ -378,7 +378,7 @@
                           {
                             "key": "head3", "tag": "div", "name": "Step head", "styles": { "display": "flex", "align-items": "baseline", "gap": "12px" },
                             "children": [
-                              { "key": "rl3", "tag": "span", "name": "Step label", "text": "apply profile", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-d3) * 100%), var(--ink))" } },
+                              { "key": "rl3", "tag": "span", "name": "Step label", "text": "apply profile", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-%%d3%%) * 100%), var(--ink))" } },
                               {
                                 "key": "cnt3", "tag": "span", "name": "Diff count", "styles": { "display": "flex", "margin-left": "auto", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" },
                                 "children": [
@@ -391,23 +391,23 @@
                           {
                             "key": "diff", "tag": "div", "name": "Diff", "styles": { "margin-top": "8px", "overflow-x": "auto", "border": "1px solid var(--edge)", "background": "var(--inset)", "font-family": "var(--font-mono)", "font-size": "12.5px", "line-height": "1.7" },
                             "children": [
-                              { "key": "dl1", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 170ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 170ms" },
+                              { "key": "dl1", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-%%r3%%)", "translate": "calc((1 - var(--fw-v-%%r3%%)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 170ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 170ms" },
                                 "children": [ { "key": "ds1", "tag": "span", "name": "Sign", "text": " ", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt1", "tag": "span", "name": "Text", "text": "profile   review" } ] },
-                              { "key": "dl2", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 340ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 340ms" },
+                              { "key": "dl2", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-%%r3%%)", "translate": "calc((1 - var(--fw-v-%%r3%%)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 340ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 340ms" },
                                 "children": [ { "key": "ds2", "tag": "span", "name": "Sign", "text": " ", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt2", "tag": "span", "name": "Text", "text": "agent     codex" } ] },
-                              { "key": "dl3", "tag": "div", "name": "Diff line, removed", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--fault) 12%, transparent)", "color": "var(--ink-soft)", "text-decoration": "line-through", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 510ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 510ms" },
+                              { "key": "dl3", "tag": "div", "name": "Diff line, removed", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--fault) 12%, transparent)", "color": "var(--ink-soft)", "text-decoration": "line-through", "opacity": "var(--fw-v-%%r3%%)", "translate": "calc((1 - var(--fw-v-%%r3%%)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 510ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 510ms" },
                                 "children": [ { "key": "ds3", "tag": "span", "name": "Sign", "text": "-", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt3", "tag": "span", "name": "Text", "text": "formvis   on" } ] },
-                              { "key": "dl4", "tag": "div", "name": "Diff line, added", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--terminal-ok) 12%, transparent)", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 680ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 680ms" },
+                              { "key": "dl4", "tag": "div", "name": "Diff line, added", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--terminal-ok) 12%, transparent)", "opacity": "var(--fw-v-%%r3%%)", "translate": "calc((1 - var(--fw-v-%%r3%%)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 680ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 680ms" },
                                 "children": [ { "key": "ds4", "tag": "span", "name": "Sign", "text": "+", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt4", "tag": "span", "name": "Text", "text": "formvis   off" } ] },
-                              { "key": "dl5", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 850ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 850ms" },
+                              { "key": "dl5", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-%%r3%%)", "translate": "calc((1 - var(--fw-v-%%r3%%)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 850ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 850ms" },
                                 "children": [ { "key": "ds5", "tag": "span", "name": "Sign", "text": " ", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt5", "tag": "span", "name": "Text", "text": "formcut   on" } ] },
-                              { "key": "dl6", "tag": "div", "name": "Diff line, removed", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--fault) 12%, transparent)", "color": "var(--ink-soft)", "text-decoration": "line-through", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1020ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1020ms" },
+                              { "key": "dl6", "tag": "div", "name": "Diff line, removed", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--fault) 12%, transparent)", "color": "var(--ink-soft)", "text-decoration": "line-through", "opacity": "var(--fw-v-%%r3%%)", "translate": "calc((1 - var(--fw-v-%%r3%%)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1020ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1020ms" },
                                 "children": [ { "key": "ds6", "tag": "span", "name": "Sign", "text": "-", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt6", "tag": "span", "name": "Text", "text": "delete    on" } ] },
-                              { "key": "dl7", "tag": "div", "name": "Diff line, added", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--terminal-ok) 12%, transparent)", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1190ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1190ms" },
+                              { "key": "dl7", "tag": "div", "name": "Diff line, added", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--terminal-ok) 12%, transparent)", "opacity": "var(--fw-v-%%r3%%)", "translate": "calc((1 - var(--fw-v-%%r3%%)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1190ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1190ms" },
                                 "children": [ { "key": "ds7", "tag": "span", "name": "Sign", "text": "+", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt7", "tag": "span", "name": "Text", "text": "delete    off" } ] },
-                              { "key": "dl8", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1360ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1360ms" },
+                              { "key": "dl8", "tag": "div", "name": "Diff line", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "opacity": "var(--fw-v-%%r3%%)", "translate": "calc((1 - var(--fw-v-%%r3%%)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1360ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1360ms" },
                                 "children": [ { "key": "ds8", "tag": "span", "name": "Sign", "text": " ", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt8", "tag": "span", "name": "Text", "text": "start     on demand" } ] },
-                              { "key": "dl9", "tag": "div", "name": "Diff line, added", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--terminal-ok) 12%, transparent)", "opacity": "var(--fw-v-r3)", "translate": "calc((1 - var(--fw-v-r3)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1530ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1530ms" },
+                              { "key": "dl9", "tag": "div", "name": "Diff line, added", "styles": { "display": "flex", "min-width": "max-content", "width": "100%", "white-space": "pre", "background": "color-mix(in srgb, var(--terminal-ok) 12%, transparent)", "opacity": "var(--fw-v-%%r3%%)", "translate": "calc((1 - var(--fw-v-%%r3%%)) * -6px) 0", "transition": "opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1530ms, translate 0.3s cubic-bezier(0.22, 1, 0.36, 1) 1530ms" },
                                 "children": [ { "key": "ds9", "tag": "span", "name": "Sign", "text": "+", "styles": { "flex": "none", "width": "22px", "color": "var(--ink-faint)", "text-align": "center" } }, { "key": "dt9", "tag": "span", "name": "Text", "text": "stop      after 10 idle minutes" } ] }
                             ]
                           }
@@ -419,19 +419,19 @@
                     "key": "row4", "tag": "li", "name": "Step, checks",
                     "styles": {
                       "position": "relative", "display": "grid", "grid-template-columns": "20px minmax(0, 1fr)", "column-gap": "12px",
-                      "padding-bottom": "calc(var(--fw-v-r4) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-r4) * 400px)", "opacity": "var(--fw-v-r4)",
+                      "padding-bottom": "calc(var(--fw-v-%%r4%%) * 14px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-%%r4%%) * 400px)", "opacity": "var(--fw-v-%%r4%%)",
                       "transition": "max-height 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), padding-bottom 0.6s cubic-bezier(0.22, 1, 0.36, 1)"
                     },
                     "children": [
                       {
                         "key": "mk4", "tag": "span", "name": "Marker", "attrs": { "aria-hidden": "true" },
-                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-d4) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
+                        "styles": { "position": "relative", "display": "block", "width": "18px", "height": "18px", "margin-top": "1px", "border": "1px solid color-mix(in srgb, var(--edge-strong) calc(var(--fw-v-%%d4%%) * 100%), transparent)", "border-radius": "50%", "background": "var(--pane)" },
                         "children": [
-                          { "key": "ring4", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-r4) - var(--fw-v-d4))" } },
+                          { "key": "ring4", "tag": "span", "name": "Spinner", "styles": { "position": "absolute", "inset": "-1px", "border-radius": "50%", "border": "1px solid var(--edge)", "border-top": "1px solid var(--hue)", "opacity": "calc(var(--fw-v-%%r4%%) - var(--fw-v-%%d4%%))" } },
                           {
                             "key": "ck4", "tag": "svg", "name": "Check",
                             "attrs": { "viewBox": "0 0 24 24", "fill": "none", "stroke": "currentColor", "stroke-width": "2.2", "stroke-linecap": "round", "stroke-linejoin": "round" },
-                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-d4)", "transition": "opacity 0.2s var(--ease-out)" },
+                            "styles": { "position": "absolute", "top": "3px", "left": "3px", "width": "12px", "height": "12px", "color": "var(--terminal-ok)", "opacity": "var(--fw-v-%%d4%%)", "transition": "opacity 0.2s var(--ease-out)" },
                             "children": [ { "key": "ckp4", "tag": "path", "attrs": { "d": "M5 12.5l4.5 4.5L19 7.5" } } ]
                           }
                         ]
@@ -442,27 +442,27 @@
                           {
                             "key": "head4", "tag": "div", "name": "Step head", "styles": { "display": "flex", "align-items": "baseline", "gap": "12px" },
                             "children": [
-                              { "key": "rl4", "tag": "span", "name": "Step label", "text": "checks", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-d4) * 100%), var(--ink))" } },
+                              { "key": "rl4", "tag": "span", "name": "Step label", "text": "checks", "styles": { "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)", "letter-spacing": "0.14em", "text-transform": "uppercase", "color": "color-mix(in srgb, var(--ink-soft) calc(var(--fw-v-%%d4%%) * 100%), var(--ink))" } },
                               { "key": "cnt4", "tag": "span", "name": "Checks count", "text": "14 of 14", "styles": { "margin-left": "auto", "color": "var(--ink-faint)", "font-family": "var(--font-mono)", "font-size": "var(--fs-xs)" } }
                             ]
                           },
                           {
                             "key": "cells", "tag": "div", "name": "Checks", "attrs": { "aria-hidden": "true" }, "styles": { "display": "grid", "grid-template-columns": "repeat(14, minmax(0, 1fr))", "gap": "3px", "margin-top": "10px" },
                             "children": [
-                              { "key": "c1", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 70ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 70ms" } },
-                              { "key": "c2", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 140ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 140ms" } },
-                              { "key": "c3", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 210ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 210ms" } },
-                              { "key": "c4", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 280ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 280ms" } },
-                              { "key": "c5", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 350ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 350ms" } },
-                              { "key": "c6", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 420ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 420ms" } },
-                              { "key": "c7", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 490ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 490ms" } },
-                              { "key": "c8", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 560ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 560ms" } },
-                              { "key": "c9", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 630ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 630ms" } },
-                              { "key": "c10", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 700ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 700ms" } },
-                              { "key": "c11", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 770ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 770ms" } },
-                              { "key": "c12", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 840ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 840ms" } },
-                              { "key": "c13", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 910ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 910ms" } },
-                              { "key": "c14", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-r4) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-r4) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 980ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 980ms" } }
+                              { "key": "c1", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 70ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 70ms" } },
+                              { "key": "c2", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 140ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 140ms" } },
+                              { "key": "c3", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 210ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 210ms" } },
+                              { "key": "c4", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 280ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 280ms" } },
+                              { "key": "c5", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 350ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 350ms" } },
+                              { "key": "c6", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 420ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 420ms" } },
+                              { "key": "c7", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 490ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 490ms" } },
+                              { "key": "c8", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 560ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 560ms" } },
+                              { "key": "c9", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 630ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 630ms" } },
+                              { "key": "c10", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 700ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 700ms" } },
+                              { "key": "c11", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 770ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 770ms" } },
+                              { "key": "c12", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 840ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 840ms" } },
+                              { "key": "c13", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 910ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 910ms" } },
+                              { "key": "c14", "tag": "span", "name": "Cell", "styles": { "display": "block", "height": "8px", "background": "color-mix(in srgb, var(--terminal-ok) calc(var(--fw-v-%%r4%%) * 100%), var(--edge-strong))", "transform": "scaleY(calc(1 + var(--fw-v-%%r4%%) * 0.3))", "transition": "background-color 0.2s var(--ease-out) 980ms, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) 980ms" } }
                             ]
                           }
                         ]
@@ -475,7 +475,7 @@
                 "key": "done", "tag": "div", "name": "Done bar",
                 "styles": {
                   "display": "flex", "flex-wrap": "wrap", "align-items": "center", "gap": "10px",
-                  "padding-top": "calc(var(--fw-v-finished) * 4px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-finished) * 200px)", "opacity": "var(--fw-v-finished)",
+                  "padding-top": "calc(var(--fw-v-%%finished%%) * 4px)", "overflow": "hidden", "max-height": "calc(var(--fw-v-%%finished%%) * 200px)", "opacity": "var(--fw-v-%%finished%%)",
                   "transition": "max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), padding-top 0.5s cubic-bezier(0.22, 1, 0.36, 1)"
                 },
                 "children": [
@@ -517,7 +517,8 @@
     "@@newtask@@": { "states": { "hover": { "background": "var(--control-hover)" } } }
   },
   "properties": {
-    "--kn-a": { "syntax": "<angle>", "inherits": false, "initial": "0deg" }
+    "--kn-a": { "syntax": "<angle>", "inherits": false, "initial": "0deg" },
+    "--kn-x": { "syntax": "<percentage>", "inherits": false, "initial": "0%" }
   },
   "commands": [
     { "command": "textpreset.apply", "params": { "id": "@@subf@@", "name": "app-form" } },
@@ -528,33 +529,34 @@
     { "command": "textpreset.apply", "params": { "id": "@@newtask@@", "name": "button-quiet" } },
     { "command": "node.update", "params": { "id": "@@copy@@", "patch": { "styles": { "gap": "12px" } } } },
     { "command": "node.update", "params": { "id": "@@run@@", "patch": { "styles": { "gap": "10px" } } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "started", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "finished", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "running", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "r1", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "r2", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "r3", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "r4", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "d1", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "d2", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "d3", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "d4", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "http", "value": { "type": "number", "initial": 0, "min": 0, "max": 1, "step": 1, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "adds", "value": { "type": "number", "initial": 0, "min": 0, "max": 9 } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "rems", "value": { "type": "number", "initial": 0, "min": 0, "max": 9 } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "checks", "value": { "type": "number", "initial": 0, "min": 0, "max": 14 } } },
-    { "command": "variables.set", "params": { "kind": "formulas", "name": "timing", "value": "if(http, \"2.7 s over HTTP\", \"1.8 s over stdio\")" } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@lab0@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "http", "value": 0 } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@lab1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "http", "value": 1 } ] } },
-    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@addn@@", "value": { "from": "adds", "decimals": 0, "prefix": "+" } } },
-    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@remn@@", "value": { "from": "rems", "decimals": 0, "prefix": "-" } } },
-    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@cnt4@@", "value": { "from": "checks", "decimals": 0, "suffix": " of 14" } } },
-    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@sum@@", "value": { "from": "timing", "suffix": ", 1 app started" } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%started%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%finished%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%running%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%r1%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%r2%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%r3%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%r4%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%d1%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%d2%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%d3%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%d4%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%http%%", "value": { "type": "number", "initial": 0, "min": 0, "max": 1, "step": 1, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%adds%%", "value": { "type": "number", "initial": 0, "min": 0, "max": 9 } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%rems%%", "value": { "type": "number", "initial": 0, "min": 0, "max": 9 } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%checks%%", "value": { "type": "number", "initial": 0, "min": 0, "max": 14 } } },
+    { "command": "variables.set", "params": { "kind": "formulas", "name": "%%timing%%", "value": "if(%%http%%,\"2.7 s over HTTP\", \"1.8 s over stdio\")" } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@lab0@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%http%%", "value": 0 } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@lab1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%http%%", "value": 1 } ] } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@addn@@", "value": { "from": "%%adds%%", "decimals": 0, "prefix": "+" } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@remn@@", "value": { "from": "%%rems%%", "decimals": 0, "prefix": "-" } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@cnt4@@", "value": { "from": "%%checks%%", "decimals": 0, "suffix": " of 14" } } },
+    { "command": "variables.set", "params": { "kind": "outputs", "name": "@@sum@@", "value": { "from": "%%timing%%", "suffix": ", 1 app started" } } },
     { "command": "motion.set", "params": { "kind": "reveals", "node": "@@badge@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 900, "delay": 100, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
     { "command": "motion.set", "params": { "kind": "reveals", "node": "@@h@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 1000, "delay": 200, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
     { "command": "motion.set", "params": { "kind": "reveals", "node": "@@sub@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 1000, "delay": 300, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
     { "command": "motion.set", "params": { "kind": "reveals", "node": "@@install@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 1000, "delay": 350, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
     { "command": "motion.set", "params": { "kind": "reveals", "node": "@@box@@", "value": { "from": { "opacity": "0", "translate": "0 14px", "filter": "blur(6px)" }, "duration": 1000, "delay": 400, "easing": "cubic-bezier(0.22, 1, 0.36, 1)", "trigger": "load" } } },
+    { "command": "motion.set", "params": { "kind": "loops", "node": "@@l2@@", "value": { "type": "keyframes", "duration": 8000, "easing": "linear", "keyframes": [ { "at": 0, "styles": { "--kn-x": "0%" } }, { "at": 1, "styles": { "--kn-x": "100%" } } ] } } },
     { "command": "motion.set", "params": { "kind": "loops", "node": "@@beam@@", "value": { "type": "keyframes", "duration": 4000, "easing": "linear", "keyframes": [ { "at": 0, "styles": { "--kn-a": "0deg" } }, { "at": 1, "styles": { "--kn-a": "360deg" } } ] } } },
     { "command": "motion.set", "params": { "kind": "loops", "node": "@@beam2@@", "value": { "type": "keyframes", "duration": 1000, "easing": "linear", "keyframes": [ { "at": 0, "styles": { "--kn-a": "0deg" } }, { "at": 1, "styles": { "--kn-a": "360deg" } } ] } } },
     { "command": "motion.set", "params": { "kind": "loops", "node": "@@ring1@@", "value": { "type": "spin", "duration": 800 } } },
@@ -567,20 +569,20 @@
       "params": {
         "kind": "actions", "node": "@@newtask@@",
         "value": [
-          { "trigger": "click", "action": "set-variable", "variable": "started", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "finished", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "running", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "r1", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "r2", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "r3", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "r4", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "d1", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "d2", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "d3", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "d4", "value": false },
-          { "trigger": "click", "action": "set-variable", "variable": "adds", "value": 0 },
-          { "trigger": "click", "action": "set-variable", "variable": "rems", "value": 0 },
-          { "trigger": "click", "action": "set-variable", "variable": "checks", "value": 0 }
+          { "trigger": "click", "action": "set-variable", "variable": "%%started%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%finished%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%running%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%r1%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%r2%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%r3%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%r4%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%d1%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%d2%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%d3%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%d4%%", "value": false },
+          { "trigger": "click", "action": "set-variable", "variable": "%%adds%%", "value": 0 },
+          { "trigger": "click", "action": "set-variable", "variable": "%%rems%%", "value": 0 },
+          { "trigger": "click", "action": "set-variable", "variable": "%%checks%%", "value": 0 }
         ]
       }
     },
@@ -591,50 +593,50 @@
         "value": {
           "trigger": "submit",
           "steps": [
-            { "type": "action", "action": { "action": "set-variable", "variable": "started", "value": true } },
-            { "type": "action", "action": { "action": "set-variable", "variable": "running", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%started%%", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%running%%", "value": true } },
             { "type": "stream", "target": "@@echot@@", "text": "{input:@@task@@}", "speed": 2000 },
             { "type": "stream", "target": "@@runl@@", "text": "Running", "speed": 2000 },
             { "type": "stream", "target": "@@rl1@@", "text": "read {input:@@count@@} apps", "speed": 2000 },
             { "type": "stream", "target": "@@chip1@@", "text": "{input:@@files@@}", "speed": 2000 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "r1", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%r1%%", "value": true } },
             { "type": "wait", "ms": 1100 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "d1", "value": true } },
-            { "type": "action", "action": { "action": "set-variable", "variable": "r2", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%d1%%", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%r2%%", "value": true } },
             { "type": "wait", "ms": 1500 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "d2", "value": true } },
-            { "type": "action", "action": { "action": "set-variable", "variable": "r3", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%d2%%", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%r3%%", "value": true } },
             { "type": "wait", "ms": 510 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "rems", "value": 1 } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%rems%%", "value": 1 } },
             { "type": "wait", "ms": 170 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "adds", "value": 1 } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%adds%%", "value": 1 } },
             { "type": "wait", "ms": 340 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "rems", "value": 2 } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%rems%%", "value": 2 } },
             { "type": "wait", "ms": 170 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "adds", "value": 2 } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%adds%%", "value": 2 } },
             { "type": "wait", "ms": 340 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "adds", "value": 3 } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%adds%%", "value": 3 } },
             { "type": "wait", "ms": 400 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "d3", "value": true } },
-            { "type": "action", "action": { "action": "set-variable", "variable": "r4", "value": true } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 1 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 2 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 3 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 4 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 5 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 6 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 7 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 8 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 9 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 10 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 11 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 12 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 13 } },
-            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "checks", "value": 14 } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%d3%%", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%r4%%", "value": true } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 1 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 2 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 3 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 4 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 5 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 6 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 7 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 8 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 9 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 10 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 11 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 12 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 13 } },
+            { "type": "wait", "ms": 70 }, { "type": "action", "action": { "action": "set-variable", "variable": "%%checks%%", "value": 14 } },
             { "type": "wait", "ms": 300 },
-            { "type": "action", "action": { "action": "set-variable", "variable": "d4", "value": true } },
-            { "type": "action", "action": { "action": "set-variable", "variable": "finished", "value": true } },
-            { "type": "action", "action": { "action": "set-variable", "variable": "running", "value": false } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%d4%%", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%finished%%", "value": true } },
+            { "type": "action", "action": { "action": "set-variable", "variable": "%%running%%", "value": false } },
             { "type": "stream", "target": "@@runl@@", "text": "Run", "speed": 2000 }
           ]
         }

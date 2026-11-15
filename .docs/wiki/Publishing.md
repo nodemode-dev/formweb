@@ -6,6 +6,7 @@ FormWeb exports portable HTML/CSS/JavaScript, serves immutable local versions an
 | --- | --- |
 | `GET /api/export` | Download a ZIP of the active site's website files |
 | `POST /api/publish` | Export and retain a version under a slug |
+| `POST /api/handoff/formpublisher` | Export the open site and send it to FormPublisher, live or into its inbox (0.19.3) |
 | `GET /api/publications` | List previous local publication versions |
 | `/published/{slug}/{version}/` | Serve an immutable site version |
 | `POST /api/releases/promote` | Activate an existing slug/version on its /sites/ route |
@@ -34,6 +35,10 @@ Studio's inbox, CSV, retention and signed-delivery controls consume the persiste
 Provider status exposes configured adapters and missing environment names. Deployment and domain workflows return actual transport and verification status. A submitted/queued response or local fixture does not establish live vendor hosting, domain/TLS/CDN readiness or completed payment processing. Commerce uses the configured catalogue/hosted-checkout/signed-order adapter; independent vendor verification remains necessary. Credentials stay outside the site and static files.
 
 The [advanced Studio map](Advanced-Studio.md), [Studio guide](../../docs/ADVANCED_GUIDE.md) and [agent quick start](../../docs/AGENT_QUICKSTART.md) describe the consuming paths. [Verification](Verification.md) records observed behavior and its limits.
+
+## Handing a site to FormPublisher (0.19.3)
+
+File > Send to FormPublisher, the command `file.send-formpublisher` and the MCP tool `send_to_formpublisher` call `backend/app/handoff.py`. It builds the same ZIP as `GET /api/export` and posts it to `POST /api/receive/formweb` on `FORMWEB_FORMPUBLISHER_URL` (default `http://127.0.0.1:8280`) as `application/zip` with `X-FormWeb-Version`, `X-FormWeb-Site-Name` and `X-FormWeb-Project`, from loopback with no `Origin` and an 8 second timeout. The project header keeps repeat sends of one site together as revisions. A refusal comes back as 502 with FormPublisher's message. If nothing answers, the ZIP is written atomically (temporary name, then rename) to `FORMPUBLISHER_HOME/inbox`, or `~/FormPublisher/inbox`, with a `.zip.json` beside it holding the site name, project and version, and FormPublisher imports it as a revision of the same site when it starts. The result is `{delivered: "live", site, revision}` or `{delivered: "inbox", path}`. The site itself does not change.
 
 ## Contract
 

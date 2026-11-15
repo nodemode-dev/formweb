@@ -1,3 +1,4 @@
+from .authoring_tools import AUTHORING_TOOLS
 from .mcp_catalog import OPTIONAL_NAME, REVISION, tool
 
 ID = {'type': 'string', 'minLength': 1, 'maxLength': 160}
@@ -41,4 +42,5 @@ ADVANCED_TOOLS = [
     tool('import_library', 'Import a version-pinned component library; updates require an acknowledged review digest.', {'id': ID, 'version': VERSION, 'parent': ID, 'components': {'type': 'array', 'items': ID}, 'update': {'type': 'boolean'}, 'reviewDigest': {'type': 'string', 'maxLength': 64}}, ['id']),
     tool('build_code_component', 'Compile an explicitly enabled JavaScript or TypeScript component with actual compiler diagnostics: isolated mode exports mount(root,props) and runs in a sandboxed frame; page mode exports mount(root,props,ctx) and runs in the page.', {'enabled': {'type': 'boolean', 'const': True}, 'language': {'type': 'string', 'enum': ['typescript', 'javascript']}, 'source': {'type': 'string', 'maxLength': 262144}, 'props': {'type': 'object'}, 'mode': {'type': 'string', 'enum': ['isolated', 'page']}, 'poster': {'type': 'string', 'maxLength': 200}}, ['enabled', 'language', 'source']),
 ]
+ADVANCED_TOOLS = ADVANCED_TOOLS + AUTHORING_TOOLS
 ADVANCED_BY_NAME = {item['name']: item for item in ADVANCED_TOOLS}

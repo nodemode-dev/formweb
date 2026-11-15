@@ -2479,4 +2479,8 @@ export default [
   "formai.studion suunnittelujärjestelmä: grafiittipinnat, Inter muuttuvilla painoilla, yksi tuotesävy osiota kohden, tumma ja vaalea teema.",
   "Kuusisivuinen tuotesivusto formai.studion tyyliin: etusivu, tuote, tietoa, tarinat, tuki ja sivua ei löytynyt -sivu, yhteisellä ylä- ja alatunnisteella.",
   "Sivua ei löytynyt -näkymä, joka hakee sivustolta ja tulostaa lähimmät sivut kuitille, jonka voi vetää alas repäistäkseen.",
+  "Lähetä FormPublisherille",
+  "Lähetetty FormPublisherille: {0} on nyt versiossa {1}.",
+  "FormPublisher ei ole käynnissä. Sivusto tallennettiin sen saapuneiden kansioon ({0}), ja se tuodaan, kun FormPublisher käynnistyy.",
+  "Lähetys FormPublisherille epäonnistui: {0}",
 ] as readonly string[];

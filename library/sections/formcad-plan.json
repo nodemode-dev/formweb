@@ -26,7 +26,6 @@
     "attrs": { "aria-label": "{{name}} drawing sheet" },
     "styles": {
       "--hue": "color-mix(in oklab, {{tint}} calc(100% - var(--hue-depth)), #000)",
-      "--fold-plan-tokens": "var(--pane) var(--inset) var(--on-ink) var(--bar-veil) var(--shade-strong) var(--radius-l) var(--radius-m) var(--z-raised) var(--z-overlay) var(--z-tooltip) var(--track-display) var(--fs-m) var(--fs-l) var(--fs-xl) var(--control-hover) var(--shadow-window)",
       "position": "relative",
       "display": "block",
       "box-sizing": "border-box",

@@ -96,7 +96,7 @@
                         "children": [
                           {
                             "key": "plus1", "tag": "svg", "name": "Question 1 plus", "attrs": { "viewBox": "0 0 12 12", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true" },
-                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-faq_open1) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-faq_open1) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
+                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-%%faq_open1%%) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-%%faq_open1%%) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
                             "breakpoints": {},
                             "children": [
                               { "key": "plus1-v", "tag": "path", "name": "Plus vertical", "attrs": { "d": "M6 1v10" }, "styles": {}, "breakpoints": {}, "children": [] },
@@ -110,7 +110,7 @@
                   },
                   {
                     "key": "a1", "tag": "div", "name": "Answer 1 panel", "attrs": { "role": "region" },
-                    "styles": { "opacity": "var(--fw-v-faq_open1)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
+                    "styles": { "opacity": "var(--fw-v-%%faq_open1%%)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
                     "breakpoints": {},
                     "children": [
                       {
@@ -143,7 +143,7 @@
                         "children": [
                           {
                             "key": "plus2", "tag": "svg", "name": "Question 2 plus", "attrs": { "viewBox": "0 0 12 12", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true" },
-                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-faq_open2) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-faq_open2) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
+                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-%%faq_open2%%) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-%%faq_open2%%) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
                             "breakpoints": {},
                             "children": [
                               { "key": "plus2-v", "tag": "path", "name": "Plus vertical", "attrs": { "d": "M6 1v10" }, "styles": {}, "breakpoints": {}, "children": [] },
@@ -157,7 +157,7 @@
                   },
                   {
                     "key": "a2", "tag": "div", "name": "Answer 2 panel", "attrs": { "role": "region" },
-                    "styles": { "opacity": "var(--fw-v-faq_open2)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
+                    "styles": { "opacity": "var(--fw-v-%%faq_open2%%)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
                     "breakpoints": {},
                     "children": [
                       {
@@ -190,7 +190,7 @@
                         "children": [
                           {
                             "key": "plus3", "tag": "svg", "name": "Question 3 plus", "attrs": { "viewBox": "0 0 12 12", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true" },
-                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-faq_open3) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-faq_open3) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
+                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-%%faq_open3%%) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-%%faq_open3%%) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
                             "breakpoints": {},
                             "children": [
                               { "key": "plus3-v", "tag": "path", "name": "Plus vertical", "attrs": { "d": "M6 1v10" }, "styles": {}, "breakpoints": {}, "children": [] },
@@ -204,7 +204,7 @@
                   },
                   {
                     "key": "a3", "tag": "div", "name": "Answer 3 panel", "attrs": { "role": "region" },
-                    "styles": { "opacity": "var(--fw-v-faq_open3)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
+                    "styles": { "opacity": "var(--fw-v-%%faq_open3%%)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
                     "breakpoints": {},
                     "children": [
                       {
@@ -237,7 +237,7 @@
                         "children": [
                           {
                             "key": "plus4", "tag": "svg", "name": "Question 4 plus", "attrs": { "viewBox": "0 0 12 12", "fill": "none", "stroke": "currentColor", "stroke-width": "1.5", "stroke-linecap": "round", "aria-hidden": "true" },
-                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-faq_open4) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-faq_open4) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
+                            "styles": { "flex": "none", "width": "12px", "height": "12px", "margin-top": "4px", "color": "color-mix(in srgb, var(--hue) calc(var(--fw-v-%%faq_open4%%) * 100%), var(--ink-faint))", "transform": "rotate(calc(var(--fw-v-%%faq_open4%%) * 45deg))", "transition": "transform 600ms var(--ease-out), color 600ms var(--ease-out)" },
                             "breakpoints": {},
                             "children": [
                               { "key": "plus4-v", "tag": "path", "name": "Plus vertical", "attrs": { "d": "M6 1v10" }, "styles": {}, "breakpoints": {}, "children": [] },
@@ -251,7 +251,7 @@
                   },
                   {
                     "key": "a4", "tag": "div", "name": "Answer 4 panel", "attrs": { "role": "region" },
-                    "styles": { "opacity": "var(--fw-v-faq_open4)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
+                    "styles": { "opacity": "var(--fw-v-%%faq_open4%%)", "transition": "grid-template-rows 700ms var(--ease-out), opacity 700ms var(--ease-out)" },
                     "breakpoints": {},
                     "children": [
                       {
@@ -354,14 +354,14 @@
     { "command": "textpreset.apply", "params": { "id": "@@cta@@", "name": "button" } },
     { "command": "node.update", "params": { "id": "@@cta@@", "patch": { "styles": { "position": "relative", "overflow": "hidden", "flex": "none", "min-width": "15rem", "justify-content": "flex-start" } } } },
 
-    { "command": "variables.set", "params": { "kind": "values", "name": "faq_open1", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "faq_open2", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "faq_open3", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "variables.set", "params": { "kind": "values", "name": "faq_open4", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "faq_open1", "formula": "!faq_open1" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q2@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "faq_open2", "formula": "!faq_open2" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q3@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "faq_open3", "formula": "!faq_open3" } ] } },
-    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q4@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "faq_open4", "formula": "!faq_open4" } ] } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%faq_open1%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%faq_open2%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%faq_open3%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "variables.set", "params": { "kind": "values", "name": "%%faq_open4%%", "value": { "type": "boolean", "initial": false, "cssVar": true } } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q1@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%faq_open1%%", "formula": "!%%faq_open1%%" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q2@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%faq_open2%%", "formula": "!%%faq_open2%%" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q3@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%faq_open3%%", "formula": "!%%faq_open3%%" } ] } },
+    { "command": "motion.set", "params": { "kind": "actions", "node": "@@q4@@", "value": [ { "trigger": "click", "action": "set-variable", "variable": "%%faq_open4%%", "formula": "!%%faq_open4%%" } ] } },
     {
       "command": "motion.set",
       "params": {

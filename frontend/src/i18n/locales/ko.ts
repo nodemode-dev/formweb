@@ -2479,4 +2479,8 @@ export default [
   "formai.studio 디자인 시스템: 그래파이트 표면, 가변 두께의 Inter, 섹션마다 하나의 제품 색조, 다크 및 라이트 테마.",
   "formai.studio 스타일의 여섯 페이지 제품 사이트: 홈, 제품, 소개, 이야기, 지원, 찾을 수 없음 페이지, 공통 헤더와 푸터.",
   "사이트를 검색하고 가장 가까운 페이지를 영수증에 인쇄해, 아래로 당겨 뜯어낼 수 있는 페이지 없음 화면.",
+  "FormPublisher로 보내기",
+  "FormPublisher로 보냈습니다. {0}은(는) 이제 리비전 {1}입니다.",
+  "FormPublisher가 실행 중이 아닙니다. 사이트를 받은 편지함({0})에 저장했으며 FormPublisher가 시작되면 가져옵니다.",
+  "FormPublisher로 보내지 못했습니다: {0}",
 ] as readonly string[];

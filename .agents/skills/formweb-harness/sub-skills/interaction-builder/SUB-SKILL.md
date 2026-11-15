@@ -1,6 +1,6 @@
 ---
 name: interaction-builder
-description: "Authors FormWeb navigation, interactions and configured runtime widgets for data, commerce, membership and consent (form inbox and delivery belong to forms-operator). Requires observed browser outcomes and distinguishes local capture, provider fixtures and verified external services."
+description: "Authors FormWeb navigation, interactions, native motion (reveals, scroll scenes, loops, counters, drag), variables and formulas, the script player, site search and configured runtime widgets for data, commerce, membership and consent (form inbox and delivery belong to forms-operator). Uses motion_set, variables_set and their siblings, or apply_commands on older servers. Requires observed browser outcomes and distinguishes local capture, provider fixtures and verified external services."
 ---
 
 # Interaction Builder
@@ -8,6 +8,20 @@ description: "Authors FormWeb navigation, interactions and configured runtime wi
 ## Purpose
 
 Create useful behavior that can be demonstrated in an exported page. Keep local submission capture separate from external email, CRM delivery or production abuse protection.
+
+## Surfaces
+
+Newer servers (0.19.3) expose motion and variables as their own tools; an older server has only `apply_commands`, which takes the same command names and params. Check `tools/list` first and use whichever exists.
+
+| Action | MCP (0.19.3) | Older server: `apply_commands` command | CLI |
+| --- | --- | --- | --- |
+| Set one motion entry (reveals, scenes, loops, counters, text, drag, pointer, disclosure, actions, scripts) | `motion_set` {kind, node, value} | `motion.set` | `./formweb run motion.set '{"kind":"reveals","node":"[node-id]","value":{}}'` |
+| Remove one motion entry | `motion_remove` {kind, node} | `motion.remove` | `./formweb run motion.remove '{"kind":"reveals","node":"[node-id]"}'` |
+| Edit one scene track | `motion_track` {scene, list, index, track} | `motion.track` | `./formweb run motion.track '{...}'` |
+| Set a value, table, formula, input or output | `variables_set` {kind, name, value} | `variables.set` | `./formweb run variables.set '{...}'` |
+| Remove a variable entry | `variables_remove` {kind, name} | `variables.remove` | `./formweb run variables.remove '{...}'` |
+
+Each tool is one undo step. When several entries must land together (a calculator needs values, formulas, inputs and outputs), send them as one `apply_commands` batch so they validate and undo as a unit. Scripts, actions and scenes are motion kinds, so `motion_set` covers them. To decide between native motion, a script, a variable or a page component, load sibling `motion-director` first.
 
 ## Preconditions
 
@@ -95,6 +109,12 @@ Scene track edits without resending the scene (index equal to the list length ap
 
 Check variables, scripts and search in the exported page at reduced motion too: streams and typing complete at once, and pointer steps jump.
 
+Variables are site-wide. A section that sets a variable and is inserted twice shares that state unless the name is scoped. Inside a library template write the variable as `%%name%%` (it becomes `name_[suffix]` per insert, in names, formulas, actions, scripts, component props and `var(--fw-v-%%name%%)` styles). In hand-authored commands on a live site, pick a distinct name per copy yourself. See sibling `library`.
+
+Scene offsets: a scene `offset` takes a length, and from 0.19.3 also `var(--token)` or a `calc()` of those (for example `var(--bar-h)` when a sticky header covers the stage). On an older server use a literal length.
+
+Page components read variables and scene progress through `ctx.variable`, `ctx.onVariable` and `ctx.progress`; build them with sibling `components-builder`.
+
 ## Gate
 
 Each claimed interaction was observed in the browser, controls are labeled and keyboard reachable, and a claimed form capture has an observed submission result. Email, CRM, webhooks and hosted security features remain unclaimed unless separately implemented and verified.
@@ -107,3 +127,5 @@ Affected node and form IDs, final revision, interaction checks, submission scope
 
 - Pack root `references/architecture.md`: supported interactions and local form boundary; open before behavior work.
 - Pack root `references/mcp-workflows.md`: publication and submission inspection sequence; open before an end-to-end check.
+- `docs/ADVANCED_SCHEMA.md`: motion, variables, formulas and script step limits.
+- Sibling `motion-director`: which mechanism to choose. Sibling `library`: ready-made animated sections.

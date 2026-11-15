@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.19.3 · 2026-11-10
+
+- File > Send to FormPublisher exports the open site and hands it to FormPublisher: live when it is running (the status line names the new revision), or into its inbox folder when it is not, with the site name beside the zip so it arrives as a revision of the same site. `FORMWEB_FORMPUBLISHER_URL` points it elsewhere.
+- 14 new MCP tools (101 in all) let an agent set and remove motion, edit scene tracks, set variables, build and place page components, list and insert library sections, apply presets and starters, import HTML, start a new site and send it to FormPublisher. `./formweb library list|insert|preset|starter` does the same from a terminal, and the skills gain motion-director and library guides.
+- Templates scope their variables per insert with `%%name%%`, so two copies of a calculator or a counter on one page keep their own values.
+- The model accepts a wider vocabulary, each property with its own value check: logical margins, paddings, insets, sizes and borders, background-clip text, writing-mode, scrollbar styling, underline offset and decoration colour, overflow-wrap, hyphens, appearance, resize, fill and stroke; the `enterkeyhint`, `inputmode`, `spellcheck`, `autocomplete` and `focusable` attributes; and the svg `rect`, `circle`, `ellipse`, `line`, `polyline` and `polygon` tags.
+- A scroll scene's offset can be `var()` or `calc()`, and presets can set page values per breakpoint: formai-studio pins scenes at `--bar-h`, 64 px on desktop and 97 px on phones, just under the header.
+- The library templates now use these properties directly instead of their physical stand-ins; the header, the footer and the 25 sections that changed were shot again in all four runs (`docs/SECTION_PARITY.md`).
+- Batches check extensions and synchronize once at their end: the product-site starter applies in 0.7 s instead of timing out, and the resulting documents are byte-identical.
+
 ## 0.19.2 · 2026-11-10
 
 - A Library tab holds the 35 animated sections of the formai.studio sites as templates, plus their header and footer. Pick one, re-cast its tint, product name, copy and links, and insert it as one undo step; two copies stay independent. Each keeps the original's motion and interaction and binds its look to your tokens and text presets, so another preset or a theme change restyles it.

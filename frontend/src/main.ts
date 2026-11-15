@@ -1526,6 +1526,15 @@ async function exportSite(): Promise<void> {
   await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
   status(`Static site exported for ${locale}.`);
 }
+async function sendToFormPublisher(): Promise<void> {
+  try {
+    const sent = await request<{ delivered: 'live' | 'inbox'; site?: string; revision?: string; path?: string }>(`/api/handoff/formpublisher?locale=${encodeURIComponent(locale)}`, {});
+    if (sent.delivered === 'live') status(t('Sent to FormPublisher: {0} is now at revision {1}.', [state().site.name, sent.revision ?? '']));
+    else status(t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [sent.path ?? '']));
+  } catch (error) {
+    status(t('Could not send to FormPublisher: {0}', [error instanceof Error ? error.message : String(error)]), true);
+  }
+}
 function parseCsv(source: string): { slug: string; name?: string; values: Record<string, string> }[] {
   const records: string[][] = [];
   let row: string[] = [];
@@ -1920,6 +1929,7 @@ registerCommands([
   { id: 'file.save', label: 'Save', menu: 'File', keys: ['Mod+S'], global: true, group: 1, run: saveProject, enabled: ready },
   { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },
   { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: ready },
+  { id: 'file.send-formpublisher', label: 'Send to FormPublisher', menu: 'File', group: 2, run: sendToFormPublisher, enabled: ready },
   { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
   { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
   { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z'], repeat: true, run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },

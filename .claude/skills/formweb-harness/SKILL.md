@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: "Project skill for Claude Code and other clients with the FormWeb MCP server connected. Requires a running local FormWeb FastAPI service and explicit Agents enablement."
 metadata:
   author: "nodemode-ai"
-  version: "0.19.2"
+  version: "0.19.3"
 ---
 
 # FormWeb Harness
@@ -38,6 +38,8 @@ formweb-harness/
     forms-operator/SUB-SKILL.md              forms, inbox, retention, delivery
     interaction-builder/SUB-SKILL.md         interactions, variables, scripts, search
     components-builder/SUB-SKILL.md          page components, code sections, posters
+    motion-director/SUB-SKILL.md             which motion mechanism, motion and variables tools
+    library/SUB-SKILL.md                     ready-made sections, presets, starters, Import HTML
     release-operator/SUB-SKILL.md            save, export, publish, providers
     branch-and-review/SUB-SKILL.md           branches, merges, comments, release review
     agent-connect-and-terminal/SUB-SKILL.md  approvals, activity, selection, terminal, CLI
@@ -64,6 +66,8 @@ A specialist-local path resolves from that specialist's folder. A sibling path r
 | Forms, submissions inbox, CSV, retention, signed webhook delivery | `sub-skills/forms-operator/SUB-SKILL.md` |
 | Author interactions, variables and calculators, script player, site search, data widgets, commerce, membership or consent behavior | `sub-skills/interaction-builder/SUB-SKILL.md` |
 | Page components that run in the page, code sections, posters, color and asset props, svg assets | `sub-skills/components-builder/SUB-SKILL.md` |
+| Make something move or react and choose between native motion, scroll scenes, variables, scripts or a page component | `sub-skills/motion-director/SUB-SKILL.md` |
+| Start from a ready-made hero, pricing, footer or scroll-story section, apply the design preset or starter site, import an HTML page, or author a library template | `sub-skills/library/SUB-SKILL.md` |
 | Save/import a native project, export, publish locally or through configured providers | `sub-skills/release-operator/SUB-SKILL.md` |
 | Branches, merge review, comments, presence, release approval by a reviewer | `sub-skills/branch-and-review/SUB-SKILL.md` |
 | A person is in the editor too: approvals, activity, their selection, the terminal, `./formweb run` | `sub-skills/agent-connect-and-terminal/SUB-SKILL.md` |

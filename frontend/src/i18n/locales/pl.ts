@@ -2479,4 +2479,8 @@ export default [
   "System projektowy formai.studio: grafitowe powierzchnie, Inter o zmiennych grubościach, jeden odcień produktu na sekcję, ciemny i jasny motyw.",
   "Sześciostronicowa witryna produktu w stylu formai.studio: strona główna, produkt, o nas, historie, wsparcie i strona nie znaleziono, ze wspólnym nagłówkiem i stopką.",
   "Ekran „nie znaleziono strony”, który przeszukuje witrynę i drukuje najbliższe strony na paragonie, który można pociągnąć w dół, aby oderwać.",
+  "Wyślij do FormPublisher",
+  "Wysłano do FormPublisher: {0} jest teraz w rewizji {1}.",
+  "FormPublisher nie jest uruchomiony. Witrynę zapisano w jego skrzynce odbiorczej ({0}) i zostanie zaimportowana po uruchomieniu FormPublisher.",
+  "Nie można wysłać do FormPublisher: {0}",
 ] as readonly string[];

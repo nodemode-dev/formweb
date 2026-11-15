@@ -2479,4 +2479,8 @@ export default [
   "Het designsysteem van formai.studio: grafietkleurige vlakken, Inter in variabele gewichten, één producttint per sectie, donkere en lichte thema's.",
   "Een productsite van zes pagina's in de stijl van formai.studio: home, product, over ons, verhalen, support en een niet-gevonden-pagina, met gedeelde kop- en voettekst.",
   "Een pagina-niet-gevonden-scherm dat de site doorzoekt en de dichtstbijzijnde pagina's op een bon print die je naar beneden kunt trekken om af te scheuren.",
+  "Naar FormPublisher sturen",
+  "Naar FormPublisher gestuurd: {0} staat nu op revisie {1}.",
+  "FormPublisher draait niet. De site is opgeslagen in de inbox ({0}) en wordt geïmporteerd zodra FormPublisher start.",
+  "Kan niet naar FormPublisher sturen: {0}",
 ] as readonly string[];

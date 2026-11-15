@@ -3,9 +3,11 @@ sites, kept as data under `library/` and turned into ordinary engine commands he
 engine or the network: callers pass the current site in and send the returned commands as one batch, so an insert is one
 undo step and works the same from the Library panel, the HTTP routes and the CLI.
 
-Template strings use three placeholders, expanded in this order:
+Template strings use four placeholders, expanded in this order:
 - `$parent` (the whole string) is the node the section is inserted under.
 - `@@key@@` is a node id: `key-<suffix>`, with one random suffix per insert, so a template can be inserted many times.
+- `%%name%%` is a variable scoped to the insert: `name_<suffix>`, in names, formulas, actions, scripts, props and
+  `var(--fw-v-%%name%%)` styles alike, so two copies of a section keep their own state.
 - `{{field}}` is a re-cast field value; when the whole string is one placeholder the raw value is used (numbers, objects).
 """
 import json
@@ -23,6 +25,8 @@ KEY = re.compile(r'^[A-Za-z0-9_-]{1,40}$')
 IDENT = re.compile(r'^[A-Za-z0-9_-]{1,96}$')
 NODE_REF = re.compile(r'@@([A-Za-z0-9_-]{1,40})@@')
 FIELD_REF = re.compile(r'\{\{([A-Za-z0-9_]{1,40})\}\}')
+# %%name%% is a variable scoped to one insert: name_<suffix>, so two copies of a section keep their own state (0.19.3).
+VAR_REF = re.compile(r'%%([A-Za-z_][A-Za-z0-9_]{0,40})%%')
 WHOLE_FIELD = re.compile(r'^\{\{([A-Za-z0-9_]{1,40})\}\}$')
 HEX = re.compile(r'^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$')
 CATEGORIES = ('product-site', 'scroll-story', 'portfolio-hero', 'prompt-hero', 'support', 'not-found', 'chrome')
@@ -86,7 +90,8 @@ def index() -> dict:
     order = {name: i for i, name in enumerate(CATEGORIES)}
     sections.sort(key=lambda s: (order.get(s['category'], 99), s['name'] or ''))
     components = [{key: data.get(key) for key in ('id', 'code', 'name', 'description', 'props', 'labels', 'sections')} for data in (_read(p) for p in sorted((LIBRARY / 'components').glob('*/manifest.json')))]
-    presets = [{key: data.get(key) for key in ('id', 'name', 'description')} for data in (_read(p) for p in sorted((LIBRARY / 'presets').glob('*.json')))]
+    # products: the preset's product tints, so an agent re-casting a section for a named app can pick its colour.
+    presets = [{key: data.get(key) for key in ('id', 'name', 'description', 'products')} for data in (_read(p) for p in sorted((LIBRARY / 'presets').glob('*.json')))]
     starters = [{key: data.get(key) for key in ('id', 'name', 'description', 'pages', 'preset')} for data in (_read(p) for p in sorted((LIBRARY / 'starters').glob('*.json')))]
     return {'categories': list(CATEGORIES), 'sections': sections, 'components': components, 'presets': presets, 'starters': starters}
 
@@ -124,6 +129,7 @@ def _substitute(value, parent: str, suffix: str, values: dict):
             raw = values[whole.group(1)]
             return raw if not isinstance(raw, str) else NODE_REF.sub(lambda m: f'{m.group(1)}-{suffix}', raw)
         value = NODE_REF.sub(lambda m: f'{m.group(1)}-{suffix}', value)
+        value = VAR_REF.sub(lambda m: f'{m.group(1)}_{suffix}', value)
         return FIELD_REF.sub(lambda m: str(values[m.group(1)]) if m.group(1) in values else m.group(0), value)
     if isinstance(value, list):
         return [_substitute(item, parent, suffix, values) for item in value]
@@ -208,9 +214,15 @@ def preset_commands(site: dict, data: dict, font_sources: dict, mode: str = 'mis
 
 def page_commands(site: dict, data: dict, root: str, mode: str = 'missing') -> list[dict]:
     """Root styles from the preset's `page` map, skipping properties a designer already set when mode is "missing"."""
-    current = ((site.get('nodes') or {}).get(root) or {}).get('styles') or {}
+    node = (site.get('nodes') or {}).get(root) or {}
+    current = node.get('styles') or {}
     styles = {k: v for k, v in (data.get('page') or {}).items() if mode == 'all' or k not in current}
-    return [{'command': 'node.update', 'params': {'id': root, 'patch': {'styles': styles}}}] if styles else []
+    # pageBreakpoints: root values per breakpoint, for example the taller two-row header bar on phones (--bar-h).
+    have = node.get('breakpoints') or {}
+    merged = {name: {**(have.get(name) or {}), **{k: v for k, v in values.items() if mode == 'all' or k not in (have.get(name) or {})}}
+              for name, values in (data.get('pageBreakpoints') or {}).items()}
+    patch = {**({'styles': styles} if styles else {}), **({'breakpoints': {**have, **merged}} if any(merged.get(n) != have.get(n) for n in merged) else {})}
+    return [{'command': 'node.update', 'params': {'id': root, 'patch': patch}}] if patch else []
 
 
 def component_group(site: dict, records: dict) -> dict | None:
