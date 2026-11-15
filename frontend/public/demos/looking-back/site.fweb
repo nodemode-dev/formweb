@@ -1044,7 +1044,7 @@
         }
       }
     },
-    "id": "site-a6d472cf3edf3e35be1de8c61a4512d8",
+    "id": "site-df8e00537bc97ad651a51938b6502f71",
     "locales": {
       "en": {}
     },
@@ -1511,7 +1511,7 @@
           "opacity": "0.8"
         },
         "tag": "p",
-        "text": "AS17-148-22727 · 7 December 1972 · NASA"
+        "text": "AS17-148-22727 · 7 December 1972 · NASA (JSC)"
       },
       "c2-img": {
         "attrs": {
@@ -1734,7 +1734,7 @@
           "opacity": "0.8"
         },
         "tag": "p",
-        "text": "PIA00452 · 14 February 1990 · NASA / JPL"
+        "text": "PIA00452 · 14 February 1990 · NASA / JPL-Caltech"
       },
       "c3-img": {
         "attrs": {
@@ -5324,7 +5324,7 @@
           "vertical-align": "top"
         },
         "tag": "td",
-        "text": "s66-54563 · NASA"
+        "text": "s66-54563 · NASA (JSC)"
       },
       "n-r1": {
         "attrs": {},
@@ -5412,7 +5412,7 @@
           "vertical-align": "top"
         },
         "tag": "td",
-        "text": "s66-37923 · NASA"
+        "text": "s66-37923 · NASA (JSC)"
       },
       "n-r2": {
         "attrs": {},
@@ -5500,7 +5500,7 @@
           "vertical-align": "top"
         },
         "tag": "td",
-        "text": "s66-46249 · NASA"
+        "text": "s66-46249 · NASA (JSC)"
       },
       "n-r3": {
         "attrs": {},
@@ -5676,7 +5676,7 @@
           "vertical-align": "top"
         },
         "tag": "td",
-        "text": "as10-34-5013 · NASA"
+        "text": "as10-34-5013 · NASA (JSC)"
       },
       "n-r5": {
         "attrs": {},
@@ -5764,7 +5764,7 @@
           "vertical-align": "top"
         },
         "tag": "td",
-        "text": "as17-148-22727 · NASA"
+        "text": "as17-148-22727 · NASA (JSC)"
       },
       "n-r6": {
         "attrs": {},
@@ -5852,7 +5852,7 @@
           "vertical-align": "top"
         },
         "tag": "td",
-        "text": "PIA00452 · NASA / JPL"
+        "text": "PIA00452 · NASA / JPL-Caltech"
       },
       "n-r7": {
         "attrs": {},
@@ -6090,7 +6090,7 @@
           "margin": "0"
         },
         "tag": "p",
-        "text": "Every photograph here is a NASA image. NASA material is generally not subject to copyright in the United States; the credit lines are the ones NASA asks for. The files were resized for the web and are otherwise unaltered: nothing was retouched, recoloured or composited for this essay."
+        "text": "Every photograph here is a NASA image. NASA material is generally not subject to copyright in the United States; the credit lines are those on each picture’s NASA page, and NASA (JSC) is the Johnson Space Center. The files were resized for the web and are otherwise unaltered: nothing was retouched, recoloured or composited for this essay."
       },
       "n-t-p2": {
         "attrs": {},
@@ -6994,7 +6994,7 @@
           "letter-spacing": "0.06em"
         },
         "tag": "figcaption",
-        "text": "Frame 1 of 6. The Gulf Coast from Gemini 11, 14 September 1966. NASA."
+        "text": "Frame 1 of 6. The Gulf Coast from Gemini 11, 14 September 1966. NASA (JSC)."
       },
       "pro-fig-img": {
         "attrs": {
@@ -8118,7 +8118,7 @@
   ],
   "checkpoint": {
     "redo": [],
-    "revision": 32,
+    "revision": 6,
     "schemaVersion": 1,
     "site": {
       "breakpoints": [
@@ -9163,7 +9163,7 @@
           }
         }
       },
-      "id": "site-a6d472cf3edf3e35be1de8c61a4512d8",
+      "id": "site-df8e00537bc97ad651a51938b6502f71",
       "locales": {
         "en": {}
       },
@@ -9630,7 +9630,7 @@
             "opacity": "0.8"
           },
           "tag": "p",
-          "text": "AS17-148-22727 · 7 December 1972 · NASA"
+          "text": "AS17-148-22727 · 7 December 1972 · NASA (JSC)"
         },
         "c2-img": {
           "attrs": {
@@ -9853,7 +9853,7 @@
             "opacity": "0.8"
           },
           "tag": "p",
-          "text": "PIA00452 · 14 February 1990 · NASA / JPL"
+          "text": "PIA00452 · 14 February 1990 · NASA / JPL-Caltech"
         },
         "c3-img": {
           "attrs": {
@@ -13443,7 +13443,7 @@
             "vertical-align": "top"
           },
           "tag": "td",
-          "text": "s66-54563 · NASA"
+          "text": "s66-54563 · NASA (JSC)"
         },
         "n-r1": {
           "attrs": {},
@@ -13531,7 +13531,7 @@
             "vertical-align": "top"
           },
           "tag": "td",
-          "text": "s66-37923 · NASA"
+          "text": "s66-37923 · NASA (JSC)"
         },
         "n-r2": {
           "attrs": {},
@@ -13619,7 +13619,7 @@
             "vertical-align": "top"
           },
           "tag": "td",
-          "text": "s66-46249 · NASA"
+          "text": "s66-46249 · NASA (JSC)"
         },
         "n-r3": {
           "attrs": {},
@@ -13795,7 +13795,7 @@
             "vertical-align": "top"
           },
           "tag": "td",
-          "text": "as10-34-5013 · NASA"
+          "text": "as10-34-5013 · NASA (JSC)"
         },
         "n-r5": {
           "attrs": {},
@@ -13883,7 +13883,7 @@
             "vertical-align": "top"
           },
           "tag": "td",
-          "text": "as17-148-22727 · NASA"
+          "text": "as17-148-22727 · NASA (JSC)"
         },
         "n-r6": {
           "attrs": {},
@@ -13971,7 +13971,7 @@
             "vertical-align": "top"
           },
           "tag": "td",
-          "text": "PIA00452 · NASA / JPL"
+          "text": "PIA00452 · NASA / JPL-Caltech"
         },
         "n-r7": {
           "attrs": {},
@@ -14209,7 +14209,7 @@
             "margin": "0"
           },
           "tag": "p",
-          "text": "Every photograph here is a NASA image. NASA material is generally not subject to copyright in the United States; the credit lines are the ones NASA asks for. The files were resized for the web and are otherwise unaltered: nothing was retouched, recoloured or composited for this essay."
+          "text": "Every photograph here is a NASA image. NASA material is generally not subject to copyright in the United States; the credit lines are those on each picture’s NASA page, and NASA (JSC) is the Johnson Space Center. The files were resized for the web and are otherwise unaltered: nothing was retouched, recoloured or composited for this essay."
         },
         "n-t-p2": {
           "attrs": {},
@@ -15113,7 +15113,7 @@
             "letter-spacing": "0.06em"
           },
           "tag": "figcaption",
-          "text": "Frame 1 of 6. The Gulf Coast from Gemini 11, 14 September 1966. NASA."
+          "text": "Frame 1 of 6. The Gulf Coast from Gemini 11, 14 September 1966. NASA (JSC)."
         },
         "pro-fig-img": {
           "attrs": {
