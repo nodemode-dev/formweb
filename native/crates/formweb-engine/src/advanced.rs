@@ -145,10 +145,12 @@ fn linked_at(site:&Site,start:&str)->bool{let mut at=Some(start.to_string());whi
 fn asset_ids(text:&str,out:&mut BTreeSet<String>){let mut rest=text;while let Some(at)=rest.find("/api/assets/"){rest=&rest[at+12..];let end=rest.find(|c:char|!(c.is_ascii_alphanumeric()||c=='.'||c=='_'||c=='-')).unwrap_or(rest.len());let id=rest[..end].trim_end_matches('.');if !id.is_empty(){out.insert(id.to_string());}}}
 const VALUE_KINDS:&[&str]=&["values","tables","formulas"];
 fn variable_of(site:&Site,name:&str)->Option<(&'static str,Value)>{VALUE_KINDS.iter().find_map(|kind|site.extensions.get("variables").and_then(|g|g.get(*kind)).and_then(|m|m.get(name)).map(|v|(*kind,v.clone())))}
+// Every variable a set-variable action names, anywhere inside a motion entry (action lists, scene markers, script steps), with the words of its formula.
+fn set_variable_names(value:&Value,out:&mut Vec<String>){match value{Value::Object(o)=>{if o.get("action").and_then(Value::as_str)==Some("set-variable"){if let Some(name)=o.get("variable").and_then(Value::as_str){out.push(name.to_string());}if let Some(text)=o.get("formula").and_then(Value::as_str){for word in text.split(|c:char|!(c.is_ascii_alphanumeric()||c=='_')).filter(|w|!w.is_empty()){out.push(word.to_string());}}}for v in o.values(){set_variable_names(v,out);}},Value::Array(a)=>for v in a{set_variable_names(v,out)},_=>{}}}
 // The values, tables and formulas the copied inputs and outputs bind, with every name their formulas read.
 fn fragment_variables(site:&Site,entries:&[Entry])->serde_json::Map<String,Value>{
     let mut out=serde_json::Map::new();let mut queue:Vec<String>=vec![];let mut seen=BTreeSet::new();
-    for(g,f,_,v)in entries{if g=="variables"{if let Some(name)=v.get(if f=="inputs"{"variable"}else{"from"}).and_then(Value::as_str){queue.push(name.to_string());}}}
+    for(g,f,_,v)in entries{if g=="variables"{if let Some(name)=v.get(if f=="inputs"{"variable"}else{"from"}).and_then(Value::as_str){queue.push(name.to_string());}}if g=="motion"{set_variable_names(v,&mut queue);}}
     while let Some(name)=queue.pop(){if !seen.insert(name.clone()){continue;}let Some((kind,value))=variable_of(site,&name)else{continue};if kind=="formulas"{if let Some(text)=value.as_str(){for word in text.split(|c:char|!(c.is_ascii_alphanumeric()||c=='_')).filter(|w|!w.is_empty()){queue.push(word.to_string());}}}out.entry(kind).or_insert_with(||json!({})).as_object_mut().unwrap().insert(name,value);}
     out
 }
@@ -178,14 +180,32 @@ fn fragment_design(site:&Site,text:&str,entries:&[Entry])->Value{
     let themes=if modes.is_empty(){json!({})}else{json!({"default":design.and_then(|d|d.get("themes")).and_then(|t|t.get("default")).cloned().unwrap_or(json!("dark")),"followSystem":design.and_then(|d|d.get("themes")).and_then(|t|t.get("followSystem")).cloned().unwrap_or(json!(false)),"values":modes})};
     json!({"tokens":tokens,"textPresets":presets,"themes":themes})
 }
-// The CMS collections the copied bindings and lists name, with their items; one past the cap travels as its definition only and is reported.
+// The CMS collections the copied bindings and lists name, and those their reference fields point at, with their items; past the cap a collection carries its first items and every item named by id, and the rest are reported.
 fn fragment_collections(site:&Site,ids:&BTreeSet<String>,entries:&[Entry])->(Value,Vec<String>){
-    let mut out=serde_json::Map::new();let mut warnings=vec![];
+    let mut out=serde_json::Map::new();let mut warnings:Vec<String>=vec![];
     let mut named:Vec<String>=ids.iter().filter_map(|n|site.nodes[n].binding.as_ref().map(|b|b.collection.clone())).collect();
     for(g,f,_,v)in entries{if g=="cms"&&(f=="bindings"||f=="lists"){if let Some(id)=v.get("collection").and_then(Value::as_str){named.push(id.to_string());}}}
-    for id in named.iter().map(String::as_str){if out.contains_key(id){continue;}if let Some(c)=site.collections.get(id){let mut c=c.clone();if c.items.len()>COLLECTION_ITEM_CAP{warnings.push(format!("collection {id} has {} items, more than {COLLECTION_ITEM_CAP}; it travels as its definition only",c.items.len()));c.items.clear();}if let Ok(value)=serde_json::to_value(&c){out.insert(id.into(),value);}}}
+    let mut picked=BTreeSet::new();
+    for(g,f,_,v)in entries{if g=="cms"&&f=="bindings"{if let Some(item)=v.get("item").and_then(Value::as_str){picked.insert(item.to_string());}}if g=="cms"&&f=="lists"{if let Some(filter)=v.get("filter"){json_strings(filter,&mut picked);}}}
+    let mut order:Vec<String>=vec![];
+    for id in named{if site.collections.contains_key(&id)&&!order.contains(&id){order.push(id);}}
+    let mut required:BTreeMap<String,BTreeSet<String>>=BTreeMap::new();let mut kept:BTreeMap<String,Vec<usize>>=BTreeMap::new();
+    // Fixpoint: a carried item's references pull in their target collections, and (past the cap) the target items themselves.
+    loop{
+        let mut changed=false;let mut at=0;
+        while at<order.len(){
+            let id=order[at].clone();at+=1;let c=&site.collections[&id];
+            let keep:Vec<usize>={let need=required.get(&id);c.items.iter().enumerate().filter(|(i,item)|c.items.len()<=COLLECTION_ITEM_CAP||*i<COLLECTION_ITEM_CAP||picked.contains(&item.id)||need.map(|n|n.contains(&item.id)).unwrap_or(false)).map(|(i,_)|i).collect()};
+            for field in c.fields.iter(){let Some(target)=field.collection.as_ref()else{continue};if !site.collections.contains_key(target){continue;}if !order.contains(target){order.push(target.clone());changed=true;}
+                for i in &keep{let ids:Vec<&str>=match c.items[*i].values.get(&field.name){Some(Value::String(s))=>vec![s.as_str()],Some(Value::Array(a))=>a.iter().filter_map(Value::as_str).collect(),_=>vec![]};for r in ids{if required.entry(target.clone()).or_default().insert(r.to_string()){changed=true;}}}}
+            if kept.get(&id)!=Some(&keep){kept.insert(id,keep);changed=true;}
+        }
+        if !changed{break;}
+    }
+    for id in &order{let mut c=site.collections[id].clone();let total=c.items.len();let keep=&kept[id];if keep.len()<total{let left=total-keep.len();warnings.push(format!("collection {id} has {total} items, more than {COLLECTION_ITEM_CAP}; the first {COLLECTION_ITEM_CAP} and {} more named by a binding, list or reference travel, and {left} were left out",keep.len().saturating_sub(COLLECTION_ITEM_CAP)));c.items=keep.iter().map(|i|c.items[*i].clone()).collect();}if let Ok(value)=serde_json::to_value(&c){out.insert(id.clone(),value);}}
     (Value::Object(out),warnings)
 }
+fn json_strings(value:&Value,out:&mut BTreeSet<String>){match value{Value::String(s)=>{out.insert(s.clone());},Value::Array(a)=>for v in a{json_strings(v,out)},Value::Object(o)=>for v in o.values(){json_strings(v,out)},_=>{}}}
 // A self-contained copy of an element's subtree: nodes, the entries they own, the code component definitions their instances use, and every asset they name.
 pub fn fragment(site:&Site,id:&str)->Result<Value,String>{
     if !site.nodes.contains_key(id){return Err("unknown node".into());}

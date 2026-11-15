@@ -2507,4 +2507,6 @@ export default [
   "Permite el acceso al portapapeles para pegar un elemento, o pega con el teclado en la página.",
   "Un recurso es demasiado grande para incrustarlo y solo se podrá pegar en este FormWeb.",
   "{n} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en este FormWeb.",
+  "Un recurso es demasiado grande para incrustarlo y solo se podrá pegar en este ordenador.",
+  "{n} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en este ordenador.",
 ] as readonly string[];

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.19.7 · 2026-11-10
+
+- Redirects can cover a whole folder: `/blog/*` to `/docs/:splat` sends every old blog address to its new place. Exact redirects still win, then the longest folder rule, and a rule that would loop or point into itself is refused.
+- A site with a page at `/404` also exports a root `404.html`, so static hosts that look for that file show your own not-found page. Published releases answer missing addresses with it, behind the same password as the page.
+- Copies miss nothing: collections that the copied collections refer to come along, items a list or binding names come along even past 500, and variables set by actions come along. Form settings always travelled with a copied form.
+- Large copies stay light: Copy element keeps up to 4 MiB of images and videos in the clipboard and links the rest to this FormWeb for 15 minutes, so a paste into another FormWeb on the same computer brings them along while the first one is running.
+- Send to FormPublisher names FormPublisher's error code when it refuses a site.
+- Every new string is in all 26 languages.
+
 ## 0.19.6 · 2026-11-10
 
 - A copied element keeps its look and content in another site: the copy carries the design tokens its styles and motion use (with their light and dark theme values), the text presets applied to it, and the CMS collections its lists and bindings read, with up to 500 items each. Pasting adds what the site lacks; where the site already has a different token, preset, theme value or collection under the same name, the site's own is kept and the paste says so.

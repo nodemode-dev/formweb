@@ -66,11 +66,15 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     files.push(json!({"path":"assets/runtime.js", "content":format!("{RUNTIME}{}{EFFECTS_RUNTIME}", embed::GATE_RUNTIME)}));
     let mut sitemap = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
     let mut route_manifest = vec![];
-    for page in &site.pages {
+    // A page routed at /404 is rendered once more as a root 404.html, outside routes.json and the sitemap. Hosts serve it at
+    // any missing path, so its URLs start at the base URL's path ("/" or "/repo/"), never relative.
+    let root_prefix = base.split_once("://").and_then(|(_, rest)| rest.find('/').map(|i| format!("{}/", &rest[i..]))).unwrap_or_else(|| "/".to_string());
+    let not_found = site.pages.iter().filter(|p| p.slug.trim_matches('/') == "404").take(1).map(|p| (p, true));
+    for (page, copy) in site.pages.iter().map(|p| (p, false)).chain(not_found) {
         let route = page.slug.trim_matches('/');
-        let path = if route.is_empty() { "index.html".into() } else { format!("{route}/index.html") };
-        route_manifest.push(json!({"path": path, "page": page.id, "locale": locale, "item": Value::Null, "stylesheet": "assets/site.css"}));
-        let prefix = "../".repeat(if route.is_empty() { 0 } else { route.split('/').count() });
+        let path = if copy { "404.html".into() } else if route.is_empty() { "index.html".into() } else { format!("{route}/index.html") };
+        if !copy { route_manifest.push(json!({"path": path, "page": page.id, "locale": locale, "item": Value::Null, "stylesheet": "assets/site.css"})); }
+        let prefix = if copy { root_prefix.clone() } else { "../".repeat(if route.is_empty() { 0 } else { route.split('/').count() }) };
         let canonical = if route.is_empty() { format!("{base}/") } else { format!("{base}/{route}/") };
         let mut interactions = vec![];
         let mut render = Renderer { site, locale, forms, prefix: &prefix, warnings: &mut warnings, interactions: &mut interactions, budget: 250000, links: None };
@@ -81,7 +85,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         let robots = if page.seo.noindex { "<meta name=\"robots\" content=\"noindex,nofollow\">" } else { "" };
         let html = format!("<!doctype html>\n<html lang=\"{}\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>{}</title><meta name=\"description\" content=\"{}\"><link rel=\"canonical\" href=\"{}\"><meta property=\"og:title\" content=\"{}\"><meta property=\"og:description\" content=\"{}\"><meta property=\"og:url\" content=\"{}\"><meta property=\"og:type\" content=\"website\">{}{}<link rel=\"stylesheet\" href=\"{}assets/site.css\"><script src=\"{}assets/runtime.js\" defer></script></head><body><a class=\"fw-skip\" href=\"#fw-main\">Skip to content</a><div id=\"fw-main\" tabindex=\"-1\">{}</div><script type=\"application/json\" id=\"fw-interactions\">{}</script></body></html>\n", escape(locale), escape(&title), escape(&description), escape(&canonical), escape(&title), escape(&description), escape(&canonical), robots, icons(site, &prefix), prefix, prefix, body, encoded_interactions);
         files.push(json!({"path":path,"content":html}));
-        if !page.seo.noindex { sitemap.push_str(&format!("<url><loc>{}</loc></url>\n", escape(&canonical))); }
+        if !copy && !page.seo.noindex { sitemap.push_str(&format!("<url><loc>{}</loc></url>\n", escape(&canonical))); }
     }
     sitemap.push_str("</urlset>\n");
     files.push(json!({"path":"sitemap.xml","content":sitemap}));

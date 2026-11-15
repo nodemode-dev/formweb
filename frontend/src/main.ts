@@ -1952,25 +1952,30 @@ function panelTextSelected(): boolean {
   const selection = window.getSelection();
   return !!selection && !selection.isCollapsed && selection.toString().trim() !== '' && !stage.contains(selection.anchorNode);
 }
-// Returns how many assets were too large to embed (they paste only on this FormWeb).
-async function copyFragment(): Promise<number> {
-  const fragment = await request<Record<string, unknown>>('/api/fragment', { node: currentNode().id, embed: true });
+// Returns how many assets wait behind the clip link (they paste only on this computer) and how many are not carried at all.
+async function copyFragment(): Promise<{ behind: number; left: number }> {
+  const fragment = await request<Record<string, unknown>>('/api/fragment', { node: currentNode().id, embed: true, clip: true });
   if (!navigator.clipboard?.writeText) throw new Error('This browser does not allow writing to the clipboard here.');
   await navigator.clipboard.writeText(JSON.stringify(fragment));
-  return Array.isArray(fragment.notEmbedded) ? fragment.notEmbedded.length : 0;
+  const clip = fragment.clip as { ids?: unknown } | null | undefined;
+  const behindIds = clip && typeof clip === 'object' && Array.isArray(clip.ids) ? clip.ids : [];
+  const notCarried = Array.isArray(fragment.notEmbedded) ? fragment.notEmbedded.filter(id => !behindIds.includes(id)) : [];
+  return { behind: behindIds.length, left: notCarried.length };
 }
 const notEmbeddedNote = (count: number): string => count === 1 ? ' ' + t('One asset is too large to embed and will only paste on this FormWeb.') : count > 1 ? ' ' + t('{n} assets are too large to embed and will only paste on this FormWeb.').replace('{n}', String(count)) : '';
+const behindClipNote = (count: number): string => count === 1 ? ' ' + t('One asset is too large to embed and will only paste on this computer.') : count > 1 ? ' ' + t('{n} assets are too large to embed and will only paste on this computer.').replace('{n}', String(count)) : '';
+const copyNote = (copied: { behind: number; left: number }): string => behindClipNote(copied.behind) + notEmbeddedNote(copied.left);
 async function copySelection(): Promise<void> {
   if (!canDuplicate()) return;
-  const left = await copyFragment();
-  status('Element copied.' + notEmbeddedNote(left));
+  const copied = await copyFragment();
+  status('Element copied.' + copyNote(copied));
 }
 async function cutSelection(): Promise<void> {
   if (!canDuplicate()) return;
   const id = currentNode().id;
-  const left = await copyFragment();
+  const copied = await copyFragment();
   await command('node.remove', { id });
-  status('Element cut. Paste puts it back; Undo restores it in place.' + notEmbeddedNote(left));
+  status('Element cut. Paste puts it back; Undo restores it in place.' + copyNote(copied));
 }
 async function pasteFragmentText(raw: string): Promise<boolean> {
   const fragment = parseFragment(raw);
@@ -1979,9 +1984,10 @@ async function pasteFragmentText(raw: string): Promise<boolean> {
   const selected = currentNode();
   const owner = selected.id === currentPage().root ? undefined : parentOf(selected.id);
   const parentId = owner ? owner.id : currentPage().root;
-  const { embedded, ...bare } = fragment;
+  const { embedded, clip, ...bare } = fragment;
   const body: Record<string, unknown> = { fragment: bare, parent: parentId };
   if (embedded && typeof embedded === 'object') body.embedded = embedded;
+  if (clip && typeof clip === 'object') body.clip = clip;
   if (owner) body.index = owner.children.indexOf(selected.id) + 1;
   const result = await libraryMutate<{ state?: EditorState; root?: string }>('/api/paste', body);
   const next = 'site' in result ? (result as unknown as EditorState) : result.state ? accept(result.state) : state();

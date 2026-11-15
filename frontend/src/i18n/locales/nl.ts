@@ -2507,4 +2507,6 @@ export default [
   "Sta toegang tot het klembord toe om een element te plakken, of plak met het toetsenbord in de pagina.",
   "Eén asset is te groot om in te sluiten en kan alleen in deze FormWeb worden geplakt.",
   "{n} assets zijn te groot om in te sluiten en kunnen alleen in deze FormWeb worden geplakt.",
+  "Eén asset is te groot om in te sluiten en kan alleen op deze computer worden geplakt.",
+  "{n} assets zijn te groot om in te sluiten en kunnen alleen op deze computer worden geplakt.",
 ] as readonly string[];

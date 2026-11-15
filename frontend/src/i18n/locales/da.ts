@@ -2507,4 +2507,6 @@ export default [
   "Tillad adgang til udklipsholderen for at indsætte et element, eller indsæt med tastaturet på siden.",
   "Et billede er for stort til at blive indlejret og kan kun indsættes i denne FormWeb.",
   "{n} billeder er for store til at blive indlejret og kan kun indsættes i denne FormWeb.",
+  "Et billede er for stort til at blive indlejret og kan kun indsættes på denne computer.",
+  "{n} billeder er for store til at blive indlejret og kan kun indsættes på denne computer.",
 ] as readonly string[];

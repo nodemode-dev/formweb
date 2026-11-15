@@ -2507,4 +2507,6 @@ export default [
   "Tillåt åtkomst till urklipp för att klistra in ett element, eller klistra in med tangentbordet på sidan.",
   "En resurs är för stor för att bäddas in och kan bara klistras in i den här FormWeb.",
   "{n} resurser är för stora för att bäddas in och kan bara klistras in i den här FormWeb.",
+  "En resurs är för stor för att bäddas in och kan bara klistras in på den här datorn.",
+  "{n} resurser är för stora för att bäddas in och kan bara klistras in på den här datorn.",
 ] as readonly string[];

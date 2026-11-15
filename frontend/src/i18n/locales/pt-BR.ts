@@ -2507,4 +2507,6 @@ export default [
   "Permita o acesso à área de transferência para colar um elemento ou cole com o teclado na página.",
   "Um recurso é grande demais para ser incorporado e só poderá ser colado neste FormWeb.",
   "{n} recursos são grandes demais para serem incorporados e só poderão ser colados neste FormWeb.",
+  "Um recurso é grande demais para ser incorporado e só poderá ser colado neste computador.",
+  "{n} recursos são grandes demais para serem incorporados e só poderão ser colados neste computador.",
 ] as readonly string[];

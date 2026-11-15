@@ -1,5 +1,17 @@
 # Native context
 
+## Splat redirects, the root 404 page and fragments that miss nothing · v0.19.7 (2026-11-10)
+
+The executor spec is `TURN_H_SPEC.md` in the 0.19.7 planning sidecar.
+
+Model (`formweb-model/src/advanced.rs`, the `seo` validator): a redirect path may be a splat, `/x/*` with a non-empty slug base and the star as the whole last segment; its target may use `/:splat` once, and `:splat` without a splat path is refused. A splat whose target (before `:splat`) equals or sits inside its own base, `/*`, `/a/*/b` and `/a*` are refused. The old cycle check is replaced by a resolver that matches exact paths first, then the longest splat prefix, probing every row with one extra segment so splat-to-splat cycles are caught. The 1000-row limit and the normalized duplicate check are unchanged, and `redirects.json` is still the raw `seo.redirects` map.
+
+Export: a page routed at `/404` is rendered a second time as a root `404.html`, outside `routes.json` and the sitemap, with its URL prefix set to the base URL's path (`/`, or `/repo/` for `https://x.github.io/repo`), because hosts serve that file at any missing path and relative URLs broke at nested ones (FormPublisher's P3 found `/a/b/c` asking for `/a/b/assets/runtime.js`). It is rendered in both paths: `advanced.rs` `export()` (default locale, not a CMS item, reusing the page's own stylesheet) and the plain path in `lib.rs`, whose page loop chains the copy after the pages. The plain path was missed at first and found by the director's release check, because a site without extensions never reaches `advanced.rs`. Sites without a 404 page export byte-identically (file list and sha256 compared before and after).
+
+Engine (`formweb-engine/src/advanced.rs`): `fragment_collections` is a worklist to a fixpoint over the reference fields of carried items, so the collections they point at travel transitively (`json_strings` collects ids). Past 500 items a collection carries its first 500 plus every item named by a copied binding's `item`, a list filter value or a carried item's reference, and the fragment warning counts the items left out. `fragment_variables` also reads the variable every `set-variable` action names anywhere in a motion entry (`set_variable_names`), with the words of its formula, so the existing formula walk carries what it reads. Form configuration already travelled through `NODE_KEYED` (`forms.forms`) and was confirmed live; nothing changed there.
+
+Checked: `cargo test --release --locked` (all pass, none added). A list bound to `posts` whose items reference `authors`, a 600-item collection bound at item 550, a button whose action sets `clicks` and a configured form (success redirect, messages, constraints) copied into a blank site: everything arrived, `big` with 501 items. A site with `/old`, `/blog/*` to `/docs/:splat` and a 404 page validated and exported both; the invalid splats above answered 400.
+
 ## Fragments that keep their look and content · v0.19.6 (2026-11-10)
 
 The executor spec is `TURN_G_SPEC.md` in the 0.19.6 planning sidecar.

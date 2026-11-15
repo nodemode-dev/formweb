@@ -2507,4 +2507,6 @@ export default [
   "Autorisez l’accès au presse-papiers pour coller un élément, ou collez avec le clavier dans la page.",
   "Une ressource est trop volumineuse pour être intégrée et ne pourra être collée que dans ce FormWeb.",
   "{n} ressources sont trop volumineuses pour être intégrées et ne pourront être collées que dans ce FormWeb.",
+  "Une ressource est trop volumineuse pour être intégrée et ne pourra être collée que sur cet ordinateur.",
+  "{n} ressources sont trop volumineuses pour être intégrées et ne pourront être collées que sur cet ordinateur.",
 ] as readonly string[];

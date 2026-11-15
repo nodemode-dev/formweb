@@ -2507,4 +2507,6 @@ export default [
   "Consenti l'accesso agli appunti per incollare un elemento, oppure incolla con la tastiera nella pagina.",
   "Una risorsa è troppo grande per essere incorporata e si potrà incollare solo in questo FormWeb.",
   "{n} risorse sono troppo grandi per essere incorporate e si potranno incollare solo in questo FormWeb.",
+  "Una risorsa è troppo grande per essere incorporata e si potrà incollare solo su questo computer.",
+  "{n} risorse sono troppo grandi per essere incorporate e si potranno incollare solo su questo computer.",
 ] as readonly string[];

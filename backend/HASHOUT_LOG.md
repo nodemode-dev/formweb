@@ -1,5 +1,19 @@
 # Backend context
 
+## Clip links, release splats and the 404 page, send codes · v0.19.7 (2026-11-10)
+
+The executor spec is `TURN_H_SPEC.md` in the 0.19.7 planning sidecar.
+
+`clips.py` (new): `create_clip({asset id: path})` opens a clip (paths into the asset store, no byte copies) and returns `{url, token, ids, expires}`, where `url` is `http://127.0.0.1:<PORT>/api/clips/<token>`, `token` 32 random bytes in hex and `expires` epoch seconds 15 minutes ahead; at most 16 live clips, purged lazily. `GET /api/clips/{token}/{asset_id}` compares the token against every live one with `secrets.compare_digest` and answers the same 404 for every failure; SVGs get a sandboxing CSP. `clip_target` admits only `http`, host `127.0.0.1`, `::1` or `localhost`, a numeric port, no userinfo, query or fragment, and the exact path `/api/clips/<token>` matching `clip.token`, else 400 before any request. `fetch_clip_assets` asks only for names the clip lists, with `http.client` (no redirects), reads capped at the type's upload limit and 512 MiB in all, a 300 s deadline, only 200 answers, in a thread so a clip on the same backend cannot deadlock it.
+
+`fragment_routes.py`: `fragment_of(node, embed, clip)`; with clip the smallest assets go inline up to `MAX_CLIP_EMBED_BYTES` (4 MiB) and the rest behind a clip, up to 512 MiB, each within its upload limit; without clip the 0.19.6 behaviour (16 MiB inline). `paste_body` reads `clip` from the body or the fragment, strips it before `node.paste`, fetches names that are not present and visible and not embedded, runs `check_declared` on all of them, and only then stores anything; an unreachable source, expired clip or oversized read makes the asset missing, so the paste answers 409 naming it. `main.py` mounts the router and adds `clip_fetch` (GET, `/api/clips/<64 hex>/<64 hex>.<known type>`) to `public` in `LocalAccess`; every other `/api` path still needs the bearer, and the Host and Origin checks still apply.
+
+`releases.py` `redirect()`: exact paths first, then the longest splat prefix, filling `:splat`; leading `/` and `\` are stripped from the remainder so `/blog//evil.com` cannot become an off-site redirect; cycles still answer 409. `advanced_routes.py` `serve_release`: when the release has a root `404.html`, a missing path answers the page's own `404/index.html` (relative URLs) with status 404 and a base tag at the release's `/404/` folder, since the root file's URLs start at the public base path and not at the release prefix, after the same visitor gate and password gate as `404/index.html` (a gated visitor gets the plain 404; the gate checks were added by the director after W1 reported the page was served ungated).
+
+`handoff.py` `_post`: a FormPublisher refusal with a well-formed `code` raises `FormPublisher refused this site [code]: detail`; without one the text is unchanged.
+
+Checked: `backend/venv/bin/python -m pytest -q` (115 pass, none added). 8703 to 8713 with a 3 MiB PNG, a 6 MiB PNG and a 20 MiB mp4: plain embed as 0.19.6, clip with one inline and two behind it, bytes matching, the paste stored all three and the export came to 31 MB; with 8703 stopped a 409 named the clip assets and nothing was stored; wrong tokens, unlisted ids and malformed paths 404; non-loopback hosts, https, no port, userinfo, query and other paths 400 with no request; expiry purged in process; a protected server answered 401 on every other `/api` path. A release of a blank site with a 404 page answered missing paths with the page, and with a password on `/` the plain 404. A fake FormPublisher showed the bracketed code.
+
 ## Paste between installations · v0.19.6 (2026-11-10)
 
 The executor spec is `TURN_G_SPEC.md` in the 0.19.6 planning sidecar.

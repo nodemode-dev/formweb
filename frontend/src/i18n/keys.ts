@@ -2507,4 +2507,6 @@ export const KEYS: readonly string[] = [
   "Allow clipboard access to paste an element, or paste with the keyboard in the page.",
   "One asset is too large to embed and will only paste on this FormWeb.",
   "{n} assets are too large to embed and will only paste on this FormWeb.",
+  "One asset is too large to embed and will only paste on this computer.",
+  "{n} assets are too large to embed and will only paste on this computer.",
 ];

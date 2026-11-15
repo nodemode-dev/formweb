@@ -2507,4 +2507,6 @@ export default [
   "Zezwól na dostęp do schowka, aby wkleić element, albo wklej za pomocą klawiatury na stronie.",
   "Jeden zasób jest zbyt duży, aby go osadzić, i można go wkleić tylko w tym FormWeb.",
   "Liczba zasobów zbyt dużych, aby je osadzić: {n}. Można je wkleić tylko w tym FormWeb.",
+  "Jeden zasób jest zbyt duży, aby go osadzić, i można go wkleić tylko na tym komputerze.",
+  "Liczba zasobów zbyt dużych, aby je osadzić: {n}. Można je wkleić tylko na tym komputerze.",
 ] as readonly string[];
