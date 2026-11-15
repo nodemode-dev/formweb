@@ -1,0 +1,29 @@
+.stage-panel > .stage-head { container: fw-stage / inline-size; }
+.stage-panel > .stage-head > .stage-page { flex: 0 0 auto; max-width: 18cqi; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stage-panel > .stage-head > .icon, .stage-panel > .stage-head > .fw-theme-switch, .stage-panel > .stage-head > .fw-scrub, .stage-panel > .stage-head > .viewport-readout { flex: none; }
+.stage-panel > .stage-head > .viewport-readout { min-width: 176px; overflow: visible; white-space: nowrap; }
+.stage-panel > .stage-head .readout-width::before { content: " \00B7  "; }
+.stage-head .fw-scrub .fw-seg-btn:last-child { min-width: 84px; }
+@container fw-stage (max-width: 760px) {
+  .stage-head .fw-scrub .fw-seg-btn:not(:last-child) { display: none; }
+  .stage-head .fw-scrub .fw-seg-btn:last-child { width: 44px; min-width: 0; padding: 0 var(--space-1); overflow: hidden; text-overflow: ellipsis; }
+  .stage-panel > .stage-head > .viewport-readout { min-width: 6em; }
+  .stage-head .viewport-readout .readout-mode { display: none; }
+  .stage-panel > .stage-head .readout-width::before { content: none; }
+}
+@container fw-stage (max-width: 560px) {
+  .stage-panel > .stage-head > .icon + .stage-page + .icon, .stage-panel > .stage-head > .stage-path, .stage-panel > .stage-head > .fw-crumbs, .stage-panel > .stage-head > .viewport-hint { display: none; }
+  .stage-panel > .stage-head > .stage-page { margin-right: auto; max-width: 30cqi; }
+  .stage-head .fw-scrub { gap: var(--space-1); }
+  .stage-head .fw-scrub output { display: none; }
+  .stage-head .fw-scrub input[type="range"] { width: 64px; }
+  .stage-head .fw-scrub select { max-width: 72px; }
+}
+@container fw-stage (max-width: 400px) {
+  .stage-panel > .stage-head > .icon { display: none; }
+  .stage-panel > .stage-head > .stage-page { flex: 0 1 auto; min-width: 0; max-width: none; }
+  .stage-panel > .stage-head:has(> .fw-scrub:not([hidden]):not([data-single])) > .stage-page { visibility: hidden; }
+  .stage-panel > .stage-head > .viewport-readout { min-width: 4.5em; }
+  .stage-head .fw-scrub input[type="range"] { width: 48px; }
+  .stage-head .fw-scrub select { max-width: 52px; }
+}

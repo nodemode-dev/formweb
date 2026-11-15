@@ -354,8 +354,10 @@
   };
 
   const initSearch = () => {
-    const param = guard(() => new URLSearchParams(location.search).get('from')) || '';
-    const words = param.split(/[\/\-_.]+/).filter(Boolean).join(' ');
+    const params = guard(() => new URLSearchParams(location.search)) || new URLSearchParams();
+    const param = params.get('from') || '';
+    const fromWords = param.split(/[\/\-_.]+/).filter(Boolean).join(' ');
+    const typed = key => (key ? (params.get(key) || '').replace(/[\u0000-\u001f\u007f\s]+/g, ' ').trim().slice(0, 200) : '');
     for (const [id, steps] of entries(motion.actions)) {
       if (!Array.isArray(steps)) continue;
       for (const step of steps) {
@@ -363,6 +365,8 @@
         const input = node(step.input) || node(id);
         if (!input) continue;
         input.addEventListener('focus', loadIndex, { once: true });
+        const field = input.getAttribute('name');
+        const words = typed('q') || (field && field !== 'from' ? typed(field) : '') || fromWords;
         if (step.fromParam && words) {
           input.value = words;
           search(step, input);

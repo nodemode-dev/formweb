@@ -206,6 +206,16 @@ fn fragment_design(site:&Site,text:&str,entries:&[Entry])->Value{
     let themes=if modes.is_empty(){json!({})}else{json!({"default":design.and_then(|d|d.get("themes")).and_then(|t|t.get("default")).cloned().unwrap_or(json!("dark")),"followSystem":design.and_then(|d|d.get("themes")).and_then(|t|t.get("followSystem")).cloned().unwrap_or(json!(false)),"values":modes})};
     json!({"tokens":tokens,"textPresets":presets,"themes":themes})
 }
+fn font_strings(value:&Value,all:bool,out:&mut Vec<String>){match value{Value::Object(m)=>for(k,v)in m{match v.as_str(){Some(s) if all||k=="font-family"||k=="font"=>out.push(s.to_string()),_=>font_strings(v,all,out)}},Value::Array(a)=>for v in a{font_strings(v,all,out)},_=>{}}}
+fn names_family(value:&str,family:&str)->bool{value.split(',').any(|part|{let p=part.trim().trim_end_matches(['"','\'']);p.trim_start_matches(['"','\''])==family||p.ends_with(&format!("\"{family}"))||p.ends_with(&format!("'{family}"))||p.ends_with(&format!(" {family}"))})}
+// The site's font faces whose family the copied nodes, entries, inherited font or carried design values name.
+fn fragment_fonts(site:&Site,out:&Value)->serde_json::Map<String,Value>{
+    let mut values=vec![];font_strings(&out["nodes"],false,&mut values);font_strings(&out["entries"],false,&mut values);font_strings(&out["design"],true,&mut values);
+    if let Some(font)=out.get("inheritedFont").and_then(Value::as_str){values.push(font.to_string());}
+    let mut found=serde_json::Map::new();
+    if let Some(fonts)=site.extensions.get("design").and_then(|d|d.get("fonts")).and_then(Value::as_object){for(id,font)in fonts{if let Some(family)=font.get("family").and_then(Value::as_str){if values.iter().any(|v|names_family(v,family)){found.insert(id.clone(),font.clone());}}}}
+    found
+}
 // The CMS collections the copied bindings and lists name, and those their reference fields point at, with their items; past the cap a collection carries its first items and every item named by id, and the rest are reported.
 fn fragment_collections(site:&Site,ids:&BTreeSet<String>,entries:&[Entry])->(Value,Vec<String>){
     let mut out=serde_json::Map::new();let mut warnings:Vec<String>=vec![];
@@ -250,10 +260,13 @@ pub fn fragment(site:&Site,id:&str)->Result<Value,String>{
     let mut top=id.to_string();while let Some(p)=parent_of(site,&top){top=p;}
     let page=site.pages.iter().find(|p|p.root==top).map(|p|p.id.clone());
     let mut out=json!({"format":FRAGMENT_FORMAT,"version":1,"root":id,"nodes":nodes,"entries":grouped,"codeComponents":components,"variables":fragment_variables(site,&entries),"locales":collect_locales(site,&ids),"source":{"site":site.id,"page":page}});
-    let used=format!("{}{}",out["nodes"],out["entries"]);let (collections,collection_warnings)=fragment_collections(site,&ids,&entries);
+    let inherited=if site.nodes[id].styles.contains_key("font-family"){None}else{let mut up=parent_of(site,id);let mut found=None;while let Some(p)=up{if let Some(font)=site.nodes[&p].styles.get("font-family"){found=Some(font.clone());break;}up=parent_of(site,&p);}found};
+    if let Some(font)=&inherited{out.as_object_mut().unwrap().insert("inheritedFont".into(),json!(font));}
+    let used=format!("{}{}{}",out["nodes"],out["entries"],inherited.as_deref().unwrap_or(""));let (collections,collection_warnings)=fragment_collections(site,&ids,&entries);
     let mut above_ids=vec![];let mut up=parent_of(site,id);while let Some(p)=up{above_ids.push(p.clone());up=parent_of(site,&p);}
     if !above_ids.is_empty(){out.as_object_mut().unwrap().insert("ancestors".into(),json!(above_ids));}
     out.as_object_mut().unwrap().insert("design".into(),fragment_design(site,&used,&entries));
+    let fonts=fragment_fonts(site,&out);if !fonts.is_empty(){out["design"].as_object_mut().unwrap().insert("fonts".into(),Value::Object(fonts));}
     out.as_object_mut().unwrap().insert("collections".into(),collections);
     if !collection_warnings.is_empty(){out.as_object_mut().unwrap().insert("warnings".into(),json!(collection_warnings));}
     let mut found=BTreeSet::new();asset_ids(&out.to_string(),&mut found);
@@ -289,6 +302,13 @@ fn paste_design(site:&mut Site,design:Option<&Value>)->Result<(),String>{
     if let Some(presets)=design.get("textPresets"){for(name,definition)in presets.as_object().ok_or("fragment text presets must be an object")?{
         let existing=site.extensions.get("design").and_then(|g|g.get("textPresets")).and_then(|m|m.get(name)).cloned();
         match existing{None=>set_path(site,"design","textPresets",name,definition.clone())?,Some(have)=>if &have!=definition{warn(format!("text preset {name} already exists here with a different definition; the pasted elements use this site's"));}}
+    }}
+    if let Some(fonts)=design.get("fonts"){for(id,font)in fonts.as_object().ok_or("fragment fonts must be an object")?{
+        let have=site.extensions.get("design").and_then(|g|g.get("fonts")).and_then(Value::as_object).cloned().unwrap_or_default();
+        if have.values().any(|f|f==font){continue;}
+        if have.contains_key(id){warn(format!("font {id} already exists here with a different definition; this site's is kept"));continue;}
+        if have.len()>=16{warn(format!("font {id} was not added: this site already has 16 fonts"));continue;}
+        set_path(site,"design","fonts",id,font.clone())?;
     }}
     Ok(())
 }
@@ -344,6 +364,10 @@ fn paste_fragment(site:&mut Site,params:&Value)->Result<(),String>{
     paste_design(site,fragment.get("design"))?;paste_collections(site,fragment.get("collections"))?;
     let mut map=BTreeMap::new();let new_root=import_node(site,&source,&root,&mut map)?;
     site.nodes.get_mut(&parent).unwrap().children.insert(index,new_root.clone());
+    if let Some(font)=fragment.get("inheritedFont").and_then(Value::as_str){
+        let mut here=None;let mut up=Some(parent.clone());while let Some(p)=up{if let Some(f)=site.nodes[&p].styles.get("font-family"){here=Some(f.clone());break;}up=parent_of(site,&p);}
+        if here.as_deref()!=Some(font)&&!site.nodes[&new_root].styles.contains_key("font-family"){site.nodes.get_mut(&new_root).unwrap().styles.insert("font-family".into(),font.to_string());}
+    }
     let own:BTreeMap<String,String>=map.values().map(|n|(n.clone(),n.clone())).collect();
     let mut above:BTreeMap<&str,&str>=BTreeMap::new();for node in source.values(){for child in &node.children{above.insert(child.as_str(),node.id.as_str());}}
     let carried:BTreeSet<String>=fragment.get("ancestors").and_then(Value::as_array).map(|list|list.iter().take(256).filter_map(Value::as_str).filter(|s|s.len()<=128).map(String::from).collect()).unwrap_or_default();

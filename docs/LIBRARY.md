@@ -64,7 +64,7 @@ Keys, all at the top level:
 | `fields` | The re-cast fields the panel shows before insert. See below. |
 | `tree` | The node tree. See below. |
 | `commands` | Engine commands that run after the tree in the same batch. |
-| `behaviors` | Optional map from `@@key@@` to `{ "states": { "hover": {...}, "focus": {...}, "press": {...} } }` (actions and conditions are accepted too). Merged into the site's `behaviors` group once per insert. |
+| `behaviors` | Optional map from `@@key@@` to `{ "states": { "hover": {...}, "focus": {...}, "press": {...}, "selected": {...} } }` (actions and conditions are accepted too). Merged into the site's `behaviors` group once per insert. |
 | `properties` | Optional map from a custom property name to `{ "syntax", "inherits", "initial" }`. Merged into the site's registered properties (`@property`) once per insert; a property the site already registers is kept. |
 
 ### The tree
@@ -110,7 +110,7 @@ Every template has a `tint` colour field (the product hue from the preset's `pro
 
 ### Behaviors and one undo step
 
-Hover, focus and press states live in `behaviors`. The insert collects the behaviors of every template in the batch and sends one `extension.set` for the `behaviors` group at the end, merged into the group the site already has. The whole insert is one `/api/batch`, so one undo step, and inserting a template twice gives two independent copies.
+Hover, focus, press and selected (the chosen tab or filter chip) states live in `behaviors`. The insert collects the behaviors of every template in the batch and sends one `extension.set` for the `behaviors` group at the end, merged into the group the site already has. The whole insert is one `/api/batch`, so one undo step, and inserting a template twice gives two independent copies.
 
 ## Page components
 

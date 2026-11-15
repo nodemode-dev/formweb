@@ -17,7 +17,26 @@ function natural(box: HTMLElement): number {
 }
 
 const TWO_ROWS_BELOW = 800;
-const ENGLISH_FIELD_NEED = 104.32;
+// The widest unbreakable field label word in any shipped language, so a language switch never flips the columns.
+const ANY_LANGUAGE_FIELD_NEED = 107;
+const segmenters = new Map<string, Intl.Segmenter | null>();
+function words(text: string): string[] {
+  const lang = document.documentElement.lang || 'en';
+  if (!segmenters.has(lang)) {
+    try { segmenters.set(lang, new Intl.Segmenter(lang, { granularity: 'word' })); } catch { segmenters.set(lang, null); }
+  }
+  const segmenter = segmenters.get(lang);
+  if (!segmenter) return text.split(/\s+/);
+  const out: string[] = [];
+  let run = '';
+  for (const piece of segmenter.segment(text)) {
+    if (/^\s+$/.test(piece.segment)) { if (run) out.push(run); run = ''; continue; }
+    if (piece.isWordLike && /[฀-๿぀-ヿ㐀-鿿가-힯豈-﫿]/.test(piece.segment)) { if (run) out.push(run); out.push(piece.segment); run = ''; continue; }
+    run += piece.segment;
+  }
+  if (run) out.push(run);
+  return out;
+}
 const ENGLISH_TABS_NEED = 242.98;
 
 function foldCount(menubar: HTMLElement, room: number): number {
@@ -61,14 +80,7 @@ export function watchFit(app: HTMLElement, topbar: HTMLElement, inspector: HTMLE
     if (!tabs || !context || !inspector.clientWidth || !tabs.clientWidth) return;
     const tabStyle = getComputedStyle(tabs);
     const room = tabs.clientWidth - px(tabStyle.paddingLeft) - px(tabStyle.paddingRight) - px(tabStyle.columnGap) * 3;
-    let tabNeed = 0;
-    for (const node of Array.from(tabs.children) as HTMLElement[]) {
-      const style = getComputedStyle(node);
-      const range = document.createRange();
-      range.selectNodeContents(node);
-      tabNeed += range.getBoundingClientRect().width + px(style.paddingLeft) + px(style.paddingRight) + 2;
-    }
-    const wantTabs = tabNeed > room + 0.5 || room < ENGLISH_TABS_NEED;
+    const wantTabs = room < ENGLISH_TABS_NEED;
     if (inspector.classList.contains('fw-tabs2') !== wantTabs) inspector.classList.toggle('fw-tabs2', wantTabs);
     const section = inspector.querySelector<HTMLElement>('.inspector-section');
     const grid = inspector.querySelector<HTMLElement>('.form-grid');
@@ -80,10 +92,10 @@ export function watchFit(app: HTMLElement, topbar: HTMLElement, inspector: HTMLE
     for (const label of Array.from(inspector.querySelectorAll<HTMLElement>('.form-grid > .field:not(.full) .field-label'))) {
       for (const node of Array.from(label.childNodes)) {
         if (node.nodeType !== 3) continue;
-        for (const piece of (node.textContent || '').split(/\s+/)) if (piece) word = Math.max(word, textWidth(context, label, piece));
+        for (const piece of words(node.textContent || '')) if (piece) word = Math.max(word, textWidth(context, label, piece));
       }
     }
-    const wantOne = word > column || column < ENGLISH_FIELD_NEED;
+    const wantOne = word > column || column < ANY_LANGUAGE_FIELD_NEED;
     if (inspector.classList.contains('fw-fields1') !== wantOne) inspector.classList.toggle('fw-fields1', wantOne);
   };
   const fit = (): void => { fitTop(); fitInspector(); };

@@ -14,6 +14,7 @@
     "tint": { "label": "Tint", "type": "color", "default": "#eda146" },
     "name": { "label": "Product name after Form", "type": "text", "default": "Fabric" },
     "meta": { "label": "Label meta", "type": "text", "default": "Stories / Garment design / Free" },
+    "page_title": { "label": "Hidden page title", "type": "text", "default": "FormFabric stories" },
     "heading": { "label": "Heading", "type": "text", "default": "Garments, made on your machine." },
     "lead": { "label": "Lead", "type": "longtext", "default": "FormFabric drafts patterns, sews them edge to edge, drapes them with a native cloth solver and exports the result, all on your computer." },
     "link": { "label": "Card link", "type": "url", "default": "https://formai.studio/formfabric/" },
@@ -28,6 +29,7 @@
       { "key": "wrap", "tag": "div", "name": "Frame",
         "styles": { "position": "relative", "width": "100%", "max-width": "var(--page-max)", "margin-left": "auto", "margin-right": "auto", "padding-left": "var(--gutter)", "padding-right": "var(--gutter)", "box-sizing": "border-box", "border-left": "1px solid var(--edge)", "border-right": "1px solid var(--edge)" },
         "children": [
+          { "key": "page-h", "tag": "h1", "name": "Hidden title", "text": "{{page_title}}", "styles": { "position": "absolute", "width": "1px", "height": "1px", "overflow": "hidden", "clip-path": "inset(50%)", "white-space": "nowrap", "margin": "0" } },
           { "key": "mark-l", "tag": "span", "name": "Corner mark left", "attrs": { "aria-hidden": "true" },
             "styles": { "position": "absolute", "bottom": "calc(var(--sp-2) * -1 - 0.5px)", "left": "calc(var(--sp-2) * -1 - 0.5px)", "width": "calc(var(--sp-4) + 1px)", "height": "calc(var(--sp-4) + 1px)", "background": "linear-gradient(var(--ink-faint), var(--ink-faint)) center / 1px 100% no-repeat, linear-gradient(var(--ink-faint), var(--ink-faint)) center / 100% 1px no-repeat", "pointer-events": "none" } },
           { "key": "mark-r", "tag": "span", "name": "Corner mark right", "attrs": { "aria-hidden": "true" },

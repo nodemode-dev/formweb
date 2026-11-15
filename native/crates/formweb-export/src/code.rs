@@ -27,10 +27,20 @@ fn light_poster(site: &Site, definition: &Value) -> Option<String> {
     site.extensions.get("design").and_then(|v| v.get("themes"))?;
     definition.get("posterLight").and_then(Value::as_str).filter(|p| !p.is_empty()).map(str::to_string)
 }
+fn poster_pair(site: &Site, instance: &Value, definition: &Value) -> (Option<String>, Option<String>) {
+    let own = |value: &Value, key: &str| value.get(key).and_then(Value::as_str).filter(|p| !p.is_empty()).map(str::to_string);
+    if let Some(dark) = own(instance, "poster") {
+        let light = if site.extensions.get("design").and_then(|v| v.get("themes")).is_some() { own(instance, "posterLight") } else { None };
+        return (Some(dark), light);
+    }
+    let dark = own(definition, "poster");
+    let light = if dark.is_some() { light_poster(site, definition) } else { None };
+    (dark, light)
+}
 pub fn has_light_posters(site: &Site) -> bool {
     let Some(group) = site.extensions.get("code") else { return false };
     let Some(instances) = group.get("instances").and_then(Value::as_object) else { return false };
-    instances.iter().any(|(node, instance)| site.nodes.contains_key(node) && instance.get("component").and_then(Value::as_str).and_then(|id| group.get("components")?.get(id)).map(|c| c.get("mode").and_then(Value::as_str) == Some("page") && c.get("enabled").and_then(Value::as_bool) == Some(true) && c.get("poster").and_then(Value::as_str).map_or(false, |p| !p.is_empty()) && light_poster(site, c).is_some()).unwrap_or(false))
+    instances.iter().any(|(node, instance)| site.nodes.contains_key(node) && instance.get("component").and_then(Value::as_str).and_then(|id| group.get("components")?.get(id)).map(|c| c.get("mode").and_then(Value::as_str) == Some("page") && c.get("enabled").and_then(Value::as_bool) == Some(true) && poster_pair(site, instance, c).1.is_some()).unwrap_or(false))
 }
 pub fn page_host(site: &Site, node: &str) -> Result<Option<(String, Option<String>, Option<String>)>, String> {
     let Some(instance) = site.extensions.get("code").and_then(|v| v.get("instances")).and_then(|v| v.get(node)) else { return Ok(None); };
@@ -38,8 +48,7 @@ pub fn page_host(site: &Site, node: &str) -> Result<Option<(String, Option<Strin
     let definition = site.extensions.get("code").and_then(|v| v.get("components")).and_then(|v| v.get(component)).ok_or("code component not found")?;
     if definition.get("mode").and_then(Value::as_str) != Some("page") { return Ok(None); }
     if definition.get("enabled").and_then(Value::as_bool) != Some(true) { return Err("code component is not explicitly enabled".into()); }
-    let dark = definition.get("poster").and_then(Value::as_str).filter(|p| !p.is_empty()).map(str::to_string);
-    let light = if dark.is_some() { light_poster(site, definition) } else { None };
+    let (dark, light) = poster_pair(site, instance, definition);
     Ok(Some((component.to_string(), dark, light)))
 }
 pub fn uses_page(site: &Site) -> bool {

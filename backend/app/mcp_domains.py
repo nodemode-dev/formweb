@@ -64,7 +64,7 @@ COMMAND_DOCS = {
     'cms.upsert': '{collection, item} adds or replaces one item',
     'cms.remove': '{collection, id}',
     'cms.replace': '{collection, items} replaces all items atomically',
-    'cms.query': '{node, query} list query for a repeating element; inside another list a filter value of "{parent.field}" (for example {"field":"maker","op":"eq","value":"{parent.id}"}) is replaced by that field of the enclosing item, so a nested list shows only the items related to its parent',
+    'cms.query': '{node, query} list query for the repeating element: the node that carries it is itself rendered once per matching published item, so set it on the card or row and not on the grid or list that holds the cards (a container would be repeated whole, one container per item, and its children would not be); inside another list a filter value of "{parent.field}" (for example {"field":"maker","op":"eq","value":"{parent.id}"}) is replaced by that field of the enclosing item, so a nested list shows only the items related to its parent',
     'cms.binding': '{node, binding} binds text, href or src to a field',
     'cms.localize': '{collection, item, locale, values, slug?, status?}',
     'locale.set': '{locale, translations:{key:text}}',

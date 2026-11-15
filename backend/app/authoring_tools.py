@@ -35,8 +35,8 @@ AUTHORING_TOOLS = [
          {'kind': {'type': 'string', 'enum': VARIABLE_KINDS}, 'name': NODE, 'expected_revision': REVISION}, ['kind', 'name'], destructive=True, idempotent=True),
     tool('component_build_install', 'Compile a page or isolated code component (JavaScript or TypeScript, with real compiler diagnostics) and merge the built record into the site\'s code components under id, in one undo step. Page mode exports mount(root, props, ctx). Then place it with component_instance_set. Needs Node (./formweb install).',
          {'id': IDENT, 'language': {'type': 'string', 'enum': ['typescript', 'javascript']}, 'source': {'type': 'string', 'maxLength': 262144}, 'props': {'type': 'object'}, 'mode': {'type': 'string', 'enum': ['isolated', 'page'], 'default': 'page'}, 'poster': {'type': 'string', 'maxLength': 200}, 'posterLight': {'type': 'string', 'maxLength': 200}}, ['id', 'language', 'source'], idempotent=True),
-    tool('component_instance_set', 'Place or update a built code component on an element: node gets {component, props}, validated against the component\'s declared props. One undo step.',
-         {'node': NODE, 'component': IDENT, 'props': {'type': 'object'}, 'expected_revision': REVISION}, ['node', 'component'], idempotent=True),
+    tool('component_instance_set', 'Place or update a built code component on an element: node gets {component, props}, validated against the component\'s declared props. Optional poster and posterLight (owned image paths, /api/assets/<sha256>.<ext>) give this one element its own poster in place of the component\'s, for instances whose settings change how they look; omitted, an existing own poster of the same component is kept, and an empty string removes it. One undo step.',
+         {'node': NODE, 'component': IDENT, 'props': {'type': 'object'}, 'poster': {'type': 'string', 'pattern': '^(/api/assets/[0-9a-f]{64}\\.(png|jpg|jpeg|webp|gif|svg))?$'}, 'posterLight': {'type': 'string', 'pattern': '^(/api/assets/[0-9a-f]{64}\\.(png|jpg|jpeg|webp|gif|svg))?$'}, 'expected_revision': REVISION}, ['node', 'component'], idempotent=True),
     tool('library_list', 'List the first-party section library: sections (id, name, category, tags, fields to re-cast, page components, preset), page components, design-system presets and starter sites. Filter with kind, category and query. Read-only; use before library_insert to pick an id and its fields.',
          {'kind': {'type': 'string', 'enum': ['sections', 'components', 'presets', 'starters']}, 'category': {'type': 'string', 'maxLength': 60}, 'query': {'type': 'string', 'maxLength': 120}}, read_only=True, idempotent=True),
     tool('library_insert', 'Insert one library section as ordinary elements, re-cast with field values (for example the product name and accent colour), under parent on page. Installs the page components and design values it needs, without overwriting the designer\'s own tokens. One undo step; two inserts keep independent ids and variables. Returns the new root id and warnings.',
@@ -136,7 +136,17 @@ async def dispatch(name, arguments):
     if name == 'variables_remove':
         return await _command('variables.remove', {key: arguments[key] for key in ('kind', 'name')}, arguments)
     if name == 'component_instance_set':
-        return await _command('code.instance.set', {'node': arguments['node'], 'value': {'component': arguments['component'], 'props': arguments.get('props') or {}}}, arguments)
+        value = {'component': arguments['component'], 'props': arguments.get('props') or {}}
+        previous = ((((await studio.state())['site'].get('extensions') or {}).get('code') or {}).get('instances') or {}).get(arguments['node']) or {}
+        for key in ('poster', 'posterLight'):
+            given = arguments.get(key)
+            if given:
+                value[key] = given
+            elif given is None and previous.get(key) and previous.get('component') == arguments['component']:
+                value[key] = previous[key]
+        if 'poster' not in value:
+            value.pop('posterLight', None)
+        return await _command('code.instance.set', {'node': arguments['node'], 'value': value}, arguments)
     if name == 'component_build_install':
         studio.access.authorize('edit')
         built = await build_component({'enabled': True, 'language': arguments['language'], 'source': arguments['source'], 'props': arguments.get('props') or {}, 'mode': arguments.get('mode', 'page'), **({'poster': arguments['poster']} if arguments.get('poster') else {}), **({'posterLight': arguments['posterLight']} if arguments.get('posterLight') else {})})

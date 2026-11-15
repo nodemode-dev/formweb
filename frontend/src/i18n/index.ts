@@ -102,7 +102,7 @@ function lookup(english: string, lang: Lang = current): string {
   return tail && look(base) !== undefined ? `${found}${tail}` : found;
 }
 
-export type Value = string | number | { t: string };
+export type Value = string | number | { t: string } | { lang: string };
 type Entry = { en: string; redo: () => string };
 type Rec = { en: string; shown: string; redo?: () => string };
 
@@ -122,8 +122,20 @@ function fill(text: string, values: readonly Value[], english: boolean): string 
     const value = values[Number(index)];
     if (value === undefined) return token;
     if (typeof value !== 'object') return String(value);
+    if ('lang' in value) return languageName(value.lang, english ? 'en' : current);
     return english ? value.t : lookup(value.t);
   });
+}
+
+const namers = new Map<string, Intl.DisplayNames | null>();
+// A language code's name in the given interface language: Intl's names, else the language menu's own name, else the code.
+export function languageName(code: string, lang: Lang = current): string {
+  if (!namers.has(lang)) {
+    try { namers.set(lang, new Intl.DisplayNames([lang], { type: 'language', fallback: 'none' })); } catch { namers.set(lang, null); }
+  }
+  let named: string | undefined;
+  try { named = namers.get(lang)?.of(code); } catch { named = undefined; }
+  return named || LANG_NAMES.find(([id]) => id.toLowerCase() === code.toLowerCase())?.[1] || code;
 }
 
 function remember(shown: string, entry: Entry, lang: Lang = current): void {
@@ -163,7 +175,7 @@ function category(lang: string, n: number): string {
 
 // A {t} value that is already translated goes back to its English source.
 const unmade = (values: readonly Value[]): readonly Value[] =>
-  values.map(v => typeof v === 'object' ? { t: source(v.t)?.en ?? v.t } : v);
+  values.map(v => typeof v === 'object' && 't' in v ? { t: source(v.t)?.en ?? v.t } : v);
 
 export function t(english: string, given?: readonly Value[]): string {
   if (!given) {
@@ -233,6 +245,16 @@ export function labelText(node: Text, english: string, values?: readonly Value[]
   const shown = t(english, values);
   if (node.data !== shown) node.data = shown;
   textEn.set(node, { en: args ? fill(english, args, true) : english, shown, redo: render });
+}
+
+// The English source of a node's text, or null when another language is shown and the source is not recorded.
+export function englishOf(node: HTMLElement): string | null {
+  const child = node.firstChild;
+  const rec = child instanceof Text && child === node.lastChild ? textEn.get(child) : undefined;
+  if (rec) return rec.en.trim();
+  const text = (node.textContent || '').trim();
+  KEYSET ??= new Set(KEYS);
+  return current === 'en' || known(text) || KEYSET.has(text) ? text : null;
 }
 
 export function label(node: HTMLElement, english: string, values?: readonly Value[]): void {

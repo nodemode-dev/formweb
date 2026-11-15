@@ -24,7 +24,7 @@ export function mount(root, props, ctx) {
 .fwc-glyph-lens .fwc-gl-true[hidden] { display: none; }
 .fwc-glyph-lens .fwc-gl-canvas { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; z-index: var(--z-raised, 100); opacity: 0; transition: opacity 1.4s var(--ease-out, ease-out); }
 .fwc-glyph-lens .fwc-gl-canvas.on { opacity: 1; }
-.fwc-glyph-lens .fwc-gl-probe { position: absolute; inline-size: 0; block-size: 0; overflow: hidden; visibility: hidden; }
+.fwc-glyph-lens .fwc-gl-probe { position: absolute; inline-size: 0; block-size: 0; overflow: hidden; visibility: hidden; transition: none !important; }
 .fwc-glyph-lens .fwc-gl-loading { position: absolute; inset: 0; z-index: var(--z-raised, 100); display: grid; place-items: center; pointer-events: none; font-family: var(--font-mono, monospace); font-size: var(--fs-xs, 0.8125rem); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
 .fwc-glyph-lens .fwc-gl-loading[hidden] { display: none; }
 .fwc-glyph-lens .fwc-gl-form { color: var(--ink); }
@@ -73,6 +73,10 @@ export function mount(root, props, ctx) {
 .fwc-glyph-lens .fwc-gl-btn-quiet { background: transparent; box-shadow: inset 0 0 0 1px var(--edge-strong); color: var(--ink); }
 .fwc-glyph-lens .fwc-gl-btn-quiet:hover { background: var(--control); }
 .fwc-glyph-lens .fwc-gl-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.fwc-glyph-lens.fwc-gl-static .fwc-gl-hint-w { display: none; }
+.fwc-glyph-lens.fwc-gl-tail { position: relative; inset: auto; container-type: normal; display: flex; flex-direction: column; isolation: isolate; user-select: text; -webkit-user-select: text; }
+.fwc-glyph-lens.fwc-gl-tail .fwc-gl-tail-pic { position: absolute; inset: 0; container-type: size; overflow: hidden; }
+.fwc-glyph-lens.fwc-gl-tail .fwc-gl-close { position: relative; inset: auto; flex: 1 1 auto; opacity: 1; pointer-events: auto; will-change: auto; cursor: auto; }
 @media (max-width: 699px) {
   .fwc-glyph-lens .fwc-gl-hud { grid-template-columns: 1fr auto; padding-block: var(--sp-3, 12px); }
   .fwc-glyph-lens .fwc-gl-hud-issue { display: none; }
@@ -130,7 +134,12 @@ export function mount(root, props, ctx) {
   const trues = [...wrap.querySelectorAll('.fwc-gl-true')];
   const els = { asw: $('.fwc-gl-aside-w'), hintw: $('.fwc-gl-hint-w'), dockw: $('.fwc-gl-dock-w'), log: $('.fwc-gl-log'), close: $('.fwc-gl-close'), dock: $('.fwc-gl-dock') };
   const pctEl = $('.fwc-gl-pct'), readEl = $('.fwc-gl-read');
-  const showTheme = () => { const light = ctx.theme() === 'light'; trues[0].hidden = light; trues[1].hidden = !light; };
+  let tail = null, tailTrues = [];
+  const showTheme = () => {
+    const light = ctx.theme() === 'light';
+    trues[0].hidden = light; trues[1].hidden = !light;
+    if (tailTrues.length) { tailTrues[0].hidden = light; tailTrues[1].hidden = !light; }
+  };
   showTheme();
   const offTheme = ctx.onTheme(() => { showTheme(); readColors(); });
 
@@ -463,6 +472,7 @@ void main(){
   const rawScroll = () => {
     const r = track.getBoundingClientRect();
     const total = track.offsetHeight - stage.offsetHeight;
+    if (total <= 0) return 0;
     const top = parseFloat(getComputedStyle(stage).top) || 0;
     return clamp((top - r.top) / Math.max(total, 1));
   };
@@ -491,12 +501,14 @@ void main(){
     setFx(els.dockw, lg, 0);
     const dockLive = lg > 0.02 && !state.failed;
     if (dockLive !== liveDock) { liveDock = dockLive; els.dockw.toggleAttribute('inert', !dockLive); els.dockw.style.pointerEvents = dockLive ? '' : 'none'; }
-    const co = ss(0.92, 0.99, p);
-    setFx(els.close, co, 30 * (1 - co));
-    const live = p >= 0.92;
-    if (live !== liveClose) { liveClose = live; els.close.classList.toggle('fwc-gl-live', live); els.close.toggleAttribute('inert', !live); }
-    const pc = Math.round(state.decode * 100);
-    if (pctEl.textContent !== String(pc)) pctEl.textContent = String(pc);
+    if (!tail) {
+      const co = ss(0.92, 0.99, p);
+      setFx(els.close, co, 30 * (1 - co));
+      const live = p >= 0.92;
+      if (live !== liveClose) { liveClose = live; els.close.classList.toggle('fwc-gl-live', live); els.close.toggleAttribute('inert', !live); }
+      const pc = Math.round(state.decode * 100);
+      if (pctEl.textContent !== String(pc)) pctEl.textContent = String(pc);
+    }
     state.dirty = true;
   }
 
@@ -585,8 +597,9 @@ void main(){
   let tween = null;
   const easeIO = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
   $('.fwc-gl-replay').addEventListener('click', () => {
+    if (tail) { window.scrollTo(0, Math.max(0, window.scrollY + track.getBoundingClientRect().top - (parseFloat(getComputedStyle(stage).top) || 0))); return; }
     if (RM) { window.scrollTo(0, 0); return; }
-    tween = { y0: window.scrollY, t0: performance.now(), dur: 2000 };
+    tween ={ y0: window.scrollY, t0: performance.now(), dur: 2000 };
   });
 
   let lastNow = 0, simT = 0, logTimer = 0, readTimer = 0, sigPrev = '';
@@ -661,6 +674,7 @@ void main(){
     W = s.width || ctx.host.clientWidth || 1;
     H = s.height || ctx.host.clientHeight || 1;
     sizeCanvas();
+    if (tail) tail.style.minBlockSize = stage.offsetHeight + 'px';
     target = RM ? rawScroll() : ctx.progress();
     state.ps = RM ? discrete(target) : target;
     applyScroll(state.ps);
@@ -670,8 +684,30 @@ void main(){
   const offProgress = RM ? () => {} : ctx.onProgress((p) => { target = p; });
   const offFrame = ctx.onFrame(frame);
 
+  const buildTail = () => {
+    if (!RM || track === stage || !track.parentNode || track.offsetHeight - stage.offsetHeight > 1) return;
+    tail = document.createElement('div');
+    tail.className = 'fwc-glyph-lens fwc-gl-tail';
+    tail.dataset.mode = 'off';
+    tail.dataset.ready = '';
+    tail.style.minBlockSize = stage.offsetHeight + 'px';
+    const pic = document.createElement('div');
+    pic.className = 'fwc-gl-tail-pic';
+    pic.setAttribute('aria-hidden', 'true');
+    pic.innerHTML = picture('fwc-gl-dark', darkSrc, '') + picture('fwc-gl-light', lightSrc, '');
+    tailTrues = [...pic.querySelectorAll('.fwc-gl-true')];
+    els.close.removeAttribute('inert');
+    els.close.classList.add('fwc-gl-live');
+    pctEl.textContent = '100';
+    tail.append(pic, els.close);
+    wrap.classList.add('fwc-gl-static');
+    track.insertAdjacentElement('afterend', tail);
+    showTheme();
+  };
+
   const start = () => {
     if (dead) return;
+    buildTail();
     readColors();
     const ok = initGL();
     W = ctx.host.clientWidth || 1; H = ctx.host.clientHeight || 1;
@@ -695,6 +731,7 @@ void main(){
     stage.removeEventListener('pointercancel', endPtr);
     stage.removeEventListener('keydown', onKey);
     canvas.removeEventListener('webglcontextlost', onLost);
+    if (tail) tail.remove();
     wrap.remove();
     style.remove();
   };

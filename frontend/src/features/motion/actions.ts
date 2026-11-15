@@ -86,7 +86,7 @@ export function buildAction(ctx: MotionContext, host: HTMLElement, withTrigger: 
   const searchTemplate = ctx.select([]);
   const searchLimit = numberInput(ctx, 1, 50);
   const searchEmpty = ctx.select([]);
-  const searchParam = checkbox('Read the from parameter on load');
+  const searchParam = checkbox('Fill the search from the page address on load');
   search.append(fieldOf(ctx, 'Search input', searchInput, true), fieldOf(ctx, 'Results container', searchResults, true), fieldOf(ctx, 'Result template', searchTemplate, true), fieldOf(ctx, 'Result limit', searchLimit), fieldOf(ctx, 'Empty message', searchEmpty), searchParam.wrap);
 
   const play = group();

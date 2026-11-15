@@ -32,8 +32,11 @@ import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from
 import { installInspector } from './features/inspector';
 import { installLibrary } from './features/library';
 import { watchFit } from './ui/fit';
+import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
+import './styles/stage-head.css';
+import './styles/lang-stable.css';
 
 await startLanguage();
 
@@ -383,10 +386,13 @@ sidebar.append(sidebarTabs, pagesPane, insertPane, agentsPane, libraryPanel.elem
 
 const stagePanel = element('section', 'stage-panel');
 const stageHead = element('div', 'stage-head');
-const pageName = element('span', '', 'Home');
+const pageName = element('span', 'stage-page', 'Home');
 pageName.dataset.noI18n = '';
 const pagePath = element('span', 'stage-path', '/');
-const viewportReadout = element('span', 'viewport-readout', 'Editing Desktop · 1280 px');
+const viewportReadout = element('span', 'viewport-readout');
+const readoutMode = element('span', 'readout-mode', 'Editing Desktop');
+const readoutWidth = element('span', 'readout-width', '1280 px');
+viewportReadout.append(readoutMode, readoutWidth);
 const viewportHint = element('span', 'viewport-hint', 'Width is outside this breakpoint. Use the live responsive preview to see the switch.');
 viewportHint.dataset.on = 'false';
 const selectionPath = element('nav', 'fw-crumbs');
@@ -1408,7 +1414,8 @@ function update(next: EditorState): void {
     if (current) crumb.setAttribute('aria-current', 'true'); else crumb.removeAttribute('aria-current');
   });
   const pickedBreakpoint = site.breakpoints.find(item => item.id === breakpoint);
-  label(viewportReadout, 'Editing {0}', [`${pickedBreakpoint?.name || breakpoint} · ${widths[breakpoint]} px`]);
+  label(readoutMode, 'Editing {0}', [pickedBreakpoint?.name || breakpoint]);
+  text(readoutWidth, `${widths[breakpoint]} px`);
   // Quiet hint only: the typed width never changes which breakpoint's styles are drawn or edited.
   const narrower = site.breakpoints.filter(item => item.maxWidth < (pickedBreakpoint?.maxWidth ?? 0)).reduce((top, item) => Math.max(top, item.maxWidth), 0);
   const outside = !!pickedBreakpoint && (widths[breakpoint] > pickedBreakpoint.maxWidth || widths[breakpoint] <= narrower);
@@ -1593,7 +1600,7 @@ function baseUrlAction(warning: string): { label: string; run: () => unknown } |
 async function exportSite(): Promise<void> {
   const headers = await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
   const warning = notFoundBaseWarning();
-  status([t('Static site exported for {0}.', [locale]), warning, localFormWarning(localFormHeader(headers))], false, baseUrlAction(warning));
+  status([t('Static site exported for {0}.', [{ lang: locale }]), warning, localFormWarning(localFormHeader(headers))], false, baseUrlAction(warning));
 }
 async function sendToFormPublisher(): Promise<void> {
   try {
@@ -2233,6 +2240,7 @@ if (wantsNativeMenus()) {
   onLanguage(() => { void nativeMenus.build().catch(() => undefined); });
 }
 startPageTranslator();
+watchHelp(inspector);
 exposeToAgents();
 installKeymap(commandRegistry, () => !!lastState && !featureStudio.opened);
 document.addEventListener('click', event => {

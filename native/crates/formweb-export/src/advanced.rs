@@ -90,7 +90,7 @@ pub fn styles(site:&Site)->String {
     css.push_str("[data-fw-widget=fetch]{height:160px;overflow:auto}[data-fw-widget=product]{height:300px;overflow:auto}[data-fw-product-title]{min-height:2.5em}[data-fw-price]{min-height:1.5em}[data-fw-widget=member-login]{height:240px;overflow:auto}.fw-widget-status{height:3em;overflow:auto}\n");
     css.push_str(&crate::wishlist::css(site));
     if let Some(nodes)=site.extensions.get("behaviors").and_then(|v|v.get("nodes")).and_then(Value::as_object) {
-        for(id,node)in nodes { if let Some(states)=node.get("states").and_then(Value::as_object) { for(state,styles)in states { let pseudo=match state.as_str(){"hover"=>":hover","focus"=>":focus-within","press"=>"[data-fw-press]",_=>continue};css.push_str(&format!("[data-fw-node=\"{id}\"]{pseudo}{{"));if let Some(styles)=styles.as_object(){for(key,value)in styles{if let Some(value)=value.as_str(){css.push_str(&format!("{key}:{value};"));}}}css.push_str("}\n"); } } }
+        for(id,node)in nodes { if let Some(states)=node.get("states").and_then(Value::as_object) { for(state,styles)in states { let pseudo=match state.as_str(){"hover"=>":hover","focus"=>":focus-within","press"=>"[data-fw-press]","selected"=>"[aria-selected=\"true\"]",_=>continue};css.push_str(&format!("[data-fw-node=\"{id}\"]{pseudo}"));if state=="selected"{css.push_str(&format!(",[data-fw-node=\"{id}\"][aria-pressed=\"true\"]"));}css.push('{');if let Some(styles)=styles.as_object(){for(key,value)in styles{if let Some(value)=value.as_str(){css.push_str(&format!("{key}:{value};"));}}}css.push_str("}\n"); } } }
     }
     css.push_str(&design_css(site));
     css.push_str(&motion_css(site));
@@ -196,6 +196,19 @@ pub fn initially_open(site:&Site,node:&Node)->bool { accordion_panels(site).get(
 pub fn wraps_panel(site:&Site,node:&Node)->bool { site.extensions.contains_key("motion")&&accordion_panels(site).contains_key(&node.id) }
 pub fn script_form(site:&Site,node:&Node)->bool { node.tag=="form"&&site.extensions.get("forms").and_then(|g|g.get("forms")).and_then(|f|f.get(&node.id)).is_none()&&site.extensions.get("motion").and_then(|m|m.get("scripts")).and_then(|s|s.get(&node.id)).and_then(|s|s.get("trigger")).and_then(Value::as_str)==Some("submit") }
 pub fn initially_hidden(site:&Site,node:&Node)->bool { motion_entries(site,"disclosure").into_iter().filter(|(_,e)|e.get("type").and_then(Value::as_str)==Some("tabs")).any(|(_,e)|{let initial=e.get("initial").and_then(Value::as_u64).unwrap_or(0);e.get("items").and_then(Value::as_array).into_iter().flatten().enumerate().any(|(i,item)|i as u64!=initial&&item.get("panel").and_then(Value::as_str)==Some(node.id.as_str()))}) }
+pub fn initially_chosen(site:&Site,node:&Node)->Option<&'static str> {
+    site.extensions.get("behaviors").and_then(|b|b.get("nodes")).and_then(|n|n.get(&node.id)).and_then(|n|n.get("states")).and_then(|s|s.get("selected"))?;
+    let text=|v:Option<&Value>|match v{Some(Value::String(s))=>Some(s.clone()),Some(Value::Number(n))=>Some(n.to_string()),_=>None};
+    for(_,e)in motion_entries(site,"disclosure"){
+        let items=e.get("items").and_then(Value::as_array).cloned().unwrap_or_default();
+        match e.get("type").and_then(Value::as_str){
+            Some("tabs")=>{if items.is_empty(){continue;}let initial=(e.get("initial").and_then(Value::as_u64).unwrap_or(0) as usize).min(items.len()-1);if items[initial].get("trigger").and_then(Value::as_str)==Some(node.id.as_str()){return Some("aria-selected");}}
+            Some("filter")=>{let initial=text(e.get("initial")).unwrap_or_else(||"all".into());if e.get("chips").and_then(Value::as_array).into_iter().flatten().any(|c|c.get("trigger").and_then(Value::as_str)==Some(node.id.as_str())&&text(c.get("value")).as_deref()==Some(initial.as_str())){return Some("aria-pressed");}}
+            _=>{}
+        }
+    }
+    None
+}
 pub fn wraps_track(site:&Site,node:&Node)->bool { site.extensions.get("motion").and_then(|g|g.get("loops")).and_then(|l|l.get(&node.id)).and_then(|l|l.get("type")).and_then(Value::as_str)==Some("marquee") }
 pub fn text_html(site:&Site,node:&Node,text:&str)->String {
     let kind=site.extensions.get("motion").and_then(|g|g.get("text")).and_then(|t|t.get(&node.id));
