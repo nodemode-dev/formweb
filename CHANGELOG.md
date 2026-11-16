@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.21.3 · 2026-11-16
+
+- Windows: `formweb.bat install` and `build_app.bat` no longer stop with "The system cannot find the path specified." after the Rust engine is built. The set-up scripts that work inside `native`, `backend` and `frontend` now return to the folder they were called from, so the next step is found. The Windows build is still unverified: it has not yet completed on a Windows machine.
+
 ## 0.21.2 · 2026-11-15
 
 - Desktop app: one copy at a time. Opening a `.fweb` or `.fpub` from the file manager while FormWeb runs now hands the file to the running window, which asks before replacing a site with unsaved work, instead of starting a second copy. On Linux this needs a D-Bus session bus; without one a second copy still starts. `.fpub` packages from FormPublisher are now associated with the app beside `.fweb`.
