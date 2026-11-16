@@ -37,7 +37,8 @@ function words(text: string): string[] {
   if (run) out.push(run);
   return out;
 }
-const ENGLISH_TABS_NEED = 242.98;
+// The four tab labels at their widest in any shipped language (58 + 70 + 55 + 52, plus padding), so no label wraps or clips.
+const ANY_LANGUAGE_TABS_NEED = 254;
 
 function foldCount(menubar: HTMLElement, room: number): number {
   const kids = Array.from(menubar.children) as HTMLElement[];
@@ -80,7 +81,7 @@ export function watchFit(app: HTMLElement, topbar: HTMLElement, inspector: HTMLE
     if (!tabs || !context || !inspector.clientWidth || !tabs.clientWidth) return;
     const tabStyle = getComputedStyle(tabs);
     const room = tabs.clientWidth - px(tabStyle.paddingLeft) - px(tabStyle.paddingRight) - px(tabStyle.columnGap) * 3;
-    const wantTabs = room < ENGLISH_TABS_NEED;
+    const wantTabs = room < ANY_LANGUAGE_TABS_NEED;
     if (inspector.classList.contains('fw-tabs2') !== wantTabs) inspector.classList.toggle('fw-tabs2', wantTabs);
     const section = inspector.querySelector<HTMLElement>('.inspector-section');
     const grid = inspector.querySelector<HTMLElement>('.form-grid');

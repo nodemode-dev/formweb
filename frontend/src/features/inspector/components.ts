@@ -352,7 +352,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
     const entries = Object.entries(group.components || {});
     if (emptyNote.hidden === !entries.length) emptyNote.hidden = !!entries.length;
     keyed(list, entries, ([id]) => id, () => {
-      const row = element('div', 'fw-ext-actions');
+      const row = element('div', 'fw-ext-actions fw-code-row');
       const thumb = element('img');
       thumb.alt = '';
       thumb.decoding = 'async';

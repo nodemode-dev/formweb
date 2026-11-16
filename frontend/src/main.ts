@@ -99,6 +99,7 @@ function select(items: { id: string; name: string }[]): HTMLSelectElement {
   options(node, items);
   return node;
 }
+const NOTE_BELOW = 16;
 function section(container: HTMLElement, title: string, hint = ''): HTMLElement {
   const node = element('section', 'inspector-section');
   const head = element('div', 'section-title');
@@ -109,7 +110,7 @@ function section(container: HTMLElement, title: string, hint = ''): HTMLElement 
   labelText(caption, title);
   name.append(chevron, caption);
   head.append(name);
-  if (hint) { const note = element('span', 'hint'); label(note, hint); head.append(note); }
+  if (hint) { const note = element('span', 'hint'); label(note, hint); head.append(note); head.classList.toggle('has-note', hint.length > NOTE_BELOW); }
   head.setAttribute('role', 'button');
   head.tabIndex = 0;
   head.setAttribute('aria-expanded', 'true');
@@ -798,10 +799,9 @@ const baseUrlGrid = element('div', 'form-grid');
 const baseUrlInput = addInspectorInput(baseUrlGrid, 'Base URL', 'site.baseUrl', next => command('site.update', { patch: { settings: { baseUrl: next.trim().replace(/\/+$/, '') || null } } }), undefined, true) as HTMLInputElement;
 baseUrlInput.placeholder = 'https://example.com';
 const baseUrlHelp = element('p', 'micro', 'The site\'s public address. Canonical links, the sitemap and the root 404.html use it. Agents: site.update with settings.baseUrl.');
-const baseUrlTail = element('span');
+const baseUrlTail = element('p', 'micro');
 label(baseUrlTail, 'Leave it empty to keep the https://example.com placeholder.');
-baseUrlHelp.append(' ', baseUrlTail);
-siteSection.append(baseUrlGrid, baseUrlHelp);
+siteSection.append(baseUrlGrid, baseUrlHelp, baseUrlTail);
 function openBaseUrlField(): void {
   openDock('right');
   setInspector('page');
