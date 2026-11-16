@@ -14,6 +14,8 @@ export function mount(root, props, ctx) {
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const app = '<span class="fwc-gl-form">' + esc(P('nameForm', 'Form')) + '</span><span class="fwc-gl-suffix">' + esc(P('nameSuffix', 'Sculpt')) + '</span>';
   const withApp = (s) => esc(s).replace('{app}', app);
+  const own = (k) => props && props[k] != null && props[k] !== '';
+  const note = (k, d, ks, ds) => (RM && (own(ks) || !own(k)) ? P(ks, ds) : P(k, d));
   const sets = Array.isArray(props && props.sets) && props.sets.length === 3 ? props.sets.map(String) : ['Mesh', 'Voxel', 'Matcap'];
 
   const style = document.createElement('style');
@@ -115,8 +117,8 @@ export function mount(root, props, ctx) {
     '<span class="fwc-gl-hud-state" style="--d:0.16"><i class="fwc-gl-dot"></i>' + esc(P('liveLabel', 'Live')) + ' <span class="fwc-gl-read">20px 60fps</span></span></div>' +
     '<ol class="fwc-gl-log" aria-hidden="true">' + '<li></li>'.repeat(14) + '</ol>' +
     '<div class="fwc-gl-fx fwc-gl-aside-w">' +
-    '<p class="fwc-gl-m-pointer" style="--d:0.7">' + withApp(P('asidePointer', '{app} viewport, read back as text. Scroll to tune it in. Move to open the shaded view, drag to rotate the model, click for a ripple.')) + '</p>' +
-    '<p class="fwc-gl-m-touch" style="--d:0.7">' + withApp(P('asideTouch', '{app} viewport, read back as text. Scroll to tune it in. Hold to open the shaded view, drag to rotate the model, tap for a ripple.')) + '</p>' +
+    '<p class="fwc-gl-m-pointer" style="--d:0.7">' + withApp(note('asidePointer', '{app} viewport, read back as text. Scroll to tune it in. Move to open the shaded view, drag to rotate the model, click for a ripple.', 'asidePointerStill', '{app} viewport, read back as text. Move to open the shaded view, drag to rotate the model, click for a ripple.')) + '</p>' +
+    '<p class="fwc-gl-m-touch" style="--d:0.7">' + withApp(note('asideTouch', '{app} viewport, read back as text. Scroll to tune it in. Hold to open the shaded view, drag to rotate the model, tap for a ripple.', 'asideTouchStill', '{app} viewport, read back as text. Hold to open the shaded view, drag to rotate the model, tap for a ripple.')) + '</p>' +
     '<p class="fwc-gl-m-off" style="--d:0.7">' + withApp(P('asideOff', 'The viewport is off air. This browser has no WebGL, so the capture cannot be read as text. Scroll on for the end.')) + '</p></div>' +
     '<div class="fwc-gl-fx fwc-gl-hint-w"><span class="fwc-gl-hint" style="--d:0.86">' + esc(P('hintLabel', 'Scroll to tune')) +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg></span></div>' +
@@ -128,6 +130,9 @@ export function mount(root, props, ctx) {
     '<button class="fwc-gl-btn fwc-gl-btn-quiet fwc-gl-replay" type="button"><span>' + esc(P('replayLabel', 'Replay sculpt')) + '</span>' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 19V5"/><path d="M6 11l6-6 6 6"/></svg></button></p></div>';
   root.append(style, wrap);
+  const stageLabel = stage.getAttribute('aria-label');
+  const stillLabel = RM && stageLabel !== null && (own('stageLabelStill') || /tune it in/.test(stageLabel));
+  if (stillLabel) stage.setAttribute('aria-label', P('stageLabelStill', '{app} viewport read as text. Left and right arrow keys turn it. Enter sends a pulse.').replace('{app}', P('nameForm', 'Form') + P('nameSuffix', 'Sculpt')));
 
   const $ = (s) => wrap.querySelector(s);
   const canvas = $('.fwc-gl-canvas'), probe = $('.fwc-gl-probe'), loadingEl = $('.fwc-gl-loading');
@@ -599,7 +604,7 @@ void main(){
   $('.fwc-gl-replay').addEventListener('click', () => {
     if (tail) { window.scrollTo(0, Math.max(0, window.scrollY + track.getBoundingClientRect().top - (parseFloat(getComputedStyle(stage).top) || 0))); return; }
     if (RM) { window.scrollTo(0, 0); return; }
-    tween ={ y0: window.scrollY, t0: performance.now(), dur: 2000 };
+    tween = { y0: window.scrollY, t0: performance.now(), dur: 2000 };
   });
 
   let lastNow = 0, simT = 0, logTimer = 0, readTimer = 0, sigPrev = '';
@@ -732,6 +737,7 @@ void main(){
     stage.removeEventListener('keydown', onKey);
     canvas.removeEventListener('webglcontextlost', onLost);
     if (tail) tail.remove();
+    if (stillLabel) stage.setAttribute('aria-label', stageLabel);
     wrap.remove();
     style.remove();
   };

@@ -19,6 +19,9 @@
     "asidePointer": { "type": "string", "default": "{app} viewport, read back as text. Scroll to tune it in. Move to open the shaded view, drag to rotate the model, click for a ripple." },
     "asideTouch": { "type": "string", "default": "{app} viewport, read back as text. Scroll to tune it in. Hold to open the shaded view, drag to rotate the model, tap for a ripple." },
     "asideOff": { "type": "string", "default": "The viewport is off air. This browser has no WebGL, so the capture cannot be read as text. Scroll on for the end." },
+    "asidePointerStill": { "type": "string", "default": "{app} viewport, read back as text. Move to open the shaded view, drag to rotate the model, click for a ripple." },
+    "asideTouchStill": { "type": "string", "default": "{app} viewport, read back as text. Hold to open the shaded view, drag to rotate the model, tap for a ripple." },
+    "stageLabelStill": { "type": "string", "default": "{app} viewport read as text. Left and right arrow keys turn it. Enter sends a pulse." },
     "hintLabel": { "type": "string", "default": "Scroll to tune" },
     "dockLabel": { "type": "string", "default": "Glyph set" },
     "sets": { "type": "json", "default": ["Mesh", "Voxel", "Matcap"] },
@@ -43,6 +46,9 @@
     "asidePointer": "Side note, pointer",
     "asideTouch": "Side note, touch",
     "asideOff": "Side note, no WebGL",
+    "asidePointerStill": "Side note, pointer, reduced motion",
+    "asideTouchStill": "Side note, touch, reduced motion",
+    "stageLabelStill": "Spoken label, reduced motion",
     "hintLabel": "Scroll hint",
     "dockLabel": "Glyph set group label",
     "sets": "Glyph set names",
@@ -56,11 +62,13 @@
   "propDocs": {
     "darkSrc": "Wide capture, 1.5625 aspect, ending .w2400.webp so a 1024 wide twin is offered. The glyph grid is read from a baked signal of the stock capture, so a different picture keeps the stock shape under the text.",
     "sets": "Exactly three names for the Mesh, Voxel and Matcap glyph sets, in that order.",
-    "asidePointer": "Use {app} where the two-tone product name belongs."
+    "asidePointer": "Use {app} where the two-tone product name belongs.",
+    "asidePointerStill": "Shown instead of the side note when the visitor asks for reduced motion, because nothing is tuned by scrolling then. Use {app} where the two-tone product name belongs.",
+    "stageLabelStill": "The spoken label of the stage under reduced motion. It replaces the section's own label only when that label still mentions tuning by scrolling, or when this text is set here. Use {app} for the plain product name."
   },
   "poster": "poster.webp",
   "posterLight": "poster-light.webp",
   "sections": ["formsculpt-viewport"],
-  "fallback": "Without WebGL 2 the two screenshots show plain, the glyph set picker hides and the side note says the viewport is off air. Under reduced motion the grid stops flickering and the scroll steps between three settled states.",
+  "fallback": "Without WebGL 2 the two screenshots show plain, the glyph set picker hides and the side note says the viewport is off air. Under reduced motion the grid stops flickering, the side note no longer says to scroll, and the closing block follows the stage in normal flow; on a taller track the scroll steps between three settled states.",
   "source": "Ported from formai-xmental-webspun v3.1.0 assets/sections/formsculpt-viewport (NodeAgentc, Inc., cleared by the owner 2026-11-09)."
 }
