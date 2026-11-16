@@ -225,7 +225,7 @@ async def image_asset(asset_id: str):
 @app.get('/api/health')
 async def health():
     await studio.engine.request('hello')
-    return {'status': 'ok', 'engine': 'rust'}
+    return {'status': 'ok', 'app': 'formweb', 'version': VERSION, 'engine': 'rust'}
 
 
 @app.get('/api/system')

@@ -237,6 +237,8 @@ async def library_apply_starter(starter_id: str, request: Request):
             for preset_id in sorted({t['preset'] for t in templates.values() if t.get('preset')}):
                 commands += library.page_commands(site, library.preset(preset_id), root, 'all')
         made_pages.append(page_id)
+        if isinstance(page.get('description'), str) and page['description'].strip():
+            commands.append({'command': 'page.update', 'params': {'id': page_id, 'patch': {'seo': {'description': page['description'].strip()}}}})
         headline = False
         for sid in page.get('sections') or []:
             template = templates[sid]

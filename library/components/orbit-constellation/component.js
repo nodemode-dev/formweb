@@ -744,6 +744,7 @@ export function mount(root, props, ctx) {
 
   let lastFront = -2;
   let lastChap = -1;
+  let pinned = -1;
   const setFront = (i) => {
     if (i === lastFront) return;
     lastFront = i;
@@ -778,7 +779,7 @@ export function mount(root, props, ctx) {
     let p;
     if (calm) {
       const raw = rawGeo();
-      const want = raw < 0.3 ? 0 : 1;
+      const want = pinned >= 0 ? pinned : raw < 0.3 ? 0 : 1;
       if (want !== st.rstate && !st.fading) {
         st.fading = true;
         st.fadeT = 0;
@@ -916,7 +917,10 @@ export function mount(root, props, ctx) {
     if (calm) {
       // The native scene shows its end state under reduced motion; show the state that matches the settled ring or web.
       const hOp = 1 - rng(p, 0.03, 0.1);
-      for (const n of heroEls) n.style.opacity = hOp.toFixed(3);
+      for (const n of heroEls) {
+        n.style.opacity = hOp.toFixed(3);
+        n.style.transform = "translateY(" + (-40 * (1 - hOp)).toFixed(1) + "px)";
+      }
       for (const n of hintEls) n.style.opacity = (1 - rng(p, 0.02, 0.06)).toFixed(3);
       for (const n of indexEls) n.style.opacity = iIn.toFixed(3);
     }
@@ -1009,7 +1013,14 @@ export function mount(root, props, ctx) {
   }
   started = true;
   wake();
-  if (calm) on(window, "scroll", wake, { passive: true });
+  if (calm) {
+    on(window, "scroll", () => {
+      if (trackEl && stageEl && trackEl.offsetHeight > stageEl.offsetHeight) pinned = -1;
+      wake();
+    }, { passive: true });
+    for (const a of chapEls) on(a, "click", () => { pinned = Number(a.getAttribute("data-or-chap")); wake(); });
+    for (const b of outside("[data-or-top]")) on(b, "click", () => { pinned = 0; wake(); });
+  }
 
   return () => {
     clearTimeout(readyTimer);

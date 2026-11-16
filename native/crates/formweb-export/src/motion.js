@@ -475,7 +475,26 @@
           return (v < 0 ? '-' : '') + body + (frac ? '.' + frac : '');
         };
         let update = v => { const next = prefix + format(v) + suffix; if (node.data !== next) node.data = next; };
-        if (!el.style.minWidth) {
+        if (!reduced && !cfg.odometer) {
+          const num = document.createElement('span'), numText = document.createTextNode(m[0]);
+          num.style.cssText = 'display:inline-block;text-align:start;white-space:nowrap';
+          num.append(numText);
+          node.data = prefix;
+          node.after(num, document.createTextNode(suffix));
+          const a = format(from), b = format(to), longest = a.length > b.length ? a : b;
+          const pin = () => {
+            const held = numText.data;
+            num.style.minWidth = '';
+            let width = 0;
+            for (const s of [m[0], ...Array.from({ length: 10 }, (_, d) => longest.replace(/\d/g, String(d)))]) { numText.data = s; width = Math.max(width, num.getBoundingClientRect().width); }
+            numText.data = held;
+            width = Math.ceil(width);
+            if (width) num.style.minWidth = width + 'px';
+          };
+          pin();
+          document.fonts?.addEventListener?.('loadingdone', pin);
+          update = v => { const next = format(v); if (numText.data !== next) numText.data = next; };
+        } else if (!el.style.minWidth) {
           const range = document.createRange(); range.selectNodeContents(el);
           const authored = node.data, a = format(from), b = format(to), longest = a.length > b.length ? a : b;
           let width = range.getBoundingClientRect().width;

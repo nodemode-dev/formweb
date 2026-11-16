@@ -1,10 +1,10 @@
 from conftest import APP_ID, HEALTH_PATH, VERSION_KEY, VERSION_PATH, get_json
 
 
-def test_engine_boots_on_a_free_port_with_an_empty_data_folder(engine):
+def test_engine_boots_on_a_free_port_with_an_empty_data_folder(engine, repo_version):
     status, body = get_json(engine["base"] + HEALTH_PATH)
     assert status == 200
-    assert body == {"status": "ok", "engine": "rust"}
+    assert body == {"status": "ok", "app": APP_ID, "version": repo_version, "engine": "rust"}
     assert engine["proc"].poll() is None
 
 

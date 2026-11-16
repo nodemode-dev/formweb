@@ -238,6 +238,7 @@ impl Renderer<'_> {
         let section = sections::spec(self.site, &node.id);
         if advanced::initially_open(self.site, node) { attrs.insert("data-fw-open".into(), String::new()); }
         if advanced::initially_hidden(self.site, node) { attrs.insert("hidden".into(), String::new()); }
+        if let Some(chosen) = advanced::initially_chosen(self.site, node) { attrs.insert(chosen.into(), "true".into()); }
         let suffix = context.map(|c|c.suffix).unwrap_or("");
         let runtime_id = format!("{}{suffix}", node.id);
         if let Some(context) = context {

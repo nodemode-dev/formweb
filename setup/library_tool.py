@@ -215,6 +215,9 @@ def problems_in(library, lib: Path) -> list[str]:
             if page.get('slug') in slugs:
                 bad(where, f'slug {page.get("slug")} is used twice')
             slugs.add(page.get('slug'))
+            description = page.get('description')
+            if not isinstance(description, str) or not 20 <= len(description.strip()) <= 200:
+                bad(where, f'page {page.get("name")} needs a meta description of 20 to 200 characters')
             for sid in page.get('sections') or []:
                 if sid not in sections:
                     bad(where, f'page {page.get("name")} names unknown section {sid}')

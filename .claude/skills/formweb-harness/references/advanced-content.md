@@ -24,7 +24,7 @@ For relation paths, verify a published related item actually resolves. Removed/m
 
 ## Queries, empty content and detail templates
 
-1. `cms.query` receives the list node and query. Inspect the current filter/sort/offset/limit/page-size/empty-node configuration before replacing it. Use field-compatible predicates and a stable ordering; do not assume an accepted operator is consumed correctly until output agrees.
+1. `cms.query` receives the repeating node and query: export renders that node itself once per matching published item, so put it on the card or row, never on the grid or list that holds the cards (the container would be repeated, one per item). Inspect the current filter/sort/offset/limit/page-size/empty-node configuration before replacing it. Use field-compatible predicates and a stable ordering; do not assume an accepted operator is consumed correctly until output agrees.
 2. Check a nonempty result and a zero-item result. The authored empty subtree should appear only when no items match. Confirm draft/archived entries stay absent by default.
 3. Traverse enough pages to collect all intended IDs. Verify no duplication or omission after filtering/sorting, stable equal-key ordering and defined empty/out-of-range behavior. Static filtering and visitor-driven controls are distinct claims.
 4. The `cms` group's `templates` map identifies a page template, collection and item slug pattern. Retain unrelated bindings/lists/localized maps when setting it through `extension.set`.

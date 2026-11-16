@@ -6,11 +6,11 @@
   "description": "A six page product site in the formai.studio style: home, product, about, stories, support and a not found page, with a shared header and footer.",
   "preset": "formai-studio",
   "pages": [
-    { "name": "Home", "slug": "/", "sections": ["formai-header", "formcel-foresheet", "formcel-feature-rows", "formdam-capture-wall", "formpromo-use-cases", "formmcp-faq", "formcompiler-cta", "formtray-footer"] },
-    { "name": "Product", "slug": "/product", "sections": ["formai-header", "formcut-feature-rows", "formencoder-how-it-works", "formskills-integrations", "formcompiler-cta", "formtray-footer"] },
-    { "name": "About", "slug": "/about", "sections": ["formai-header", "formslot-timeline", "formbench-figures", "formtray-footer"] },
-    { "name": "Stories", "slug": "/stories", "sections": ["formai-header", "formfabric-stories", "formtray-footer"] },
-    { "name": "Support", "slug": "/support", "sections": ["formai-header", "formbench-support", "formtray-footer"] },
-    { "name": "Not found", "slug": "/404", "sections": ["formai-header", "formtxt-404", "formtray-footer"] }
+    { "name": "Home", "slug": "/", "description": "A family of desktop apps that run on your own computer: forecast sheets, film editing, media libraries and more, with one command to connect your agents.", "sections": ["formai-header", "formcel-foresheet", "formcel-feature-rows", "formdam-capture-wall", "formpromo-use-cases", "formmcp-faq", "formcompiler-cta", "formtray-footer"] },
+    { "name": "Product", "slug": "/product", "description": "One renderer for preview and export, a real effect catalogue, hardware encoders, and skills that install into Claude Code, Codex and Cursor.", "sections": ["formai-header", "formcut-feature-rows", "formencoder-how-it-works", "formskills-integrations", "formcompiler-cta", "formtray-footer"] },
+    { "name": "About", "slug": "/about", "description": "Read FormSlot in three chapters, then see how close each app comes to the software it replaces, with the real benchmark figures.", "sections": ["formai-header", "formslot-timeline", "formbench-figures", "formtray-footer"] },
+    { "name": "Stories", "slug": "/stories", "description": "Six stories from FormFabric, the garment design app: draw patterns, sew them, drape them and export, all on your own computer.", "sections": ["formai-header", "formfabric-stories", "formtray-footer"] },
+    { "name": "Support", "slug": "/support", "description": "Work out what you would save by switching from the paid apps the Form family replaces, then support the project if the savings were worth it.", "sections": ["formai-header", "formbench-support", "formtray-footer"] },
+    { "name": "Not found", "slug": "/404", "description": "This page could not be found. Search the site to see the closest pages, or go back to the home page.", "sections": ["formai-header", "formtxt-404", "formtray-footer"] }
   ]
 }

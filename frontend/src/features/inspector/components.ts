@@ -7,7 +7,7 @@ import type { EditorState, SiteNode } from '../../types';
 
 interface PropSchema { type?: string; default?: unknown; required?: boolean }
 interface CodeComponent { enabled?: boolean; mode?: string; poster?: string; posterLight?: string; javascript?: string; props?: Record<string, PropSchema> }
-interface CodeInstance { component: string; props?: Record<string, unknown> }
+interface CodeInstance { component: string; props?: Record<string, unknown>; poster?: string; posterLight?: string }
 interface CodeSectionRecord { enabled?: boolean; poster?: string }
 interface CodeGroup { components?: Record<string, CodeComponent>; instances?: Record<string, CodeInstance>; sections?: Record<string, CodeSectionRecord>; allowSections?: boolean }
 interface PropControl { type: string; input: Control; picker?: HTMLInputElement }
@@ -41,7 +41,7 @@ function posterLightMap(next: EditorState): Record<string, string> {
   const group = codeGroup(next);
   const map: Record<string, string> = {};
   for (const [node, instance] of Object.entries(group.instances || {})) {
-    const light = group.components?.[instance.component]?.posterLight;
+    const light = instance.poster ? instance.posterLight : group.components?.[instance.component]?.posterLight;
     if (next.site.nodes[node] && light) map[node] = light;
   }
   return map;
@@ -51,7 +51,7 @@ function posterMap(next: EditorState): Record<string, string> {
   const group = codeGroup(next);
   const map: Record<string, string> = {};
   for (const [node, instance] of Object.entries(group.instances || {})) {
-    if (next.site.nodes[node]) map[node] = group.components?.[instance.component]?.poster || '';
+    if (next.site.nodes[node]) map[node] = instance.poster || group.components?.[instance.component]?.poster || '';
   }
   if (group.allowSections) {
     for (const [node, section] of Object.entries(group.sections || {})) {
@@ -157,15 +157,29 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
     if (!current || !instance) return;
     const props = { ...(instance.props || {}) };
     mutate(props);
-    await command('code.instance.set', { node: current.id, value: { component: instance.component, props } });
+    await command('code.instance.set', { node: current.id, value: { ...instance, props } });
+  }
+
+  function sharedComponent(instance: CodeInstance, next: EditorState): boolean {
+    const group = codeGroup(next);
+    return Object.entries(group.instances || {}).filter(([node, other]) => other.component === instance.component && next.site.nodes[node]).length > 1;
   }
 
   async function commitPoster(url: string, field: 'poster' | 'posterLight' = 'poster'): Promise<void> {
     const instance = instanceOf(current, latest);
-    if (!instance || !latest) return;
+    if (!current || !instance || !latest) return;
     const group = codeGroup(latest);
     const component = group.components?.[instance.component];
     if (!component) return;
+    if (instance.poster || sharedComponent(instance, latest)) {
+      const own: CodeInstance = { ...instance };
+      if (field === 'posterLight' && url && !own.poster && component.poster) own.poster = component.poster;
+      if (url) own[field] = url;
+      else delete own[field];
+      if (!own.poster) delete own.posterLight;
+      await command('code.instance.set', { node: current.id, value: own });
+      return;
+    }
     const next: CodeComponent = { ...component };
     if (url) next[field] = url;
     else delete next[field];
@@ -338,7 +352,7 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
     const entries = Object.entries(group.components || {});
     if (emptyNote.hidden === !entries.length) emptyNote.hidden = !!entries.length;
     keyed(list, entries, ([id]) => id, () => {
-      const row = element('div', 'fw-ext-actions');
+      const row = element('div', 'fw-ext-actions fw-code-row');
       const thumb = element('img');
       thumb.alt = '';
       thumb.decoding = 'async';
@@ -386,10 +400,15 @@ export function installComponents(ctx: InspectorContext): { update(next: EditorS
         const mode = component.mode === 'page' ? 'page' : 'isolated';
         label(modeBadge, MODE_LABEL[mode]);
         if (modeHint.hidden === (mode === 'page')) modeHint.hidden = mode !== 'page';
-        value(posterInput, component.poster || '');
-        if (posterClear.disabled !== !component.poster) posterClear.disabled = !component.poster;
-        value(lightInput, component.posterLight || '');
-        if (lightClear.disabled !== !component.posterLight) lightClear.disabled = !component.posterLight;
+        const shared = sharedComponent(instance, next);
+        const darkShown = instance.poster || component.poster || '';
+        const lightShown = (instance.poster ? instance.posterLight : component.posterLight) || '';
+        const darkClearable = !!instance.poster || (!shared && !!component.poster);
+        const lightClearable = instance.poster ? !!instance.posterLight : !shared && !!component.posterLight;
+        value(posterInput, darkShown);
+        if (posterClear.disabled !== !darkClearable) posterClear.disabled = !darkClearable;
+        value(lightInput, lightShown);
+        if (lightClear.disabled !== !lightClearable) lightClear.disabled = !lightClearable;
         const key = JSON.stringify([node.id, instance.component, component.props || {}]);
         if (key !== schemaKey) {
           schemaKey = key;

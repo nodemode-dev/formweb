@@ -36,7 +36,7 @@ Work down this list and stop at the first row that fits.
 | Split text, typewriter, ghost text | native text | kind `text` |
 | Draggable cards, tilt, follow-cursor, proximity | native drag or pointer | kinds `drag`, `pointer` |
 | Accordion, tabs, filter, copy button, scroll-to, lightbox, theme toggle | native disclosure and actions | kinds `disclosure`, `actions` |
-| Hover, focus, press looks | design behaviors | `extension.set` group `behaviors` via `apply_commands` |
+| Hover, focus, press and chosen (`selected`, for tabs and filter chips) looks | design behaviors | `extension.set` group `behaviors` via `apply_commands` |
 | A value the visitor changes that drives numbers or CSS (price calculator, toggle, slider) | variables, formulas, inputs, outputs | `variables_set` |
 | A button that sets a variable or computed value | action `set-variable` | `motion_set` kind `actions` |
 | A scripted sequence: chat that streams a reply, fake cursor demo, typing into a field | script player | `motion_set` kind `scripts` |

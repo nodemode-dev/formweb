@@ -2,15 +2,20 @@
 //! FormWeb desktop shell, on the formvis and formlit pattern: a native window around the editor that the local FormWeb
 //! service serves on 127.0.0.1:8240, plus the family GPU renderer exposed to the page through `invoke`.
 //!
-//! Start-up: if a FormWeb service already answers /api/health, the window opens on it. Otherwise the shell starts the
-//! bundled formweb-engine sidecar beside its executable (built by ./build_app), or, in a source checkout, runs
-//! `formweb serve` (formweb.bat on Windows) from the FormWeb folder (FORMWEB_ROOT, or the folder above the executable's
-//! working directory that holds the launcher), waits up to 60 seconds for health, and stops that service on exit.
+//! Start-up: if a FormWeb service of this version already answers /api/health on 8240 (named by `app` and `version` in
+//! the reply), the window opens on it. If something else holds 8240, the shell starts its own service on the first free
+//! port above it, up to 8279. Otherwise the shell starts the bundled formweb-engine sidecar beside its executable (built by
+//! ./build_app), or, in a source checkout, runs `formweb serve` (formweb.bat on Windows) from the FormWeb folder
+//! (FORMWEB_ROOT, or the folder above the executable's working directory that holds the launcher), waits up to 60
+//! seconds for health, and stops that service on exit. FORMWEB_PORT, between 8240 and 8279, replaces 8240 as the first
+//! choice.
 
+use std::ffi::OsString;
 use std::io::{Read, Write};
-use std::net::TcpStream;
+use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
+use std::sync::atomic::{AtomicU16, Ordering};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
@@ -22,23 +27,62 @@ mod reveal;
 mod text_edit;
 mod traffic_lights;
 
-const PORT: u16 = 8240;
+const DEFAULT_PORT: u16 = 8240;
+const LAST_PORT: u16 = 8279;
+const VERSION: &str = env!("CARGO_PKG_VERSION");
 const FALLBACK_LOGICAL: (f64, f64) = (1440.0, 900.0);
 const MIN_LOGICAL: (f64, f64) = (1024.0, 680.0);
 const SCREEN_FRACTION: f64 = 0.9;
+
+static ENGINE_PORT: AtomicU16 = AtomicU16::new(DEFAULT_PORT);
 
 struct Service(Mutex<Option<Child>>);
 
 /// Project files the system asked the app to open (a double-click in Finder or Explorer), waiting for the page.
 struct Opened(Mutex<Vec<PathBuf>>);
 
-#[cfg(target_os = "macos")]
+/// A `.fweb` project or a `.fpub` package that exists: the two kinds the page loads through File > Import.
+fn is_project(path: &Path) -> bool {
+    path.is_file() && path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| ext.eq_ignore_ascii_case("fweb") || ext.eq_ignore_ascii_case("fpub"))
+}
+
+/// The first project file among command-line arguments; a relative one is read from `base`, the folder the launch came from.
+fn project_arg(args: impl IntoIterator<Item = OsString>, base: Option<&Path>) -> Option<PathBuf> {
+    args.into_iter().skip(1).map(PathBuf::from).map(|path| match base { Some(base) if path.is_relative() => base.join(path), _ => path }).find(|path| is_project(path))
+}
+
 fn queue_file(handle: &tauri::AppHandle, path: PathBuf) {
-    if !path.is_file() { return; }
+    if !is_project(&path) { return; }
     handle.state::<Opened>().0.lock().unwrap().push(path);
     if let Some(window) = handle.get_webview_window("main") {
         let _ = window.eval("window.dispatchEvent(new Event('formweb-open-file'))");
     }
+}
+
+/// A second launch (a file opened from the file manager while the app runs) hands its arguments here and exits.
+fn second_launch(handle: &tauri::AppHandle, args: Vec<String>, cwd: String) {
+    if let Some(path) = project_arg(args.into_iter().map(OsString::from), Some(Path::new(&cwd))) { queue_file(handle, path); }
+    if let Some(window) = handle.get_webview_window("main") {
+        if window.is_visible().unwrap_or(false) {
+            let _ = window.unminimize();
+            let _ = window.set_focus();
+        }
+    }
+}
+
+/// One running window per login, or per data folder when FORMWEB_HOME says where the data lives (the Linux hand-off
+/// is keyed by a D-Bus name, so a second data folder gets its own).
+fn single_instance() -> tauri::plugin::TauriPlugin<tauri::Wry> {
+    let plugin = tauri_plugin_single_instance::Builder::<tauri::Wry>::new().callback(second_launch);
+    #[cfg(target_os = "linux")]
+    let plugin = match std::env::var("FORMWEB_HOME").ok().filter(|home| !home.is_empty()) {
+        Some(home) => {
+            let hash = home.bytes().fold(0xcbf29ce484222325u64, |h, b| (h ^ u64::from(b)).wrapping_mul(0x100000001b3));
+            plugin.dbus_id(format!("ai.nodemode.formweb.d{hash:016x}"))
+        }
+        None => plugin,
+    };
+    plugin.build()
 }
 
 /// The bytes of the oldest waiting file, or nothing. The page loads them the way File > Import does.
@@ -94,13 +138,37 @@ fn watch_signals() {
     }
 }
 
-/// True when the FormWeb service answers its health route.
-fn healthy() -> bool {
-    let Ok(mut stream) = TcpStream::connect_timeout(&([127, 0, 0, 1], PORT).into(), Duration::from_millis(400)) else { return false };
+#[derive(PartialEq)]
+enum Probe {
+    /// Nothing listens on the port.
+    Free,
+    /// A FormWeb service of this version answers its health route.
+    Ours,
+    /// Something else holds the port: another program, another FormWeb version, or a reply that is not FormWeb's.
+    Taken,
+}
+
+/// Asks the port's health route who answers. Only a reply naming `formweb` and this version counts as ours.
+fn probe(port: u16) -> Probe {
+    let Ok(mut stream) = TcpStream::connect_timeout(&([127, 0, 0, 1], port).into(), Duration::from_millis(400)) else { return Probe::Free };
     let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
-    if stream.write_all(format!("GET /api/health HTTP/1.1\r\nHost: 127.0.0.1:{PORT}\r\nConnection: close\r\n\r\n").as_bytes()).is_err() { return false; }
-    let mut head = [0u8; 16];
-    matches!(stream.read(&mut head), Ok(n) if n >= 12 && &head[9..12] == b"200")
+    if stream.write_all(format!("GET /api/health HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n").as_bytes()).is_err() { return Probe::Taken; }
+    let mut reply = Vec::new();
+    let _ = (&stream).take(16384).read_to_end(&mut reply);
+    let Some(split) = reply.windows(4).position(|window| window == b"\r\n\r\n") else { return Probe::Taken };
+    if reply.len() < 12 || &reply[9..12] != b"200" { return Probe::Taken; }
+    let Ok(body) = serde_json::from_slice::<serde_json::Value>(&reply[split + 4..]) else { return Probe::Taken };
+    if body["app"] == "formweb" && body["version"] == VERSION { Probe::Ours } else { Probe::Taken }
+}
+
+/// The port to try first: FORMWEB_PORT when it names a port in FormWeb's range, else 8240.
+fn first_port() -> u16 {
+    std::env::var("FORMWEB_PORT").ok().and_then(|port| port.trim().parse::<u16>().ok()).filter(|port| (DEFAULT_PORT..=LAST_PORT).contains(port)).unwrap_or(DEFAULT_PORT)
+}
+
+/// The first port in FormWeb's range after `taken` (then from the start of the range) that nothing listens on.
+fn free_port(taken: u16) -> Option<u16> {
+    (taken + 1..=LAST_PORT).chain(DEFAULT_PORT..taken).find(|port| TcpListener::bind(("127.0.0.1", *port)).is_ok())
 }
 
 /// The FormWeb folder: FORMWEB_ROOT, else the nearest ancestor of the working directory that holds the launcher.
@@ -115,15 +183,15 @@ fn formweb_root() -> Option<PathBuf> {
 }
 
 #[cfg(unix)]
-fn start_service(root: &Path) -> std::io::Result<Child> {
+fn start_service(root: &Path, port: u16) -> std::io::Result<Child> {
     use std::os::unix::process::CommandExt;
     // Its own process group, so stopping the launcher also stops the Python service it started.
-    Command::new(root.join("formweb")).arg("serve").current_dir(root).process_group(0).spawn()
+    Command::new(root.join("formweb")).arg("serve").env("FORMWEB_PORT", port.to_string()).current_dir(root).process_group(0).spawn()
 }
 
 #[cfg(windows)]
-fn start_service(root: &Path) -> std::io::Result<Child> {
-    Command::new("cmd").args(["/C", "formweb.bat", "serve"]).current_dir(root).spawn()
+fn start_service(root: &Path, port: u16) -> std::io::Result<Child> {
+    Command::new("cmd").args(["/C", "formweb.bat", "serve"]).env("FORMWEB_PORT", port.to_string()).current_dir(root).spawn()
 }
 
 fn sidecar() -> Option<PathBuf> {
@@ -133,15 +201,15 @@ fn sidecar() -> Option<PathBuf> {
 }
 
 #[cfg(unix)]
-fn start_sidecar(path: &Path) -> std::io::Result<Child> {
+fn start_sidecar(path: &Path, port: u16) -> std::io::Result<Child> {
     use std::os::unix::process::CommandExt;
-    Command::new(path).process_group(0).spawn()
+    Command::new(path).env("FORMWEB_PORT", port.to_string()).process_group(0).spawn()
 }
 
 #[cfg(windows)]
-fn start_sidecar(path: &Path) -> std::io::Result<Child> {
+fn start_sidecar(path: &Path, port: u16) -> std::io::Result<Child> {
     use std::os::windows::process::CommandExt;
-    Command::new(path).creation_flags(0x0800_0000).spawn()
+    Command::new(path).env("FORMWEB_PORT", port.to_string()).creation_flags(0x0800_0000).spawn()
 }
 
 fn stop_service(handle: &tauri::AppHandle) {
@@ -164,7 +232,7 @@ fn stop_service(handle: &tauri::AppHandle) {
 }
 
 fn open_editor(handle: &tauri::AppHandle) {
-    let url: tauri::Url = format!("http://127.0.0.1:{PORT}/").parse().expect("loopback url");
+    let url: tauri::Url = format!("http://127.0.0.1:{}/", ENGINE_PORT.load(Ordering::SeqCst)).parse().expect("loopback url");
     let (width, height) = handle
         .primary_monitor()
         .ok()
@@ -212,10 +280,12 @@ fn main() {
     #[cfg(unix)]
     watch_signals();
     let app = tauri::Builder::default()
+        // First, as the plugin asks: a second launch is detected before the rest of the set-up runs.
+        .plugin(single_instance())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(Service(Mutex::new(None)))
-        .manage(Opened(Mutex::new(std::env::args_os().skip(1).map(PathBuf::from).filter(|path| path.is_file()).take(1).collect())))
+        .manage(Opened(Mutex::new(project_arg(std::env::args_os(), None).into_iter().collect())))
         .on_window_event(|window, event| {
             if window.label() == "main"
                 && matches!(
@@ -234,10 +304,24 @@ fn main() {
             reveal::round_splash(app.handle());
             let handle = app.handle().clone();
             std::thread::spawn(move || {
-                if !healthy() {
+                let first = first_port();
+                let mut port = first;
+                let mut found = probe(first);
+                if found == Probe::Taken {
+                    match free_port(first) {
+                        Some(other) => { port = other; found = Probe::Free; }
+                        None => {
+                            reveal::close_splash(&handle);
+                            handle.dialog().message(format!("Another program is using port {first} and no other port from {DEFAULT_PORT} to {LAST_PORT} is free, so FormWeb cannot start its local service. Quit that program, then open FormWeb again.")).blocking_show();
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                ENGINE_PORT.store(port, Ordering::SeqCst);
+                if found != Probe::Ours {
                     let started = match sidecar() {
-                        Some(path) => Some(start_sidecar(&path)),
-                        None => formweb_root().map(|root| start_service(&root)),
+                        Some(path) => Some(start_sidecar(&path, port)),
+                        None => formweb_root().map(|root| start_service(&root, port)),
                     };
                     match started {
                         Some(Ok(child)) => {
@@ -256,7 +340,7 @@ fn main() {
                         }
                     }
                     let deadline = Instant::now() + Duration::from_secs(60);
-                    while !healthy() {
+                    while probe(port) != Probe::Ours {
                         if Instant::now() > deadline {
                             stop_service(&handle);
                             reveal::close_splash(&handle);

@@ -8,12 +8,24 @@ async function put(name: string, section: string, id: string, value: unknown): P
   next[section] = { ...entries(next[section]), [id]: value };
   return command('extension.set', { group: name, value: next });
 }
+function chooser(motion: unknown, id: string): boolean {
+  return Object.values(entries(entries(motion).disclosure)).some(entry => {
+    const data = entries(entry);
+    const list = data.type === 'tabs' ? data.items : data.type === 'filter' ? data.chips : undefined;
+    return Array.isArray(list) && list.some(item => entries(item).trigger === id);
+  });
+}
 export const advancedActions: FeatureAction[] = [
   {
     id: 'node-states', category: 'runtime', title: 'Pointer & keyboard states',
-    description: 'Set CSS for hover, focus and press on one element. Existing actions, conditions and other elements remain in the compiled behavior group.',
-    parameters: [{ name: 'node', label: 'Element ID' }, { name: 'states', label: 'State style maps', type: 'json', hint: 'Supported state keys: hover, focus and press. Each value is a validated CSS style map.' }],
-    example: (s, x) => ({ node: x.node, states: { hover: { opacity: '0.8' }, focus: { outline: '2px solid #fa5d29' }, press: { transform: 'scale(0.98)' } } }),
+    description: 'Set CSS for hover, focus, press and the chosen state of a tab or filter chip on one element. Existing actions, conditions and other elements remain in the compiled behavior group.',
+    parameters: [{ name: 'node', label: 'Element ID' }, { name: 'states', label: 'State style maps', type: 'json', hint: 'Supported state keys: hover, focus, press and selected (the chosen tab or filter chip). Each value is a validated CSS style map.' }],
+    example: (s, x) => {
+      const own = entries(entries(entries(s.site.extensions?.behaviors).nodes)[x.node]).states;
+      const states: Record<string, unknown> = own && typeof own === 'object' ? { ...entries(own) } : { hover: { opacity: '0.8' }, focus: { outline: '2px solid #fa5d29' }, press: { transform: 'scale(0.98)' } };
+      if (chooser(s.site.extensions?.motion, x.node) && !states.selected) states.selected = { background: '#fa5d29', color: '#ffffff' };
+      return { node: x.node, states };
+    },
     execute: parameters => {
       const existing = entries(entries(group('behaviors').nodes)[String(parameters.node)]);
       return put('behaviors', 'nodes', String(parameters.node), { ...existing, states: parameters.states });
