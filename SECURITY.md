@@ -25,8 +25,9 @@ is fixed and credit you in the release notes, unless you would rather not be nam
 FormWeb runs on your own machine, so the things that matter most are the ways
 something outside it could get in:
 
-- **The service** listens on loopback (127.0.0.1): port 8240 in development, and the
-  same port in the desktop app (`FORMWEB_PORT` changes it). Anything that makes it
+- **The service** listens on loopback (127.0.0.1): port 8240 in development, and in the
+  desktop app port 8240 or, when that is taken, the next free port up to 8279
+  (`FORMWEB_PORT` sets the first one to try). Anything that makes it
   reachable from another machine, or lets a web page on another origin drive it.
 - **Publishing and preview**: the service itself hosts published versions
   (`/published/`), the active release (`/sites/`) and previews (`/preview/<token>/`),
