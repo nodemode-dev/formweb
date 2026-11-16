@@ -1,4 +1,5 @@
 @echo off
+setlocal
 cd /d "%~dp0.."
 call setup\install_core.bat || exit /b 1
 cd frontend
