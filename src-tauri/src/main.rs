@@ -88,7 +88,8 @@ fn single_instance() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 /// The bytes of the oldest waiting file, or nothing. The page loads them the way File > Import does.
 #[tauri::command]
 fn take_opened_file(opened: tauri::State<Opened>) -> tauri::ipc::Response {
-    let path = { let mut list = opened.0.lock().unwrap(); if list.is_empty() { None } else { Some(list.remove(0)) } };    tauri::ipc::Response::new(path.and_then(|path| std::fs::read(path).ok()).unwrap_or_default())
+    let path = { let mut list = opened.0.lock().unwrap(); if list.is_empty() { None } else { Some(list.remove(0)) } };
+    tauri::ipc::Response::new(path.and_then(|path| std::fs::read(path).ok()).unwrap_or_default())
 }
 
 /// A link the page opens in a new window goes to the system browser: the web view opens no window of its own.
@@ -262,7 +263,8 @@ fn open_editor(handle: &tauri::AppHandle) {
     });
     let builder = builder.on_page_load(|window, payload| {
         if matches!(payload.event(), tauri::webview::PageLoadEvent::Finished) {
-            traffic_lights::place(&window.as_ref().window());        }
+            traffic_lights::place(&window.as_ref().window());
+        }
     });
     match builder.build() {
         Ok(window) => {

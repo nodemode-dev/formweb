@@ -19,7 +19,7 @@ tauri-plugin-shell = "2"
 tauri-plugin-dialog = "2"
 # A second launch (a project opened from the file manager while the app runs) hands its arguments to the running window.
 tauri-plugin-single-instance = "2"
-serde ={ version = "1", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
 # tauri::generate_context! expands to code that uses serde_json (formvis found this in its 1.43.0 build).
 serde_json = "1"
 # The family GPU renderer: thumbnails, the overview minimap and release diffs, called from the page through invoke.
