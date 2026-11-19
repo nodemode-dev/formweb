@@ -1379,3 +1379,50 @@ The script is the second copy of the profile table that paints before the styles
 The terminal dock read the theme once, when a session's xterm was created, so a terminal opened before a switch kept the old background for good (a `#111111` slab on a black window). `terminalTheme()` now builds the xterm colours from the tokens, and the dock listens to `nm:ui-settings-changed` and sets `options.theme` on each open session; xterm repaints in place, no node is added or removed. The measured result is in the commit body.
 
 Measured with `amoled` saved, headless Chrome, 1440 by 900, 4x CPU, slow network, cache off: every large surface (top bar, layers panel, canvas surround, inspector, terminal dock, status bar) is `#000000` at its four corners; the inspector fields are `#141414`; a live switch from Studio Dark to AMOLED Black and back through the Preferences picker left all 8214 body elements the same nodes, moved 0 boxes and gave a layout shift of 0; the Agent Connect notice line (colour `--warn`) is in its reserved slot and the panel is black around it. Left as they are on purpose: selected rows and active tool buttons keep the accent tint (`--accent-soft`, the accent is not changed), the white call-to-action buttons (`--cta-bg`), and the scrim, which is black at 53%.
+
+### The terminal panel is the family's shared dock (module 2.1.0)
+
+- refers-to: `src/dock/` (15 files, FormVis 8bbdf61b, never edited here), `src/dock-adapter.ts`, `src/styles/dock-tokens.css`, `index.html` :: the pre-paint script, `src/main.ts` :: agentDock, dockHost, `src/features/chat-pane.ts`, `src/api.ts` :: ApiError, onApproval, `setup/agents.py` :: dock_problems
+- kind: change
+- logged: v0.22.0 · 2026-11-19
+
+Removed: `src/features/terminal.ts` (354 lines, class `TerminalDock`) and `src/styles/terminal.css` (20 lines); the whole file is `git show e8b116c:frontend/src/features/terminal.ts`. What it was, in its own words:
+
+```ts
+export type TerminalState = 'open' | 'collapsed';
+type Kind = 'shell' | 'claude' | 'chat';
+const isChord = (event: KeyboardEvent): boolean => (event.ctrlKey || event.metaKey) && (event.code === 'KeyJ' || event.key === '`');
+const PRESETS = [{ id: 'shell', label: 'Shell' }, { id: 'claude', label: 'Claude Code' }, { id: 'codex', label: 'Codex' }, { id: 'cursor', label: 'Cursor agent' }, { id: 'doctor', label: 'formweb doctor' }, { id: 'run', label: 'formweb run --list' }];
+export class TerminalDock {
+  readonly element = element('section', 'fw-term');
+  constructor(private onChange: (state: TerminalState) => void, private context: () => string = () => '') { ... }
+  set(next: TerminalState, auto = true): void
+  toggle(): void
+  launch(presetId: string): void
+  async claude(prompt?: string, resume?: string): Promise<void>
+  async chat(): Promise<void>
+  async remount(): Promise<void>
+}
+```
+
+```css
+.fw-term { display: grid; grid-template-rows: 32px auto; min-width: 0; background: var(--surface-1); border-top: 1px solid var(--line-0); }
+.fw-term-body { height: var(--term-h, 240px); min-height: 0; padding: var(--space-1) 0 0 var(--space-3); background: var(--bg-primary); }
+.fw-term[data-state="collapsed"] .fw-term-body { display: none; }
+```
+
+From `styles/chat.css` the `.fw-term-tab*`, `.fw-term-stack`, `.fw-term-pane` and `.fw-term-btn.is-on` rules and the `.fw-chat-composer`, `.fw-chat-input`, `.fw-chat-send` rules went with it; from `chat-pane.ts` the two-row textarea and the Send button that turned into Stop.
+
+Why each choice:
+
+- The dock is a child of `.workspace`, not of `.stage-panel`: one parent serves both sides, so a side switch is a change of grid placement and no node moves. Bottom: a second row `var(--ft-dock-size)` under the stage column only (the footprint the old panel had). Right: a fifth column after the inspector. Closed: the row is `0px` and the dock sits in it, so a remembered right side with the dock closed cannot make an implicit column.
+- The dock is mounted after `connect()` has the window key, because every dock route needs it; the track is reserved by the pre-paint script, so the frames before the mount have the final layout with an empty track.
+- The chords stay with the command registry (`isDockChord: () => false`). The registry's listener and the module's both sit on `document` in the capture phase; two owners would toggle twice. `passKey` names the same four chords the old panel let through xterm (Mod+J, Mod+backtick, with Shift or Alt), and the keymap's typing selector names the module's three public roots in place of `.fw-term`.
+- Terminal frames: FormWeb's socket carries JSON text frames and needs a one-use ticket, so the adapter's `channel` owns the socket. The five reconnects with back-off are kept; on a replay it writes `ESC c` before the replayed output, which is what `term.reset()` did.
+- `terminal.restart` is absent (the engine has no route); `endedTab` says to close the tab and start a new one.
+- The Sessions tab (an app tab, `tabs().own`) is where the old preset select and the per-session status line went: six buttons (Shell, Claude Code, Codex, Cursor agent, formweb doctor, formweb run --list) and one line per session with the sentence the old head showed ("Reconnecting", the exit code, an engine error). The two FormWeb commands reach the engine as `preset` on a shell, set by the adapter just before it asks the module for a new terminal.
+- Chat stays `ChatPane` (markdown by block, restore after reload, the handoff), given to the module as an own pane with `ask: 'line'`: the dock's line is the one input, on Chat it goes to `ChatPane.send`, on any other tab it opens Claude Code with the text and the open page and selection. Stop is a button in the pane's bar.
+- Consent: rows of kind `agent.tool` only, with the engine's own `offers` filtered to `deny` and `once`; `always` is never offered because the engine has no such answer. Escape leaves the question unanswered (no `escape: 'deny'`), as leaving the card alone did. The list is read when the events stream opens and on each `approval` event; a `withdrawn` event removes the question.
+- `storedChoice.get` maps the engine's `off` to `blocked` (outside agents are refused in both); nothing shows that word, the module only reads `changedOutside`.
+- `agentStatus` also carries the engine's `tabs` for this caller; a smaller set is taken and `dock.refresh()` hides the buttons.
+- `ApiError` (a subclass of `Error`, so every existing catch reads `message` as before) carries the status and the engine's `code`, which is how a refusal is told from an outage.

@@ -14,8 +14,45 @@ MANIFEST = ROOT / "agents" / "manifest.json"
 APP = "formweb"
 WINDOW_GATED = ("run_ui_command",)
 REMOVE_GATED = ("apply_commands",)
-DOCK = {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "chat"]}
+DOCK = {"present": True, "positions": ["bottom", "right"], "tabs": ["shell", "claude", "codex", "cursor", "chat"]}
+DOCK_DIR = ROOT / "frontend" / "src" / "dock"
+DOCK_VERSION = "2.1.0"
 EXTENSIONS = None
+
+
+def dock_problems(folder: Path = DOCK_DIR) -> list[str]:
+    import hashlib
+    import re
+
+    listing = folder / "MANIFEST.json"
+    if not listing.is_file():
+        return ["frontend/src/dock/MANIFEST.json is missing"]
+    manifest = json.loads(listing.read_text(encoding="utf-8"))
+    problems = [] if manifest.get("version") == DOCK_VERSION else [f"MANIFEST.json names module {manifest.get('version')}, expected {DOCK_VERSION}"]
+    wanted = manifest.get("files", {})
+    found = {path.name: path for path in folder.iterdir() if path.is_file() and path.name != "MANIFEST.json"}
+    for name in sorted(set(wanted) | set(found)):
+        if name not in found:
+            problems.append(f"{name} is missing")
+        elif name not in wanted:
+            problems.append(f"{name} is extra")
+        elif hashlib.sha256(found[name].read_bytes()).hexdigest() != wanted[name]:
+            problems.append(f"{name} differs from MANIFEST.json")
+    for name, path in sorted(found.items()):
+        if path.suffix == ".ts":
+            for target in re.findall(r"""(?:from|import)\s*\(?\s*['"]([^'"]+)['"]""", path.read_text(encoding="utf-8")):
+                if not (target.startswith("./") and "/" not in target[2:]) and not target.startswith("@xterm/"):
+                    problems.append(f"{name} imports {target} from outside the dock folder")
+    return problems
+
+
+def dock_check() -> int:
+    problems = dock_problems()
+    for problem in problems:
+        print(f"agents: dock module: {problem}")
+    if not problems:
+        print("agents: frontend/src/dock matches its MANIFEST.json")
+    return 1 if problems else 0
 
 
 def files(folder: Path) -> dict[str, bytes]:
@@ -106,7 +143,7 @@ def manifest_sync(check: bool) -> int:
 
 
 def sync_all(check: bool) -> int:
-    return max(sync(check), manifest_sync(check))
+    return max(sync(check), manifest_sync(check), dock_check())
 
 
 def install() -> int:
