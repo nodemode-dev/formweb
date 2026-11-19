@@ -45,10 +45,13 @@ def test_a_wrong_or_empty_in_app_token_does_not_open_the_gate(client):
 
 
 def test_the_in_app_token_opens_the_gate_without_turning_agents_on(client):
-    from app.claude_code import INAPP_TOKEN
+    from app.claude_code import issue, revoke
 
-    assert rpc(client, "initialize", INIT, {INAPP_HEADER: INAPP_TOKEN}).status_code == 200
+    token, _ = issue()
+    assert rpc(client, "initialize", INIT, {INAPP_HEADER: token}).status_code == 200
     assert rpc(client, "initialize", INIT).status_code == 403
+    revoke(token)
+    assert rpc(client, "initialize", INIT, {INAPP_HEADER: token}).status_code == 403
 
 
 def test_turning_agents_off_closes_the_gate_again(client):
@@ -163,7 +166,9 @@ def test_mcp_needs_its_bearer_token(secured_engine):
 
 
 def test_a_session_cookie_does_not_stand_in_for_the_mcp_bearer(secured_engine):
-    auth = httpx.post(secured_engine["base"] + "/api/auth", headers={"host": f"127.0.0.1:{secured_engine['port']}", "authorization": "Bearer " + secured_engine["token"]}, timeout=10, trust_env=False)
+    owner = {"host": f"127.0.0.1:{secured_engine['port']}", "authorization": "Bearer " + secured_engine["token"]}
+    key = httpx.post(secured_engine["base"] + "/api/window/key", headers=owner, timeout=10, trust_env=False).json()["key"]
+    auth = httpx.post(secured_engine["base"] + "/api/auth", headers={**owner, "x-formweb-window-key": key}, timeout=10, trust_env=False)
     assert auth.status_code == 200
     cookie = auth.headers["set-cookie"].split(";")[0]
     assert post_mcp(secured_engine, bearer(secured_engine, cookie=cookie)).status_code == 401

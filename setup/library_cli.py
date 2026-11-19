@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from run import call  # noqa: E402
+from run import call, tool  # noqa: E402
 
 TEXT_FIELDS = ('text', 'longtext', 'url', 'asset', 'color')
 
@@ -117,7 +117,7 @@ def main(argv: list[str]) -> int:
         rest, opts = options(rest, ('--parent', '--page', '--index'))
         if not rest:
             raise SystemExit('[formweb] usage: ./formweb library insert SECTION [field=value ...]')
-        body = {'values': cast(fields_of('sections', rest[0]), rest[1:]), 'updateComponents': update}
+        body = {'section': rest[0], 'values': cast(fields_of('sections', rest[0]), rest[1:]), 'update_components': update}
         for key in ('parent', 'page'):
             if key in opts:
                 body[key] = opts[key]
@@ -126,19 +126,19 @@ def main(argv: list[str]) -> int:
                 body['index'] = int(opts['index'])
             except ValueError:
                 raise SystemExit('[formweb] --index needs a number')
-        result = call(f'/api/library/sections/{rest[0]}/insert', body)
+        result = tool('library_insert', body)
         show(f"inserted {rest[0]} as {result.get('root')}", result, as_json)
         return 0
     if action == 'preset':
         if len(rest) != 1:
             raise SystemExit('[formweb] usage: ./formweb library preset PRESET [--all]')
-        result = call(f'/api/library/presets/{rest[0]}/apply', {'mode': 'all' if everything else 'missing'})
+        result = tool('library_apply_preset', {'preset': rest[0], 'mode': 'all' if everything else 'missing'})
         show(f"preset {rest[0]} " + ('applied' if result.get('changed') else 'already in place'), result, as_json)
         return 0
     if action == 'starter':
         if not rest:
             raise SystemExit('[formweb] usage: ./formweb library starter STARTER [field=value ...]')
-        result = call(f'/api/library/starters/{rest[0]}/apply', {'values': cast(starter_fields(rest[0]), rest[1:]), 'updateComponents': update})
+        result = tool('library_apply_starter', {'starter': rest[0], 'values': cast(starter_fields(rest[0]), rest[1:]), 'update_components': update})
         show(f"starter {rest[0]} built: pages {', '.join(result.get('pages') or [])}", result, as_json)
         return 0
     raise SystemExit(f'[formweb] unknown library action {action}')

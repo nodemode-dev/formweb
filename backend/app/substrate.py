@@ -14,6 +14,7 @@ import os
 from typing import Any, Awaitable, Callable, Protocol, runtime_checkable
 from uuid import uuid4
 
+from . import seal, window_key
 from .access import PERMISSIONS, actor, channel
 from .engine import EngineError
 from .store import now
@@ -111,7 +112,7 @@ class Approvals:
     def settings(self, project_id=None):
         key = self.studio.access.project_key(project_id)
         stored = self.store.get_meta('approvalSettings:' + key) or {}
-        return {'projectId': key, 'agentDestructive': bool(stored.get('agentDestructive', False)), 'publishReview': bool(stored.get('publishReview', False))}
+        return {'projectId': key, **seal.effective(key, stored)}
 
     def update_settings(self, patch):
         self.studio.access.authorize('manage')
@@ -121,7 +122,8 @@ class Approvals:
                 if not isinstance(patch[name], bool):
                     raise EngineError(f'{name} must be true or false.')
                 current[name] = patch[name]
-        self.store.set_meta('approvalSettings:' + current['projectId'], {'agentDestructive': current['agentDestructive'], 'publishReview': current['publishReview']})
+        self.store.set_meta('approvalSettings:' + current['projectId'], seal.sign(current['projectId'], current))
+        current.update(seal.effective(current['projectId'], self.store.get_meta('approvalSettings:' + current['projectId']) or {}))
         self.studio.access.record('approval.settings', {'agentDestructive': current['agentDestructive'], 'publishReview': current['publishReview']})
         return current
 
@@ -170,6 +172,10 @@ class Approvals:
         role = self.studio.access.role(item['projectId'])
         if role is None or 'review' not in PERMISSIONS[role]:
             raise EngineError('Only a reviewer, publisher or owner can decide approvals.', 403)
+        if channel.get() in ('agent', 'terminal') or (identity['root'] and not window_key.window.get()):
+            raise EngineError('Approvals are decided by a person in the FormWeb window.', 403)
+        if item['kind'] != 'release.promote' and item['requestedBy']['id'] == identity['id'] and item['requestedBy']['channel'] == channel.get():
+            raise EngineError('A request cannot be decided by the one who asked for it.', 403)
         if item['status'] != 'pending':
             raise EngineError(f'This request is already {item["status"]}.', 409)
         if decision not in ('approve', 'deny'):

@@ -18,7 +18,7 @@ from collections import deque
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import claude_code
+from . import claude_code, window_key
 from .access import actor, channel
 from .config import ORIGINS, PORT, ROOT
 from .engine import EngineError
@@ -45,7 +45,8 @@ class Session:
         self.sockets: set[WebSocket] = set()
         self.exit_code = None
         self.closed = False
-        env = {**(os.environ if env is None else env), 'TERM': 'xterm-256color', 'FORMWEB_API': f'http://127.0.0.1:{PORT}', 'FORMWEB_TERMINAL': '1', 'FORMWEB_CHANNEL': 'terminal'}
+        env = {key: value for key, value in (os.environ if env is None else env).items() if key not in ('FORMWEB_AUTH_TOKEN', 'FORMWEB_TOKEN')}
+        env = {**env, 'TERM': 'xterm-256color', 'FORMWEB_API': f'http://127.0.0.1:{PORT}', 'FORMWEB_TERMINAL': '1', 'FORMWEB_CHANNEL': 'terminal'}
         folder = str(cwd or ROOT)
         self.loop = asyncio.get_running_loop()
         if os.name == 'nt':
@@ -114,6 +115,7 @@ class Session:
         if self.closed:
             return
         self.closed = True
+        claude_code.revoke(getattr(self, 'inapp', None))
         if os.name != 'nt':
             self.loop.remove_reader(self.fd)
             try:
@@ -218,14 +220,17 @@ async def open_session(body: Open):
             return {'id': live.id, 'title': live.title, 'kind': live.kind, 'reused': True}
     if len(SESSIONS) >= MAX_SESSIONS:
         raise EngineError(f'At most {MAX_SESSIONS} terminal sessions can run at once. Close one first.', 429)
-    argv = env = cwd = None
+    argv = env = cwd = token = None
     if body.kind == 'claude':
         await asyncio.to_thread(claude_code.require_cli)
-        argv, env, cwd = claude_code.argv(prompt, body.resume or ''), claude_code.child_env(), claude_code.workdir()
+        token, config = claude_code.issue()
+        argv, env, cwd = claude_code.argv(prompt, body.resume or '', config), claude_code.child_env(), claude_code.workdir()
     try:
         session = Session(body.cols, body.rows, body.kind, types[body.kind], argv, env, cwd, True)
     except Exception as error:
+        claude_code.revoke(token)
         raise EngineError(f'Could not start {types[body.kind]}: {error}', 500) from error
+    session.inapp = token
     SESSIONS[session.id] = session
     studio.access.record('terminal.open', {'session': session.id, 'kind': body.kind})
     command = next((item['command'] for item in PRESETS if item['id'] == body.preset), '') if body.kind == 'shell' else ''
@@ -243,6 +248,8 @@ def _gate(websocket: WebSocket, app_session=False):
     origin = headers.get('origin')
     if origin is not None and origin not in ORIGINS:
         raise EngineError('Origin is not allowed.', 403)
+    if not (window_key.valid(headers.get(window_key.HEADER)) or window_key.spend(websocket.query_params.get('ticket', ''))):
+        raise EngineError(window_key.REFUSED, 403)
     if not (app_session or studio.agents_enabled):
         raise EngineError('Turn Agents on to use the terminal.', 403)
     token = websocket.query_params.get('token', '')

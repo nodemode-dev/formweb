@@ -1,8 +1,8 @@
 """Claude Code launcher shared by the live terminal and the Chat pane.
 
-Finds the user's own `claude` binary, builds a clean child environment, and hands the child an inline HTTP
-MCP config that points at this engine's /mcp endpoint with a per-run in-app token. The token is generated at
-engine start and lives in memory and in the spawned process's arguments (visible to the same user's `ps`).
+Finds the user's own `claude` binary, builds a clean child environment, and hands the child an HTTP MCP config
+file that points at this engine's /mcp endpoint with an in-app token of its own. Each tab and each Chat run gets
+its own token and its own owner-only config file; both end when that tab or run ends.
 """
 import hmac
 import json
@@ -11,13 +11,12 @@ import secrets
 import shlex
 import shutil
 import subprocess
-import tempfile
 from pathlib import Path
 
-from .config import PORT
+from .config import DATA_DIR, PORT
 from .engine import EngineError
 
-INAPP_TOKEN = secrets.token_urlsafe(24)
+TOKENS: dict[str, Path] = {}
 INAPP_HEADER = 'X-FormWeb-Inapp'
 KEEP_ENV = {'CLAUDE_CODE_OAUTH_TOKEN', 'CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CONFIG_DIR'}
 INSTALL = 'Claude Code was not found. Install it with "npm install -g @anthropic-ai/claude-code" (or follow https://docs.claude.com/en/docs/claude-code/setup), run "claude" once to sign in, then try again. Set FORMWEB_CLAUDE to the full path if it lives somewhere unusual.'
@@ -28,7 +27,25 @@ NOTE = ('You are running inside FormWeb, a visual website builder. The editor is
 
 
 def valid_token(value):
-    return isinstance(value, str) and bool(value) and hmac.compare_digest(value.encode(), INAPP_TOKEN.encode())
+    return isinstance(value, str) and bool(value) and any(hmac.compare_digest(value.encode(), token.encode()) for token in tuple(TOKENS))
+
+
+def issue():
+    token = secrets.token_urlsafe(24)
+    folder = DATA_DIR / 'agent-mcp'
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f'{secrets.token_hex(8)}.json'
+    handle = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(handle, 'w', encoding='utf-8') as out:
+        out.write(mcp_config(token))
+    TOKENS[token] = path
+    return token, path
+
+
+def revoke(token):
+    path = TOKENS.pop(token, None) if token else None
+    if path is not None:
+        path.unlink(missing_ok=True)
 
 
 def mcp_url():
@@ -112,28 +129,15 @@ def child_env(extra=None):
     return env
 
 
-def mcp_config():
-    return json.dumps({'mcpServers': {'formweb': {'type': 'http', 'url': mcp_url(), 'headers': {INAPP_HEADER: INAPP_TOKEN}}}}, separators=(',', ':'))
+def mcp_config(token):
+    return json.dumps({'mcpServers': {'formweb': {'type': 'http', 'url': mcp_url(), 'headers': {INAPP_HEADER: token}}}}, separators=(',', ':'))
 
 
-def _config_argument():
-    config = mcp_config()
-    if os.name != 'nt':
-        return config
-    path = Path(tempfile.gettempdir()) / f'formweb-mcp-{PORT}.json'
-    path.write_text(config, encoding='utf-8')
-    try:
-        path.chmod(0o600)
-    except OSError:
-        pass
-    return str(path)
-
-
-def _base(binary, prompt, resume, headless):
+def _base(binary, prompt, resume, headless, config):
     argv = [binary]
     if headless:
         argv += ['-p', '--output-format', 'stream-json', '--verbose', '--include-partial-messages']
-    argv += ['--mcp-config', _config_argument(), '--allowedTools', 'mcp__formweb', '--append-system-prompt', NOTE]
+    argv += ['--mcp-config', str(config), '--allowedTools', 'mcp__formweb', '--append-system-prompt', NOTE]
     if resume:
         argv += ['--resume', resume]
     if prompt:
@@ -148,12 +152,12 @@ def _wrap(argv):
     return [shell, '-l', '-c', 'exec ' + shlex.join(argv)]
 
 
-def argv(prompt='', resume=''):
-    return _wrap(_base(require_cli(), prompt, resume, False))
+def argv(prompt, resume, config):
+    return _wrap(_base(require_cli(), prompt, resume, False, config))
 
 
-def chat_argv(prompt, resume=''):
-    return _wrap(_base(require_cli(), prompt, resume, True))
+def chat_argv(prompt, resume, config):
+    return _wrap(_base(require_cli(), prompt, resume, True, config))
 
 
 def status():

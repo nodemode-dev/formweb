@@ -15,11 +15,37 @@ export function accept(next: EditorState): EditorState {
   return next;
 }
 export function subscribe(listener: (next: EditorState) => void): void { listeners.add(listener); }
-function authHeaders(): Record<string, string> {
+let windowKey = '';
+function bearer(): Record<string, string> {
   try {
     const token = sessionStorage.getItem('formweb_token');
     return token ? { Authorization: `Bearer ${token}` } : {};
   } catch { return {}; }
+}
+function authHeaders(): Record<string, string> {
+  return windowKey ? { ...bearer(), 'X-FormWeb-Window-Key': windowKey } : bearer();
+}
+/** The window key: the packaged shell's global first, then the engine's one-time answer, then this tab's earlier copy. */
+async function loadWindowKey(): Promise<void> {
+  if (windowKey) return;
+  const holder = window as unknown as { __FORMWEB_WINDOW_KEY?: unknown };
+  const given = holder.__FORMWEB_WINDOW_KEY;
+  delete holder.__FORMWEB_WINDOW_KEY;
+  if (typeof given === 'string' && given) { windowKey = given; return; }
+  try {
+    const response = await fetch(apiBase + '/api/window/key', { method: 'POST', headers: bearer(), credentials: 'same-origin' });
+    const body = response.ok ? await response.json() as { key?: unknown } : {};
+    if (typeof body.key === 'string' && body.key) {
+      windowKey = body.key;
+      try { sessionStorage.setItem('formweb_window_key', windowKey); } catch {}
+      return;
+    }
+  } catch {}
+  try { windowKey = sessionStorage.getItem('formweb_window_key') || ''; } catch {}
+}
+/** A one-time ticket that lets this window's terminal socket in. */
+export async function terminalTicket(): Promise<string> {
+  try { return (await request<{ ticket: string }>('/api/window/ticket', {})).ticket || ''; } catch { return ''; }
 }
 export async function request<T>(path: string, body?: unknown, method?: string): Promise<T> {
   if (['/api/projects/save', '/api/publish', '/api/audit', '/api/preview'].includes(path) || path.startsWith('/api/libraries') || path.startsWith('/api/cms/') || path.startsWith('/api/branches') || path.startsWith('/api/providers/')) await queue.catch(() => undefined);
@@ -133,6 +159,7 @@ let connectionListener: (connected: boolean) => void = () => undefined;
 export function reconnect(): Promise<void> { return connect(connectionListener); }
 export async function connect(onConnection: (connected: boolean) => void): Promise<void> {
   connectionListener = onConnection;
+  await loadWindowKey();
   if (authHeaders().Authorization) await request('/api/auth', {});
   accept(await request<EditorState>('/api/state'));
   onConnection(true);

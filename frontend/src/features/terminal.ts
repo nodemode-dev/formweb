@@ -2,7 +2,7 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import '../styles/terminal.css';
-import { apiBase, request } from '../api';
+import { apiBase, request, terminalTicket } from '../api';
 import { element, text } from '../ui/dom';
 import { icon } from '../ui/icons';
 import { ChatPane, glyph, type Glyph } from './chat-pane';
@@ -298,10 +298,10 @@ export class TerminalDock {
     try { tab.fit?.fit(); } catch {}
   }
 
-  private url(tab: Tab): string {
+  private url(tab: Tab, ticket: string): string {
     const base = apiBase ? new URL(apiBase) : window.location;
     const scheme = base.protocol === 'https:' ? 'wss:' : 'ws:';
-    const query = new URLSearchParams({ cols: String(tab.term?.cols || 100), rows: String(tab.term?.rows || 24), session: tab.id });
+    const query = new URLSearchParams({ cols: String(tab.term?.cols || 100), rows: String(tab.term?.rows || 24), session: tab.id, ticket });
     try { const token = sessionStorage.getItem('formweb_token'); if (token) query.set('token', token); } catch {}
     return `${scheme}//${base.host}/api/terminal?${query}`;
   }
@@ -311,10 +311,12 @@ export class TerminalDock {
     if (this.active === tab.id) text(this.stateLabel, message);
   }
 
-  private connect(tab: Tab): void {
+  private async connect(tab: Tab): Promise<void> {
     const term = tab.term;
     if (!term || (tab.socket && tab.socket.readyState <= WebSocket.OPEN)) return;
-    const socket = new WebSocket(this.url(tab));
+    const ticket = await terminalTicket();
+    if (tab.socket && tab.socket.readyState <= WebSocket.OPEN) return;
+    const socket = new WebSocket(this.url(tab, ticket));
     tab.socket = socket;
     socket.addEventListener('message', event => {
       const message = JSON.parse(String(event.data)) as { type: string; data?: string; replay?: boolean; code?: number | null; message?: string };

@@ -1315,3 +1315,11 @@ The UI font stack starts with the Apple system faces, so on macOS the bundled In
 - logged: v0.19.2 · 2026-11-10
 
 One fixed pane holds three views (Sections, Kits, Import HTML) swapped with `hidden`, so nothing reflows. Cards are keyed by section id and merged on every open, so a library that grows while the editor runs adds cards without rebuilding the grid; thumbnail boxes are a fixed 16:10 and a failed or missing image keeps the placeholder. The detail replaces the list in place and caches each section's form, so typed values survive Back; only values changed from the defaults are sent. `libraryMutate` queues behind other mutations and adopts the returned state when it carries `site` and `revision`. Section names and descriptions are looked up as English-text keys (the key form `keys.ts` uses), so a template whose wording changes falls back to English until a key is added. Apply preset asks for a second click within five seconds instead of a modal. The rail uses the existing `grid` icon; a dedicated library icon belongs in `icons.ts`.
+
+### Window key
+
+- refers-to: `src/api.ts` :: authHeaders, loadWindowKey, terminalTicket, connect, `src/features/terminal.ts` :: url, connect
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+`connect()` takes the key once before its first request: the desktop shell's `window.__FORMWEB_WINDOW_KEY` (then deleted), else the engine's one-time `POST /api/window/key`, else this tab's earlier copy in sessionStorage. Every fetch in api.ts sends it through authHeaders. The terminal socket asks for a one-time ticket before each connect and re-checks the socket after the await, so two connects cannot open two sockets. Other raw fetches (tracepanel asset list, demos file) are reads. Nothing in the DOM changes. Checked in headless Chrome against the Vite dev server: the bootstrap answered 200, a `page.add` through `command()` moved the revision from 0 to 1, a ticket came back, and a fetch without the key from the same page was refused.

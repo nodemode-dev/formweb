@@ -16,7 +16,7 @@ from starlette.responses import FileResponse, JSONResponse, Response, StreamingR
 
 from .access import CHANNELS, actor, channel
 from .advanced_routes import router as advanced_router, form_gate, serve_release, submission_values
-from . import claude_code
+from . import claude_code, window_key
 from .assets import MIME_TYPES, ProjectTooLarge, asset_path, ingest, list_assets, own_asset, project_envelope, read_project_archive, sweep_stale_temporaries, visible_assets, write_project_archive
 from .chat import router as chat_router
 from .clips import router as clips_router
@@ -79,6 +79,9 @@ class LocalAccess:
                 raise EngineError('Agents are disabled. Enable Agents in the editor or set FORMWEB_AGENTS=1.', 403)
             if control and scope['method'] != 'OPTIONS':
                 identity = studio.access.authenticate(headers, mcp=path == '/mcp')
+            holds_key = window_key.valid(headers.get(window_key.HEADER))
+            if control and window_key.needs_key(scope['method'], path, identity['root']) and not holds_key:
+                raise EngineError(window_key.REFUSED, 403)
             archive_load = path == '/api/load' and headers.get('content-type', '').split(';', 1)[0].strip().lower() == 'application/zip'
             maximum = MAX_PROJECT_ARCHIVE_BYTES if archive_load else MAX_PROJECT_FILE_BYTES if path in ('/api/load', '/mcp') else MAX_VIDEO_BYTES if path == '/api/assets' and scope['method'] == 'POST' else MAX_PASTE_BYTES if path == '/api/paste' else MAX_DOCUMENT_BYTES
             length = headers.get('content-length', '')
@@ -100,9 +103,11 @@ class LocalAccess:
             await send(message)
         requested_channel = headers.get('x-formweb-channel', '')
         channel_token = channel.set('agent' if path == '/mcp' else requested_channel if requested_channel in CHANNELS else 'human')
+        window_token = window_key.window.set(holds_key and path != '/mcp')
         try:
             await self.app(scope, receive, guarded_send)
         finally:
+            window_key.window.reset(window_token)
             channel.reset(channel_token)
             actor.reset(context_token)
 
@@ -119,7 +124,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title='FormWeb', version=VERSION, lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename', 'X-FormWeb-Channel'], expose_headers=['Content-Disposition', 'X-FormWeb-Method', 'X-FormWeb-Asset', 'X-FormWeb-Local-Forms'], allow_credentials=True)
+app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename', 'X-FormWeb-Channel', 'X-FormWeb-Window-Key'], expose_headers=['Content-Disposition', 'X-FormWeb-Method', 'X-FormWeb-Asset', 'X-FormWeb-Local-Forms'], allow_credentials=True)
 app.add_middleware(LocalAccess)
 app.include_router(advanced_router)
 app.include_router(provider_router)
@@ -242,6 +247,21 @@ async def agents(body: Agents):
         from .terminal import close_all
         close_all(external_only=True)
     return await system()
+
+
+@app.post(window_key.BOOTSTRAP)
+async def window_key_claim():
+    if window_key.stdout_mode():
+        raise EngineError('Endpoint not found.', 404)
+    key = window_key.claim()
+    if key is None:
+        raise EngineError('The window key was already given to a window.', 409)
+    return {'key': key}
+
+
+@app.post('/api/window/ticket')
+async def window_ticket():
+    return {'ticket': window_key.ticket(), 'secondClaim': window_key.STATE['secondClaim']}
 
 class SubstrateRun(BaseModel):
     model_config = ConfigDict(extra='forbid')

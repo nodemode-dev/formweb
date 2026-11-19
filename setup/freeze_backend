@@ -18,6 +18,7 @@ rm -rf build/pyinstaller dist-engine
   --add-data "$FORMWEB_ROOT/library:library" \
   --add-binary "$core:bin" \
   --collect-submodules app --collect-submodules uvicorn --collect-data mcp --exclude-module mcp.cli \
+  --collect-submodules keyring --copy-metadata keyring \
   "$FORMWEB_ROOT/backend/formweb_engine.py"
 dist-engine/formweb-engine --selfcheck || { fw_say 'the frozen engine failed its selfcheck; nothing was copied to src-tauri/binaries' >&2; exit 1; }
 mkdir -p "$FORMWEB_ROOT/src-tauri/binaries"

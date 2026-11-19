@@ -482,3 +482,39 @@ The one implementation of the library: reading `library/` (or `BUNDLE/library` w
 Every write builds its commands from the state it read and sends one `studio.mutate('batch', ...)` with that `expectedRevision`, so a concurrent edit fails rather than merging silently, and each action is one undo step. Bundled media and component posters are ingested with `application/octet-stream` and owned before the batch. A component already on the site with a different digest is kept unless `updateComponents` is sent. Built records come from `library/build/components`; a missing one is compiled through `build_component` with a warning. Import HTML keeps the whole body (page scripts measure the kit header), joins every `<style>` with the optional `css`, keeps the first inline script, replaces only the kit module line with an inline shim for `reduced`, `onTheme` and `token`, refuses other module dependencies, and enforces the code-section caps (512 KiB markup, 256 KiB styles, 512 KiB script). Relative assets of an imported page are not brought along.
 
 Checked against a fixture library: two inserts gave independent copies with one undo each; a starter reused an empty home page; both preset modes; Import HTML of two webspun pages exported with no page errors.
+
+## v0.22.0 window key
+
+### app/window_key.py, app/main.py :: LocalAccess
+
+- refers-to: `app/window_key.py`, `app/main.py` :: LocalAccess, window_key_claim, window_ticket, `formweb_engine.py`
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+The engine makes one key per launch (memory only). LocalAccess, the one guard, refuses with 403 any write on a control path (`/api/*`, `/mcp`) when the caller is the root identity (no token, or `FORMWEB_AUTH_TOKEN`) and does not send `X-FormWeb-Window-Key`, and refuses window-only paths (`/api/agents*`, `/api/approvals/settings`, `/api/terminal*`, `/api/chat*`, `/api/window/ticket`) to every caller without it, named bearer identities included. A named identity's other writes stay governed by its role. The open list is `/mcp` (outside agents, with the Agents switch and approvals) and `/api/window/key`; site visitor routes (forms, runtime, password forms, the commerce webhook, `/published`, `/sites`, `/preview`) are not control paths and stay as they were. GET `/api/approvals` and `/api/terminal/sessions` need the key from root too. With `FORMWEB_WINDOW_KEY_STDOUT=1` (the desktop shell's sidecar) the engine prints `formweb-window-key: <key>` flushed before uvicorn starts and the bootstrap route answers 404; otherwise `/api/window/key` answers once and then 409. `./formweb serve` runs uvicorn directly, so a shell that starts it, or adopts a running engine, leaves the page on the bootstrap.
+
+Sweep of `app.openapi()` write operations with no key: 86 of 86 answered before; after, 88 operations (two new), 75 refused, 13 answered (the bootstrap and the visitor routes above).
+
+### app/terminal.py, app/claude_code.py, app/chat.py
+
+- refers-to: `app/terminal.py` :: _gate, open_session, Session, `app/claude_code.py` :: issue, revoke, valid_token, `app/chat.py` :: _run
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+The terminal socket needs the key header or a one-time ticket (`POST /api/window/ticket`, 30 seconds, spent on use). Each Claude Code tab and each Chat run gets its own in-app token, written with its MCP config to `DATA_DIR/agent-mcp/<random>.json` opened with mode 0600; the argument list carries only the path. The token and file end when the tab's process ends or the run finishes. Terminal children no longer inherit `FORMWEB_AUTH_TOKEN` or `FORMWEB_TOKEN`. `FORMWEB_CLAUDE` remains an environment variable only; no route changes it.
+
+### app/substrate.py :: Approvals.decide, settings; app/seal.py
+
+- refers-to: `app/substrate.py` :: Approvals.decide, Approvals.settings, Approvals.update_settings, `app/seal.py`
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+A decision is refused on the agent or terminal channel, from the root identity without the key, and from the same identity on the same channel that asked (release reviews keep their own rule). The stored approval setting carries an HMAC-SHA256 seal keyed by a 32-byte value in the system keychain (`keyring`, service FormWeb, account settings-seal, imported lazily). A record whose seal is missing or wrong while `agentDestructive` is off reads as on, with `seal: "broken"` and `sealBroken: true`; with no keychain the values stand and `seal` is `"unavailable"`. A deleted record reads as the product default (off): the default is the loose value, so the seal catches edits, not removal.
+
+### setup/run.py, setup/library_cli.py
+
+- refers-to: `../setup/run.py` :: tool, main, `../setup/library_cli.py` :: main
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+`./formweb run` and the library writes go through `/mcp` (`apply_commands`, `library_insert`, `library_apply_preset`, `library_apply_starter`) as an outside agent: Agents must be on and approval settings apply. Reads stay on the REST routes. Observed: with Agents off the command line answered 403 in one line; on, `page.add` and a preset applied.

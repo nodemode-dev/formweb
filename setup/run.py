@@ -6,7 +6,8 @@
   ./formweb run page.add '{"name":"About","slug":"/about"}'
   ./formweb run history.undo
 Add --json for machine output, --revision N to require a revision.
-Changes are attributed to the terminal channel and appear on the open canvas at once.
+Changes go through the MCP endpoint like any outside agent: Agents must be on in the editor, the editor's
+approval settings apply, and they appear on the open canvas at once.
 """
 import json
 import os
@@ -38,6 +39,39 @@ def call(path, body=None):
         raise SystemExit(f'[formweb] {error.code}: {detail}')
     except urllib.error.URLError as error:
         raise SystemExit(f'[formweb] FormWeb is not running at {API} ({error.reason}). Start it with ./formweb boot.')
+
+
+def tool(name, arguments):
+    headers = {'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream', 'MCP-Protocol-Version': '2025-11-25'}
+    token = os.environ.get('FORMWEB_TOKEN') or os.environ.get('FORMWEB_AUTH_TOKEN')
+    if token:
+        headers['Authorization'] = 'Bearer ' + token
+    data = json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call', 'params': {'name': name, 'arguments': arguments}}).encode()
+    request = urllib.request.Request(API + '/mcp', data=data, headers=headers, method='POST')
+    try:
+        with urllib.request.urlopen(request, timeout=150) as response:
+            reply = json.loads(response.read())
+    except urllib.error.HTTPError as error:
+        try:
+            detail = json.loads(error.read()).get('detail', error.reason)
+        except Exception:
+            detail = error.reason
+        raise SystemExit(f'[formweb] {error.code}: {detail}')
+    except urllib.error.URLError as error:
+        raise SystemExit(f'[formweb] FormWeb is not running at {API} ({error.reason}). Start it with ./formweb boot.')
+    if 'error' in reply:
+        raise SystemExit(f"[formweb] {reply['error'].get('message', 'the call failed')}")
+    result = reply.get('result') or {}
+    body = result.get('structuredContent')
+    if body is None:
+        text = next((item.get('text', '') for item in result.get('content') or [] if item.get('type') == 'text'), '')
+        try:
+            body = json.loads(text)
+        except ValueError:
+            body = {'detail': text}
+    if result.get('isError'):
+        raise SystemExit(f"[formweb] {body.get('detail') or body.get('error') or body}")
+    return body
 
 
 def value(text):
@@ -81,10 +115,10 @@ def main(argv):
             if not isinstance(parsed, dict):
                 raise SystemExit(f'[formweb] parameters must be key=value pairs or one JSON object, not {item!r}')
             params.update(parsed)
-    body = {'command': command, 'params': params}
+    body = {'commands': [{'command': command, 'params': params}]}
     if revision is not None:
-        body['expectedRevision'] = revision
-    state = call('/api/substrate/run', body)
+        body['expected_revision'] = revision
+    state = tool('apply_commands', body)
     if as_json:
         print(json.dumps({'command': command, 'revision': state.get('revision'), 'canUndo': state.get('canUndo')}))
     else:
