@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
 import argparse
+import json
+import os
 import shutil
+import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE = ROOT / ".claude" / "skills"
 MIRROR = ROOT / ".agents" / "skills"
+MANIFEST = ROOT / "agents" / "manifest.json"
+APP = "formweb"
+WINDOW_GATED = ("run_ui_command",)
+REMOVE_GATED = ("apply_commands",)
+DOCK = {"present": True, "positions": ["bottom"], "tabs": ["shell", "claude", "chat"]}
+EXTENSIONS = None
 
 
 def files(folder: Path) -> dict[str, bytes]:
@@ -39,6 +49,66 @@ def sync(check: bool) -> int:
     return 1 if check and changed else 0
 
 
+def skills() -> list[dict]:
+    listed = []
+    for path in sorted(SOURCE.iterdir()):
+        if path.is_dir() and (path / "SKILL.md").is_file():
+            folder = path / "sub-skills"
+            subs = sorted(sub.name for sub in folder.iterdir() if sub.is_dir() and (sub / "SUB-SKILL.md").is_file()) if folder.is_dir() else []
+            listed.append({"name": path.name, "sub_skills": subs})
+    return listed
+
+
+def mcp() -> dict:
+    sys.dont_write_bytecode = True
+    with tempfile.TemporaryDirectory(prefix="formweb-agents-", ignore_cleanup_errors=True) as scratch:
+        os.environ["FORMWEB_DATA_DIR"] = scratch
+        sys.path.insert(0, str(ROOT / "backend"))
+        from app import seal
+        from app.mcp_server import TOOLS, mcp_app
+
+        seal._CACHE.update(tried=True, available=False, key=None)
+        asks_by_default = bool(seal.effective("manifest", {})["agentDestructive"])
+    by_name = {item["name"]: item for item in TOOLS}
+    for name in WINDOW_GATED + REMOVE_GATED:
+        if name not in by_name:
+            raise ValueError(f"{name} is not in the MCP tool registry")
+    transports = [name for name, served in (("stdio", (ROOT / "setup" / "mcp_stdio.py").is_file()), ("http", any(getattr(route, "path", "") == "/mcp" for route in mcp_app.routes))) if served]
+    return {
+        "tools": list(by_name),
+        "read_only": [name for name, item in by_name.items() if item["annotations"].get("readOnlyHint")],
+        "approval_gated": [name for name, item in by_name.items() if name in WINDOW_GATED or (asks_by_default and (name in REMOVE_GATED or item["annotations"].get("destructiveHint")))],
+        "transports": transports,
+    }
+
+
+def manifest_text() -> str:
+    document = {"format": "form-agent-manifest", "version": 1, "app": APP, "mcp": mcp(), "skills": skills(), "dock": DOCK, "extensions": EXTENSIONS}
+    return json.dumps(document, indent=2) + "\n"
+
+
+def manifest_sync(check: bool) -> int:
+    try:
+        wanted = manifest_text().encode("utf-8")
+    except Exception as error:
+        print(f"agents: agents/manifest.json could not be built: {error}")
+        return 1
+    if MANIFEST.is_file() and MANIFEST.read_bytes() == wanted:
+        print("agents: agents/manifest.json in step")
+        return 0
+    if check:
+        print("agents: drifted agents/manifest.json")
+        return 1
+    MANIFEST.parent.mkdir(parents=True, exist_ok=True)
+    MANIFEST.write_bytes(wanted)
+    print("agents: wrote agents/manifest.json")
+    return 0
+
+
+def sync_all(check: bool) -> int:
+    return max(sync(check), manifest_sync(check))
+
+
 def install() -> int:
     print("Project MCP configurations are included:")
     for name in (".mcp.json", ".codex/config.toml", ".cursor/mcp.json"):
@@ -55,7 +125,7 @@ def main() -> int:
     parser.add_argument("command", choices=("sync", "install"), nargs="?", default="install")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
-    return sync(args.check) if args.command == "sync" else install()
+    return sync_all(args.check) if args.command == "sync" else install()
 
 
 if __name__ == "__main__":
