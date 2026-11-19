@@ -25,7 +25,6 @@ function bearer(): Record<string, string> {
 function authHeaders(): Record<string, string> {
   return windowKey ? { ...bearer(), 'X-FormWeb-Window-Key': windowKey } : bearer();
 }
-/** The window key: the packaged shell's global first, then the engine's one-time answer, then this tab's earlier copy. */
 async function loadWindowKey(): Promise<void> {
   if (windowKey) return;
   const holder = window as unknown as { __FORMWEB_WINDOW_KEY?: unknown };
@@ -46,7 +45,6 @@ async function loadWindowKey(): Promise<void> {
   } catch {}
   try { windowKey = sessionStorage.getItem('formweb_window_key') || ''; } catch {}
 }
-/** A one-time ticket that lets this window's terminal socket in. */
 export async function terminalTicket(): Promise<string> {
   try { return (await request<{ ticket: string }>('/api/window/ticket', {})).ticket || ''; } catch { return ''; }
 }

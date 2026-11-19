@@ -215,13 +215,11 @@ fn start_sidecar(path: &Path, port: u16) -> std::io::Result<Child> {
 static WINDOW_KEY: Mutex<Option<String>> = Mutex::new(None);
 static KEY_EXPECTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
-/// The key from the engine's `formweb-window-key: <key>` line, when the line is exactly that.
 fn window_key_line(line: &str) -> Option<String> {
     let key = line.trim_end().strip_prefix("formweb-window-key: ")?;
     (key.len() >= 32 && key.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')).then(|| key.to_string())
 }
 
-/// Reads the sidecar's standard output for its whole life, so the pipe never fills; keeps the key line, passes the rest on.
 fn capture_window_key(child: &mut Child) {
     let Some(out) = child.stdout.take() else { return };
     KEY_EXPECTED.store(true, Ordering::SeqCst);
