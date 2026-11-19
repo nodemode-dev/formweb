@@ -1,20 +1,5 @@
-/* Agent dock: session tabs and the Chat pane. Nodes are created once; state lives in data attributes. */
-.fw-term-tabs { display: flex; align-items: center; gap: 2px; min-width: 0; overflow: hidden; }
-.fw-term-tab { display: inline-flex; align-items: center; gap: var(--space-1); max-width: 150px; height: 24px; min-height: 0; padding: 0 var(--space-1) 0 var(--space-2); border: 1px solid transparent; border-radius: var(--radius); background: transparent; color: var(--text-secondary); font-size: var(--fs-11); cursor: pointer; }
-.fw-term-tab:hover { background: var(--bg-hover); color: var(--text-primary); }
-.fw-term-tab[aria-selected="true"] { border-color: var(--line-2); background: var(--bg-primary); color: var(--text-primary); }
-.fw-term-tab .icon { width: 12px; height: 12px; flex: none; }
-.fw-term-tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fw-term-tab[data-alive="false"] .fw-term-tab-label { opacity: 0.55; }
-.fw-term-tab-close { display: grid; place-items: center; width: 16px; height: 16px; min-height: 0; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-muted); }
-.fw-term-tab-close:hover { background: var(--accent-soft); color: var(--text-primary); }
-.fw-term-tab-close .icon { width: 10px; height: 10px; }
-.fw-term-stack { position: relative; width: 100%; height: 100%; min-height: 0; }
-.fw-term-pane { position: absolute; inset: 0; min-width: 0; min-height: 0; }
-.fw-term-pane[hidden] { display: none; }
-.fw-term-btn.is-on { color: var(--accent-color); }
-
-.fw-chat { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; height: 100%; min-height: 0; padding-right: var(--space-3); color: var(--text-primary); font-size: var(--fs-12); }
+/* The Chat pane of the agent dock. Nodes are created once; state lives in data attributes. */
+.fw-chat { display: grid; grid-template-rows: minmax(0, 1fr) auto; height: 100%; min-height: 0; padding: 0 var(--space-3); color: var(--text-primary); font-size: var(--fs-12); }
 .fw-chat-log { display: flex; flex-direction: column; gap: var(--space-3); min-height: 0; padding: var(--space-2) var(--space-1) var(--space-2) 0; overflow-y: auto; scrollbar-width: none; }
 .fw-chat-log::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .fw-chat-empty { margin: 0; color: var(--text-muted); }
@@ -41,10 +26,3 @@
 .fw-chat-quiet:hover:not(:disabled) { color: var(--text-primary); background: var(--bg-hover); }
 .fw-chat-quiet:disabled { opacity: 0.4; }
 .fw-chat-note { overflow: hidden; color: var(--text-muted); font-size: var(--fs-11); text-overflow: ellipsis; white-space: nowrap; }
-.fw-chat-composer { display: grid; grid-template-columns: minmax(0, 1fr) var(--ctl-md); align-items: end; gap: var(--space-2); padding-bottom: var(--space-2); }
-.fw-chat-input { min-height: 44px; max-height: 44px; resize: none; padding: var(--space-2); border: 1px solid var(--line-2); border-radius: var(--radius-md); background: var(--surface-field); color: var(--text-primary); font: inherit; }
-.fw-chat-input:focus { border-color: var(--accent-line); outline: 0; }
-.fw-chat-send { display: grid; place-items: center; width: var(--ctl-md); height: var(--ctl-md); min-height: 0; padding: 0; border: 1px solid var(--accent-line); border-radius: var(--radius-md); background: var(--accent-soft); color: var(--accent-color); }
-.fw-chat-send .icon { width: 14px; height: 14px; }
-.fw-chat-send .icon[hidden] { display: none; }
-.fw-chat-send.is-stop { border-color: var(--line-2); background: var(--surface-1); color: var(--text-primary); }

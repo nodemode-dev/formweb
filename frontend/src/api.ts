@@ -45,6 +45,15 @@ async function loadWindowKey(): Promise<void> {
   } catch {}
   try { windowKey = sessionStorage.getItem('formweb_window_key') || ''; } catch {}
 }
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number, readonly code: string) { super(message); }
+}
+export type ApprovalEvent = { type: 'open' | 'request' | 'withdrawn'; id?: string; reason?: string };
+const approvalListeners = new Set<(event: ApprovalEvent) => void>();
+export function onApproval(listener: (event: ApprovalEvent) => void): void {
+  approvalListeners.add(listener);
+  if (events?.readyState === EventSource.OPEN) listener({ type: 'open' });
+}
 export async function terminalTicket(): Promise<string> {
   try { return (await request<{ ticket: string }>('/api/window/ticket', {})).ticket || ''; } catch { return ''; }
 }
@@ -58,15 +67,17 @@ export async function request<T>(path: string, body?: unknown, method?: string):
   });
   if (!response.ok) {
     let detail = `${response.status} ${response.statusText}`;
+    let code = '';
     try {
       const error = await response.json();
       detail = typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail || error.error || error);
+      if (typeof error.code === 'string') code = error.code;
     } catch {}
     if (response.status === 409 && path !== '/api/state' && /revision conflict|revision is stale|stale.*revision/i.test(detail)) {
       accept(await request<EditorState>('/api/state'));
       throw new Error(`${detail}. Latest state loaded; your focused input is retained. Review the current state and apply your change again.`);
     }
-    throw new Error(detail);
+    throw new ApiError(detail, response.status, code);
   }
   return response.json() as Promise<T>;
 }
@@ -172,7 +183,13 @@ export async function connect(onConnection: (connected: boolean) => void): Promi
       if (!current || incoming.revision > current.revision || incoming.site.id !== current.site.id) accept(incoming);
     } catch {}
   });
-  events.onopen = () => onConnection(true);
+  events.addEventListener('approval', event => {
+    try {
+      const incoming = JSON.parse((event as MessageEvent).data) as ApprovalEvent;
+      approvalListeners.forEach(listener => listener(incoming));
+    } catch {}
+  });
+  events.onopen = () => { onConnection(true); approvalListeners.forEach(listener => listener({ type: 'open' })); };
   events.onerror = () => onConnection(false);
 }
 export async function download(path: string, filename: string): Promise<Headers> {

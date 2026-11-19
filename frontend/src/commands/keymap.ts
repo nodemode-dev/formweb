@@ -1,6 +1,6 @@
 import { comboOf, type Commands } from './registry';
 
-const TYPING = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], .xterm, .fw-term, [data-no-keys]';
+const TYPING = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], .xterm, .ft-dock, .ft-consent, .ft-tour, [data-no-keys]';
 
 export function installKeymap(registry: Commands, ready: () => boolean): void {
   document.addEventListener('keydown', event => {

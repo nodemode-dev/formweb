@@ -65,6 +65,22 @@
   root.style.background = p[0];
   root.dataset.theme = LIGHT[theme] ? 'light' : 'dark';
   if (OLED[theme]) root.setAttribute('data-oled', '');
+  var dock = { open: false, side: 'bottom', h: 272, w: 420 };
+  try {
+    var kept = localStorage.getItem('formweb.dock');
+    if (kept) { var d = JSON.parse(kept); if (d && typeof d === 'object') { dock.open = d.open === true; if (d.side === 'right') dock.side = 'right'; if (typeof d.h === 'number') dock.h = d.h; if (typeof d.w === 'number') dock.w = d.w; } }
+    else if (localStorage.getItem('formweb_terminal') === 'open') dock.open = true;
+  } catch (e) {}
+  var vw = window.innerWidth, vh = window.innerHeight;
+  var room = vw - 48 - (vw <= 800 ? 384 : vw <= 960 ? 428 : vw <= 1100 ? 476 : 534) - 360;
+  var dh = Math.round(Math.max(120, Math.min(vh * 0.7, vh - 308, dock.h)));
+  var dw = Math.round(Math.max(320, Math.min(vw * 0.4, room, dock.w)));
+  root.setAttribute('data-ft-dock', dock.open ? 'open' : 'closed');
+  root.setAttribute('data-ft-dock-side', dock.side === 'right' && room >= 320 ? 'right' : 'bottom');
+  root.setAttribute('data-ft-dock-h', String(dh));
+  root.setAttribute('data-ft-dock-w', String(dw));
+  root.style.setProperty('--ft-dock-size', dh + 'px');
+  root.style.setProperty('--ft-dock-wsize', dw + 'px');
 })();
   </script>
   <link rel="stylesheet" href="/src/styles/fonts.css" />

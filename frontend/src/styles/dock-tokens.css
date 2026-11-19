@@ -1,0 +1,79 @@
+:root {
+  --dock-bg: var(--bg-primary);
+  --dock-bar-bg: var(--surface-1);
+  --dock-raised: var(--bg-primary);
+  --dock-hover: var(--bg-hover);
+  --dock-input-bg: var(--surface-field);
+  --dock-border: var(--line-0);
+  --dock-edge: var(--line-0);
+  --dock-divider: var(--line-0);
+  --dock-tab-border: var(--line-2);
+  --dock-outline: var(--accent-line);
+  --dock-scrim: var(--bg-scrim);
+  --dock-text: var(--text-primary);
+  --dock-text-dim: var(--text-secondary);
+  --dock-text-muted: var(--text-muted);
+  --dock-tab-text: var(--text-secondary);
+  --dock-accent: var(--accent-color);
+  --dock-accent-line: var(--accent-line);
+  --dock-accent-ink: var(--accent-ink);
+  --dock-danger: var(--danger);
+  --dock-danger-text: var(--danger-soft);
+  --dock-space-1: var(--space-1);
+  --dock-space-2: var(--space-2);
+  --dock-space-3: var(--space-3);
+  --dock-space-4: var(--space-4);
+  --dock-radius-xs: var(--radius-xs);
+  --dock-radius-sm: var(--radius-sm);
+  --dock-radius: var(--radius);
+  --dock-radius-md: var(--radius-md);
+  --dock-tab-radius: var(--radius);
+  --dock-head-h: 32px;
+  --dock-tab-h: 24px;
+  --dock-ibtn: 24px;
+  --dock-ask-h: 40px;
+  --dock-chat-bar-h: 28px;
+  --dock-ctl-h: var(--ctl-md);
+  --dock-icon: 14px;
+  --dock-icon-sm: 12px;
+  --dock-icon-xs: 10px;
+  --dock-icon-note: 12px;
+  --dock-icon-send: 14px;
+  --dock-stage-pad: var(--space-1) 0 0 var(--space-3);
+  --dock-ask-ctl-h: var(--ctl-md);
+  --dock-tab-accent: var(--accent-color);
+  --dock-fs-xs: var(--fs-11);
+  --dock-fs-sm: var(--fs-12);
+  --dock-fs-md: var(--fs-13);
+  --dock-font-mono: var(--font-mono);
+  --dock-term-bg: var(--bg-primary);
+  --dock-term-fg: var(--text-primary);
+  --dock-term-cursor: var(--accent-color);
+  --dock-term-selection: var(--accent-soft);
+  --dock-term-font-size: 12px;
+  --dock-term-line-height: 1;
+  --dock-term-contrast: 1;
+}
+
+.workspace { grid-template-rows: minmax(0, 1fr) 0px; }
+.workspace > .fw-rail, .workspace > .sidebar, .workspace > .inspector { grid-row: 1 / 3; }
+.workspace > .ft-dock { grid-column: 3; grid-row: 2; }
+:root[data-ft-dock="open"]:not([data-ft-dock-side="right"]) .workspace { grid-template-rows: minmax(0, 1fr) var(--ft-dock-size, 272px); }
+:root[data-ft-dock="open"][data-ft-dock-side="right"] .workspace { grid-template-columns: var(--rail-w) var(--left-w) minmax(0, 1fr) var(--right-w) var(--ft-dock-wsize, 420px); }
+:root[data-ft-dock="open"][data-ft-dock-side="right"] .workspace > .stage-panel { grid-row: 1 / 3; }
+:root[data-ft-dock="open"][data-ft-dock-side="right"] .workspace > .ft-dock { grid-column: 5; grid-row: 1 / 3; }
+
+.ft-dock-tab { min-height: 0; }
+.fw-dock-ibtn { display: grid; place-items: center; min-height: 0; padding: 0; border: 0; border-radius: var(--radius); background: transparent; color: var(--text-secondary); }
+.fw-dock-ibtn:hover { background: var(--accent-soft); color: var(--text-primary); }
+.fw-dock-btn { min-height: var(--ctl-md); }
+.fw-dock-input { width: auto; min-height: 0; padding: 0 var(--space-2); }
+.fw-dock-note { margin: 0; color: var(--text-muted); font-size: var(--fs-12); }
+
+.fw-dock-sessions { display: grid; align-content: start; gap: var(--space-3); padding: var(--space-3); color: var(--text-primary); font-size: var(--fs-12); }
+.fw-dock-sessions-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.fw-dock-sessions-row > button { min-height: var(--ctl-md); }
+.fw-dock-sessions-list { display: grid; gap: var(--space-1); margin: 0; padding: 0; list-style: none; }
+.fw-dock-sessions-list > li { display: grid; grid-template-columns: minmax(96px, max-content) minmax(0, 1fr); gap: var(--space-3); color: var(--text-secondary); }
+.fw-dock-sessions-list > li[data-alive="false"] > :first-child { opacity: 0.55; }
+.fw-dock-sessions-list > li > :first-child { color: var(--text-primary); }

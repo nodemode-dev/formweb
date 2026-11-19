@@ -20,7 +20,9 @@ import { watchOpenedFiles } from './ui/opened-file';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
-import { TerminalDock, dockTitleButtons } from './features/terminal';
+import { Dock } from './dock/dock';
+import './dock/dock.css';
+import { formwebDock } from './dock-adapter';
 import { BrandKit, readBrand, type BrandEntry, type BrandReport } from './features/brand-kit';
 import { TeamLibraries, type TeamLibrary, type TeamLibrarySummary } from './features/team-library';
 import { BackgroundRemover, type BackgroundStatus } from './features/background-remover';
@@ -353,11 +355,21 @@ async function insertStarter(id: string): Promise<void> {
   update(state());
 }
 insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), sectionsHead, sectionsGrid, startersHead, startersGrid, element('div', 'sidebar-note', 'Sections insert after the selected section. Starter pages add a new page with its sections. Every insert is one undo step.'), componentsHead, captureWrap, componentList);
-const terminalDock = new TerminalDock(next => { try { localStorage.setItem('formweb_terminal', next); } catch {} rail.refresh(); }, () => `Open page: ${pageId}. Selected element id: ${selectedId}.`);
-titleTools.prepend(...dockTitleButtons(runCommand), element('span', 'fw-tt-sep'));
+let agentDock: Dock | null = null;
+const dockHost = formwebDock({
+  dock: () => agentDock,
+  context: () => `Open page: ${pageId}. Selected element id: ${selectedId}.`,
+  notify: (message, error) => status(message, error),
+  chordLabel: () => commandRegistry.keyLabel(commandRegistry.get('terminal.toggle')!),
+  chatChord: () => commandRegistry.keyLabel(commandRegistry.get('chat.open')!),
+  openSettings: () => void runCommand('window.agents'),
+  room: () => workspace.clientWidth - rail.element.offsetWidth - sidebar.offsetWidth - inspector.offsetWidth - 360,
+  changed: () => { void agentConnect.refresh().catch(() => undefined); }
+});
+titleTools.prepend(...dockHost.titleButtons(runCommand), element('span', 'fw-tt-sep'));
 const agentConnect = new AgentConnect({
   toggleAgents,
-  launch: preset => terminalDock.launch(preset),
+  launch: preset => void dockHost.launch(preset),
   notify: (message, error) => status(message, error)
 });
 const agentsPane = agentConnect.element;
@@ -400,7 +412,7 @@ const selectionPath = element('nav', 'fw-crumbs');
 selectionPath.setAttribute('aria-label', 'Selection path');
 stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, selectionPath, viewportHint, viewportReadout);
 const stage = element('div', 'stage');
-stagePanel.append(stageHead, stage, terminalDock.element);
+stagePanel.append(stageHead, stage);
 const canvas = new Canvas(stage, selectNode, (id, next) => void run(async () => {
   await command('node.update', { id, patch: { text: next } });
   status('Text updated.');
@@ -446,7 +458,7 @@ const rail = new Rail([
   { command: 'page.audit', label: 'SEO and accessibility', icon: 'check' },
   { command: 'file.publish', label: 'Publish', icon: 'upload' },
   { command: 'window.agents', label: 'Agent Connect', icon: 'bolt', active: () => activeSidebar === 'agents' && layout.state.left === 'open' },
-  { command: 'view.terminal', label: 'Terminal', icon: 'code', active: () => terminalDock.state === 'open' }
+  { command: 'view.terminal', label: 'Terminal', icon: 'code', active: () => agentDock?.isOpen() === true }
 ], [
   { command: 'edit.settings', label: 'Settings', icon: 'gear' }
 ], { command: 'window.toggle-rail', label: 'Show or hide rail labels', icon: 'chevronsRight' });
@@ -1380,7 +1392,6 @@ function updateAgents(): void {
   agentsButton.title = agentsEnabled ? 'Agents on: MCP clients can edit this site' : 'Agents off: MCP clients are blocked';
   agentsButton.setAttribute('aria-label', agentsButton.title);
   agentConnect.setAgents(agentsEnabled);
-  terminalDock.setAllowed(agentsEnabled);
   rail.refresh();
   rail.refresh();
 }
@@ -2094,7 +2105,7 @@ async function pasteFromClipboard(): Promise<void> {
 }
 document.addEventListener('paste', event => {
   if (!scrim.hidden || !ready() || event.defaultPrevented) return;
-  if ((event.target as Element | null)?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"], .xterm, .fw-term, [data-no-keys]')) return;
+  if ((event.target as Element | null)?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"], .xterm, .ft-dock, .ft-consent, .ft-tour, [data-no-keys]')) return;
   const raw = event.clipboardData?.getData('text/plain') || '';
   if (!parseFragment(raw)) return;
   event.preventDefault();
@@ -2214,11 +2225,15 @@ registerCommands([
   { id: 'window.studio', label: 'Website studio...', menu: 'Window', group: 2, run: () => featureStudio.button.click(), enabled: ready },
   { id: 'window.agents', label: 'Agent Connect', menu: 'Window', group: 3, run: () => toggleLeft('agents'), checked: () => activeSidebar === 'agents' && layout.state.left === 'open' },
   { id: 'agents.toggle', label: 'Allow agents (MCP and terminal)', menu: 'Window', group: 3, run: () => agentsButton.click(), checked: () => agentsEnabled },
-  { id: 'view.terminal', label: 'Terminal', menu: 'View', keys: ['Mod+`'], global: true, group: 3, run: () => terminalDock.toggle(), checked: () => terminalDock.state === 'open' },
-  { id: 'terminal.new', label: 'New terminal session', menu: 'View', group: 3, run: () => terminalDock.launch('shell') },
-  { id: 'terminal.toggle', label: 'Toggle agent dock', menu: 'View', keys: ['Mod+J'], global: true, group: 3, run: () => terminalDock.toggle(), checked: () => terminalDock.state === 'open' },
-  { id: 'claude.open', label: 'Claude Code', menu: 'View', keys: ['Mod+Shift+J'], global: true, group: 3, run: () => terminalDock.claude() },
-  { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: ['Mod+Alt+J'], global: true, group: 3, run: () => terminalDock.chat() },
+  { id: 'view.terminal', label: 'Terminal', menu: 'View', keys: ['Mod+`'], global: true, group: 3, run: () => agentDock?.toggle(), checked: () => agentDock?.isOpen() === true },
+  { id: 'terminal.new', label: 'New terminal session', menu: 'View', group: 3, run: () => dockHost.launch('shell') },
+  { id: 'terminal.codex', label: 'Codex', menu: 'View', group: 3, run: () => dockHost.launch('codex') },
+  { id: 'terminal.cursor', label: 'Cursor agent', menu: 'View', group: 3, run: () => dockHost.launch('cursor') },
+  { id: 'terminal.doctor', label: 'formweb doctor', menu: 'View', group: 3, run: () => dockHost.launch('doctor') },
+  { id: 'terminal.run-list', label: 'formweb run --list', menu: 'View', group: 3, run: () => dockHost.launch('run') },
+  { id: 'terminal.toggle', label: 'Toggle agent dock', menu: 'View', keys: ['Mod+J'], global: true, group: 3, run: () => agentDock?.toggle(), checked: () => agentDock?.isOpen() === true },
+  { id: 'claude.open', label: 'Claude Code', menu: 'View', keys: ['Mod+Shift+J'], global: true, group: 3, run: () => agentDock?.show('claude') },
+  { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: ['Mod+Alt+J'], global: true, group: 3, run: () => agentDock?.show('chat') },
   { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
 ]);
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
@@ -2294,7 +2309,10 @@ brandButton.addEventListener('keydown', event => { if (event.key === 'Enter' || 
 workspaceSelect.value = layout.preset;
 setInspector(layout.presetInfo().inspector);
 setSidebar(layout.presetInfo().sidebar);
-try { if (localStorage.getItem('formweb_terminal') === 'open') terminalDock.set('open'); } catch {}
+const dock = new Dock(dockHost.adapter);
+agentDock = dock;
+dock.onTab = () => { dockHost.syncButtons(); rail.refresh(); };
+dock.onChange = () => { dockHost.syncButtons(); rail.refresh(); };
 void run(async () => {
   await connect(connected => {
     statusDot.classList.toggle('offline', !connected);
@@ -2304,11 +2322,12 @@ void run(async () => {
   agentsEnabled = system.agentsEnabled;
   updateAgents();
   void agentConnect.refresh().catch(() => undefined);
-  void terminalDock.remount();
+  dock.mount(workspace);
+  dockHost.syncButtons();
   status('Ready. Select an element, or open Insert to add content.');
   watchOpenedFiles(file => run(async () => {
     if (!(await mayReplace())) return;
     await loadProjectFile(file);
     status('Project opened.');
   }));
-}).finally(revealApp);
+}).finally(() => { dock.mount(workspace); revealApp(); });
