@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.23.0 · 2026-11-19
+
+- Terminal panel: the panel under the stage is now the panel the Form apps share. Its tabs are Shell, Claude Code, Codex, Cursor, Chat and a FormWeb tab named Sessions. Drag its edge to make it bigger or smaller. A button in its bar moves it to the right of the window, where it is a column after the inspector, and back to the bottom; a running terminal keeps its output when the panel moves. Ctrl+J (Cmd+J on macOS) shows and hides it as before, and the other shortcuts are unchanged.
+- Codex and Cursor are in the window now. 0.22.0 prepared them in the service; in this release each opens as a tab of its own with FormWeb's tools, from the panel, the Sessions tab or the View menu. The real Codex and Cursor programs have not been run against this.
+- The Sessions tab starts sessions and shows how they are doing. It has six buttons (Shell, Claude Code, Codex, Cursor agent, formweb doctor, formweb run --list) and one line for each running session with its state, for example "Reconnecting" or that a shell has exited. It takes the place of the list and the status text in the old panel's bar. The same six are in the View menu.
+- One line to ask from. The line at the bottom of the panel is where you type. On the Chat tab it sends your message to Chat. On every other tab it opens Claude Code with what you typed, the open page and the selected element. Chat's own message box and Send button are gone, and Stop is a button in the Chat bar.
+- Agents: when Agents is on and "Ask me before an agent deletes, replaces the open project or changes retention" is ticked, a call that waits for you is asked in a box in the middle of the window. It says which program asked and what it asked to run, and the answers are Deny and Allow once. Allow once covers that one call, and the next one asks again. Escape closes the box and leaves the question waiting; it is shown again after a reload, and the cards in Agent Connect work as before. Unchanged: Agents is off when FormWeb starts, and the box stays unticked until you tick it.
+- A hidden panel takes no room. The 32 px bar the old panel kept at the bottom of the stage is gone, so the canvas is 32 px taller. Open the panel with Ctrl+J, the three buttons in the title bar, the Terminal item in the rail or the View menu.
+- The first time the panel is opened it shows a short guide to the panel, Claude Code and the question about other programs. If you used the old panel, whether it was open is carried over and the guide is not shown. The panel remembers its side, its size and its tab.
+- `./formweb agents sync --check` also fails, naming the file, when the shared panel's files in `frontend/src/dock` do not match their list, so a changed copy is caught before a release.
+
 ## 0.22.0 · 2026-11-19
 
 - Agents: only the FormWeb window can turn Agents on or off, change the approval choices, change the agent client cards, and open or use the terminal panel and Chat. Changes from outside the app's window are refused. An agent that connects through MCP works as before once Agents is on, and the forms, members and shop of the sites FormWeb serves are not affected. Unchanged: Agents is off when FormWeb starts, and "Ask me before an agent deletes, replaces the open project or changes retention" stays off until you tick it.

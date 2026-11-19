@@ -1384,7 +1384,7 @@ Measured with `amoled` saved, headless Chrome, 1440 by 900, 4x CPU, slow network
 
 - refers-to: `src/dock/` (15 files, FormVis 8bbdf61b, never edited here), `src/dock-adapter.ts`, `src/styles/dock-tokens.css`, `index.html` :: the pre-paint script, `src/main.ts` :: agentDock, dockHost, `src/features/chat-pane.ts`, `src/api.ts` :: ApiError, onApproval, `setup/agents.py` :: dock_problems
 - kind: change
-- logged: v0.22.0 · 2026-11-19
+- logged: v0.23.0 · 2026-11-19
 
 Removed: `src/features/terminal.ts` (354 lines, class `TerminalDock`) and `src/styles/terminal.css` (20 lines); the whole file is `git show e8b116c:frontend/src/features/terminal.ts`. What it was, in its own words:
 
