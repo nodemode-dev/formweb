@@ -1,6 +1,6 @@
 """Live terminal: a loopback WebSocket bridged to a pseudo-terminal in the FormWeb folder.
 
-Owner-only. Sessions the editor opens itself (POST /api/terminal/open: a shell or Claude Code) work without the Agents
+Only the editor window can use it: the routes and the socket need the window key (the socket may present a one-time ticket obtained with it), and the caller needs the manage role. Sessions the editor opens itself (POST /api/terminal/open: a shell or Claude Code) work without the Agents
 switch; a socket that creates its own session still needs Agents on. Uses the standard library `pty` on macOS and Linux and
 `pywinpty` on Windows. A session outlives its socket so the editor can collapse the dock or reconnect and
 get the same shell back, with the last 64 KiB of output replayed.

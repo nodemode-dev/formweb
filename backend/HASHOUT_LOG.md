@@ -526,3 +526,11 @@ A decision is refused on the agent or terminal channel, from the root identity w
 - logged: v0.22.0 · 2026-11-19
 
 `LocalAccess` is the outermost middleware (it is added after `CORSMiddleware`), so a refusal it sends itself (the missing window key, a wrong or missing server token, the body size limit) never passed through the CORS layer. The development editor on 5240 or 5241 talks to the engine on another origin, so the browser hid the refusal behind a CORS error and the page could not read the 403 or 401 text, for example to ask for the server access token. Seen in headless Chrome against an engine started with `FORMWEB_AUTH_TOKEN`, the editor on another port: every call was blocked by CORS with `net::ERR_FAILED`; after the change the same calls answer 401 and the page reads it. Only an origin in `ORIGINS` gets `access-control-allow-origin` (the origin itself, never `*`), `access-control-allow-credentials: true` and `vary: Origin`; a foreign origin, `null` and a request with no origin get none, as before. The packaged window is same-origin and never needed it. The headers go on every refusal made for an allowed origin, including the 421 for a wrong Host, which tells that origin nothing it could not learn by asking.
+
+### app/terminal.py, ../setup/library_cli.py: two module docstrings said what no longer holds
+
+- refers-to: `app/terminal.py` :: the module docstring, `../setup/library_cli.py` :: the module docstring
+- kind: docs
+- logged: v0.22.0 · 2026-11-19
+
+The terminal docstring began "Owner-only", which described the old rule and no check in the code. What the code does now: `_gate` requires the window key or a one-time ticket for the socket, the HTTP routes are on the window-only list in `window_key.py`, and `authorize('manage')` applies to a server started with an access token; the sentence says that. The library command-line docstring said the writes go over the API routes and the same routes the MCP tools use; since the window-key work `insert`, `preset` and `starter` go through `/mcp` (`library_insert`, `library_apply_preset`, `library_apply_starter`) like `./formweb run`, so Agents must be on and the approval settings apply, and only `list` reads the REST routes. The docstring now says so, in the words `setup/run.py` uses. No code changed.

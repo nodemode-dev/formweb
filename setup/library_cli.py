@@ -1,11 +1,11 @@
-"""./formweb library list|insert|preset|starter over the running API (the same routes the Library panel and the MCP tools use).
+"""./formweb library list|insert|preset|starter against the running service: list reads the same routes the Library panel uses; insert, preset and starter go through the MCP endpoint and its library tools.
 
   ./formweb library list [sections|components|presets|starters] [--category ID] [words ...]
   ./formweb library insert SECTION [field=value ...] [--parent NODE] [--page PAGE] [--index N]
   ./formweb library preset PRESET [--all]        without --all only values the site lacks are added
   ./formweb library starter STARTER [field=value ...]
 Add --json for machine output, --update-components to replace a site's own copy of a page component.
-Each write is one undo step in the open editor. FORMWEB_PORT or FORMWEB_API picks the server (default 8240).
+Writes go through the MCP endpoint like any outside agent: Agents must be on in the editor, the editor's approval settings apply, and each write is one undo step in the open editor. FORMWEB_PORT or FORMWEB_API picks the server (default 8240).
 """
 import json
 import sys
