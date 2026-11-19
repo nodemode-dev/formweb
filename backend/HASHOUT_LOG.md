@@ -1,6 +1,6 @@
 # Backend context
 
-## The engine starts with no standard streams · v0.23.0 (2026-11-19)
+## The engine starts with no standard streams · v0.23.1 (2026-11-19)
 
 Fault, reported by a tester on Windows on 2026-11-19 with a screenshot of the dialog: "Failed to execute script 'formweb_engine' due to unhandled exception: Unable to configure formatter 'default'", from `uvicorn/logging.py` line 42, `AttributeError: 'NoneType' object has no attribute 'isatty'`.
 

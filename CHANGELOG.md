@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.23.1 · 2026-11-19
+
+- Windows: FormWeb's engine starts when it has no place to write its messages. It is built with no console window, and it stopped at once with "Unable to configure formatter 'default'" in that case. That is how the app started it up to 0.21.3, so on Windows FormWeb did not open; a tester reported it with a screenshot. 0.22.0 and 0.23.0 changed how the app starts the engine, which hides the fault for a start from the app; this release removes it for every way of starting.
+
 ## 0.23.0 · 2026-11-19
 
 - Terminal panel: the panel under the stage is now the panel the Form apps share. Its tabs are Shell, Claude Code, Codex, Cursor, Chat and a FormWeb tab named Sessions. Drag its edge to make it bigger or smaller. A button in its bar moves it to the right of the window, where it is a column after the inspector, and back to the bottom; a running terminal keeps its output when the panel moves. Ctrl+J (Cmd+J on macOS) shows and hides it as before, and the other shortcuts are unchanged.
