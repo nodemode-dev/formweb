@@ -4,7 +4,7 @@ import re
 import pytest
 from starlette.websockets import WebSocketDisconnect
 
-from conftest import LOOPBACK, WS_PATH
+from conftest import LOOPBACK, WINDOW_ORIGINS, WS_PATH
 
 READS = {"GET", "HEAD", "OPTIONS"}
 OPEN = {("POST", "/api/window/key")}
@@ -114,6 +114,18 @@ def test_only_the_window_turns_agents_or_approval_settings(bare, client):
     assert bare.post("/api/approvals/settings", json={"agentDestructive": False}, headers={"x-formweb-channel": "human"}).status_code == 403
     assert bare.post("/api/terminal/open", json={"kind": "shell"}).status_code == 403
     assert client.post("/api/approvals/settings", json={"agentDestructive": False}).status_code == 200
+
+
+def test_a_refusal_carries_the_cors_headers_for_a_window_origin_only(bare):
+    for origin in WINDOW_ORIGINS:
+        refused = bare.post("/api/agents", json={"enabled": True}, headers={"origin": origin})
+        assert refused.status_code == 403
+        assert refused.json() == REFUSED
+        assert refused.headers["access-control-allow-origin"] == origin
+        assert refused.headers["access-control-allow-credentials"] == "true"
+    foreign = bare.post("/api/agents", json={"enabled": True}, headers={"origin": "http://evil.example"})
+    assert foreign.status_code == 403
+    assert "access-control-allow-origin" not in foreign.headers
 
 
 def test_an_approval_is_not_decided_by_an_agent_or_the_terminal(client):

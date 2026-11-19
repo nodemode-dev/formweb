@@ -88,7 +88,8 @@ class LocalAccess:
             if length and (not length.isdecimal() or int(length) > maximum):
                 raise EngineError('Request body exceeds the configured size limit.', 413)
         except EngineError as error:
-            return await JSONResponse({'detail': str(error)}, status_code=error.status)(scope, receive, send)
+            cors = {'access-control-allow-origin': origin, 'access-control-allow-credentials': 'true', 'vary': 'Origin'} if origin in ORIGINS else None
+            return await JSONResponse({'detail': str(error)}, status_code=error.status, headers=cors)(scope, receive, send)
         if origin == 'null' and verified_preview and scope['method'] == 'OPTIONS':
             return await Response(status_code=204, headers={'Access-Control-Allow-Origin': 'null', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-FormWeb-Preview, X-FormWeb-Visitor, X-FormWeb-Consent', 'Vary': 'Origin'})(scope, receive, send)
         scope['formweb.identity'] = identity

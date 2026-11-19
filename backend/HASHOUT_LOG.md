@@ -518,3 +518,11 @@ A decision is refused on the agent or terminal channel, from the root identity w
 - logged: v0.22.0 · 2026-11-19
 
 `./formweb run` and the library writes go through `/mcp` (`apply_commands`, `library_insert`, `library_apply_preset`, `library_apply_starter`) as an outside agent: Agents must be on and approval settings apply. Reads stay on the REST routes. Observed: with Agents off the command line answered 403 in one line; on, `page.add` and a preset applied.
+
+### app/main.py :: LocalAccess, a refusal to a window origin carries the CORS headers
+
+- refers-to: `app/main.py` :: LocalAccess, `tests/test_window_key.py` :: test_a_refusal_carries_the_cors_headers_for_a_window_origin_only
+- kind: fix
+- logged: v0.22.0 · 2026-11-19
+
+`LocalAccess` is the outermost middleware (it is added after `CORSMiddleware`), so a refusal it sends itself (the missing window key, a wrong or missing server token, the body size limit) never passed through the CORS layer. The development editor on 5240 or 5241 talks to the engine on another origin, so the browser hid the refusal behind a CORS error and the page could not read the 403 or 401 text, for example to ask for the server access token. Seen in headless Chrome against an engine started with `FORMWEB_AUTH_TOKEN`, the editor on another port: every call was blocked by CORS with `net::ERR_FAILED`; after the change the same calls answer 401 and the page reads it. Only an origin in `ORIGINS` gets `access-control-allow-origin` (the origin itself, never `*`), `access-control-allow-credentials: true` and `vary: Origin`; a foreign origin, `null` and a request with no origin get none, as before. The packaged window is same-origin and never needed it. The headers go on every refusal made for an allowed origin, including the 421 for a wrong Host, which tells that origin nothing it could not learn by asking.
