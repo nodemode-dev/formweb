@@ -17,6 +17,7 @@ from .config import DATA_DIR, PORT
 from .engine import EngineError
 
 TOKENS: dict[str, Path] = {}
+NAMES: dict[str, str] = {}
 INAPP_HEADER = 'X-FormWeb-Inapp'
 KEEP_ENV = {'CLAUDE_CODE_OAUTH_TOKEN', 'CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CONFIG_DIR'}
 INSTALL = 'Claude Code was not found. Install it with "npm install -g @anthropic-ai/claude-code" (or follow https://docs.claude.com/en/docs/claude-code/setup), run "claude" once to sign in, then try again. Set FORMWEB_CLAUDE to the full path if it lives somewhere unusual.'
@@ -30,7 +31,11 @@ def valid_token(value):
     return isinstance(value, str) and bool(value) and any(hmac.compare_digest(value.encode(), token.encode()) for token in tuple(TOKENS))
 
 
-def issue():
+def tab_name(value):
+    return next((name for token, name in tuple(NAMES.items()) if isinstance(value, str) and hmac.compare_digest(value.encode(), token.encode())), '')
+
+
+def issue(name='Claude Code'):
     token = secrets.token_urlsafe(24)
     folder = DATA_DIR / 'agent-mcp'
     folder.mkdir(parents=True, exist_ok=True)
@@ -39,11 +44,13 @@ def issue():
     with os.fdopen(handle, 'w', encoding='utf-8') as out:
         out.write(mcp_config(token))
     TOKENS[token] = path
+    NAMES[token] = name
     return token, path
 
 
 def revoke(token):
     path = TOKENS.pop(token, None) if token else None
+    NAMES.pop(token, None)
     if path is not None:
         path.unlink(missing_ok=True)
 

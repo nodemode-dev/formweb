@@ -7,7 +7,7 @@ import re
 import shutil
 import time
 import zipfile
-from collections import defaultdict, deque
+from collections import defaultdict, deque, namedtuple
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import urlsplit
@@ -76,6 +76,7 @@ def local_forms(site: dict, exported: dict) -> list[dict]:
 
 
 inapp = ContextVar('formweb_inapp', default=False)
+Notice = namedtuple('Notice', 'name data')
 
 
 class InAppAccess(AccessControl):
@@ -105,6 +106,12 @@ class Studio:
         self.subscribers: set[asyncio.Queue] = set()
         self.agents_enabled = os.getenv('FORMWEB_AGENTS', '0') == '1'
         self.rate_limits: dict[str, deque] = defaultdict(deque)
+
+    def announce(self, name, data, project_id=None):
+        for queue in tuple(self.subscribers):
+            if queue.full():
+                queue.get_nowait()
+            queue.put_nowait((Notice(name, data), project_id or self.access.project_key()))
 
     async def start(self):
         self.store = Store()

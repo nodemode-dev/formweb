@@ -11,6 +11,7 @@ import asyncio
 import importlib
 import json
 import os
+import time
 from typing import Any, Awaitable, Callable, Protocol, runtime_checkable
 from uuid import uuid4
 
@@ -21,6 +22,9 @@ from .store import now
 
 Listener = Callable[[dict[str, Any]], None]
 APPROVAL_TIMEOUT = 100.0  # below Codex's 120 s tool_timeout_sec so the agent sees the reason, not a transport timeout
+OFFERS = ('deny', 'once')
+ALWAYS = 'all'
+EVENT = 'approval'
 
 
 @runtime_checkable
@@ -101,6 +105,7 @@ class Approvals:
         self.studio = studio
         self.store = studio.store
         self.waiting: dict[str, asyncio.Future] = {}
+        self.expires: dict[str, int] = {}
         self.store.db.executescript('''
         CREATE TABLE IF NOT EXISTS approvals (id TEXT PRIMARY KEY,project_id TEXT NOT NULL,kind TEXT NOT NULL,subject TEXT NOT NULL,requested_by TEXT NOT NULL,requested_name TEXT NOT NULL,channel TEXT NOT NULL,status TEXT NOT NULL,decided_by TEXT,decided_name TEXT,note TEXT,created_at TEXT NOT NULL,decided_at TEXT);
         ''')
@@ -131,7 +136,8 @@ class Approvals:
     def _row(self, row):
         item = dict(row)
         item['subject'] = json.loads(item['subject'])
-        return {'id': item['id'], 'projectId': item['project_id'], 'kind': item['kind'], 'subject': item['subject'], 'requestedBy': {'id': item['requested_by'], 'name': item['requested_name'], 'channel': item['channel']}, 'status': item['status'], 'decidedBy': item['decided_name'], 'note': item['note'], 'createdAt': item['created_at'], 'decidedAt': item['decided_at']}
+        asked = {'agent': str(item['subject'].get('agent', '')), 'inApp': bool(item['subject'].get('inApp')), 'what': 'run ' + str(item['subject'].get('tool', '')), 'offers': list(OFFERS), 'always': ALWAYS, 'expires': self.expires.get(item['id'])} if item['kind'] == 'agent.tool' else {}
+        return {'id': item['id'], 'projectId': item['project_id'], 'kind': item['kind'], 'subject': item['subject'], 'requestedBy': {'id': item['requested_by'], 'name': item['requested_name'], 'channel': item['channel']}, 'status': item['status'], 'decidedBy': item['decided_name'], 'note': item['note'], 'createdAt': item['created_at'], 'decidedAt': item['decided_at'], **asked}
 
     def create(self, kind, subject, project_id=None):
         identity = actor.get()
@@ -189,6 +195,9 @@ class Approvals:
         future = self.waiting.pop(approval_id, None)
         if future and not future.done():
             future.set_result(status)
+        if item['kind'] == 'agent.tool':
+            self.expires.pop(approval_id, None)
+            self.studio.announce(EVENT, {'type': 'withdrawn', 'id': approval_id, 'reason': status}, item['projectId'])
         result = self.get(approval_id)
         if item['kind'] == 'release.promote' and status == 'approved':
             # The reviewer's approval performs the promotion the requester asked for.
@@ -200,16 +209,20 @@ class Approvals:
         item = self.create(kind, subject)
         future = asyncio.get_running_loop().create_future()
         self.waiting[item['id']] = future
+        self.expires[item['id']] = int((time.time() + timeout) * 1000)
+        self.studio.announce(EVENT, {'type': 'request', 'id': item['id']}, item['projectId'])
         try:
             status = await asyncio.wait_for(future, timeout)
         except asyncio.TimeoutError:
             self.store.db.execute("UPDATE approvals SET status='expired',decided_at=? WHERE id=? AND status='pending'", (now(), item['id']))
             self.store.db.commit()
+            self.studio.announce(EVENT, {'type': 'withdrawn', 'id': item['id'], 'reason': 'expired'}, item['projectId'])
             error = EngineError(f'No one approved {subject.get("tool", kind)} within {int(timeout)} seconds. Ask the person to watch Agent Connect, then retry.', 408)
             error.details = {'approvalId': item['id']}
             raise error
         finally:
             self.waiting.pop(item['id'], None)
+            self.expires.pop(item['id'], None)
         if status != 'approved':
             error = EngineError(f'The person denied {subject.get("tool", kind)}.', 403)
             error.details = {'approvalId': item['id']}

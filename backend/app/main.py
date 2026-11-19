@@ -29,7 +29,7 @@ from .handoff import router as handoff_router
 from .library_routes import router as library_router
 from .mcp_server import mcp, mcp_app
 from .providers.routes import router as provider_router
-from .service import safe_export_path, studio
+from .service import Notice, safe_export_path, studio
 from .terminal import router as terminal_router
 from .vector_routes import router as vector_router
 from .workflows import load_native
@@ -788,6 +788,8 @@ async def events(request: Request):
                     studio.access.authorize('read', project_id)
                     if current is None:
                         yield ': keepalive\n\n'
+                    elif isinstance(current, Notice):
+                        yield f'event: {current.name}\ndata: ' + json.dumps(current.data, separators=(',', ':')) + '\n\n'
                     else:
                         yield 'event: state\ndata: ' + json.dumps(current, separators=(',', ':')) + '\n\n'
                 except EngineError:
