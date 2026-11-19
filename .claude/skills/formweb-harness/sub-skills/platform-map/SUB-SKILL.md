@@ -14,11 +14,11 @@ Give an operating agent a correct mental model of FormWeb so it picks the right 
 | Action | MCP | CLI or REST | Editor |
 | --- | --- | --- | --- |
 | Connect an agent client | `/mcp` Streamable HTTP, or stdio proxy | `./formweb mcp`; `./formweb agents install` prints wiring | Agent Connect, Window menu (`window.agents`) |
-| Turn agent access on or off | none | `FORMWEB_AGENTS=1` at launch | Agent Connect switch (`agents.toggle`) |
+| Turn agent access on or off | none | none from outside; a person starting the engine can set `FORMWEB_AGENTS=1` | Agent Connect switch (`agents.toggle`); while the engine runs only the window can change it |
 | List engine commands | resource `formweb://commands` | `./formweb run --list`; `GET /api/substrate` | none |
-| Apply one engine command | `apply_commands` or an `edit_*` domain tool | `./formweb run [command] [key=value]`; `POST /api/substrate/run` | menu actions, listed by `window.formweb.commands()` |
+| Apply one engine command | `apply_commands` or an `edit_*` domain tool | `./formweb run [command] [key=value]` (it calls `/mcp`, so Agents must be on) | menu actions, listed by `window.formweb.commands()` |
 | See who changed what | resource `formweb://activity`, tool `get_activity` | `GET /api/substrate/activity` | Agent Connect activity feed |
-| Open a shell in the project | none | `GET /api/terminal/status`; WebSocket `/api/terminal` | View > Terminal (`view.terminal`), `terminal.new` |
+| Open a shell in the project | none | none; only the window opens one | View > Terminal (`view.terminal`), `terminal.new` |
 | Check the install | none | `./formweb doctor` | none |
 
 ## Preconditions
@@ -29,7 +29,7 @@ The backend is running (`./formweb boot` for dev, `./formweb serve` for the buil
 
 1. Learn the layers. The Rust engine owns all site state: `native/crates/formweb-model` (pages, nodes, invariants), `formweb-engine` (atomic commands, revisions, undo), `formweb-export` (HTML, CSS, JS output) and `formweb-core` (JSON-lines process shell). The FastAPI service in `backend/app/` supervises that process, persists projects and serves REST and MCP. The Vite editor in `frontend/src/` only submits operations and renders state. Why it matters: a second copy of the site never exists, so a fresh `get_site` is always the truth.
 2. Pick a transport. HTTP clients use `/mcp`; stdio clients run `./formweb mcp`, which proxies into the same running service. Project wiring files are `.mcp.json` (Claude), `.cursor/mcp.json` (Cursor) and `.codex/config.toml` (Codex). Agent Connect can check and rewrite them.
-3. Understand channels. Every request is tagged `human` (editor), `agent` (`/mcp`) or `terminal` (`./formweb run`, via the `X-FormWeb-Channel` header). The channel is attribution in the activity feed, not permission; roles decide what an identity may do.
+3. Understand channels. Every request is tagged `human` (editor), `agent` (`/mcp`, which `./formweb run` also uses) or `terminal` (a REST call that sends the `X-FormWeb-Channel: terminal` header). The channel is attribution in the activity feed, not permission; roles decide what an identity may do.
 4. Know the discovery surfaces. Resources: `formweb://site/tree`, `selection`, `tokens`, `audit`, `commands`, `site`, `activity`. Prompts: build_page, edit_copy, responsive_review, publish_site, recover_session. Prefer the live `tools/list` and `resources/list` over any list written here.
 5. Route the work. Layout and components go to sibling `layout-builder`; pages and site settings to sibling `site-and-pages`; tokens and breakpoints to sibling `style-and-tokens`; components to sibling `components`; CMS to sibling `cms-steward`; translations to sibling `localization`; SEO and accessibility to sibling `seo-a11y-auditor`; forms to sibling `forms-operator`; motion and widgets to sibling `interaction-builder`; branches and review to sibling `branch-and-review`; approvals, activity and the terminal to sibling `agent-connect-and-terminal`; save, export and publish to `release-operator`; failures to `recovery-auditor`.
 
@@ -56,7 +56,7 @@ The backend is running (`./formweb boot` for dev, `./formweb serve` for the buil
 | `/mcp` | MCP over Streamable HTTP |
 | `./formweb mcp` | MCP over stdio, proxied to the backend |
 | `GET /api/substrate`, `POST /api/substrate/run`, `GET /api/substrate/activity` | Command catalogue, run, activity |
-| `/api/terminal` | Owner-only terminal WebSocket, only while Agents is on |
+| `/api/terminal` | Terminal WebSocket, opened only by the FormWeb window |
 | `GET /api/qr`, `/api/page-passwords`, `/api/assets` | QR images, route passwords, uploads |
 
 ## Gate

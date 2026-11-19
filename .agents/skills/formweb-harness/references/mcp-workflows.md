@@ -4,7 +4,7 @@
 
 From the repository root, install and build with the documented launcher before starting the backend on loopback port 8240. The project MCP configuration launches `./formweb mcp` on Unix; the Windows dispatcher is `formweb.bat mcp`. The stdio process forwards to the running backend and does not start a separate Rust document engine. Use the repository's current setup documentation if a command or path has changed.
 
-The backend also exposes its SDK Streamable HTTP transport. Obtain the actual endpoint from project configuration and backend documentation. Agents is initially disabled; the authorized user enables it in the editor or starts the service with `FORMWEB_AGENTS=1`. Check actual connection status rather than assuming configuration means connection.
+The backend also exposes its SDK Streamable HTTP transport. Obtain the actual endpoint from project configuration and backend documentation. Agents is initially disabled; the authorized user enables it in the editor or starts the service with `FORMWEB_AGENTS=1`. Once the service is running, only the FormWeb window can change that switch or the approval choices; an outside agent asks the person and retries. Check actual connection status rather than assuming configuration means connection.
 
 Discover through `tools/list`, then call `get_site` and read resources `formweb://site` and `formweb://commands` as needed. The server merges `backend/app/mcp_catalog.py`, `advanced_catalog.py` and `providers/catalog.py` in `mcp_server.py`; the live descriptions and schemas own the full parameter contract. This reference supplies sequence and dependencies.
 

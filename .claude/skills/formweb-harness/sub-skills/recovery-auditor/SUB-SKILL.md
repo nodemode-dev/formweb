@@ -16,7 +16,7 @@ A call failed, a state revision is uncertain, or the user requested an audit. If
 ## Procedure
 
 1. For a missing server, inspect the client's MCP status, the configured command or URL, and backend availability. The skill does not create a connection by declaring one. The stdio server proxies the running backend rather than opening an isolated site.
-2. For disabled Agents, check the running application's Agents switch or `FORMWEB_AGENTS` startup setting. Enable only when authorized; do not disguise permission rejection as an empty result.
+2. For disabled Agents, tell the person the Agents switch is off: only the FormWeb window (or the `FORMWEB_AGENTS` startup setting of whoever starts the engine) can turn it on, so an outside agent asks and waits rather than looking for another way; do not disguise permission rejection as an empty result.
 3. For authentication errors, check whether the endpoint is the intended local server or a configured proxy. Inspect the root token or issued local identity credential without printing it. For permission errors, inspect `get_access`, the acting identity and project context; read pack root `references/advanced-service.md` for roles and their boundaries. Visitor tokens and preview nonces cannot grant editor access. Do not invent OAuth refresh steps; follow actual proxy documentation if one is used.
 4. For an unresolved name, call `tools/list` and compare the exact tool name and schema. Do not try plausible alternate spellings.
 5. Call the failing tool directly using the observed schema to isolate the problem from this skill's sequence. A direct failure is server evidence; a direct success points toward incorrect ordering or arguments.
