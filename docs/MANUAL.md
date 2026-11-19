@@ -130,7 +130,7 @@ Start the editor/service and enable Agents. The repository includes project MCP 
 
 The `formweb-harness` skill guides an agent through reading, planning, atomic commands, responsive inspection, audit, save and export. MCP exposes the same active document as the editor. An agent should obtain live ids and command schemas before changes and refresh state after a revision conflict.
 
-Agent access defaults off. `FORMWEB_AGENTS=1` is available for a deliberately configured local session; `FORMWEB_AUTH_TOKEN` can restrict control requests further. `./formweb mcp` requires the running HTTP service and does not start an isolated engine.
+Agent access defaults off. `FORMWEB_AGENTS=1` is available for a deliberately configured local session; once the engine is running, only the FormWeb window can switch it or change the approval choices, and an outside agent asks the person to. `FORMWEB_AUTH_TOKEN` can restrict control requests further. `./formweb mcp` requires the running HTTP service and does not start an isolated engine.
 
 ## Troubleshooting
 

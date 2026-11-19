@@ -5,7 +5,7 @@ The [FormWeb harness](../.claude/skills/formweb-harness/SKILL.md) teaches a conn
 ## Connect the pair
 
 1. Install/build FormWeb using the repository launcher's current instructions, then start the backend. Keep the service running while the stdio proxy is connected.
-2. Enable Agents within your authorized project scope, using the editor switch or the documented `FORMWEB_AGENTS` setting. Configuration alone does not prove the server is connected.
+2. Enable Agents within your authorized project scope, using the editor switch or the documented `FORMWEB_AGENTS` setting when the engine starts. Once it is running, only the FormWeb window can change the switch or the approval choices: an outside agent asks the person and waits. Configuration alone does not prove the server is connected.
 3. Use the committed project MCP configuration. Unix clients run `./formweb mcp`; Windows clients use `formweb.bat mcp`. The proxy reaches the same Rust document as the editor. A client may instead use the documented SDK Streamable HTTP endpoint.
 4. Install or enable the project skill in the intended client. The repository's `.agents/skills` mirror carries the same pack bytes; a standalone package must be installed separately on another surface. Run `./formweb agents sync --check` to compare project copies.
 5. Inspect the client's connected status and live tool discovery. Authenticate using the configured server/identity policy without printing bearer tokens or provider secrets.
@@ -77,7 +77,7 @@ Read `formweb://site/tree` first: every page as an outline of element IDs, tags,
 
 ## Terminal and CLI
 
-Inside the editor's terminal (or any shell in the FormWeb folder) `./formweb run --list` lists engine commands and `./formweb run COMMAND key=value ...` applies one, for example `./formweb run node.update id=headline 'patch={"text":"Hello"}'`. Values are parsed as JSON when they can be; add `--json` for machine output and `--revision N` to require a revision. The change appears on the open canvas at once, is one undo step, and shows as `terminal` in Agent Connect's activity feed. The terminal's preset menu starts `claude`, `codex` or `cursor-agent` in the same folder, so those clients pick up the project MCP files.
+Inside the editor's terminal (or any shell in the FormWeb folder) `./formweb run --list` lists engine commands and `./formweb run COMMAND key=value ...` applies one, for example `./formweb run node.update id=headline 'patch={"text":"Hello"}'`. Values are parsed as JSON when they can be; add `--json` for machine output and `--revision N` to require a revision. The command line is an outside agent like any other: it calls the MCP endpoint, so Agents must be on and the approval settings apply. The change appears on the open canvas at once, is one undo step, and shows as `agent` in Agent Connect's activity feed. The terminal's preset menu starts `claude`, `codex` or `cursor-agent` in the same folder, so those clients pick up the project MCP files.
 
 If a call waits and then reports that no one approved it, the owner has turned on approvals in Agent Connect; ask them to watch the panel and retry once.
 

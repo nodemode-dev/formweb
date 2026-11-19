@@ -41,7 +41,9 @@ something outside it could get in:
   sending to an address that is not public or not allowed.
 - **Agents and the MCP server** (`/mcp`, and `./formweb mcp` over stdio): an agent
   acting while Agents is off, doing more than the project role of its identity
-  allows, or getting past the approvals for destructive tools and for releases.
+  allows, getting past the approvals for destructive tools and for releases, or
+  switching Agents or changing the approval choices from anywhere but FormWeb's own
+  window (which holds a per-launch window key).
 - **The terminal and the chat pane**: anything other than FormWeb's own window
   reaching a shell or Claude Code through them.
 - **Hand-offs to other Form apps**: Send to FormPublisher posting a site to anything
