@@ -1323,3 +1323,11 @@ One fixed pane holds three views (Sections, Kits, Import HTML) swapped with `hid
 - logged: v0.22.0 · 2026-11-19
 
 `connect()` takes the key once before its first request: the desktop shell's `window.__FORMWEB_WINDOW_KEY` (then deleted), else the engine's one-time `POST /api/window/key`, else this tab's earlier copy in sessionStorage. Every fetch in api.ts sends it through authHeaders. The terminal socket asks for a one-time ticket before each connect and re-checks the socket after the await, so two connects cannot open two sockets. Other raw fetches (tracepanel asset list, demos file) are reads. Nothing in the DOM changes. Checked in headless Chrome against the Vite dev server: the bootstrap answered 200, a `page.add` through `command()` moved the revision from 0 to 1, a ticket came back, and a fetch without the key from the same page was refused.
+
+### Window key: the kept key is tried first on a reload
+
+- refers-to: `src/api.ts` :: loadWindowKey
+- kind: fix
+- logged: v0.22.0 · 2026-11-19
+
+The first version asked the bootstrap route before it looked at sessionStorage, so every development reload sent a second claim, was refused with 409 and made the engine log a claim that never happened; the page only worked because it then fell back to the kept key. Now the order is the shell's global, then the key kept in this tab (checked with one `POST /api/window/ticket`, which needs the key and is also what the terminal asks for), then the bootstrap, then the kept key again if the bootstrap is refused. Measured in headless Chrome against the engine and the Vite server: before, load and two reloads sent three bootstrap requests (200, 409, 409); after, one (200) and two ticket checks (200, 200), and a `page.add` from the page succeeded after the load and after each reload.

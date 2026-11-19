@@ -32,6 +32,9 @@ async function loadWindowKey(): Promise<void> {
   const given = holder.__FORMWEB_WINDOW_KEY;
   delete holder.__FORMWEB_WINDOW_KEY;
   if (typeof given === 'string' && given) { windowKey = given; return; }
+  try { windowKey = sessionStorage.getItem('formweb_window_key') || ''; } catch {}
+  if (windowKey && await terminalTicket()) return;
+  windowKey = '';
   try {
     const response = await fetch(apiBase + '/api/window/key', { method: 'POST', headers: bearer(), credentials: 'same-origin' });
     const body = response.ok ? await response.json() as { key?: unknown } : {};
