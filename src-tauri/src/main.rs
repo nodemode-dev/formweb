@@ -380,9 +380,15 @@ fn main() {
                         }
                         std::thread::sleep(Duration::from_millis(250));
                     }
-                    let deadline = Instant::now() + Duration::from_secs(5);
+                    let deadline = Instant::now() + Duration::from_secs(10);
                     while KEY_EXPECTED.load(Ordering::SeqCst) && WINDOW_KEY.lock().unwrap().is_none() && Instant::now() < deadline {
                         std::thread::sleep(Duration::from_millis(50));
+                    }
+                    if KEY_EXPECTED.load(Ordering::SeqCst) && WINDOW_KEY.lock().unwrap().is_none() {
+                        stop_service(&handle);
+                        reveal::close_splash(&handle);
+                        handle.dialog().message("The FormWeb service did not start correctly. Run ./formweb doctor in the FormWeb folder.").blocking_show();
+                        std::process::exit(1);
                     }
                 }
                 let main_thread = handle.clone();

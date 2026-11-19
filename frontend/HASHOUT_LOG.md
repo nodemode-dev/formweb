@@ -1331,3 +1331,11 @@ One fixed pane holds three views (Sections, Kits, Import HTML) swapped with `hid
 - logged: v0.22.0 · 2026-11-19
 
 The first version asked the bootstrap route before it looked at sessionStorage, so every development reload sent a second claim, was refused with 409 and made the engine log a claim that never happened; the page only worked because it then fell back to the kept key. Now the order is the shell's global, then the key kept in this tab (checked with one `POST /api/window/ticket`, which needs the key and is also what the terminal asks for), then the bootstrap, then the kept key again if the bootstrap is refused. Measured in headless Chrome against the engine and the Vite server: before, load and two reloads sent three bootstrap requests (200, 409, 409); after, one (200) and two ticket checks (200, 200), and a `page.add` from the page succeeded after the load and after each reload.
+
+### Shell: a window is never opened without the key
+
+- refers-to: `../src-tauri/src/main.rs` :: window_key_line, capture_window_key, the start-up thread in `setup`
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+The reader thread (`capture_window_key`) reads the sidecar's output for its whole life and keeps the first `formweb-window-key: ` line; the start-up thread polls for it after the health check. That wait was 5 seconds and, when it ran out, the window opened anyway and could not write. The wait is now 10 seconds, and when it runs out the shell stops the service, closes the splash, shows a dialog and exits with 1, the same way as the 60-second health wait. Only a sidecar started with piped output sets `KEY_EXPECTED`, so the source-checkout start (`formweb serve`) and an engine the shell found already running (which print no key; the page then uses the bootstrap) are not affected. The engine prints the key line flushed before the address line, so on a healthy start the key is already in the pipe when the health check answers and the wait ends at once. Written against the same names and calls as the lines around it; not compiled here, because the system WebKit libraries are missing (see out/test_plan/formweb.md).
