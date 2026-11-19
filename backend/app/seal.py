@@ -55,3 +55,21 @@ def sign(project: str, values: dict) -> dict:
     record = {name: bool(values.get(name, False)) for name in SEALED}
     key = _load(True)
     return record if key is None else {**record, FIELD: digest(project, record, key)}
+
+
+def access_mark(choice: str, key: bytes) -> str:
+    return hmac.new(key, ('agentAccess:' + choice).encode('utf-8'), hashlib.sha256).hexdigest()
+
+
+def access_sign(choice: str) -> dict:
+    key = _load(True)
+    return {'choice': choice} if key is None else {'choice': choice, FIELD: access_mark(choice, key)}
+
+
+def access_effective(stored) -> dict:
+    if not stored:
+        return {'stored': None, 'sealBroken': False}
+    key = _load(False)
+    mark = stored.get(FIELD) if isinstance(stored, dict) else None
+    intact = not _CACHE['available'] or (key is not None and isinstance(mark, str) and hmac.compare_digest(mark, access_mark('blocked', key)))
+    return {'stored': 'blocked', 'sealBroken': not intact}

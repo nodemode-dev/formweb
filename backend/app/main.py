@@ -29,7 +29,7 @@ from .handoff import router as handoff_router
 from .library_routes import router as library_router
 from .mcp_server import mcp, mcp_app
 from .providers.routes import router as provider_router
-from .service import Notice, safe_export_path, studio
+from .service import ACCESS_META, BLOCKED, Notice, safe_export_path, studio
 from .terminal import router as terminal_router
 from .vector_routes import router as vector_router
 from .workflows import load_native
@@ -75,6 +75,8 @@ class LocalAccess:
                 raise EngineError('Origin is not allowed.', 403)
             if origin in (None, 'null') and not public and headers.get('sec-fetch-site', '').strip().lower() == 'cross-site':
                 raise EngineError('Cross-site requests are not allowed.', 403)
+            if path == '/mcp' and studio.agents_blocked:
+                raise EngineError(BLOCKED, 403)
             if path == '/mcp' and not (studio.agents_enabled or claude_code.valid_token(headers.get(claude_code.INAPP_HEADER.lower(), ''))):
                 raise EngineError('Agents are disabled. Enable Agents in the editor or set FORMWEB_AGENTS=1.', 403)
             if control and scope['method'] != 'OPTIONS':
@@ -243,11 +245,34 @@ async def system():
 async def agents(body: Agents):
     studio.access.authorize('manage')
     studio.access.record('agents.configure', {'enabled': body.enabled})
+    if body.enabled and studio.agents_blocked:
+        studio.agents_blocked = False
+        studio.store.set_meta(ACCESS_META, None)
     studio.agents_enabled = body.enabled
     if not body.enabled:
         from .terminal import close_all
         close_all(external_only=True)
     return await system()
+
+
+class AgentAccess(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    choice: str = Field(pattern='^(blocked|ask|allowed)$')
+
+
+@app.get('/api/agents/access')
+async def agent_access():
+    studio.access.authorize('read')
+    return studio.agent_access()
+
+
+@app.post('/api/agents/access')
+async def agent_access_set(body: AgentAccess):
+    result = studio.set_agent_access(body.choice)
+    if body.choice == 'blocked':
+        from .terminal import close_all
+        close_all(external_only=True)
+    return result
 
 
 @app.post(window_key.BOOTSTRAP)
