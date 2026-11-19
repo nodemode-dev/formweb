@@ -225,7 +225,7 @@ The other four actions go through the running server's API (`FORMWEB_PORT` or `F
 
 ## MCP tools
 
-The same operations are MCP tools for agents (`./formweb mcp`), part of the 14 authoring tools described in [ADVANCED_SCHEMA.md](ADVANCED_SCHEMA.md): `library_list` (read-only; sections with their fields and page components, presets with their product tints, starters), `library_insert`, `library_apply_preset`, `library_apply_starter` and `library_import_html`, each one undo step, plus `new_site` to start from a blank home page before assembling sections (it replaces the open site and is approval-gated for agents). Errors point back at `library_list`. The `library` sub-skill of the agent harness describes the workflow.
+The same operations are MCP tools for agents (`./formweb mcp`), part of the 16 authoring tools described in [ADVANCED_SCHEMA.md](ADVANCED_SCHEMA.md): `library_list` (read-only; sections with their fields and page components, presets with their product tints, starters), `library_insert`, `library_apply_preset`, `library_apply_starter` and `library_import_html`, each one undo step, plus `new_site` to start from a blank home page before assembling sections (it replaces the open site and is approval-gated for agents). Errors point back at `library_list`. The `library` sub-skill of the agent harness describes the workflow.
 
 ## HTTP routes
 
