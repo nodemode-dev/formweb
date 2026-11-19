@@ -34,6 +34,7 @@
     'rose': ['#170b10', '#211117', '#301a22', '#4d2b38', '#653a49', '#f5e7ec', '#cfa5b3', '#966b7b', '#170b10', 'rgba(255,190,215,0.05)'],
     'terminal': ['#050d05', '#0a140a', '#102010', '#1f3d1f', '#2b522b', '#d8f5d8', '#8fce8f', '#568a56', '#050d05', 'rgba(120,255,120,0.06)'],
     'contrast': ['#000000', '#0a0a0a', '#161616', '#555555', '#777777', '#ffffff', '#d8d8d8', '#9a9a9a', '#000000', 'rgba(255,255,255,0.10)'],
+    'amoled':   ['#000000', '#000000', '#141414', '#262626', '#3a3a3a', '#ededed', '#a6a6a6', '#858585', '#000000', 'rgba(255,255,255,0.06)'],
     'nineties':      ['#c0c0c0', '#d4d0c8', '#b4b0a8', '#808080', '#ffffff', '#000000', '#202020', '#585858', '#008080', 'rgba(0,0,0,0.12)', '#d4d0c8'],
     'duck':          ['#e9e4f7', '#f4f1fc', '#d9d2ef', '#c7bde6', '#b3a6dc', '#2b2540', '#4f4770', '#7a7299', '#e2dcf2', 'rgba(90,70,150,0.10)', '#f4f1fc'],
     'pro-dark':        ['#1f1f1f', '#2b2b2b', '#363636', '#4a4a4a', '#818181', '#ececec', '#bdbdbd', '#a0a0a0', '#181818', 'rgba(255,255,255,0.05)'],
@@ -48,6 +49,7 @@
     'soft-light':      ['#e8ebef', '#f4f6f8', '#dce0e6', '#c3c9d2', '#777d89', '#2b323c', '#454d59', '#5b6370', '#dfe3e8', 'rgba(43,50,60,0.08)'],
     'soft-dark':       ['#22262b', '#2b3036', '#353b43', '#454c56', '#7c8693', '#e1e6ec', '#b9c1cb', '#9ca6b2', '#1b1e22', 'rgba(225,230,236,0.06)']
   };
+  var OLED = { 'amoled': 1 };
   var NAMES = ['--bg-primary', '--bg-secondary', '--bg-tertiary', '--border-color', '--border-light', '--text-primary', '--text-secondary', '--text-muted', '--canvas-bg', '--grid-color'];
   var theme = 'studio', accent = '#f97316', intensity = 1;
   try {
@@ -62,6 +64,7 @@
   root.style.setProperty('--accent-intensity', String(intensity));
   root.style.background = p[0];
   root.dataset.theme = LIGHT[theme] ? 'light' : 'dark';
+  if (OLED[theme]) root.setAttribute('data-oled', '');
 })();
   </script>
   <link rel="stylesheet" href="/src/styles/fonts.css" />

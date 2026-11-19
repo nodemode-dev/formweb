@@ -39,6 +39,11 @@ export function dockTitleButtons(run: (id: string) => unknown): HTMLButtonElemen
     return node;
   });
 }
+function terminalTheme(): { background: string; foreground: string; cursor: string; selectionBackground: string } {
+  const css = getComputedStyle(document.documentElement);
+  const read = (name: string, fallback: string): string => css.getPropertyValue(name).trim() || fallback;
+  return { background: read('--bg-primary', '#111111'), foreground: read('--text-primary', '#edf0f5'), cursor: read('--accent-color', '#f97316'), selectionBackground: read('--accent-soft', '#f9731640') };
+}
 const PRESETS = [
   { id: 'shell', label: 'Shell' },
   { id: 'claude', label: 'Claude Code' },
@@ -80,6 +85,7 @@ export class TerminalDock {
     this.head.append(icon('code'), this.tabs, spacer, this.stateLabel, this.preset, create, claude, chat, this.toggleButton);
     void document.fonts.load('12px "JetBrains Mono"').catch(() => undefined);
     this.head.addEventListener('dblclick', event => { if ((event.target as HTMLElement).closest('button,select,[role="tab"]')) return; this.toggle(); });
+    document.addEventListener('nm:ui-settings-changed', () => { for (const tab of this.sessions.values()) if (tab.term) tab.term.options.theme = terminalTheme(); });
     this.body.append(this.note, this.screen);
     this.note.hidden = true;
     this.element.append(this.head, this.body);
@@ -233,15 +239,14 @@ export class TerminalDock {
   private mount(id: string, title: string, kind: Kind): Tab {
     const known = this.sessions.get(id);
     if (known) return known;
-    const css = getComputedStyle(document.documentElement);
-    const read = (name: string, fallback: string): string => css.getPropertyValue(name).trim() || fallback;
+    const read = (name: string, fallback: string): string => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
     const tab = this.addTab(id, kind, title, element('div', 'fw-term-pane'));
     const term = new Terminal({
       cursorBlink: true,
       fontFamily: read('--font-mono', 'JetBrains Mono, monospace'),
       fontSize: 12,
       scrollback: 5000,
-      theme: { background: read('--bg-primary', '#111111'), foreground: read('--text-primary', '#edf0f5'), cursor: read('--accent-color', '#f97316'), selectionBackground: read('--accent-soft', '#f9731640') }
+      theme: terminalTheme()
     });
     const fit = new FitAddon();
     term.loadAddon(fit);

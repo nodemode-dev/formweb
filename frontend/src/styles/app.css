@@ -184,6 +184,7 @@ a { color: var(--accent-text); }
 .fw-prefs-secbody { display: flex; flex-direction: column; gap: 10px; padding: 0 14px 14px; }
 .fw-prefs-secbody[hidden] { display: none; }
 .fw-prefs-group { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; padding: 12px 14px 14px; border-radius: var(--radius-lg); background: color-mix(in srgb, var(--bg-tertiary) 55%, var(--bg-secondary)); box-shadow: var(--shadow-sm); }
+:root[data-oled] .fw-prefs-group { background: var(--bg-secondary); box-shadow: inset 0 0 0 1px var(--line-1); }
 .fw-prefs-label { margin: 0; color: var(--accent-color); font-size: var(--fs-11); font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; }
 .fw-prefs-group .checkbox-field { margin-top: 0; }
 .fw-prefs-group .micro, .fw-prefs-group .empty-note { margin: 0; padding: 0; }

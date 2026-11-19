@@ -131,6 +131,14 @@
   --shadow-lg: 0 4px 14px rgba(96, 90, 70, 0.16);
   --shadow-window: 0 18px 44px rgba(96, 90, 70, 0.22);
 }
+:root[data-oled] {
+  --bg-hover: rgba(255, 255, 255, 0.1);
+  --border-soft: rgba(255, 255, 255, 0.12);
+  --surface-1: var(--bg-primary);
+  --surface-raised: var(--bg-tertiary);
+  --line-0: var(--border-color);
+  --line-3: var(--border-light);
+}
 :root:lang(zh-CN) { --font-script: 'FW Han SC', 'FW Hangul', 'FW Thai'; }
 :root:lang(zh-TW) { --font-script: 'FW Han TC', 'FW Hangul', 'FW Thai'; }
 :root:lang(ko) { --font-script: 'FW Hangul', 'FW Han JP', 'FW Thai'; }
