@@ -1332,6 +1332,14 @@ One fixed pane holds three views (Sections, Kits, Import HTML) swapped with `hid
 
 The first version asked the bootstrap route before it looked at sessionStorage, so every development reload sent a second claim, was refused with 409 and made the engine log a claim that never happened; the page only worked because it then fell back to the kept key. Now the order is the shell's global, then the key kept in this tab (checked with one `POST /api/window/ticket`, which needs the key and is also what the terminal asks for), then the bootstrap, then the kept key again if the bootstrap is refused. Measured in headless Chrome against the engine and the Vite server: before, load and two reloads sent three bootstrap requests (200, 409, 409); after, one (200) and two ticket checks (200, 200), and a `page.add` from the page succeeded after the load and after each reload.
 
+### Agent Connect: a broken seal is said once, in a slot that is always there
+
+- refers-to: `src/features/agent-connect.ts` :: AgentConnect (seal, refresh), `src/styles/agent-connect.css` :: fw-ac-seal, `src/i18n/keys.ts`, `src/i18n/locales/*.ts`
+- kind: feature
+- logged: v0.22.0 · 2026-11-19
+
+When the engine reads the stored agent choice and finds it was changed outside the app, it answers with `sealBroken: true` and the choice reads as Ask (see the seal entry in the backend log). The Approvals section of Agent Connect now carries one sentence for it: "The saved agent permission was changed outside FormWeb, so it is back to Ask." The paragraph is created with the panel, holds its sentence from the start and is hidden with `visibility`, so its lines are laid out for every language whether it shows or not; `refresh()` flips `data-shown` and `aria-hidden` only when the engine's answer changes, so nothing is rebuilt and nothing moves. The cost is a blank band of two or three lines under the two checkboxes while the seal is intact. The sentence goes away on its own when the person picks a choice, because saving signs the record again. It is not stored anywhere else, so it shows each time the panel opens while the record is still broken. Added to `keys.ts` and to the 23 complete locale arrays (es-MX and fr-CA inherit es and fr). Checked in headless Chrome with a stand-in keyring backend: a choice saved, then edited in the database by hand; with the panel open the sentence appeared within the 2 s poll, every node outside the activity feed was the same node and no box moved by one pixel (59 nodes compared), the checkbox showed Ask, and a reload showed the sentence again; picking a choice hid it and the engine reported the seal ok. The same in German.
+
 ### Shell: a window is never opened without the key
 
 - refers-to: `../src-tauri/src/main.rs` :: window_key_line, capture_window_key, the start-up thread in `setup`

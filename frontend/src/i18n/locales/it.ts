@@ -2564,4 +2564,5 @@ export default [
   "Chiudi l'anteprima della demo",
   "Il modulo in {0} invia i dati a questo computer e non funzionerà quando il sito sarà su un altro host. Dagli una risposta con script (Movimento > Script, trigger Invio) oppure tieni il sito su questo computer con Pubblica.",
   "Sito statico esportato in {0}.",
+  "L'autorizzazione salvata per l'agente è stata modificata fuori da FormWeb, quindi è tornata su Chiedi.",
 ] as readonly string[];

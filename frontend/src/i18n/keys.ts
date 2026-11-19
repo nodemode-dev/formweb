@@ -2564,4 +2564,5 @@ export const KEYS: readonly string[] = [
   "Close the demo preview",
   "The form on {0} posts to this computer and will not work once the site is on another host. Give it a scripted reply (Motion > Script, trigger Submit), or keep the site on this computer with Publish.",
   "Static site exported for {0}.",
+  "The saved agent permission was changed outside FormWeb, so it is back to Ask.",
 ];

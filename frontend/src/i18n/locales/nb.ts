@@ -2564,4 +2564,5 @@ export default [
   "Lukk forhåndsvisningen av demoen",
   "Skjemaet på {0} sender til denne datamaskinen og virker ikke når nettstedet ligger hos en annen vert. Gi det et skriptet svar (Bevegelse > Skript, utløser Send inn), eller behold nettstedet på denne datamaskinen med Publiser.",
   "Statisk nettsted eksportert på {0}.",
+  "Den lagrede agenttillatelsen ble endret utenfor FormWeb, så den er tilbake på Spør.",
 ] as readonly string[];
