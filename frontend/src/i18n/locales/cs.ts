@@ -2564,4 +2564,5 @@ export default [
   "Zavřít náhled ukázky",
   "Formulář na stránce {0} odesílá data do tohoto počítače a po přesunu webu na jiný hosting nebude fungovat. Dejte mu skriptovanou odpověď (Pohyb > Skript, spouštěč Odeslání), nebo web ponechte na tomto počítači pomocí funkce Publikovat.",
   "Statický web byl exportován, jazyk: {0}.",
+  "Uložené oprávnění agenta bylo změněno mimo FormWeb, proto je znovu nastaveno na Zeptat se.",
 ] as readonly string[];

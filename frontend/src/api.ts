@@ -15,11 +15,47 @@ export function accept(next: EditorState): EditorState {
   return next;
 }
 export function subscribe(listener: (next: EditorState) => void): void { listeners.add(listener); }
-function authHeaders(): Record<string, string> {
+let windowKey = '';
+function bearer(): Record<string, string> {
   try {
     const token = sessionStorage.getItem('formweb_token');
     return token ? { Authorization: `Bearer ${token}` } : {};
   } catch { return {}; }
+}
+function authHeaders(): Record<string, string> {
+  return windowKey ? { ...bearer(), 'X-FormWeb-Window-Key': windowKey } : bearer();
+}
+async function loadWindowKey(): Promise<void> {
+  if (windowKey) return;
+  const holder = window as unknown as { __FORMWEB_WINDOW_KEY?: unknown };
+  const given = holder.__FORMWEB_WINDOW_KEY;
+  delete holder.__FORMWEB_WINDOW_KEY;
+  if (typeof given === 'string' && given) { windowKey = given; return; }
+  try { windowKey = sessionStorage.getItem('formweb_window_key') || ''; } catch {}
+  if (windowKey && await terminalTicket()) return;
+  windowKey = '';
+  try {
+    const response = await fetch(apiBase + '/api/window/key', { method: 'POST', headers: bearer(), credentials: 'same-origin' });
+    const body = response.ok ? await response.json() as { key?: unknown } : {};
+    if (typeof body.key === 'string' && body.key) {
+      windowKey = body.key;
+      try { sessionStorage.setItem('formweb_window_key', windowKey); } catch {}
+      return;
+    }
+  } catch {}
+  try { windowKey = sessionStorage.getItem('formweb_window_key') || ''; } catch {}
+}
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number, readonly code: string) { super(message); }
+}
+export type ApprovalEvent = { type: 'open' | 'request' | 'withdrawn'; id?: string; reason?: string };
+const approvalListeners = new Set<(event: ApprovalEvent) => void>();
+export function onApproval(listener: (event: ApprovalEvent) => void): void {
+  approvalListeners.add(listener);
+  if (events?.readyState === EventSource.OPEN) listener({ type: 'open' });
+}
+export async function terminalTicket(): Promise<string> {
+  try { return (await request<{ ticket: string }>('/api/window/ticket', {})).ticket || ''; } catch { return ''; }
 }
 export async function request<T>(path: string, body?: unknown, method?: string): Promise<T> {
   if (['/api/projects/save', '/api/publish', '/api/audit', '/api/preview'].includes(path) || path.startsWith('/api/libraries') || path.startsWith('/api/cms/') || path.startsWith('/api/branches') || path.startsWith('/api/providers/')) await queue.catch(() => undefined);
@@ -31,15 +67,17 @@ export async function request<T>(path: string, body?: unknown, method?: string):
   });
   if (!response.ok) {
     let detail = `${response.status} ${response.statusText}`;
+    let code = '';
     try {
       const error = await response.json();
       detail = typeof error.detail === 'string' ? error.detail : JSON.stringify(error.detail || error.error || error);
+      if (typeof error.code === 'string') code = error.code;
     } catch {}
     if (response.status === 409 && path !== '/api/state' && /revision conflict|revision is stale|stale.*revision/i.test(detail)) {
       accept(await request<EditorState>('/api/state'));
       throw new Error(`${detail}. Latest state loaded; your focused input is retained. Review the current state and apply your change again.`);
     }
-    throw new Error(detail);
+    throw new ApiError(detail, response.status, code);
   }
   return response.json() as Promise<T>;
 }
@@ -133,6 +171,7 @@ let connectionListener: (connected: boolean) => void = () => undefined;
 export function reconnect(): Promise<void> { return connect(connectionListener); }
 export async function connect(onConnection: (connected: boolean) => void): Promise<void> {
   connectionListener = onConnection;
+  await loadWindowKey();
   if (authHeaders().Authorization) await request('/api/auth', {});
   accept(await request<EditorState>('/api/state'));
   onConnection(true);
@@ -144,7 +183,13 @@ export async function connect(onConnection: (connected: boolean) => void): Promi
       if (!current || incoming.revision > current.revision || incoming.site.id !== current.site.id) accept(incoming);
     } catch {}
   });
-  events.onopen = () => onConnection(true);
+  events.addEventListener('approval', event => {
+    try {
+      const incoming = JSON.parse((event as MessageEvent).data) as ApprovalEvent;
+      approvalListeners.forEach(listener => listener(incoming));
+    } catch {}
+  });
+  events.onopen = () => { onConnection(true); approvalListeners.forEach(listener => listener({ type: 'open' })); };
   events.onerror = () => onConnection(false);
 }
 export async function download(path: string, filename: string): Promise<Headers> {

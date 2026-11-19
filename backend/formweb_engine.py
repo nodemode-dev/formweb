@@ -17,4 +17,7 @@ if __name__ == '__main__':
         print('formweb-engine selfcheck', 'failed, missing: ' + ', '.join(missing) if missing else 'ok')
         sys.exit(1 if missing else 0)
     import uvicorn
+    from app import window_key
+    if window_key.stdout_mode():
+        print(window_key.LINE + window_key.KEY, flush=True)
     uvicorn.run(app, host='127.0.0.1', port=PORT, timeout_graceful_shutdown=2)

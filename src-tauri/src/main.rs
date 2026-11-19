@@ -203,13 +203,36 @@ fn sidecar() -> Option<PathBuf> {
 #[cfg(unix)]
 fn start_sidecar(path: &Path, port: u16) -> std::io::Result<Child> {
     use std::os::unix::process::CommandExt;
-    Command::new(path).env("FORMWEB_PORT", port.to_string()).process_group(0).spawn()
+    Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").stdout(Stdio::piped()).process_group(0).spawn()
 }
 
 #[cfg(windows)]
 fn start_sidecar(path: &Path, port: u16) -> std::io::Result<Child> {
     use std::os::windows::process::CommandExt;
-    Command::new(path).env("FORMWEB_PORT", port.to_string()).creation_flags(0x0800_0000).spawn()
+    Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").stdout(Stdio::piped()).creation_flags(0x0800_0000).spawn()
+}
+
+static WINDOW_KEY: Mutex<Option<String>> = Mutex::new(None);
+static KEY_EXPECTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+fn window_key_line(line: &str) -> Option<String> {
+    let key = line.trim_end().strip_prefix("formweb-window-key: ")?;
+    (key.len() >= 32 && key.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')).then(|| key.to_string())
+}
+
+fn capture_window_key(child: &mut Child) {
+    let Some(out) = child.stdout.take() else { return };
+    KEY_EXPECTED.store(true, Ordering::SeqCst);
+    std::thread::spawn(move || {
+        use std::io::BufRead;
+        for line in std::io::BufReader::new(out).lines() {
+            let Ok(line) = line else { break };
+            match window_key_line(&line) {
+                Some(key) => { WINDOW_KEY.lock().unwrap().get_or_insert(key); }
+                None => println!("{line}"),
+            }
+        }
+    });
 }
 
 fn stop_service(handle: &tauri::AppHandle) {
@@ -250,6 +273,11 @@ fn open_editor(handle: &tauri::AppHandle) {
         .center()
         .visible(reveal::BUILD_VISIBLE)
         .background_color(reveal::BACKGROUND);
+    let origin = format!("http://127.0.0.1:{}", ENGINE_PORT.load(Ordering::SeqCst));
+    let builder = match WINDOW_KEY.lock().unwrap().clone() {
+        Some(key) => builder.initialization_script(format!("if (window.location.origin === {origin:?}) {{ window.__FORMWEB_WINDOW_KEY = {key:?}; }}")),
+        None => builder,
+    };
     #[cfg(target_os = "macos")]
     let builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay).hidden_title(true);
     // The macOS and Linux web views cancel a download unless a handler is set; with one the file goes to Downloads.
@@ -324,7 +352,8 @@ fn main() {
                         None => formweb_root().map(|root| start_service(&root, port)),
                     };
                     match started {
-                        Some(Ok(child)) => {
+                        Some(Ok(mut child)) => {
+                            capture_window_key(&mut child);
                             #[cfg(unix)]
                             SERVICE_GROUP.store(child.id() as i32, std::sync::atomic::Ordering::SeqCst);
                             handle.state::<Service>().0.lock().unwrap().replace(child); }
@@ -348,6 +377,16 @@ fn main() {
                             std::process::exit(1);
                         }
                         std::thread::sleep(Duration::from_millis(250));
+                    }
+                    let deadline = Instant::now() + Duration::from_secs(10);
+                    while KEY_EXPECTED.load(Ordering::SeqCst) && WINDOW_KEY.lock().unwrap().is_none() && Instant::now() < deadline {
+                        std::thread::sleep(Duration::from_millis(50));
+                    }
+                    if KEY_EXPECTED.load(Ordering::SeqCst) && WINDOW_KEY.lock().unwrap().is_none() {
+                        stop_service(&handle);
+                        reveal::close_splash(&handle);
+                        handle.dialog().message("The FormWeb service did not start correctly. Run ./formweb doctor in the FormWeb folder.").blocking_show();
+                        std::process::exit(1);
                     }
                 }
                 let main_thread = handle.clone();

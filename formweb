@@ -46,8 +46,8 @@ Usage: ./formweb COMMAND
   build               compile Rust, TypeScript/Vite and Python source
   serve               serve the built editor on 127.0.0.1:8240
   mcp                 proxy stdio MCP into the running API
-  agents sync         mirror .claude/skills to .agents/skills
-  agents sync --check  report drift without changing files
+  agents sync         mirror .claude/skills to .agents/skills and write agents/manifest.json
+  agents sync --check  report drift in either without changing files
   agents install      show project client wiring; no global changes
   i18n check          every interface language has one entry per English key (--json)
   comparisons status  is the release comparison in the FormAI matrix (--json)

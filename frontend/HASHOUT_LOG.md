@@ -1315,3 +1315,114 @@ The UI font stack starts with the Apple system faces, so on macOS the bundled In
 - logged: v0.19.2 · 2026-11-10
 
 One fixed pane holds three views (Sections, Kits, Import HTML) swapped with `hidden`, so nothing reflows. Cards are keyed by section id and merged on every open, so a library that grows while the editor runs adds cards without rebuilding the grid; thumbnail boxes are a fixed 16:10 and a failed or missing image keeps the placeholder. The detail replaces the list in place and caches each section's form, so typed values survive Back; only values changed from the defaults are sent. `libraryMutate` queues behind other mutations and adopts the returned state when it carries `site` and `revision`. Section names and descriptions are looked up as English-text keys (the key form `keys.ts` uses), so a template whose wording changes falls back to English until a key is added. Apply preset asks for a second click within five seconds instead of a modal. The rail uses the existing `grid` icon; a dedicated library icon belongs in `icons.ts`.
+
+### Window key
+
+- refers-to: `src/api.ts` :: authHeaders, loadWindowKey, terminalTicket, connect, `src/features/terminal.ts` :: url, connect
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+`connect()` takes the key once before its first request (`loadWindowKey` in `api.ts`; `terminalTicket` is the one-time ticket that lets this window's terminal socket in): the desktop shell's `window.__FORMWEB_WINDOW_KEY` (then deleted), else the engine's one-time `POST /api/window/key`, else this tab's earlier copy in sessionStorage. Every fetch in api.ts sends it through authHeaders. The terminal socket asks for a one-time ticket before each connect and re-checks the socket after the await, so two connects cannot open two sockets. Other raw fetches (tracepanel asset list, demos file) are reads. Nothing in the DOM changes. Checked in headless Chrome against the Vite dev server: the bootstrap answered 200, a `page.add` through `command()` moved the revision from 0 to 1, a ticket came back, and a fetch without the key from the same page was refused.
+
+### Window key: the kept key is tried first on a reload
+
+- refers-to: `src/api.ts` :: loadWindowKey
+- kind: fix
+- logged: v0.22.0 · 2026-11-19
+
+The first version asked the bootstrap route before it looked at sessionStorage, so every development reload sent a second claim, was refused with 409 and made the engine log a claim that never happened; the page only worked because it then fell back to the kept key. Now the order is the shell's global, then the key kept in this tab (checked with one `POST /api/window/ticket`, which needs the key and is also what the terminal asks for), then the bootstrap, then the kept key again if the bootstrap is refused. Measured in headless Chrome against the engine and the Vite server: before, load and two reloads sent three bootstrap requests (200, 409, 409); after, one (200) and two ticket checks (200, 200), and a `page.add` from the page succeeded after the load and after each reload.
+
+### Agent Connect: a broken seal is said once, in a slot that is always there
+
+- refers-to: `src/features/agent-connect.ts` :: AgentConnect (seal, refresh), `src/styles/agent-connect.css` :: fw-ac-seal, `src/i18n/keys.ts`, `src/i18n/locales/*.ts`
+- kind: feature
+- logged: v0.22.0 · 2026-11-19
+
+When the engine reads the stored agent choice and finds it was changed outside the app, it answers with `sealBroken: true` and the choice reads as Ask (see the seal entry in the backend log). The Approvals section of Agent Connect now carries one sentence for it: "The saved agent permission was changed outside FormWeb, so it is back to Ask." The paragraph is created with the panel, holds its sentence from the start and is hidden with `visibility`, so its lines are laid out for every language whether it shows or not; `refresh()` flips `data-shown` and `aria-hidden` only when the engine's answer changes, so nothing is rebuilt and nothing moves. The cost is a blank band of two or three lines under the two checkboxes while the seal is intact. The sentence goes away on its own when the person picks a choice, because saving signs the record again. It is not stored anywhere else, so it shows each time the panel opens while the record is still broken. Added to `keys.ts` and to the 23 complete locale arrays (es-MX and fr-CA inherit es and fr). Checked in headless Chrome with a stand-in keyring backend: a choice saved, then edited in the database by hand; with the panel open the sentence appeared within the 2 s poll, every node outside the activity feed was the same node and no box moved by one pixel (59 nodes compared), the checkbox showed Ask, and a reload showed the sentence again; picking a choice hid it and the engine reported the seal ok. The same in German.
+
+### Shell: a window is never opened without the key
+
+- refers-to: `../src-tauri/src/main.rs` :: window_key_line, capture_window_key, the start-up thread in `setup`
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+`window_key_line` accepts a line only when it is exactly `formweb-window-key: ` and a key of at least 32 letters, digits, `_` or `-`; anything else is passed on as ordinary output. The reader thread (`capture_window_key`) reads the sidecar's output for its whole life, so the pipe never fills, and keeps the first such line; the start-up thread polls for it after the health check. That wait was 5 seconds and, when it ran out, the window opened anyway and could not write. The wait is now 10 seconds, and when it runs out the shell stops the service, closes the splash, shows a dialog and exits with 1, the same way as the 60-second health wait. Only a sidecar started with piped output sets `KEY_EXPECTED`, so the source-checkout start (`formweb serve`) and an engine the shell found already running (which print no key; the page then uses the bootstrap) are not affected. The engine prints the key line flushed before the address line, so on a healthy start the key is already in the pipe when the health check answers and the wait ends at once. Written against the same names and calls as the lines around it; not compiled here, because the system WebKit libraries are missing (see out/test_plan/formweb.md).
+
+### AMOLED Black: the profile and the flag
+
+- refers-to: `src/ui/themes.ts` :: ThemeProfile, THEMES, applyTheme
+- kind: feature
+- logged: v0.22.0 · 2026-11-19
+
+`THEMES['amoled']` ("AMOLED Black") is true black for OLED screens, where a `#000000` pixel is off. `--bg-primary`, `--bg-secondary`, `--bg-node` and `--canvas-bg` are `#000000`, so panels are told apart by their borders alone; `--bg-tertiary` is `#141414` because it is the one fill that inputs, selects, menus and selected rows have (`--bg-input` and `--surface-field` follow it) and they would vanish at black; `--border-color` is `#262626` and `--border-light` `#3a3a3a`; text is `#ededed`, `#a6a6a6` and `#858585` (17.9, 8.6 and 5.7 to 1 on black); the accent is the editor's own and is not part of the profile. The dotted grid on the canvas surround is white at 6%. `ThemeProfile` gains `oled?: boolean`; `applyTheme` sets `data-oled` on `html` for an oled profile and removes it for every other, and touches the attribute only when it changes, so nothing is rebuilt at a switch. The picker is `Object.entries(THEMES)`, so it lists the theme with the others and no control was added. It sits after High Contrast. It is a dark theme (`data-theme="dark"`): the light switch in the stage header and View > Light theme behave as before.
+
+Crosswalk from the spec's names to FormWeb's: the spec's `--bg-primary` `--bg-secondary` `--bg-node` `--canvas-bg` are the same names here; `--surface-0` follows `--bg-primary` and `--surface-2` follows `--bg-node`, so both are black without a rule; `--surface-field` and `--bg-input` follow `--bg-tertiary` (`#141414`); `--line-1` follows `--border-color` (`#262626`) and `--line-2` follows `--border-light` (`#3a3a3a`); `--text-*` are the spec's `--text-*`; `--accent-color` is unchanged. The `--surface-*` and `--line-*` tokens that are not plain copies are in the tokens entry below.
+
+The editor's own interface only. The page being edited (the canvas frame and its `#15171b` backing), the Preview frame and published sites are the user's content and are not touched: nothing in this change reaches into them.
+
+### AMOLED Black: the pre-paint script
+
+- refers-to: `index.html` :: the inline theme script (LIGHT, OLED, PROFILES)
+- kind: fix
+- logged: v0.22.0 · 2026-11-19
+
+The script is the second copy of the profile table that paints before the stylesheets load. `PROFILES['amoled']` (ten entries, so `--bg-node` falls back to `--bg-secondary`, black) and `OLED = { 'amoled': 1 }` are added, and the script sets `data-oled` beside `data-theme`. A theme in one table and not the other would paint Studio Dark first and then switch, which is a visible flash. Measured: with `amoled` saved, a cold load and a hard reload at 1440 by 900 with a 4x CPU throttle, a 200 ms and 180 KB/s network and the cache off gave 334 and 320 screenshots, and the four corners and the centre were `#000000` in every one.
+
+### AMOLED Black: the tokens
+
+- refers-to: `src/styles/tokens.css` :: `:root[data-oled]`, `src/styles/app.css` :: `.fw-prefs-group`, `src/features/terminal.ts` :: terminalTheme, TerminalDock
+- kind: feature
+- logged: v0.22.0 · 2026-11-19
+
+`:root[data-oled]` sets `--bg-hover` and `--border-soft` to white at 10% and 12% (the usual 6% and 8% are too close to black to read) and four derived tokens that otherwise mix black into a light grey: `--surface-1` (the top bar, the Demos bar, the terminal dock and the Agent Connect cards were `#090909` to `#0b0b0b`) takes `--bg-primary`; `--surface-raised` (the active home item, the home icon tile) takes `--bg-tertiary`, the one fill; `--line-0` (the hairline under the top bar and around the Agent Connect cards, black on black) takes `--border-color`; `--line-3` (a third grey derived from the muted text, `#4a4a4a`) takes `--border-light`, so only the two spec lines exist. The rules hang on the flag, not on the theme id, so another OLED profile needs only `oled: true`. The Preferences groups mixed 55% of `--bg-tertiary` into the dialog colour (`#0b0b0b`); under the flag they take `--bg-secondary` and draw their edge with an inset `box-shadow`, not a border, so no box changes size at a switch.
+
+The terminal dock read the theme once, when a session's xterm was created, so a terminal opened before a switch kept the old background for good (a `#111111` slab on a black window). `terminalTheme()` now builds the xterm colours from the tokens, and the dock listens to `nm:ui-settings-changed` and sets `options.theme` on each open session; xterm repaints in place, no node is added or removed. The measured result is in the commit body.
+
+Measured with `amoled` saved, headless Chrome, 1440 by 900, 4x CPU, slow network, cache off: every large surface (top bar, layers panel, canvas surround, inspector, terminal dock, status bar) is `#000000` at its four corners; the inspector fields are `#141414`; a live switch from Studio Dark to AMOLED Black and back through the Preferences picker left all 8214 body elements the same nodes, moved 0 boxes and gave a layout shift of 0; the Agent Connect notice line (colour `--warn`) is in its reserved slot and the panel is black around it. Left as they are on purpose: selected rows and active tool buttons keep the accent tint (`--accent-soft`, the accent is not changed), the white call-to-action buttons (`--cta-bg`), and the scrim, which is black at 53%.
+
+### The terminal panel is the family's shared dock (module 2.1.0)
+
+- refers-to: `src/dock/` (15 files, FormVis 8bbdf61b, never edited here), `src/dock-adapter.ts`, `src/styles/dock-tokens.css`, `index.html` :: the pre-paint script, `src/main.ts` :: agentDock, dockHost, `src/features/chat-pane.ts`, `src/api.ts` :: ApiError, onApproval, `setup/agents.py` :: dock_problems
+- kind: change
+- logged: v0.23.0 · 2026-11-19
+
+Removed: `src/features/terminal.ts` (354 lines, class `TerminalDock`) and `src/styles/terminal.css` (20 lines); the whole file is `git show e8b116c:frontend/src/features/terminal.ts`. What it was, in its own words:
+
+```ts
+export type TerminalState = 'open' | 'collapsed';
+type Kind = 'shell' | 'claude' | 'chat';
+const isChord = (event: KeyboardEvent): boolean => (event.ctrlKey || event.metaKey) && (event.code === 'KeyJ' || event.key === '`');
+const PRESETS = [{ id: 'shell', label: 'Shell' }, { id: 'claude', label: 'Claude Code' }, { id: 'codex', label: 'Codex' }, { id: 'cursor', label: 'Cursor agent' }, { id: 'doctor', label: 'formweb doctor' }, { id: 'run', label: 'formweb run --list' }];
+export class TerminalDock {
+  readonly element = element('section', 'fw-term');
+  constructor(private onChange: (state: TerminalState) => void, private context: () => string = () => '') { ... }
+  set(next: TerminalState, auto = true): void
+  toggle(): void
+  launch(presetId: string): void
+  async claude(prompt?: string, resume?: string): Promise<void>
+  async chat(): Promise<void>
+  async remount(): Promise<void>
+}
+```
+
+```css
+.fw-term { display: grid; grid-template-rows: 32px auto; min-width: 0; background: var(--surface-1); border-top: 1px solid var(--line-0); }
+.fw-term-body { height: var(--term-h, 240px); min-height: 0; padding: var(--space-1) 0 0 var(--space-3); background: var(--bg-primary); }
+.fw-term[data-state="collapsed"] .fw-term-body { display: none; }
+```
+
+From `styles/chat.css` the `.fw-term-tab*`, `.fw-term-stack`, `.fw-term-pane` and `.fw-term-btn.is-on` rules and the `.fw-chat-composer`, `.fw-chat-input`, `.fw-chat-send` rules went with it; from `chat-pane.ts` the two-row textarea and the Send button that turned into Stop.
+
+Why each choice:
+
+- The dock is a child of `.workspace`, not of `.stage-panel`: one parent serves both sides, so a side switch is a change of grid placement and no node moves. Bottom: a second row `var(--ft-dock-size)` under the stage column only (the footprint the old panel had). Right: a fifth column after the inspector. Closed: the row is `0px` and the dock sits in it, so a remembered right side with the dock closed cannot make an implicit column.
+- The dock is mounted after `connect()` has the window key, because every dock route needs it; the track is reserved by the pre-paint script, so the frames before the mount have the final layout with an empty track.
+- The chords stay with the command registry (`isDockChord: () => false`). The registry's listener and the module's both sit on `document` in the capture phase; two owners would toggle twice. `passKey` names the same four chords the old panel let through xterm (Mod+J, Mod+backtick, with Shift or Alt), and the keymap's typing selector names the module's three public roots in place of `.fw-term`.
+- Terminal frames: FormWeb's socket carries JSON text frames and needs a one-use ticket, so the adapter's `channel` owns the socket. The five reconnects with back-off are kept; on a replay it writes `ESC c` before the replayed output, which is what `term.reset()` did.
+- `terminal.restart` is absent (the engine has no route); `endedTab` says to close the tab and start a new one.
+- The Sessions tab (an app tab, `tabs().own`) is where the old preset select and the per-session status line went: six buttons (Shell, Claude Code, Codex, Cursor agent, formweb doctor, formweb run --list) and one line per session with the sentence the old head showed ("Reconnecting", the exit code, an engine error). The two FormWeb commands reach the engine as `preset` on a shell, set by the adapter just before it asks the module for a new terminal.
+- Chat stays `ChatPane` (markdown by block, restore after reload, the handoff), given to the module as an own pane with `ask: 'line'`: the dock's line is the one input, on Chat it goes to `ChatPane.send`, on any other tab it opens Claude Code with the text and the open page and selection. Stop is a button in the pane's bar.
+- Consent: rows of kind `agent.tool` only, with the engine's own `offers` filtered to `deny` and `once`; `always` is never offered because the engine has no such answer. Escape leaves the question unanswered (no `escape: 'deny'`), as leaving the card alone did. The list is read when the events stream opens and on each `approval` event; a `withdrawn` event removes the question.
+- `storedChoice.get` maps the engine's `off` to `blocked` (outside agents are refused in both); nothing shows that word, the module only reads `changedOutside`.
+- `agentStatus` also carries the engine's `tabs` for this caller; a smaller set is taken and `dock.refresh()` hides the buttons.
+- `ApiError` (a subclass of `Error`, so every existing catch reads `message` as before) carries the status and the engine's `code`, which is how a refusal is told from an outage.

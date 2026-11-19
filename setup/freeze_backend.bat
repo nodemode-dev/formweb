@@ -18,7 +18,7 @@ if exist dist-engine rmdir /s /q dist-engine
   --add-data "%ROOT%\backend\app\stock;app\stock" ^
   --add-data "%ROOT%\library;library" ^
   --add-binary "%ROOT%\native\target\release\formweb-core.exe;bin" ^
-  --collect-submodules app --collect-submodules uvicorn --collect-data mcp --exclude-module mcp.cli --hidden-import winpty ^
+  --collect-submodules app --collect-submodules uvicorn --collect-data mcp --exclude-module mcp.cli --hidden-import winpty --collect-submodules keyring --copy-metadata keyring ^
   "%ROOT%\backend\formweb_engine.py" || exit /b 1
 dist-engine\formweb-engine.exe --selfcheck || ( echo [formweb] the frozen engine failed its selfcheck & exit /b 1 )
 if not exist "%ROOT%\src-tauri\binaries" mkdir "%ROOT%\src-tauri\binaries"

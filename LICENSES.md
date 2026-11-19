@@ -65,7 +65,7 @@ The full TypeScript NOTICE.txt, Vite LICENSE.md and Rolldown THIRD-PARTY-LICENSE
 
 ## Python backend
 
-Direct pinned requirements are FastAPI, Uvicorn with its standard extras, the official MCP Python SDK, python-dotenv, segno (local QR code generation, no dependencies of its own) Pillow (compositing background-removal cut-outs, v0.5.3; reference-image colours, v0.5.7) and pypdf (reading reference PDFs for page generation, v0.5.7; no dependencies of its own). The table records the distributions actually installed in the backend virtual environment. Transitive versions may change during a future installation unless constrained; re-audit after dependency updates or before a frozen-binary distribution.
+Direct pinned requirements are FastAPI, Uvicorn with its standard extras, the official MCP Python SDK, python-dotenv, segno (local QR code generation, no dependencies of its own) Pillow (compositing background-removal cut-outs, v0.5.3; reference-image colours, v0.5.7) and pypdf (reading reference PDFs for page generation, v0.5.7; no dependencies of its own), and keyring (keeps the key that seals the agent approval setting in the system keychain). The table records the distributions actually installed in the backend virtual environment. Transitive versions may change during a future installation unless constrained; re-audit after dependency updates or before a frozen-binary distribution.
 
 | Distribution | Observed version | Declared license |
 | --- | --- | --- |
@@ -82,10 +82,14 @@ Direct pinned requirements are FastAPI, Uvicorn with its standard extras, the of
 | httptools | 0.9.0 | MIT |
 | httpx2 | 2.13.1 | BSD-3-Clause |
 | idna | 3.20 | BSD-3-Clause |
+| jaraco.classes, jaraco.context, jaraco.functools | 3.4.0, 6.1.2, 4.6.0 | MIT |
+| jeepney (Linux, for keyring) | 0.9.0 | MIT |
 | jsonschema | 4.26.0 | MIT |
 | jsonschema-specifications | 2025.9.1 | MIT |
+| keyring | 25.7.0 | MIT |
 | mcp | 2.3.0 | MIT |
 | mcp-types | 2.3.0 | MIT |
+| more-itertools (for keyring) | 11.2.1 | MIT |
 | opentelemetry-api | 1.45.1 | Apache-2.0 |
 | pillow | 12.3.0 | MIT-CMU |
 | pycparser | 3.11 | BSD-3-Clause |
@@ -99,6 +103,7 @@ Direct pinned requirements are FastAPI, Uvicorn with its standard extras, the of
 | referencing | 0.37.0 | MIT |
 | rpds-py | 2026.9.1 | MIT |
 | segno | 1.6.6 | BSD-3-Clause |
+| SecretStorage (Linux, for keyring) | 3.5.0 | BSD-3-Clause |
 | sse-starlette | 3.5.0 | BSD-3-Clause |
 | starlette | 1.7.0 | BSD-3-Clause |
 | truststore | 0.10.4 | MIT |

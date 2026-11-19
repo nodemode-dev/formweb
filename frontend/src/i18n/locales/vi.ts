@@ -2564,4 +2564,5 @@ export default [
   "Đóng bản xem trước demo",
   "Biểu mẫu trên {0} gửi đến máy tính này và sẽ không hoạt động khi trang web nằm trên máy chủ khác. Hãy cho biểu mẫu một phản hồi bằng tập lệnh (Chuyển động > Tập lệnh, trình kích hoạt Gửi), hoặc giữ trang web trên máy tính này bằng Xuất bản.",
   "Đã xuất trang web tĩnh bằng {0}.",
+  "Quyền đã lưu của tác nhân đã bị thay đổi bên ngoài FormWeb nên đã quay lại chế độ Hỏi.",
 ] as readonly string[];

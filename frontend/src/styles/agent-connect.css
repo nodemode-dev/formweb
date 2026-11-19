@@ -8,6 +8,8 @@
 .fw-ac-grow { flex: 1; }
 .fw-ac-state { color: var(--text-primary); font-weight: 600; }
 .fw-ac-note, .fw-ac-sub { margin: var(--space-2) 0 0; color: var(--text-muted); font-size: var(--fs-11); line-height: 1.5; }
+.fw-ac-seal { color: var(--warn); }
+.fw-ac-seal[data-shown="false"] { visibility: hidden; }
 .fw-ac-switch { height: 26px; min-height: 0; padding: 0 var(--space-3); border-radius: 13px; font-size: var(--fs-11); }
 .fw-ac-switch.is-on { background: var(--accent-soft); border-color: var(--accent-color); color: var(--text-primary); }
 .fw-ac-list { display: flex; flex-direction: column; gap: var(--space-2); }

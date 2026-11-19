@@ -71,7 +71,7 @@ def _events(line, turn, seen):
     elif kind == 'assistant':
         for block in (item.get('message') or {}).get('content') or []:
             if block.get('type') == 'tool_use':
-                tool = {'id': block.get('id', ''), 'name': str(block.get('name', '')).replace('mcp__formweb__', ''), 'input': _tool_text(block.get('input')), 'done': False}
+                tool = {'id': block.get('id', ''), 'name': str(block.get('name', '')).replace(f'mcp__{claude_code.ENTRY}__', ''), 'input': _tool_text(block.get('input')), 'done': False}
                 turn['tools'].append(tool)
                 yield 'tool', tool
             elif block.get('type') == 'text' and block.get('text') and not seen.get('streamed'):
@@ -93,7 +93,12 @@ def _events(line, turn, seen):
 
 
 async def _run(prompt, resume, turn):
-    process = await asyncio.create_subprocess_exec(*claude_code.chat_argv(prompt, resume), cwd=str(claude_code.workdir()), env=claude_code.child_env(), stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, limit=LINE_LIMIT)
+    token, config = claude_code.issue('Chat')
+    try:
+        process = await asyncio.create_subprocess_exec(*claude_code.chat_argv(prompt, resume, config), cwd=str(claude_code.workdir()), env=claude_code.child_env(), stdin=asyncio.subprocess.DEVNULL, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, limit=LINE_LIMIT)
+    except BaseException:
+        claude_code.revoke(token)
+        raise
     STATE['process'] = process
     errors = []
 
@@ -119,6 +124,7 @@ async def _run(prompt, resume, turn):
             process.kill()
             await process.wait()
         drain.cancel()
+        claude_code.revoke(token)
         STATE['process'] = None
     if failed:
         yield 'error', {'message': failed}

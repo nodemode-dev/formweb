@@ -31,7 +31,7 @@ export const BRAND_MARK = '<img class="fw-mark" src="/formweb-logo.png" width="1
 
 interface MenuView { name: string; def?: MenuDef; button: HTMLButtonElement; popup: HTMLElement; rows: { row: HTMLButtonElement; item?: Command; child?: MenuView }[]; folded: boolean; row?: HTMLButtonElement; parent?: MenuView }
 
-const KEEPS_ALT = '.xterm, .fw-term, [data-no-keys]';
+const KEEPS_ALT = '.xterm, .ft-dock, .ft-consent, .ft-tour, [data-no-keys]';
 const TYPE_AHEAD_MS = 700;
 
 export class Menubar {

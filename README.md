@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.21.3" src="https://img.shields.io/badge/version-0.21.3-eef0f4?style=flat-square">
+  <img alt="version 0.23.0" src="https://img.shields.io/badge/version-0.23.0-eef0f4?style=flat-square">
   <img alt="TypeScript 7" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
   <img alt="Rust engine" src="https://img.shields.io/badge/Rust-engine-b7410e?style=flat-square">
   <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/macOS%20%C2%B7%20Linux%20%C2%B7%20Windows-native-2f7bf5?style=flat-square">
@@ -85,7 +85,7 @@
       <h3>Send to FormPublisher</h3>File > Send to FormPublisher exports the open site and hands it to FormPublisher on the same computer, live when it is running (found through its engine.json, so any port works) or into its inbox when it is not. Sending again files a new revision of the same site.
     </td>
     <td width="50%" valign="top">
-      <h3>Agent tools for motion and the library</h3>14 MCP tools set motion and variables, build and place components, start a blank site, insert and re-cast library sections, and send the result to FormPublisher, each as one undo step.
+      <h3>Agent tools for motion and the library</h3>16 MCP tools set motion and variables, build and place components, start a blank site, insert and re-cast library sections, and send the result to FormPublisher, each as one undo step.
     </td>
   </tr>
 </table>
@@ -113,13 +113,13 @@ One MCP server and one command line reach the same running document as the edito
 ```sh
 ./formweb run --list                              # list the engine commands
 ./formweb run node.update id=headline 'patch={"text":"Hello"}'   # edit the open site
-./formweb agents sync --check                     # check the skill mirrors for drift
+./formweb agents sync --check                     # check the skill mirrors and agents/manifest.json for drift
 ./formweb mcp                                     # MCP server on stdio for Claude Code, Codex and Cursor
 ./formweb library list scroll                     # find library sections (also: insert, preset, starter)
 ./formweb library insert formcut-proxy-monitor tint=#ff9a3c   # insert one, re-cast, as one undo step
 ```
 
-Agents can also start a blank site, set native motion and variables, build and place page components, insert, re-cast and import library sections, and send the site to FormPublisher, with 14 authoring tools, plus `copy_element` and `paste_element` (103 MCP tools in all), described in [docs/ADVANCED_SCHEMA.md](docs/ADVANCED_SCHEMA.md).
+Agents can also start a blank site, set native motion and variables, build and place page components, insert, re-cast and import library sections, and send the site to FormPublisher, and copy and paste an element between pages, with 16 authoring tools, `copy_element` and `paste_element` among them (103 MCP tools in all), described in [docs/ADVANCED_SCHEMA.md](docs/ADVANCED_SCHEMA.md).
 
 `.mcp.json`, `.codex/config.toml` and `.cursor/mcp.json` are already wired in this repo. Start with the [agent quick start](docs/AGENT_QUICKSTART.md) and [`AGENTS.md`](AGENTS.md).
 

@@ -2564,4 +2564,5 @@ export default [
   "Cerrar la vista previa de la demo",
   "El formulario de {0} envía a este ordenador y dejará de funcionar cuando el sitio esté en otro alojamiento. Dele una respuesta con guion (Movimiento > Guion, disparador Enviar) o mantenga el sitio en este ordenador con Publicar.",
   "Sitio estático exportado en {0}.",
+  "El permiso guardado del agente se cambió fuera de FormWeb, así que vuelve a Preguntar.",
 ] as readonly string[];

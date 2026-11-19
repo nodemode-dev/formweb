@@ -16,7 +16,7 @@ from starlette.responses import FileResponse, JSONResponse, Response, StreamingR
 
 from .access import CHANNELS, actor, channel
 from .advanced_routes import router as advanced_router, form_gate, serve_release, submission_values
-from . import claude_code
+from . import claude_code, window_key
 from .assets import MIME_TYPES, ProjectTooLarge, asset_path, ingest, list_assets, own_asset, project_envelope, read_project_archive, sweep_stale_temporaries, visible_assets, write_project_archive
 from .chat import router as chat_router
 from .clips import router as clips_router
@@ -29,7 +29,7 @@ from .handoff import router as handoff_router
 from .library_routes import router as library_router
 from .mcp_server import mcp, mcp_app
 from .providers.routes import router as provider_router
-from .service import safe_export_path, studio
+from .service import ACCESS_META, BLOCKED, DOCK_CONTRACT, Notice, safe_export_path, studio
 from .terminal import router as terminal_router
 from .vector_routes import router as vector_router
 from .workflows import load_native
@@ -75,17 +75,23 @@ class LocalAccess:
                 raise EngineError('Origin is not allowed.', 403)
             if origin in (None, 'null') and not public and headers.get('sec-fetch-site', '').strip().lower() == 'cross-site':
                 raise EngineError('Cross-site requests are not allowed.', 403)
+            if path == '/mcp' and studio.agents_blocked:
+                raise EngineError(BLOCKED, 403)
             if path == '/mcp' and not (studio.agents_enabled or claude_code.valid_token(headers.get(claude_code.INAPP_HEADER.lower(), ''))):
                 raise EngineError('Agents are disabled. Enable Agents in the editor or set FORMWEB_AGENTS=1.', 403)
             if control and scope['method'] != 'OPTIONS':
                 identity = studio.access.authenticate(headers, mcp=path == '/mcp')
+            holds_key = window_key.valid(headers.get(window_key.HEADER))
+            if control and window_key.needs_key(scope['method'], path, identity['root']) and not holds_key:
+                raise EngineError(window_key.REFUSED, 403)
             archive_load = path == '/api/load' and headers.get('content-type', '').split(';', 1)[0].strip().lower() == 'application/zip'
             maximum = MAX_PROJECT_ARCHIVE_BYTES if archive_load else MAX_PROJECT_FILE_BYTES if path in ('/api/load', '/mcp') else MAX_VIDEO_BYTES if path == '/api/assets' and scope['method'] == 'POST' else MAX_PASTE_BYTES if path == '/api/paste' else MAX_DOCUMENT_BYTES
             length = headers.get('content-length', '')
             if length and (not length.isdecimal() or int(length) > maximum):
                 raise EngineError('Request body exceeds the configured size limit.', 413)
         except EngineError as error:
-            return await JSONResponse({'detail': str(error)}, status_code=error.status)(scope, receive, send)
+            cors = {'access-control-allow-origin': origin, 'access-control-allow-credentials': 'true', 'vary': 'Origin'} if origin in ORIGINS else None
+            return await JSONResponse({'detail': str(error)}, status_code=error.status, headers=cors)(scope, receive, send)
         if origin == 'null' and verified_preview and scope['method'] == 'OPTIONS':
             return await Response(status_code=204, headers={'Access-Control-Allow-Origin': 'null', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-FormWeb-Preview, X-FormWeb-Visitor, X-FormWeb-Consent', 'Vary': 'Origin'})(scope, receive, send)
         scope['formweb.identity'] = identity
@@ -100,9 +106,11 @@ class LocalAccess:
             await send(message)
         requested_channel = headers.get('x-formweb-channel', '')
         channel_token = channel.set('agent' if path == '/mcp' else requested_channel if requested_channel in CHANNELS else 'human')
+        window_token = window_key.window.set(holds_key and path != '/mcp')
         try:
             await self.app(scope, receive, guarded_send)
         finally:
+            window_key.window.reset(window_token)
             channel.reset(channel_token)
             actor.reset(context_token)
 
@@ -119,7 +127,7 @@ async def lifespan(app):
 
 
 app = FastAPI(title='FormWeb', version=VERSION, lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename', 'X-FormWeb-Channel'], expose_headers=['Content-Disposition', 'X-FormWeb-Method', 'X-FormWeb-Asset', 'X-FormWeb-Local-Forms'], allow_credentials=True)
+app.add_middleware(CORSMiddleware, allow_origins=list(ORIGINS), allow_methods=['GET', 'POST', 'DELETE', 'OPTIONS'], allow_headers=['Authorization', 'Content-Type', 'MCP-Protocol-Version', 'X-Filename', 'X-FormWeb-Channel', 'X-FormWeb-Window-Key'], expose_headers=['Content-Disposition', 'X-FormWeb-Method', 'X-FormWeb-Asset', 'X-FormWeb-Local-Forms'], allow_credentials=True)
 app.add_middleware(LocalAccess)
 app.include_router(advanced_router)
 app.include_router(provider_router)
@@ -237,11 +245,59 @@ async def system():
 async def agents(body: Agents):
     studio.access.authorize('manage')
     studio.access.record('agents.configure', {'enabled': body.enabled})
+    if body.enabled and studio.agents_blocked:
+        studio.agents_blocked = False
+        studio.store.set_meta(ACCESS_META, None)
     studio.agents_enabled = body.enabled
     if not body.enabled:
         from .terminal import close_all
         close_all(external_only=True)
     return await system()
+
+
+class AgentAccess(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    choice: str = Field(pattern='^(blocked|ask|allowed)$')
+
+
+@app.get('/api/agents/access')
+async def agent_access():
+    studio.access.authorize('read')
+    return studio.agent_access()
+
+
+@app.post('/api/agents/access')
+async def agent_access_set(body: AgentAccess):
+    result = studio.set_agent_access(body.choice)
+    if body.choice == 'blocked':
+        from .terminal import close_all
+        close_all(external_only=True)
+    return result
+
+
+@app.get('/api/agents/status')
+async def agent_status():
+    from . import agent_programs
+    from .terminal import status
+    studio.access.authorize('read')
+    offered = 'manage' in studio.access.status()['permissions'] and status()['supported']
+    programs = await asyncio.to_thread(agent_programs.status) if offered else {}
+    return {**programs, 'tabs': ['shell', 'claude', 'chat', 'codex', 'cursor'] if offered else [], 'contract': DOCK_CONTRACT}
+
+
+@app.post(window_key.BOOTSTRAP)
+async def window_key_claim():
+    if window_key.stdout_mode():
+        raise EngineError('Endpoint not found.', 404)
+    key = window_key.claim()
+    if key is None:
+        raise EngineError('The window key was already given to a window.', 409)
+    return {'key': key}
+
+
+@app.post('/api/window/ticket')
+async def window_ticket():
+    return {'ticket': window_key.ticket(), 'secondClaim': window_key.STATE['secondClaim']}
 
 class SubstrateRun(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -767,6 +823,8 @@ async def events(request: Request):
                     studio.access.authorize('read', project_id)
                     if current is None:
                         yield ': keepalive\n\n'
+                    elif isinstance(current, Notice):
+                        yield f'event: {current.name}\ndata: ' + json.dumps(current.data, separators=(',', ':')) + '\n\n'
                     else:
                         yield 'event: state\ndata: ' + json.dumps(current, separators=(',', ':')) + '\n\n'
                 except EngineError:

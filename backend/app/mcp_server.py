@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from urllib.parse import quote
 from jsonschema import Draft202012Validator
 
+from . import claude_code
 from .access import actor
 from .advanced_catalog import ADVANCED_BY_NAME, ADVANCED_TOOLS
 from .config import ORIGINS, PORT, VERSION
@@ -23,6 +24,7 @@ TOOLS = BASE_TOOLS[:3] + DOMAIN_TOOLS + BASE_TOOLS[3:] + ADVANCED_TOOLS + PROVID
 BY_NAME = {item['name']: item for item in TOOLS}
 # Loaded upfront by Claude Code even with tool search on (code.claude.com/docs/en/mcp, "anthropic/alwaysLoad").
 ALWAYS_LOAD = {'get_site', 'apply_commands', 'edit_nodes'}
+CLIENT_HEADER = 'x-formweb-client'
 
 
 def title_of(item):
@@ -50,6 +52,15 @@ async def request_actor(context):
         actor.reset(token)
 
 
+def caller(context):
+    headers = getattr(context.request, 'headers', None) or {}
+    own = claude_code.tab_name(headers.get(claude_code.INAPP_HEADER.lower(), ''))
+    if own:
+        return {'agent': own, 'inApp': True}
+    named = (headers.get(CLIENT_HEADER) or headers.get('user-agent', '').split('/', 1)[0]).strip()[:60]
+    return {'agent': named if named.isprintable() else '', 'inApp': False}
+
+
 async def list_tools(context, params):
     return types.ListToolsResult(tools=[listed(item) for item in TOOLS])
 
@@ -72,7 +83,7 @@ async def call_tool(context, params):
         destructive = BY_NAME[params.name]['annotations'].get('destructiveHint') and params.name not in DOMAIN_BY_NAME and params.name != 'motion_track'
         if (destructive or removes) and studio.approvals.settings()['agentDestructive']:
             # Agent Connect: the owner asked to approve destructive agent calls; this waits for a person's decision.
-            await studio.approvals.wait('agent.tool', {'tool': params.name, 'arguments': json.dumps(arguments, ensure_ascii=False)[:1000]})
+            await studio.approvals.wait('agent.tool', {'tool': params.name, 'arguments': json.dumps(arguments, ensure_ascii=False)[:1000], **caller(context)})
         match params.name:
             case 'get_site':
                 result = await studio.state()

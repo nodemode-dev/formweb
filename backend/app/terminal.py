@@ -1,6 +1,6 @@
 """Live terminal: a loopback WebSocket bridged to a pseudo-terminal in the FormWeb folder.
 
-Owner-only. Sessions the editor opens itself (POST /api/terminal/open: a shell or Claude Code) work without the Agents
+Only the editor window can use it: the routes and the socket need the window key (the socket may present a one-time ticket obtained with it), and the caller needs the manage role. Sessions the editor opens itself (POST /api/terminal/open: a shell, Claude Code, Codex or Cursor) work without the Agents
 switch; a socket that creates its own session still needs Agents on. Uses the standard library `pty` on macOS and Linux and
 `pywinpty` on Windows. A session outlives its socket so the editor can collapse the dock or reconnect and
 get the same shell back, with the last 64 KiB of output replayed.
@@ -18,7 +18,7 @@ from collections import deque
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import claude_code
+from . import agent_programs, claude_code, window_key
 from .access import actor, channel
 from .config import ORIGINS, PORT, ROOT
 from .engine import EngineError
@@ -45,7 +45,8 @@ class Session:
         self.sockets: set[WebSocket] = set()
         self.exit_code = None
         self.closed = False
-        env = {**(os.environ if env is None else env), 'TERM': 'xterm-256color', 'FORMWEB_API': f'http://127.0.0.1:{PORT}', 'FORMWEB_TERMINAL': '1', 'FORMWEB_CHANNEL': 'terminal'}
+        env = {key: value for key, value in (os.environ if env is None else env).items() if key not in ('FORMWEB_AUTH_TOKEN', 'FORMWEB_TOKEN')}
+        env = {**env, 'TERM': 'xterm-256color', 'FORMWEB_API': f'http://127.0.0.1:{PORT}', 'FORMWEB_TERMINAL': '1', 'FORMWEB_CHANNEL': 'terminal'}
         folder = str(cwd or ROOT)
         self.loop = asyncio.get_running_loop()
         if os.name == 'nt':
@@ -114,6 +115,7 @@ class Session:
         if self.closed:
             return
         self.closed = True
+        claude_code.revoke(getattr(self, 'inapp', None))
         if os.name != 'nt':
             self.loop.remove_reader(self.fd)
             try:
@@ -172,7 +174,7 @@ def close_all(external_only=False):
 
 
 def listing():
-    return [{'id': item.id, 'title': item.title, 'kind': item.kind, 'app': item.app} for item in SESSIONS.values()]
+    return [{'id': item.id, 'title': item.title, 'kind': item.kind, 'app': item.app, 'alive': True} for item in SESSIONS.values()]
 
 
 def status():
@@ -189,7 +191,7 @@ def _winpty_available():
 
 class Open(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    kind: str = Field(default='shell', pattern='^(shell|claude)$')
+    kind: str = Field(default='shell', pattern='^(shell|claude|codex|cursor)$')
     prompt: str | None = Field(default=None, max_length=20000)
     resume: str | None = Field(default=None, max_length=200)
     preset: str | None = Field(default=None, max_length=16)
@@ -208,7 +210,7 @@ async def sessions():
 async def open_session(body: Open):
     from .service import studio
     studio.access.authorize('manage')
-    types = {'shell': 'Shell', 'claude': 'Claude Code'}
+    types = {'shell': 'Shell', 'claude': 'Claude Code', 'codex': 'Codex', 'cursor': 'Cursor'}
     prompt = (body.prompt or '').strip()
     if body.kind == 'claude' and not body.resume:
         live = next((item for item in SESSIONS.values() if item.kind == 'claude' and item.app), None)
@@ -218,20 +220,41 @@ async def open_session(body: Open):
             return {'id': live.id, 'title': live.title, 'kind': live.kind, 'reused': True}
     if len(SESSIONS) >= MAX_SESSIONS:
         raise EngineError(f'At most {MAX_SESSIONS} terminal sessions can run at once. Close one first.', 429)
-    argv = env = cwd = None
+    argv = env = cwd = token = None
     if body.kind == 'claude':
         await asyncio.to_thread(claude_code.require_cli)
-        argv, env, cwd = claude_code.argv(prompt, body.resume or ''), claude_code.child_env(), claude_code.workdir()
+        token, config = claude_code.issue()
+        argv, env, cwd = claude_code.argv(prompt, body.resume or '', config), claude_code.child_env(), claude_code.workdir()
+    elif body.kind in ('codex', 'cursor'):
+        argv, env, cwd, token = await asyncio.to_thread(agent_programs.launch, body.kind)
     try:
         session = Session(body.cols, body.rows, body.kind, types[body.kind], argv, env, cwd, True)
     except Exception as error:
+        claude_code.revoke(token)
         raise EngineError(f'Could not start {types[body.kind]}: {error}', 500) from error
+    session.inapp = token
     SESSIONS[session.id] = session
     studio.access.record('terminal.open', {'session': session.id, 'kind': body.kind})
     command = next((item['command'] for item in PRESETS if item['id'] == body.preset), '') if body.kind == 'shell' else ''
     if command:
         session.write(command + ('\r\n' if os.name == 'nt' else '\n'))
     return {'id': session.id, 'title': session.title, 'kind': session.kind, 'reused': False}
+
+
+class Close(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    id: str = Field(min_length=1, max_length=64)
+
+
+@router.post('/api/terminal/close')
+async def close_session(body: Close):
+    from .service import studio
+    studio.access.authorize('manage')
+    session = SESSIONS.get(body.id)
+    if session is not None:
+        session.close()
+        studio.access.record('terminal.close', {'session': body.id})
+    return {'id': body.id, 'closed': session is not None}
 
 
 def _gate(websocket: WebSocket, app_session=False):
@@ -243,6 +266,8 @@ def _gate(websocket: WebSocket, app_session=False):
     origin = headers.get('origin')
     if origin is not None and origin not in ORIGINS:
         raise EngineError('Origin is not allowed.', 403)
+    if not (window_key.valid(headers.get(window_key.HEADER)) or window_key.spend(websocket.query_params.get('ticket', ''))):
+        raise EngineError(window_key.REFUSED, 403)
     if not (app_session or studio.agents_enabled):
         raise EngineError('Turn Agents on to use the terminal.', 403)
     token = websocket.query_params.get('token', '')

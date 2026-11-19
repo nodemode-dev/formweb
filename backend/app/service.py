@@ -7,7 +7,7 @@ import re
 import shutil
 import time
 import zipfile
-from collections import defaultdict, deque
+from collections import defaultdict, deque, namedtuple
 from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import urlsplit
@@ -15,7 +15,7 @@ from uuid import uuid4
 
 from contextvars import ContextVar
 
-from . import claude_code
+from . import claude_code, seal
 from .access import LOCAL_OWNER, AccessControl, actor
 from .assets import bundle_assets, file_bytes, project_envelope
 from .collaboration import Collaboration
@@ -76,6 +76,10 @@ def local_forms(site: dict, exported: dict) -> list[dict]:
 
 
 inapp = ContextVar('formweb_inapp', default=False)
+ACCESS_META = 'agentAccess'
+DOCK_CONTRACT = '2.0.1'
+BLOCKED = 'Agents are blocked in FormWeb. Only a person in the FormWeb window can change that.'
+Notice = namedtuple('Notice', 'name data')
 
 
 class InAppAccess(AccessControl):
@@ -92,11 +96,29 @@ class InAppAccess(AccessControl):
 class Studio:
     @property
     def agents_enabled(self):
-        return self._agents or inapp.get()
+        return not self.agents_blocked and (self._agents or inapp.get())
 
     @agents_enabled.setter
     def agents_enabled(self, value):
         self._agents = bool(value)
+
+    agents_blocked = False
+
+    def agent_access(self):
+        kept = seal.access_effective(self.store.get_meta(ACCESS_META))
+        settings = self.approvals.settings()
+        choice = 'blocked' if self.agents_blocked else 'off' if not self._agents else 'ask' if settings['agentDestructive'] else 'allowed'
+        return {'choice': choice, 'stored': kept['stored'], 'agentsEnabled': self._agents and not self.agents_blocked, 'agentDestructive': settings['agentDestructive'], 'ownTabs': not self.agents_blocked, 'seal': settings['seal'], 'sealBroken': kept['sealBroken'] or settings['sealBroken'], 'contract': DOCK_CONTRACT}
+
+    def set_agent_access(self, choice):
+        self.access.authorize('manage')
+        self.agents_blocked = choice == 'blocked'
+        self.store.set_meta(ACCESS_META, seal.access_sign('blocked') if self.agents_blocked else None)
+        self._agents = not self.agents_blocked
+        if not self.agents_blocked:
+            self.approvals.update_settings({'agentDestructive': choice == 'ask'})
+        self.access.record('agents.access', {'choice': choice})
+        return self.agent_access()
 
     def __init__(self):
         self.engine = RustEngine()
@@ -106,8 +128,15 @@ class Studio:
         self.agents_enabled = os.getenv('FORMWEB_AGENTS', '0') == '1'
         self.rate_limits: dict[str, deque] = defaultdict(deque)
 
+    def announce(self, name, data, project_id=None):
+        for queue in tuple(self.subscribers):
+            if queue.full():
+                queue.get_nowait()
+            queue.put_nowait((Notice(name, data), project_id or self.access.project_key()))
+
     async def start(self):
         self.store = Store()
+        self.agents_blocked = bool(self.store.get_meta(ACCESS_META))
         self.access = InAppAccess(self.store)
         self.collaboration = Collaboration(self)
         self.forms = Forms(self)

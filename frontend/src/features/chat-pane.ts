@@ -112,10 +112,7 @@ export class ChatPane {
   readonly element = element('div', 'fw-chat');
   private log = element('div', 'fw-chat-log');
   private empty = element('p', 'fw-chat-empty', 'Ask Claude to build or change this site. It works through FormWeb\'s own tools, and every change appears in the editor.');
-  private input = element('textarea', 'fw-chat-input');
-  private send = element('button', 'fw-chat-send');
-  private sendIcon = glyph('send');
-  private stopIcon = glyph('stop');
+  private halt = element('button', 'fw-chat-quiet', 'Stop');
   private fresh = element('button', 'fw-chat-quiet', 'New chat');
   private handoff = element('button', 'fw-chat-quiet', 'Continue in Claude Code');
   private note = element('span', 'fw-chat-note');
@@ -130,13 +127,9 @@ export class ChatPane {
   constructor(private hooks: Hooks) {
     this.log.setAttribute('role', 'log');
     this.log.setAttribute('aria-live', 'polite');
-    this.input.rows = 2;
-    this.input.placeholder = 'Message Claude. Enter sends, Shift+Enter adds a line.';
-    this.input.setAttribute('aria-label', 'Message Claude');
-    this.input.dataset.field = 'chat.input';
-    this.send.type = 'button';
-    this.send.dataset.command = 'chat.send';
-    this.send.append(this.sendIcon, this.stopIcon);
+    this.halt.type = 'button';
+    this.halt.dataset.command = 'chat.stop';
+    this.halt.title = 'Stop the answer';
     this.fresh.type = 'button';
     this.fresh.dataset.command = 'chat.reset';
     this.handoff.type = 'button';
@@ -145,23 +138,23 @@ export class ChatPane {
     this.fresh.title = 'Forget this conversation and start a new one';
     this.setRunning(false);
     const bar = element('div', 'fw-chat-bar');
-    bar.append(this.fresh, this.handoff, this.note);
-    const composer = element('div', 'fw-chat-composer');
-    composer.append(this.input, this.send);
-    this.element.append(this.log, bar, composer);
+    bar.append(this.halt, this.fresh, this.handoff, this.note);
+    this.element.append(this.log, bar);
     this.log.append(this.empty);
-    this.send.addEventListener('click', () => (this.running ? void this.stop() : void this.submit()));
-    this.input.addEventListener('keydown', event => {
-      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); if (!this.running) void this.submit(); }
-    });
+    this.halt.addEventListener('click', () => void this.stop());
     this.fresh.addEventListener('click', () => void this.reset());
     this.handoff.addEventListener('click', () => { if (this.sessionId) this.hooks.continueInClaude(this.sessionId); });
   }
 
-  focus(): void { this.input.focus(); }
+  busy(): boolean { return this.running; }
+
+  send(message: string): boolean {
+    if (this.running || !message.trim()) return false;
+    void this.submit(message.trim());
+    return true;
+  }
 
   async show(): Promise<void> {
-    this.focus();
     if (this.restored) return;
     this.restored = true;
     try {
@@ -211,11 +204,7 @@ export class ChatPane {
 
   private setRunning(running: boolean): void {
     this.running = running;
-    this.sendIcon.hidden = running;
-    this.stopIcon.hidden = !running;
-    this.send.title = running ? 'Stop the answer' : 'Send';
-    this.send.setAttribute('aria-label', this.send.title);
-    this.send.classList.toggle('is-stop', running);
+    this.halt.disabled = !running;
     this.fresh.disabled = running;
     this.syncHandoff();
   }
@@ -224,10 +213,7 @@ export class ChatPane {
     this.handoff.disabled = this.running || !this.sessionId;
   }
 
-  private async submit(): Promise<void> {
-    const message = this.input.value.trim();
-    if (!message || this.running) return;
-    this.input.value = '';
+  private async submit(message: string): Promise<void> {
     this.empty.hidden = true;
     text(this.note, '');
     this.add('user').append(element('p', '', message));
@@ -285,6 +271,5 @@ export class ChatPane {
     while (this.log.lastElementChild && this.log.lastElementChild !== this.empty) this.log.lastElementChild.remove();
     this.empty.hidden = false;
     this.syncHandoff();
-    this.focus();
   }
 }

@@ -2564,4 +2564,5 @@ export default [
   "Luk eksemplet på demoen",
   "Formularen på {0} sender til denne computer og virker ikke, når webstedet ligger hos en anden vært. Giv den et scriptet svar (Bevægelse > Script, trigger Send), eller behold webstedet på denne computer med Udgiv.",
   "Statisk site eksporteret på {0}.",
+  "Den gemte agenttilladelse blev ændret uden for FormWeb og er derfor tilbage på Spørg.",
 ] as readonly string[];

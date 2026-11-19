@@ -231,7 +231,7 @@ export function onLanguage(fn: () => void): () => void {
 }
 
 const ATTRS = ['title', 'aria-label', 'placeholder'] as const;
-const SKIP = 'textarea, input, select option[data-user], script, style, canvas, iframe, pre, code, [contenteditable], [data-no-i18n], .xterm, .fw-term-body, .fw-chat-log, .layers-scroll, .page-list, .fw-crumbs, .inspector-name, .project-name, .frame-label';
+const SKIP = 'textarea, input, select option[data-user], script, style, canvas, iframe, pre, code, [contenteditable], [data-no-i18n], .xterm, .ft-term, .ft-notranslate, .fw-chat-log, .layers-scroll, .page-list, .fw-crumbs, .inspector-name, .project-name, .frame-label';
 const SKIP_ATTR = SKIP.replace('textarea, input, ', '');
 const textEn = new WeakMap<Text, Rec>();
 const attrEn = new WeakMap<Element, Map<string, Rec>>();

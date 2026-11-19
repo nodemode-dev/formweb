@@ -12,7 +12,7 @@ import '../styles/agent-connect.css';
 type Client = { id: string; name: string; file: string; status: 'ready' | 'changed' | 'missing'; cliFound: boolean; cli: string; start: string };
 type Activity = { id: string; operation: string; identity: string; channel: string; details: Record<string, unknown>; createdAt: string };
 type Approval = { id: string; kind: string; subject: Record<string, string>; requestedBy: { name: string; channel: string }; status: string; createdAt: string };
-type Settings = { agentDestructive: boolean; publishReview: boolean };
+type Settings = { agentDestructive: boolean; publishReview: boolean; sealBroken?: boolean };
 
 const CLIENT_PRESET: Record<string, string> = { 'claude-code': 'claude', codex: 'codex', cursor: 'cursor' };
 const STATUS_TEXT: Record<Client['status'], string> = { ready: 'Project config ready', changed: 'Config edited by hand', missing: 'Config missing' };
@@ -25,6 +25,7 @@ export class AgentConnect {
   private clientList = element('div', 'fw-ac-list');
   private destructive = element('input');
   private review = element('input');
+  private seal = element('p', 'fw-ac-note fw-ac-seal', 'The saved agent permission was changed outside FormWeb, so it is back to Ask.');
   private approvalList = element('div', 'fw-ac-list');
   private approvalEmpty = element('p', 'fw-ac-note', 'Nothing is waiting for you.');
   private who = element('p', 'fw-ac-note');
@@ -54,7 +55,9 @@ export class AgentConnect {
     reviewLabel.append(this.review, element('span', '', 'A reviewer must approve a release before it goes live'));
     this.destructive.addEventListener('change', () => void this.guard(() => this.saveSettings({ agentDestructive: this.destructive.checked })));
     this.review.addEventListener('change', () => void this.guard(() => this.saveSettings({ publishReview: this.review.checked })));
-    this.section('Approvals', destructiveLabel, reviewLabel, this.approvalList, this.approvalEmpty);
+    this.seal.dataset.shown = 'false';
+    this.seal.setAttribute('aria-hidden', 'true');
+    this.section('Approvals', destructiveLabel, reviewLabel, this.seal, this.approvalList, this.approvalEmpty);
 
     this.section('You', this.who);
     this.section('Activity', this.feed, this.feedEmpty);
@@ -104,6 +107,11 @@ export class AgentConnect {
     });
     if (document.activeElement !== this.destructive) this.destructive.checked = approvals.settings.agentDestructive;
     if (document.activeElement !== this.review) this.review.checked = approvals.settings.publishReview;
+    const broken = String(approvals.settings.sealBroken === true);
+    if (this.seal.dataset.shown !== broken) {
+      this.seal.dataset.shown = broken;
+      this.seal.setAttribute('aria-hidden', String(broken !== 'true'));
+    }
     keyed(this.approvalList, approvals.approvals, item => item.id, item => this.approvalCard(item), (node, item) => {
       if (item.kind === 'release.promote') label(node.querySelector('.fw-ac-name') as HTMLElement, 'Promote release {0} {1}', [item.subject.slug, item.subject.version]);
       else label(node.querySelector('.fw-ac-name') as HTMLElement, 'Agent wants to run {0}', [item.subject.tool]);

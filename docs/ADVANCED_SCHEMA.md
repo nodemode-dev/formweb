@@ -303,7 +303,7 @@ Clip links (0.19.7): `POST /api/fragment {node, embed: true, clip: true}` keeps 
 
 ## Authoring MCP tools (0.19.3)
 
-The MCP server has 14 authoring tools for the native vocabulary (and, since 0.19.5, `copy_element` and `paste_element`, 103 tools in all), each over the existing routes or engine commands and one undo step. The motion, variables and component tools accept `expected_revision`.
+The MCP server has 16 authoring tools for the native vocabulary (`copy_element` and `paste_element` joined them in 0.19.5; 103 tools in all), each over the existing routes or engine commands and one undo step. The motion, variables and component tools accept `expected_revision`.
 
 | Tool | Effect | Hints |
 | --- | --- | --- |

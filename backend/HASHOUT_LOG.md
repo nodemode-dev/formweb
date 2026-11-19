@@ -482,3 +482,121 @@ The one implementation of the library: reading `library/` (or `BUNDLE/library` w
 Every write builds its commands from the state it read and sends one `studio.mutate('batch', ...)` with that `expectedRevision`, so a concurrent edit fails rather than merging silently, and each action is one undo step. Bundled media and component posters are ingested with `application/octet-stream` and owned before the batch. A component already on the site with a different digest is kept unless `updateComponents` is sent. Built records come from `library/build/components`; a missing one is compiled through `build_component` with a warning. Import HTML keeps the whole body (page scripts measure the kit header), joins every `<style>` with the optional `css`, keeps the first inline script, replaces only the kit module line with an inline shim for `reduced`, `onTheme` and `token`, refuses other module dependencies, and enforces the code-section caps (512 KiB markup, 256 KiB styles, 512 KiB script). Relative assets of an imported page are not brought along.
 
 Checked against a fixture library: two inserts gave independent copies with one undo each; a starter reused an empty home page; both preset modes; Import HTML of two webspun pages exported with no page errors.
+
+## v0.22.0 window key
+
+### app/window_key.py, app/main.py :: LocalAccess
+
+- refers-to: `app/window_key.py`, `app/main.py` :: LocalAccess, window_key_claim, window_ticket, `formweb_engine.py`
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+The engine makes one key per launch (memory only). LocalAccess, the one guard, refuses with 403 any write on a control path (`/api/*`, `/mcp`) when the caller is the root identity (no token, or `FORMWEB_AUTH_TOKEN`) and does not send `X-FormWeb-Window-Key`, and refuses window-only paths (`/api/agents*`, `/api/approvals/settings`, `/api/terminal*`, `/api/chat*`, `/api/window/ticket`) to every caller without it, named bearer identities included. A named identity's other writes stay governed by its role. The open list is `/mcp` (outside agents, with the Agents switch and approvals) and `/api/window/key`; site visitor routes (forms, runtime, password forms, the commerce webhook, `/published`, `/sites`, `/preview`) are not control paths and stay as they were. GET `/api/approvals` and `/api/terminal/sessions` need the key from root too. With `FORMWEB_WINDOW_KEY_STDOUT=1` (the desktop shell's sidecar) the engine prints `formweb-window-key: <key>` flushed before uvicorn starts and the bootstrap route answers 404; otherwise `/api/window/key` answers once and then 409. `./formweb serve` runs uvicorn directly, so a shell that starts it, or adopts a running engine, leaves the page on the bootstrap.
+
+Sweep of `app.openapi()` write operations with no key: 86 of 86 answered before; after, 88 operations (two new), 75 refused, 13 answered (the bootstrap and the visitor routes above).
+
+### app/terminal.py, app/claude_code.py, app/chat.py
+
+- refers-to: `app/terminal.py` :: _gate, open_session, Session, `app/claude_code.py` :: issue, revoke, valid_token, `app/chat.py` :: _run
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+The terminal socket needs the key header or a one-time ticket (`POST /api/window/ticket`, 30 seconds, spent on use). Each Claude Code tab and each Chat run gets its own in-app token, written with its MCP config to `DATA_DIR/agent-mcp/<random>.json` opened with mode 0600; the argument list carries only the path. The token and file end when the tab's process ends or the run finishes. Terminal children no longer inherit `FORMWEB_AUTH_TOKEN` or `FORMWEB_TOKEN`. `FORMWEB_CLAUDE` remains an environment variable only; no route changes it.
+
+### app/substrate.py :: Approvals.decide, settings; app/seal.py
+
+- refers-to: `app/substrate.py` :: Approvals.decide, Approvals.settings, Approvals.update_settings, `app/seal.py`
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+A decision is refused on the agent or terminal channel, from the root identity without the key, and from the same identity on the same channel that asked (release reviews keep their own rule). The stored approval setting carries an HMAC-SHA256 seal keyed by a 32-byte value in the system keychain (`keyring`, service FormWeb, account settings-seal, imported lazily). A record whose seal is missing or wrong while `agentDestructive` is off reads as on, with `seal: "broken"` and `sealBroken: true`; with no keychain the values stand and `seal` is `"unavailable"`. A deleted record reads as the product default (off): the default is the loose value, so the seal catches edits, not removal.
+
+### setup/run.py, setup/library_cli.py
+
+- refers-to: `../setup/run.py` :: tool, main, `../setup/library_cli.py` :: main
+- kind: security
+- logged: v0.22.0 · 2026-11-19
+
+`./formweb run` and the library writes go through `/mcp` (`apply_commands`, `library_insert`, `library_apply_preset`, `library_apply_starter`) as an outside agent: Agents must be on and approval settings apply. Reads stay on the REST routes. Observed: with Agents off the command line answered 403 in one line; on, `page.add` and a preset applied.
+
+### app/main.py :: LocalAccess, a refusal to a window origin carries the CORS headers
+
+- refers-to: `app/main.py` :: LocalAccess, `tests/test_window_key.py` :: test_a_refusal_carries_the_cors_headers_for_a_window_origin_only
+- kind: fix
+- logged: v0.22.0 · 2026-11-19
+
+`LocalAccess` is the outermost middleware (it is added after `CORSMiddleware`), so a refusal it sends itself (the missing window key, a wrong or missing server token, the body size limit) never passed through the CORS layer. The development editor on 5240 or 5241 talks to the engine on another origin, so the browser hid the refusal behind a CORS error and the page could not read the 403 or 401 text, for example to ask for the server access token. Seen in headless Chrome against an engine started with `FORMWEB_AUTH_TOKEN`, the editor on another port: every call was blocked by CORS with `net::ERR_FAILED`; after the change the same calls answer 401 and the page reads it. Only an origin in `ORIGINS` gets `access-control-allow-origin` (the origin itself, never `*`), `access-control-allow-credentials: true` and `vary: Origin`; a foreign origin, `null` and a request with no origin get none, as before. The packaged window is same-origin and never needed it. The headers go on every refusal made for an allowed origin, including the 421 for a wrong Host, which tells that origin nothing it could not learn by asking.
+
+### app/terminal.py, ../setup/library_cli.py: two module docstrings said what no longer holds
+
+- refers-to: `app/terminal.py` :: the module docstring, `../setup/library_cli.py` :: the module docstring
+- kind: docs
+- logged: v0.22.0 · 2026-11-19
+
+The terminal docstring began "Owner-only", which described the old rule and no check in the code. What the code does now: `_gate` requires the window key or a one-time ticket for the socket, the HTTP routes are on the window-only list in `window_key.py`, and `authorize('manage')` applies to a server started with an access token; the sentence says that. The library command-line docstring said the writes go over the API routes and the same routes the MCP tools use; since the window-key work `insert`, `preset` and `starter` go through `/mcp` (`library_insert`, `library_apply_preset`, `library_apply_starter`) like `./formweb run`, so Agents must be on and the approval settings apply, and only `list` reads the REST routes. The docstring now says so, in the words `setup/run.py` uses. No code changed.
+
+### ../setup/agents.py, ../agents/manifest.json: the app writes down what it offers agents
+
+- refers-to: `../setup/agents.py` :: manifest_text, mcp, skills, manifest_sync, sync_all, `../agents/manifest.json`, `tests/test_agents_manifest.py`
+- kind: feature
+- logged: v0.22.0 · 2026-11-18
+
+`./formweb agents sync` also writes `agents/manifest.json` (format `form-agent-manifest`, version 1, the shape formadaptor's `spec/agent-manifest.schema.json` defines) and `--check` exits 1 printing `agents: drifted agents/manifest.json` when the committed file is not what sync would write. Why: the family spec, the gateway and the skills installer read these counts from one file the app writes about itself instead of carrying typed numbers.
+
+Where each field comes from. `app` is `formweb`, the file name of `apps/formweb.json` in formcompiler (declared in the script). `mcp.tools` and `mcp.read_only` are read from `app.mcp_server.TOOLS`, the list `tools/list` sends, in its order: 103 tools, 37 whose `readOnlyHint` is true; compared with a running engine (`tools/list` on port 29400, window key header): same 103 names in the same order and the same 37. `mcp.transports` is `stdio` when `setup/mcp_stdio.py` exists and `http` when the MCP app has a `/mcp` route. `skills` is read from `.claude/skills`: `formweb-editing` and `formweb-skillset` with no sub-skills, `formweb-harness` with 18 (the director and 17 specialists). `extensions` is null: FormWeb hosts no form.ext extensions. The script imports the backend registry with `FORMWEB_DATA_DIR` set to a scratch folder and without byte-code, so a sync leaves nothing in the data folder or the tree; it needs the backend's packages, which CI has when it runs the check.
+
+`mcp.approval_gated` is the tools that wait for a person today under the default settings, and under the defaults that is one: `run_ui_command` (a command the editor marks risky shows an Allow box in the window for 45 seconds; the gate is `runFromBridge` in `frontend/src/commands/catalogue.ts`, reached through `commands_mirror.run`; it does not depend on any setting). The other gate, "Ask me before an agent deletes...", is `agentDestructive` in the approval settings and is off by default (`seal.effective` reads a missing value as false, so a project that never saved the choice, or whose record was deleted, is off; a record that was edited by hand while the keychain seal is intact reads as on). With it on, `call_tool` in `mcp_server.py` waits up to 100 seconds in Agent Connect for every tool that declares `destructiveHint` (15 today: `edit_nodes`, `edit_pages`, `edit_styles`, `edit_cms`, `edit_site`, `edit_creative`, `open_project`, `load_project_file`, `delete_project`, `set_form_retention`, `motion_remove`, `motion_track`, `variables_remove`, `library_apply_preset`, `new_site`), but for the domain tools and `motion_track` only when the one command removes something (a `.remove` command, `site.replace`, a null motion track), and for `apply_commands` only when a batch holds a `.remove` or `.delete` command. The script reads the default through `seal.effective` with the keychain switched off, so changing the default in `seal.py` and running sync adds those tools (and `apply_commands`) to the manifest on its own. Declared in the script: `WINDOW_GATED` (`run_ui_command`) and `REMOVE_GATED` (`apply_commands`), because their gates are code in the engine and the window, not data; sync stops with an error if either name leaves the registry. `publishReview` (also off by default) does not wait: `promote_release` answers `pendingApproval` and a reviewer approves later, so it is not in the field.
+
+`dock` is declared in the script, because the page's code cannot be read for it reliably: the dock is the bottom terminal and agent dock (`TerminalDock` in `frontend/src/features/terminal.ts`, mounted under the stage in `main.ts`; `Kind` there is `shell`, `claude`, `chat`), it has no other position, and its tabs are those three kinds. The truth lives in that file; change `DOCK` when the dock moves or gains a tab.
+
+Run: sync wrote the file; formadaptor's `scripts/manifest.py check agents/manifest.json --app formweb` accepted it; `--check` exited 0. In a copy of the repo outside the tree, renaming `list_projects` and then turning `audit_site` read-only off each made `--check` exit 1 naming `agents/manifest.json`. With a running engine: default settings, `new_site` ran at once; with the setting on, the same call waited and Agent Connect's list showed it pending (the call was cut after 6 seconds by the client). Tests: `test_the_committed_agent_manifest_is_current` and `test_the_manifest_lists_what_tools_list_returns`, written after the runs above. No document stated a different count: the wiki already says 103 tools.
+
+### app/substrate.py :: Approvals, a waiting agent call says what a dialog needs, and windows are told when it comes and goes
+
+- refers-to: `app/substrate.py` :: OFFERS, ALWAYS, EVENT, Approvals._row, Approvals.wait, Approvals.decide, `app/service.py` :: Notice, Studio.announce, `app/main.py` :: events, `app/mcp_server.py` :: caller, CLIENT_HEADER, `app/claude_code.py` :: NAMES, tab_name, issue, revoke, `app/chat.py` :: _run
+- kind: feature
+- logged: v0.22.0 · 2026-11-19
+
+Preparation for the family's shared dock (its engine contract, clause 15), additive: the present window reads none of this and keeps polling `GET /api/approvals?status=pending` as before.
+
+A row of kind `agent.tool` in `GET /api/approvals` and in the answer of `POST /api/approvals/{id}` gains `agent` (the name the caller gave: the `x-formweb-client` header, else the product word of its `user-agent`, else empty; for FormWeb's own tabs the tab's name, `Claude Code` or `Chat`), `inApp` (true for FormWeb's own tabs), `what` (`run <tool>`, to finish "It asked to ..."), `offers` (`["deny", "once"]`), `always` (`"all"`) and `expires` (milliseconds since the epoch while the call waits, null afterward). `agent` and `inApp` are also kept in the row's `subject`, so they survive in the stored record. A `release.promote` row gains nothing: a release review is not an outside-agent question.
+
+Why `offers` has no `always`: the existing `approve` already is "once" (it lets that one call run and the next destructive call asks again, seen below), and a standing yes in FormWeb is the sealed owner setting `agentDestructive`, which a reviewer who may approve a call may not change. `always` says what that setting covers (every agent, FormWeb's own tabs included) for the day an owner-only answer is added.
+
+`GET /api/events` gains a second event name, `approval`, beside `state`: `{"type":"request","id"}` when a call starts to wait and `{"type":"withdrawn","id","reason"}` with reason `approved`, `denied` or `expired` when it stops. It carries the id only, on purpose: the event stream is read without the window key (an `EventSource` cannot send it), and what is waiting is a read that needs the key, so the window fetches the row. The MCP endpoint runs stateless, so the client name of `initialize` is not there at call time; that is why the name comes from a header.
+
+Run on port 28473 with a fresh data folder, as an outside agent through `/mcp` with Agents on and the setting ticked: the pending row carried the fields above and `expires` 100 s ahead; a decision without the window key was refused; deny gave the agent "The person denied delete_project"; approve let that call through to the tool and the next call waited again; a call left alone ended after 100.0 s with the 408 sentence; a call whose client hung up after 3 s stayed pending (the server does not notice) and expired at its own 100 s. The event stream showed `request` for each and `withdrawn` with `denied`, `approved` and `expired` twice. Also seen: the approval settings are kept per site id, so after an approved `new_site` the new site was back on the default and the next call did not wait.
+
+### app/service.py :: Studio.set_agent_access, a stored Blocked stops every agent, FormWeb's own tabs included
+
+- refers-to: `app/service.py` :: ACCESS_META, BLOCKED, DOCK_CONTRACT, Studio.agents_enabled, Studio.agents_blocked, Studio.agent_access, Studio.set_agent_access, Studio.start, `app/seal.py` :: access_mark, access_sign, access_effective, `app/main.py` :: LocalAccess, agents, AgentAccess, agent_access, agent_access_set
+- kind: feature
+- logged: v0.22.0 · 2026-11-19
+
+The family contract (clause 15) has a standing choice `blocked` that refuses every agent, the app's own Chat and agent tabs included. FormWeb had nothing like it: Agents off is the default, is not stored, and lets FormWeb's own Claude Code and Chat through on purpose (the dock never needed the switch). Making Agents off refuse FormWeb's own tabs would have changed what the present window does for everyone who never touched the switch, so Blocked is a separate choice a person makes, and nothing changes until they make it.
+
+`POST /api/agents/access {choice}` with `blocked`, `ask` or `allowed` (manage role, window key: it is under `/api/agents`). `blocked` writes the meta record `agentAccess` (`{choice: "blocked", seal}`), turns the Agents switch off and closes the terminal sessions the editor did not open, as the switch does. From then `/mcp` answers 403 "Agents are blocked in FormWeb. Only a person in the FormWeb window can change that." to every caller, an in-app tab token included, and it still does after a restart. A plain shell tab opens as before; an agent tab can still be opened, its tool calls are refused. `ask` and `allowed` remove the record, turn the switch on and set `agentDestructive` (true for `ask`) through the existing sealed setting; like the switch they last until the engine stops. `GET /api/agents/access` (read permission, no key) answers `{choice, stored, agentsEnabled, agentDestructive, ownTabs, seal, sealBroken, contract}`: `choice` is `blocked`, `ask`, `allowed`, or `off` for the state FormWeb starts in (outside agents refused, own tabs working), which has no word in the contract and is the owner's to name. `contract` is the dock contract version this engine implements (clause 16). The old `POST /api/agents {enabled: true}` removes a stored Blocked, so the switch in the present window never shows on while everything is refused.
+
+The record is marked with the keychain seal. Any record that is present reads as blocked; one whose mark does not verify reads as blocked with `sealBroken: true`. A record deleted outside the app cannot be told from one never written, and falls back to the switch, which starts off. The defaults are untouched: Agents off, `agentDestructive` false.
+
+Run on port 28473 with a stand-in keyring: at start `choice: off`; a Claude Code tab's token read the site with Agents off, as today; the set route without the key 403, with a wrong word 422; after `blocked` the same tab token and an outside caller both got the 403 sentence, a shell tab opened, and `GET /api/system` said `agentsEnabled: false`; after a restart still blocked; with the stored record edited by hand, still blocked and `sealBroken: true`; the old switch on gave `choice: ask` and `stored: null`; `allowed` let a destructive call through unasked and `ask` ticked the setting the present page reads.
+
+### app/agent_programs.py: agent status in one call, Codex and Cursor as tab kinds, and a close route
+
+- refers-to: `app/agent_programs.py` :: PROGRAMS, find, version, signed_in, status, cursor_config, launch, `app/main.py` :: agent_status, `app/terminal.py` :: Open, open_session, Close, close_session, listing, `app/claude_code.py` :: ENTRY, NOT_INSTALLED, INSTALL_LINE, issue_env, mcp_config, _base, require_cli, `app/chat.py` :: _events, `tests/test_dock_engine.py`
+- kind: feature
+- logged: v0.22.0 · 2026-11-19
+
+Preparation for the shared dock (contract clauses 3, 6, 10, 11, 13, 14, 16), additive: the present page keeps `/api/claude/status`, `/api/agents/clients`, the presets that type `codex` or `cursor-agent` into a shell, and closing through the socket.
+
+`GET /api/agents/status` (read permission) answers `{claude, codex, cursor, tabs, contract}`; each program is `{installed, version, install, signedIn, path, title}`. `install` is a command line and is empty when the program is found. `version` is the first line of `<program> --version`, run once per program file and kept until the file's modification time changes, so a second call took 0.02 s. A program that is not on the engine's PATH is looked for through the login shell at most once a minute. `signedIn` is true when the program's own sign-in file is there (`~/.claude/.credentials.json` or `CLAUDE_CODE_OAUTH_TOKEN` for Claude Code, `~/.codex/auth.json` for Codex, honouring `CLAUDE_CONFIG_DIR` and `CODEX_HOME`) and null otherwise, never false: on macOS Claude Code keeps its sign-in in the keychain, and Cursor's place is not known to the engine. `tabs` is the dock tabs this caller may open (all five for the manage role where a pseudo-terminal exists, none otherwise; the programs are then left out and nothing is run). The engine never calls this itself.
+
+`POST /api/terminal/open` takes `kind: codex` and `kind: cursor`. The program starts in FormWeb's agent folder (the one Claude Code uses) with an in-app token of its own in `FORMWEB_INAPP_TOKEN`; the token is never an argument and a shell tab has none. Codex is given the server on its command line as configuration overrides that name the variable (`mcp_servers.formweb_tab.url` and `mcp_servers.formweb_tab.env_http_headers`), so nothing of the person's Codex settings is written. Cursor reads `.cursor/mcp.json` of its working folder, so the engine keeps an entry `formweb_tab` there, mode 0600, whose header value is `${env:FORMWEB_INAPP_TOKEN}`; other entries in that file are kept and a file that is not JSON is left alone. A missing program answers 424 with "is not installed" in the sentence and `code: "notInstalled"` plus `install`; the Claude Code refusal gains the same two fields beside its unchanged sentence. The token ends when the tab ends, as for Claude Code.
+
+The entry the engine writes for its own tabs is now `formweb_tab` for Claude Code and Chat too (it was `formweb`), with `--allowedTools mcp__formweb_tab`, so it cannot be confused with the `formweb` entry of a project file that starts `./formweb mcp`. Chat strips the new prefix from tool names, so the Chat pane shows the same names as before.
+
+`POST /api/terminal/close {id}` (manage role, window key) ends a session and answers `{id, closed}`; `closed` is false for an id that is already gone, and the call never fails for that. `GET /api/terminal/sessions` rows gain `alive: true` (a session that ended is not listed). A socket that is attached when the session is closed this way receives the typed `exit` frame it always did.
+
+Run on port 28473 with stand-in programs named `claude`, `codex` and `cursor-agent` first on the engine's PATH, its own HOME and a shell that reads no profile. With them: all three found with their version lines; each kind opened a tab; the stand-ins saw the arguments above and, for Codex and Cursor, the token in the environment; `ps -eo args` held no token; the shell tab's environment held none; each token read the site through `/mcp`; a destructive call with the Codex token waited as `agent: Codex, inApp: true`; after close each token was refused 403 with Agents off, and with Agents on the same token counted for nothing (the call was treated as any outside caller and waited for a person); the Claude Code config file was gone. Without them: `installed: false` with the install lines, and 424 for each kind. The present page's calls were replayed and answered as before, including the socket with a one-time ticket (ready, replay, input, resize) and a reused Claude Code tab. Write routes walked without the key: 74 of 74 refused before, 76 of 76 after (the two new ones are `/api/agents/access` and `/api/terminal/close`).
+
+Not verified: the real Codex and the real Cursor agent were not available, so whether Codex accepts the two overrides and whether Cursor expands `${env:...}` in a header is taken from their documentation as remembered, not from a run. No restart route was added; the contract lets an engine leave it out.
