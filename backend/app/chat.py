@@ -71,7 +71,7 @@ def _events(line, turn, seen):
     elif kind == 'assistant':
         for block in (item.get('message') or {}).get('content') or []:
             if block.get('type') == 'tool_use':
-                tool = {'id': block.get('id', ''), 'name': str(block.get('name', '')).replace('mcp__formweb__', ''), 'input': _tool_text(block.get('input')), 'done': False}
+                tool = {'id': block.get('id', ''), 'name': str(block.get('name', '')).replace(f'mcp__{claude_code.ENTRY}__', ''), 'input': _tool_text(block.get('input')), 'done': False}
                 turn['tools'].append(tool)
                 yield 'tool', tool
             elif block.get('type') == 'text' and block.get('text') and not seen.get('streamed'):

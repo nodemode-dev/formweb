@@ -1,6 +1,6 @@
 """Live terminal: a loopback WebSocket bridged to a pseudo-terminal in the FormWeb folder.
 
-Only the editor window can use it: the routes and the socket need the window key (the socket may present a one-time ticket obtained with it), and the caller needs the manage role. Sessions the editor opens itself (POST /api/terminal/open: a shell or Claude Code) work without the Agents
+Only the editor window can use it: the routes and the socket need the window key (the socket may present a one-time ticket obtained with it), and the caller needs the manage role. Sessions the editor opens itself (POST /api/terminal/open: a shell, Claude Code, Codex or Cursor) work without the Agents
 switch; a socket that creates its own session still needs Agents on. Uses the standard library `pty` on macOS and Linux and
 `pywinpty` on Windows. A session outlives its socket so the editor can collapse the dock or reconnect and
 get the same shell back, with the last 64 KiB of output replayed.
@@ -18,7 +18,7 @@ from collections import deque
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, ConfigDict, Field
 
-from . import claude_code, window_key
+from . import agent_programs, claude_code, window_key
 from .access import actor, channel
 from .config import ORIGINS, PORT, ROOT
 from .engine import EngineError
@@ -174,7 +174,7 @@ def close_all(external_only=False):
 
 
 def listing():
-    return [{'id': item.id, 'title': item.title, 'kind': item.kind, 'app': item.app} for item in SESSIONS.values()]
+    return [{'id': item.id, 'title': item.title, 'kind': item.kind, 'app': item.app, 'alive': True} for item in SESSIONS.values()]
 
 
 def status():
@@ -191,7 +191,7 @@ def _winpty_available():
 
 class Open(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    kind: str = Field(default='shell', pattern='^(shell|claude)$')
+    kind: str = Field(default='shell', pattern='^(shell|claude|codex|cursor)$')
     prompt: str | None = Field(default=None, max_length=20000)
     resume: str | None = Field(default=None, max_length=200)
     preset: str | None = Field(default=None, max_length=16)
@@ -210,7 +210,7 @@ async def sessions():
 async def open_session(body: Open):
     from .service import studio
     studio.access.authorize('manage')
-    types = {'shell': 'Shell', 'claude': 'Claude Code'}
+    types = {'shell': 'Shell', 'claude': 'Claude Code', 'codex': 'Codex', 'cursor': 'Cursor'}
     prompt = (body.prompt or '').strip()
     if body.kind == 'claude' and not body.resume:
         live = next((item for item in SESSIONS.values() if item.kind == 'claude' and item.app), None)
@@ -225,6 +225,8 @@ async def open_session(body: Open):
         await asyncio.to_thread(claude_code.require_cli)
         token, config = claude_code.issue()
         argv, env, cwd = claude_code.argv(prompt, body.resume or '', config), claude_code.child_env(), claude_code.workdir()
+    elif body.kind in ('codex', 'cursor'):
+        argv, env, cwd, token = await asyncio.to_thread(agent_programs.launch, body.kind)
     try:
         session = Session(body.cols, body.rows, body.kind, types[body.kind], argv, env, cwd, True)
     except Exception as error:
@@ -237,6 +239,22 @@ async def open_session(body: Open):
     if command:
         session.write(command + ('\r\n' if os.name == 'nt' else '\n'))
     return {'id': session.id, 'title': session.title, 'kind': session.kind, 'reused': False}
+
+
+class Close(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    id: str = Field(min_length=1, max_length=64)
+
+
+@router.post('/api/terminal/close')
+async def close_session(body: Close):
+    from .service import studio
+    studio.access.authorize('manage')
+    session = SESSIONS.get(body.id)
+    if session is not None:
+        session.close()
+        studio.access.record('terminal.close', {'session': body.id})
+    return {'id': body.id, 'closed': session is not None}
 
 
 def _gate(websocket: WebSocket, app_session=False):

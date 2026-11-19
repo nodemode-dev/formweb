@@ -19,6 +19,9 @@ from .engine import EngineError
 TOKENS: dict[str, Path] = {}
 NAMES: dict[str, str] = {}
 INAPP_HEADER = 'X-FormWeb-Inapp'
+ENTRY = 'formweb_tab'
+NOT_INSTALLED = 'notInstalled'
+INSTALL_LINE = 'npm install -g @anthropic-ai/claude-code'
 KEEP_ENV = {'CLAUDE_CODE_OAUTH_TOKEN', 'CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CONFIG_DIR'}
 INSTALL = 'Claude Code was not found. Install it with "npm install -g @anthropic-ai/claude-code" (or follow https://docs.claude.com/en/docs/claude-code/setup), run "claude" once to sign in, then try again. Set FORMWEB_CLAUDE to the full path if it lives somewhere unusual.'
 NOTE = ('You are running inside FormWeb, a visual website builder. The editor is open next to you and shows every change live. '
@@ -46,6 +49,13 @@ def issue(name='Claude Code'):
     TOKENS[token] = path
     NAMES[token] = name
     return token, path
+
+
+def issue_env(name):
+    token = secrets.token_urlsafe(24)
+    TOKENS[token] = None
+    NAMES[token] = name
+    return token
 
 
 def revoke(token):
@@ -124,7 +134,9 @@ def _locate(login_shell=True):
 def require_cli():
     path = cli()
     if not path:
-        raise EngineError(INSTALL, 424)
+        error = EngineError(INSTALL, 424)
+        error.details = {'code': NOT_INSTALLED, 'install': INSTALL_LINE}
+        raise error
     return path
 
 
@@ -137,14 +149,14 @@ def child_env(extra=None):
 
 
 def mcp_config(token):
-    return json.dumps({'mcpServers': {'formweb': {'type': 'http', 'url': mcp_url(), 'headers': {INAPP_HEADER: token}}}}, separators=(',', ':'))
+    return json.dumps({'mcpServers': {ENTRY: {'type': 'http', 'url': mcp_url(), 'headers': {INAPP_HEADER: token}}}}, separators=(',', ':'))
 
 
 def _base(binary, prompt, resume, headless, config):
     argv = [binary]
     if headless:
         argv += ['-p', '--output-format', 'stream-json', '--verbose', '--include-partial-messages']
-    argv += ['--mcp-config', str(config), '--allowedTools', 'mcp__formweb', '--append-system-prompt', NOTE]
+    argv += ['--mcp-config', str(config), '--allowedTools', 'mcp__' + ENTRY, '--append-system-prompt', NOTE]
     if resume:
         argv += ['--resume', resume]
     if prompt:

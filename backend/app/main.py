@@ -29,7 +29,7 @@ from .handoff import router as handoff_router
 from .library_routes import router as library_router
 from .mcp_server import mcp, mcp_app
 from .providers.routes import router as provider_router
-from .service import ACCESS_META, BLOCKED, Notice, safe_export_path, studio
+from .service import ACCESS_META, BLOCKED, DOCK_CONTRACT, Notice, safe_export_path, studio
 from .terminal import router as terminal_router
 from .vector_routes import router as vector_router
 from .workflows import load_native
@@ -273,6 +273,16 @@ async def agent_access_set(body: AgentAccess):
         from .terminal import close_all
         close_all(external_only=True)
     return result
+
+
+@app.get('/api/agents/status')
+async def agent_status():
+    from . import agent_programs
+    from .terminal import status
+    studio.access.authorize('read')
+    offered = 'manage' in studio.access.status()['permissions'] and status()['supported']
+    programs = await asyncio.to_thread(agent_programs.status) if offered else {}
+    return {**programs, 'tabs': ['shell', 'claude', 'chat', 'codex', 'cursor'] if offered else [], 'contract': DOCK_CONTRACT}
 
 
 @app.post(window_key.BOOTSTRAP)
