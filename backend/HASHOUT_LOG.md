@@ -1,5 +1,13 @@
 # Backend context
 
+## An engine that has ended but was not yet collected counts as gone on macOS · after v0.25.1 (2026-11-20)
+
+Fault, found by FormCut's macOS check on the same start-up file: ending a leftover engine waits until it is gone. `_alive_posix` asks `kill(pid, 0)`, which still answers for a process that has ended and that its parent has not collected, and it tells such a process apart only by reading `/proc`, which macOS does not have. There the wait ran out and the start was refused with "formweb could not stop an engine that was left running".
+
+`app/startup.py` · `finished(pid)` asks `ps -o stat= -p <pid>` where there is no `/proc` (never on Windows, never on Linux) and answers true for a state that starts with `Z`. `gone_by` stops waiting when the process is not alive or is finished. `alive` is unchanged, so the two second watch on the app starts no program.
+
+`tests/test_startup.py` · `test_a_holder_that_has_ended_and_was_not_collected_counts_as_gone_where_there_is_no_proc` points `PROC` at a folder that does not exist and claims a data folder whose holder has lost its app. Seen on Linux: with `finished` present and not yet used in `gone_by` it fails with the sentence above after the full wait; with the use it passes. Not run on macOS.
+
 ## The app gives the installed engine its process id, and says a failed start before the loading window closes · after v0.24.0 (2026-11-19)
 
 Fault, read from the code and not run: an installed engine with the start pattern below takes itself for started alone when `FORMWEB_SHELL_PID` is absent. The 0.24.0 app set no such variable, so that engine would open the app's program beside it (which hands over to the running app and ends) and exit 0 without serving, and the app would wait its 60 seconds and report that the service did not answer.

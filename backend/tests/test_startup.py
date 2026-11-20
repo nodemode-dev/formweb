@@ -130,6 +130,25 @@ def test_the_two_ways_of_reading_a_start_time_agree(monkeypatch):
     assert startup.created(4_000_000) == 0.0
 
 
+def test_a_holder_that_has_ended_and_was_not_collected_counts_as_gone_where_there_is_no_proc(tmp_path, monkeypatch):
+    from app import startup
+
+    engine, shell, mine = stand_in(), stand_in(), stand_in()
+    try:
+        (tmp_path / startup.LOCK_NAME).write_text(json.dumps(record(startup, engine, shell)))
+        stop(shell)
+        monkeypatch.setattr(startup, "PROC", str(tmp_path / "no-proc"))
+        assert startup.finished(mine.pid) is False
+        path, replaced = startup.claim(tmp_path, mine.pid)
+        assert replaced == engine.pid
+        assert startup.finished(engine.pid) is True
+        assert json.loads(path.read_text())["pid"] == os.getpid()
+        monkeypatch.setattr(startup, "PROC", "/proc")
+        assert startup.finished(engine.pid) is False
+    finally:
+        stop(engine, shell, mine)
+
+
 def test_the_engine_serves_and_logs_with_its_three_streams_closed(tmp_path):
     proc = subprocess.Popen(["sh", "-c", 'exec "$0" formweb_engine.py <&- >&- 2>&-', sys.executable], cwd=BACKEND, env=engine_env(tmp_path))
     log = tmp_path / "logs" / "formweb-engine.log"
