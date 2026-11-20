@@ -219,7 +219,7 @@ export function formwebDock(deps: DockDeps): FormwebDock {
       get chatAbout(): string { return `Chat with Claude about your site (${deps.chatChord()})`; },
       endedTab: 'This session has ended. Close this tab and start a new one.',
       empty: 'No sessions are running. Use + for a shell, or the Claude Code and Chat buttons.',
-      tourReadyBody: 'Claude Code is installed. The robot button here opens it when you want it to take on a bigger job; the first time, it may ask you to sign in.',
+      tourReadyBody: 'Claude Code is installed. The robot button here opens it when you want it to take on a bigger job; the first time, it may ask you to sign in. Codex, Cursor and Antigravity each get a button of their own here when they are on this computer.',
       tourAskBody: 'FormWeb refuses other AI programs until you turn Agents on in Agent Connect. With Agents on, and "Ask me before an agent deletes, replaces the open project or changes retention" ticked there, FormWeb asks you in a box in the middle of the window before such a call runs. Choose Deny or Allow once.',
       consentTitle: 'Allow {agent} to make this change in {app}?',
       consentTitleUnnamed: 'Allow an agent to make this change in {app}?',

@@ -1,6 +1,6 @@
 [package]
 name = "formweb"
-version = "0.25.1"
+version = "0.26.0"
 description = "FormWeb desktop shell"
 authors = ["nodemode-ai"]
 license = "Apache-2.0"
@@ -29,6 +29,9 @@ formweb-render = { path = "../native/crates/formweb-render" }
 objc2 = "0.6"
 objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSWindow", "NSButton", "NSControl", "NSView", "NSResponder", "objc2-core-foundation", "NSColor"] }
 objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSGeometry"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_Security", "Win32_System_JobObjects", "Win32_System_Threading"] }
 
 [profile.release]
 codegen-units = 1

@@ -12,7 +12,9 @@ if not exist "%ROOT%\frontend\dist\index.html" ( pushd frontend & call npm run b
 cd backend
 if exist build\pyinstaller rmdir /s /q build\pyinstaller
 if exist dist-engine rmdir /s /q dist-engine
-"%PY%" -m PyInstaller --noconfirm --clean --onefile --noconsole --name formweb-engine ^
+set "WINDOWED=--noconsole"
+if "%FORMWEB_ENGINE_WINDOWED%"=="0" set "WINDOWED="
+"%PY%" -m PyInstaller --noconfirm --clean --onefile %WINDOWED% --name formweb-engine ^
   --distpath dist-engine --workpath build\pyinstaller --specpath build\pyinstaller --paths "%ROOT%\backend" ^
   --add-data "%ROOT%\frontend\dist;frontend_dist" ^
   --add-data "%ROOT%\backend\app\stock;app\stock" ^

@@ -1,5 +1,31 @@
 # Backend context
 
+## A Windows engine with a console, for debugging only · after v0.25.1 (2026-11-20)
+
+`setup/freeze_backend.bat` · the Windows engine is still built with `--noconsole` (the owner's decision for every app; FormWeb's script was the model). `FORMWEB_ENGINE_WINDOWED=0` now leaves the flag out, so an engine built for debugging opens a console and shows what it prints. `formweb_engine.py` already puts the null device in place of a missing stream at its top, so `--selfcheck` and every message still work when the engine has no console. `setup/freeze_backend` (bash) is unchanged: it cannot run on Windows as written (it reads `venv/bin/python` and names the core and the engine without `.exe`), so it builds only macOS and Linux engines, which have no console flag. Checked: `bash -n setup/freeze_backend`, the `.bat` read line by line. No Windows build has shown it.
+
+`docs/MANUAL.md` · the troubleshooting line for a failed start names the new message and the 90 second wait.
+
+## The app ends its engine with it on Windows, and a failed start says why · after v0.25.1 (2026-11-20)
+
+The rest of the family's Windows shell side (WINDOWS_APP_SPEC sections 2 and 3), on FormTools's worked example: FormWeb's shell starts its engine with the standard library's `Command`, not through tauri-plugin-shell, so the job holds the `Child` itself. The start mechanism did not change.
+
+`src-tauri/src/win_job.rs` (new, Windows only) · FormTools's file: one job object with kill-on-close, made on first use; `hold(&Child)` puts the engine in it, `end()` ends everything in it. The job's handle stays open for the app's whole life, so when the app ends in any way (quit, crash, a forced end from the task manager) Windows closes it and the engine goes too. `stop_service` calls `end()` first and falls back to `taskkill /T /F` only when there is no job. `start_service` (a source checkout through `cmd /C formweb.bat serve`) is held in the same job, so the launcher and the Python it starts go together.
+
+`src-tauri/src/engine_start.rs` (new) · FormTools's file with FormWeb's names: the waits (`ADDRESS_WAIT` 90 seconds, the owner's decision for every app; the window key 10 seconds, as before), the `Failure` kinds and their sentences, the last twelve lines the engine wrote (the window key line is never kept), and where the installed engine writes its log (`FORMWEB_DATA_DIR`, else `FORMWEB_HOME` or `FormWeb` in the home folder, then `Data/logs/formweb-engine.log`, as `app/config.py` and `app/runtime.py` say). FormWeb has no address line: the shell picks the port and asks `/api/health`, so `Wait::Address` is that health wait.
+
+`src-tauri/src/main.rs` · both engine streams are piped and read line by line (`forward_lines`): the window key is taken from standard output as before, every other line goes to the tail and on to the shell's own stream. The start in `setup` waits with `engine_start::until`, which also stops waiting as soon as the engine has ended (`engine_ended` asks `try_wait`), so an engine that refuses because another holds the data folder (exit code 2) is reported as that at once and not after the full wait. `engine_failed` waits up to a second for the two readers to finish, shows the sentence, the last lines, the exit code and the log's path for the installed app (a source checkout still says to run `./formweb doctor`), and only after the dialog returns closes the loading window, stops the engine and exits. A window that fails to build now shows "FormWeb could not open its window." the same way, from its own thread because the dialog cannot block the main thread; before, the loading window was closed and the app ended with nothing said. `Cargo.toml` gets `windows-sys 0.61.2` under the Windows target (the version 0.61.2 already in the lock), and `Cargo.lock` one line in the app's own list.
+
+Checked here: the two new files in a scratch crate (`windows-sys =0.61.2`, the four features) with `cargo check --target x86_64-pc-windows-msvc`: clean, no warning; `cargo test` on Linux: 5 passed (the tail, every sentence, both waits by length and kind, the wait that ends on ready, on an ended engine and on the limit, the log's path). The lock line: the old lock with the new `Cargo.toml` and stub sources, `cargo update --workspace --offline`, `diff` with the edited lock: empty. Not compiled: the desktop shell cannot be built on the build machine. Not run on Windows or macOS.
+
+## An engine that has ended but was not yet collected counts as gone on macOS · after v0.25.1 (2026-11-20)
+
+Fault, found by FormCut's macOS check on the same start-up file: ending a leftover engine waits until it is gone. `_alive_posix` asks `kill(pid, 0)`, which still answers for a process that has ended and that its parent has not collected, and it tells such a process apart only by reading `/proc`, which macOS does not have. There the wait ran out and the start was refused with "formweb could not stop an engine that was left running".
+
+`app/startup.py` · `finished(pid)` asks `ps -o stat= -p <pid>` where there is no `/proc` (never on Windows, never on Linux) and answers true for a state that starts with `Z`. `gone_by` stops waiting when the process is not alive or is finished. `alive` is unchanged, so the two second watch on the app starts no program.
+
+`tests/test_startup.py` · `test_a_holder_that_has_ended_and_was_not_collected_counts_as_gone_where_there_is_no_proc` points `PROC` at a folder that does not exist and claims a data folder whose holder has lost its app. Seen on Linux: with `finished` present and not yet used in `gone_by` it fails with the sentence above after the full wait; with the use it passes. Not run on macOS.
+
 ## The app gives the installed engine its process id, and says a failed start before the loading window closes · after v0.24.0 (2026-11-19)
 
 Fault, read from the code and not run: an installed engine with the start pattern below takes itself for started alone when `FORMWEB_SHELL_PID` is absent. The 0.24.0 app set no such variable, so that engine would open the app's program beside it (which hands over to the running app and ends) and exit 0 without serving, and the app would wait its 60 seconds and report that the service did not answer.

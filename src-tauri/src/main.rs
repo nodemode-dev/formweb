@@ -6,7 +6,7 @@
 //! the reply), the window opens on it. If something else holds 8240, the shell starts its own service on the first free
 //! port above it, up to 8279. Otherwise the shell starts the bundled formweb-engine sidecar beside its executable (built by
 //! ./build_app), or, in a source checkout, runs `formweb serve` (formweb.bat on Windows) from the FormWeb folder
-//! (FORMWEB_ROOT, or the folder above the executable's working directory that holds the launcher), waits up to 60
+//! (FORMWEB_ROOT, or the folder above the executable's working directory that holds the launcher), waits up to 90
 //! seconds for health, and stops that service on exit. FORMWEB_PORT, between 8240 and 8279, replaces 8240 as the first
 //! choice.
 
@@ -22,10 +22,13 @@ use std::time::{Duration, Instant};
 use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_dialog::DialogExt;
 
+mod engine_start;
 mod render;
 mod reveal;
 mod text_edit;
 mod traffic_lights;
+#[cfg(windows)]
+mod win_job;
 
 const DEFAULT_PORT: u16 = 8240;
 const LAST_PORT: u16 = 8279;
@@ -191,7 +194,9 @@ fn start_service(root: &Path, port: u16) -> std::io::Result<Child> {
 
 #[cfg(windows)]
 fn start_service(root: &Path, port: u16) -> std::io::Result<Child> {
-    Command::new("cmd").args(["/C", "formweb.bat", "serve"]).env("FORMWEB_PORT", port.to_string()).current_dir(root).spawn()
+    let child = Command::new("cmd").args(["/C", "formweb.bat", "serve"]).env("FORMWEB_PORT", port.to_string()).current_dir(root).spawn()?;
+    win_job::hold(&child);
+    Ok(child)
 }
 
 fn sidecar() -> Option<PathBuf> {
@@ -203,13 +208,15 @@ fn sidecar() -> Option<PathBuf> {
 #[cfg(unix)]
 fn start_sidecar(path: &Path, port: u16) -> std::io::Result<Child> {
     use std::os::unix::process::CommandExt;
-    Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").env("FORMWEB_SHELL_PID", std::process::id().to_string()).stdout(Stdio::piped()).process_group(0).spawn()
+    Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").env(engine_start::SHELL_ENV, std::process::id().to_string()).stdout(Stdio::piped()).stderr(Stdio::piped()).process_group(0).spawn()
 }
 
 #[cfg(windows)]
 fn start_sidecar(path: &Path, port: u16) -> std::io::Result<Child> {
     use std::os::windows::process::CommandExt;
-    Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").env("FORMWEB_SHELL_PID", std::process::id().to_string()).stdout(Stdio::piped()).creation_flags(0x0800_0000).spawn()
+    let child = Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").env(engine_start::SHELL_ENV, std::process::id().to_string()).stdout(Stdio::piped()).stderr(Stdio::piped()).creation_flags(0x0800_0000).spawn()?;
+    win_job::hold(&child);
+    Ok(child)
 }
 
 static WINDOW_KEY: Mutex<Option<String>> = Mutex::new(None);
@@ -220,19 +227,59 @@ fn window_key_line(line: &str) -> Option<String> {
     (key.len() >= 32 && key.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')).then(|| key.to_string())
 }
 
-fn capture_window_key(child: &mut Child) {
-    let Some(out) = child.stdout.take() else { return };
-    KEY_EXPECTED.store(true, Ordering::SeqCst);
+static TAIL: Mutex<engine_start::Tail> = Mutex::new(engine_start::Tail::new());
+static READERS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+
+fn forward_lines<R: Read + Send + 'static>(stream: R, keyed: bool) {
+    READERS.fetch_add(1, Ordering::SeqCst);
     std::thread::spawn(move || {
         use std::io::BufRead;
-        for line in std::io::BufReader::new(out).lines() {
-            let Ok(line) = line else { break };
-            match window_key_line(&line) {
-                Some(key) => { WINDOW_KEY.lock().unwrap().get_or_insert(key); }
-                None => println!("{line}"),
+        for bytes in std::io::BufReader::new(stream).split(b'\n') {
+            let Ok(bytes) = bytes else { break };
+            let text = String::from_utf8_lossy(&bytes);
+            let line = text.trim_end_matches('\r');
+            if let Some(key) = window_key_line(line) {
+                if keyed { WINDOW_KEY.lock().unwrap().get_or_insert(key); }
+                continue;
             }
+            TAIL.lock().unwrap().push(line);
+            let _ = if keyed { writeln!(std::io::stdout(), "{line}") } else { writeln!(std::io::stderr(), "{line}") };
         }
+        READERS.fetch_sub(1, Ordering::SeqCst);
     });
+}
+
+fn capture_window_key(child: &mut Child) {
+    if let Some(err) = child.stderr.take() { forward_lines(err, false); }
+    let Some(out) = child.stdout.take() else { return };
+    KEY_EXPECTED.store(true, Ordering::SeqCst);
+    forward_lines(out, true);
+}
+
+fn engine_ended(handle: &tauri::AppHandle) -> Option<Option<i32>> {
+    let state = handle.state::<Service>();
+    let mut slot = state.0.lock().unwrap();
+    let status = slot.as_mut()?.try_wait().ok().flatten()?;
+    Some(status.code())
+}
+
+fn engine_failed(handle: &tauri::AppHandle, failure: engine_start::Failure, packaged: bool) -> ! {
+    if matches!(failure, engine_start::Failure::Stopped(_)) {
+        let mut waited = Duration::ZERO;
+        while READERS.load(Ordering::SeqCst) > 0 && waited < engine_start::EXIT_WAIT {
+            std::thread::sleep(engine_start::EXIT_STEP);
+            waited += engine_start::EXIT_STEP;
+        }
+    }
+    let text = match (&failure, packaged) {
+        (engine_start::Failure::Missing | engine_start::Failure::Window, _) => engine_start::sentence(&failure),
+        (_, true) => engine_start::message(&failure, &TAIL.lock().unwrap().lines(), engine_start::engine_log().as_deref()),
+        (_, false) => format!("{}\n\nRun ./formweb doctor in the FormWeb folder.", engine_start::sentence(&failure)),
+    };
+    handle.dialog().message(text).title(engine_start::APP).kind(tauri_plugin_dialog::MessageDialogKind::Error).blocking_show();
+    reveal::close_splash(handle);
+    stop_service(handle);
+    std::process::exit(1)
 }
 
 fn stop_service(handle: &tauri::AppHandle) {
@@ -248,7 +295,9 @@ fn stop_service(handle: &tauri::AppHandle) {
             unsafe { kill(-group, 9); }
         }
         #[cfg(windows)]
-        let _ = Command::new("taskkill").args(["/T", "/F", "/PID", &child.id().to_string()]).status();
+        if !win_job::end() {
+            let _ = Command::new("taskkill").args(["/T", "/F", "/PID", &child.id().to_string()]).status();
+        }
         let _ = child.kill();
         let _ = child.wait();
     }
@@ -299,7 +348,12 @@ fn open_editor(handle: &tauri::AppHandle) {
             reveal::conceal(&window);
             traffic_lights::place(&window.as_ref().window());
         }
-        Err(_) => reveal::close_splash(handle),
+        Err(_) => {
+            let handle = handle.clone();
+            std::thread::spawn(move || {
+                engine_failed(&handle, engine_start::Failure::Window, true);
+            });
+        }
     }
 }
 
@@ -347,46 +401,32 @@ fn main() {
                 }
                 ENGINE_PORT.store(port, Ordering::SeqCst);
                 if found != Probe::Ours {
-                    let started = match sidecar() {
-                        Some(path) => Some(start_sidecar(&path, port)),
-                        None => formweb_root().map(|root| start_service(&root, port)),
+                    let program = sidecar();
+                    let packaged = program.is_some();
+                    let started = match program {
+                        Some(path) => start_sidecar(&path, port).map_err(|error| engine_start::Failure::NotStarted(error.to_string())),
+                        None => match formweb_root() {
+                            Some(root) => start_service(&root, port).map_err(|error| engine_start::Failure::NotStarted(error.to_string())),
+                            None => Err(engine_start::Failure::Missing),
+                        },
                     };
-                    match started {
-                        Some(Ok(mut child)) => {
-                            capture_window_key(&mut child);
-                            #[cfg(unix)]
-                            SERVICE_GROUP.store(child.id() as i32, std::sync::atomic::Ordering::SeqCst);
-                            handle.state::<Service>().0.lock().unwrap().replace(child); }
-                        Some(Err(error)) => {
-                            handle.dialog().message(format!("FormWeb could not start its local service: {error}")).blocking_show();
-                            reveal::close_splash(&handle);
-                            std::process::exit(1);
+                    let mut child = match started {
+                        Ok(child) => child,
+                        Err(failure) => engine_failed(&handle, failure, packaged),
+                    };
+                    capture_window_key(&mut child);
+                    #[cfg(unix)]
+                    SERVICE_GROUP.store(child.id() as i32, std::sync::atomic::Ordering::SeqCst);
+                    handle.state::<Service>().0.lock().unwrap().replace(child);
+                    let waited = engine_start::until(engine_start::Wait::Address, &mut || probe(port) == Probe::Ours, &mut || engine_ended(&handle)).and_then(|()| {
+                        if KEY_EXPECTED.load(Ordering::SeqCst) {
+                            engine_start::until(engine_start::Wait::Key, &mut || WINDOW_KEY.lock().unwrap().is_some(), &mut || engine_ended(&handle))
+                        } else {
+                            Ok(())
                         }
-                        None => {
-                            handle.dialog().message("FormWeb could not find its folder. Start it with ./formweb serve, or set FORMWEB_ROOT, then open the app again.").blocking_show();
-                            reveal::close_splash(&handle);
-                            std::process::exit(1);
-                        }
-                    }
-                    let deadline = Instant::now() + Duration::from_secs(60);
-                    while probe(port) != Probe::Ours {
-                        if Instant::now() > deadline {
-                            stop_service(&handle);
-                            handle.dialog().message("The FormWeb service did not answer within 60 seconds. Run ./formweb doctor in the FormWeb folder. The installed app's service writes a log: logs/formweb-engine.log in its data folder, which is FormWeb/Data in your home folder unless it was moved.").blocking_show();
-                            reveal::close_splash(&handle);
-                            std::process::exit(1);
-                        }
-                        std::thread::sleep(Duration::from_millis(250));
-                    }
-                    let deadline = Instant::now() + Duration::from_secs(10);
-                    while KEY_EXPECTED.load(Ordering::SeqCst) && WINDOW_KEY.lock().unwrap().is_none() && Instant::now() < deadline {
-                        std::thread::sleep(Duration::from_millis(50));
-                    }
-                    if KEY_EXPECTED.load(Ordering::SeqCst) && WINDOW_KEY.lock().unwrap().is_none() {
-                        stop_service(&handle);
-                        handle.dialog().message("The FormWeb service did not start correctly. Run ./formweb doctor in the FormWeb folder. The installed app's service writes a log: logs/formweb-engine.log in its data folder, which is FormWeb/Data in your home folder unless it was moved.").blocking_show();
-                        reveal::close_splash(&handle);
-                        std::process::exit(1);
+                    });
+                    if let Err(failure) = waited {
+                        engine_failed(&handle, failure, packaged);
                     }
                 }
                 let main_thread = handle.clone();
