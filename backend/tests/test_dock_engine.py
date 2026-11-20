@@ -55,9 +55,12 @@ def waiting_call(client, answer):
         queue = asyncio.Queue(maxsize=8)
         studio.subscribers.add(queue)
         try:
+            asked = time.time()
             task = asyncio.ensure_future(studio.approvals.wait("agent.tool", {"tool": "delete_project", "agent": "Test Agent", "inApp": False}, timeout=0.3))
-            await asyncio.sleep(0.05)
+            first = await queue.get()
+            seen = time.time()
             row = next(item for item in studio.approvals.list("pending")["approvals"] if item["subject"]["tool"] == "delete_project")
+            row["window"] = (int((asked + 0.3) * 1000), int((seen + 0.3) * 1000))
             if answer:
                 channel.set("human")
                 window_key.window.set(True)
@@ -67,7 +70,7 @@ def waiting_call(client, answer):
                 status = 200
             except EngineError as error:
                 status = error.status
-            return row, status, [queue.get_nowait()[0] for _ in range(queue.qsize())], studio.approvals.get(row["id"])
+            return row, status, [first[0]] + [queue.get_nowait()[0] for _ in range(queue.qsize())], studio.approvals.get(row["id"])
         finally:
             studio.subscribers.discard(queue)
 
@@ -78,7 +81,7 @@ def test_a_waiting_agent_call_says_who_asked_and_which_answers_there_are(client)
     row, status, notices, after = waiting_call(client, "deny")
     assert row["agent"] == "Test Agent" and row["inApp"] is False and row["what"] == "run delete_project"
     assert row["offers"] == ["deny", "once"] and row["always"] == "all"
-    assert 0 < row["expires"] - time.time() * 1000 < 1000
+    assert row["window"][0] <= row["expires"] <= row["window"][1]
     assert status == 403 and after["status"] == "denied" and after["expires"] is None
     assert [(item.name, item.data) for item in notices] == [("approval", {"type": "request", "id": row["id"]}), ("approval", {"type": "withdrawn", "id": row["id"], "reason": "denied"})]
 
