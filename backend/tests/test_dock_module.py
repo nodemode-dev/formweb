@@ -34,7 +34,7 @@ def test_a_changed_missing_or_extra_dock_file_is_named(tmp_path):
 
 def test_the_agent_manifest_describes_the_dock():
     dock = json.loads((REPO / "agents" / "manifest.json").read_text(encoding="utf-8"))["dock"]
-    assert dock == {"present": True, "positions": ["bottom", "right"], "tabs": ["shell", "claude", "codex", "cursor", "chat"]}
+    assert dock == {"present": True, "positions": ["bottom", "right"], "tabs": ["shell", "claude", "codex", "cursor", "antigravity", "chat"]}
 
 
 def test_the_old_layout_word_is_moved_once_and_reserved_before_paint():

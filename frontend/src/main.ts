@@ -355,7 +355,7 @@ async function insertStarter(id: string): Promise<void> {
   update(state());
 }
 insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), sectionsHead, sectionsGrid, startersHead, startersGrid, element('div', 'sidebar-note', 'Sections insert after the selected section. Starter pages add a new page with its sections. Every insert is one undo step.'), componentsHead, captureWrap, componentList);
-let agentDock: Dock | null = null;
+let agentDock: Dock<'antigravity'> | null = null;
 const dockHost = formwebDock({
   dock: () => agentDock,
   context: () => `Open page: ${pageId}. Selected element id: ${selectedId}.`,

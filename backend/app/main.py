@@ -282,7 +282,7 @@ async def agent_status(fresh: bool = False):
     studio.access.authorize('read')
     offered = 'manage' in studio.access.status()['permissions'] and status()['supported']
     programs = await asyncio.to_thread(agent_programs.status, fresh) if offered else {}
-    return {**programs, 'tabs': ['shell', 'claude', 'chat', 'codex', 'cursor'] if offered else [], 'contract': DOCK_CONTRACT}
+    return {**programs, 'tabs': ['shell', 'claude', 'chat', 'codex', 'cursor', 'antigravity'] if offered else [], 'contract': DOCK_CONTRACT}
 
 
 @app.post(window_key.BOOTSTRAP)

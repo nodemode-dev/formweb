@@ -14,7 +14,7 @@ type Activity = { id: string; operation: string; identity: string; channel: stri
 type Approval = { id: string; kind: string; subject: Record<string, string>; requestedBy: { name: string; channel: string }; status: string; createdAt: string };
 type Settings = { agentDestructive: boolean; publishReview: boolean; sealBroken?: boolean };
 
-const CLIENT_PRESET: Record<string, string> = { 'claude-code': 'claude', codex: 'codex', cursor: 'cursor' };
+const CLIENT_PRESET: Record<string, string> = { 'claude-code': 'claude', codex: 'codex', cursor: 'cursor', antigravity: 'antigravity' };
 const STATUS_TEXT: Record<Client['status'], string> = { ready: 'Project config ready', changed: 'Config edited by hand', missing: 'Config missing' };
 
 export class AgentConnect {
