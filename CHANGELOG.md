@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.25.0 · 2026-11-20
+
+- Two Antigravity tabs can be open at once. Each tab gets a folder of its own inside FormWeb's data folder, so a second tab no longer takes the first one's access to FormWeb's tools, and closing one leaves the other working. The folder goes when the tab closes, unless something else was put in it. If the file Antigravity reads there cannot be read, FormWeb says so in a sentence and leaves the file alone.
+- The installed app's engine stops when the app is gone. The app now tells its engine which process it is, and the engine leaves within a few seconds once that process has ended, however it ended. An engine found left behind without its app is ended and replaced at the next start.
+- Only one engine works on a data folder at a time. A second one stops at once and says "formweb is already running on [folder] (engine process N)."
+- The installed engine keeps a log: `logs/formweb-engine.log` in the data folder (`FormWeb/Data` in your home folder unless you moved it), and `logs/formweb-engine-errors.log` when it was started with no place to write errors.
+- A failed start says why before the app closes. The sentence is shown first and the loading window closes after you have answered it; before, the loading window closed first, and the app could end without a word. The two sentences for an engine that does not answer now say where its log is.
+- The engine program of an installed FormWeb (`formweb-engine`), opened on its own, opens FormWeb instead of running alone, or says that it is a part of FormWeb.
+- Known gaps: on Windows the app still stops its engine by force at quit; the failure sentence does not carry the engine's own last lines yet; an engine that is refused because another one holds the data folder is reported only after the 60 second wait; an engine left behind by 0.24.0 or older is not ended by this release. Nothing was run on Windows or macOS, the desktop app was not built on the machine this release was made on, and all checks used stand-in programs.
+
 ## 0.24.0 · 2026-11-19
 
 - Antigravity is the fourth agent program. Google's Antigravity (the `agy` program) opens as a tab of the terminal panel with FormWeb's tools, beside Claude Code, Codex and Cursor. Agent Connect has a fourth card for it. Its button adds FormWeb to the one file Antigravity reads for your whole account (`~/.gemini/config/mcp_config.json`), keeps everything else in that file, and leaves an entry named `formweb` alone when FormWeb did not write it. This is the only card that writes outside the FormWeb folder, and only when you press its button. The real Antigravity program has not been run against this.
