@@ -43,7 +43,7 @@ export class AgentConnect {
     mcpRow.append(icon('bolt'), this.mcpState, element('span', 'fw-ac-grow'), this.mcpButton);
     this.section('MCP access', mcpRow, this.mcpNote);
 
-    this.section('Clients', this.clientList, element('p', 'fw-ac-note', 'Open starts a client in the dock below. Claude Code gets FormWeb\'s tools automatically and needs no setup or Agents switch. Codex and Cursor read the project file, which starts ./formweb mcp and needs Agents on.'));
+    this.section('Clients', this.clientList, element('p', 'fw-ac-note', 'Open starts the program in a tab of the dock below, with FormWeb\'s tools and no Agents switch: Claude Code and Codex get them when they start, Cursor reads a file in FormWeb\'s agent folder, and Antigravity reads a file FormWeb writes in the tab\'s own folder. A program you start yourself reads its project file (Antigravity: its account file), which starts ./formweb mcp and needs Agents on.'));
 
     this.destructive.type = 'checkbox';
     this.destructive.dataset.field = 'approvals.agentDestructive';
@@ -79,7 +79,7 @@ export class AgentConnect {
     text(this.mcpButton, enabled ? 'Turn off' : 'Turn on');
     this.mcpButton.setAttribute('aria-checked', String(enabled));
     this.mcpButton.classList.toggle('is-on', enabled);
-    text(this.mcpNote, enabled ? 'Outside MCP clients can change this site. Every change shows in Activity with who made it.' : 'Outside MCP clients are blocked. Claude Code and Chat opened from this editor still work. Turn on to let Codex, Cursor or a Claude Code you start yourself connect.');
+    text(this.mcpNote, enabled ? 'Outside MCP clients can change this site. Every change shows in Activity with who made it.' : 'Outside MCP clients are blocked. Chat and the Claude Code, Codex, Cursor and Antigravity tabs opened from this editor still work. Turn on to let a program you start yourself connect.');
   }
 
   /** Start or stop live polling; only polls while the panel is visible. */
