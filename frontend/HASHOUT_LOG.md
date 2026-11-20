@@ -1,5 +1,13 @@
 # Frontend context map
 
+## Every request of the window waits for its key · v0.25.1 (2026-11-20)
+
+Fault: `request` in `src/api.ts` sent with whatever key the window held at that moment, and the key is claimed asynchronously (`/api/window/key`, or the shell's `__FORMWEB_WINDOW_KEY`). The window's list of commands (`src/commands/catalogue.ts`, `push`, started from `main.ts` on a timer) could leave before the claim had returned, and the engine refused it with 403. Seen in the window check on a loaded machine: `test_window_loads_throttled_without_shift_errors_or_refusals[/]` failed once in three runs with "requests refused by the guard: /api/commands/catalogue 403". The same code was in 0.24.0. The engine's guard and its open list are unchanged.
+
+`src/api.ts` · the old `loadWindowKey` body is `claimWindowKey`. `loadWindowKey` keeps one promise for the claim (`keyClaim`) and starts a new claim only when the last one finished without a key, which is what a reconnect did before. `windowKeyReady` answers that promise, starting the first claim if nothing has. `request` waits for `windowKeyReady` and then calls `send`, which is the old `request` body. The claim itself asks for its ticket through `send`, not through `request`, or it would wait for itself. `terminalTicket` goes through `request`, so the socket ticket waits too. `requestBlob` and `stream` keep the header as it is at that moment: they are reached only from the shown window, after `connect` has claimed the key.
+
+Run on a scratch clone with this change, `npm ci`, `npm run build` (`tsc --noEmit` and `vite build`, exit 0), then `python -m pytest frontend/tests/window -q -p no:cacheprovider` three times in a row with Playwright 1.63.0: 2 passed each time. Not run: the packaged desktop window, Windows, macOS.
+
 ## The desktop shell: one copy, `.fpub`, its own port, allowed commands, and a Preview frame with no sandbox · v0.21.2 (2026-11-15)
 
 Commit ee6f5ce (shell, `src-tauri/`) and the Preview change in `ui/demo-preview.ts`. New dependency: `tauri-plugin-single-instance` 2.5.5 (Apache-2.0 OR MIT), with its 38 new transitive crates in `src-tauri/Cargo.lock`; `LICENSES.md` has the row and the new count (521 registry packages).

@@ -25,14 +25,26 @@ function bearer(): Record<string, string> {
 function authHeaders(): Record<string, string> {
   return windowKey ? { ...bearer(), 'X-FormWeb-Window-Key': windowKey } : bearer();
 }
-async function loadWindowKey(): Promise<void> {
+let keyClaim: Promise<void> | undefined;
+let keyClaimed = false;
+function loadWindowKey(): Promise<void> {
+  if (!keyClaim || (keyClaimed && !windowKey)) {
+    keyClaimed = false;
+    keyClaim = claimWindowKey().catch(() => undefined).then(() => { keyClaimed = true; });
+  }
+  return keyClaim;
+}
+function windowKeyReady(): Promise<void> {
+  return keyClaim ?? loadWindowKey();
+}
+async function claimWindowKey(): Promise<void> {
   if (windowKey) return;
   const holder = window as unknown as { __FORMWEB_WINDOW_KEY?: unknown };
   const given = holder.__FORMWEB_WINDOW_KEY;
   delete holder.__FORMWEB_WINDOW_KEY;
   if (typeof given === 'string' && given) { windowKey = given; return; }
   try { windowKey = sessionStorage.getItem('formweb_window_key') || ''; } catch {}
-  if (windowKey && await terminalTicket()) return;
+  if (windowKey && await send<{ ticket?: string }>('/api/window/ticket', {}).then(reply => reply.ticket || '', () => '')) return;
   windowKey = '';
   try {
     const response = await fetch(apiBase + '/api/window/key', { method: 'POST', headers: bearer(), credentials: 'same-origin' });
@@ -58,6 +70,10 @@ export async function terminalTicket(): Promise<string> {
   try { return (await request<{ ticket: string }>('/api/window/ticket', {})).ticket || ''; } catch { return ''; }
 }
 export async function request<T>(path: string, body?: unknown, method?: string): Promise<T> {
+  await windowKeyReady();
+  return send<T>(path, body, method);
+}
+async function send<T>(path: string, body?: unknown, method?: string): Promise<T> {
   if (['/api/projects/save', '/api/publish', '/api/audit', '/api/preview'].includes(path) || path.startsWith('/api/libraries') || path.startsWith('/api/cms/') || path.startsWith('/api/branches') || path.startsWith('/api/providers/')) await queue.catch(() => undefined);
   const response = await fetch(apiBase + path, {
     method: method || (body === undefined ? 'GET' : 'POST'),
