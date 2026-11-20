@@ -1,5 +1,9 @@
 # Frontend context map
 
+## The panel module 2.2.1: its guide names Codex, Cursor and Antigravity · after v0.25.1 (2026-11-20)
+
+`src/dock/` · every file copied unchanged from FormVis commit 23b018892caa30eae5654a2f98611bd81f0f77ad (`MANIFEST.json` included); three files differ from 2.2.0 (`CONTRACT.md`, `MANIFEST.json`, `strings.ts`). `setup/agents.py` `DOCK_VERSION` is 2.2.1. `src/dock-adapter.ts` · FormWeb's own `tourReadyBody` gets the module's new sentence: "Codex, Cursor and Antigravity each get a button of their own here when they are on this computer." FormWeb carries no translation of the panel's sentences. Checked: `python setup/agents.py sync --check`, exit 0 ("frontend/src/dock matches its MANIFEST.json"). The panel's unit tests and the type check were not run in this commit.
+
 ## Every request of the window waits for its key · v0.25.1 (2026-11-20)
 
 Fault: `request` in `src/api.ts` sent with whatever key the window held at that moment, and the key is claimed asynchronously (`/api/window/key`, or the shell's `__FORMWEB_WINDOW_KEY`). The window's list of commands (`src/commands/catalogue.ts`, `push`, started from `main.ts` on a timer) could leave before the claim had returned, and the engine refused it with 403. Seen in the window check on a loaded machine: `test_window_loads_throttled_without_shift_errors_or_refusals[/]` failed once in three runs with "requests refused by the guard: /api/commands/catalogue 403". The same code was in 0.24.0. The engine's guard and its open list are unchanged.
