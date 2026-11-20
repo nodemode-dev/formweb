@@ -114,7 +114,7 @@ One MCP server and one command line reach the same running document as the edito
 ./formweb run --list                              # list the engine commands
 ./formweb run node.update id=headline 'patch={"text":"Hello"}'   # edit the open site
 ./formweb agents sync --check                     # check the skill mirrors and agents/manifest.json for drift
-./formweb mcp                                     # MCP server on stdio for Claude Code, Codex and Cursor
+./formweb mcp                                     # MCP server on stdio for Claude Code, Codex, Cursor and Antigravity
 ./formweb library list scroll                     # find library sections (also: insert, preset, starter)
 ./formweb library insert formcut-proxy-monitor tint=#ff9a3c   # insert one, re-cast, as one undo step
 ```

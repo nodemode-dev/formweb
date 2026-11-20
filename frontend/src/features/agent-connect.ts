@@ -5,7 +5,7 @@ import { label, t } from '../i18n';
 import '../styles/agent-connect.css';
 
 /**
- * Agent Connect (left panel, Agents rail mode): MCP on/off, client cards for Claude Code, Codex and Cursor,
+ * Agent Connect (left panel, Agents rail mode): MCP on/off, client cards for Claude Code, Codex, Cursor and Antigravity,
  * approvals (destructive agent calls, release review), the current identity and a live activity feed with
  * the channel (human, agent, terminal) of every change. All rows are keyed; polling only updates text.
  */

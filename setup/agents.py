@@ -174,9 +174,11 @@ def sync_all(check: bool) -> int:
 
 
 def install() -> int:
-    print("Project MCP configurations are included:")
+    print("FormWeb works with four agent programs: Claude Code, Codex, Cursor and Antigravity.")
+    print("Project MCP configurations are included for Claude Code, Codex and Cursor:")
     for name in (".mcp.json", ".codex/config.toml", ".cursor/mcp.json"):
         print(f"  {ROOT / name}")
+    print("Antigravity reads ~/.gemini/config/mcp_config.json; its card in Agent Connect adds FormWeb's entry there when you ask.")
     print(f"Launch command: {ROOT / 'formweb'} mcp")
     print(f"Windows launch command: {ROOT / 'formweb.bat'} mcp")
     print("Start ./formweb boot or serve, enable Agents in the editor, then trust this project in your client.")

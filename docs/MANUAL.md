@@ -126,7 +126,7 @@ Connected providers reports available adapters and missing server environment na
 
 ## Author with an agent
 
-Start the editor/service and enable Agents. The repository includes project MCP configurations for Claude, Codex and Cursor. Use `./formweb agents install` to see paths and commands without changing global configuration. On Windows configure an absolute `formweb.bat` path with the `mcp` argument.
+Start the editor/service and enable Agents. FormWeb works with four agent programs: Claude Code, Codex, Cursor and Antigravity (Google's `agy` program). The repository includes project MCP configurations for Claude, Codex and Cursor. Antigravity reads one file for the whole account, `~/.gemini/config/mcp_config.json`; the Antigravity card in Agent Connect adds FormWeb's entry there when you ask. Use `./formweb agents install` to see paths and commands without changing global configuration. On Windows configure an absolute `formweb.bat` path with the `mcp` argument.
 
 The `formweb-harness` skill guides an agent through reading, planning, atomic commands, responsive inspection, audit, save and export. MCP exposes the same active document as the editor. An agent should obtain live ids and command schemas before changes and refresh state after a revision conflict.
 
