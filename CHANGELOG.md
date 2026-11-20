@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.27.0 · 2026-11-20
+
+- Agent Connect says how each agent program gets FormWeb's tools. With Agents off, the note now says that Chat and the Claude Code, Codex, Cursor and Antigravity tabs opened from FormWeb still work, and that turning Agents on lets a program you start yourself connect. The note under the program cards says what each tab reads, and that a program started outside FormWeb reads its project file (Antigravity: its account file) and needs Agents on. Before, the notes named only Codex and Cursor and said they needed Agents on even in a tab. Both notes are new in all 23 translated languages; no native speaker has read the translations yet.
+- The design names of the Form family are all defined in FormWeb's style sheet, so shared parts from the other Form apps find the values they expect. Nothing on screen changes: the colours, text, spacing and layers are the same, in dark and in light.
+- One of the automatic checks no longer depends on how fast the machine running it is.
+- Known gaps: nothing was run on Windows or macOS, the desktop app was not built on the machine this release was made on, and all checks used stand-in programs.
+
 ## 0.26.0 · 2026-11-20
 
 - Windows: the installed app takes its engine with it when it ends, however it ends, also when the app itself is stopped by force or crashes.
