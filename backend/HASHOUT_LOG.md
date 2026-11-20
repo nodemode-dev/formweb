@@ -1,5 +1,11 @@
 # Backend context
 
+## A Windows engine with a console, for debugging only · after v0.25.1 (2026-11-20)
+
+`setup/freeze_backend.bat` · the Windows engine is still built with `--noconsole` (the owner's decision for every app; FormWeb's script was the model). `FORMWEB_ENGINE_WINDOWED=0` now leaves the flag out, so an engine built for debugging opens a console and shows what it prints. `formweb_engine.py` already puts the null device in place of a missing stream at its top, so `--selfcheck` and every message still work when the engine has no console. `setup/freeze_backend` (bash) is unchanged: it cannot run on Windows as written (it reads `venv/bin/python` and names the core and the engine without `.exe`), so it builds only macOS and Linux engines, which have no console flag. Checked: `bash -n setup/freeze_backend`, the `.bat` read line by line. No Windows build has shown it.
+
+`docs/MANUAL.md` · the troubleshooting line for a failed start names the new message and the 90 second wait.
+
 ## The app ends its engine with it on Windows, and a failed start says why · after v0.25.1 (2026-11-20)
 
 The rest of the family's Windows shell side (WINDOWS_APP_SPEC sections 2 and 3), on FormTools's worked example: FormWeb's shell starts its engine with the standard library's `Command`, not through tauri-plugin-shell, so the job holds the `Child` itself. The start mechanism did not change.
