@@ -65,14 +65,44 @@ os.environ["FORMWEB_CORE_BIN"] = CORE_BIN
 os.environ["FORMWEB_AGENT_DIR"] = str(_SANDBOX / "agent")
 os.environ["HOME"] = str(_SANDBOX / "home")
 os.environ["USERPROFILE"] = str(_SANDBOX / "home")
+AGENT_STAND_INS = ("claude", "codex", "cursor-agent", "agent", "agy")
+AGENT_CALLS = _SANDBOX / "agent-calls.log"
+AGENT_SHELL = '#!/bin/sh\nscript=""\nwhile [ $# -gt 0 ]; do if [ "$1" = "-c" ]; then shift; script="$1"; fi; shift; done\nif [ -n "$script" ]; then exec /bin/sh -c "$script"; fi\nexec /bin/sh\n'
+_agent_calls: list[str] = []
+if os.name != "nt":
+    for _name in ("bin", "shell"):
+        (_SANDBOX / _name).mkdir()
+    for _name in AGENT_STAND_INS:
+        (_SANDBOX / "bin" / _name).write_text(f'#!/bin/sh\necho "{_name} $*" >> "{AGENT_CALLS}"\nif [ "$1" = "--version" ]; then echo "0.0.0 (stand-in)"; exit 0; fi\nexit 1\n')
+        (_SANDBOX / "bin" / _name).chmod(0o755)
+    (_SANDBOX / "shell" / "zsh").write_text(AGENT_SHELL)
+    (_SANDBOX / "shell" / "zsh").chmod(0o755)
+    os.environ["SHELL"] = str(_SANDBOX / "shell" / "zsh")
+    os.environ["PATH"] = os.pathsep.join([str(_SANDBOX / "bin"), "/usr/bin", "/bin", "/usr/sbin", "/sbin"])
+    for _key in ("NPM_CONFIG_PREFIX", "npm_config_prefix", "PNPM_HOME", "VOLTA_HOME", "BUN_INSTALL", "NVM_SYMLINK"):
+        os.environ.pop(_key, None)
 sys.path.insert(0, str(BACKEND))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 LOOPBACK = {"host": f"127.0.0.1:{ENGINE_PORT}"}
 
 
+@pytest.fixture(autouse=True)
+def only_stand_in_agent_programs(monkeypatch):
+    agent_lookup = importlib.import_module("app.agent_lookup")
+    monkeypatch.setattr(agent_lookup, "system_folders", lambda platform=None: [])
+
+
 def pytest_sessionfinish(session, exitstatus):
+    try:
+        _agent_calls.extend(AGENT_CALLS.read_text(encoding="utf-8").splitlines())
+    except OSError:
+        pass
     shutil.rmtree(_SANDBOX, ignore_errors=True)
+
+
+def pytest_terminal_summary(terminalreporter):
+    terminalreporter.write_line(f"agent program stand-ins started {len(_agent_calls)} time(s): " + (", ".join(sorted(set(_agent_calls))) or "none"))
 
 
 def own_origin():

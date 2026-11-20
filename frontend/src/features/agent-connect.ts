@@ -5,7 +5,7 @@ import { label, t } from '../i18n';
 import '../styles/agent-connect.css';
 
 /**
- * Agent Connect (left panel, Agents rail mode): MCP on/off, client cards for Claude Code, Codex and Cursor,
+ * Agent Connect (left panel, Agents rail mode): MCP on/off, client cards for Claude Code, Codex, Cursor and Antigravity,
  * approvals (destructive agent calls, release review), the current identity and a live activity feed with
  * the channel (human, agent, terminal) of every change. All rows are keyed; polling only updates text.
  */
@@ -14,7 +14,7 @@ type Activity = { id: string; operation: string; identity: string; channel: stri
 type Approval = { id: string; kind: string; subject: Record<string, string>; requestedBy: { name: string; channel: string }; status: string; createdAt: string };
 type Settings = { agentDestructive: boolean; publishReview: boolean; sealBroken?: boolean };
 
-const CLIENT_PRESET: Record<string, string> = { 'claude-code': 'claude', codex: 'codex', cursor: 'cursor' };
+const CLIENT_PRESET: Record<string, string> = { 'claude-code': 'claude', codex: 'codex', cursor: 'cursor', antigravity: 'antigravity' };
 const STATUS_TEXT: Record<Client['status'], string> = { ready: 'Project config ready', changed: 'Config edited by hand', missing: 'Config missing' };
 
 export class AgentConnect {

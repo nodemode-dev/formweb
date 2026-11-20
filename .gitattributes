@@ -3,6 +3,7 @@
 formweb text eol=lf
 *_oc_install text eol=lf
 setup/* text eol=lf
+backend/app/agent_lookup.py text eol=lf
 *.bat text eol=crlf
 *.svg text eol=lf
 *.png binary

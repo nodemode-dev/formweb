@@ -1426,3 +1426,19 @@ Why each choice:
 - `storedChoice.get` maps the engine's `off` to `blocked` (outside agents are refused in both); nothing shows that word, the module only reads `changedOutside`.
 - `agentStatus` also carries the engine's `tabs` for this caller; a smaller set is taken and `dock.refresh()` hides the buttons.
 - `ApiError` (a subclass of `Error`, so every existing catch reads `message` as before) carries the status and the engine's `code`, which is how a refusal is told from an outage.
+
+### The dock at module 2.2.0, and Antigravity as the fourth agent tab
+
+- refers-to: `src/dock/` (16 entries with MANIFEST.json, FormVis ddc893ae, never edited here; `agents.ts` is new), `src/dock-adapter.ts` :: Fourth, KINDS, STATUS, builtin, program, agentStatus, launch, `src/main.ts` :: agentDock, `src/features/agent-connect.ts` :: CLIENT_PRESET, `backend/app/terminal.py` :: Open, open_session, Session._finish, `backend/app/agent_programs.py` :: launch, write_tab_entry, remove_tab_entry, ended, `backend/app/clients.py` :: antigravity_card, antigravity_write, `setup/agents.py` :: DOCK, DOCK_VERSION
+- kind: change
+- logged: v0.24.0 · 2026-11-19
+
+Why: module 2.2.0 takes its agent kinds from the adapter, so a fourth program is the adapter's to name. The adapter is `DockAdapter<'antigravity'>`, `tabs().builtin` lists `antigravity`, and `agentStatus` returns the engine's `antigravity` answer. When a program is not running (`finding` is `broken` or `missing`) the engine's sentence goes to the module as the status `note`, so the row says where FormWeb looked. `keyHeaders` was left as it is, and the adapter maps none of its ids onto `data-dock-part` and gives no `status` on a record: steps 2 to 5 of the move were not taken.
+
+Engine: `POST /api/terminal/open` takes kind `antigravity` and starts `agy` through the finder's start path with the tab's token in `FORMWEB_INAPP_TOKEN`. Antigravity reads its MCP servers from a file in its working folder and no way to name an environment variable in that file is documented, so the token itself is written: `formweb_tab` (`serverUrl`, `headers`) into `.agents/mcp_config.json` under the agent folder (`~/FormWeb/Agent`, or `FORMWEB_AGENT_DIR`), mode 0600, every other entry and key kept, the file replaced whole. This is the folder the Cursor tab's `.cursor/mcp.json` is in; FormWeb's tabs share one working folder, so a second Antigravity tab replaces the first one's entry. At close (`Session._finish` calls `agent_programs.ended`) the entry is removed only while it still carries that tab's token, and the token is revoked.
+
+Agent Connect: a fourth card, Antigravity. Its file is `~/.gemini/config/mcp_config.json`, the one file Antigravity reads for the whole account, so this is the one card that writes outside the FormWeb folder, and only when the person presses its button. It adds the entry `formweb` (the `formweb` launcher with `mcp`), keeps everything else, does not write when the entry is already there, and leaves alone an entry of that name it did not write and a file it cannot read; the card's `note` says so, and says when the older `~/.gemini/antigravity-cli/mcp_config.json` was seen. The window does not show `note` yet, and the card's chip and the notice after a write still use the project-file words ("Project config ready", "project config written"): new words need the 26 language files and were left for a change of their own.
+
+Not added: an Antigravity button in the Sessions tab and a View menu command (the module's own button and row start the tab).
+
+Seen here with a stand-in `agy` only, through the engine's routes in one process: the status reports it, the tab opens and its stream shows the stand-in's line, the entry is in the file with the other entries untouched and gone after close, the tab's token is accepted while the tab lives and refused after. `tsc --noEmit` is clean. Not looked at in a browser. Not run: the real `agy`, Windows, macOS, the desktop shell.

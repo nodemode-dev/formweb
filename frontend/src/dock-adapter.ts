@@ -10,15 +10,16 @@ export const DOCK_KEY = 'formweb.dock';
 export const DOCK_OLD_KEY = 'formweb_terminal';
 export const DOCK_SIZES = { minHeight: 120, defaultHeight: 272, maxHeightShare: 0.7, keepHeight: 308, minWidth: 320, defaultWidth: 420, maxWidthShare: 0.4 };
 
-type Kind = Exclude<PtyKind, 'agent'>;
+type Fourth = 'antigravity';
+type Kind = Exclude<PtyKind, 'agent'> | Fourth;
 type Row = { id: string; title: string; kind: Kind; alive?: boolean };
 type Session = { title: string; kind: Kind; status: string; alive: boolean };
 type Approval = { id: string; kind: string; agent?: string; what?: string; offers?: string[]; always?: string; expires?: number | null };
-type Program = { installed: boolean; version: string | null; install: string; signedIn: boolean | null };
+type Program = { installed: boolean; version: string | null; install: string; signedIn: boolean | null; finding?: string; said?: string };
 type Access = { choice: 'blocked' | 'ask' | 'allowed' | 'off'; sealBroken: boolean };
 
-const KINDS: Kind[] = ['shell', 'claude', 'codex', 'cursor'];
-const STATUS: Record<Kind, string> = { shell: 'Shell in the FormWeb folder', claude: 'Claude Code with FormWeb tools', codex: 'Codex with FormWeb tools', cursor: 'Cursor agent with FormWeb tools' };
+const KINDS: Kind[] = ['shell', 'claude', 'codex', 'cursor', 'antigravity'];
+const STATUS: Record<Kind, string> = { shell: 'Shell in the FormWeb folder', claude: 'Claude Code with FormWeb tools', codex: 'Codex with FormWeb tools', cursor: 'Cursor agent with FormWeb tools', antigravity: 'Antigravity with FormWeb tools' };
 const LAUNCH: { id: string; label: string; command: string }[] = [
   { id: 'shell', label: 'Shell', command: 'terminal.new' },
   { id: 'claude', label: 'Claude Code', command: 'claude.open' },
@@ -42,7 +43,7 @@ export const dockLegacy: DockLegacy = {
 };
 
 export interface DockDeps {
-  dock(): Dock | null;
+  dock(): Dock<Fourth> | null;
   context(): string;
   notify(message: string, error?: boolean): void;
   chordLabel(): string;
@@ -53,7 +54,7 @@ export interface DockDeps {
 }
 
 export interface FormwebDock {
-  adapter: DockAdapter;
+  adapter: DockAdapter<Fourth>;
   launch(preset: string): Promise<void>;
   titleButtons(run: (id: string) => unknown): HTMLButtonElement[];
   syncButtons(): void;
@@ -63,7 +64,7 @@ export function formwebDock(deps: DockDeps): FormwebDock {
   const sessions = new Map<string, Session>();
   const watchers = new Set<() => void>();
   const titleButtons = new Map<string, HTMLButtonElement>();
-  let builtin: DockKind[] = ['chat', 'shell', 'claude', 'codex', 'cursor'];
+  let builtin: Array<DockKind | Fourth> = ['chat', 'shell', 'claude', 'codex', 'cursor', 'antigravity'];
   let preset = '';
 
   const told = (): void => { for (const watcher of watchers) watcher(); };
@@ -74,7 +75,7 @@ export function formwebDock(deps: DockDeps): FormwebDock {
     session.alive = alive;
     told();
   };
-  const record = (row: Row): DockTerminal => {
+  const record = (row: Row): DockTerminal<Fourth> => {
     const kind = kindOf(row.kind);
     if (!sessions.has(row.id)) { sessions.set(row.id, { title: row.title, kind, status: STATUS[kind], alive: row.alive !== false }); told(); }
     return { id: row.id, title: row.title, alive: row.alive !== false, kind, tip: STATUS[kind] };
@@ -142,7 +143,7 @@ export function formwebDock(deps: DockDeps): FormwebDock {
     const dock = deps.dock();
     if (!dock) return;
     if (id === 'claude') { await dock.claude(); return; }
-    if (id === 'codex' || id === 'cursor') { await dock.program(id); return; }
+    if (id === 'codex' || id === 'cursor' || id === 'antigravity') { await dock.program(id); return; }
     preset = id === 'shell' ? '' : id;
     if (!dock.isOpen()) dock.toggle(true, 'none');
     await dock.newTerminal();
@@ -207,9 +208,9 @@ export function formwebDock(deps: DockDeps): FormwebDock {
     }
   };
 
-  const program = (value: Program | undefined): DockProgramStatus | undefined => (value ? { installed: value.installed, version: value.version, install: value.install, signedIn: value.signedIn } : undefined);
+  const program = (value: Program | undefined): DockProgramStatus | undefined => (value ? { installed: value.installed, version: value.version, install: value.install, signedIn: value.signedIn, ...(value.finding && value.finding !== 'runs' && value.said ? { note: value.said } : {}) } : undefined);
 
-  const adapter: DockAdapter = {
+  const adapter: DockAdapter<Fourth> = {
     words: {
       app: 'FormWeb', noun: 'site', example: 'add a pricing section with three plans', start: './formweb boot',
       lead: "Ask Claude to build or change this site. It works through FormWeb's own tools, and every change appears in the editor.",
@@ -264,19 +265,21 @@ export function formwebDock(deps: DockDeps): FormwebDock {
       channel,
       scrollback: 5000,
     },
-    agentStatus: async (): Promise<DockAgentStatus | null> => {
-      const status = await request<{ claude?: Program; codex?: Program; cursor?: Program; tabs?: string[] }>('/api/agents/status');
+    agentStatus: async (): Promise<DockAgentStatus<Fourth> | null> => {
+      const status = await request<{ claude?: Program; codex?: Program; cursor?: Program; antigravity?: Program; tabs?: string[] }>('/api/agents/status');
       if (Array.isArray(status.tabs)) {
         const allowed = builtin.filter((kind) => status.tabs?.includes(kind));
         if (allowed.length !== builtin.length) { builtin = allowed; deps.dock()?.refresh(); }
       }
-      const out: DockAgentStatus = {};
+      const out: DockAgentStatus<Fourth> = {};
       const claude = program(status.claude);
       const codex = program(status.codex);
       const cursor = program(status.cursor);
+      const antigravity = program(status.antigravity);
       if (claude) out.claude = claude;
       if (codex) out.codex = codex;
       if (cursor) out.cursor = cursor;
+      if (antigravity) out.antigravity = antigravity;
       return out;
     },
     chat: {

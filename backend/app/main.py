@@ -276,13 +276,13 @@ async def agent_access_set(body: AgentAccess):
 
 
 @app.get('/api/agents/status')
-async def agent_status():
+async def agent_status(fresh: bool = False):
     from . import agent_programs
     from .terminal import status
     studio.access.authorize('read')
     offered = 'manage' in studio.access.status()['permissions'] and status()['supported']
-    programs = await asyncio.to_thread(agent_programs.status) if offered else {}
-    return {**programs, 'tabs': ['shell', 'claude', 'chat', 'codex', 'cursor'] if offered else [], 'contract': DOCK_CONTRACT}
+    programs = await asyncio.to_thread(agent_programs.status, fresh) if offered else {}
+    return {**programs, 'tabs': ['shell', 'claude', 'chat', 'codex', 'cursor', 'antigravity'] if offered else [], 'contract': DOCK_CONTRACT}
 
 
 @app.post(window_key.BOOTSTRAP)

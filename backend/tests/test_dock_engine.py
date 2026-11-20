@@ -20,7 +20,7 @@ def standins(tmp_path, monkeypatch):
 
     folder = tmp_path / "bin"
     folder.mkdir()
-    for name in ("claude", "codex", "cursor-agent"):
+    for name in ("claude", "codex", "cursor-agent", "agy"):
         (folder / name).write_text(PROGRAM.replace("{name}", name))
         (folder / name).chmod(0o755)
     shell = tmp_path / "shell"
@@ -28,10 +28,18 @@ def standins(tmp_path, monkeypatch):
     shell.chmod(0o755)
     monkeypatch.setenv("PATH", f"{folder}:/usr/bin:/bin")
     monkeypatch.setenv("SHELL", str(shell))
-    claude_code._found[:] = []
     agent_programs.reset()
     yield folder
-    claude_code._found[:] = []
+    agent_programs.reset()
+
+
+@pytest.fixture()
+def nothing_installed(monkeypatch):
+    from app import agent_programs
+
+    monkeypatch.setenv("PATH", "/usr/bin:/bin")
+    agent_programs.reset()
+    yield
     agent_programs.reset()
 
 
@@ -143,23 +151,37 @@ def test_a_blocked_record_changed_outside_stays_blocked_and_says_so(monkeypatch)
         seal.reset()
 
 
-def test_agent_status_answers_for_the_three_programs_in_one_call(client, standins):
+def test_agent_status_answers_for_the_four_programs_in_one_call(client, standins):
     answer = client.get("/api/agents/status").json()
-    assert answer["contract"] == "2.0.1" and answer["tabs"] == ["shell", "claude", "chat", "codex", "cursor"]
-    for kind, name in (("claude", "claude"), ("codex", "codex"), ("cursor", "cursor-agent")):
-        assert answer[kind]["installed"] is True and answer[kind]["version"] == f"{name} 9.9.9 (stand-in)" and answer[kind]["install"] == ""
+    assert answer["contract"] == "2.0.1" and answer["tabs"] == ["shell", "claude", "chat", "codex", "cursor", "antigravity"]
+    for kind, name in (("claude", "claude"), ("codex", "codex"), ("cursor", "cursor-agent"), ("antigravity", "agy")):
+        assert answer[kind]["installed"] is True and answer[kind]["finding"] == "runs" and answer[kind]["version"] == "9.9.9" and answer[kind]["install"] == ""
+        assert answer[kind]["path"] == str(standins / name) and answer[kind]["how"] == "path"
         assert answer[kind]["signedIn"] in (True, None)
+    assert answer["antigravity"]["signedIn"] is None and answer["antigravity"]["title"] == "Antigravity"
 
 
-def test_agent_status_gives_an_install_line_for_a_missing_program(client, monkeypatch):
+def test_agent_status_says_where_it_looked_for_a_missing_program(client, nothing_installed):
+    from app import agent_lookup, agent_programs
+
+    answer = client.get("/api/agents/status", params={"fresh": "true"}).json()
+    for kind in ("claude", "codex", "cursor", "antigravity"):
+        said = answer[kind]
+        assert said["installed"] is False and said["finding"] == "missing" and said["path"] is None and said["version"] is None and said["signedIn"] is None
+        assert said["install"] == agent_lookup.install(kind) and said["title"] == agent_programs.PROGRAMS[kind]["title"]
+        assert said["looked"][0] == "PATH (/usr/bin:/bin)" and said["said"].startswith(f"{said['title']} was not found. Looked in: PATH (/usr/bin:/bin)")
+    refused = client.post("/api/terminal/open", json={"kind": "codex"})
+    assert refused.status_code == 424 and refused.json()["detail"].startswith("Codex was not found.") and refused.json()["code"] == "notInstalled"
+
+
+def test_a_program_that_is_found_but_does_not_start_is_reported_as_broken(client, standins):
     from app import agent_programs
 
-    monkeypatch.setattr(agent_programs, "find", lambda kind: None)
-    answer = client.get("/api/agents/status").json()
-    for kind in ("claude", "codex", "cursor"):
-        assert answer[kind] == {"installed": False, "version": None, "install": agent_programs.PROGRAMS[kind]["install"], "signedIn": None, "path": None, "title": agent_programs.PROGRAMS[kind]["title"]}
-    refused = client.post("/api/terminal/open", json={"kind": "codex"})
-    assert refused.status_code == 424 and "not installed" in refused.json()["detail"] and refused.json()["code"] == "notInstalled"
+    (standins / "codex").write_text("#!/bin/sh\necho 'codex cannot start here' >&2\nexit 3\n")
+    agent_programs.reset()
+    answer = client.get("/api/agents/status", params={"fresh": "true"}).json()["codex"]
+    assert answer["installed"] is False and answer["finding"] == "broken" and answer["path"] == str(standins / "codex") and answer["error"] == "codex cannot start here"
+    assert client.post("/api/terminal/open", json={"kind": "codex"}).status_code == 424
 
 
 def test_a_codex_or_cursor_tab_gets_its_token_in_the_environment_and_loses_it_when_closed(client, standins):
@@ -182,6 +204,47 @@ def test_a_codex_or_cursor_tab_gets_its_token_in_the_environment_and_loses_it_wh
     assert client.post("/api/terminal/close", json={"id": tab["id"]}).json() == {"id": tab["id"], "closed": True}
     assert client.post("/api/terminal/close", json={"id": tab["id"]}).json() == {"id": tab["id"], "closed": False}
     assert "Codex" not in claude_code.NAMES.values()
+
+
+def test_an_antigravity_tab_has_its_entry_in_the_folder_file_until_it_closes(client, standins):
+    import json
+
+    from app import claude_code
+
+    written = claude_code.workdir() / ".agents" / "mcp_config.json"
+    written.parent.mkdir(parents=True, exist_ok=True)
+    written.write_text(json.dumps({"mcpServers": {"other": {"command": "x"}}, "keep": 7}))
+    tab = client.post("/api/terminal/open", json={"kind": "antigravity"}).json()
+    assert tab["kind"] == "antigravity" and tab["title"] == "Antigravity"
+    held = json.loads(written.read_text())
+    token = held["mcpServers"]["formweb_tab"]["headers"]["X-FormWeb-Inapp"]
+    assert held["mcpServers"]["formweb_tab"]["serverUrl"] == claude_code.mcp_url() and held["mcpServers"]["other"] == {"command": "x"} and held["keep"] == 7
+    assert stat.S_IMODE(os.stat(written).st_mode) == 0o600 and claude_code.valid_token(token) and claude_code.tab_name(token) == "Antigravity"
+    assert client.post("/api/terminal/close", json={"id": tab["id"]}).json() == {"id": tab["id"], "closed": True}
+    assert json.loads(written.read_text()) == {"mcpServers": {"other": {"command": "x"}}, "keep": 7}
+    assert not claude_code.valid_token(token)
+    written.unlink()
+
+
+def test_the_antigravity_card_adds_one_entry_and_leaves_the_rest(client, standins):
+    import json
+
+    from app import clients
+
+    path = clients.antigravity_file()
+    listed = client.get("/api/agents/clients").json()["clients"]
+    assert [item["id"] for item in listed] == ["claude-code", "codex", "cursor", "antigravity"]
+    assert listed[3]["status"] == "missing" and listed[3]["cliFound"] is True and listed[3]["file"] == "~/.gemini/config/mcp_config.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"mcpServers": {"other": {"serverUrl": "http://x"}}, "theme": "dark"}))
+    assert client.post("/api/agents/clients/antigravity", json={}).json()["status"] == "ready"
+    assert json.loads(path.read_text()) == {"mcpServers": {"other": {"serverUrl": "http://x"}, "formweb": clients.antigravity_entry()}, "theme": "dark"}
+    stamp = os.stat(path).st_mtime_ns
+    assert client.post("/api/agents/clients/antigravity", json={}).json()["status"] == "ready" and os.stat(path).st_mtime_ns == stamp
+    path.write_text(json.dumps({"mcpServers": {"formweb": {"command": "/elsewhere"}}}))
+    kept = client.post("/api/agents/clients/antigravity", json={}).json()
+    assert kept["status"] == "changed" and "did not write" in kept["note"] and json.loads(path.read_text()) == {"mcpServers": {"formweb": {"command": "/elsewhere"}}}
+    path.unlink()
 
 
 def test_the_entry_the_engine_writes_for_its_own_tabs_is_named_formweb_tab():

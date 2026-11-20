@@ -1,5 +1,21 @@
 # Backend context
 
+## One finder for the four agent programs · v0.24.0 (2026-11-19)
+
+`app/agent_lookup.py` is the family's finder, version 1.0.1, copied from FormVis unchanged (SHA-256 `62667f9b68b7d101e1896ce617240424e33b7e498c560bc79d45f0ab26c77d51`). It is never edited here: `setup/agents.py` keeps `LOOKUP_HASHES` for 1.0.0 and 1.0.1, `lookup_problems()` reads `VERSION` from the file and compares the bytes, and `./formweb agents sync` (with and without `--check`) fails naming the file when they differ. `.gitattributes` checks the file out with LF endings because the hash is of the bytes.
+
+Why: FormWeb looked for Claude Code in its own list of folders and for Codex and Cursor on the engine's PATH and then in a login shell, and called a program installed when a file was there. An app started from a desktop launcher has the system's short PATH, and a file that is there may still not start. The finder looks in the family's order (the override variable, the engine's PATH, the known install folders, the person's shell PATH read once), starts every program the same way, and answers three ways: runs, found but does not start, not found, with where it looked.
+
+`claude_code.py`: `located(kind, fresh)` is find plus check; `usable(kind)` asks once more, fresh, before giving up; `said(found)` is the finder's sentence with FormWeb's install line and override variable; `refuse(found)` is the 424 the routes raise (code `notInstalled`, as before). `cli()`, `known()`, `require_cli()`, `child_env()`, `_wrap()`, `argv()`, `chat_argv()` and `status()` keep their names; `_names`, `_dirs`, `_locate` and `_found` are gone. `child_env(extra, path)` takes the program's path so the program's own folder is first on PATH. Override variables: `FORMWEB_CLAUDE_BIN` (the older `FORMWEB_CLAUDE` is still read), `FORMWEB_CODEX_BIN`, `FORMWEB_CURSOR_BIN`, `FORMWEB_ANTIGRAVITY_BIN`. FormWeb has no path setting, so the finder's setting step is skipped.
+
+`agent_programs.py`: `PROGRAMS` has a fourth entry, `antigravity` (`agy`); install lines come from the finder's table, so Claude Code's is now the installer script and not the npm line. `status(fresh)` answers per program `installed` (true only when `--version` ran), `path`, `version`, `finding` (`runs`, `broken`, `missing`), `how`, `looked`, `error`, `said`, and FormWeb's `install`, `signedIn`, `title`. `version` is now the version word (`9.9.9`), not the program's whole first line. Antigravity's `signedIn` is always null: it has no status command. `launch(kind)` refuses with the finder's sentence. `_login_lookup` and `version()` are gone. `write_tab_entry`, `remove_tab_entry` and `ended` are for the Antigravity tab (frontend log, the dock at 2.2.0); nothing calls `launch('antigravity')` until the tab route takes that kind.
+
+`GET /api/agents/status` takes `?fresh=true`. `clients.py` `card()` asks the finder for `cliFound`. Chat and the Claude Code tab pass the program's path to `child_env`.
+
+Tests: `tests/conftest.py` puts stand-ins named `claude`, `codex`, `cursor-agent`, `agent` and `agy` and a stand-in shell first for the whole run, removes the six variables that name install folders (`BUN_INSTALL` and the rest), replaces the finder's system folders with none for every test (`only_stand_in_agent_programs`), and prints how many times a stand-in was started. `test_agent_status_gives_an_install_line_for_a_missing_program` replaced `agent_programs.find`, which the status no longer calls; it is now `test_agent_status_says_where_it_looked_for_a_missing_program` with an empty PATH. The version assertion changed with the finder's version word.
+
+Seen here with stand-in programs only: the four reported as runs with path and version; with none on PATH the sentence listing where it looked and the 424; a stand-in that exits 3 reported as broken with its error line. Not run: any real agent program, Windows, macOS.
+
 ## The engine starts with no standard streams · v0.23.1 (2026-11-19)
 
 Fault, reported by a tester on Windows on 2026-11-19 with a screenshot of the dialog: "Failed to execute script 'formweb_engine' due to unhandled exception: Unable to configure formatter 'default'", from `uvicorn/logging.py` line 42, `AttributeError: 'NoneType' object has no attribute 'isatty'`.

@@ -14,10 +14,37 @@ MANIFEST = ROOT / "agents" / "manifest.json"
 APP = "formweb"
 WINDOW_GATED = ("run_ui_command",)
 REMOVE_GATED = ("apply_commands",)
-DOCK = {"present": True, "positions": ["bottom", "right"], "tabs": ["shell", "claude", "codex", "cursor", "chat"]}
+DOCK = {"present": True, "positions": ["bottom", "right"], "tabs": ["shell", "claude", "codex", "cursor", "antigravity", "chat"]}
 DOCK_DIR = ROOT / "frontend" / "src" / "dock"
-DOCK_VERSION = "2.1.0"
+DOCK_VERSION = "2.2.0"
+LOOKUP = ROOT / "backend" / "app" / "agent_lookup.py"
+LOOKUP_HASHES = {"1.0.0": "252ea9bb9419d4990f174f91914f09800497bc69e98f849f5643bbf4217cc3f3", "1.0.1": "62667f9b68b7d101e1896ce617240424e33b7e498c560bc79d45f0ab26c77d51"}
 EXTENSIONS = None
+
+
+def lookup_problems() -> list[str]:
+    import hashlib
+    import re
+
+    rel = LOOKUP.relative_to(ROOT).as_posix()
+    try:
+        raw = LOOKUP.read_bytes()
+    except OSError:
+        return [f"{rel}: missing (the shared finder for the agent programs)"]
+    said = re.search(rb'^VERSION = "([^"\r\n]+)"\r?$', raw, re.M)
+    version = said.group(1).decode("ascii", "replace") if said else "unknown"
+    if LOOKUP_HASHES.get(version) != hashlib.sha256(raw).hexdigest():
+        return [f"{rel}: does not match the hash recorded for version {version} (the shared finder changes only as a whole new version)"]
+    return []
+
+
+def lookup_check() -> int:
+    problems = lookup_problems()
+    for problem in problems:
+        print(f"agents: {problem}")
+    if not problems:
+        print("agents: the shared finder matches the hash recorded for its version")
+    return 1 if problems else 0
 
 
 def dock_problems(folder: Path = DOCK_DIR) -> list[str]:
@@ -143,13 +170,15 @@ def manifest_sync(check: bool) -> int:
 
 
 def sync_all(check: bool) -> int:
-    return max(sync(check), manifest_sync(check), dock_check())
+    return max(sync(check), manifest_sync(check), dock_check(), lookup_check())
 
 
 def install() -> int:
-    print("Project MCP configurations are included:")
+    print("FormWeb works with four agent programs: Claude Code, Codex, Cursor and Antigravity.")
+    print("Project MCP configurations are included for Claude Code, Codex and Cursor:")
     for name in (".mcp.json", ".codex/config.toml", ".cursor/mcp.json"):
         print(f"  {ROOT / name}")
+    print("Antigravity reads ~/.gemini/config/mcp_config.json; its card in Agent Connect adds FormWeb's entry there when you ask.")
     print(f"Launch command: {ROOT / 'formweb'} mcp")
     print(f"Windows launch command: {ROOT / 'formweb.bat'} mcp")
     print("Start ./formweb boot or serve, enable Agents in the editor, then trust this project in your client.")

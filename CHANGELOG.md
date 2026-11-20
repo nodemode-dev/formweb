@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.24.0 · 2026-11-19
+
+- Antigravity is the fourth agent program. Google's Antigravity (the `agy` program) opens as a tab of the terminal panel with FormWeb's tools, beside Claude Code, Codex and Cursor. Agent Connect has a fourth card for it. Its button adds FormWeb to the one file Antigravity reads for your whole account (`~/.gemini/config/mcp_config.json`), keeps everything else in that file, and leaves an entry named `formweb` alone when FormWeb did not write it. This is the only card that writes outside the FormWeb folder, and only when you press its button. The real Antigravity program has not been run against this.
+- FormWeb finds the agent programs however it was started. Started from a desktop launcher, FormWeb has a shorter list of folders to search than a terminal has, and could report an installed program as missing. It now looks where you told it to, in the folders it was started with, in the usual install folders, and in the folders your own shell uses. This is the same search the other Form apps use.
+- "Installed" now means the program starts. FormWeb runs each program's version check before it says so. A program that is found but does not start is reported as that, with the program's own error line, and a program that is not found comes with the list of places FormWeb looked and the command to install it.
+- Claude Code's install line is now the installer script from its makers, not the npm command.
+- To point FormWeb at a program in an unusual place, set `FORMWEB_CLAUDE_BIN`, `FORMWEB_CODEX_BIN`, `FORMWEB_CURSOR_BIN` or `FORMWEB_ANTIGRAVITY_BIN` to its full path. The older `FORMWEB_CLAUDE` still works.
+- The terminal panel is the newer version the Form apps share. It is meant to look the same apart from the Antigravity tab.
+- Known gaps: the Antigravity card uses the same status words as the other cards ("Project config ready"), although its file is not in the project, and the window does not yet show the card's note about an entry it left alone. The Sessions tab and the View menu have no Antigravity entry; the tab is started from the terminal panel's own controls. The window was not looked at in a browser for this release. Nothing was run on Windows or macOS, and none of the four real programs was run: all checks used stand-in programs.
+
 ## 0.23.1 · 2026-11-19
 
 - Windows: FormWeb's engine starts when it has no place to write its messages. It is built with no console window, and it stopped at once with "Unable to configure formatter 'default'" in that case. That is how the app started it up to 0.21.3, so on Windows FormWeb did not open; a tester reported it with a screenshot. 0.22.0 and 0.23.0 changed how the app starts the engine, which hides the fault for a start from the app; this release removes it for every way of starting.

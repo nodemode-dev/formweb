@@ -115,7 +115,7 @@ class Session:
         if self.closed:
             return
         self.closed = True
-        claude_code.revoke(getattr(self, 'inapp', None))
+        agent_programs.ended(self.kind, getattr(self, 'inapp', None))
         if os.name != 'nt':
             self.loop.remove_reader(self.fd)
             try:
@@ -191,7 +191,7 @@ def _winpty_available():
 
 class Open(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    kind: str = Field(default='shell', pattern='^(shell|claude|codex|cursor)$')
+    kind: str = Field(default='shell', pattern='^(shell|claude|codex|cursor|antigravity)$')
     prompt: str | None = Field(default=None, max_length=20000)
     resume: str | None = Field(default=None, max_length=200)
     preset: str | None = Field(default=None, max_length=16)
@@ -210,7 +210,7 @@ async def sessions():
 async def open_session(body: Open):
     from .service import studio
     studio.access.authorize('manage')
-    types = {'shell': 'Shell', 'claude': 'Claude Code', 'codex': 'Codex', 'cursor': 'Cursor'}
+    types = {'shell': 'Shell', 'claude': 'Claude Code', 'codex': 'Codex', 'cursor': 'Cursor', 'antigravity': 'Antigravity'}
     prompt = (body.prompt or '').strip()
     if body.kind == 'claude' and not body.resume:
         live = next((item for item in SESSIONS.values() if item.kind == 'claude' and item.app), None)
@@ -222,15 +222,15 @@ async def open_session(body: Open):
         raise EngineError(f'At most {MAX_SESSIONS} terminal sessions can run at once. Close one first.', 429)
     argv = env = cwd = token = None
     if body.kind == 'claude':
-        await asyncio.to_thread(claude_code.require_cli)
+        program = await asyncio.to_thread(claude_code.require_cli)
         token, config = claude_code.issue()
-        argv, env, cwd = claude_code.argv(prompt, body.resume or '', config), claude_code.child_env(), claude_code.workdir()
-    elif body.kind in ('codex', 'cursor'):
+        argv, env, cwd = claude_code.argv(prompt, body.resume or '', config), claude_code.child_env(path=program), claude_code.workdir()
+    elif body.kind in ('codex', 'cursor', 'antigravity'):
         argv, env, cwd, token = await asyncio.to_thread(agent_programs.launch, body.kind)
     try:
         session = Session(body.cols, body.rows, body.kind, types[body.kind], argv, env, cwd, True)
     except Exception as error:
-        claude_code.revoke(token)
+        agent_programs.ended(body.kind, token)
         raise EngineError(f'Could not start {types[body.kind]}: {error}', 500) from error
     session.inapp = token
     SESSIONS[session.id] = session

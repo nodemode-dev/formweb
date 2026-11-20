@@ -1,82 +1,32 @@
-"""Agent programs FormWeb can start in a dock tab: Claude Code, Codex and Cursor's agent.
+"""Agent programs FormWeb can start in a dock tab: Claude Code, Codex, Cursor's agent and Antigravity.
 
-One status answer for all three (found or not, version, the install line, signed in when a file says so), and the
-launch of Codex and Cursor in a terminal tab. Each tab gets an in-app token of its own in the child's environment
-(FORMWEB_INAPP_TOKEN), never on a command line, and the token ends with the tab. The MCP entry is named formweb_tab
-so it never shadows the `formweb` entry of a project file.
+One status answer for all four (runs, found but does not start, or not found, with the version, the install line and where
+FormWeb looked; signed in when a file says so), and the launch of Codex, Cursor and Antigravity in a terminal tab. Every
+lookup and every start goes through the family's finder (agent_lookup). Each tab gets an in-app token of its own in the
+child's environment (FORMWEB_INAPP_TOKEN), never on a command line, and the token ends with the tab. The MCP entry is
+named formweb_tab so it never shadows the `formweb` entry of a project file.
 """
 import json
 import os
-import shlex
-import shutil
-import subprocess
-import time
 from pathlib import Path
 
-from . import claude_code
-from .engine import EngineError
+from . import agent_lookup, claude_code
 
 PROGRAMS = {
-    'claude': {'title': 'Claude Code', 'bin': 'claude', 'install': claude_code.INSTALL_LINE},
-    'codex': {'title': 'Codex', 'bin': 'codex', 'install': 'npm install -g @openai/codex'},
-    'cursor': {'title': 'Cursor', 'bin': 'cursor-agent', 'install': 'curl https://cursor.com/install -fsS | bash'},
+    'claude': {'title': 'Claude Code', 'bin': 'claude', 'install': agent_lookup.install('claude')},
+    'codex': {'title': 'Codex', 'bin': 'codex', 'install': agent_lookup.install('codex')},
+    'cursor': {'title': 'Cursor', 'bin': 'cursor-agent', 'install': agent_lookup.install('cursor')},
+    'antigravity': {'title': 'Antigravity', 'bin': 'agy', 'install': agent_lookup.install('antigravity')},
 }
 TOKEN_ENV = 'FORMWEB_INAPP_TOKEN'
-LOOK_EVERY = 60.0
-_PATHS: dict[str, str] = {}
-_LOOKED: dict[str, float] = {}
-_VERSIONS: dict[str, tuple] = {}
 
 
 def reset():
-    _PATHS.clear()
-    _LOOKED.clear()
-    _VERSIONS.clear()
-
-
-def _login_lookup(name):
-    shell = os.environ.get('SHELL') or shutil.which('bash') or '/bin/sh'
-    try:
-        done = subprocess.run([shell, '-l', '-c', 'command -v ' + shlex.quote(name)], capture_output=True, text=True, timeout=6, stdin=subprocess.DEVNULL)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    lines = [line.strip() for line in done.stdout.splitlines() if line.strip()]
-    return lines[-1] if lines and Path(lines[-1]).is_file() else None
+    agent_lookup.forget()
 
 
 def find(kind):
-    kept = _PATHS.get(kind)
-    if kept and Path(kept).is_file():
-        return kept
-    name = PROGRAMS[kind]['bin']
-    path = claude_code.known() if kind == 'claude' else shutil.which(name)
-    if not path and os.name != 'nt' and time.monotonic() - _LOOKED.get(kind, -LOOK_EVERY) >= LOOK_EVERY:
-        _LOOKED[kind] = time.monotonic()
-        path = claude_code.cli() if kind == 'claude' else _login_lookup(name)
-    if path:
-        _PATHS[kind] = path
-    else:
-        _PATHS.pop(kind, None)
-    return path
-
-
-def version(path):
-    try:
-        stamp = os.stat(path).st_mtime
-    except OSError:
-        return None
-    kept = _VERSIONS.get(path)
-    if kept and kept[0] == stamp:
-        return kept[1]
-    text = None
-    try:
-        done = subprocess.run(claude_code._wrap([path, '--version']), capture_output=True, text=True, timeout=8, stdin=subprocess.DEVNULL, env=claude_code.child_env())
-        lines = (done.stdout or done.stderr).strip().splitlines()
-        text = lines[0][:80] if lines else None
-    except (OSError, subprocess.SubprocessError):
-        pass
-    _VERSIONS[path] = (stamp, text)
-    return text
+    return claude_code.located(kind).path
 
 
 def signed_in(kind):
@@ -89,12 +39,59 @@ def signed_in(kind):
     return None
 
 
-def status():
-    found = {}
+def status(fresh=False):
+    answers = {}
     for kind, spec in PROGRAMS.items():
-        path = find(kind)
-        found[kind] = {'installed': path is not None, 'version': version(path) if path else None, 'install': '' if path else spec['install'], 'signedIn': signed_in(kind) if path else None, 'path': path, 'title': spec['title']}
-    return found
+        found = claude_code.located(kind, fresh)
+        runs = found.state == 'runs'
+        answers[kind] = {**agent_lookup.answer(found), 'said': claude_code.said(found), 'install': '' if runs else spec['install'], 'signedIn': signed_in(kind) if runs else None, 'title': spec['title']}
+    return answers
+
+
+def _tab_file(folder):
+    return Path(folder) / '.agents' / 'mcp_config.json'
+
+
+def _servers(path):
+    data = json.loads(path.read_text(encoding='utf-8') or '{}') if path.exists() else {}
+    if not isinstance(data, dict) or not isinstance(data.get('mcpServers', {}), dict):
+        raise OSError(f'{path} is not an MCP servers file FormWeb can read, so it was left alone')
+    return data
+
+
+def _replace(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    part = path.with_name(path.name + f'.part-{os.getpid()}')
+    with os.fdopen(os.open(part, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'w', encoding='utf-8') as out:
+        out.write(json.dumps(data, indent=2) + '\n')
+    os.replace(part, path)
+
+
+def write_tab_entry(folder, token):
+    path = _tab_file(folder)
+    data = _servers(path)
+    data.setdefault('mcpServers', {})[claude_code.ENTRY] = {'serverUrl': claude_code.mcp_url(), 'headers': {claude_code.INAPP_HEADER: token}}
+    _replace(path, data)
+    return path
+
+
+def remove_tab_entry(folder, token):
+    path = _tab_file(folder)
+    try:
+        data = _servers(path)
+        entry = data.get('mcpServers', {}).get(claude_code.ENTRY)
+        if not token or not isinstance(entry, dict) or (entry.get('headers') or {}).get(claude_code.INAPP_HEADER) != token:
+            return
+        del data['mcpServers'][claude_code.ENTRY]
+        _replace(path, data)
+    except (OSError, ValueError):
+        return
+
+
+def ended(kind, token):
+    claude_code.revoke(token)
+    if kind == 'antigravity':
+        remove_tab_entry(claude_code.workdir(), token)
 
 
 def cursor_config(folder):
@@ -119,16 +116,21 @@ def cursor_config(folder):
 
 def launch(kind):
     spec = PROGRAMS[kind]
-    path = find(kind)
-    if not path:
-        error = EngineError(f'{spec["title"]} is not installed on this computer. Install it with: {spec["install"]}', 424)
-        error.details = {'code': claude_code.NOT_INSTALLED, 'install': spec['install']}
-        raise error
+    found = claude_code.usable(kind)
+    if found.state != 'runs':
+        raise claude_code.refuse(found)
+    path = found.path
     folder = claude_code.workdir()
     argv = [path]
     if kind == 'codex':
         argv += ['-c', f'mcp_servers.{claude_code.ENTRY}.url="{claude_code.mcp_url()}"', '-c', f'mcp_servers.{claude_code.ENTRY}.env_http_headers={{"{claude_code.INAPP_HEADER}"="{TOKEN_ENV}"}}']
-    else:
+    elif kind == 'cursor':
         cursor_config(folder)
     token = claude_code.issue_env(spec['title'])
-    return claude_code._wrap(argv), claude_code.child_env({TOKEN_ENV: token}), folder, token
+    if kind == 'antigravity':
+        try:
+            write_tab_entry(folder, token)
+        except (OSError, ValueError):
+            claude_code.revoke(token)
+            raise
+    return claude_code._wrap(argv), claude_code.child_env({TOKEN_ENV: token}, path), folder, token
