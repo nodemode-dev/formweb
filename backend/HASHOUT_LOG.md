@@ -1,5 +1,15 @@
 # Backend context
 
+## Each Antigravity tab has a folder of its own · after v0.24.0 (2026-11-19)
+
+Fault: every Antigravity tab started in FormWeb's one agent folder (`~/FormWeb/Agent` or `FORMWEB_AGENT_DIR`) and wrote its `formweb_tab` entry to that folder's `.agents/mcp_config.json`. A second tab replaced the first tab's entry, so the first `agy` lost its access while it ran.
+
+`agent_programs.py`: `tab_folder(kind)` makes `<data folder>/agent-tabs/antigravity/<twelve hex characters>`; `launch('antigravity')` writes the entry there, starts `agy` there and remembers the folder under the tab's token in `TAB_FOLDERS`. `ended` takes the folder for the token and `leave_tab_folder` removes the entry, then the file when nothing else is in it, then `.agents` and the folder when they are empty: a folder that got anything else from the person or the program is kept. Claude Code, Codex and Cursor tabs still start in the agent folder; nothing of theirs changed. The folder is in the data folder, as in FormVis, so a tab's token is never written into a folder of the person's own.
+
+A servers file that is not JSON, or not an object, used to end the open route in a bare 500. `_servers` now answers both the same way and `launch` raises "Antigravity was not started: <file> is not an MCP servers file FormWeb can read, so it was left alone." with status 409; the tab's token is taken back and the file is not touched.
+
+Seen here through the real routes with a stand-in `agy`: two tabs open at once had two folders, two entries and two tokens, both valid; closing one removed its folder and ended its token and left the other's file byte for byte and its token valid; closing the second left `agent-tabs/antigravity` empty; nothing was written in the agent folder; `not json at all` and `[1, 2]` in a tab's file gave the 409 with the sentence and the file unchanged. Not run: a real `agy`, Windows, macOS.
+
 ## One finder for the four agent programs · v0.24.0 (2026-11-19)
 
 `app/agent_lookup.py` is the family's finder, version 1.0.1, copied from FormVis unchanged (SHA-256 `62667f9b68b7d101e1896ce617240424e33b7e498c560bc79d45f0ab26c77d51`). It is never edited here: `setup/agents.py` keeps `LOOKUP_HASHES` for 1.0.0 and 1.0.1, `lookup_problems()` reads `VERSION` from the file and compares the bytes, and `./formweb agents sync` (with and without `--check`) fails naming the file when they differ. `.gitattributes` checks the file out with LF endings because the hash is of the bytes.

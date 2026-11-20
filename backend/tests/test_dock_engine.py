@@ -206,14 +206,16 @@ def test_a_codex_or_cursor_tab_gets_its_token_in_the_environment_and_loses_it_wh
     assert "Codex" not in claude_code.NAMES.values()
 
 
-def test_an_antigravity_tab_has_its_entry_in_the_folder_file_until_it_closes(client, standins):
+def test_an_antigravity_tab_has_its_entry_in_the_folder_file_until_it_closes(client, standins, tmp_path, monkeypatch):
     import json
 
-    from app import claude_code
+    from app import agent_programs, claude_code
 
-    written = claude_code.workdir() / ".agents" / "mcp_config.json"
-    written.parent.mkdir(parents=True, exist_ok=True)
+    folder = tmp_path / "tab"
+    written = folder / ".agents" / "mcp_config.json"
+    written.parent.mkdir(parents=True)
     written.write_text(json.dumps({"mcpServers": {"other": {"command": "x"}}, "keep": 7}))
+    monkeypatch.setattr(agent_programs, "tab_folder", lambda kind: folder)
     tab = client.post("/api/terminal/open", json={"kind": "antigravity"}).json()
     assert tab["kind"] == "antigravity" and tab["title"] == "Antigravity"
     held = json.loads(written.read_text())
@@ -223,7 +225,44 @@ def test_an_antigravity_tab_has_its_entry_in_the_folder_file_until_it_closes(cli
     assert client.post("/api/terminal/close", json={"id": tab["id"]}).json() == {"id": tab["id"], "closed": True}
     assert json.loads(written.read_text()) == {"mcpServers": {"other": {"command": "x"}}, "keep": 7}
     assert not claude_code.valid_token(token)
-    written.unlink()
+
+
+def test_two_antigravity_tabs_each_have_a_folder_and_an_entry_of_their_own(client, standins):
+    import json
+
+    from app import agent_programs, claude_code, terminal
+    from app.config import DATA_DIR
+
+    home = DATA_DIR / "agent-tabs" / "antigravity"
+    tabs = [client.post("/api/terminal/open", json={"kind": "antigravity"}).json() for _ in range(2)]
+    tokens = [next(item.inapp for item in terminal.SESSIONS.values() if item.id == tab["id"]) for tab in tabs]
+    folders = [agent_programs.TAB_FOLDERS[token] for token in tokens]
+    assert folders[0] != folders[1] and all(folder.parent == home for folder in folders)
+    assert not (claude_code.workdir() / ".agents" / "mcp_config.json").exists()
+    for folder, token in zip(folders, tokens):
+        entry = json.loads((folder / ".agents" / "mcp_config.json").read_text())["mcpServers"]["formweb_tab"]
+        assert entry["headers"]["X-FormWeb-Inapp"] == token and claude_code.valid_token(token)
+    kept = (folders[1] / ".agents" / "mcp_config.json").read_text()
+    assert client.post("/api/terminal/close", json={"id": tabs[0]["id"]}).json()["closed"] is True
+    assert not folders[0].exists() and not claude_code.valid_token(tokens[0])
+    assert (folders[1] / ".agents" / "mcp_config.json").read_text() == kept and claude_code.valid_token(tokens[1])
+    assert client.post("/api/terminal/close", json={"id": tabs[1]["id"]}).json()["closed"] is True
+    assert list(home.iterdir()) == [] and not claude_code.valid_token(tokens[1]) and agent_programs.TAB_FOLDERS == {}
+
+
+def test_an_antigravity_tab_with_an_unreadable_servers_file_is_refused_with_a_sentence(client, standins, tmp_path, monkeypatch):
+    from app import agent_programs, claude_code
+
+    folder = tmp_path / "tab"
+    written = folder / ".agents" / "mcp_config.json"
+    written.parent.mkdir(parents=True)
+    monkeypatch.setattr(agent_programs, "tab_folder", lambda kind: folder)
+    names = dict(claude_code.NAMES)
+    for text in ("not json at all", "[1, 2]"):
+        written.write_text(text)
+        answer = client.post("/api/terminal/open", json={"kind": "antigravity"})
+        assert answer.status_code == 409 and answer.json()["detail"] == f"Antigravity was not started: {written} is not an MCP servers file FormWeb can read, so it was left alone."
+        assert written.read_text() == text and claude_code.NAMES == names
 
 
 def test_the_antigravity_card_adds_one_entry_and_leaves_the_rest(client, standins):

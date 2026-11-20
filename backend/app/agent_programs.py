@@ -8,9 +8,12 @@ named formweb_tab so it never shadows the `formweb` entry of a project file.
 """
 import json
 import os
+import secrets
 from pathlib import Path
 
 from . import agent_lookup, claude_code
+from .config import DATA_DIR
+from .engine import EngineError
 
 PROGRAMS = {
     'claude': {'title': 'Claude Code', 'bin': 'claude', 'install': agent_lookup.install('claude')},
@@ -19,6 +22,7 @@ PROGRAMS = {
     'antigravity': {'title': 'Antigravity', 'bin': 'agy', 'install': agent_lookup.install('antigravity')},
 }
 TOKEN_ENV = 'FORMWEB_INAPP_TOKEN'
+TAB_FOLDERS: dict[str, Path] = {}
 
 
 def reset():
@@ -52,8 +56,17 @@ def _tab_file(folder):
     return Path(folder) / '.agents' / 'mcp_config.json'
 
 
+def tab_folder(kind):
+    folder = DATA_DIR / 'agent-tabs' / kind / secrets.token_hex(6)
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder
+
+
 def _servers(path):
-    data = json.loads(path.read_text(encoding='utf-8') or '{}') if path.exists() else {}
+    try:
+        data = json.loads(path.read_text(encoding='utf-8') or '{}') if path.exists() else {}
+    except ValueError:
+        data = None
     if not isinstance(data, dict) or not isinstance(data.get('mcpServers', {}), dict):
         raise OSError(f'{path} is not an MCP servers file FormWeb can read, so it was left alone')
     return data
@@ -88,10 +101,23 @@ def remove_tab_entry(folder, token):
         return
 
 
+def leave_tab_folder(folder, token):
+    remove_tab_entry(folder, token)
+    path = _tab_file(folder)
+    try:
+        if path.exists() and _servers(path) == {'mcpServers': {}}:
+            path.unlink()
+        path.parent.rmdir()
+        Path(folder).rmdir()
+    except OSError:
+        return
+
+
 def ended(kind, token):
     claude_code.revoke(token)
-    if kind == 'antigravity':
-        remove_tab_entry(claude_code.workdir(), token)
+    folder = TAB_FOLDERS.pop(token, None)
+    if folder is not None:
+        leave_tab_folder(folder, token)
 
 
 def cursor_config(folder):
@@ -129,8 +155,10 @@ def launch(kind):
     token = claude_code.issue_env(spec['title'])
     if kind == 'antigravity':
         try:
+            folder = tab_folder(kind)
             write_tab_entry(folder, token)
-        except (OSError, ValueError):
+        except (OSError, ValueError) as error:
             claude_code.revoke(token)
-            raise
+            raise EngineError(f'Antigravity was not started: {error}.', 409) from error
+        TAB_FOLDERS[token] = folder
     return claude_code._wrap(argv), claude_code.child_env({TOKEN_ENV: token}, path), folder, token
