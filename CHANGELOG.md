@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.25.1 · 2026-11-20
+
+- The window waits until it holds its pass before it sends anything to the engine. On a slow start one of its first messages could leave too early and was refused; nothing was lost that a person would see, but the engine did not get the window's list of commands until the next change. This was also in 0.24.0.
+
 ## 0.25.0 · 2026-11-20
 
 - Two Antigravity tabs can be open at once. Each tab gets a folder of its own inside FormWeb's data folder, so a second tab no longer takes the first one's access to FormWeb's tools, and closing one leaves the other working. The folder goes when the tab closes, unless something else was put in it. If the file Antigravity reads there cannot be read, FormWeb says so in a sentence and leaves the file alone.
