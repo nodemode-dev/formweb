@@ -222,9 +222,9 @@ async def open_session(body: Open):
         raise EngineError(f'At most {MAX_SESSIONS} terminal sessions can run at once. Close one first.', 429)
     argv = env = cwd = token = None
     if body.kind == 'claude':
-        await asyncio.to_thread(claude_code.require_cli)
+        program = await asyncio.to_thread(claude_code.require_cli)
         token, config = claude_code.issue()
-        argv, env, cwd = claude_code.argv(prompt, body.resume or '', config), claude_code.child_env(), claude_code.workdir()
+        argv, env, cwd = claude_code.argv(prompt, body.resume or '', config), claude_code.child_env(path=program), claude_code.workdir()
     elif body.kind in ('codex', 'cursor'):
         argv, env, cwd, token = await asyncio.to_thread(agent_programs.launch, body.kind)
     try:

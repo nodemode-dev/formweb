@@ -8,11 +8,9 @@ import hmac
 import json
 import os
 import secrets
-import shlex
-import shutil
-import subprocess
 from pathlib import Path
 
+from . import agent_lookup
 from .config import DATA_DIR, PORT
 from .engine import EngineError
 
@@ -21,9 +19,10 @@ NAMES: dict[str, str] = {}
 INAPP_HEADER = 'X-FormWeb-Inapp'
 ENTRY = 'formweb_tab'
 NOT_INSTALLED = 'notInstalled'
-INSTALL_LINE = 'npm install -g @anthropic-ai/claude-code'
-KEEP_ENV = {'CLAUDE_CODE_OAUTH_TOKEN', 'CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CONFIG_DIR'}
-INSTALL = 'Claude Code was not found. Install it with "npm install -g @anthropic-ai/claude-code" (or follow https://docs.claude.com/en/docs/claude-code/setup), run "claude" once to sign in, then try again. Set FORMWEB_CLAUDE to the full path if it lives somewhere unusual.'
+INSTALL_LINE = agent_lookup.install('claude')
+KEEP_ENV = agent_lookup.KEEP_ENV
+OVERRIDES = {'claude': ('FORMWEB_CLAUDE_BIN', 'FORMWEB_CLAUDE'), 'codex': ('FORMWEB_CODEX_BIN',), 'cursor': ('FORMWEB_CURSOR_BIN',), 'antigravity': ('FORMWEB_ANTIGRAVITY_BIN',)}
+OTHERWISE = 'set {var} to its full path'
 NOTE = ('You are running inside FormWeb, a visual website builder. The editor is open next to you and shows every change live. '
         'Use the formweb MCP tools: call get_site first to see the current site, change it with apply_commands or edit_nodes, '
         'and use the preview and audit tools to check the result. Undo is available through history commands. '
@@ -75,77 +74,45 @@ def workdir():
     return folder
 
 
-def _names():
-    return ('claude.exe', 'claude.cmd', 'claude') if os.name == 'nt' else ('claude',)
+def located(kind, fresh=False):
+    found = agent_lookup.find(kind, setting=None, override_vars=OVERRIDES.get(kind, ()), shell_timeout=10.0, fresh=fresh)
+    return agent_lookup.check(found, child_env(path=found.path), 15.0, fresh)
 
 
-def _dirs():
-    home = Path.home()
-    found = [home / '.claude' / 'local', home / '.local' / 'bin', home / '.npm-global' / 'bin', home / '.bun' / 'bin', home / '.volta' / 'bin']
-    if os.name == 'nt':
-        for key in ('APPDATA', 'LOCALAPPDATA'):
-            base = os.getenv(key)
-            if base:
-                found += [Path(base) / 'npm', Path(base) / 'Programs' / 'claude']
-    else:
-        found += [Path('/opt/homebrew/bin'), Path('/usr/local/bin'), Path('/usr/bin')]
-    return found
+def usable(kind):
+    found = located(kind)
+    return found if found.state == 'runs' else located(kind, True)
 
 
-_found = []
+def said(found):
+    return agent_lookup.sentence(found, agent_lookup.install(found.program), OTHERWISE.format(var=OVERRIDES[found.program][0]))
+
+
+def refuse(found):
+    error = EngineError(said(found), 424)
+    error.details = {'code': NOT_INSTALLED, 'install': agent_lookup.install(found.program)}
+    return error
 
 
 def cli():
-    if _found and Path(_found[0]).is_file():
-        return _found[0]
-    path = _locate()
-    _found[:] = [path] if path else []
-    return path
+    found = located('claude')
+    return found.path if found.state == 'runs' else None
 
 
 def known():
-    return _found[0] if _found and Path(_found[0]).is_file() else _locate(False)
-
-
-def _locate(login_shell=True):
-    wanted = os.getenv('FORMWEB_CLAUDE', '').strip()
-    if wanted and Path(wanted).is_file():
-        return wanted
-    path = shutil.which('claude')
-    if path:
-        return path
-    for folder in _dirs():
-        for name in _names():
-            candidate = folder / name
-            if candidate.is_file() and (os.name == 'nt' or os.access(candidate, os.X_OK)):
-                return str(candidate)
-    if login_shell and os.name != 'nt':
-        shell = os.environ.get('SHELL') or shutil.which('bash') or '/bin/sh'
-        try:
-            done = subprocess.run([shell, '-l', '-c', 'command -v claude'], capture_output=True, text=True, timeout=6, stdin=subprocess.DEVNULL)
-            lines = [line.strip() for line in done.stdout.splitlines() if line.strip()]
-            if lines and Path(lines[-1]).is_file():
-                return lines[-1]
-        except (OSError, subprocess.SubprocessError):
-            pass
-    return None
+    return located('claude').path
 
 
 def require_cli():
-    path = cli()
-    if not path:
-        error = EngineError(INSTALL, 424)
-        error.details = {'code': NOT_INSTALLED, 'install': INSTALL_LINE}
-        raise error
-    return path
+    found = usable('claude')
+    if found.state != 'runs':
+        raise refuse(found)
+    return found.path
 
 
-def child_env(extra=None):
-    env = {key: value for key, value in os.environ.items() if not (key.startswith('CLAUDE') and key not in KEEP_ENV)}
-    env.pop('CLAUDECODE', None)
-    env.update({'TERM': 'xterm-256color', 'COLORTERM': 'truecolor', 'FORMWEB_API': f'http://127.0.0.1:{PORT}', 'FORMWEB_MCP_URL': mcp_url(), 'FORMWEB_TERMINAL': '1'})
-    env.update(extra or {})
-    return env
+def child_env(extra=None, path=None):
+    own = {'TERM': 'xterm-256color', 'COLORTERM': 'truecolor', 'FORMWEB_API': f'http://127.0.0.1:{PORT}', 'FORMWEB_MCP_URL': mcp_url(), 'FORMWEB_TERMINAL': '1'}
+    return agent_lookup.child_env(path, extra={**own, **(extra or {})}, shell_timeout=10.0, keep=KEEP_ENV)
 
 
 def mcp_config(token):
@@ -165,10 +132,7 @@ def _base(binary, prompt, resume, headless, config):
 
 
 def _wrap(argv):
-    if os.name == 'nt':
-        return ['cmd.exe', '/c', *argv] if argv[0].lower().endswith(('.cmd', '.bat')) else argv
-    shell = os.environ.get('SHELL') or shutil.which('bash') or '/bin/sh'
-    return [shell, '-l', '-c', 'exec ' + shlex.join(argv)]
+    return agent_lookup.start_argv(argv)
 
 
 def argv(prompt, resume, config):
@@ -179,13 +143,6 @@ def chat_argv(prompt, resume, config):
     return _wrap(_base(require_cli(), prompt, resume, True, config))
 
 
-def status():
-    path = cli()
-    version = None
-    if path:
-        try:
-            done = subprocess.run(_wrap([path, '--version']), capture_output=True, text=True, timeout=8, stdin=subprocess.DEVNULL, env=child_env())
-            version = (done.stdout or done.stderr).strip().splitlines()[0] if (done.stdout or done.stderr).strip() else None
-        except (OSError, subprocess.SubprocessError):
-            pass
-    return {'installed': path is not None, 'path': path, 'version': version, 'workdir': str(workdir()), 'install': None if path else INSTALL}
+def status(fresh=False):
+    found = located('claude', fresh)
+    return {**agent_lookup.answer(found, agent_lookup.install('claude'), OTHERWISE.format(var=OVERRIDES['claude'][0])), 'workdir': str(workdir()), 'install': None if found.state == 'runs' else said(found)}

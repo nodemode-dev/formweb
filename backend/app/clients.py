@@ -4,8 +4,6 @@ Each client reads a project file that starts `./formweb mcp` (stdio proxy into t
 Writing restores FormWeb's recommended file; it never touches user-level client settings. The Claude Code card's
 Open button does not depend on that file: it starts Claude through POST /api/terminal/open with FormWeb's own MCP config.
 """
-import shutil
-
 from . import claude_code
 from .config import ROOT
 from .engine import EngineError
@@ -40,7 +38,7 @@ def card(client_id):
     path = ROOT / spec['path']
     current = path.read_text(encoding='utf-8') if path.is_file() else None
     status = 'missing' if current is None else 'ready' if current == spec['content'] else 'changed'
-    found = (claude_code.known() if client_id == 'claude-code' else shutil.which(spec['cli'])) is not None
+    found = claude_code.located('claude' if client_id == 'claude-code' else client_id).path is not None
     return {'id': client_id, 'name': spec['name'], 'file': spec['path'], 'status': status, 'cliFound': found, 'cli': spec['cli'], 'start': spec['start'], 'launch': '/api/terminal/open' if client_id == 'claude-code' else None}
 
 
