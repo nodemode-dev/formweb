@@ -253,6 +253,19 @@ def test_two_antigravity_tabs_each_have_a_folder_and_an_entry_of_their_own(clien
     assert list(home.iterdir()) == [] and not claude_code.valid_token(tokens[1]) and agent_programs.TAB_FOLDERS == {}
 
 
+def test_every_program_tab_reaches_the_tools_with_agents_off_and_a_caller_without_a_tab_does_not(client, standins):
+    from app import terminal
+
+    assert client.get("/api/system").json()["agentsEnabled"] is False
+    assert client.post(MCP_PATH, json=SITE, headers=ACCEPT).status_code == 403
+    for kind in ("claude", "codex", "cursor", "antigravity"):
+        tab = client.post("/api/terminal/open", json={"kind": kind}).json()
+        token = next(item.inapp for item in terminal.SESSIONS.values() if item.id == tab["id"])
+        assert client.post(MCP_PATH, json=SITE, headers={**ACCEPT, INAPP_HEADER: token}).status_code == 200
+        assert client.post("/api/terminal/close", json={"id": tab["id"]}).json()["closed"] is True
+        assert client.post(MCP_PATH, json=SITE, headers={**ACCEPT, INAPP_HEADER: token}).status_code == 403
+
+
 def test_an_antigravity_tab_with_an_unreadable_servers_file_is_refused_with_a_sentence(client, standins, tmp_path, monkeypatch):
     from app import agent_programs, claude_code
 
