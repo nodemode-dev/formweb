@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.26.0 · 2026-11-20
+
+- Windows: the installed app takes its engine with it when it ends, however it ends, also when the app itself is stopped by force or crashes.
+- A failed start says why, in more words. The message now carries the sentence, the engine's last lines, its exit code and where its log is, and it is shown before the loading window closes. An engine that stops during the start is reported at once instead of after the whole wait, and a window that fails to open says so too.
+- The app waits 90 seconds for its engine's answer on a first start, up from 60.
+- macOS: an engine left behind by an earlier run is recognised as gone as soon as it has ended. Before, the next start could wait for it until it gave up with "could not stop an engine that was left running".
+- Windows builds: the engine is still built with no console window. Setting `FORMWEB_ENGINE_WINDOWED=0` when building gives an engine with a console, for finding a start fault.
+- The first-time guide of the terminal panel says that Codex, Cursor and Antigravity each get a button of their own when they are on this computer.
+- Known gaps: nothing was run on Windows or macOS, the desktop app was not built on the machine this release was made on, and all checks used stand-in programs.
+
 ## 0.25.1 · 2026-11-20
 
 - The window waits until it holds its pass before it sends anything to the engine. On a slow start one of its first messages could leave too early and was refused; nothing was lost that a person would see, but the engine did not get the window's list of commands until the next change. This was also in 0.24.0.
