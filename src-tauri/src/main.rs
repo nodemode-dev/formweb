@@ -203,13 +203,13 @@ fn sidecar() -> Option<PathBuf> {
 #[cfg(unix)]
 fn start_sidecar(path: &Path, port: u16) -> std::io::Result<Child> {
     use std::os::unix::process::CommandExt;
-    Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").stdout(Stdio::piped()).process_group(0).spawn()
+    Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").env("FORMWEB_SHELL_PID", std::process::id().to_string()).stdout(Stdio::piped()).process_group(0).spawn()
 }
 
 #[cfg(windows)]
 fn start_sidecar(path: &Path, port: u16) -> std::io::Result<Child> {
     use std::os::windows::process::CommandExt;
-    Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").stdout(Stdio::piped()).creation_flags(0x0800_0000).spawn()
+    Command::new(path).env("FORMWEB_PORT", port.to_string()).env("FORMWEB_WINDOW_KEY_STDOUT", "1").env("FORMWEB_SHELL_PID", std::process::id().to_string()).stdout(Stdio::piped()).creation_flags(0x0800_0000).spawn()
 }
 
 static WINDOW_KEY: Mutex<Option<String>> = Mutex::new(None);
@@ -339,8 +339,8 @@ fn main() {
                     match free_port(first) {
                         Some(other) => { port = other; found = Probe::Free; }
                         None => {
-                            reveal::close_splash(&handle);
                             handle.dialog().message(format!("Another program is using port {first} and no other port from {DEFAULT_PORT} to {LAST_PORT} is free, so FormWeb cannot start its local service. Quit that program, then open FormWeb again.")).blocking_show();
+                            reveal::close_splash(&handle);
                             std::process::exit(1);
                         }
                     }
@@ -358,13 +358,13 @@ fn main() {
                             SERVICE_GROUP.store(child.id() as i32, std::sync::atomic::Ordering::SeqCst);
                             handle.state::<Service>().0.lock().unwrap().replace(child); }
                         Some(Err(error)) => {
-                            reveal::close_splash(&handle);
                             handle.dialog().message(format!("FormWeb could not start its local service: {error}")).blocking_show();
+                            reveal::close_splash(&handle);
                             std::process::exit(1);
                         }
                         None => {
-                            reveal::close_splash(&handle);
                             handle.dialog().message("FormWeb could not find its folder. Start it with ./formweb serve, or set FORMWEB_ROOT, then open the app again.").blocking_show();
+                            reveal::close_splash(&handle);
                             std::process::exit(1);
                         }
                     }
@@ -372,8 +372,8 @@ fn main() {
                     while probe(port) != Probe::Ours {
                         if Instant::now() > deadline {
                             stop_service(&handle);
+                            handle.dialog().message("The FormWeb service did not answer within 60 seconds. Run ./formweb doctor in the FormWeb folder. The installed app's service writes a log: logs/formweb-engine.log in its data folder, which is FormWeb/Data in your home folder unless it was moved.").blocking_show();
                             reveal::close_splash(&handle);
-                            handle.dialog().message("The FormWeb service did not answer within 60 seconds. Run ./formweb doctor in the FormWeb folder.").blocking_show();
                             std::process::exit(1);
                         }
                         std::thread::sleep(Duration::from_millis(250));
@@ -384,8 +384,8 @@ fn main() {
                     }
                     if KEY_EXPECTED.load(Ordering::SeqCst) && WINDOW_KEY.lock().unwrap().is_none() {
                         stop_service(&handle);
+                        handle.dialog().message("The FormWeb service did not start correctly. Run ./formweb doctor in the FormWeb folder. The installed app's service writes a log: logs/formweb-engine.log in its data folder, which is FormWeb/Data in your home folder unless it was moved.").blocking_show();
                         reveal::close_splash(&handle);
-                        handle.dialog().message("The FormWeb service did not start correctly. Run ./formweb doctor in the FormWeb folder.").blocking_show();
                         std::process::exit(1);
                     }
                 }

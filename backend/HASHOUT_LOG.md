@@ -1,5 +1,17 @@
 # Backend context
 
+## The app gives the installed engine its process id, and says a failed start before the loading window closes · after v0.24.0 (2026-11-19)
+
+Fault, read from the code and not run: an installed engine with the start pattern below takes itself for started alone when `FORMWEB_SHELL_PID` is absent. The 0.24.0 app set no such variable, so that engine would open the app's program beside it (which hands over to the running app and ends) and exit 0 without serving, and the app would wait its 60 seconds and report that the service did not answer.
+
+`src-tauri/src/main.rs` · both `start_sidecar` functions (Unix and Windows) give the engine `FORMWEB_SHELL_PID`, the app's own process id, beside `FORMWEB_PORT` and `FORMWEB_WINDOW_KEY_STDOUT`. The engine watches that process and leaves when it is gone. `start_service` (a source checkout, `./formweb serve`) is unchanged: that start runs uvicorn directly and never passes through `formweb_engine.py`.
+
+Same file, `main` (the start in `setup`) · the five failure branches (no free port, the engine could not be started, no FormWeb folder, no answer within 60 seconds, no window key within 10 seconds) show their sentence first and close the loading window only after it returns. It was closed first, and at that moment it is the app's only window: the app ends when its last window is gone, which is the silent end a tester saw in another Form app. The 60 second and the window key sentences also say where the installed engine's log is.
+
+Seven small edits on purpose: one more `.env(...)` call in each of two lines, two statements in another order five times, two strings longer. Not compiled: the desktop shell cannot be built on the build machine. Not run on any system. This entry is here because the shell has no log of its own and the change exists for the engine below.
+
+Not done, the rest of the family's shell side: `win_job.rs` (the job object that ends the engine with the app on Windows, where `taskkill /F` is the only stop today), `engine_start.rs` (the failure text with the engine's last lines and its exit code; an engine that refuses with exit code 2 because another one holds the data folder is still reported as "did not answer within 60 seconds", after the full wait), and no scratch crate was made. FormWeb starts its engine with `std::process::Command`, so `win_job::hold` fits without moving the start.
+
 ## The engine has a lock, a log, a watch on its app and a way to be started alone · after v0.24.0 (2026-11-19)
 
 The family's Windows start pattern (FormTools 0.10.0), engine side. Up to here `formweb_engine.py` had no lock on the data folder, no log file and nothing that ended it when the app went, so an engine could be left running after a quit and a failed start left nothing to read.
