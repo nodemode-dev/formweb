@@ -2565,4 +2565,9 @@ export default [
   "Il modulo in {0} invia i dati a questo computer e non funzionerà quando il sito sarà su un altro host. Dagli una risposta con script (Movimento > Script, trigger Invio) oppure tieni il sito su questo computer con Pubblica.",
   "Sito statico esportato in {0}.",
   "L'autorizzazione salvata per l'agente è stata modificata fuori da FormWeb, quindi è tornata su Chiedi.",
+  "Un'impresa di idraulica e riscaldamento con servizi e prezzi, una pagina del team e contatti per telefono ed email.",
+  "Il portfolio di uno studio di design con pagine dei progetti dal CMS, una pagina Chi siamo e contatti via email.",
+  "Un blog di giardinaggio con gli articoli recenti in home page, un archivio degli articoli e pagine degli articoli dal CMS.",
+  "Una conferenza di un giorno con programma, relatori dal CMS, sede e come arrivare, e biglietti via email.",
+  "La vetrina di una ceramista con pagine prodotto dal CMS e ordini via email, senza checkout.",
 ] as readonly string[];

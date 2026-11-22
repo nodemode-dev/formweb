@@ -2565,4 +2565,9 @@ export default [
   "Skjemaet på {0} sender til denne datamaskinen og virker ikke når nettstedet ligger hos en annen vert. Gi det et skriptet svar (Bevegelse > Skript, utløser Send inn), eller behold nettstedet på denne datamaskinen med Publiser.",
   "Statisk nettsted eksportert på {0}.",
   "Den lagrede agenttillatelsen ble endret utenfor FormWeb, så den er tilbake på Spør.",
+  "Et rørlegger- og varmefirma med tjenester og priser, en teamside og kontakt på telefon og e-post.",
+  "Porteføljen til et designstudio med prosjektsider fra CMS-et, en om-side og kontakt på e-post.",
+  "En hageblogg med de nyeste innleggene på forsiden, et innleggsarkiv og innleggssider fra CMS-et.",
+  "En endagskonferanse med program, foredragsholdere fra CMS-et, sted og reise, og billetter på e-post.",
+  "Butikkvinduet til en keramiker med produktsider fra CMS-et og bestilling på e-post, uten kasse.",
 ] as readonly string[];

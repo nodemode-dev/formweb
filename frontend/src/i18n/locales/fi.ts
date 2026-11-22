@@ -2565,4 +2565,9 @@ export default [
   "Sivun {0} lomake lähettää tälle tietokoneelle eikä toimi, kun sivusto on toisella palvelimella. Anna sille skriptattu vastaus (Liike > Skripti, laukaisin Lähetä) tai pidä sivusto tällä tietokoneella Julkaise-toiminnolla.",
   "Staattinen sivusto viety, kieli: {0}.",
   "Tallennettu agentin lupa muutettiin FormWebin ulkopuolella, joten se on takaisin tilassa Kysy.",
+  "Putki- ja lämpöliike, jolla on palvelut ja hinnat, tiimisivu sekä yhteydenotto puhelimella ja sähköpostilla.",
+  "Suunnittelustudion portfolio, jossa on projektisivut CMS:stä, tietoja-sivu ja yhteydenotto sähköpostilla.",
+  "Puutarhablogi, jossa on uusimmat kirjoitukset etusivulla, kirjoitusarkisto ja kirjoitussivut CMS:stä.",
+  "Yhden päivän konferenssi, jossa on ohjelma, puhujat CMS:stä, paikka ja saapumisohjeet sekä liput sähköpostilla.",
+  "Keraamikon näyteikkuna, jossa on tuotesivut CMS:stä ja tilaus sähköpostilla ilman kassaa.",
 ] as readonly string[];

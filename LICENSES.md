@@ -179,7 +179,7 @@ The shell's lock contains neither `ring` nor `webpki-roots` (no updater), so the
 
 ## Bundled content: demo media
 
-`frontend/public/demos/` holds the three demo sites the app opens from Home and Help > Demos (`<id>/site.fweb`), the preview file made from the same sites (`preview.html`) and one cover picture per demo. The pictures are stored inside each `.fweb` and again inside `preview.html`. The per-file table (stored name, what it shows, credit, source page, status) is in NOTICE.md under "Demo media" and in `frontend/public/demos/CREDITS.md`.
+`frontend/public/demos/` holds the eight demo sites the app opens from Home and Help > Demos (`<id>/site.fweb`), a `demo.json` beside each with its name, one-line description and site type, the preview file made from the same sites (`preview.html`) and one cover picture per demo. The pictures are stored inside each `.fweb` and again inside `preview.html`. The per-file table (stored name, what it shows, credit, source page, status) is in NOTICE.md under "Demo media" and in `frontend/public/demos/CREDITS.md`.
 
 | Item | Source | Licence | Notes |
 | --- | --- | --- | --- |
@@ -194,6 +194,7 @@ The shell's lock contains neither `ring` nor `webpki-roots` (no updater), so the
 | the sites themselves: pages, copy, styles, the harbour map | written for the demos; Lowlight is built from `library/` sections and page components | Apache-2.0 as part of FormWeb | Lowlight and Harbour Ferries are fictional; the facts in Looking Back are from the public NASA record |
 | demo fonts inside the `.fweb` files and `preview.html`: Space Grotesk 400 and 700, IBM Plex Mono 400, Playfair Display 400, Source Serif 4 400, 400 italic and 700, Oswald 400 and 700, Work Sans 400 and 700 | latin subset woff2 files copied unmodified from formvis `frontend/public/fonts/` (IBM Plex Mono, Playfair Display, Oswald) and formtxt `demo/assets/` (Space Grotesk, Source Serif 4, Work Sans, from the @fontsource packages) | SIL OFL 1.1 | full text per family in `frontend/public/demos/licenses/OFL-<Family>.txt`, unchanged from each family's `OFL.txt` in github.com/google/fonts; copyright lines in `NOTICE.md`, "Demo fonts" |
 | Inter inside Lowlight's `.fweb` and `preview.html` | `library/presets/fonts/inter-4-var-latin.woff2`, embedded by the formai.studio preset | SIL OFL 1.1 | text in `library/presets/fonts/LICENSE-Inter.txt` (row above, section library) |
+| the five whole-site starters (0.28.0): Coldmere Plumbing, Northfold Studio, The Slow Allotment, Wenlow Type Day, Fernhollow Pottery: their sites, copy, styles, 45 stored pictures (SVG drawings, 256 px PNG site icons, 1200 x 630 PNG share pictures) and five covers | written and drawn in code for the starters, built through the engine's HTTP API | Apache-2.0 as part of FormWeb | no photograph and no outside picture; every name, business, person and place is invented; the fonts are the same files as the rows above (Inter from the section library row); every file is listed in `frontend/public/demos/CREDITS.md` |
 
 ## License text integrity
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.28.0 · 2026-11-22
+
+- Five whole-site starters join the demos, one for each common kind of site: Coldmere Plumbing (a local business with services and prices, about and contact), Northfold Studio (a designer's portfolio with project pages), The Slow Allotment (a blog with a post archive and three sample posts), Wenlow Type Day (a one-day event with programme, speakers, venue and tickets) and Fernhollow Pottery (a shop window whose orders go by email). Each is a complete, editable site with a shared header and footer, a 404 page, a site icon, a share picture and a description on every page, and looks right on a phone. Open one from Home or Help > Demos and make it yours.
+- The project, post, speaker and product pages are CMS collections, so adding a project or a post is adding an item.
+- No starter has a form: people get in touch by email. Every picture in them was drawn for FormWeb, and every name, business and place is invented.
+- Each demo now has a site type (business, portfolio, blog, event or shop), in the app and in a `demo.json` beside its file, so tools that offer the demos can sort them. Lowlight and Harbour Ferries are business sites, Looking Back a portfolio.
+- Preview shows all eight demos, and its bar scrolls sideways when the window is narrow.
+- The five new demo descriptions are in all 23 translated languages; no native speaker has read them yet.
+- Known gaps: the share picture's address is written into each starter's head code, so it must be changed by hand along with the base URL. Nothing was run on Windows or macOS, and the desktop app was not built.
+
 ## 0.27.0 · 2026-11-20
 
 - Agent Connect says how each agent program gets FormWeb's tools. With Agents off, the note now says that Chat and the Claude Code, Codex, Cursor and Antigravity tabs opened from FormWeb still work, and that turning Agents on lets a program you start yourself connect. The note under the program cards says what each tab reads, and that a program started outside FormWeb reads its project file (Antigravity: its account file) and needs Agents on. Before, the notes named only Codex and Cursor and said they needed Agents on even in a tab. Both notes are new in all 23 translated languages; no native speaker has read the translations yet.

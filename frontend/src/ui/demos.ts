@@ -1,21 +1,31 @@
 import type { CommandDef } from './shell';
 
+// The kind of site a demo is, so a starter can be offered by type. Each demo folder carries the same value in
+// demo.json ({name, description, type}) beside its site.fweb, for tools that read the folder and not this file.
+export type DemoType = 'business' | 'portfolio' | 'blog' | 'event' | 'shop';
+
 export interface DemoInfo {
   id: string;
   title: string;
   line: string;
+  type: DemoType;
   picture: string;
   file: string;
 }
 
 const BASE = `${import.meta.env.BASE_URL}demos/`;
 
-export const demo = (id: string, title: string, line: string): DemoInfo => ({ id, title, line, picture: `${BASE}${id}/cover.webp`, file: `${BASE}${id}/site.fweb` });
+export const demo = (id: string, title: string, line: string, type: DemoType): DemoInfo => ({ id, title, line, type, picture: `${BASE}${id}/cover.webp`, file: `${BASE}${id}/site.fweb` });
 
 export const DEMOS: readonly DemoInfo[] = [
-  demo('lowlight', 'Lowlight', 'A studio site made from library sections, with scroll scenes and animated components.'),
-  demo('looking-back', 'Looking Back', 'A photo essay told in pinned scroll scenes, with a filterable gallery and a lightbox.'),
-  demo('harbour-ferries', 'Harbour Ferries', 'A service site with a fare calculator, CMS route pages, site search and redirects.'),
+  demo('lowlight', 'Lowlight', 'A studio site made from library sections, with scroll scenes and animated components.', 'business'),
+  demo('looking-back', 'Looking Back', 'A photo essay told in pinned scroll scenes, with a filterable gallery and a lightbox.', 'portfolio'),
+  demo('harbour-ferries', 'Harbour Ferries', 'A service site with a fare calculator, CMS route pages, site search and redirects.', 'business'),
+  demo('coldmere-plumbing', 'Coldmere Plumbing', 'A plumbing and heating firm with services and prices, a team page and contact by phone and email.', 'business'),
+  demo('northfold-studio', 'Northfold Studio', 'A design studio portfolio with project pages from the CMS, an about page and contact by email.', 'portfolio'),
+  demo('slow-allotment', 'The Slow Allotment', 'A gardening blog with recent posts on the home page, a post archive and post pages from the CMS.', 'blog'),
+  demo('wenlow-type-day', 'Wenlow Type Day', 'A one-day conference with a programme, speakers from the CMS, venue and travel, and tickets by email.', 'event'),
+  demo('fernhollow-pottery', 'Fernhollow Pottery', 'A potter\'s shop window with product pages from the CMS and ordering by email, without a checkout.', 'shop'),
 ];
 
 export const DEMO_PREVIEW = `${BASE}preview.html`;

@@ -2565,4 +2565,9 @@ export default [
   "Formulář na stránce {0} odesílá data do tohoto počítače a po přesunu webu na jiný hosting nebude fungovat. Dejte mu skriptovanou odpověď (Pohyb > Skript, spouštěč Odeslání), nebo web ponechte na tomto počítači pomocí funkce Publikovat.",
   "Statický web byl exportován, jazyk: {0}.",
   "Uložené oprávnění agenta bylo změněno mimo FormWeb, proto je znovu nastaveno na Zeptat se.",
+  "Instalatérská a topenářská firma se službami a cenami, stránkou týmu a kontaktem po telefonu a e-mailu.",
+  "Portfolio designového studia se stránkami projektů z CMS, stránkou O nás a kontaktem e-mailem.",
+  "Zahradnický blog s nejnovějšími příspěvky na úvodní stránce, archivem příspěvků a stránkami příspěvků z CMS.",
+  "Jednodenní konference s programem, řečníky z CMS, místem a dopravou a vstupenkami e-mailem.",
+  "Výloha keramické dílny se stránkami produktů z CMS a objednávkou e-mailem, bez pokladny.",
 ] as readonly string[];

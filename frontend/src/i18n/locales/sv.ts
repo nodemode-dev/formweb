@@ -2565,4 +2565,9 @@ export default [
   "Formuläret på {0} skickar till den här datorn och fungerar inte när webbplatsen ligger hos en annan värd. Ge det ett skriptat svar (Rörelse > Skript, utlösare Skicka), eller behåll webbplatsen på den här datorn med Publicera.",
   "Statisk webbplats exporterad på {0}.",
   "Den sparade agentbehörigheten ändrades utanför FormWeb, så den är tillbaka på Fråga.",
+  "En VVS- och värmefirma med tjänster och priser, en teamsida och kontakt via telefon och e-post.",
+  "En designstudios portfolio med projektsidor från CMS:et, en om-sida och kontakt via e-post.",
+  "En trädgårdsblogg med de senaste inläggen på startsidan, ett inläggsarkiv och inläggssidor från CMS:et.",
+  "En endagskonferens med program, talare från CMS:et, plats och resväg samt biljetter via e-post.",
+  "En keramikers skyltfönster med produktsidor från CMS:et och beställning via e-post, utan kassa.",
 ] as readonly string[];
