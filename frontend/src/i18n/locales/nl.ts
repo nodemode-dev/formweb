@@ -2565,4 +2565,9 @@ export default [
   "Het formulier op {0} verzendt naar deze computer en werkt niet meer zodra de site bij een andere host staat. Geef het een gescript antwoord (Beweging > Script, trigger Verzenden), of houd de site op deze computer met Publiceren.",
   "Statische site geëxporteerd in het {0}.",
   "De opgeslagen agentmachtiging is buiten FormWeb gewijzigd en staat daarom weer op Vragen.",
+  "Een loodgieters- en verwarmingsbedrijf met diensten en prijzen, een teampagina en contact per telefoon en e-mail.",
+  "Het portfolio van een ontwerpstudio met projectpagina's uit het CMS, een overpagina en contact per e-mail.",
+  "Een tuinblog met recente berichten op de startpagina, een berichtenarchief en berichtpagina's uit het CMS.",
+  "Een eendaagse conferentie met programma, sprekers uit het CMS, locatie en reisinformatie, en tickets per e-mail.",
+  "De etalage van een pottenbakker met productpagina's uit het CMS en bestellen per e-mail, zonder afrekenen.",
 ] as readonly string[];

@@ -2565,4 +2565,9 @@ export default [
   "Das Formular auf {0} sendet an diesen Computer und funktioniert nicht mehr, sobald die Website bei einem anderen Host liegt. Geben Sie ihm eine Skript-Antwort (Bewegung > Skript, Auslöser Absenden), oder behalten Sie die Website mit Veröffentlichen auf diesem Computer.",
   "Statische Website auf {0} exportiert.",
   "Die gespeicherte Agentenberechtigung wurde außerhalb von FormWeb geändert und steht deshalb wieder auf Nachfragen.",
+  "Ein Sanitär- und Heizungsbetrieb mit Leistungen und Preisen, einer Teamseite und Kontakt per Telefon und E-Mail.",
+  "Das Portfolio eines Designstudios mit Projektseiten aus dem CMS, einer Über-uns-Seite und Kontakt per E-Mail.",
+  "Ein Gartenblog mit den neuesten Beiträgen auf der Startseite, einem Beitragsarchiv und Beitragsseiten aus dem CMS.",
+  "Eine eintägige Konferenz mit Programm, Vortragenden aus dem CMS, Veranstaltungsort und Anreise sowie Tickets per E-Mail.",
+  "Das Schaufenster einer Töpferei mit Produktseiten aus dem CMS und Bestellung per E-Mail, ohne Kasse.",
 ] as readonly string[];

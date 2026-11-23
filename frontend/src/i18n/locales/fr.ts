@@ -2565,4 +2565,9 @@ export default [
   "Le formulaire de {0} envoie ses données à cet ordinateur et ne fonctionnera plus une fois le site chez un autre hébergeur. Donnez-lui une réponse par script (Animation > Script, déclencheur Envoi), ou gardez le site sur cet ordinateur avec Publier.",
   "Site statique exporté en {0}.",
   "L'autorisation d'agent enregistrée a été modifiée en dehors de FormWeb, elle est donc revenue sur Demander.",
+  "Une entreprise de plomberie et de chauffage avec services et tarifs, une page équipe et un contact par téléphone et e-mail.",
+  "Le portfolio d’un studio de design avec des pages de projets issues du CMS, une page À propos et un contact par e-mail.",
+  "Un blog de jardinage avec les derniers articles en page d’accueil, des archives et des pages d’articles issues du CMS.",
+  "Une conférence d’une journée avec programme, intervenants issus du CMS, lieu et accès, et billets par e-mail.",
+  "La vitrine d’une potière avec des pages produits issues du CMS et des commandes par e-mail, sans paiement en ligne.",
 ] as readonly string[];

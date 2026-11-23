@@ -2565,4 +2565,9 @@ export default [
   "O formulário em {0} envia para este computador e não vai funcionar quando o site estiver em outro host. Dê a ele uma resposta por script (Movimento > Script, gatilho Enviar) ou mantenha o site neste computador com Publicar.",
   "Site estático exportado em {0}.",
   "A permissão salva do agente foi alterada fora do FormWeb, por isso voltou para Perguntar.",
+  "Uma empresa de encanamento e aquecimento com serviços e preços, uma página da equipe e contato por telefone e e-mail.",
+  "O portfólio de um estúdio de design com páginas de projetos do CMS, uma página Sobre e contato por e-mail.",
+  "Um blog de jardinagem com posts recentes na página inicial, um arquivo de posts e páginas de posts do CMS.",
+  "Uma conferência de um dia com programação, palestrantes do CMS, local e como chegar, e ingressos por e-mail.",
+  "A vitrine de uma ceramista com páginas de produtos do CMS e pedidos por e-mail, sem checkout.",
 ] as readonly string[];

@@ -2565,4 +2565,9 @@ export default [
   "Formulir di {0} mengirim ke komputer ini dan tidak akan berfungsi setelah situs berada di host lain. Beri formulir itu balasan berskrip (Gerak > Skrip, pemicu Kirim), atau biarkan situs tetap di komputer ini dengan Publikasikan.",
   "Situs statis diekspor dalam bahasa {0}.",
   "Izin agen yang tersimpan diubah di luar FormWeb, sehingga kembali ke Tanya.",
+  "Usaha pipa dan pemanas dengan layanan dan harga, halaman tim, serta kontak lewat telepon dan email.",
+  "Portofolio studio desain dengan halaman proyek dari CMS, halaman tentang, dan kontak lewat email.",
+  "Blog berkebun dengan tulisan terbaru di beranda, arsip tulisan, dan halaman tulisan dari CMS.",
+  "Konferensi satu hari dengan jadwal acara, pembicara dari CMS, lokasi dan perjalanan, serta tiket lewat email.",
+  "Etalase seorang perajin keramik dengan halaman produk dari CMS dan pemesanan lewat email, tanpa checkout.",
 ] as readonly string[];

@@ -2565,4 +2565,9 @@ export default [
   "{0} sayfasındaki form bu bilgisayara gönderir ve site başka bir barındırıcıya taşındığında çalışmaz. Forma betikli bir yanıt verin (Hareket > Betik, tetikleyici Gönderme) veya Yayımla ile siteyi bu bilgisayarda tutun.",
   "Statik site {0} için dışa aktarıldı.",
   "Kaydedilen ajan izni FormWeb dışında değiştirildi, bu yüzden yeniden Sor ayarına döndü.",
+  "Hizmetleri ve fiyatları, ekip sayfası, telefon ve e-posta ile iletişimi olan bir tesisat ve ısıtma firması.",
+  "CMS'den proje sayfaları, hakkımızda sayfası ve e-posta ile iletişimi olan bir tasarım stüdyosu portfolyosu.",
+  "Ana sayfada son yazılar, yazı arşivi ve CMS'den yazı sayfaları olan bir bahçecilik blogu.",
+  "Programı, CMS'den konuşmacıları, mekân ve ulaşım bilgisi ve e-postayla biletleri olan tek günlük bir konferans.",
+  "CMS'den ürün sayfaları olan ve ödeme adımı olmadan e-postayla sipariş alan bir çömlekçi vitrini.",
 ] as readonly string[];

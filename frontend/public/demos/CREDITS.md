@@ -1,6 +1,6 @@
 # Demo media credits
 
-Every picture inside the three demo sites that FormWeb ships (`frontend/public/demos/<id>/site.fweb`), one table per site and one row per picture stored in that file, then the three cover pictures. The single preview file `frontend/public/demos/preview.html` is an export of the same three sites and carries the same pictures, so these credits cover it as well. No site contains a video. Nothing is AI generated. Fonts embedded in the sites are not covered by this file.
+Every picture inside the eight demo sites that FormWeb ships (`frontend/public/demos/<id>/site.fweb`), one table per site and one row per picture stored in that file, then the eight cover pictures. The single preview file `frontend/public/demos/preview.html` is an export of the same eight sites and carries the same pictures, so these credits cover it as well. The five whole-site starters added in 0.28.0 (Coldmere Plumbing, Northfold Studio, The Slow Allotment, Wenlow Type Day, Fernhollow Pottery) hold no photograph and no outside picture: every picture in them was drawn in code for the starter (SVG written by hand or by a short script with fixed seeds, and PNG made from that SVG in a headless browser), and every name, business, person and place in them is invented. No site contains a video. Nothing is AI generated. Fonts embedded in the sites are not covered by this file.
 
 Each photograph is a byte-for-byte copy of a file in a Form family repository (formdeck `frontend/public/demos/nasa/`, credits in formdeck `demo/CREDITS.md`; form.md `demos/views/assets/media/`, credits in form.md `demos/views/CREDITS.md`), checked by SHA-256 against the name each `.fweb` stores it under. One file is a derived copy: `img_per_tiles.webp` is a 1245 x 1177 crop of `img_per.webp`, re-encoded as WebP for the tile scene. No picture was retouched; the pages crop with `object-fit` and the page components crop by their own settings.
 
@@ -62,6 +62,86 @@ The site uses no photographs. Its harbour map and logo are inline SVG drawn for 
 | --- | --- | --- | --- | --- |
 | `harbour-ferries-icon.png` | The site icon, 256 px | Own work: drawn for the demo | none | Own work, Apache-2.0 |
 
+## Coldmere Plumbing (`coldmere-plumbing/site.fweb`): 4 pictures
+
+No photographs. The logo and the small icons are inline SVG in the page, not stored pictures.
+
+| Stored name | What it shows | Author or source | Source URL | Licence or status |
+| --- | --- | --- | --- | --- |
+| `coldmere-house.svg` | Drawing of a house cut open to show its boiler, radiators, bath and pipes | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `coldmere-plumbing-icon.png` | The site icon, 256 px: a white water drop with an orange flame on teal | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `coldmere-plumbing-share.png` | The share picture (og:image), 1200 x 630: the site name in Inter on teal | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `coldmere-van.svg` | Drawing of the firm's teal van on a road | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+
+## Northfold Studio (`northfold-studio/site.fweb`): 15 pictures
+
+No photographs. The logo is inline SVG in the page, not a stored picture.
+
+| Stored name | What it shows | Author or source | Source URL | Licence or status |
+| --- | --- | --- | --- | --- |
+| `northfold-lantern-books-cover.svg` | Generated poster for a project page (Lantern Books, cover) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-lantern-books-detail-1.svg` | Generated poster for a project page (Lantern Books, detail 1) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-lantern-books-detail-2.svg` | Generated poster for a project page (Lantern Books, detail 2) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-orchard-lane-cover.svg` | Generated poster for a project page (Orchard Lane, cover) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-orchard-lane-detail-1.svg` | Generated poster for a project page (Orchard Lane, detail 1) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-orchard-lane-detail-2.svg` | Generated poster for a project page (Orchard Lane, detail 2) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-quarry-theatre-cover.svg` | Generated poster for a project page (Quarry Theatre, cover) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-quarry-theatre-detail-1.svg` | Generated poster for a project page (Quarry Theatre, detail 1) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-quarry-theatre-detail-2.svg` | Generated poster for a project page (Quarry Theatre, detail 2) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-stavemoor-lido-cover.svg` | Generated poster for a project page (Stavemoor Lido, cover) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-stavemoor-lido-detail-1.svg` | Generated poster for a project page (Stavemoor Lido, detail 1) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-stavemoor-lido-detail-2.svg` | Generated poster for a project page (Stavemoor Lido, detail 2) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-studio-desk.svg` | Abstract grid of squares, circles and quarter-circles | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-studio-icon.png` | The site icon, 256 px: a white N on black with a red square | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `northfold-studio-share.png` | The share picture (og:image), 1200 x 630: the studio name in Space Grotesk and IBM Plex Mono beside red and black rings | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+
+## The Slow Allotment (`slow-allotment/site.fweb`): 6 pictures
+
+No photographs. The logo is inline SVG in the page, not a stored picture.
+
+| Stored name | What it shows | Author or source | Source URL | Licence or status |
+| --- | --- | --- | --- | --- |
+| `allotment-frost-and-leeks.svg` | Drawing of a row of leeks in a frosty landscape (post cover) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `allotment-no-dig-bed.svg` | Drawing of a raised bed of seedlings under low hills (post cover) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `allotment-plot.svg` | Drawing of an allotment with a shed and a raised bed under low hills | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `allotment-saving-bean-seed.svg` | Drawing of climbing beans on poles (post cover) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `slow-allotment-icon.png` | The site icon, 256 px: a pale green leaf on dark green | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `slow-allotment-share.png` | The share picture (og:image), 1200 x 630: the blog name in Playfair Display and Source Serif 4 over green hills | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+
+## Wenlow Type Day (`wenlow-type-day/site.fweb`): 10 pictures
+
+No photographs. The logo and the small icons are inline SVG in the page, not stored pictures. The speakers have no portraits: each has an abstract pattern instead.
+
+| Stored name | What it shows | Author or source | Source URL | Licence or status |
+| --- | --- | --- | --- | --- |
+| `typeday-letters.svg` | Drawn letters W and H over ruled lines | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `typeday-map.svg` | Drawn street map of the invented town of Wenlow | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `typeday-speaker-ada-morrow.svg` | Abstract pattern standing in for a speaker portrait (Ada Morrow) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `typeday-speaker-hana-sato.svg` | Abstract pattern standing in for a speaker portrait (Hana Sato) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `typeday-speaker-kofi-asante.svg` | Abstract pattern standing in for a speaker portrait (Kofi Asante) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `typeday-speaker-lena-vik.svg` | Abstract pattern standing in for a speaker portrait (Lena Vik) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `typeday-speaker-ruth-calder.svg` | Abstract pattern standing in for a speaker portrait (Ruth Calder) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `typeday-speaker-tom-reyes.svg` | Abstract pattern standing in for a speaker portrait (Tom Reyes) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `wenlow-type-day-icon.png` | The site icon, 256 px: a yellow W and a red dot on navy | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `wenlow-type-day-share.png` | The share picture (og:image), 1200 x 630: the event name and date in Oswald and IBM Plex Mono on navy | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+
+## Fernhollow Pottery (`fernhollow-pottery/site.fweb`): 10 pictures
+
+No photographs. The logo and the small icons are inline SVG in the page, not stored pictures.
+
+| Stored name | What it shows | Author or source | Source URL | Licence or status |
+| --- | --- | --- | --- | --- |
+| `fernhollow-breakfast-bowl.svg` | Drawing of the breakfast bowl on a plain ground (product picture) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `fernhollow-bud-vase.svg` | Drawing of the bud vase on a plain ground (product picture) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `fernhollow-dinner-plate.svg` | Drawing of the dinner plate on a plain ground (product picture) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `fernhollow-everyday-mug.svg` | Drawing of the everyday mug on a plain ground (product picture) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `fernhollow-herb-planter.svg` | Drawing of the herb planter on a plain ground (product picture) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `fernhollow-kiln.svg` | Drawing of a brick kiln beside shelves of pots | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `fernhollow-pottery-icon.png` | The site icon, 256 px: a white pot on brown | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `fernhollow-pottery-share.png` | The share picture (og:image), 1200 x 630: the pottery name in Playfair Display and Work Sans beside a drawn jug | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `fernhollow-shelf.svg` | Drawing of four pots on a shelf | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+| `fernhollow-tall-jug.svg` | Drawing of the tall jug on a plain ground (product picture) | Own work: drawn in code for the starter | none | Own work, Apache-2.0 |
+
 ## Covers
 
 The picture each demo's card shows on Home, 640 x 360.
@@ -71,6 +151,11 @@ The picture each demo's card shows on Home, 640 x 360.
 | `lowlight/cover.webp` | The top of the Lowlight home page | Own work: capture of the demo site | none | Own work, Apache-2.0 |
 | `looking-back/cover.webp` | The top of the Looking Back home page, with the Earth of `ap-17.webp` | Own work: capture of the demo site | none | Own work, Apache-2.0 (capture); the picture in it is NASA (JSC), NASA content, not subject to copyright in the United States (NASA media guidelines) |
 | `harbour-ferries/cover.webp` | The top of the Harbour Ferries home page with its drawn harbour map | Own work: capture of the demo site | none | Own work, Apache-2.0 |
+| `coldmere-plumbing/cover.webp` | The top of the Coldmere Plumbing home page with its drawn house | Own work: capture of the demo site | none | Own work, Apache-2.0 |
+| `northfold-studio/cover.webp` | The top of the Northfold Studio home page | Own work: capture of the demo site | none | Own work, Apache-2.0 |
+| `slow-allotment/cover.webp` | The top of The Slow Allotment home page | Own work: capture of the demo site | none | Own work, Apache-2.0 |
+| `wenlow-type-day/cover.webp` | The top of the Wenlow Type Day home page with its drawn letters | Own work: capture of the demo site | none | Own work, Apache-2.0 |
+| `fernhollow-pottery/cover.webp` | The top of the Fernhollow Pottery home page with its drawn shelf of pots | Own work: capture of the demo site | none | Own work, Apache-2.0 |
 
 ## Pictures linked by code, not stored
 
@@ -82,10 +167,12 @@ Stored inside each `.fweb` and again inside `preview.html`. All SIL Open Font Li
 
 | Family | Used by | Copyright line of its licence | Licence text |
 | --- | --- | --- | --- |
-| Space Grotesk (400, 700) | Lowlight | Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk) | `licenses/OFL-SpaceGrotesk.txt` |
-| IBM Plex Mono (400) | Lowlight, Looking Back, Harbour Ferries | Copyright (c) 2017 IBM Corp. with Reserved Font Name "Plex" | `licenses/OFL-IBMPlexMono.txt` |
-| Inter (variable, latin) | Lowlight, through the formai.studio preset | Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter) | `library/presets/fonts/LICENSE-Inter.txt` |
-| Playfair Display (400) | Looking Back | Copyright 2017 The Playfair Display Project Authors (https://github.com/clauseggers/Playfair-Display), with Reserved Font Name "Playfair Display" | `licenses/OFL-PlayfairDisplay.txt` |
-| Source Serif 4 (400, 400 italic, 700) | Looking Back | Copyright 2014 The Source Serif 4 Project Authors (https://github.com/adobe-fonts/source-serif) | `licenses/OFL-SourceSerif4.txt` |
-| Oswald (400, 700) | Harbour Ferries | Copyright 2016 The Oswald Project Authors (https://github.com/googlefonts/OswaldFont) | `licenses/OFL-Oswald.txt` |
-| Work Sans (400, 700) | Harbour Ferries | Copyright 2019 The Work Sans Project Authors (https://github.com/weiweihuanghuang/Work-Sans) | `licenses/OFL-WorkSans.txt` |
+| Space Grotesk (400, 700) | Lowlight, Northfold Studio | Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk) | `licenses/OFL-SpaceGrotesk.txt` |
+| IBM Plex Mono (400) | Lowlight, Looking Back, Harbour Ferries, Northfold Studio, The Slow Allotment, Wenlow Type Day | Copyright (c) 2017 IBM Corp. with Reserved Font Name "Plex" | `licenses/OFL-IBMPlexMono.txt` |
+| Inter (variable, latin) | Lowlight, through the formai.studio preset; Coldmere Plumbing | Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter) | `library/presets/fonts/LICENSE-Inter.txt` |
+| Playfair Display (400) | Looking Back, The Slow Allotment, Fernhollow Pottery | Copyright 2017 The Playfair Display Project Authors (https://github.com/clauseggers/Playfair-Display), with Reserved Font Name "Playfair Display" | `licenses/OFL-PlayfairDisplay.txt` |
+| Source Serif 4 (400, 400 italic, 700) | Looking Back, The Slow Allotment | Copyright 2014 The Source Serif 4 Project Authors (https://github.com/adobe-fonts/source-serif) | `licenses/OFL-SourceSerif4.txt` |
+| Oswald (400, 700) | Harbour Ferries, Wenlow Type Day | Copyright 2016 The Oswald Project Authors (https://github.com/googlefonts/OswaldFont) | `licenses/OFL-Oswald.txt` |
+| Work Sans (400, 700) | Harbour Ferries, Wenlow Type Day, Fernhollow Pottery | Copyright 2019 The Work Sans Project Authors (https://github.com/weiweihuanghuang/Work-Sans) | `licenses/OFL-WorkSans.txt` |
+
+The new starters use the same font files, byte for byte, as the three older demos. The share pictures (`<id>-share.png`) show text set in these fonts; a picture of text set in an OFL font is not the font and carries no licence condition of its own.

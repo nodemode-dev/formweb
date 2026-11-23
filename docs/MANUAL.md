@@ -19,12 +19,22 @@ The default data folder is `backend/data`. Configure `FORMWEB_DATA_DIR` in `back
 
 Home (File > Home, or the formweb mark in the top bar) opens over the editor. Its Start page shows recent sites, the Demos and the New site tiles; Recent and Projects list what you opened and saved.
 
-Three finished demo sites come with the app: Lowlight (a studio site made from library sections, with scroll scenes and animated components), Looking Back (a photo essay told in pinned scroll scenes, with a filterable gallery and a lightbox) and Harbour Ferries (a service site with a fare calculator, CMS route pages, site search and redirects). Each demo card on Home has two actions:
+Eight finished demo sites come with the app: Lowlight (a studio site made from library sections, with scroll scenes and animated components), Looking Back (a photo essay told in pinned scroll scenes, with a filterable gallery and a lightbox), Harbour Ferries (a service site with a fare calculator, CMS route pages, site search and redirects), and five whole-site starters to begin a real site from:
+
+- Coldmere Plumbing, a business and services site: home, services and prices, about, contact by phone and email, and a 404 page.
+- Northfold Studio, a portfolio: home with selected work, a work list, project pages from a CMS collection, about, contact and a 404 page.
+- The Slow Allotment, a blog: home with the three newest posts, a post archive, post pages from a CMS collection, about and a 404 page.
+- Wenlow Type Day, a one-day event: home, programme, speakers from a CMS collection, venue and travel, tickets information without a checkout, and a 404 page.
+- Fernhollow Pottery, a shop window: home, a product list, product pages from a CMS collection, about, how to order by email, and a 404 page; there is no checkout.
+
+The starters share a header and a footer as linked components (Site header and Site footer), so a change to one shows on every page. Each has its site name, a description on every page, a site icon, a base URL, and a share picture named in the site's head code (the page inspector's Custom code section, for the whole site); change the base URL and that address together when you put the site on its own domain. None has a form: contact is an email link. Each demo folder also holds a `demo.json` with the demo's name, one-line description and site type (`business`, `portfolio`, `blog`, `event` or `shop`).
+
+Each demo card on Home has two actions:
 
 - The card opens the demo as a new, unsaved site, ready to edit. It replaces the open site and asks first when that site has changes that are not saved as a project. Saved projects are not changed; save the demo to keep what you change.
-- Preview shows the finished site over the window, every page, working as a visitor would see it, without replacing the site you are working on. A bar inside the preview switches between the three demos. The top row names the demo on show; Open this demo closes the preview and opens that demo for editing, and Close or Escape returns to where you were. While a picture is open in a demo's lightbox, Escape closes the picture first. Links to other websites open in the system browser.
+- Preview shows the finished site over the window, every page, working as a visitor would see it, without replacing the site you are working on. A bar inside the preview switches between the eight demos. The top row names the demo on show; Open this demo closes the preview and opens that demo for editing, and Close or Escape returns to where you were. While a picture is open in a demo's lightbox, Escape closes the picture first. Links to other websites open in the system browser.
 
-Help > Demos is a submenu with the three demos and Preview the demo sites. The same actions are the commands `demo.lowlight`, `demo.looking-back`, `demo.harbour-ferries` and `demo.preview` (`demo.preview-close` closes the preview). The pictures in the demos are credited in `frontend/public/demos/CREDITS.md` and in NOTICE.md.
+Help > Demos is a submenu with the eight demos and Preview the demo sites. The same actions are the commands `demo.lowlight`, `demo.looking-back`, `demo.harbour-ferries`, `demo.coldmere-plumbing`, `demo.northfold-studio`, `demo.slow-allotment`, `demo.wenlow-type-day`, `demo.fernhollow-pottery` and `demo.preview` (`demo.preview-close` closes the preview). The pictures in the demos are credited in `frontend/public/demos/CREDITS.md` and in NOTICE.md.
 
 ## Desktop shell on Linux
 

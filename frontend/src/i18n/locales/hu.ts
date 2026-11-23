@@ -2565,4 +2565,9 @@ export default [
   "A(z) {0} oldalon lévő űrlap erre a számítógépre küld, és nem fog működni, ha a webhely másik tárhelyre kerül. Adjon neki szkriptelt választ (Mozgás > Szkript, eseményindító: Küldés), vagy tartsa a webhelyet ezen a számítógépen a Közzététel funkcióval.",
   "A statikus webhely exportálva a(z) {0} nyelvhez.",
   "A mentett ügynökengedélyt a FormWebön kívül módosították, ezért újra a Rákérdezés beállítás érvényes.",
+  "Vízszerelő és fűtésszerelő cég szolgáltatásokkal és árakkal, csapatoldallal, telefonos és e-mailes elérhetőséggel.",
+  "Egy tervezőstúdió portfóliója CMS-ből készült projektoldalakkal, bemutatkozó oldallal és e-mailes elérhetőséggel.",
+  "Kertészeti blog a legújabb bejegyzésekkel a kezdőlapon, bejegyzésarchívummal és CMS-ből készült bejegyzésoldalakkal.",
+  "Egynapos konferencia programmal, CMS-ből érkező előadókkal, helyszínnel és megközelítéssel, e-mailes jegyfoglalással.",
+  "Egy fazekasműhely kirakata CMS-ből készült termékoldalakkal és e-mailes rendeléssel, fizetés nélkül.",
 ] as readonly string[];

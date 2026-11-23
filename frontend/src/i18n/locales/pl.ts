@@ -2565,4 +2565,9 @@ export default [
   "Formularz na stronie {0} wysyła dane do tego komputera i nie będzie działać, gdy witryna trafi na inny hosting. Nadaj mu odpowiedź ze skryptu (Ruch > Skrypt, wyzwalacz Wysłanie) albo pozostaw witrynę na tym komputerze za pomocą polecenia Publikuj.",
   "Wyeksportowano witrynę statyczną, język: {0}.",
   "Zapisane uprawnienie agenta zmieniono poza FormWeb, więc wróciło do ustawienia Pytaj.",
+  "Firma hydrauliczno-grzewcza z usługami i cenami, stroną zespołu oraz kontaktem telefonicznym i mailowym.",
+  "Portfolio studia projektowego ze stronami projektów z CMS, stroną O nas i kontaktem przez e-mail.",
+  "Blog ogrodniczy z najnowszymi wpisami na stronie głównej, archiwum wpisów i stronami wpisów z CMS.",
+  "Jednodniowa konferencja z programem, prelegentami z CMS, miejscem i dojazdem oraz biletami przez e-mail.",
+  "Witryna pracowni ceramicznej ze stronami produktów z CMS i zamówieniami przez e-mail, bez płatności online.",
 ] as readonly string[];

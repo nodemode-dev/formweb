@@ -2565,4 +2565,9 @@ export default [
   "El formulario de {0} envía a este ordenador y dejará de funcionar cuando el sitio esté en otro alojamiento. Dele una respuesta con guion (Movimiento > Guion, disparador Enviar) o mantenga el sitio en este ordenador con Publicar.",
   "Sitio estático exportado en {0}.",
   "El permiso guardado del agente se cambió fuera de FormWeb, así que vuelve a Preguntar.",
+  "Una empresa de fontanería y calefacción con servicios y precios, una página del equipo y contacto por teléfono y correo electrónico.",
+  "El portafolio de un estudio de diseño con páginas de proyectos desde el CMS, una página Acerca de y contacto por correo electrónico.",
+  "Un blog de jardinería con las entradas recientes en la página de inicio, un archivo de entradas y páginas de entradas desde el CMS.",
+  "Un congreso de un día con programa, ponentes desde el CMS, lugar y cómo llegar, y entradas por correo electrónico.",
+  "El escaparate de una ceramista con páginas de productos desde el CMS y pedidos por correo electrónico, sin pago en línea.",
 ] as readonly string[];

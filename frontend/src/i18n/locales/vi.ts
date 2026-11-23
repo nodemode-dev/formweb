@@ -2565,4 +2565,9 @@ export default [
   "Biểu mẫu trên {0} gửi đến máy tính này và sẽ không hoạt động khi trang web nằm trên máy chủ khác. Hãy cho biểu mẫu một phản hồi bằng tập lệnh (Chuyển động > Tập lệnh, trình kích hoạt Gửi), hoặc giữ trang web trên máy tính này bằng Xuất bản.",
   "Đã xuất trang web tĩnh bằng {0}.",
   "Quyền đã lưu của tác nhân đã bị thay đổi bên ngoài FormWeb nên đã quay lại chế độ Hỏi.",
+  "Một công ty sửa ống nước và sưởi ấm với dịch vụ và bảng giá, trang đội ngũ và liên hệ qua điện thoại, email.",
+  "Portfolio của một studio thiết kế với các trang dự án từ CMS, trang giới thiệu và liên hệ qua email.",
+  "Một blog làm vườn với bài viết mới trên trang chủ, kho lưu trữ bài viết và các trang bài viết từ CMS.",
+  "Một hội nghị một ngày với chương trình, diễn giả từ CMS, địa điểm và cách di chuyển, cùng vé đặt qua email.",
+  "Cửa hàng trưng bày của một thợ gốm với các trang sản phẩm từ CMS và đặt hàng qua email, không có thanh toán.",
 ] as readonly string[];

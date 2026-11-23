@@ -2565,4 +2565,9 @@ export const KEYS: readonly string[] = [
   "The form on {0} posts to this computer and will not work once the site is on another host. Give it a scripted reply (Motion > Script, trigger Submit), or keep the site on this computer with Publish.",
   "Static site exported for {0}.",
   "The saved agent permission was changed outside FormWeb, so it is back to Ask.",
+  "A plumbing and heating firm with services and prices, a team page and contact by phone and email.",
+  "A design studio portfolio with project pages from the CMS, an about page and contact by email.",
+  "A gardening blog with recent posts on the home page, a post archive and post pages from the CMS.",
+  "A one-day conference with a programme, speakers from the CMS, venue and travel, and tickets by email.",
+  "A potter's shop window with product pages from the CMS and ordering by email, without a checkout.",
 ];

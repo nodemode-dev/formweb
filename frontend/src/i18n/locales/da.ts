@@ -2565,4 +2565,9 @@ export default [
   "Formularen på {0} sender til denne computer og virker ikke, når webstedet ligger hos en anden vært. Giv den et scriptet svar (Bevægelse > Script, trigger Send), eller behold webstedet på denne computer med Udgiv.",
   "Statisk site eksporteret på {0}.",
   "Den gemte agenttilladelse blev ændret uden for FormWeb og er derfor tilbage på Spørg.",
+  "Et VVS- og varmefirma med ydelser og priser, en teamside og kontakt via telefon og e-mail.",
+  "En designstudies portfolio med projektsider fra CMS'et, en om-side og kontakt via e-mail.",
+  "En haveblog med de seneste indlæg på forsiden, et indlægsarkiv og indlægssider fra CMS'et.",
+  "En endagskonference med program, talere fra CMS'et, sted og transport samt billetter via e-mail.",
+  "En keramikers butiksvindue med produktsider fra CMS'et og bestilling via e-mail, uden betaling på siden.",
 ] as readonly string[];
