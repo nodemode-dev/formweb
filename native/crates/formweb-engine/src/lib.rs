@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 mod advanced;
 mod wishlist;
 
-pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "collection.update", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo", "page.duplicate", "node.duplicate", "breakpoint.set", "breakpoint.remove", "extension.set", "extension.remove", "token.define", "textpreset.set", "textpreset.apply", "component.detach", "component.configure", "component.props", "component.reset", "component.variant", "component.slot", "library.import", "library.update", "library.detach", "cms.query", "cms.binding", "cms.localize", "cms.replace", "site.replace", "page.bulk", "table.insert", "table.row.add", "table.row.remove", "table.col.add", "table.col.remove", "cms.reorder", "cms.move", "cms.folder", "cms.list", "slider.create", "layout.convert", "text.script", "form.steps", "motion.set", "motion.remove", "design.set", "motion.track", "variables.set", "variables.remove", "code.instance.set", "code.instance.remove", "code.section.set", "code.section.remove", "code.sections.allow", "node.paste"];
+pub const COMMANDS: &[&str] = &["node.add", "node.update", "node.remove", "node.move", "page.add", "page.update", "page.remove", "token.set", "component.create", "component.insert", "collection.create", "collection.update", "cms.upsert", "cms.remove", "locale.set", "site.update", "history.undo", "history.redo", "page.duplicate", "node.duplicate", "breakpoint.set", "breakpoint.remove", "extension.set", "extension.remove", "token.define", "textpreset.set", "textpreset.apply", "component.detach", "component.configure", "component.props", "component.reset", "component.variant", "component.slot", "library.import", "library.update", "library.detach", "cms.query", "cms.binding", "cms.localize", "cms.replace", "site.replace", "page.bulk", "table.insert", "table.row.add", "table.row.remove", "table.col.add", "table.col.remove", "cms.reorder", "cms.move", "cms.folder", "cms.list", "slider.create", "layout.convert", "text.script", "form.steps", "motion.set", "motion.remove", "design.set", "motion.track", "variables.set", "variables.remove", "code.instance.set", "code.instance.remove", "code.section.set", "code.section.remove", "code.sections.allow", "node.paste", "page.move"];
 
 pub struct Engine {
     pub site: Site,
@@ -323,6 +323,16 @@ fn apply(site: &mut Site, command: &str, params: &Value) -> Result<(), String> {
             if site.components.values().any(|c| ids.contains(&c.root)) { return Err("page contains a component source".into()); }
             site.pages.retain(|p| p.id != id);
             for id in ids { site.nodes.remove(&id); }
+        }
+        "page.move" => {
+            let id = string(params, "id")?;
+            let from = site.pages.iter().position(|p| p.id == id).ok_or("unknown page")?;
+            let index = params.get("index").ok_or("index is required")?.as_u64().ok_or("index must be a nonnegative integer")?;
+            let target = usize::try_from(index).map_err(|_| "index is out of range")?;
+            if target >= site.pages.len() { return Err("index is outside the page list".into()); }
+            if target == from { return Err("the page is already at that index".into()); }
+            let page = site.pages.remove(from);
+            site.pages.insert(target, page);
         }
         "token.set" => {
             let name = string(params, "name")?;
