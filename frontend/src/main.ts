@@ -38,6 +38,7 @@ import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from
 import { installInspector } from './features/inspector';
 import { installPageBackground } from './features/inspector/page-background';
 import { installCanvasMenu } from './features/canvas-menu';
+import { sectionId } from './features/inspector/search';
 import { installLibrary } from './features/library';
 import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
@@ -118,6 +119,7 @@ function select(items: { id: string; name: string }[]): HTMLSelectElement {
 const NOTE_BELOW = 16;
 function section(container: HTMLElement, title: string, hint = ''): HTMLElement {
   const node = element('section', 'inspector-section');
+  node.dataset.section = sectionId(title);
   const head = element('div', 'section-title');
   const name = element('span');
   const chevron = icon('chevron');
@@ -675,6 +677,7 @@ const attributesSection = section(contentPane, 'HTML attributes');
 const attributesGrid = element('div', 'form-grid');
 for (const [name, label] of [['href', 'Link URL'], ['src', 'Image / media URL'], ['alt', 'Alternative text'], ['class', 'CSS classes'], ['id', 'HTML ID'], ['name', 'Form field name'], ['placeholder', 'Placeholder'], ['aria-label', 'Accessible label']]) {
   const control = input();
+  control.dataset.attr = name;
   control.addEventListener('change', () => void run(() => setAttribute(name, control.value)));
   attrsFields.set(name, control);
   attributesGrid.append(field(label, control, true));
