@@ -240,9 +240,10 @@ async function toggleAgents(): Promise<void> {
 // Not shown in the title bar since v0.4.0: Agent Connect owns the switch. Kept as the agents.toggle command target.
 const agentsButton = button('Agents off', 'bolt', toggleAgents, 'quiet');
 const previewButton = button('Preview', 'eye', undefined, 'quiet');
-previewButton.dataset.cmd = 'view.preview';
+previewButton.dataset.cmd = 'view.preview-full';
+previewButton.setAttribute('aria-haspopup', 'dialog');
 const refreshPreviewButton = iconButton('Refresh live responsive preview', 'redo', undefined, 'view.refresh');
-previewButton.title = 'Live responsive preview';
+previewButton.title = 'Preview as published';
 previewButton.setAttribute('aria-label', previewButton.title);
 const publishButton = button('Publish', 'arrow', undefined, 'primary');
 publishButton.dataset.cmd = 'file.publish';
@@ -1489,8 +1490,6 @@ function update(next: EditorState): void {
   options(localeSelect, Object.keys(site.locales).map(id => ({ id, name: id.toUpperCase() })));
   if (!site.locales[locale]) locale = site.defaultLocale;
   value(localeSelect, locale);
-  previewButton.classList.toggle('active', preview);
-  previewButton.setAttribute('aria-pressed', String(preview));
   text(statusRevision, `Rust engine · rev ${next.revision} · ${Object.keys(site.nodes).length} nodes`);
   keyed(pagesList, site.pages, page => page.id, () => {
     const row = button('', undefined, undefined, 'list-row');
