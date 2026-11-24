@@ -78,6 +78,7 @@ const META: Record<string, Meta> = {
   'view.mobile': { description: 'Switch the canvas to the mobile breakpoint.' },
   'view.preview': { description: 'Toggle the live responsive preview: the exported site at the typed width, where the browser switches breakpoints itself.' },
   'view.refresh': { description: 'Refresh the live responsive preview.' },
+  'view.preview-full': { description: 'Open or close the full-window preview of the compiled site as visitors will see it, with a page picker, device widths from the site breakpoints, locale, refresh and open in browser. While it is open every other window command is disabled.', when: 'Use when the person wants to see the finished site; it changes nothing.' },
   'view.theme': { description: 'Switch between the light and dark editor theme.' },
   'vector.rulers': { description: 'Show or hide the rulers along the vector editing area, in the SVG user units (Illustrator View > Rulers). Outside vector editing the key reloads the page.', when: 'Use to measure or to drag out guides while vector editing.' },
   'vector.guides.toggle': { description: 'Show or hide the guides of the edited SVG. The guides themselves are saved with the SVG (data-fw-guides) and are left out of exports; this toggle only changes the view.' },

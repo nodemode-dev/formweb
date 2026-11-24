@@ -22,6 +22,7 @@ import { deliver, isBusy } from './ui/downloads';
 import { flash, issueField, rowOf, scrollNearest } from './ui/reveal';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
+import { FullPreview } from './features/full-preview';
 import { AgentConnect } from './features/agent-connect';
 import { Dock } from './dock/dock';
 import './dock/dock.css';
@@ -2078,6 +2079,7 @@ document.addEventListener('keydown', event => {
   }
 });
 const runtimePreview = new RuntimePreview(stage, canvas.outer, status);
+const fullPreview = new FullPreview(overlay, { state, page: () => pageId, locale: () => locale, width: id => widths[id], back: previewButton, notify: status });
 const featureStudio = new FeatureStudio({
   selection: () => ({ node: selectedId, page: pageId, breakpoint, locale, width: widths[breakpoint] }),
   notify: status,
@@ -2253,6 +2255,7 @@ registerCommands([
   { id: 'view.mobile', label: 'Mobile', menu: 'View', run: () => setBreakpoint('mobile'), checked: () => breakpoint === 'mobile', enabled: ready },
   { id: 'view.preview', label: 'Live responsive preview', menu: 'View', group: 1, run: () => { preview = !preview; update(state()); }, checked: () => preview, enabled: ready },
   { id: 'view.refresh', label: 'Refresh live responsive preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
+  { id: 'view.preview-full', label: 'Preview as published', menu: 'View', keys: ['Mod+Shift+P'], group: 1, run: () => fullPreview.toggle(), enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: ['Mod+K'], global: true, group: 2, run: () => commandSearch.show() },
   { id: 'view.menus-in-window', label: 'Menus in Window', menu: 'View', group: 2, enabled: desktopMac, checked: menusInWindow, run: () => { const on = !menusInWindow(); setMenusInWindow(on); status(on ? 'The menus stay in the window from the next start.' : 'The menus go to the menu bar from the next start.'); } },
@@ -2300,9 +2303,9 @@ const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.
 const demoHooks: DemoHooks = { mayReplace: () => { demoPreview.close(); return mayReplace(); }, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
 const demoPreview = new DemoPreview(id => void openDemo(demoHooks, id));
 registerCommands(demoCommands(demoHooks, ready, { show: id => demoPreview.show(id), close: () => demoPreview.close(), isOpen: () => demoPreview.isOpen }));
-commandRegistry.gate = item => !demoPreview.isOpen || item.id.startsWith('demo.');
+commandRegistry.gate = item => (!demoPreview.isOpen || item.id.startsWith('demo.')) && (!fullPreview.isOpen || item.id === 'view.preview-full');
 menubar.build();
-menubar.blocked = () => !scrim.hidden || featureStudio.opened || demoPreview.isOpen;
+menubar.blocked = () => !scrim.hidden || featureStudio.opened || demoPreview.isOpen || fullPreview.isOpen;
 if (wantsNativeMenus()) {
   const nativeMenus = new NativeMenus(commandRegistry, () => menus);
   void nativeMenus.build().catch(() => undefined);
