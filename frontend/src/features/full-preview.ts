@@ -198,6 +198,7 @@ export class FullPreview {
     keyed(this.devices, this.list, item => item.id, item => {
       const node = element('button', 'fw-seg-btn');
       node.type = 'button';
+      if (item.kind !== 'full') node.dataset.noI18n = '';
       node.addEventListener('click', () => { this.chosen = item.id; this.renderDevices(); this.fit(); });
       return node;
     }, (node, item) => {
