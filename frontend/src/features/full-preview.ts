@@ -1,3 +1,4 @@
+import { commands } from '../commands/registry';
 import { label, labelAttr } from '../i18n';
 import type { EditorState } from '../types';
 import { element, keyed, options, text, value } from '../ui/dom';
@@ -263,7 +264,8 @@ export class FullPreview {
 
   private readonly onKey = (event: KeyboardEvent): void => {
     event.stopPropagation();
-    if (event.key !== 'Escape' || event.isComposing) return;
+    if (event.isComposing) return;
+    if (event.key !== 'Escape' && commands.forEvent(event)?.id !== 'view.preview-full') return;
     event.preventDefault();
     this.close();
   };
