@@ -38,7 +38,7 @@ import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from
 import { installInspector } from './features/inspector';
 import { installPageBackground } from './features/inspector/page-background';
 import { installCanvasMenu } from './features/canvas-menu';
-import { sectionId } from './features/inspector/search';
+import { installInspectorSearch, sectionId } from './features/inspector/search';
 import { installLibrary } from './features/library';
 import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
@@ -498,6 +498,10 @@ const motionPane = element('div');
 motionPane.hidden = true;
 inspectorScroll.append(designPane, motionPane, contentPane, pagePane);
 inspector.append(inspectorIdentity, inspectorTabs, inspectorScroll, dockStrip('right', [{ command: 'window.design', label: 'Design', icon: 'sliders' }, { command: 'window.content', label: 'Content', icon: 'text' }, { command: 'page.settings', label: 'Page', icon: 'page' }], { command: 'window.toggle-right', label: 'Expand right panel', icon: 'chevronsLeft' }));
+const inspectorSearch = installInspectorSearch({
+  after: inspectorTabs, scroll: inspectorScroll, select: setInspector,
+  tabs: Object.entries({ design: designPane, motion: motionPane, content: contentPane, page: pagePane }).map(([id, pane]) => ({ id, pane, button: inspectorTabButtons.get(id)! }))
+});
 const rail = new Rail([
   { command: 'window.layers', label: 'Pages and layers', icon: 'layers', active: () => activeSidebar === 'pages' && layout.state.left === 'open' },
   { command: 'window.insert', label: 'Insert', icon: 'plus', active: () => activeSidebar === 'insert' && layout.state.left === 'open' },
