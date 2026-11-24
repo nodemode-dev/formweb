@@ -1,0 +1,26 @@
+.inspector-search { flex: none; padding: var(--space-2); border-bottom: 1px solid var(--border-color); }
+.inspector-search-field { position: relative; display: block; }
+.inspector-search-field > .icon { position: absolute; top: 50%; left: var(--space-2); margin-top: calc(var(--space-2) * -1); color: var(--text-muted); pointer-events: none; }
+.inspector-search-input { height: var(--ctl-md); min-height: 0; padding: 0 var(--space-7) 0 var(--space-7); }
+.inspector-search-clear { position: absolute; top: 50%; right: var(--space-1); width: var(--ctl-sm); height: var(--ctl-sm); min-height: 0; margin-top: calc(var(--ctl-sm) / -2); padding: 0; border-color: transparent; background: transparent; color: var(--text-muted); }
+.inspector-search-clear:hover { color: var(--text-primary); }
+.inspector-results { flex: 1 1 0; min-height: 0; overflow: auto; padding: var(--space-2); }
+.inspector-results-list { display: flex; flex-direction: column; gap: 2px; }
+.inspector-results-group { padding: var(--space-3) var(--space-2) var(--space-1); overflow: hidden; color: var(--text-muted); font-size: var(--fs-10); text-overflow: ellipsis; white-space: nowrap; }
+.inspector-result { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); min-height: var(--ctl-md); padding: 0 var(--space-2); border-radius: var(--radius-md); color: var(--text-primary); font-size: var(--fs-12); cursor: pointer; }
+.inspector-result:hover, .inspector-result.is-active { background: var(--accent-soft); }
+.inspector-result.is-off { color: var(--text-muted); }
+.inspector-result.is-section .inspector-result-name { font-weight: 600; }
+.inspector-result-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inspector-result-css, .inspector-result-off { flex: none; color: var(--text-muted); font-size: var(--fs-10); }
+.inspector-result-css { font-family: var(--font-mono); }
+.inspector-result-css:empty { display: none; }
+.inspector-results-empty { margin: 0; padding: var(--space-4) var(--space-2); color: var(--text-muted); }
+.fw-search-hit { border-radius: var(--radius-sm); outline: 2px solid var(--accent-color); outline-offset: var(--space-1); animation: fw-search-pulse 1.4s ease-out 1; }
+@keyframes fw-search-pulse {
+  0% { outline-color: var(--accent-color); background-color: var(--accent-wash); }
+  100% { outline-color: transparent; background-color: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fw-search-hit { animation: none; }
+}
