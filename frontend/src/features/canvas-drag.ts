@@ -1,6 +1,8 @@
-import type { Site } from '../types';
+import type { EditorState, Site } from '../types';
 import type { Command } from './sections';
-import { canContain, dropTarget, moveCommands, type DropTarget, type DropZone } from './panel/drop';
+import { canContain, canDrag, dropTarget, moveCommands, movableIds, type DropTarget, type DropZone } from './panel/drop';
+import { element } from '../ui/dom';
+import '../styles/canvas-drag.css';
 
 export type Axis = 'x' | 'y';
 export interface Flow { axis: Axis; reverse: boolean }
@@ -143,4 +145,172 @@ export function markOf(doc: Document, site: Site, ids: readonly string[], spot: 
   const last = [...(site.nodes[target.parent]?.children || [])].reverse().find(child => !ids.includes(child));
   if (last) return { edge: edgeOf(last, false), box, into: false };
   return { edge: null, box, into: true };
+}
+
+export interface CanvasDragHost {
+  frame: HTMLIFrameElement;
+  stage: HTMLElement;
+  overlay: HTMLElement;
+  loaded: () => Promise<void>;
+  state: () => EditorState;
+  ready: () => boolean;
+  editing: () => boolean;
+  root: () => string;
+  selectionIds: () => string[];
+  select: (id: string) => void;
+  commands: (list: Command[]) => Promise<EditorState>;
+  run: (action: () => unknown) => Promise<void>;
+  status: (message: string, error?: boolean) => void;
+}
+
+const THRESHOLD = 6;
+const PROXY_W = 280;
+const PROXY_H = 120;
+
+function clip(box: Box, seen: Box): Box | null {
+  const left = Math.max(box.left, seen.left), top = Math.max(box.top, seen.top);
+  const right = Math.min(box.left + box.width, seen.left + seen.width), bottom = Math.min(box.top + box.height, seen.top + seen.height);
+  return right >= left && bottom >= top ? { left, top, width: right - left, height: bottom - top } : null;
+}
+
+function put(node: HTMLElement, box: Box | null): void {
+  if (!box) { node.hidden = true; return; }
+  node.style.transform = `translate(${Math.round(box.left)}px, ${Math.round(box.top)}px)`;
+  node.style.width = `${Math.round(box.width)}px`;
+  node.style.height = `${Math.round(box.height)}px`;
+  node.hidden = false;
+}
+
+export function installCanvasDrag(host: CanvasDragHost): void {
+  const map = new FrameMap(host.frame, host.stage);
+  const proxy = element('div', 'fw-canvas-proxy');
+  const line = element('div', 'fw-canvas-line');
+  const outline = element('div', 'fw-canvas-box');
+  proxy.hidden = line.hidden = outline.hidden = true;
+  host.overlay.append(outline, line, proxy);
+  void host.loaded().then(() => {
+    const doc = host.frame.contentDocument;
+    if (!doc) return;
+    const style = doc.createElement('style');
+    style.textContent = 'html[data-fw-dragging],html[data-fw-dragging] *{cursor:grabbing!important;user-select:none!important}[data-fw-drag-source]{opacity:.4!important}';
+    doc.head.append(style);
+    doc.addEventListener('pointerdown', down => press(doc, down));
+  });
+
+  function draw(mark: Mark | null, seen: Box): void {
+    outline.classList.toggle('is-into', !!mark?.into);
+    put(outline, mark?.box ? clip(map.box(mark.box), seen) : null);
+    const edge = mark?.edge;
+    if (!edge) { line.hidden = true; return; }
+    const a = edge.axis === 'y' ? map.toParent(edge.from, edge.at) : map.toParent(edge.at, edge.from);
+    const b = edge.axis === 'y' ? map.toParent(edge.to, edge.at) : map.toParent(edge.at, edge.to);
+    const bar = edge.axis === 'y' ? { left: a.x, top: a.y - 1, width: b.x - a.x, height: 2 } : { left: a.x - 1, top: a.y, width: 2, height: b.y - a.y };
+    put(line, clip(bar, seen));
+  }
+
+  function press(doc: Document, down: PointerEvent): void {
+    if (down.button !== 0 || down.ctrlKey || down.metaKey || down.shiftKey || down.altKey || !host.ready() || !host.editing()) return;
+    const from = down.target as Element | null;
+    if (!from?.closest || from.closest('[contenteditable="true"]') || (doc.activeElement as HTMLElement | null)?.isContentEditable) return;
+    const grabbed = from.closest<HTMLElement>('[data-fw-id]');
+    const pressed = grabbed?.dataset.fwId;
+    if (!grabbed || !pressed || !host.selectionIds().includes(pressed)) return;
+    const win = doc.defaultView!;
+    const start = map.toParent(down.clientX, down.clientY);
+    let pointer = start;
+    let ids: string[] = [];
+    let dragging = false;
+    let spot: Spot | null = null;
+    let grab = { x: 0, y: 0 };
+
+    const track = (event: PointerEvent): void => {
+      pointer = event.view === win ? map.toParent(event.clientX, event.clientY) : { x: event.clientX, y: event.clientY };
+    };
+    const place = (): void => {
+      proxy.style.transform = `translate(${Math.round(pointer.x - grab.x)}px, ${Math.round(pointer.y - grab.y)}px)`;
+      const seen = map.visible();
+      const inside = pointer.x >= seen.left && pointer.x <= seen.left + seen.width && pointer.y >= seen.top && pointer.y <= seen.top + seen.height;
+      const at = map.toFrame(pointer.x, pointer.y);
+      const site = host.state().site;
+      spot = inside ? findDrop(doc, site, host.root(), ids, at.x, at.y) : null;
+      draw(spot ? markOf(doc, site, ids, spot) : null, seen);
+    };
+    const begin = (event: PointerEvent): boolean => {
+      const site = host.state().site;
+      ids = movableIds(site, host.selectionIds());
+      if (!canDrag(site, ids)) {
+        host.status(ids.includes(host.root()) ? 'The page itself cannot be moved.' : 'This element is part of a linked component and moves with it. Detach the instance to move it on its own.', true);
+        return false;
+      }
+      dragging = true;
+      const source = bounds(grabbed);
+      const scaled = source ? map.box(source) : { left: start.x, top: start.y, width: 0, height: 0 };
+      const width = Math.min(PROXY_W, Math.max(48, scaled.width)), height = Math.min(PROXY_H, Math.max(24, scaled.height));
+      grab = { x: Math.min(Math.max(0, start.x - scaled.left), width), y: Math.min(Math.max(0, start.y - scaled.top), height) };
+      const node = site.nodes[pressed];
+      proxy.textContent = ids.length > 1 ? `${ids.length} elements` : node?.name || node?.tag || '';
+      proxy.style.width = `${Math.round(width)}px`;
+      proxy.style.height = `${Math.round(height)}px`;
+      proxy.hidden = false;
+      for (const id of ids) nodeElement(doc, id)?.setAttribute('data-fw-drag-source', '');
+      doc.documentElement.setAttribute('data-fw-dragging', '');
+      document.body.classList.add('fw-canvas-dragging');
+      doc.getSelection()?.removeAllRanges();
+      if (grabbed.isConnected && event.view === win) grabbed.setPointerCapture(event.pointerId);
+      return true;
+    };
+    const end = (): void => {
+      doc.removeEventListener('pointermove', move, true);
+      doc.removeEventListener('pointerup', up, true);
+      doc.removeEventListener('pointercancel', cancel, true);
+      doc.removeEventListener('dragstart', block, true);
+      document.removeEventListener('pointermove', move, true);
+      document.removeEventListener('pointerup', up, true);
+      document.removeEventListener('pointercancel', cancel, true);
+      proxy.hidden = line.hidden = outline.hidden = true;
+      doc.querySelectorAll('[data-fw-drag-source]').forEach(node => node.removeAttribute('data-fw-drag-source'));
+      doc.documentElement.removeAttribute('data-fw-dragging');
+      document.body.classList.remove('fw-canvas-dragging');
+    };
+    const swallow = (): void => {
+      const stop = (click: Event): void => { click.preventDefault(); click.stopImmediatePropagation(); };
+      for (const target of [win, window]) {
+        target.addEventListener('click', stop, { capture: true, once: true });
+        setTimeout(() => target.removeEventListener('click', stop, { capture: true }), 0);
+      }
+    };
+    const block = (event: Event): void => event.preventDefault();
+    const move = (event: PointerEvent): void => {
+      track(event);
+      if (!dragging) {
+        if (Math.hypot(pointer.x - start.x, pointer.y - start.y) < THRESHOLD) return;
+        if (!begin(event)) { end(); return; }
+      }
+      event.preventDefault();
+      place();
+    };
+    const up = (event: PointerEvent): void => {
+      if (!dragging) { end(); return; }
+      track(event);
+      place();
+      const chosen = spot;
+      end();
+      swallow();
+      if (!chosen?.commands.length) return;
+      const list = chosen.commands;
+      void host.run(async () => {
+        await host.commands(list);
+        if (ids.length === 1) host.select(ids[0]);
+        host.status(ids.length === 1 ? 'Element moved. One undo step puts it back.' : `${ids.length} elements moved. One undo step puts them back.`);
+      });
+    };
+    const cancel = (): void => { const was = dragging; end(); if (was) swallow(); };
+    doc.addEventListener('pointermove', move, true);
+    doc.addEventListener('pointerup', up, true);
+    doc.addEventListener('pointercancel', cancel, true);
+    doc.addEventListener('dragstart', block, true);
+    document.addEventListener('pointermove', move, true);
+    document.addEventListener('pointerup', up, true);
+    document.addEventListener('pointercancel', cancel, true);
+  }
 }
