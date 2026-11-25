@@ -41,6 +41,7 @@ import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
+import { installSelection, layerClick, pageClick, paintLayerRow, paintPageRow } from './features/selection';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
@@ -164,8 +165,13 @@ function openPage(id: string): void {
   selectedId = currentPage().root;
   update(state());
 }
-function pageRowClick(_event: MouseEvent, id: string): void { openPage(id); }
-function layerRowClick(_event: MouseEvent, id: string): void { pickNode(id); }
+function pageRowClick(event: MouseEvent, id: string): void { pageClick(event, id); }
+function layerRowClick(event: MouseEvent, id: string): void {
+  layerClick(event, id);
+  if (event.shiftKey || event.ctrlKey || event.metaKey) return;
+  canvas.bring(id);
+  scrollNearest(layersList, rowOf(layersList, id));
+}
 function descendants(id: string, found = new Set<string>()): Set<string> {
   if (found.has(id)) return found;
   found.add(id);
@@ -1493,6 +1499,7 @@ function update(next: EditorState): void {
     text(row.children[2] as HTMLElement, item.id === site.pages[0].id ? 'Home' : '');
     row.classList.toggle('active', item.id === pageId);
     row.setAttribute('aria-current', item.id === pageId ? 'page' : 'false');
+    paintPageRow(row, item.id);
   });
   const { rows: layers, total: layerTotal } = panel.layerRows();
   text(nodeCount, String(layerTotal));
@@ -1509,7 +1516,7 @@ function update(next: EditorState): void {
     row.style.setProperty('--depth', String(item.depth));
     panel.paintLayer(row, item);
     row.classList.toggle('active', item.node.id === selectedId);
-    row.setAttribute('aria-selected', String(item.node.id === selectedId));
+    paintLayerRow(row, item.node.id);
   });
   keyed(componentList, Object.values(site.components), item => item.id, () => {
     const row = button('', undefined, undefined, 'list-row');
@@ -2269,6 +2276,7 @@ registerCommands([
 ]);
 const panel = installPanel({ state, ready, command, commands, overlay, pagesList, layersList, run, status, pageId: () => pageId, openPage, selected: () => selectedId, select: selectNode, pageSettings: () => { openDock('right'); setInspector('page'); }, elementSettings: () => { openDock('right'); setInspector('design'); }, refresh: () => update(state()), gates: async () => { await loadPasswordGates(true); return passwordGates; } });
 registerCommands(panel.commands);
+installSelection({ site: () => state().site, primary: () => selectedId, select: selectNode, pageId: () => pageId, openPage, pageRoot: () => currentPage().root, refresh: () => update(state()), layersList, pagesList });
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });

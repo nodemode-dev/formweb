@@ -10,6 +10,8 @@ export interface SelectionHost {
   openPage: (id: string) => void;
   pageRoot: () => string;
   refresh: () => void;
+  layersList: HTMLElement;
+  pagesList: HTMLElement;
 }
 
 const HIDDEN_TAGS = new Set(['pattern', 'linearGradient', 'radialGradient', 'tspan']);
@@ -25,6 +27,8 @@ let memo: { site: Site; root: string; ids: Set<string> } | null = null;
 
 export function installSelection(next: SelectionHost): void {
   host = next;
+  selectionKeys(next.layersList, 'layers');
+  selectionKeys(next.pagesList, 'pages');
 }
 
 function onPage(): Set<string> {
@@ -126,8 +130,9 @@ function span(keys: readonly string[], from: string, to: string): string[] {
   return a <= b ? keys.slice(a, b + 1) : keys.slice(b, a + 1).reverse();
 }
 
-export function layerClick(event: MouseEvent, id: string, list: HTMLElement): void {
+export function layerClick(event: MouseEvent, id: string): void {
   if (!host) return;
+  const list = host.layersList;
   syncNodes();
   if (toggles(event)) {
     const next = toggled(nodes, id);
@@ -227,7 +232,7 @@ function extend(kind: 'layers' | 'pages', list: HTMLElement, row: HTMLElement, s
   next.focus();
 }
 
-export function selectionKeys(list: HTMLElement, kind: 'layers' | 'pages'): void {
+function selectionKeys(list: HTMLElement, kind: 'layers' | 'pages'): void {
   list.addEventListener('keydown', event => {
     const row = (event.target as Element | null)?.closest<HTMLElement>('.list-row');
     if (!host || event.defaultPrevented || !row || row !== event.target || row.parentElement !== list) return;
