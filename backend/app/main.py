@@ -21,12 +21,12 @@ from .assets import MIME_TYPES, ProjectTooLarge, asset_path, ingest, list_assets
 from .chat import router as chat_router
 from .clips import router as clips_router
 from .commands_mirror import router as commands_router
-from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_ARCHIVE_BYTES, MAX_PROJECT_FILE_BYTES, MAX_VIDEO_BYTES, ORIGINS, PORT, VERSION
+from .config import AUTH_TOKEN, DATA_DIR, FRONTEND_DIST, MAX_DOCUMENT_BYTES, MAX_FORM_BYTES, MAX_PROJECT_ARCHIVE_BYTES, MAX_PROJECT_FILE_BYTES, MAX_SITE_ARCHIVE_BYTES, MAX_VIDEO_BYTES, ORIGINS, PORT, VERSION
 from .engine import EngineError
 from .fpub import is_fpub, read_fpub
 from .fragment_routes import MAX_PASTE_BYTES, router as fragment_router
 from .handoff import router as handoff_router
-from .library_routes import router as library_router
+from .library_routes import SITE_ARCHIVE_PATHS, router as library_router
 from .mcp_server import mcp, mcp_app
 from .providers.routes import router as provider_router
 from .service import ACCESS_META, BLOCKED, DOCK_CONTRACT, Notice, safe_export_path, studio
@@ -85,7 +85,7 @@ class LocalAccess:
             if control and window_key.needs_key(scope['method'], path, identity['root']) and not holds_key:
                 raise EngineError(window_key.REFUSED, 403)
             archive_load = path == '/api/load' and headers.get('content-type', '').split(';', 1)[0].strip().lower() == 'application/zip'
-            maximum = MAX_PROJECT_ARCHIVE_BYTES if archive_load else MAX_PROJECT_FILE_BYTES if path in ('/api/load', '/mcp') else MAX_VIDEO_BYTES if path == '/api/assets' and scope['method'] == 'POST' else MAX_PASTE_BYTES if path == '/api/paste' else MAX_DOCUMENT_BYTES
+            maximum = MAX_PROJECT_ARCHIVE_BYTES if archive_load else MAX_PROJECT_FILE_BYTES if path in ('/api/load', '/mcp') else MAX_VIDEO_BYTES if path == '/api/assets' and scope['method'] == 'POST' else MAX_PASTE_BYTES if path == '/api/paste' else MAX_SITE_ARCHIVE_BYTES if path in SITE_ARCHIVE_PATHS else MAX_DOCUMENT_BYTES
             length = headers.get('content-length', '')
             if length and (not length.isdecimal() or int(length) > maximum):
                 raise EngineError('Request body exceeds the configured size limit.', 413)

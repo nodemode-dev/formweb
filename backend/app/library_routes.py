@@ -1,18 +1,21 @@
 """HTTP routes for section library v2 (DEV_PLAN AD7, TURN_C_SPEC section 9). Every write is one engine batch, so one
 undo step, sent through the same `studio.mutate` path as `/api/batch` with the revision it was computed against."""
+import asyncio
 import re
 import secrets
 
 from fastapi import APIRouter, Request
 from starlette.responses import FileResponse
 
-from . import library
+from . import library, site_import
 from .assets import ingest, own_asset
 from .code_components import build_component
+from .config import MAX_SITE_ARCHIVE_BYTES
 from .engine import EngineError
 from .service import studio
 
 router = APIRouter()
+SITE_ARCHIVE_PATHS = ('/api/library/import-site/review', '/api/library/import-site')
 
 HTML_CAP = 512 * 1024
 CSS_CAP = 256 * 1024
@@ -314,3 +317,49 @@ async def library_import_html(request: Request):
     result = await studio.mutate('batch', {'commands': commands, 'expectedRevision': revision})
     studio.access.record('library.import-html', {'node': host, 'bytes': len(document)})
     return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': [] if shim or not module else ['The script ran as a module with no kit helpers.']}
+
+
+async def _archive(request: Request) -> bytes:
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > MAX_SITE_ARCHIVE_BYTES:
+            raise EngineError('The archive is larger than 64 MiB, the most a site import takes.', 413)
+    return bytes(body)
+
+
+async def review_site(data: bytes) -> dict:
+    archive = await asyncio.to_thread(site_import.read_archive, data)
+    site, revision = await _current()
+    result = await asyncio.to_thread(site_import.plan, archive, site, kit_script)
+    return {**site_import.review(result), 'revision': revision}
+
+
+async def import_site(data: bytes, mode: str, revision: int | None) -> dict:
+    if mode not in ('new', 'replace'):
+        raise EngineError('Mode must be new or replace.')
+    archive = await asyncio.to_thread(site_import.read_archive, data)
+    site, current = await _current()
+    if revision is not None and revision != current:
+        raise EngineError('The site changed after the review. Review the archive again before importing.', 409)
+    result = await asyncio.to_thread(site_import.plan, archive, site, kit_script)
+    commands, pages = site_import.commands(result, site, mode, archive, kit_script)
+    assets = site_import.store_assets(result, archive, studio)
+    outcome = await studio.mutate('batch', {'commands': commands, 'expectedRevision': current})
+    studio.access.record('library.import-site', {'pages': pages, 'assets': assets, 'mode': mode, 'bytes': len(data)})
+    skipped = result['skipped']
+    warnings = [f'{page["name"]}: {warning}' for page in result['pages'] for warning in page['warnings']]
+    return {**(outcome if isinstance(outcome, dict) else {}), 'pages': pages, 'assets': assets, 'skipped': skipped, 'warnings': warnings,
+            'message': site_import.summary(len(pages), assets, len(skipped))}
+
+
+@router.post('/api/library/import-site/review')
+async def library_review_site(request: Request):
+    studio.access.authorize('edit')
+    return await review_site(await _archive(request))
+
+
+@router.post('/api/library/import-site')
+async def library_import_site(request: Request, mode: str = 'new', revision: int | None = None):
+    studio.access.authorize('edit')
+    return await import_site(await _archive(request), mode, revision)
