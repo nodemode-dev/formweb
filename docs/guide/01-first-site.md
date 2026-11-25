@@ -23,9 +23,10 @@ The site opens with one empty page, Home: its only layer is the page itself. In 
 1. In the left panel, click the **+** to the right of **PAGES**. The Add page dialog opens.
 2. In **Page name** type `Classes`.
 3. **URL slug** fills itself as you type the name: `/classes`. This is the page's address on your site, and the line under the fields shows the address that will be used. You can type your own slug; from then on it no longer follows the name. If the address is already taken by another page, that line says so in red and the dialog stays open until you choose another.
-4. Click **Add page**.
+4. Leave **Background** at **Site background (white)**. (It can also start the page with the home page's background; see [Page background and theme colors](05-background-and-theme-colors.md).)
+5. Click **Add page**.
 
-![The Add page dialog with Classes as the page name and /classes as the URL slug](images/first-site-add-page.webp)
+![The Add page dialog with Classes as the page name, /classes as the URL slug and Background set to Site background (white)](images/first-site-add-page.webp)
 
 The new page opens on the canvas. It is completely white: a new page has no background of its own, so it shows the browser's default white. You give it a color in step 8.
 
@@ -101,9 +102,9 @@ The **Reset** link next to a field removes your value, so the field goes back to
 1. Choose **Page > Page background...**. The right panel opens the **Page** tab at its Page background field.
 2. Type `#e9dccb` and press Enter.
 
-![The Page background part of the Page tab: Background reads #e9dccb with a Clear link, a note saying this page uses #e9dccb and Clear returns it to the site background, white, the browser default, then the Apply to all pages button and the Edit site theme colors link](images/first-site-page-background.webp)
+![The Page background part of the Page tab: Background reads #e9dccb with a Clear link, a note saying this page uses #e9dccb and Clear returns it to the site background, white, the browser default, then the Match another page list, the Apply to all pages button and the Edit site theme colors link](images/first-site-page-background.webp)
 
-This colors this page only. **Apply to all pages** gives every page the same background. [Page background and theme colors](05-background-and-theme-colors.md) explains the rest.
+This colors this page only. **Apply to all pages** gives every page the same background, and **Match another page** copies another page's background onto this one. [Page background and theme colors](05-background-and-theme-colors.md) explains the rest.
 
 ## 9. See it as a visitor would
 
