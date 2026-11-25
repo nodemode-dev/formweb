@@ -42,6 +42,15 @@ You can move an element by dragging it on the canvas.
 
 Elements always land in a place in the layout, never at a loose position, so nothing ends up overlapping. A move is one undo step. Drag near the top or bottom edge of the canvas to scroll.
 
+### On a touch screen or with a pen
+
+- **Drag with a finger:** hold the element still for about a third of a second until it lifts (its outline grows wider; an element that was not selected is selected first), then move it without lifting your finger. The label, the orange line and the dashed outline work as with a mouse, at any zoom and scroll position.
+- A quick swipe still scrolls the canvas, and a tap still selects.
+- Lifting your finger outside the canvas, or putting a second finger down, cancels the drag. Nothing moves.
+- **Right-click menu:** hold an element still and let go without moving.
+- **Select several:** turn on the button with two ticked boxes in the LAYERS heading (or **Edit > Select several**). Each tap on the canvas then adds an element to the selection or takes it out. Tap **Done**, or press Escape, to finish.
+- **A pen** drags like a mouse: press and move. Holding the pen's side button never starts a drag.
+
 ## Wrap in a container
 
 Sometimes you want to group elements so you can style or move them together.

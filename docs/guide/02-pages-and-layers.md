@@ -90,6 +90,15 @@ These act on the whole set, as one undo step: Copy, Cut, Paste, Duplicate, Delet
 
 The PAGES list works the same way: Ctrl+click and Shift+click select several pages, and Duplicate, Move up, Move down and Delete in the page menu then act on all of them.
 
+## On a touch screen or with a pen
+
+- **Drag with a finger:** hold a page or layer row still for about a third of a second until it lifts (it is highlighted), then move it without lifting your finger. The orange line shows where it lands, and the list scrolls by itself near its top and bottom.
+- A quick swipe still scrolls the list, and a tap still selects.
+- Lifting your finger away from the list, or putting a second finger down, cancels the drag. Nothing moves.
+- **Right-click menu:** hold a row still and let go without moving.
+- **Select several:** tap the button with two ticked boxes in the PAGES or LAYERS heading. Each tap on a row now adds it to the selection or takes it out, and the heading shows how many are selected. Tap **Done**, or press Escape, to finish. This works with a mouse too.
+- **A pen** drags like a mouse: press and move. Holding the pen's side button never starts a drag.
+
 ## Next
 
 [Working on the canvas](03-canvas.md) shows how to do the same things directly on the page.

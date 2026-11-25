@@ -99,6 +99,7 @@ These keys belong to the Pages and Layers lists, menus and text fields rather th
 | Ctrl+click, Shift+click (Cmd+click on a Mac) | Rows, or elements on the canvas | Add to the selection, or select a range of rows |
 | Escape | Several rows selected | Go back to one |
 | Escape | While dragging | Cancel the drag |
+| Escape | Select several is on | Turn it off and keep the selection |
 | Up, Down, Enter | Quick insert, Search properties | Move through the list and choose |
 | Escape | Preview as published | Close it |
 
