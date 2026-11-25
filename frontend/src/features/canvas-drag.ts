@@ -322,7 +322,7 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       track(event);
       if (!dragging) {
         if (Math.hypot(pointer.x - start.x, pointer.y - start.y) < THRESHOLD) return;
-        if (!begin(event)) { end(); return; }
+        if (!begin(event)) { aborted = true; return; }
         frame = requestAnimationFrame(tick);
       }
       event.preventDefault();
