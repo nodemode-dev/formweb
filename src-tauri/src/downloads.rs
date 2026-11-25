@@ -115,10 +115,16 @@ pub fn reveal_download() -> Result<(), String> {
         command.arg("-R").arg(&path);
         command
     };
+    // Explorer splits its command line at commas and does not follow the usual quoting rules, so the path goes in one
+    // argument, always quoted (a Windows file name cannot hold a quote).
     #[cfg(windows)]
     let mut command = {
+        use std::os::windows::process::CommandExt;
+        let mut select = std::ffi::OsString::from("/select,\"");
+        select.push(&path);
+        select.push("\"");
         let mut command = Command::new("explorer");
-        command.arg("/select,").arg(&path);
+        command.raw_arg(select);
         command
     };
     #[cfg(all(unix, not(target_os = "macos")))]
