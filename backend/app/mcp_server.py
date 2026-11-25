@@ -85,7 +85,8 @@ async def call_tool(context, params):
         destructive = BY_NAME[params.name]['annotations'].get('destructiveHint') and params.name not in DOMAIN_BY_NAME and params.name not in ('motion_track', 'library_import_site')
         if (destructive or removes) and studio.approvals.settings()['agentDestructive']:
             # Agent Connect: the owner asked to approve destructive agent calls; this waits for a person's decision.
-            await studio.approvals.wait('agent.tool', {'tool': params.name, 'arguments': json.dumps(arguments, ensure_ascii=False)[:1000], **caller(context)})
+            shown = {**arguments, 'data': f'a zip of {len(arguments["data"]) * 3 // 4:,} bytes'} if params.name == 'library_import_site' else arguments
+            await studio.approvals.wait('agent.tool', {'tool': params.name, 'arguments': json.dumps(shown, ensure_ascii=False)[:1000], **caller(context)})
         match params.name:
             case 'get_site':
                 result = await studio.state()
