@@ -86,7 +86,9 @@ export function installCodeSection(ctx: InspectorContext): { update(next: Editor
     await command('code.section.remove', { node: current.id });
     ctx.status(t('Code section removed.'));
   }));
-  actions.append(posterButton, importButton, removeButton);
+  const convertButton = buttonOf(ctx, 'Convert to editable elements...', 'layers');
+  convertButton.dataset.cmd = 'library.convert-section';
+  actions.append(convertButton, posterButton, importButton, removeButton);
   editBox.append(
     fieldOf(ctx, 'HTML', htmlArea, true),
     fieldOf(ctx, 'CSS', cssArea, true),
@@ -167,6 +169,7 @@ export function installCodeSection(ctx: InspectorContext): { update(next: Editor
       if (moduleBox.checked !== !!stored.module) moduleBox.checked = !!stored.module;
       value(posterInput, stored.poster || '');
       for (const control of [htmlArea, cssArea, jsArea, moduleBox, posterInput, posterButton, importButton]) setDisabled(control, blocked);
+      setDisabled(convertButton, blocked || !stored.html?.trim());
     }
   };
 }
