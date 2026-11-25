@@ -1,4 +1,6 @@
+import base64
 import hashlib
+import hmac
 import json
 import re
 import secrets
@@ -26,6 +28,11 @@ class Releases:
         CREATE TABLE IF NOT EXISTS release_runtime (digest TEXT PRIMARY KEY,slug TEXT NOT NULL,version TEXT NOT NULL,UNIQUE(slug,version));
         ''')
         self.store.db.commit()
+        secret = self.store.get_meta('releaseAccessSecret')
+        if not secret:
+            secret = secrets.token_hex(32)
+            self.store.set_meta('releaseAccessSecret', secret)
+        self.secret = bytes.fromhex(secret)
 
     @staticmethod
     def runtime_token():
@@ -55,6 +62,23 @@ class Releases:
             row = self.store.db.execute('SELECT version FROM active_releases WHERE slug=?', (slug,)).fetchone()
             version = row['version'] if row else None
         return (slug, version) == (release['slug'], release['version']) and rest not in PRIVATE_FILES
+
+    def asset_grant(self, slug, version, page_id, lifetime=43200):
+        """A key for a protected page's own assets, written into that page when it is served to someone allowed to see it."""
+        expires = str(int(time.time() + lifetime))
+        page = base64.urlsafe_b64encode(page_id.encode()).decode().rstrip('=')
+        mac = hmac.new(self.secret, f'{slug}\0{version}\0{page}\0{expires}'.encode(), 'sha256').hexdigest()[:32]
+        return f'{page}.{expires}.{mac}'
+
+    def granted_page(self, slug, version, key):
+        try:
+            page, expires, mac = key.split('.')
+            expected = hmac.new(self.secret, f'{slug}\0{version}\0{page}\0{expires}'.encode(), 'sha256').hexdigest()[:32]
+            if not hmac.compare_digest(mac, expected) or int(expires) < time.time():
+                return None
+            return base64.urlsafe_b64decode(page + '=' * (-len(page) % 4)).decode()
+        except (ValueError, UnicodeDecodeError):
+            return None
 
     def remember(self, slug, version):
         self.store.db.execute('INSERT INTO release_projects VALUES(?,?,?)', (slug, version, self.studio.access.project_key()))
