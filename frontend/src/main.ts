@@ -38,6 +38,7 @@ import { installInspector } from './features/inspector';
 import { installLibrary } from './features/library';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
+import { installPanel } from './features/panel';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
@@ -153,6 +154,12 @@ function pickNode(id: string): void {
   selectNode(id);
   canvas.bring(id);
   scrollNearest(layersList, rowOf(layersList, id));
+}
+function openPage(id: string): void {
+  if (!state().site.pages.some(page => page.id === id)) return;
+  pageId = id;
+  selectedId = currentPage().root;
+  update(state());
 }
 function descendants(id: string, found = new Set<string>()): Set<string> {
   if (found.has(id)) return found;
@@ -2242,6 +2249,8 @@ registerCommands([
   { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: ['Mod+Alt+J'], global: true, group: 3, run: () => agentDock?.show('chat') },
   { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
 ]);
+const panel = installPanel({ state, ready, command, commands, overlay, run, status, pageId: () => pageId, openPage, selected: () => selectedId, select: selectNode, pageSettings: () => { openDock('right'); setInspector('page'); }, elementSettings: () => { openDock('right'); setInspector('design'); } });
+registerCommands(panel.commands);
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
