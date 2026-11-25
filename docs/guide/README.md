@@ -49,6 +49,6 @@ A demo opens as a new site that is not saved yet. Your saved projects are not to
 
 ## More help
 
-- In the app, **Help > Using formweb** gives a one-screen summary and a button that opens this guide.
+- In the app, **Help > Using FormWeb** gives a one-screen summary and a button that opens this guide.
 - The [manual](../MANUAL.md) describes every feature in detail. Use it when you need the exact rules.
 - The [library guide](../LIBRARY.md) explains how library sections and page components are made.
