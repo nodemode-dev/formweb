@@ -17,6 +17,8 @@ import { demoCommands, openDemo, type DemoHooks } from './ui/demos';
 import { DemoPreview } from './ui/demo-preview';
 import { unsavedWork } from './ui/unsaved';
 import { watchOpenedFiles } from './ui/opened-file';
+import { Notice } from './ui/notice';
+import { deliver, isBusy } from './ui/downloads';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
@@ -44,6 +46,7 @@ await startLanguage();
 
 const app = document.querySelector<HTMLElement>('#app')!;
 const overlay = document.querySelector<HTMLElement>('#overlay-root')!;
+const notice = new Notice(overlay, action => run(action));
 const importer = document.querySelector<HTMLInputElement>('#project-import')!;
 const mediaInput = element('input');
 mediaInput.type = 'file';
@@ -1609,7 +1612,8 @@ function baseUrlAction(warning: string): { label: string; run: () => unknown } |
   return warning ? { label: 'Set the base URL', run: openBaseUrlField } : undefined;
 }
 async function exportSite(): Promise<void> {
-  const headers = await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
+  const file = state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip';
+  const headers = await deliver(file, { desktop: 'Exported {0} to your Downloads folder.', placed: 'Exported {0} to {1}.', browser: 'Downloaded {0}. Your browser lists it with its downloads.' }, notice, started => download(`/api/export?locale=${encodeURIComponent(locale)}`, file, started), exportButton);
   const warning = notFoundBaseWarning();
   status([t('Static site exported for {0}.', [{ lang: locale }]), warning, localFormWarning(localFormHeader(headers))], false, baseUrlAction(warning));
 }
@@ -2158,7 +2162,7 @@ registerCommands([
   { id: 'file.import', label: 'Import .fweb or .fpub file...', menu: 'File', run: () => importer.click() },
   { id: 'file.save', label: 'Save', menu: 'File', keys: ['Mod+S'], global: true, group: 1, run: saveProject, enabled: ready },
   { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },
-  { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: ready },
+  { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: () => ready() && !isBusy(exportButton) },
   { id: 'file.send-formpublisher', label: 'Send to FormPublisher', menu: 'File', group: 2, run: sendToFormPublisher, enabled: ready },
   { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
   { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
