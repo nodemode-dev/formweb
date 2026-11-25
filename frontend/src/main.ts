@@ -599,7 +599,7 @@ function addSegments(container: HTMLElement, label: string, key: string, choices
 }
 const elementSection = section(designPane, 'Element');
 const elementGrid = element('div', 'form-grid');
-addInspectorInput(elementGrid, 'Name', 'name', name => nodePatch({ name }), undefined, true);
+addInspectorInput(elementGrid, 'Name', 'name', name => nodePatch({ name }).then(() => status(`Renamed to "${name}".`)), undefined, true);
 const HTML_TAGS = ['main', 'section', 'div', 'article', 'header', 'footer', 'nav', 'h1', 'h2', 'h3', 'p', 'span', 'a', 'button', 'img', 'form', 'label', 'input', 'textarea', 'ul', 'ol', 'li'];
 const SVG_TAGS = new Set(['svg', 'g', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'defs', 'clippath', 'lineargradient', 'radialgradient', 'stop', 'use', 'symbol', 'mask']);
 const tagSelect = addInspectorInput(elementGrid, 'HTML tag', 'tag', tag => nodePatch({ tag }), HTML_TAGS) as HTMLSelectElement;
@@ -1214,7 +1214,7 @@ const tokenGrid = element('div', 'form-grid');
 const tokenName = input('accent');
 const tokenValue = input('#f97316');
 tokenGrid.append(field('New token name', tokenName), field('CSS value', tokenValue));
-tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS custom properties. Use var(--token-name) in element style fields.'), tokensList, tokenGrid, button('Add token', 'plus', () => command('token.set', { name: tokenName.value.trim(), value: tokenValue.value.trim() })));
+tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS custom properties. Use var(--token-name) in element style fields.'), tokensList, tokenGrid, button('Add token', 'plus', () => command('token.set', { name: tokenName.value.trim(), value: tokenValue.value.trim() }).then(() => status(`Token --${tokenName.value.trim().replace(/^--/, '')} added.`))));
 const inspectorExt = installInspector({
   section, field, select, input, button, addStyle, addSegments, setStyle, nodePatch, run, status, insertionParent, makeNode, selectNode, canvas,
   showLayers: () => setSidebar('pages'),
@@ -2036,7 +2036,7 @@ function updateTokens(): void {
     const row = element('div', 'tokens-row');
     const name = element('span', 'micro');
     const control = input();
-    control.addEventListener('change', () => void run(() => command('token.set', { name: row.dataset.key, value: control.value })));
+    control.addEventListener('change', () => void run(() => command('token.set', { name: row.dataset.key, value: control.value }).then(() => status(`Token --${row.dataset.key!.replace(/^--/, '')} updated.`))));
     row.append(name, control);
     return row;
   }, (row, [name, content]) => {
@@ -2230,8 +2230,8 @@ registerCommands([
   { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: () => ready() && !isBusy(exportButton) },
   { id: 'file.send-formpublisher', label: 'Send to FormPublisher', menu: 'File', group: 2, run: sendToFormPublisher, enabled: ready },
   { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
-  { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
-  { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z'], repeat: true, run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
+  { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo').then(() => status('Undone.')), enabled: () => !!lastState?.canUndo },
+  { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z'], repeat: true, run: () => command('history.redo').then(() => status('Redone.')), enabled: () => !!lastState?.canRedo },
   { id: 'edit.copy', label: 'Copy element', menu: 'Edit', keys: ['Mod+C'], group: 1, run: copySelection, enabled: canDuplicate, native: panelTextSelected },
   { id: 'edit.cut', label: 'Cut element', menu: 'Edit', keys: ['Mod+X'], group: 1, run: cutSelection, enabled: canDuplicate, native: panelTextSelected },
   { id: 'edit.paste', label: 'Paste element', menu: 'Edit', keys: ['Mod+V'], group: 1, run: pasteFromClipboard, enabled: () => ready() && !!scrim.hidden, native: () => true },

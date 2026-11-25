@@ -68,7 +68,7 @@ export function installPanel(host: PanelHost) {
     const page = pageOf(params);
     if (!page) return;
     const name = nameOf(params);
-    const write = (next: string): Promise<unknown> => host.command('page.update', { id: page.id, patch: { name: next } });
+    const write = (next: string): Promise<unknown> => host.command('page.update', { id: page.id, patch: { name: next } }).then(() => host.status(`Page renamed to "${next}".`));
     if (name === null) {
       if (!inPlace(rowIn(host.pagesList, page.id), page.name, 'A page needs a name.', write)) { host.openPage(page.id); host.pageSettings(); focusField('page.name'); }
       return;
@@ -80,7 +80,7 @@ export function installPanel(host: PanelHost) {
     const node = nodeOf(params);
     if (!node) return;
     const name = nameOf(params);
-    const write = (next: string): Promise<unknown> => host.command('node.update', { id: node.id, patch: { name: next } });
+    const write = (next: string): Promise<unknown> => host.command('node.update', { id: node.id, patch: { name: next } }).then(() => host.status(`Renamed to "${next}".`));
     if (name === null) {
       let top = node.id;
       for (let up = parentOf(top); up; up = parentOf(top)) top = up.id;
