@@ -42,7 +42,7 @@ You can move an element by dragging it on the canvas. Over a selected element th
    - a darker line through the neighbours shows the edge the element will line up with when that container lines its elements up on it (left, centre or right in a column; top, middle or bottom in a row), and a small measure such as **14 px** shows the gap or margin the layout will put between them.
 4. Release to drop it there, or press Escape to cancel. The status line then says "Drag cancelled. Nothing moved." and everything the drag drew is gone.
 
-![Dragging the paragraph Hm lead in Coldmere's hero column: the label reads Hm lead, Before Hm h1; the orange line sits above the big heading, thin lines mark the other places in the column, a 14 px measure shows the space above the heading, and faint dashed outlines mark every container that could take the paragraph](images/canvas-drag-column.webp)
+![Dragging the paragraph Hm lead in Coldmere's hero column: the label reads Hm lead, Before Hm h1; the orange line sits above the big heading, thin lines mark the other places in the column, a 14 px measure shows the margin under the small line of capitals above it, and faint dashed outlines mark every container that could take the paragraph](images/canvas-drag-column.webp)
 
 In a row the places run from left to right, so the lines stand upright, and the guides run along the top and bottom edges the elements share:
 
