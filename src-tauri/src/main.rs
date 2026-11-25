@@ -22,6 +22,7 @@ use std::time::{Duration, Instant};
 use tauri::{Manager, RunEvent, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_dialog::DialogExt;
 
+mod downloads;
 mod engine_start;
 mod render;
 mod reveal;
@@ -329,9 +330,8 @@ fn open_editor(handle: &tauri::AppHandle) {
     };
     #[cfg(target_os = "macos")]
     let builder = builder.title_bar_style(tauri::TitleBarStyle::Overlay).hidden_title(true);
-    // The macOS and Linux web views cancel a download unless a handler is set; with one the file goes to Downloads.
-    #[cfg(not(windows))]
-    let builder = builder.on_download(|_webview, _event| true);
+    // Every web view saves a download to the Downloads folder without asking or showing it; the handler tells the page where.
+    let builder = builder.on_download(downloads::on_download);
     let builder = builder.on_new_window(|url, _features| {
         if matches!(url.scheme(), "http" | "https") {
             open_outside(url.as_str());
@@ -381,7 +381,7 @@ fn main() {
                 traffic_lights::place(window);
             }
         })
-        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready, traffic_lights::set_window_title, text_edit::text_edit, take_opened_file])
+        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready, traffic_lights::set_window_title, text_edit::text_edit, take_opened_file, downloads::reveal_download])
         .setup(|app| {
             reveal::round_splash(app.handle());
             let handle = app.handle().clone();
