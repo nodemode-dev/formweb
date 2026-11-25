@@ -21,9 +21,11 @@ The example uses **Harbour Ferries** (**Help > Demos > Harbour Ferries**). Out o
 ## Go straight to the problem with Select
 
 1. Click **Select** next to the issue.
-2. The dialog closes and FormWeb takes you there: it opens the Routes page, opens the **Page** tab, puts the cursor in the empty **Description** field and outlines it. The status line says "Selected Routes: Routes needs a meta description".
+2. The dialog closes and FormWeb takes you there: it opens the Routes page, opens the **Page** tab, scrolls the empty **Description** field to the middle of the panel, puts the cursor in it and outlines it. The status line says "Selected Routes: Routes needs a meta description", and a notice at the bottom right says the same, so you do not have to remember it.
 
-![After Select: the Routes page of Harbour Ferries is open on the canvas, the Routes page is highlighted in the PAGES list, and the Description field in the right panel is outlined in orange; the status line reads Selected Routes: Routes needs a meta description](images/audit-select.webp)
+![After Select: the Routes page of Harbour Ferries is open on the canvas, the Routes page is highlighted in the PAGES list, the Description field in the right panel is outlined in orange, and the notice at the bottom right reads Selected Routes: Routes needs a meta description, with a Show again button](images/audit-select.webp)
+
+The notice stays for about 30 seconds, and as long as your pointer is on it. **Show again** takes you back to the same place (the page, the element or the field) if you have clicked elsewhere meanwhile; you do not need to open the audit again. The cross closes the notice.
 
 3. Type a description and press Tab. Run the audit again: the issue is gone.
 

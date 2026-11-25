@@ -127,7 +127,7 @@ On the phone the 64 px padding leaves little room for the text. [The right panel
 
 The first two issues are on the empty Home page; the next three are on your Classes page.
 
-2. Click **Select** next to "Classes needs a meta description". The dialog closes, the **Page** tab opens, and the **Description** field is outlined with the cursor in it. The status line says "Selected Classes: Classes needs a meta description".
+2. Click **Select** next to "Classes needs a meta description". The dialog closes, the **Page** tab opens, and the **Description** field is outlined with the cursor in it. The status line says "Selected Classes: Classes needs a meta description", and a notice at the bottom right repeats it, with **Show again** to come back here later.
 
 ![The Page tab after Select: the Description field under Search & metadata is outlined in orange and empty, ready for typing](images/first-site-audit-select.webp)
 
