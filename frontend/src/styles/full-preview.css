@@ -2,10 +2,16 @@
 .fw-fp[hidden] { display: none; }
 .fw-fp-bar { display: flex; align-items: center; gap: var(--space-2); min-width: 0; padding: 0 var(--space-3); overflow: hidden; border-bottom: 1px solid var(--line-0); background: linear-gradient(to bottom, var(--surface-2), var(--surface-1)); user-select: none; -webkit-user-select: none; }
 :root.has-overlay-titlebar .fw-fp-bar { padding-left: 78px; }
-.fw-fp-select { flex: 0 1 auto; width: auto; min-width: 0; max-width: 200px; height: var(--ctl-md); min-height: 0; font-size: var(--fs-12); }
+.fw-fp-select { flex: 0 1 auto; width: auto; min-width: 0; max-width: 200px; height: var(--ctl-md); min-height: 0; padding-block: 0; padding-left: var(--space-2); font-size: var(--fs-12); }
 .fw-fp-locale { max-width: 88px; }
 .fw-fp-select[hidden] { display: none; }
-.fw-fp-devices { flex: 0 1 auto; flex-wrap: nowrap; min-width: 0; overflow: hidden; }
+.fw-fp-devices { flex: 0 1 auto; flex-wrap: nowrap; min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.fw-fp-devices::-webkit-scrollbar { display: none; }
+@media (max-width: 760px) {
+  .fw-fp-state { display: none; }
+  .fw-fp-btn:not(.is-icon) { justify-content: center; width: var(--ctl-md); padding: 0; }
+  .fw-fp-btn:not(.is-icon) > span { display: none; }
+}
 .fw-fp-devices .fw-seg-btn.is-on { font-weight: inherit; }
 .fw-fp-btn { flex: none; display: inline-flex; align-items: center; gap: var(--space-1); height: var(--ctl-md); min-height: 0; padding: 0 var(--space-2); border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--bg-tertiary); color: var(--text-secondary); font-size: var(--fs-12); text-decoration: none; white-space: nowrap; cursor: pointer; }
 .fw-fp-btn.is-icon { justify-content: center; width: var(--ctl-md); padding: 0; }

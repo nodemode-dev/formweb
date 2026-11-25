@@ -68,6 +68,8 @@ export class FullPreview {
     this.tool(this.refresh, 'redo', 'Refresh', () => this.show({ ...this.target, revision: this.host.state().revision }, true));
     this.open.append(icon('external'), element('span'));
     label(this.open.lastChild as HTMLElement, 'Open in browser');
+    labelAttr(this.open, 'title', 'Open in browser');
+    labelAttr(this.shut, 'title', 'Close');
     this.open.target = '_blank';
     this.open.rel = 'noopener noreferrer';
     this.open.setAttribute('aria-disabled', 'true');
