@@ -18,7 +18,7 @@ export interface FullPreviewHost {
 type Kind = 'phone' | 'tablet' | 'desktop' | 'full';
 interface Device { id: string; name: string; width: number; kind: Kind }
 
-const FULL = 'full';
+const FULL = ':full';
 const LINKED = '';
 const BASE_WIDTH = 1280;
 const ROOM = 48;
