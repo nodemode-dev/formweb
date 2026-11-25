@@ -18,10 +18,13 @@ The page examples use **Harbour Ferries** and the layer examples use **Coldmere 
 
 Right-click a page (or select it and press Shift+F10) for its menu.
 
-![The right-click menu of the Timetable and fares page in Harbour Ferries: Open, Rename (F2), Duplicate, Set as home page, Move up (Alt+Up), Move down (Alt+Down), Page settings and Delete...](images/pages-page-menu.webp)
+![The right-click menu of the Timetable and fares page in Harbour Ferries, with Home open: Open, Preview, Rename (F2), Duplicate, Set as home page, Move up (Alt+Up), Move down (Alt+Down), Add page..., Page background..., Page settings and Delete...](images/pages-page-menu.webp)
 
+- **Preview** shows that page as published, over the whole window, even when another page is open. See [Preview](06-preview.md).
 - **Duplicate** copies the page and everything on it, under a new name and address, and opens the copy.
 - **Move up** and **Move down** change the order of the list. You can also drag a page: an orange line shows where it will land.
+- **Add page...** adds a new page, the same as the **+** next to PAGES.
+- **Page background...** opens that page with the cursor in its background field. See [Page background and theme colors](05-background-and-theme-colors.md).
 - **Delete...** asks first. A site always keeps at least one page.
 
 ## Set the home page
