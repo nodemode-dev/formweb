@@ -19,6 +19,7 @@ Verify the browser-visible behavior, persisted project and exported output indep
 | Interface languages | `./formweb i18n check` reports every language with one entry per English key (`--json` for machine output); switch language in a browser and confirm menus change live with no reload |
 | Shortcuts | In a browser, press Mod+K, Mod+Z and Delete from the body and again after clicking the canvas; typing in a field or editing text in place must trigger none of them |
 | Desktop app | `./build_app` (`build_app.bat` on Windows) runs start to finish and the frozen engine passes `--selfcheck`; a build that was not launched is reported as built only |
+| Desktop downloads and links | On each system, the steps in [docs/DESKTOP_TESTING.md](../../docs/DESKTOP_TESTING.md): the export notice names the file and folder, a second export is named " (1)", Show in folder opens the file manager (and says so when the file is gone), and Open in browser reaches the system browser; record the run in that page's table |
 
 UI changes need hard reloads with CPU throttled at least 4x and network throttling. Watch the transition itself. Check focus, partial input, selection, scroll, delayed content, overlays and breakpoint switches. Record the result as verified under throttling, verified without throttling with a reason, or not verified.
 
