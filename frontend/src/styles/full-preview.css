@@ -10,7 +10,7 @@
 @media (max-width: 760px) {
   .fw-fp-state { display: none; }
   .fw-fp-btn:not(.is-icon) { justify-content: center; width: var(--ctl-md); padding: 0; }
-  .fw-fp-btn:not(.is-icon) > span { display: none; }
+  .fw-fp-btn:not(.is-icon) > span:last-child { display: none; }
 }
 .fw-fp-devices .fw-seg-btn.is-on { font-weight: inherit; }
 .fw-fp-btn { flex: none; display: inline-flex; align-items: center; gap: var(--space-1); height: var(--ctl-md); min-height: 0; padding: 0 var(--space-2); border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--bg-tertiary); color: var(--text-secondary); font-size: var(--fs-12); text-decoration: none; white-space: nowrap; cursor: pointer; }
