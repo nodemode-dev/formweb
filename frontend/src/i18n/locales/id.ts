@@ -2895,4 +2895,7 @@ export default [
   "Bagian halaman itu tidak dapat menjadi elemen; tetap sebagai kode.",
   "Bagian kode ini tidak memiliki induk untuk menaruh elemen.",
   "Halaman tidak dapat diukur di browser ini.",
+  "Urungkan sekali untuk mendapatkan halaman kembali sebagai kode, dua kali untuk menghapusnya.",
+  "1 halaman terlalu besar untuk diubah sekaligus dan tetap sebagai bagian kode: ubah satu bagian setiap kali dengan Ubah menjadi elemen yang dapat diedit.",
+  "{0} halaman terlalu besar untuk diubah sekaligus dan tetap sebagai bagian kode: ubah masing-masing satu bagian setiap kali dengan Ubah menjadi elemen yang dapat diedit.",
 ] as readonly string[];

@@ -2895,4 +2895,7 @@ export default [
   "Dat deel van de pagina kan geen elementen worden; het blijft code.",
   "Deze codesectie heeft geen bovenliggend element om de elementen in te zetten.",
   "De pagina kon in deze browser niet worden gemeten.",
+  "Maak één keer ongedaan om de pagina's terug te krijgen als code, twee keer om ze te verwijderen.",
+  "1 pagina was te groot om in één keer om te zetten en bleef een codesectie: zet haar deel voor deel om met Omzetten naar bewerkbare elementen.",
+  "{0} pagina's waren te groot om in één keer om te zetten en bleven codesecties: zet elke pagina deel voor deel om met Omzetten naar bewerkbare elementen.",
 ] as readonly string[];

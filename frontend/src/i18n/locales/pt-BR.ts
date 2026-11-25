@@ -2895,4 +2895,7 @@ export default [
   "Essa parte da página não pode virar elementos; ela fica como código.",
   "Esta seção de código não tem um elemento pai para receber os elementos.",
   "Não foi possível medir a página neste navegador.",
+  "Desfaça uma vez para ter as páginas de volta como código, duas vezes para removê-las.",
+  "1 página era grande demais para converter de uma vez e ficou como seção de código: converta-a parte por parte com Converter em elementos editáveis.",
+  "{0} páginas eram grandes demais para converter de uma vez e ficaram como seções de código: converta cada uma parte por parte com Converter em elementos editáveis.",
 ] as readonly string[];

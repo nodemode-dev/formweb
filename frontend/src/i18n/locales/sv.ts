@@ -2895,4 +2895,7 @@ export default [
   "Den delen av sidan kan inte bli element; den förblir kod.",
   "Den här kodsektionen har inget överordnat element att lägga elementen i.",
   "Sidan kunde inte mätas i den här webbläsaren.",
+  "Ångra en gång för att få tillbaka sidorna som kod, två gånger för att ta bort dem.",
+  "1 sida var för stor för att konverteras på en gång och förblev en kodsektion: konvertera den en del i taget med Konvertera till redigerbara element.",
+  "{0} sidor var för stora för att konverteras på en gång och förblev kodsektioner: konvertera var och en en del i taget med Konvertera till redigerbara element.",
 ] as readonly string[];

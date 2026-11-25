@@ -2895,4 +2895,7 @@ export default [
   "Dieser Teil der Seite kann keine Elemente werden; er bleibt Code.",
   "Dieser Codeabschnitt hat kein übergeordnetes Element für die neuen Elemente.",
   "Die Seite konnte in diesem Browser nicht gemessen werden.",
+  "Einmal rückgängig machen holt die Seiten als Code zurück, zweimal entfernt sie.",
+  "1 Seite war zu groß, um auf einmal umgewandelt zu werden, und blieb ein Codeabschnitt: Wandle sie mit In bearbeitbare Elemente umwandeln Teil für Teil um.",
+  "{0} Seiten waren zu groß, um auf einmal umgewandelt zu werden, und blieben Codeabschnitte: Wandle jede mit In bearbeitbare Elemente umwandeln Teil für Teil um.",
 ] as readonly string[];

@@ -2895,4 +2895,7 @@ export const KEYS: readonly string[] = [
   "That part of the page cannot become elements; it stays as code.",
   "This code section has no parent to put the elements in.",
   "The page could not be measured in this browser.",
+  "Undo once to get the pages back as code, twice to remove them.",
+  "1 page was too large to convert at once and stayed a code section: convert it one part at a time with Convert to editable elements.",
+  "{0} pages were too large to convert at once and stayed code sections: convert each one part at a time with Convert to editable elements.",
 ];

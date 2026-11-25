@@ -2895,4 +2895,7 @@ export default [
   "Sayfanın o parçası öğe olamaz; kod olarak kalır.",
   "Bu kod bölümünün öğeleri koyacak bir üst öğesi yok.",
   "Sayfa bu tarayıcıda ölçülemedi.",
+  "Sayfaları kod olarak geri almak için bir kez, kaldırmak için iki kez geri al.",
+  "1 sayfa tek seferde dönüştürülemeyecek kadar büyüktü ve kod bölümü olarak kaldı: Düzenlenebilir öğelere dönüştür ile parça parça dönüştür.",
+  "{0} sayfa tek seferde dönüştürülemeyecek kadar büyüktü ve kod bölümü olarak kaldı: her birini Düzenlenebilir öğelere dönüştür ile parça parça dönüştür.",
 ] as readonly string[];

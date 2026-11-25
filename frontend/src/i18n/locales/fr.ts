@@ -2895,4 +2895,7 @@ export default [
   "Cette partie de la page ne peut pas devenir des éléments ; elle reste du code.",
   "Cette section de code n'a pas de parent où placer les éléments.",
   "La page n'a pas pu être mesurée dans ce navigateur.",
+  "Annulez une fois pour retrouver les pages en code, deux fois pour les retirer.",
+  "1 page était trop grande pour être convertie d'un coup et est restée une section de code : convertissez-la partie par partie avec Convertir en éléments modifiables.",
+  "{0} pages étaient trop grandes pour être converties d'un coup et sont restées des sections de code : convertissez chacune partie par partie avec Convertir en éléments modifiables.",
 ] as readonly string[];

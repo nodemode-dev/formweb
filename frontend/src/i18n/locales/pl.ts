@@ -2895,4 +2895,7 @@ export default [
   "Ta część strony nie może stać się elementami; zostaje kodem.",
   "Ta sekcja kodu nie ma rodzica, w którym można umieścić elementy.",
   "Nie udało się zmierzyć strony w tej przeglądarce.",
+  "Cofnij raz, aby odzyskać strony jako kod, dwa razy, aby je usunąć.",
+  "1 strona była za duża, by zamienić ją naraz, i została sekcją kodu: zamieniaj ją po jednej części poleceniem Zamień na edytowalne elementy.",
+  "Strony za duże, by zamienić je naraz: {0}; zostały sekcjami kodu: zamieniaj każdą po jednej części poleceniem Zamień na edytowalne elementy.",
 ] as readonly string[];

@@ -2895,4 +2895,7 @@ export default [
   "Tato část stránky se nemůže stát prvky; zůstane kódem.",
   "Tato sekce kódu nemá nadřazený prvek, kam prvky umístit.",
   "Stránku se v tomto prohlížeči nepodařilo změřit.",
+  "Jedním vrácením zpět dostanete stránky zpět jako kód, dvěma je odstraníte.",
+  "1 stránka byla příliš velká na převod najednou a zůstala sekcí kódu: převeďte ji po částech pomocí Převést na upravitelné prvky.",
+  "Stránky příliš velké na převod najednou: {0}; zůstaly sekcemi kódu: převeďte každou po částech pomocí Převést na upravitelné prvky.",
 ] as readonly string[];

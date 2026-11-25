@@ -2895,4 +2895,7 @@ export default [
   "Phần đó của trang không thể thành phần tử; nó vẫn là mã.",
   "Phần mã này không có phần tử cha để đặt các phần tử vào.",
   "Không thể đo trang trong trình duyệt này.",
+  "Hoàn tác một lần để lấy lại các trang dưới dạng mã, hai lần để xóa chúng.",
+  "1 trang quá lớn để chuyển một lần và vẫn là phần mã: hãy chuyển từng phần một bằng Chuyển thành phần tử chỉnh sửa được.",
+  "{0} trang quá lớn để chuyển một lần và vẫn là phần mã: hãy chuyển từng trang theo từng phần bằng Chuyển thành phần tử chỉnh sửa được.",
 ] as readonly string[];

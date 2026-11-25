@@ -2895,4 +2895,7 @@ export default [
   "Tästä sivun osasta ei voi tulla elementtejä; se jää koodiksi.",
   "Tällä koodiosiolla ei ole yläelementtiä, johon elementit voisi laittaa.",
   "Sivua ei voitu mitata tässä selaimessa.",
+  "Kumoa kerran, niin sivut palaavat koodiksi, ja kahdesti, niin ne poistuvat.",
+  "1 sivu oli liian suuri muunnettavaksi kerralla ja jäi koodiosioksi: muunna se osa kerrallaan toiminnolla Muunna muokattaviksi elementeiksi.",
+  "{0} sivua oli liian suuria muunnettaviksi kerralla ja jäi koodiosioiksi: muunna kukin osa kerrallaan toiminnolla Muunna muokattaviksi elementeiksi.",
 ] as readonly string[];
