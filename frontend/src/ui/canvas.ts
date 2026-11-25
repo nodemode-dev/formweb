@@ -153,7 +153,7 @@ export class Canvas {
         resolve();
       }, { once: true });
     });
-    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%}html{color-scheme:light}body{color:CanvasText;background:Canvas}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected],[data-fw-marked]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-marked]{outline-style:dashed!important}[data-fw-reveal]{animation:fwReveal .5s ease-in-out 4 alternate}@keyframes fwReveal{from{outline-offset:2px}to{outline-offset:10px}}@media (prefers-reduced-motion:reduce){[data-fw-reveal]{animation:none;outline-offset:6px}}[data-fw-id]:hover{cursor:default}body[data-preview] [data-fw-id]:hover{cursor:auto}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}body:not([data-preview]) a,body:not([data-preview]) button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark],html:not([data-theme]) [data-fw-theme-only=light],body>[hidden]{display:none!important}.fw-fade{animation:fwFade .5s ease both}@keyframes fwFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style></head><body></body></html>';
+    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%}html{color-scheme:light}body{color:CanvasText;background:Canvas}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected],[data-fw-marked]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-marked]{outline-style:dashed!important}[data-fw-reveal]{animation:fwReveal .5s ease-in-out 4 alternate}@keyframes fwReveal{from{outline-offset:2px}to{outline-offset:10px}}@media (prefers-reduced-motion:reduce){[data-fw-reveal]{animation:none;outline-offset:6px}}[data-fw-id]:hover{cursor:default}body[data-preview] [data-fw-id]:hover{cursor:auto}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}a[data-fw-href]{text-decoration:underline}body:not([data-preview]) a,body:not([data-preview]) button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark],html:not([data-theme]) [data-fw-theme-only=light],body>[hidden]{display:none!important}.fw-fade{animation:fwFade .5s ease both}@keyframes fwFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style></head><body></body></html>';
     new ResizeObserver(() => this.fit()).observe(stage);
   }
 
@@ -348,7 +348,8 @@ export class Canvas {
         if (name === 'href') actual = scopedFragment(content, context.ids);
         if (vectorTags.has(tag) && referenceAttributes.has(name)) actual = content.replace(/^url\(#([\w-]+)\)$/, (_match, ref: string) => `url(#${context.ids[ref] || ref})`);
       }
-      nextAttrs.add(name);
+      const field = name === 'href' && tag === 'a' ? 'data-fw-href' : name;
+      nextAttrs.add(field);
       if (name === 'src' && tag === 'img' && node.getAttribute(name) !== actual) {
         if (this.imageSources.get(key) !== actual) {
           this.imageSources.set(key, actual);
@@ -359,7 +360,7 @@ export class Canvas {
           };
           image.decode().then(swap).catch(swap);
         }
-      } else if (node.getAttribute(name) !== actual) node.setAttribute(name, actual);
+      } else if (node.getAttribute(field) !== actual) node.setAttribute(field, actual);
     }
     for (const previous of this.attrs.get(key) || []) if (!nextAttrs.has(previous)) {
       node.removeAttribute(previous);
@@ -425,7 +426,7 @@ export class Canvas {
         const node = this.last.site.nodes[id];
         for (const interaction of node?.interactions || []) if (interaction.trigger === 'click') this.interact(element, interaction.action, interaction.className, interaction.url);
         const anchor = (event.target as Element).closest('a');
-        if (anchor) { event.preventDefault(); const href = anchor.getAttribute('href'); if (href) this.navigate(href); }
+        if (anchor) { event.preventDefault(); const href = anchor.getAttribute('data-fw-href'); if (href) this.navigate(href); }
         return;
       }
       event.preventDefault();
