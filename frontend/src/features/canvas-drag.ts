@@ -339,7 +339,7 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       const list = chosen.commands;
       void host.run(async () => {
         await host.commands(list);
-        if (ids.length === 1) host.select(ids[0]);
+        if (!host.selectionIds().includes(ids[0])) host.select(ids[0]);
         host.status(ids.length === 1 ? 'Element moved. One undo step puts it back.' : `${ids.length} elements moved. One undo step puts them back.`);
       });
     };
