@@ -1,0 +1,6 @@
+.fw-canvas-proxy { position: fixed; left: 0; top: 0; box-sizing: border-box; min-width: 48px; min-height: 24px; padding: var(--space-1) var(--space-2); border: 1px solid var(--accent-line); border-radius: var(--radius-small); background: var(--accent-wash); color: var(--accent-ink); font-size: var(--fs-11); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.85; pointer-events: none; z-index: var(--z-popover); }
+.fw-canvas-line { position: fixed; left: 0; top: 0; width: 0; height: 0; border-radius: var(--radius-pill); background: var(--accent-color); pointer-events: none; z-index: var(--z-popover); }
+.fw-canvas-box { position: fixed; left: 0; top: 0; width: 0; height: 0; box-sizing: border-box; border: 1px dashed var(--accent-line); border-radius: var(--radius-small); pointer-events: none; z-index: var(--z-overlay); }
+.fw-canvas-box.is-into { border: 2px solid var(--accent-color); background: var(--accent-wash); }
+.fw-canvas-proxy[hidden], .fw-canvas-line[hidden], .fw-canvas-box[hidden] { display: none; }
+body.fw-canvas-dragging, body.fw-canvas-dragging * { cursor: grabbing; user-select: none; }
