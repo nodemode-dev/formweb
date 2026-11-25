@@ -38,6 +38,7 @@ def add_page(editor, name, start=None):
         dialog.get_by_role("combobox", name="Background").select_option(label=start)
     dialog.get_by_role("button", name="Add page").click()
     site = editor.until(lambda s: len(s["pages"]) == len(before["pages"]) + 1, f"the page {name}")
+    expect(dialog).to_be_hidden()
     return next(p for p in site["pages"] if p["name"] == name)
 
 
