@@ -95,7 +95,17 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     if let Some(manifest) = web_manifest(site) { files.push(manifest); }
     files.push(json!({"path":"routes.json","content":serde_json::to_string(&route_manifest).map_err(|e| e.to_string())?}));
     files.push(json!({"path":"README.txt","content":format!("FormWeb static export\nLocale: {locale}\nServe this folder with any static HTTP server.\nPages use directory routes with index.html.\nThe editable source is site.formweb.json.\nRemote assets are referenced, not bundled.\nForms submit to the configured FormWeb API; keep that service running or replace the form action with your own service.\nRuntime respects prefers-reduced-motion.\n")}));
+    case_clash(&files, &mut warnings);
     Ok(json!({"files": files, "warnings": warnings.into_iter().collect::<Vec<_>>()}))
+}
+
+pub(crate) fn case_clash(files: &[Value], warnings: &mut BTreeSet<String>) {
+    let mut seen = BTreeMap::new();
+    for path in files.iter().filter_map(|f| f.get("path").and_then(Value::as_str)) {
+        if let Some(first) = seen.insert(path.to_lowercase(), path) {
+            warnings.insert(format!("{first} and {path} differ only in capital letters, so on macOS and Windows one replaces the other. Run Audit to find the pages and give one of them another address."));
+        }
+    }
 }
 
 fn stylesheet(site: &Site) -> String {

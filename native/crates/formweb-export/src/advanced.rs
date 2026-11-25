@@ -83,6 +83,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     if let Some(index)=crate::search::index(site,&routes) { files.push(json!({"path":"search-index.json","content":index})); }
     files.push(json!({"path":"asset-access.json","content":json!({"schemaVersion":1,"assets":asset_access}).to_string()}));
     files.push(json!({"path":"README.txt","content":"FormWeb static output. Serve over HTTP. Owned assets are bundled by the backend. Browser integrations require the configured backend and do not embed credentials. Isolated code frames cannot access the parent or network. Gated output must be served by an authorizing backend. Keep native .fweb source separately."}));
+    crate::case_clash(&files, &mut warnings);
     Ok(json!({"files":files,"warnings":warnings.into_iter().collect::<Vec<_>>(),"routes":route_manifest}))
 }
 pub fn styles(site:&Site)->String {
