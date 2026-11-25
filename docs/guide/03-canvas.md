@@ -42,6 +42,8 @@ You can move an element by dragging it on the canvas.
 
 Elements always land in a place in the layout, never at a loose position, so nothing ends up overlapping. A move is one undo step. Drag near the top or bottom edge of the canvas to scroll.
 
+This is how FormWeb snaps: the orange line jumps between the places an element can go, before or after another element, or inside a container. There is no grid of x and y positions to snap to, and the dots around the page are only the stage behind it. To put elements side by side or in columns, select their container and choose **Flex** with **Direction** Row, or **Grid**, in the Layout section of the Design tab; then drag to change their order.
+
 ### On a touch screen or with a pen
 
 - **Drag with a finger:** hold the element still for about a third of a second until it lifts (its outline grows wider; an element that was not selected is selected first), then move it without lifting your finger. The label, the orange line and the dashed outline work as with a mouse, at any zoom and scroll position.
