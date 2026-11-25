@@ -1,5 +1,6 @@
 import type { Site } from '../types';
 import { movableIds } from './panel/drop';
+import '../styles/selection.css';
 
 export interface SelectionHost {
   site: () => Site;

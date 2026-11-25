@@ -1,0 +1,2 @@
+.list-row.is-multi { background: var(--accent-wash); border-color: var(--accent-line); color: var(--accent-text); }
+.list-row.is-multi:hover { background: var(--accent-tint-strong); }
