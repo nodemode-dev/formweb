@@ -344,7 +344,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     css = '\n'.join(part.strip() for part in styles if part.strip())
     if missing:
         shown = sorted(missing)
-        warnings.append(f'{len(shown)} reference{"s" if len(shown) != 1 else ""} point{"" if len(shown) != 1 else "s"} at files that were skipped or are not in the archive:{", ".join(item[:80] for item in shown[:5])}{"..." if len(shown) > 5 else ""}.')
+        warnings.append(f'{len(shown)} reference{"s" if len(shown) != 1 else ""} point{"" if len(shown) != 1 else "s"} at files that were skipped or are not in the archive: {", ".join(item[:80] for item in shown[:5])}{"..." if len(shown) > 5 else ""}.')
     name = (title or posixpath.basename(path).rsplit('.', 1)[0] or 'Imported page')[:120]
     return {'file': path, 'name': name, 'title': title, 'description': description, 'html': markup, 'css': css, 'js': script.strip(), 'module': module and bool(script.strip()), 'warnings': warnings}
 
