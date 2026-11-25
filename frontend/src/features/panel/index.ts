@@ -3,7 +3,7 @@ import type { Command as Batch } from '../sections';
 import { commands as registry, formatKeys } from '../../commands/registry';
 import type { CommandDef } from '../../ui/shell';
 import { anchorOf, menuKeyPressed, showContextMenu, type MenuAnchor, type MenuEntry } from '../../ui/context-menu';
-import { copyOfPage, homeCommands, pageMoveCommands, stepPageCommands } from './pages';
+import { copyOfPage, homeCommands, homeRefusal, pageMoveCommands, stepPageCommands } from './pages';
 import { startRename } from './rename';
 import { LayerFolds, type LayerRow } from './fold';
 import { canContain, canDrag, dropTarget, moveCommands, zoneAt, type DropZone } from './drop';
@@ -29,6 +29,7 @@ export interface PanelHost {
   pageSettings: () => void;
   elementSettings: () => void;
   refresh: () => void;
+  gates?: () => Promise<readonly string[]>;
 }
 
 const KEY_RENAME = 'F2';
@@ -105,13 +106,22 @@ export function installPanel(host: PanelHost) {
     await host.commands(list);
     host.status(done);
   }
-  const setHome = (params?: Record<string, unknown>): Promise<void> => {
+  const setHome = async (params?: Record<string, unknown>): Promise<void> => {
     const page = pageOf(params);
-    return page ? batch(homeCommands(site(), page.id), `"${page.name}" is now the home page.`) : Promise.resolve();
+    if (!page) return;
+    const refusal = homeRefusal(site(), page.id, host.gates ? await host.gates() : []);
+    if (refusal) { host.status(refusal, true); return; }
+    const slug = page.slug.replace(/^\/+|\/+$/g, '');
+    const list = homeCommands(site(), page.id);
+    if (!list.length) { host.status(`"${page.name}" is already the home page.`); return; }
+    await batch(list, slug ? `"${page.name}" is now the home page at /, and links to /${slug} now lead there.` : `"${page.name}" is now the home page.`);
   };
   const stepPage = (step: -1 | 1, params?: Record<string, unknown>): Promise<void> => {
     const page = pageOf(params);
-    return page ? batch(stepPageCommands(site(), page.id, step), step < 0 ? 'Page moved up.' : 'Page moved down.') : Promise.resolve();
+    if (!page) return Promise.resolve();
+    const list = stepPageCommands(site(), page.id, step);
+    if (!list.length) { host.status(step < 0 ? `"${page.name}" is already the first page.` : `"${page.name}" is already the last page.`); return Promise.resolve(); }
+    return batch(list, step < 0 ? 'Page moved up.' : 'Page moved down.');
   };
   const folds = new LayerFolds();
   let parents: string[] = [];
@@ -130,16 +140,16 @@ export function installPanel(host: PanelHost) {
     folds.all(host.pageId(), folded ? parents : []);
     host.refresh();
   }
-  const pageIndex = (): number => site().pages.findIndex(page => page.id === host.pageId());
+  const several = (): boolean => host.ready() && site().pages.length > 1;
   const idParam = { id: { type: 'string' as const, description: 'Page id; the open page when left out.' } };
 
   const definitions: CommandDef[] = [
     { id: 'page.open', label: 'Open page', run: params => { const page = pageOf(params); if (page) host.openPage(page.id); }, enabled: host.ready, params: { id: { type: 'string', required: true, description: 'Page id.' } }, description: 'Open a page in the canvas and the layers list.' },
     { id: 'page.rename', label: 'Rename page...', menu: 'Page', group: 4, run: renamePage, enabled: host.ready, params: { ...idParam, name: { type: 'string', description: 'New name; without it the name opens for typing.' } }, mutates: true, description: 'Rename a page (its name in the editor, not its URL slug).' },
     { id: 'page.duplicate', label: 'Duplicate page', menu: 'Page', group: 4, run: duplicatePage, enabled: host.ready, params: idParam, mutates: true, description: 'Copy a page with everything on it under a free name and slug, such as "About copy" at /about-copy, and open the copy. One undo step.' },
-    { id: 'page.set-home', label: 'Set as home page', menu: 'Page', group: 4, run: setHome, enabled: () => host.ready() && pageIndex() > 0, params: idParam, mutates: true, description: 'Make a page the home page: it moves to the top of the page list and takes the / address, and the old home page gets an address from its name. One undo step.' },
-    { id: 'page.move-up', label: 'Move page up', menu: 'Page', group: 4, run: params => stepPage(-1, params), enabled: () => host.ready() && pageIndex() > 0, params: idParam, mutates: true, description: 'Move a page one place up in the page list. Moving a page to the top makes it the first page, which the editor marks Home.' },
-    { id: 'page.move-down', label: 'Move page down', menu: 'Page', group: 4, run: params => stepPage(1, params), enabled: () => host.ready() && pageIndex() < site().pages.length - 1, params: idParam, mutates: true, description: 'Move a page one place down in the page list.' },
+    { id: 'page.set-home', label: 'Set as home page', menu: 'Page', group: 4, run: setHome, enabled: several, params: idParam, mutates: true, description: 'Make a page the home page: it moves to the top of the page list and takes the / address, links to its old address follow it, and the old home page gets an address from its name. Refused for a CMS template page, a page with a translated address, and a page a password protects below /. One undo step.' },
+    { id: 'page.move-up', label: 'Move page up', menu: 'Page', group: 4, run: params => stepPage(-1, params), enabled: several, params: idParam, mutates: true, description: 'Move a page one place up in the page list. Moving a page to the top makes it the first page, which the editor marks Home.' },
+    { id: 'page.move-down', label: 'Move page down', menu: 'Page', group: 4, run: params => stepPage(1, params), enabled: several, params: idParam, mutates: true, description: 'Move a page one place down in the page list.' },
     { id: 'layer.collapse-all', label: 'Collapse all layers', run: () => foldAll(true), enabled: host.ready, description: 'Fold every layer that has children on the open page, leaving the page and its top-level elements. Changes only the layers list.' },
     { id: 'layer.expand-all', label: 'Expand all layers', run: () => foldAll(false), enabled: host.ready, description: 'Unfold every layer on the open page. Changes only the layers list.' },
     { id: 'layer.rename', label: 'Rename element...', menu: 'Edit', group: 1, run: renameLayer, enabled: host.ready, params: { id: { type: 'string', description: 'Element id; the selected element when left out.' }, name: { type: 'string', description: 'New name; without it the name opens for typing.' } }, mutates: true, description: 'Rename an element in the layers list (its layer name, not its text).' }

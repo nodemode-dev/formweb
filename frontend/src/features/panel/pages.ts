@@ -47,14 +47,43 @@ export function stepPageCommands(site: Site, id: string, step: -1 | 1): Command[
   return pageMoveCommands(site, [id], anchor);
 }
 
+const homePage = (site: Site, id: string): Page | undefined => site.pages.find(entry => !trim(entry.slug) && entry.id !== id);
+const routeOf = (url: string): string | null => url && !url.startsWith('#') && !url.startsWith('?') && !url.includes(':') ? trim(url.split(/[?#]/)[0]) : null;
+
+export function homeRefusal(site: Site, id: string, gates: readonly string[] = []): string {
+  const page = site.pages.find(entry => entry.id === id);
+  if (!page || !trim(page.slug)) return '';
+  const old = homePage(site, id);
+  const templates = Object.keys((site.extensions?.cms as { templates?: Record<string, unknown> } | undefined)?.templates || {});
+  if ([page.id, old?.id].some(entry => entry && templates.includes(entry))) return `"${(templates.includes(page.id) ? page : old!).name}" is a CMS template page, which makes one page per item rather than a page at its own address, so Set as home page cannot swap it with the page at /.`;
+  const localized = (site.extensions?.localization as { pageSlugs?: Record<string, Record<string, string>> } | undefined)?.pageSlugs || {};
+  if ([page, old].some(entry => entry && Object.keys(localized[entry.id] || {}).length)) return `"${(Object.keys(localized[page.id] || {}).length ? page : old!).name}" has its own address in another language, so changing which page is at / would leave a language without a home page. Change the slugs in Page settings and CMS > Localization instead.`;
+  const covers = (route: string): string | undefined => gates.find(gate => gate !== '/' && (route === gate || route.startsWith(gate + '/')));
+  const lost = covers('/' + trim(page.slug));
+  if (lost) return `"${page.name}" is password protected through ${lost}. At / it would be open to everyone, so it was not made the home page. Remove that password first, or protect the whole site on the home page.`;
+  const gained = old ? covers(freeSlug(site, slugWord(old.name), old.id)) : undefined;
+  if (gained) return `"${old!.name}" would move to ${freeSlug(site, slugWord(old!.name), old!.id)}, which the password on ${gained} covers. Remove that password first.`;
+  return '';
+}
+
 export function homeCommands(site: Site, id: string): Command[] {
   const page = site.pages.find(entry => entry.id === id);
   if (!page) return [];
   const list = site.pages[0].id === id ? [] : pageMoveCommands(site, [id], site.pages[0].id);
-  if (trim(page.slug)) {
-    const root = site.pages.find(entry => !trim(entry.slug));
+  const from = trim(page.slug);
+  if (from) {
+    const root = homePage(site, id);
     if (root) list.push({ command: 'page.update', params: { id: root.id, patch: { slug: freeSlug(site, slugWord(root.name), root.id) } } });
     list.push({ command: 'page.update', params: { id, patch: { slug: '/' } } });
+    const moved = (url: string | undefined): string | null => url !== undefined && routeOf(url) === from ? '/' + url.slice(url.search(/[?#]|$/)) : null;
+    for (const node of Object.values(site.nodes)) {
+      const own = (key: string): boolean => !node.componentSourceId || !!node.overrides?.includes(key);
+      const patch: Record<string, unknown> = {};
+      const href = own('attrs') ? moved(node.attrs.href) : null;
+      if (href) patch.attrs = { href };
+      if (own('interactions') && node.interactions?.some(entry => moved(entry.url))) patch.interactions = node.interactions.map(entry => moved(entry.url) ? { ...entry, url: moved(entry.url)! } : entry);
+      if (Object.keys(patch).length) list.push({ command: 'node.update', params: { id: node.id, patch } });
+    }
   }
   return list;
 }
