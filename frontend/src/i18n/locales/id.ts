@@ -2611,7 +2611,7 @@ export default [
   "Perluas semua",
   "Layer dipindahkan. Satu langkah urungkan mengembalikannya.",
   "{0} layer dipindahkan. Satu langkah urungkan mengembalikannya.",
-  "Halaman dipindahkan. Kini halaman ini pertama, yang ditandai editor sebagai Beranda.",
+  "Halaman dipindahkan. Kini halaman ini pertama, yang ditandai editor sebagai Home.",
   "Halaman dipindahkan.",
   "Sisip cepat",
   "Filter elemen",

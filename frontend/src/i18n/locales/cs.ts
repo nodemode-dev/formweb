@@ -2611,7 +2611,7 @@ export default [
   "Rozbalit vše",
   "Vrstva přesunuta. Jeden krok zpět ji vrátí.",
   "Vrstvy přesunuty: {0}. Jeden krok zpět je vrátí.",
-  "Stránka přesunuta. Je nyní první, což editor označuje jako Domů.",
+  "Stránka přesunuta. Je nyní první, což editor označuje jako Home.",
   "Stránka přesunuta.",
   "Rychlé vložení",
   "Filtrovat prvky",

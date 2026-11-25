@@ -2611,7 +2611,7 @@ export default [
   "Összes kibontása",
   "Réteg áthelyezve. Egy visszavonási lépés visszateszi.",
   "{0} réteg áthelyezve. Egy visszavonási lépés visszateszi őket.",
-  "Oldal áthelyezve. Mostantól ez az első, amelyet a szerkesztő Kezdőlap jelöléssel lát el.",
+  "Oldal áthelyezve. Mostantól ez az első, amelyet a szerkesztő Home jelöléssel lát el.",
   "Oldal áthelyezve.",
   "Gyors beszúrás",
   "Elemek szűrése",

@@ -2611,7 +2611,7 @@ export default [
   "Fold alle ud",
   "Laget er flyttet. Ét fortrydelsestrin sætter det tilbage.",
   "{0} lag flyttet. Ét fortrydelsestrin sætter dem tilbage.",
-  "Siden er flyttet. Den er nu først, hvilket editoren markerer som Start.",
+  "Siden er flyttet. Den er nu først, hvilket editoren markerer som Home.",
   "Siden er flyttet.",
   "Hurtig indsættelse",
   "Filtrér elementer",

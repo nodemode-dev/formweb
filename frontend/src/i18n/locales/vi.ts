@@ -2611,7 +2611,7 @@ export default [
   "Mở rộng tất cả",
   "Đã di chuyển lớp. Một bước hoàn tác sẽ đặt nó trở lại.",
   "Đã di chuyển {0} lớp. Một bước hoàn tác sẽ đặt chúng trở lại.",
-  "Đã di chuyển trang. Giờ trang này đứng đầu, nên trình soạn thảo đánh dấu là Trang chủ.",
+  "Đã di chuyển trang. Giờ trang này đứng đầu, nên trình soạn thảo đánh dấu là Home.",
   "Đã di chuyển trang.",
   "Chèn nhanh",
   "Lọc phần tử",

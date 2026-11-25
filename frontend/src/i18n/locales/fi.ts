@@ -2611,7 +2611,7 @@ export default [
   "Laajenna kaikki",
   "Taso siirretty. Yksi kumoamisvaihe palauttaa sen.",
   "Tasoja siirretty: {0}. Yksi kumoamisvaihe palauttaa ne.",
-  "Sivu siirretty. Se on nyt ensimmäinen, jonka editori merkitsee nimellä Aloitus.",
+  "Sivu siirretty. Se on nyt ensimmäinen, jonka editori merkitsee nimellä Home.",
   "Sivu siirretty.",
   "Pikalisäys",
   "Suodata elementtejä",

@@ -2611,7 +2611,7 @@ export default [
   "Alle ausklappen",
   "Ebene verschoben. Ein Rückgängig-Schritt stellt sie zurück.",
   "{0} Ebenen verschoben. Ein Rückgängig-Schritt stellt sie zurück.",
-  "Seite verschoben. Sie ist jetzt die erste, die der Editor als Start markiert.",
+  "Seite verschoben. Sie ist jetzt die erste, die der Editor als Home markiert.",
   "Seite verschoben.",
   "Schnell einfügen",
   "Elemente filtern",

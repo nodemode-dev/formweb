@@ -2611,7 +2611,7 @@ export default [
   "Alles uitvouwen",
   "Laag verplaatst. Eén stap ongedaan maken zet hem terug.",
   "{0} lagen verplaatst. Eén stap ongedaan maken zet ze terug.",
-  "Pagina verplaatst. Hij staat nu bovenaan, wat de editor als Start markeert.",
+  "Pagina verplaatst. Hij staat nu bovenaan, wat de editor als Home markeert.",
   "Pagina verplaatst.",
   "Snel invoegen",
   "Elementen filteren",

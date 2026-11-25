@@ -2611,7 +2611,7 @@ export default [
   "Tout déplier",
   "Calque déplacé. Une seule annulation le remet en place.",
   "{0} calques déplacés. Une seule annulation les remet en place.",
-  "Page déplacée. Elle est maintenant la première, que l’éditeur marque Accueil.",
+  "Page déplacée. Elle est maintenant la première, que l’éditeur marque Home.",
   "Page déplacée.",
   "Insertion rapide",
   "Filtrer les éléments",

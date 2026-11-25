@@ -2611,7 +2611,7 @@ export default [
   "Fold ut alle",
   "Laget er flyttet. Ett angretrinn setter det tilbake.",
   "{0} lag flyttet. Ett angretrinn setter dem tilbake.",
-  "Siden er flyttet. Den er nå først, noe redigeringsprogrammet merker som Start.",
+  "Siden er flyttet. Den er nå først, noe redigeringsprogrammet merker som Home.",
   "Siden er flyttet.",
   "Hurtiginnsetting",
   "Filtrer elementer",

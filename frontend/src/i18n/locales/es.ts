@@ -2611,7 +2611,7 @@ export default [
   "Expandir todo",
   "Capa movida. Un paso de deshacer la devuelve a su sitio.",
   "{0} capas movidas. Un paso de deshacer las devuelve a su sitio.",
-  "Página movida. Ahora es la primera, que el editor marca como Inicio.",
+  "Página movida. Ahora es la primera, que el editor marca como Home.",
   "Página movida.",
   "Inserción rápida",
   "Filtrar elementos",

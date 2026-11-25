@@ -2611,7 +2611,7 @@ export default [
   "Expandir tudo",
   "Camada movida. Uma etapa de desfazer a coloca de volta.",
   "{0} camadas movidas. Uma etapa de desfazer as coloca de volta.",
-  "Página movida. Agora ela é a primeira, que o editor marca como Início.",
+  "Página movida. Agora ela é a primeira, que o editor marca como Home.",
   "Página movida.",
   "Inserção rápida",
   "Filtrar elementos",

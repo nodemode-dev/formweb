@@ -2611,7 +2611,7 @@ export default [
   "Rozwiń wszystko",
   "Przesunięto warstwę. Jeden krok cofania przywraca ją na miejsce.",
   "Przesunięto warstwy: {0}. Jeden krok cofania przywraca je na miejsce.",
-  "Przesunięto stronę. Jest teraz pierwsza, co edytor oznacza jako Strona główna.",
+  "Przesunięto stronę. Jest teraz pierwsza, co edytor oznacza jako Home.",
   "Przesunięto stronę.",
   "Szybkie wstawianie",
   "Filtruj elementy",

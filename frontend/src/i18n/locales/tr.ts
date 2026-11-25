@@ -2611,7 +2611,7 @@ export default [
   "Tümünü genişlet",
   "Katman taşındı. Tek bir geri alma adımı onu geri koyar.",
   "{0} katman taşındı. Tek bir geri alma adımı onları geri koyar.",
-  "Sayfa taşındı. Artık ilk sırada; düzenleyici bunu Ana Sayfa olarak işaretler.",
+  "Sayfa taşındı. Artık ilk sırada; düzenleyici bunu Home olarak işaretler.",
   "Sayfa taşındı.",
   "Hızlı ekle",
   "Öğeleri filtrele",

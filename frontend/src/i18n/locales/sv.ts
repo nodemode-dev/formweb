@@ -2611,7 +2611,7 @@ export default [
   "Fäll ut alla",
   "Lagret flyttades. Ett ångrasteg sätter tillbaka det.",
   "{0} lager flyttades. Ett ångrasteg sätter tillbaka dem.",
-  "Sidan flyttades. Den är nu först, vilket redigeraren markerar som Start.",
+  "Sidan flyttades. Den är nu först, vilket redigeraren markerar som Home.",
   "Sidan flyttades.",
   "Snabbinfoga",
   "Filtrera element",
