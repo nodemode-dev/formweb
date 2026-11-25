@@ -179,6 +179,8 @@ export function installPanel(host: PanelHost) {
     const removable = many < pages.length;
     return [
       { id: 'page.open', label: 'Open', enabled: id !== host.pageId(), run: () => invoke('page.open', target) },
+      { id: 'view.preview-full', label: 'Preview', run: () => { host.openPage(id); invoke('view.preview-full'); } },
+      { separator: true },
       { id: 'page.rename', label: 'Rename', keys: KEY_RENAME, run: () => invoke('page.rename', target) },
       { id: 'page.duplicate', label: countLabel('Duplicate', 'Duplicate {0} pages', many), run: () => invoke('page.duplicate', target) },
       { id: 'page.set-home', label: 'Set as home page', enabled: at > 0, title: at > 0 ? 'Set as home page' : 'This is the home page', run: () => invoke('page.set-home', target) },
@@ -186,6 +188,8 @@ export function installPanel(host: PanelHost) {
       { id: 'page.move-up', label: countLabel('Move up', 'Move {0} pages up', many), keys: formatKeys(KEY_UP), enabled: up, run: () => invoke('page.move-up', target) },
       { id: 'page.move-down', label: countLabel('Move down', 'Move {0} pages down', many), keys: formatKeys(KEY_DOWN), enabled: down, run: () => invoke('page.move-down', target) },
       { separator: true },
+      { id: 'page.add', label: 'Add page...', run: () => invoke('page.add') },
+      { id: 'page.background', label: 'Page background...', run: () => { host.openPage(id); invoke('page.background'); } },
       { id: 'page.settings', label: 'Page settings', run: () => { host.openPage(id); invoke('page.settings'); } },
       { id: 'page.delete', label: countLabel('Delete...', 'Delete {0} pages...', many), enabled: removable, title: removable ? countLabel('Delete page...', 'Delete {0} pages...', many) : 'A site keeps at least one page', run: () => { if (many < 2) host.openPage(id); invoke('page.delete'); } }
     ];
