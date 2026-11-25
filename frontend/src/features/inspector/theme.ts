@@ -2,14 +2,16 @@ import { command } from '../../api';
 import { element, keyed, text, value } from '../../ui/dom';
 import { icon, type Icon } from '../../ui/icons';
 import { label, labelAttr } from '../../i18n';
-import { readThemes, type InspectorContext } from './context';
+import { designGroup, readThemes, type InspectorContext } from './context';
 import { fieldOf, labeled, selectOf } from './labeled';
 import type { DesignThemes, EditorState, ThemeMode } from '../../types';
 
 export interface ThemeHandle {
   fill(next: EditorState): void;
-  preview(next: EditorState): { mode: ThemeMode; overrides: Record<string, string> };
+  preview(next: EditorState): { mode: ThemeMode | ''; overrides: Record<string, string> };
 }
+
+const hasThemes = (next: EditorState): boolean => !!designGroup(next).themes;
 
 export function installTheme(ctx: InspectorContext, onPreview: () => void): ThemeHandle {
   let chosen: ThemeMode | '' = '';
@@ -36,7 +38,7 @@ export function installTheme(ctx: InspectorContext, onPreview: () => void): Them
   const block = element('div', 'fw-ext-block');
   const head = labeled('div', 'fw-ext-head', 'Themes');
   const grid = element('div', 'form-grid');
-  const defaultMode = selectOf(ctx, [{ id: 'dark', name: 'Dark', en: 'Dark' }, { id: 'light', name: 'Light', en: 'Light' }]);
+  const defaultMode = selectOf(ctx, [{ id: '', name: 'None', en: 'None' }, { id: 'dark', name: 'Dark', en: 'Dark' }, { id: 'light', name: 'Light', en: 'Light' }]);
   defaultMode.dataset.field = 'themes.default';
   const follow = element('input');
   follow.type = 'checkbox';
@@ -55,17 +57,21 @@ export function installTheme(ctx: InspectorContext, onPreview: () => void): Them
     for (const mode of ['dark', 'light'] as ThemeMode[]) if (Object.keys(themes.values[mode]).length) values[mode] = themes.values[mode];
     return command('design.set', { key: 'themes', value: { default: themes.default, followSystem: themes.followSystem, values } });
   }
-  defaultMode.addEventListener('change', () => void ctx.run(() => { const themes = readThemes(latest!); themes.default = defaultMode.value === 'light' ? 'light' : 'dark'; return save(themes); }));
+  defaultMode.addEventListener('change', () => void ctx.run(() => { if (!defaultMode.value) return command('design.set', { key: 'themes', value: null }); const themes = readThemes(latest!); themes.default = defaultMode.value === 'light' ? 'light' : 'dark'; return save(themes); }));
   follow.addEventListener('change', () => void ctx.run(() => { const themes = readThemes(latest!); themes.followSystem = follow.checked; return save(themes); }));
 
   return {
     fill(next) {
       latest = next;
       const themes = readThemes(next);
-      value(defaultMode, themes.default);
+      const defined = hasThemes(next);
+      value(defaultMode, defined ? themes.default : '');
       if (follow.checked !== themes.followSystem) follow.checked = themes.followSystem;
+      if (follow.disabled === defined) follow.disabled = !defined;
+      if (rows.hidden === defined) rows.hidden = !defined;
       const alt = other(themes);
-      label(otherHead, 'Values for {0} mode', [{ t: alt === 'light' ? 'Light' : 'Dark' }]);
+      if (defined) label(otherHead, 'Values for {0} mode', [{ t: alt === 'light' ? 'Light' : 'Dark' }]);
+      else label(otherHead, 'This site has no themes, so every visitor sees the colors above. Pick a default theme to give it a second set of values.');
       keyed(rows, Object.entries(next.site.tokens), item => item[0], () => {
         const row = element('div', 'tokens-row');
         const name = element('span', 'micro');
@@ -89,9 +95,11 @@ export function installTheme(ctx: InspectorContext, onPreview: () => void): Them
     preview(next) {
       const themes = readThemes(next);
       if (siteId !== next.site.id) { siteId = next.site.id; chosen = ''; }
-      const mode = chosen || themes.default;
+      const defined = hasThemes(next);
+      const mode = defined ? chosen || themes.default : '';
+      for (const node of modeButtons.values()) if (node.disabled === defined) node.disabled = !defined;
       const overrides: Record<string, string> = {};
-      if (mode !== themes.default) for (const [key, content] of Object.entries(themes.values[mode])) if (key in next.site.tokens) overrides[key] = content;
+      if (mode && mode !== themes.default) for (const [key, content] of Object.entries(themes.values[mode])) if (key in next.site.tokens) overrides[key] = content;
       for (const [id, node] of modeButtons) {
         const on = id === mode;
         if (node.classList.contains('is-on') !== on) node.classList.toggle('is-on', on);
