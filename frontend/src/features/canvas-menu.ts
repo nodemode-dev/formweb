@@ -163,6 +163,17 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
   }
   const sep: MenuEntry = { separator: true };
 
+  function rootEntries(id: string): MenuEntry[] {
+    const entries: MenuEntry[] = [
+      item('edit.paste', 'Paste', host.paste, pasteBlock(id), 'Paste element'),
+      item(insertId(), 'Add element here...', () => invoke(insertId()), insertBlock(id)),
+      sep,
+      item('page.settings', 'Page settings', () => invoke('page.settings'))
+    ];
+    if (registry.get('page.background')) entries.push(item('page.background', 'Page background', () => invoke('page.background')));
+    return entries;
+  }
+
   function elementEntries(id: string, target: Element | null): MenuEntry[] {
     const node = site().nodes[id];
     const parent = parentOf(id);
@@ -198,9 +209,9 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
 
   let open: OpenMenu | null = null;
   function show(id: string, target: Element | null, anchor: Point): void {
-    if (!host.ready() || !site().nodes[id] || isRoot(id)) return;
+    if (!host.ready() || !site().nodes[id]) return;
     if (!selectionIds().includes(id)) host.select(id);
-    open = showContextMenu(elementEntries(id, target), anchor, { host: host.overlay, className: 'fw-layer-menu fw-canvas-menu', run: host.run, returnFocus: host.frame });
+    open = showContextMenu(isRoot(id) ? rootEntries(id) : elementEntries(id, target), anchor, { host: host.overlay, className: 'fw-layer-menu fw-canvas-menu', run: host.run, returnFocus: host.frame });
   }
   const close = (): void => { open?.close(false); open = null; };
   const editing = (at: Document): boolean => !!at.querySelector('[contenteditable="true"]');
@@ -211,8 +222,7 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     at.addEventListener('contextmenu', event => {
       if (!host.ready() || at.body.hasAttribute('data-preview') || editing(at)) return;
       const hit = (event.target as Element | null)?.closest?.<HTMLElement>('[data-fw-id]') ?? null;
-      const id = hit?.dataset.fwId;
-      if (!id || !site().nodes[id] || isRoot(id)) return;
+      const id = hit?.dataset.fwId && site().nodes[hit.dataset.fwId] ? hit.dataset.fwId : host.pageRoot();
       event.preventDefault();
       show(id, hit, toParent(event.clientX, event.clientY));
     });
