@@ -132,13 +132,17 @@ When you import a whole site as editable elements, every page converts together.
 
 ### How close the result is
 
-Three small sites were imported as editable elements and compared at 1440 px with the original opened in Chromium (pixels that differ by more than a trace, as a share of the page):
+Five small sites were imported as editable elements and compared at 1440 px with the original opened in Chromium (pixels that differ by more than a trace, as a share of the page):
 
 | Site | Exported page | On the canvas |
 | --- | --- | --- |
 | One-page landing page (header, hero, three feature columns in a flex row, footer) | 0.0% | 0.0% (plus the thin Component strip of the kept script below the footer) |
 | Three pages with a shared stylesheet, a CSS grid gallery of six pictures and links between the pages | 0.0% on each page | 0.0% on each page |
 | An old editor's page: tables for layout, inline styles, `<font>` and `<center>` tags | 1.1% | 1.3% |
+| A small-business page styled with a CSS framework's classes: navigation bar, hero photo as a CSS background under a dark gradient, three cards, four footer columns | 0.0% | not measured; looks the same |
+| A blog article: headings, paragraphs with bold, italic and links, lists, a quote, a picture with a caption, a code block and a table | 0.6% | not measured; looks the same |
+
+At phone width (390 px) the business page and the article do not scroll sideways, but they keep their desktop layout: cards stay side by side and type keeps its desktop size, because responsive rules are not carried over. See [Making it responsive again](#making-it-responsive-again).
 
 The old page's difference is in line heights: pages with an old HTML 4 doctype are drawn in the browser's "almost standards" mode, where a line of small text in a table cell is shorter, and FormWeb pages always use the standard mode. The title band and the footer band are a few pixels taller, nothing moves sideways:
 
