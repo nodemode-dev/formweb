@@ -43,10 +43,14 @@ REASONS = {
 }
 TAG = re.compile(r'<[A-Za-z][^<>]*>')
 ATTR = re.compile(r'''(\s)(src|href|poster|srcset|data-src|style)(\s*=\s*)(?:"([^"]*)"|'([^']*)'|([^\s"'<>=`]+))''', re.I)
-BLOCK = re.compile(r'<style\b[^>]*>(.*?)</style\s*>|<script\b([^>]*)>(.*?)</script\s*>|<link\b[^>]*>', re.I | re.S)
+BLOCK = re.compile(r'<style\b[^>]*(?:>|\Z)(.*?)(?:</style\s*>|\Z)|<script\b([^>]*)(?:>|\Z)(.*?)(?:</script\s*>|\Z)|<link\b[^>]*(?:>|\Z)', re.I | re.S)
+STRIP = re.compile(r'<script\b[^>]*(?:>|\Z).*?(?:</script\s*>|\Z)|<style\b[^>]*(?:>|\Z).*?(?:</style\s*>|\Z)', re.I | re.S)
+LINK = re.compile(r'<link\b[^>]*(?:>|\Z)', re.I)
+META = re.compile(r'<meta\b[^>]*(?:>|\Z)', re.I)
+TITLE = re.compile(r'<title\b[^>]*(?:>|\Z)(.*?)(?:</title\s*>|\Z)', re.I | re.S)
 PAIR = re.compile(r'''([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>=`]+)))?''')
-CSS_URL = re.compile(r'''url\(\s*(?:"([^"]*)"|'([^']*)'|([^)'"\s]*))\s*\)''', re.I)
-CSS_IMPORT = re.compile(r'''@import\s+(?:url\(\s*)?["']?([^"')\s;]+)["']?\s*\)?([^;]*);''', re.I)
+CSS_URL = re.compile(r'''url\(\s*(?:"([^"]*)"|'([^']*)'|([^()'"\s]*))\s*\)''', re.I)
+CSS_IMPORT = re.compile(r'''@import\s+(?:url\(\s*)?["']?([^"')\s;]+)["']?\s*\)?([^;{}@]*);''', re.I)
 
 
 def _show(name: str) -> str:
@@ -183,7 +187,10 @@ class Site:
     def __init__(self, files: dict):
         self.files = files
         self.routes: dict[str, str] = {}
-        self.assets = {path: '/api/assets/' + hashlib.sha256(body).hexdigest() + '.' + STORED.get(_ext(path), _ext(path))
+        self.used: set = set()
+        self.room = CSS_CAP
+        self.overflow = False
+        self.assets ={path: '/api/assets/' + hashlib.sha256(body).hexdigest() + '.' + STORED.get(_ext(path), _ext(path))
                        for path, (kind, body) in files.items() if kind == 'asset'}
 
     def locate(self, reference: str, base: str) -> tuple[str, str] | None:
@@ -223,6 +230,16 @@ class Site:
             missing.add(reference.strip())
         return None
 
+    def take(self, path: str) -> bool:
+        """Whether a stylesheet is inlined here: each one once per page, and no more than a code section's styles hold."""
+        if path in self.used:
+            return False
+        self.used.add(path)
+        self.room -= len(self.files[path][1])
+        if self.room < 0:
+            self.overflow = True
+        return not self.overflow
+
     def css(self, text: str, base: str, missing: set, depth: int = 0, seen: frozenset = frozenset()) -> str:
         def imported(match):
             found = self.locate(match.group(1), base)
@@ -230,6 +247,8 @@ class Site:
                 if found is not None and found[0] not in self.files:
                     missing.add(match.group(1))
                 return match.group(0)
+            if not self.take(found[0]):
+                return ''
             body = self.css(_text(self.files[found[0]][1]), posixpath.dirname(found[0]), missing, depth + 1, seen | {found[0]})
             media = match.group(2).strip()
             return f'@media {media} {{\n{body}\n}}' if media else body
@@ -269,7 +288,7 @@ class Site:
 
 
 def _between(document: str, tag: str) -> str | None:
-    opened = re.search(rf'<{tag}\b[^>]*>', document, re.I)
+    opened = re.search(rf'<{tag}\b[^>]*(?:>|\Z)', document, re.I)
     if not opened:
         return None
     closed = document.lower().rfind(f'</{tag}>')
@@ -281,16 +300,19 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     base = posixpath.dirname(path)
     missing: set = set()
     warnings: list[str] = []
-    title = re.search(r'<title\b[^>]*>(.*?)</title\s*>', document, re.I | re.S)
+    outside_scripts, outside_styles = set(), set()
+    site.used, site.room, site.overflow = set(), CSS_CAP, False
+    title = TITLE.search(document)
     title = re.sub(r'\s+', ' ', unescape(title.group(1))).strip()[:200] if title else ''
     description = ''
-    for tag in re.finditer(r'<meta\b[^>]*>', document, re.I):
+    for tag in META.finditer(document):
         found = _attrs(tag.group(0))
         if found.get('name', '').lower() == 'description':
             description = re.sub(r'\s+', ' ', found.get('content', '')).strip()[:500]
             break
     styles, scripts, inlined = [], [], set()
     body = _between(document, 'body') or document
+    body_at = document.find(body) if body is not document else 0
     for block in BLOCK.finditer(document):
         whole = block.group(0)
         if whole[:6].lower() == '<style':
@@ -304,7 +326,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             if source is not None:
                 found = site.locate(source, base)
                 if found is None:
-                    warnings.append(f'The external script {source[:120]} is not brought along.')
+                    outside_scripts.add(source[:120])
                 elif found[0] in site.files and site.files[found[0]][0] == 'script':
                     content = _text(site.files[found[0]][1])
                     if content.strip():
@@ -320,11 +342,13 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             href = attrs.get('href', '')
             found = site.locate(href, base)
             if found is None:
-                if href.strip() and whole not in body:
-                    warnings.append(f'The external stylesheet {href[:120]} sits in the page head, which an import leaves out.')
+                if href.strip() and block.start() < body_at:
+                    outside_styles.add(href[:120])
             elif found[0] in site.files and site.files[found[0]][0] == 'style':
                 inlined.add(whole)
-                css = site.css(_text(site.files[found[0]][1]), posixpath.dirname(found[0]), missing, 0, frozenset({found[0]}))
+                if not site.take(found[0]):
+                    continue
+                css =site.css(_text(site.files[found[0]][1]), posixpath.dirname(found[0]), missing, 0, frozenset({found[0]}))
                 media = attrs.get('media', '').strip()
                 styles.append(f'@media {media} {{\n{css}\n}}' if media and media.lower() != 'all' else css)
             else:
@@ -338,15 +362,19 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             module = any(item[1] for item in scripts)
         except EngineError as error:
             warnings.append(f'The script was left out: {error}')
-    markup = re.sub(r'<script\b[^>]*>.*?</script\s*>|<style\b[^>]*>.*?</style\s*>', '', body, flags=re.I | re.S)
-    markup = re.sub(r'<link\b[^>]*>', lambda tag: '' if tag.group(0) in inlined else tag.group(0), markup, flags=re.I)
+    for found, noun, where in ((outside_scripts, 'external script', ''), (outside_styles, 'external stylesheet', ' in the page head, which an import leaves out')):
+        if found:
+            shown = sorted(found)
+            warnings.append(f'{len(shown)} {noun}{"s" if len(shown) != 1 else ""}{where} {"is" if len(shown) == 1 else "are"} not brought along: {", ".join(shown[:5])}{"..." if len(shown) > 5 else ""}.')
+    markup = STRIP.sub('', body)
+    markup = LINK.sub(lambda tag: '' if tag.group(0) in inlined else tag.group(0), markup)
     markup = site.markup(markup, base, missing).strip()
     css = '\n'.join(part.strip() for part in styles if part.strip())
     if missing:
         shown = sorted(missing)
         warnings.append(f'{len(shown)} reference{"s" if len(shown) != 1 else ""} point{"" if len(shown) != 1 else "s"} at files that were skipped or are not in the archive: {", ".join(item[:80] for item in shown[:5])}{"..." if len(shown) > 5 else ""}.')
     name = (title or posixpath.basename(path).rsplit('.', 1)[0] or 'Imported page')[:120]
-    return {'file': path, 'name': name, 'title': title, 'description': description, 'html': markup, 'css': css, 'js': script.strip(), 'module': module and bool(script.strip()), 'warnings': warnings}
+    return {'file': path, 'name': name, 'title': title, 'description': description, 'html': markup, 'css': css, 'js': script.strip(), 'module': module and bool(script.strip()), 'warnings': warnings, 'overflow': site.overflow}
 
 
 def _emptiable(site: dict, root: str) -> bool:
@@ -391,7 +419,7 @@ def plan(archive: dict, site: dict, kit_script) -> dict:
     allow = (((site.get('extensions') or {}).get('code') or {}).get('allowSections')) is True
     for path in pages:
         page = _page(resolver, path, files[path][1], kit_script)
-        if len(page['html'].encode()) > HTML_CAP or len(page['css'].encode()) > CSS_CAP or len(page['js'].encode()) > JS_CAP:
+        if page['overflow'] or len(page['html'].encode()) > HTML_CAP or len(page['css'].encode()) > CSS_CAP or len(page['js'].encode()) > JS_CAP:
             skipped.append({'file': path, 'reason': 'The page is larger than a code section holds (512 KiB markup, 256 KiB styles, 512 KiB script).'})
             continue
         cost = len(json.dumps({'enabled': True, 'html': page['html'], 'css': page['css'], 'js': page['js'], 'module': page['module']}, ensure_ascii=False, separators=(',', ':')).encode()) + 64

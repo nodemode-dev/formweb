@@ -20,7 +20,7 @@ SITE_ARCHIVE_PATHS = ('/api/library/import-site/review', '/api/library/import-si
 HTML_CAP = 512 * 1024
 CSS_CAP = 256 * 1024
 JS_CAP = 512 * 1024
-KIT_IMPORT = re.compile(r'^[ \t]*import\s*\{([^}]*)\}\s*from\s*["\'][^"\']*kit\.js["\']\s*;?[ \t]*$', re.M)
+KIT_IMPORT = re.compile(r'^[ \t]*import\s*\{([^{}]*)\}\s*from\s*["\'][^"\']*kit\.js["\']\s*;?[ \t]*$', re.M)
 ANY_IMPORT = re.compile(r'^[ \t]*import[\s{*"\']', re.M)
 SHIM = {
     'reduced': "const reduced = () => document.documentElement.classList.contains('fw-r') || matchMedia('(prefers-reduced-motion: reduce)').matches;",
@@ -343,7 +343,7 @@ async def import_site(data: bytes, mode: str, revision: int | None) -> dict:
     if revision is not None and revision != current:
         raise EngineError('The site changed after the review. Review the archive again before importing.', 409)
     result = await asyncio.to_thread(site_import.plan, archive, site, kit_script)
-    commands, pages = site_import.commands(result, site, mode, archive, kit_script)
+    commands, pages = await asyncio.to_thread(site_import.commands, result, site, mode, archive, kit_script)
     assets = site_import.store_assets(result, archive, studio)
     outcome = await studio.mutate('batch', {'commands': commands, 'expectedRevision': current})
     studio.access.record('library.import-site', {'pages': pages, 'assets': assets, 'mode': mode, 'bytes': len(data)})
