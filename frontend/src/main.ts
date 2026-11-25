@@ -41,6 +41,7 @@ import { installCanvasMenu } from './features/canvas-menu';
 import { installInspectorSearch, sectionId } from './features/inspector/search';
 import { installLibrary } from './features/library';
 import { installInsertFlyout } from './features/panel/insert-flyout';
+import { installCrumbs } from './features/crumbs';
 import { watchFit } from './ui/fit';
 import { anchorOf, ctrlClickOffMac, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
@@ -467,6 +468,7 @@ const viewportHint = element('span', 'viewport-hint', 'Width is outside this bre
 viewportHint.dataset.on = 'false';
 const selectionPath = element('nav', 'fw-crumbs');
 selectionPath.setAttribute('aria-label', 'Selection path');
+const crumbs = installCrumbs(selectionPath, { host: overlay, pick: id => pickNode(id) });
 stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, selectionPath, viewportHint, viewportReadout);
 const stage = element('div', 'stage');
 stagePanel.append(stageHead, stage);
@@ -1483,17 +1485,7 @@ function update(next: EditorState): void {
   text(pagePath, page.slug || '/');
   const trail: SiteNode[] = [];
   for (let at: SiteNode | undefined = node; at; at = parentOf(at.id)) trail.unshift(at);
-  keyed(selectionPath, trail, item => item.id, () => {
-    const crumb = button('', undefined, undefined, 'fw-crumb');
-    crumb.addEventListener('click', () => pickNode(crumb.dataset.key!));
-    return crumb;
-  }, (crumb, item) => {
-    text(crumb, item.name);
-    crumb.title = `Select ${item.name} <${item.tag}>`;
-    const current = item.id === node.id;
-    crumb.classList.toggle('is-current', current);
-    if (current) crumb.setAttribute('aria-current', 'true'); else crumb.removeAttribute('aria-current');
-  });
+  crumbs.update(trail.map(item => ({ id: item.id, name: item.name, tag: item.tag })), node.id);
   const pickedBreakpoint = site.breakpoints.find(item => item.id === breakpoint);
   label(readoutMode, 'Editing {0}', [pickedBreakpoint?.name || breakpoint]);
   text(readoutWidth, `${widths[breakpoint]} px`);
