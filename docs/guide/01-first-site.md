@@ -22,7 +22,7 @@ The site opens with one empty page, Home: its only layer is the page itself. In 
 
 1. In the left panel, click the **+** to the right of **PAGES**. The Add page dialog opens.
 2. In **Page name** type `Classes`.
-3. In **URL slug** type `/classes`. This is the page's address on your site. If you leave it empty the page gets `/new-page`.
+3. **URL slug** fills itself as you type the name: `/classes`. This is the page's address on your site, and the line under the fields shows the address that will be used. You can type your own slug; from then on it no longer follows the name. If the address is already taken by another page, that line says so in red and the dialog stays open until you choose another.
 4. Click **Add page**.
 
 ![The Add page dialog with Classes as the page name and /classes as the URL slug](images/first-site-add-page.webp)
