@@ -9,5 +9,5 @@
 .fw-pick-bar { display: flex; align-items: center; gap: var(--space-2); }
 .fw-pick-bar[hidden] { display: none; }
 .fw-pick-count { flex: 1; min-width: 0; overflow: hidden; color: var(--text-primary); font-size: var(--fs-11); font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
-.panel-head .fw-pick-bar .fw-pick-done { width: auto; height: var(--ctl-md); min-height: 0; padding: 0 var(--space-3); border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-text); font-size: var(--fs-11); font-weight: 600; }
+.panel-head .fw-pick-bar .fw-pick-done { width: auto; height: var(--ctl-md); min-height: 0; padding: 0 var(--space-2); border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-text); font-size: var(--fs-11); font-weight: 600; }
 .panel-head .fw-pick-bar .fw-pick-done:hover { background: var(--accent-wash); }

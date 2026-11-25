@@ -27,8 +27,8 @@ export function paintSelectMode(): void {
     if (item.toggle.classList.contains('active') !== on) item.toggle.classList.toggle('active', on);
     if (!on) continue;
     const many = item.kind === 'pages' ? selectedPageIds().length : selectedIds().length;
-    if (item.kind === 'pages') label(item.count, many === 1 ? '1 page selected' : '{0} pages selected', [many]);
-    else label(item.count, many === 1 ? '1 layer selected' : '{0} layers selected', [many]);
+    label(item.count, '{0} selected', [many]);
+    labelAttr(item.count, 'title', item.kind === 'pages' ? (many === 1 ? '1 page selected' : '{0} pages selected') : (many === 1 ? '1 layer selected' : '{0} layers selected'), [many]);
   }
 }
 
