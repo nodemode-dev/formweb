@@ -1,3 +1,4 @@
+import hashlib
 import json
 import re
 import secrets
@@ -9,6 +10,8 @@ from .config import DATA_DIR, PUBLIC_BASE
 from .engine import EngineError
 from .store import now
 
+RUNTIME_TOKEN = re.compile(r'[A-Za-z0-9_-]{32,64}')
+
 
 class Releases:
     def __init__(self, studio):
@@ -19,8 +22,24 @@ class Releases:
         CREATE TABLE IF NOT EXISTS active_releases (slug TEXT PRIMARY KEY,version TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS release_history (seq INTEGER PRIMARY KEY AUTOINCREMENT,slug TEXT NOT NULL,old_version TEXT,new_version TEXT NOT NULL,operation TEXT NOT NULL,created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS previews (token TEXT PRIMARY KEY,site TEXT NOT NULL,revision INTEGER NOT NULL,expires REAL NOT NULL);
+        CREATE TABLE IF NOT EXISTS release_runtime (digest TEXT PRIMARY KEY,slug TEXT NOT NULL,version TEXT NOT NULL,UNIQUE(slug,version));
         ''')
         self.store.db.commit()
+
+    @staticmethod
+    def runtime_token():
+        return secrets.token_urlsafe(32)
+
+    def remember_runtime(self, slug, version, token):
+        self.store.db.execute('INSERT INTO release_runtime VALUES(?,?,?)', (hashlib.sha256(token.encode()).hexdigest(), slug, version))
+        self.store.db.commit()
+
+    def runtime_release(self, token):
+        """The publication a runtime token belongs to, or None. The token is the only way an opaque-origin page reaches its own runtime routes."""
+        if not isinstance(token, str) or not RUNTIME_TOKEN.fullmatch(token):
+            return None
+        row = self.store.db.execute('SELECT slug,version FROM release_runtime WHERE digest=?', (hashlib.sha256(token.encode()).hexdigest(),)).fetchone()
+        return {'slug': row['slug'], 'version': row['version'], 'token': token} if row else None
 
     def remember(self, slug, version):
         self.store.db.execute('INSERT INTO release_projects VALUES(?,?,?)', (slug, version, self.studio.access.project_key()))

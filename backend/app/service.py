@@ -351,7 +351,8 @@ class Studio:
             root.mkdir(parents=True, exist_ok=True)
             temp = root / ('.pending-' + uuid4().hex)
             target = root / version
-            result = bundle_assets(await self.engine.request('export', {'locale': state['site'].get('defaultLocale', 'en'), 'formsEndpoint': f'{PUBLIC_BASE}/published/{slug}/{version}', 'baseUrl': f'{PUBLIC_BASE}/published/{slug}/{version}/', 'privateMembers': True, 'passwordRoutes': self.passwords.routes(state['site']['id'])}))
+            runtime_token = self.releases.runtime_token()
+            result = bundle_assets(await self.engine.request('export', {'locale': state['site'].get('defaultLocale', 'en'), 'formsEndpoint': f'{PUBLIC_BASE}/published/{slug}/{version}', 'baseUrl': f'{PUBLIC_BASE}/published/{slug}/{version}/', 'privateMembers': True, 'passwordRoutes': self.passwords.routes(state['site']['id']), 'runtimeToken': runtime_token}))
             try:
                 temp.mkdir()
                 for file in result['files']:
@@ -363,6 +364,7 @@ class Studio:
                 temp.rename(target)
                 self.store.add_publication(slug, version, state['site'])
                 self.releases.remember(slug, version)
+                self.releases.remember_runtime(slug, version, runtime_token)
                 self.access.record('release.create', {'slug': slug, 'version': version})
             except Exception:
                 shutil.rmtree(temp, ignore_errors=True)
