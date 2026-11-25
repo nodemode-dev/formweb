@@ -196,6 +196,7 @@ function status(parts: string | readonly string[], error = false, action?: { lab
   const message = typeof parts === 'string' ? parts : parts.filter(Boolean).join('');
   if (typeof parts === 'string') { text(statusMessage, parts); text(dialogStatus, parts); } else { pieces(statusMessage, parts); pieces(dialogStatus, parts); }
   statusMessage.classList.toggle('error', error);
+  if (statusMessage.title !== message) statusMessage.title = message;
   if (dialogStatus.title !== message) dialogStatus.title = message;
   dialogStatus.classList.toggle('error', error);
   statusActionRun = action ? action.run : null;
@@ -1686,7 +1687,12 @@ async function sendToFormPublisher(): Promise<void> {
     const warning = notFoundBaseWarning(sent.warnings || []);
     const forms = localFormWarning(sent.localForms || []);
     if (sent.delivered === 'live') status([t('Sent to FormPublisher: {0} is now at revision {1}.', [state().site.name, sent.revision ?? '']), warning, forms], false, baseUrlAction(warning));
-    else status([t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [sent.path ?? '']), warning, forms], false, baseUrlAction(warning));
+    else {
+      const path = sent.path ?? '';
+      const short = path.length > 44 ? `${path.slice(0, 14)}…${path.slice(-28)}` : path;
+      status([t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [short]), warning, forms], false, baseUrlAction(warning));
+      statusMessage.title = [t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [path]), warning, forms].filter(Boolean).join('');
+    }
   } catch (error) {
     status(t('Could not send to FormPublisher: {0}', [error instanceof Error ? error.message : String(error)]), true);
   }
