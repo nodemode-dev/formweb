@@ -540,6 +540,20 @@ describe('the three choices in the Page background group', () => {
     expect(mod.startChoices(state.site, 'about')[0].name).toBe('Site background (white)');
   });
 
+  it('a site background emptied in the Design system list counts as none, and typing a color fills the same token again', async () => {
+    state = { ...state, site: applyCommands(state.site, [...mod.useSiteBackgroundCommands(state.site, [state.site.pages[2]], '#0b1d2a'), { command: 'token.set', params: { name: 'page-background', value: '' } }]) };
+    pageId = 'about';
+    const { section } = mount();
+    expect(mod.siteBackgroundKey(state.site)).toBeNull();
+    expect(section.querySelector('.fw-pagebg-site .fw-pagebg-note')!.textContent).toContain('Using the site background: white, the browser default.');
+    expect(section.querySelector<HTMLElement>('[data-cmd="page.background-site-theme"]')!.hidden).toBe(false);
+    siteField(section).value = '#203040';
+    siteField(section).dispatchEvent(new Event('change'));
+    await settle();
+    expect(state.site.tokens['page-background']).toBe('#203040');
+    expect(statuses.every(entry => !entry.error)).toBe(true);
+  });
+
   it('an empty site background color is refused once the token exists', async () => {
     state = { ...state, site: applyCommands(state.site, mod.useSiteBackgroundCommands(state.site, [state.site.pages[2]], '#0b1d2a')) };
     pageId = 'about';

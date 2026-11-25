@@ -449,12 +449,12 @@ const tokenReference = (content: string): string | null => /^var\(\s*--([a-zA-Z0
 
 export function siteBackgroundTaken(site: Site): string {
   const key = tokenKey(site, SITE_BACKGROUND);
-  if (!key) return '';
+  if (!key || !site.tokens[key].trim()) return '';
   const shown = resolveColor(site, site.tokens[key]).replace(/var\(\s*--[\w-]+\s*(?:,[^()]*)?\)/g, 'transparent').trim();
-  return shown && (CSS.supports('background-color', shown) || CSS.supports('background-image', shown)) ? '' : site.tokens[key] || '""';
+  return CSS.supports('background-color', shown) || CSS.supports('background-image', shown) ? '' : site.tokens[key];
 }
 
-export function siteBackgroundKey(site: Site): string | null { const key = tokenKey(site, SITE_BACKGROUND); return key && !siteBackgroundTaken(site) ? key : null; }
+export function siteBackgroundKey(site: Site): string | null { const key = tokenKey(site, SITE_BACKGROUND); return key && site.tokens[key].trim() && !siteBackgroundTaken(site) ? key : null; }
 
 export function siteBackgroundTarget(site: Site): string | null {
   const key = siteBackgroundKey(site);
@@ -488,7 +488,7 @@ export function backgroundMode(site: Site, page: Page): Exclude<BackgroundMode, 
 }
 
 export function pageColorToken(site: Site): string | null {
-  if (tokenKey(site, SITE_BACKGROUND)) return null;
+  if (siteBackgroundKey(site) || siteBackgroundTaken(site)) return null;
   const home = homePage(site);
   const used = home ? tokenReference(pageBackground(site, home)?.value || '') : null;
   const found = used ? tokenKey(site, used) : null;
