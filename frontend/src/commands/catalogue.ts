@@ -65,7 +65,7 @@ const META: Record<string, Meta> = {
   'site.favicon-dark': { description: 'Pick the dark mode site icon image.', flags: 'm' },
   'site.favicon-clear': { description: 'Remove both site icons.', flags: 'mr' },
   'page.background': { description: 'Show the Page background field of the open page in Page settings.' },
-  'page.background-clear': { description: 'Remove the open page\'s own background so it uses the site background (white, the browser default).', flags: 'm' },
+  'page.background-clear': { description: 'Remove the open page\'s own background so it shows white, the browser default. To give it the site background (the --page-background token) use page.background-site instead.', flags: 'm' },
   'page.background-all': { description: 'Give every page the open page\'s background, or clear every page when the open page has none. One undo step.', flags: 'm' },
   'window.theme-colors': { description: 'Open the Design system dialog at its Themes block, where the site\'s color tokens get their light and dark values.' },
   'page.delete': { description: 'Open the delete page confirmation for the open page.', flags: 'mr', when: 'Use only when the person asks to delete a page.' },
