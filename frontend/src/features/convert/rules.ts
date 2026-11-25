@@ -305,7 +305,7 @@ export function summary(outcome: Outcome, say: Say, count: SayCount): string {
   const list = parts.map(part => count(outcome.parts[part]!, PART_WORDS[part][0], PART_WORDS[part][1], [outcome.parts[part]!])).join(', ');
   const lines = [count(outcome.converted, 'Converted 1 element.', 'Converted {0} elements.', [outcome.converted])];
   if (total) lines.push(count(total, '1 part stayed as code: {1}.', '{0} parts stayed as code: {1}.', [total, list]));
-  if (outcome.responsive) lines.push(say('Responsive rules were not carried over.'));
+  if (outcome.responsive) lines.push(say('Responsive rules were not carried over.'), say('Check it at phone width in Preview, then adjust under each breakpoint.'));
   if (outcome.effects) lines.push(say('Hover effects and before or after decorations were not carried over.'));
   if (outcome.pictures) lines.push(count(outcome.pictures, '1 background picture was left out: FormWeb styles take no url() pictures.', '{0} background pictures were left out: FormWeb styles take no url() pictures.', [outcome.pictures]));
   if (outcome.floats) lines.push(count(outcome.floats, '1 float was left out: FormWeb has no float property.', '{0} floats were left out: FormWeb has no float property.', [outcome.floats]));

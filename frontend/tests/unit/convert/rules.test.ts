@@ -118,9 +118,14 @@ describe('text and child elements', () => {
 });
 
 describe('the result sentence', () => {
-  it('says how many elements were converted, which parts stayed as code and that responsive rules were not carried over', () => {
+  it('says how many elements were converted, which parts stayed as code, that responsive rules were not carried over and what to do about phone widths', () => {
     const outcome = { ...emptyOutcome(), converted: 48, parts: { script: 1, frame: 1, vector: 1 }, responsive: 4 };
-    expect(summary(outcome, t, tn)).toBe('Converted 48 elements. 3 parts stayed as code: a script, an inline frame, a vector graphic. Responsive rules were not carried over.');
+    expect(summary(outcome, t, tn)).toBe('Converted 48 elements. 3 parts stayed as code: a script, an inline frame, a vector graphic. Responsive rules were not carried over. Check it at phone width in Preview, then adjust under each breakpoint.');
+  });
+
+  it('says nothing about phone widths when the page had no responsive rules', () => {
+    const outcome = { ...emptyOutcome(), converted: 3 };
+    expect(summary(outcome, t, tn)).toBe('Converted 3 elements.');
   });
 
   it('names every kind of loss it counted, and nothing it did not', () => {
