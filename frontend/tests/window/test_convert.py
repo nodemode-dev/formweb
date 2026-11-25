@@ -203,3 +203,52 @@ def test_hostile_html_converts_to_nothing_that_runs_and_no_request_leaves_for_an
     assert editor.canvas.locator(f'[data-fw-id="{host}"] [onclick], [data-fw-id="{host}"] [onmouseover]').count() == 0
     editor.page.wait_for_timeout(500)
     assert outside == []
+
+
+ROW = """<!doctype html><html><head><title>Three cards</title><style>
+body { margin: 0; font-family: Georgia, serif; }
+.row { display: flex; gap: 24px; padding: 32px; }
+.card { flex: 1 1 0; border: 1px solid #c9b8a0; padding: 24px; min-height: 120px; }
+</style></head><body>
+<div class="row"><div class="card"><h2>Bread</h2></div><div class="card"><h2>Cakes</h2></div><div class="card"><h2>Coffee</h2></div></div>
+</body></html>"""
+
+
+def test_on_a_page_imported_as_elements_dragging_the_third_card_before_the_first_puts_it_first(editor, tmp_path):
+    data = io.BytesIO()
+    with zipfile.ZipFile(data, "w") as archive:
+        archive.writestr("index.html", ROW)
+    path = tmp_path / "cards.zip"
+    path.write_bytes(data.getvalue())
+    with editor.page.expect_file_chooser() as chooser:
+        editor.page.evaluate("window.formweb.run('file.import-site')")
+    chooser.value.set_files(str(path))
+    review = editor.page.locator(".fw-lib-site")
+    review.locator(".fw-lib-insert:not([disabled])").click()
+    expect(review.locator(".fw-lib-note")).to_contain_text("Converted")
+    site = editor.until(lambda s: nodes_with(s, "h2", "Coffee"), "the cards to become elements")
+    up = {child: node["id"] for node in site["nodes"].values() for child in node["children"]}
+    cards = [up[nodes_with(site, "h2", name)[0]["id"]] for name in ("Bread", "Cakes", "Coffee")]
+    row = up[cards[0]]
+    assert site["nodes"][row]["children"] == cards
+    top = row
+    while top in up:
+        top = up[top]
+    page = next(p for p in site["pages"] if p["root"] == top)
+    editor.page.evaluate("window.formweb.run('window.layers')")
+    editor.page_row(page["id"]).click()
+    expect(editor.page_row(page["id"])).to_have_attribute("aria-current", "page")
+    third = editor.canvas.locator(f'[data-fw-id="{cards[2]}"]')
+    expect(third).to_be_visible()
+    third.click(position={"x": 8, "y": 8})
+    expect(third).to_have_attribute("data-fw-selected", "")
+    source, first = third.bounding_box(), editor.canvas.locator(f'[data-fw-id="{cards[0]}"]').bounding_box()
+    pointer = editor.canvas_pointer()
+    pointer.move(source["x"] + 8, source["y"] + 8)
+    pointer.down()
+    pointer.move(first["x"] + first["width"] * 0.15, first["y"] + first["height"] / 2, steps=20, held=True)
+    expect(editor.page.locator(".fw-canvas-proxy-where")).to_have_text(f"Before {site['nodes'][cards[0]]['name']}")
+    pointer.up()
+    after = editor.changed_from(site)
+    assert after["nodes"][row]["children"] == [cards[2], cards[0], cards[1]]
+    expect(editor.status).to_contain_text("moved")

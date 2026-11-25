@@ -172,7 +172,9 @@ export function findDrop(doc: Document, site: Site, root: string, ids: readonly 
     if (!canContain(site, id)) return beside(node, side(box, flow));
     const [lo, size] = span(box, flow.axis);
     const at = flow.axis === 'x' ? x : y;
-    const band = Math.min(BAND, size / 4);
+    const parent = nodeParent(node)?.dataset.fwId;
+    const sibling = parent !== undefined && ids.some(other => site.nodes[parent]?.children.includes(other));
+    const band = sibling ? size / 4 : Math.min(BAND, size / 4);
     if (at - lo < band || lo + size - at < band) return beside(node, side(box, flow)) ?? inner(node);
     return inner(node) ?? beside(node, side(box, flow));
   };
