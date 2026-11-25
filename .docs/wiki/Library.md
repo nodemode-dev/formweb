@@ -26,7 +26,11 @@ Placeholders in a template are `$parent`, `@@key@@` for a node id and `{{field}}
 
 ## Routes
 
-`GET /api/library`, `GET /api/library/thumbs/{id}.webp`, `GET /api/library/components/{id}/poster.webp`, `GET /api/library/components/{id}/poster-light.webp` (404 when a component has none), `POST /api/library/sections/{id}/insert`, `POST /api/library/presets/{id}/apply`, `POST /api/library/starters/{id}/apply` and `POST /api/library/import-html`. Request and response shapes are in `docs/LIBRARY.md` and `docs/ADVANCED_SCHEMA.md`.
+`GET /api/library`, `GET /api/library/thumbs/{id}.webp`, `GET /api/library/components/{id}/poster.webp`, `GET /api/library/components/{id}/poster-light.webp` (404 when a component has none), `POST /api/library/sections/{id}/insert`, `POST /api/library/presets/{id}/apply`, `POST /api/library/starters/{id}/apply`, `POST /api/library/import-html`, `POST /api/library/import-site/review` and `POST /api/library/import-site`. Request and response shapes are in `docs/LIBRARY.md` and `docs/ADVANCED_SCHEMA.md`.
+
+## Import site from zip
+
+`backend/app/site_import.py` reads a static site zip in memory with `zipfile` under hard caps (64 MiB, 1,000 entries checked from the end record before parsing, 2 MiB file list, 128 MiB unpacked, 12 levels, an expansion limit, per-type file caps) and refuses traversal, absolute and drive-letter names, links and passwords outright. The review route plans without changing anything; the import route re-reads the same bytes, refuses a changed revision, stores assets through `ingest` and sends one batch of `page.add`, `page.update`, `node.add` and `code.section.set` (and `node.remove` in replace mode, offered only when no extension entry or component source points into the page). Each page is one code section built with Import HTML's `kit_script`, so the script policy is the same. The editor view is `features/library/site-import.ts` (File > Import site from zip..., `file.import-site`); agents use `library_import_site`.
 
 ## Page components
 
