@@ -76,7 +76,10 @@ export function primaryId(): string {
 }
 
 export function topMost(ids: readonly string[] = selectedIds()): string[] {
-  return host?.ready() ? movableIds(host.site(), ids) : [];
+  if (!host?.ready()) return [];
+  const site = host.site();
+  const roots = new Set(site.pages.map(page => page.root));
+  return movableIds(site, ids.filter(id => !roots.has(id)));
 }
 
 export function isSelected(id: string): boolean {

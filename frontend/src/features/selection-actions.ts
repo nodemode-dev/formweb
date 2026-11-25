@@ -36,9 +36,11 @@ const copyable = (id: string): boolean => !roots().has(id) && !linked(id);
 const removable = (id: string): boolean => !roots().has(id) && !site().nodes[parentOf(id) ?? '']?.componentSourceId;
 
 function split(test: (id: string) => boolean): { ids: string[]; skipped: number } {
-  const all = topMost(selectedIds());
+  const picked = selectedIds();
+  const all = topMost(picked);
   const ids = all.filter(test);
-  return { ids, skipped: all.length - ids.length };
+  const pageRoots = roots();
+  return { ids, skipped: all.length - ids.length + picked.filter(id => pageRoots.has(id)).length };
 }
 
 const skipNote = (count: number): string => count ? ' ' + (count === 1
