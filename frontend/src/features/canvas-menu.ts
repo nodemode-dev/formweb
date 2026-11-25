@@ -240,12 +240,13 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
   }
   const close = (): void => { open?.close(false); open = null; };
   const editing = (at: Document): boolean => !!at.querySelector('[contenteditable="true"]');
+  const dragging = (at: Document): boolean => at.documentElement.hasAttribute('data-fw-dragging');
 
   function bind(at: Document): void {
     at.addEventListener('pointerdown', close, true);
     at.addEventListener('scroll', close, true);
     at.addEventListener('contextmenu', event => {
-      if (performance.now() - keyed < 500) { event.preventDefault(); return; }
+      if (performance.now() - keyed < 500 || dragging(at)) { event.preventDefault(); return; }
       if (!host.ready() || at.body.hasAttribute('data-preview') || editing(at)) return;
       const hit = (event.target as Element | null)?.closest?.<HTMLElement>('[data-fw-id]') ?? null;
       const id = hit?.dataset.fwId && site().nodes[hit.dataset.fwId] ? hit.dataset.fwId : host.pageRoot();
@@ -255,6 +256,7 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     });
     at.addEventListener('keydown', event => {
       if (!menuKeyPressed(event) || !host.ready() || at.body.hasAttribute('data-preview') || editing(at)) return;
+      if (dragging(at)) { event.preventDefault(); return; }
       if ((event.target as Element | null)?.closest?.('input, textarea, select')) return;
       event.preventDefault();
       keyed = performance.now();
