@@ -9,6 +9,7 @@ import re
 import secrets
 import stat
 import struct
+import unicodedata
 import zipfile
 import zlib
 from html import escape, unescape
@@ -106,9 +107,10 @@ def read_archive(data: bytes) -> dict:
             ignored += 1
             continue
         key = '/'.join(parts)
-        if key.lower() in seen:
+        folded = unicodedata.normalize('NFC', key).casefold()
+        if folded in seen:
             raise EngineError(f'The archive holds {_show(key)} twice. Nothing was imported.', 400)
-        seen.add(key.lower())
+        seen.add(folded)
         if info.file_size > 1024 * 1024 and info.file_size > MAX_RATIO * max(info.compress_size, 1):
             raise EngineError(f'{_show(key)} expands far more than a website file would, so the archive was not opened.', 400)
         kept.append((parts, info))
