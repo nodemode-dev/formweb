@@ -148,6 +148,11 @@ function selectNode(id: string): void {
   selectedId = id;
   update(state());
 }
+function pickNode(id: string): void {
+  selectNode(id);
+  canvas.bring(id);
+  scrollNearest(layersList, rowOf(layersList, id));
+}
 function descendants(id: string, found = new Set<string>()): Set<string> {
   if (found.has(id)) return found;
   found.add(id);
@@ -1419,7 +1424,7 @@ function update(next: EditorState): void {
   for (let at: SiteNode | undefined = node; at; at = parentOf(at.id)) trail.unshift(at);
   keyed(selectionPath, trail, item => item.id, () => {
     const crumb = button('', undefined, undefined, 'fw-crumb');
-    crumb.addEventListener('click', () => selectNode(crumb.dataset.key!));
+    crumb.addEventListener('click', () => pickNode(crumb.dataset.key!));
     return crumb;
   }, (crumb, item) => {
     text(crumb, item.name);
@@ -1474,7 +1479,7 @@ function update(next: EditorState): void {
   keyed(layersList, layers, item => item.node.id, () => {
     const row = button('', undefined, undefined, 'list-row layer-row');
     row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
-    row.addEventListener('click', () => selectNode(row.dataset.key!));
+    row.addEventListener('click', () => pickNode(row.dataset.key!));
     row.addEventListener('contextmenu', event => showLayerMenu(event, row.dataset.key!));
     return row;
   }, (row, item) => {
