@@ -39,7 +39,7 @@ In Harbour Ferries the pages use `var(--bg)`, which is `#f3f6f7`. Setting `--bg`
 
 ### Light and dark themes
 
-Below the token list, the **Themes** block lets a site have a second set of values for the other theme (light or dark): fill a token there to give it another value in that theme, and leave it empty to keep the default. The moon and sun buttons above the canvas show the page in each theme. Visitors can switch themes, and their choice is remembered on their device.
+Below the token list, the **Themes** block lets a site have a second set of values for the other theme (light or dark): fill a token there to give it another value in that theme, and leave it empty to keep the default. The moon and sun buttons above the canvas show the page in each theme. A site with no themes says so in the block: Default theme reads None, every visitor sees the one set of colors, and the moon and sun buttons are greyed out, because the published page has no other theme to show. Pick Dark or Light as the default theme to start a second set of values; picking None again removes the themes. Visitors can switch themes, and their choice is remembered on their device.
 
 ## Next
 
