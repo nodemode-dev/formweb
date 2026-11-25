@@ -1,5 +1,6 @@
 import { element } from './dom';
 import { label, labelAttr } from '../i18n';
+import { isMac } from '../commands/registry';
 
 export interface MenuItem {
   id: string;
@@ -30,6 +31,11 @@ export function isSeparator(entry: MenuEntry): entry is MenuSeparator {
 
 export function closeContextMenu(): void {
   current?.close(false);
+}
+
+/* Ctrl+click is a right-click only on a Mac; elsewhere it adds to the selection and must never open a menu. */
+export function ctrlClickOffMac(event: MouseEvent): boolean {
+  return !isMac && event.ctrlKey && event.button === 0;
 }
 
 export function menuKeyPressed(event: KeyboardEvent): boolean {

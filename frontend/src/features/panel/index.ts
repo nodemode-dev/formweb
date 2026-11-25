@@ -2,7 +2,7 @@ import type { EditorState, Page, SiteNode } from '../../types';
 import type { Command as Batch } from '../sections';
 import { commands as registry, formatKeys } from '../../commands/registry';
 import type { CommandDef } from '../../ui/shell';
-import { anchorOf, menuKeyPressed, showContextMenu, type MenuAnchor, type MenuEntry } from '../../ui/context-menu';
+import { anchorOf, ctrlClickOffMac, menuKeyPressed, showContextMenu, type MenuAnchor, type MenuEntry } from '../../ui/context-menu';
 import { copyOfPage, homeCommands, homeRefusal, pageMoveCommands, stepPageCommands } from './pages';
 import { startRename } from './rename';
 import { LayerFolds, type LayerRow } from './fold';
@@ -224,7 +224,7 @@ export function installPanel(host: PanelHost) {
   const plainKey = (event: KeyboardEvent, key: string): boolean => event.key === key && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
 
   function pageRow(row: HTMLElement): void {
-    row.addEventListener('contextmenu', event => { event.preventDefault(); showPageMenu(anchorOf(event, row), row); });
+    row.addEventListener('contextmenu', event => { event.preventDefault(); if (ctrlClickOffMac(event)) return; showPageMenu(anchorOf(event, row), row); });
     row.addEventListener('dblclick', () => invoke('page.rename', { id: row.dataset.key }));
     row.addEventListener('keydown', event => {
       if (menuKeyPressed(event)) { event.preventDefault(); showPageMenu(row, row); }

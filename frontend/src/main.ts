@@ -42,7 +42,7 @@ import { installInspectorSearch, sectionId } from './features/inspector/search';
 import { installLibrary } from './features/library';
 import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
-import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
+import { anchorOf, ctrlClickOffMac, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
 import { canvasClick, installSelection, isMulti, isSelected, layerClick, topMost, pageClick, paintLayerRow, paintPageRow, selectedIds, selectedPageIds, selectNodes } from './features/selection';
 import { anyCopyable, anyRemovable, canStep, copySelected, countLabel, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, selectionNote, selectionTitle, stepSelected } from './features/selection-actions';
@@ -2209,6 +2209,7 @@ document.addEventListener('paste', event => {
 });
 function showLayerMenu(event: MouseEvent | KeyboardEvent, id: string): void {
   event.preventDefault();
+  if (event instanceof MouseEvent && ctrlClickOffMac(event)) return;
   if (!isSelected(id)) selectNode(id);
   const allowed = canDuplicate();
   const many = isMulti() ? topMost().length : 1;

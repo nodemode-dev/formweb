@@ -1,7 +1,7 @@
 import { commands, state } from '../api';
 import { commands as registry } from '../commands/registry';
 import type { CommandDef } from '../ui/shell';
-import { menuKeyPressed, showContextMenu, type MenuEntry, type MenuItem, type OpenMenu } from '../ui/context-menu';
+import { ctrlClickOffMac, menuKeyPressed, showContextMenu, type MenuEntry, type MenuItem, type OpenMenu } from '../ui/context-menu';
 import { t } from '../i18n';
 import { invoke } from './panel';
 import { canContain } from './panel/drop';
@@ -246,7 +246,7 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     at.addEventListener('pointerdown', close, true);
     at.addEventListener('scroll', close, true);
     at.addEventListener('contextmenu', event => {
-      if (performance.now() - keyed < 500 || dragging(at)) { event.preventDefault(); return; }
+      if (performance.now() - keyed < 500 || dragging(at) || ctrlClickOffMac(event)) { event.preventDefault(); return; }
       if (!host.ready() || at.body.hasAttribute('data-preview') || editing(at)) return;
       const hit = (event.target as Element | null)?.closest?.<HTMLElement>('[data-fw-id]') ?? null;
       const id = hit?.dataset.fwId && site().nodes[hit.dataset.fwId] ? hit.dataset.fwId : host.pageRoot();
