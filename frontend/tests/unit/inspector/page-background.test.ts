@@ -262,3 +262,67 @@ describe('the background a new page starts with', () => {
     expect(mod.startCommands(site, 'r-new', site.pages[2])).toEqual([]);
   });
 });
+
+describe('the site background', () => {
+  const withSiteBackground = (color = '#0b1d2a'): Site => {
+    const site = threePages();
+    return applyCommands(site, mod.useSiteBackgroundCommands(site, [site.pages[2]], color));
+  };
+
+  it('a site without the page-background token has none, and a page with no background of its own shows white as before', () => {
+    const site = threePages();
+    expect(mod.siteBackgroundColor(site)).toBe('');
+    expect(mod.backgroundMode(site, site.pages[2])).toBe('site');
+    expect(mod.backgroundMode(site, site.pages[0])).toBe('own');
+    expect(mod.startCommands(site, 'r-new', undefined)).toEqual([]);
+  });
+
+  it('setting it the first time creates the token with the picked colour and points the page at it in one list of commands', () => {
+    const site = threePages();
+    const list = mod.useSiteBackgroundCommands(site, [site.pages[2]], '#0b1d2a');
+    expect(list.map(step => step.command)).toEqual(['token.set', 'node.update']);
+    const after = applyCommands(site, list);
+    expect(after.tokens['page-background']).toBe('#0b1d2a');
+    expect(after.nodes['r-about'].styles.background).toBe('var(--page-background)');
+    expect(mod.backgroundMode(after, after.pages[2])).toBe('site');
+    expect(mod.siteBackgroundColor(after)).toBe('#0b1d2a');
+  });
+
+  it('is not created without a colour', () => {
+    const site = threePages();
+    expect(mod.useSiteBackgroundCommands(site, site.pages, '')).toEqual([]);
+  });
+
+  it('on all pages points every page at the token, removes a background-color, and counts every page', () => {
+    const site = withSiteBackground();
+    const after = applyCommands(site, mod.useSiteBackgroundCommands(site, site.pages));
+    expect(after.pages.map(page => after.nodes[page.root].styles.background)).toEqual(['var(--page-background)', 'var(--page-background)', 'var(--page-background)']);
+    expect(after.nodes['r-fares'].styles['background-color']).toBeUndefined();
+    expect(mod.siteBackgroundPages(after).length).toBe(3);
+    expect(mod.useSiteBackgroundCommands(after, after.pages)).toEqual([]);
+  });
+
+  it('changing its colour changes the one token, so every page on it follows', () => {
+    const site = applyCommands(withSiteBackground(), [{ command: 'node.update', params: { id: 'r-home', patch: { styles: { background: 'var(--page-background)' } } } }]);
+    const after = applyCommands(site, [mod.siteBackgroundColorCommand(site, '#fdf6e3')]);
+    expect(Object.keys(after.tokens).sort()).toEqual(['page-background', 'paper']);
+    expect(mod.siteBackgroundPages(after).map(page => mod.resolveColor(after, mod.pageBackground(after, page)!.value))).toEqual(['#fdf6e3', '#fdf6e3']);
+  });
+
+  it('offers the theme colour the home page already uses, and adopting it adds no second colour', () => {
+    const site = threePages();
+    expect(mod.pageColorToken(site)).toBe('paper');
+    const after = applyCommands(site, mod.useSiteBackgroundCommands(site, [site.pages[2]], 'var(--paper)'));
+    expect(mod.siteBackgroundColor(after)).toBe('#f3efe6');
+    expect(mod.siteBackgroundTarget(after)).toBe('paper');
+    const edited = applyCommands(after, [mod.siteBackgroundColorCommand(after, '#202020')]);
+    expect(edited.tokens).toEqual({ paper: '#202020', 'page-background': 'var(--paper)' });
+    expect(mod.pageColorToken(after)).toBeNull();
+  });
+
+  it('a new page starts on it once it exists, and the choice names its colour', () => {
+    const site = withSiteBackground();
+    expect(mod.startChoices(site, 'fares')[0]).toEqual({ id: '', name: 'Site background (#0b1d2a)' });
+    expect(mod.startCommands(site, 'r-new', undefined)).toEqual([{ command: 'node.update', params: { id: 'r-new', patch: { styles: { background: 'var(--page-background)' } } } }]);
+  });
+});

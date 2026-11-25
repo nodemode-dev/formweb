@@ -57,6 +57,13 @@ export function applyCommands(site: Site, list: readonly Command[]): Site {
       if (patch.attrs) node.attrs = { ...node.attrs, ...patch.attrs };
       if (patch.styles) for (const [key, value] of Object.entries(patch.styles)) { if (value === null) delete node.styles[key]; else node.styles[key] = value; }
       if (patch.interactions) node.interactions = patch.interactions;
+    } else if (command === 'token.set') {
+      const name = params.name as string;
+      if (params.value === null) delete next.tokens[name]; else next.tokens[name] = params.value as string;
+    } else if (command === 'design.set') {
+      const design = { ...((next.extensions.design as Record<string, unknown> | undefined) ?? {}) };
+      if (params.value === null) delete design[params.key as string]; else design[params.key as string] = structuredClone(params.value);
+      next.extensions = { ...next.extensions, design };
     } else throw new Error(`no reference for ${command}`);
   }
   return next;

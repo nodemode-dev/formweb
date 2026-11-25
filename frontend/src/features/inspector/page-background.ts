@@ -228,17 +228,85 @@ export function matchChoices(site: Site, except: string): { id: string; name: st
 export function startChoices(site: Site, open: string): { id: string; name: string }[] {
   const home = homePage(site);
   const current = site.pages.find(page => page.id === open);
-  const list = [{ id: '', name: t('Site background (white)') }];
+  const color = siteBackgroundColor(site);
+  const list = [{ id: '', name: color ? t('Site background ({0})', [color]) : t('Site background (white)') }];
   if (home) list.push({ id: home.id, name: t('Same as {0} (home page)', [home.name]) });
   if (current && current.id !== home?.id) list.push({ id: current.id, name: t('Same as {0}, the page open now', [current.name]) });
   return list;
 }
 
 export function startCommands(site: Site, root: string, from: Page | undefined): Command[] {
-  if (!from) return [];
+  if (!from) return siteBackgroundKey(site) ? [{ command: 'node.update', params: { id: root, patch: { styles: { background: SITE_BACKGROUND_VALUE } } } }] : [];
   const patch = matchPatch(site, from);
   const styles = Object.fromEntries(Object.entries(patch).filter(([, entry]) => entry !== null));
   return Object.keys(styles).length ? [{ command: 'node.update', params: { id: root, patch: { styles } } }] : [];
+}
+
+export const SITE_BACKGROUND = 'page-background';
+export const SITE_BACKGROUND_VALUE = `var(--${SITE_BACKGROUND})`;
+const PAGE_COLOR_NAMES = ['paper', 'bg', 'background', 'page', 'ground', 'surface'];
+
+const tokenKey = (site: Site, name: string): string | null => {
+  const bare = name.replace(/^--/, '');
+  return bare in site.tokens ? bare : `--${bare}` in site.tokens ? `--${bare}` : null;
+};
+const tokenReference = (content: string): string | null => /^var\(\s*--([a-zA-Z0-9_-]+)\s*\)$/.exec(content.trim())?.[1] ?? null;
+
+export function siteBackgroundKey(site: Site): string | null { return tokenKey(site, SITE_BACKGROUND); }
+
+export function siteBackgroundTarget(site: Site): string | null {
+  const key = siteBackgroundKey(site);
+  if (!key) return null;
+  const alias = tokenReference(site.tokens[key]);
+  const target = alias && alias !== SITE_BACKGROUND ? tokenKey(site, alias) : null;
+  return target ?? key;
+}
+
+export function resolveColor(site: Site, content: string): string {
+  let current = content;
+  for (let step = 0; step < 6; step++) {
+    const next = resolveTokens(site, current);
+    if (next === current) break;
+    current = next;
+  }
+  return current;
+}
+
+export function siteBackgroundColor(site: Site): string { return siteBackgroundKey(site) ? resolveColor(site, SITE_BACKGROUND_VALUE) : ''; }
+
+export function usesSiteBackground(site: Site, page: Page): boolean { return tokenReference(pageBackground(site, page)?.value || '') === SITE_BACKGROUND; }
+
+export function siteBackgroundPages(site: Site): Page[] { return site.pages.filter(page => usesSiteBackground(site, page)); }
+
+export type BackgroundMode = 'site' | 'other' | 'own';
+
+export function backgroundMode(site: Site, page: Page): Exclude<BackgroundMode, 'other'> {
+  if (usesSiteBackground(site, page)) return 'site';
+  return pageBackground(site, page) || siteBackgroundKey(site) ? 'own' : 'site';
+}
+
+export function pageColorToken(site: Site): string | null {
+  if (siteBackgroundKey(site)) return null;
+  const home = homePage(site);
+  const used = home ? tokenReference(pageBackground(site, home)?.value || '') : null;
+  const found = used ? tokenKey(site, used) : null;
+  if (found) return found;
+  for (const name of PAGE_COLOR_NAMES) { const key = tokenKey(site, name); if (key) return key; }
+  return null;
+}
+
+export function useSiteBackgroundCommands(site: Site, pages: Page[], color = ''): Command[] {
+  const list: Command[] = [];
+  if (!siteBackgroundKey(site)) {
+    if (!color.trim()) return [];
+    list.push({ command: 'token.set', params: { name: SITE_BACKGROUND, value: color.trim() } });
+  }
+  for (const page of pages) if (!usesSiteBackground(site, page) || site.nodes[page.root]?.styles['background-color']) list.push(setBackgroundCommand(site, page, SITE_BACKGROUND_VALUE));
+  return list;
+}
+
+export function siteBackgroundColorCommand(site: Site, color: string): Command {
+  return { command: 'token.set', params: { name: siteBackgroundTarget(site) ?? SITE_BACKGROUND, value: color.trim() } };
 }
 
 export function backgroundRefusal(site: Site, content: string): string {
