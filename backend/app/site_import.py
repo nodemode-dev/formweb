@@ -454,7 +454,7 @@ def plan(archive: dict, site: dict, kit_script) -> dict:
             route, k = f'{base.rstrip("/") or "/home"}-{k}', k + 1
         used.add(route.strip('/'))
         resolver.routes[path] = route
-    existing = {page['slug'].strip('/'): page for page in site.get('pages') or []}
+    existing = {page['slug'].strip('/').lower(): page for page in site.get('pages') or []}
     taken = set(existing)
     planned, budget = [], EXTENSION_LIMIT - len(json.dumps(site.get('extensions') or {}, ensure_ascii=False, separators=(',', ':')).encode()) - 65536
     allow = (((site.get('extensions') or {}).get('code') or {}).get('allowSections')) is True
@@ -472,7 +472,7 @@ def plan(archive: dict, site: dict, kit_script) -> dict:
             continue
         budget -= cost
         route = resolver.routes[path]
-        match = existing.get(route.strip('/'))
+        match = existing.get(route.strip('/').lower())
         page['route'] = route
         page['replaces'] = {'id': match['id'], 'name': match['name'], 'safe': _emptiable(site, match['root'])} if match else None
         page['bytes'] = len(files[path][1])
@@ -480,11 +480,11 @@ def plan(archive: dict, site: dict, kit_script) -> dict:
     for page in planned:
         slug, k = page['route'], 2
         base = slug.strip('/') or 'home'
-        if slug.strip('/') in taken:
+        if slug.strip('/').lower() in taken:
             slug = '/' + base
-        while slug.strip('/') in taken:
+        while slug.strip('/').lower() in taken:
             slug, k = f'/{base}-{k}', k + 1
-        taken.add(slug.strip('/'))
+        taken.add(slug.strip('/').lower())
         page['newRoute'] = slug
     assets = [path for path, (kind, _) in files.items() if kind == 'asset']
     support = sum(1 for kind, _ in files.values() if kind in ('style', 'script'))

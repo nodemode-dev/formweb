@@ -115,6 +115,16 @@ def test_a_site_import_is_one_undo_step(client, blank):
     assert site_of(client) == before
 
 
+def test_a_page_whose_address_a_site_page_has_in_capital_letters_gets_another_address_and_the_import_succeeds(client, blank):
+    client.post("/api/command", json={"command": "page.add", "params": {"name": "Shouted about", "slug": "/About"}})
+    review, _ = imported(client, zip_of(five_page_site()))
+    about = next(p for p in review["pages"] if p["file"] == "about.html")
+    assert about["replaces"]["name"] == "Shouted about"
+    assert about["newRoute"].strip("/").lower() != "about"
+    slugs = [p["slug"].strip("/").lower() for p in site_of(client)["pages"]]
+    assert len(slugs) == len(set(slugs)) == 7
+
+
 def test_replace_mode_swaps_the_content_of_matching_routes_without_adding_pages(client, blank):
     imported(client, zip_of(five_page_site("first")))
     count = len(site_of(client)["pages"])
