@@ -2835,4 +2835,5 @@ export default [
   "De paginakleur van het thema als site-achtergrond gebruiken",
   "Achtergrond ingesteld. De tekst van de pagina is nu {0}, zodat hij leesbaar blijft.",
   "Achtergrond ingesteld. De tekst van de pagina is weer donker, zodat hij leesbaar blijft.",
+  "Deze site gebruikt --page-background al voor {0}, dus het kan niet de site-achtergrond zijn. Geef dat token een andere naam om de site een achtergrond te geven.",
 ] as readonly string[];

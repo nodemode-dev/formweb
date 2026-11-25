@@ -2835,4 +2835,5 @@ export default [
   "Použít barvu stránky z motivu jako pozadí webu",
   "Pozadí nastaveno. Text stránky je teď {0}, aby zůstal čitelný.",
   "Pozadí nastaveno. Text stránky je zase tmavý, aby zůstal čitelný.",
+  "Tento web už používá --page-background pro {0}, takže nemůže být pozadím webu. Přejmenujte tento token, abyste webu dali pozadí.",
 ] as readonly string[];

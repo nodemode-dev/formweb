@@ -2835,4 +2835,5 @@ export default [
   "Bruk temaets sidefarge som nettstedsbakgrunn",
   "Bakgrunnen er satt. Teksten på siden er nå {0}, så den forblir lesbar.",
   "Bakgrunnen er satt. Teksten på siden er mørk igjen, så den forblir lesbar.",
+  "Dette nettstedet bruker allerede --page-background til {0}, så det kan ikke være nettstedsbakgrunnen. Gi tokenet et nytt navn for å gi nettstedet en bakgrunn.",
 ] as readonly string[];

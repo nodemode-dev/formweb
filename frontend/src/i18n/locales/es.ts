@@ -2835,4 +2835,5 @@ export default [
   "Usar el color de página del tema como fondo del sitio",
   "Fondo aplicado. El texto de la página ahora es {0} para que siga siendo legible.",
   "Fondo aplicado. El texto de la página vuelve a ser oscuro para que siga siendo legible.",
+  "Este sitio ya usa --page-background para {0}, así que no puede ser el fondo del sitio. Cambia el nombre de ese token para darle un fondo al sitio.",
 ] as readonly string[];

@@ -2835,4 +2835,5 @@ export default [
   "Utiliser la couleur de page du thème comme arrière-plan du site",
   "Arrière-plan appliqué. Le texte de la page est maintenant {0} pour rester lisible.",
   "Arrière-plan appliqué. Le texte de la page est de nouveau sombre pour rester lisible.",
+  "Ce site utilise déjà --page-background pour {0}, il ne peut donc pas être l’arrière-plan du site. Renommez ce token pour donner un arrière-plan au site.",
 ] as readonly string[];

@@ -2835,4 +2835,5 @@ export default [
   "Usa il colore pagina del tema come sfondo del sito",
   "Sfondo impostato. Il testo della pagina ora è {0} per restare leggibile.",
   "Sfondo impostato. Il testo della pagina torna scuro per restare leggibile.",
+  "Questo sito usa già --page-background per {0}, quindi non può essere lo sfondo del sito. Rinomina quel token per dare uno sfondo al sito.",
 ] as readonly string[];

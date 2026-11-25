@@ -2835,4 +2835,5 @@ export default [
   "Brug temaets sidefarve som sitebaggrund",
   "Baggrunden er sat. Sidens tekst er nu {0}, så den forbliver læselig.",
   "Baggrunden er sat. Sidens tekst er mørk igen, så den forbliver læselig.",
+  "Dette site bruger allerede --page-background til {0}, så det kan ikke være sitebaggrunden. Omdøb det token for at give sitet en baggrund.",
 ] as readonly string[];

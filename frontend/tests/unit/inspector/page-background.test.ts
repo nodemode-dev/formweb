@@ -522,6 +522,24 @@ describe('the three choices in the Page background group', () => {
     expect(offer.hidden).toBe(true);
   });
 
+  it('a --page-background token the site already uses for something else is not taken over', async () => {
+    state = { ...state, site: applyCommands(state.site, [{ command: 'token.set', params: { name: 'page-background', value: '12px' } }]) };
+    pageId = 'about';
+    const { handle, section } = mount();
+    const reason = 'This site already uses --page-background for 12px, so it cannot be the site background. Rename that token to give the site a background.';
+    expect(section.querySelector('.fw-pagebg-site .fw-pagebg-note')!.textContent).toBe(reason);
+    expect(section.querySelector<HTMLElement>('[data-cmd="page.background-site-theme"]')!.hidden).toBe(true);
+    siteField(section).value = '#203040';
+    siteField(section).dispatchEvent(new Event('change'));
+    await settle();
+    await expect(Promise.resolve(command(handle, 'page.background-site').run({ color: '#203040' }))).rejects.toThrow(reason);
+    expect(requests).toEqual([]);
+    expect(statuses.map(entry => entry.message)).toEqual([reason]);
+    expect(state.site.tokens['page-background']).toBe('12px');
+    expect(mod.startCommands(state.site, 'r-new', undefined)).toEqual([]);
+    expect(mod.startChoices(state.site, 'about')[0].name).toBe('Site background (white)');
+  });
+
   it('an empty site background color is refused once the token exists', async () => {
     state = { ...state, site: applyCommands(state.site, mod.useSiteBackgroundCommands(state.site, [state.site.pages[2]], '#0b1d2a')) };
     pageId = 'about';

@@ -2835,4 +2835,5 @@ export default [
   "Użyj koloru strony z motywu jako tła witryny",
   "Ustawiono tło. Tekst strony ma teraz kolor {0}, aby pozostał czytelny.",
   "Ustawiono tło. Tekst strony znów jest ciemny, aby pozostał czytelny.",
+  "Ta witryna używa już --page-background do {0}, więc nie może on być tłem witryny. Zmień nazwę tego tokenu, aby nadać witrynie tło.",
 ] as readonly string[];

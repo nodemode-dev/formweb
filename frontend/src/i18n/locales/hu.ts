@@ -2835,4 +2835,5 @@ export default [
   "A téma oldalszínének használata a webhely háttereként",
   "Háttér beállítva. Az oldal szövege most {0}, hogy olvasható maradjon.",
   "Háttér beállítva. Az oldal szövege ismét sötét, hogy olvasható maradjon.",
+  "Ez a webhely már használja a --page-background tokent erre: {0}, ezért nem lehet a webhely háttere. Nevezd át ezt a tokent, hogy hátteret adhass a webhelynek.",
 ] as readonly string[];

@@ -2835,4 +2835,5 @@ export default [
   "Använd temats sidfärg som webbplatsbakgrund",
   "Bakgrunden är satt. Sidans text är nu {0} så att den förblir läsbar.",
   "Bakgrunden är satt. Sidans text är mörk igen så att den förblir läsbar.",
+  "Den här webbplatsen använder redan --page-background för {0}, så den kan inte vara webbplatsbakgrunden. Byt namn på den token för att ge webbplatsen en bakgrund.",
 ] as readonly string[];

@@ -2835,4 +2835,5 @@ export default [
   "Seitenfarbe des Themes als Website-Hintergrund verwenden",
   "Hintergrund gesetzt. Der Seitentext ist jetzt {0}, damit er darauf lesbar bleibt.",
   "Hintergrund gesetzt. Der Seitentext ist wieder dunkel, damit er darauf lesbar bleibt.",
+  "Diese Website verwendet --page-background bereits für {0}, daher kann es nicht der Website-Hintergrund sein. Benenne dieses Token um, um der Website einen Hintergrund zu geben.",
 ] as readonly string[];

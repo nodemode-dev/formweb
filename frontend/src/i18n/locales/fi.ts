@@ -2835,4 +2835,5 @@ export default [
   "Käytä teeman sivuväriä sivuston taustana",
   "Tausta asetettu. Sivun teksti on nyt {0}, jotta se pysyy luettavana.",
   "Tausta asetettu. Sivun teksti on taas tumma, jotta se pysyy luettavana.",
+  "Tämä sivusto käyttää jo tokenia --page-background arvolle {0}, joten se ei voi olla sivuston tausta. Nimeä token uudelleen, jotta voit antaa sivustolle taustan.",
 ] as readonly string[];

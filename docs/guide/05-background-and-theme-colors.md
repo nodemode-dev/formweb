@@ -55,7 +55,7 @@ With **This page only** chosen:
 
 The site background is one color for the whole site. Every page that uses it shows it, every page you add starts with it, and when you change it, all those pages change at once. It is saved with the site's theme colors as `--page-background`, so the exported site has it too.
 
-A site does not have one until you set it. Until then, **Site background** means white, the browser default, as before, and opening an older site changes nothing.
+A site does not have one until you set it. Until then, **Site background** means white, the browser default, as before, and opening an older site changes nothing. If the site already has a token called `--page-background` that holds something else, such as a size, FormWeb leaves it alone: the section says so, and you rename that token (in **Window > Design system**) before setting a site background.
 
 1. Choose **Site background**. The section shows **Site background color**.
 2. Type a color and press Enter. The site background is created, this page uses it, and the status line says, for example, "Site background #f3efe6 created. "Hello" uses it, and new pages start with it." It is one undo step.

@@ -2835,4 +2835,5 @@ export default [
   "Pakai warna halaman tema sebagai latar belakang situs",
   "Latar belakang diatur. Teks halaman kini {0} agar tetap mudah dibaca.",
   "Latar belakang diatur. Teks halaman kembali gelap agar tetap mudah dibaca.",
+  "Situs ini sudah memakai --page-background untuk {0}, jadi token itu tidak bisa menjadi latar belakang situs. Ganti nama token itu untuk memberi situs latar belakang.",
 ] as readonly string[];

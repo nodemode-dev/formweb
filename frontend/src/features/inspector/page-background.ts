@@ -138,6 +138,8 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
   async function useSite(pages: Page[], color = ''): Promise<void> {
     const next = host.state();
     if (!next) return;
+    const taken = siteBackgroundTaken(next.site);
+    if (taken) throw new Error(t('This site already uses --page-background for {0}, so it cannot be the site background. Rename that token to give the site a background.', [taken]));
     const created = !siteBackgroundKey(next.site);
     const refusal = color ? brandRefusal(next, color) || backgroundRefusal(next.site, color) : '';
     if (refusal) throw new Error(refusal);
@@ -156,7 +158,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     const next = host.state();
     if (!next) return;
     const entered = content.trim();
-    if (!siteBackgroundKey(next.site)) { if (!other) await useSite(next.site.pages.filter(entry => entry.id === host.page().id), entered); return; }
+    if (!siteBackgroundKey(next.site)) { if (!other || siteBackgroundTaken(next.site)) await useSite(next.site.pages.filter(entry => entry.id === host.page().id), entered); return; }
     const refusal = brandRefusal(next, entered) || backgroundRefusal(next.site, entered);
     if (refusal) throw new Error(refusal);
     if (!other && !entered) throw new Error(t('The site background needs a color. To stop using it on this page, choose This page only.'));
@@ -209,7 +211,9 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     if (candidate) label(adopt, 'Use --{0} ({1}), the theme page color',[candidate.replace(/^--/, ''), resolveColor(site, site.tokens[candidate])]);
     show(adopt, !!candidate);
     const count = siteBackgroundPages(site).length;
-    if (!key) label(siteNote, 'Using the site background: white, the browser default. Pick a color to give the site a background; this page uses it at once and new pages start with it.');
+    const taken = siteBackgroundTaken(site);
+    if (taken) label(siteNote, 'This site already uses --page-background for {0}, so it cannot be the site background. Rename that token to give the site a background.', [taken]);
+    else if (!key) label(siteNote, 'Using the site background: white, the browser default. Pick a color to give the site a background; this page uses it at once and new pages start with it.');
     else if (target !== key) label(siteNote, '{0} of {1} pages use the site background. It follows --{2}, so changing it changes that theme color everywhere it is used.', [count, site.pages.length, target!.replace(/^--/, '')]);
     else label(siteNote, '{0} of {1} pages use the site background. New pages start with it.', [count, site.pages.length]);
     const allOn = !!key && count === site.pages.length;
@@ -443,7 +447,14 @@ const tokenKey = (site: Site, name: string): string | null => {
 };
 const tokenReference = (content: string): string | null => /^var\(\s*--([a-zA-Z0-9_-]+)\s*\)$/.exec(content.trim())?.[1] ?? null;
 
-export function siteBackgroundKey(site: Site): string | null { return tokenKey(site, SITE_BACKGROUND); }
+export function siteBackgroundTaken(site: Site): string {
+  const key = tokenKey(site, SITE_BACKGROUND);
+  if (!key) return '';
+  const shown = resolveColor(site, site.tokens[key]).replace(/var\(\s*--[\w-]+\s*(?:,[^()]*)?\)/g, 'transparent').trim();
+  return shown && (CSS.supports('background-color', shown) || CSS.supports('background-image', shown)) ? '' : site.tokens[key] || '""';
+}
+
+export function siteBackgroundKey(site: Site): string | null { const key = tokenKey(site, SITE_BACKGROUND); return key && !siteBackgroundTaken(site) ? key : null; }
 
 export function siteBackgroundTarget(site: Site): string | null {
   const key = siteBackgroundKey(site);
@@ -477,7 +488,7 @@ export function backgroundMode(site: Site, page: Page): Exclude<BackgroundMode, 
 }
 
 export function pageColorToken(site: Site): string | null {
-  if (siteBackgroundKey(site)) return null;
+  if (tokenKey(site, SITE_BACKGROUND)) return null;
   const home = homePage(site);
   const used = home ? tokenReference(pageBackground(site, home)?.value || '') : null;
   const found = used ? tokenKey(site, used) : null;

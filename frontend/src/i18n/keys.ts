@@ -2835,4 +2835,5 @@ export const KEYS: readonly string[] = [
   "Use the theme page color as the site background",
   "Background set. The page text is now {0} so it stays readable on it.",
   "Background set. The page text is dark again so it stays readable on it.",
+  "This site already uses --page-background for {0}, so it cannot be the site background. Rename that token to give the site a background.",
 ];

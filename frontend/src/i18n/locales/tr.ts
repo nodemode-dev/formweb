@@ -2835,4 +2835,5 @@ export default [
   "Temanın sayfa rengini site arka planı olarak kullan",
   "Arka plan ayarlandı. Sayfa metni okunaklı kalması için artık {0}.",
   "Arka plan ayarlandı. Sayfa metni okunaklı kalması için yeniden koyu.",
+  "Bu site --page-background belirtecini zaten {0} için kullanıyor, bu yüzden site arka planı olamaz. Siteye arka plan vermek için o belirtecin adını değiştirin.",
 ] as readonly string[];

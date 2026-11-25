@@ -2835,4 +2835,5 @@ export default [
   "Dùng màu trang của chủ đề làm nền trang web",
   "Đã đặt nền. Chữ trên trang giờ là {0} để vẫn dễ đọc.",
   "Đã đặt nền. Chữ trên trang đã tối trở lại để vẫn dễ đọc.",
+  "Trang web này đã dùng --page-background cho {0}, nên nó không thể là nền trang web. Đổi tên token đó để đặt nền cho trang web.",
 ] as readonly string[];
