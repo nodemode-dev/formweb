@@ -68,10 +68,26 @@ page cannot read the editor's storage or window key, reach into the editor's win
 or make a request the engine accepts: the engine refuses an opaque or foreign
 `Origin` on its API, and only a release's assets, search index and manifest and its
 form endpoint answer an opaque origin, never with cookies or other credentials.
+
+Each local publication has a runtime token of its own, random and made when it is
+published. The service writes it into that publication's pages, which no other origin
+can read, and never into its assets, search index or manifest. With it, the
+publication's own runtime (member sign-in and sign-up, the member gate, products,
+fetched data, consent and experiments) reaches the service's runtime routes for that
+publication only, and its own scripts can read its pages and route list; answers to
+those reads are never stored by the browser's cache. A token does not open another
+publication, a password-protected or members-only page, the site document or anything
+under the engine's API. Member sessions in a publication are held in the page's
+memory and sent in a header, never in a cookie; following the site's own links carries
+the session to the next page with a single-use ticket that lasts two minutes.
+
 Because a sandboxed frame on any website has an opaque origin too, such a frame can
-also read those files of a local publication (the search index includes excerpts of
-password-gated pages) and post to its form, within the form rate limit; pages and the
-site document refuse it. Isolated code components get
-a stricter policy of their own, uploaded pictures, video and fonts are served with a sandbox
-that allows no script at all, and the page password form is the service's own page,
-which allows no script and posts with the service's own origin.
+read a local publication's public assets, its search index and its manifest, and post
+to its form within the form rate limit. It cannot learn the runtime token, so it cannot
+read the pages or use the runtime routes. A password-protected or members-only page,
+the files only such pages use and its entries in the search index are answered only to
+someone who unlocked it, whatever the origin; the site document is not part of a
+local publication at all. Isolated code components get a stricter policy of their own,
+uploaded pictures, video and fonts are served with a sandbox that allows no script at
+all, and the page password form is the service's own page, which allows no script and
+posts with the service's own origin.
