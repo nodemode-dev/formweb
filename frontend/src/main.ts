@@ -51,6 +51,7 @@ import { installSelectMode, paintSelectMode } from './features/select-mode';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { installDecorativeImage } from './features/decorative-image';
+import { installPageSlug } from './features/page-slug';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 import './styles/stage-head.css';
@@ -978,6 +979,7 @@ const newPageSlug = input('/about');
 const newPageGrid = element('div', 'form-grid');
 newPageGrid.append(field('Page name', newPageName), field('URL slug', newPageSlug));
 pageDialogPane.append(element('p', 'empty-note', 'Add a page with its own root container, content and metadata.'), newPageGrid);
+const pageSlug = installPageSlug(newPageName, newPageSlug, pageDialogPane, () => state().site);
 const bulkPane = dialogPane('bulk');
 const bulkTemplate = select([]);
 const bulkCsv = element('textarea');
@@ -1803,6 +1805,7 @@ function openDialog(id: string): void {
   if (id === 'cms') { updateCms(); fillCmsItem(); }
   if (id === 'locales') { localeEditing = locale; updateLocales(); fillLocale(); }
   if (id === 'tokens') updateTokens();
+  if (id === 'page') pageSlug.reset();
   if (id === 'brand') brandKit.update(state());
   if (id === 'team') void teamLibraries.refresh().catch(error => status(error instanceof Error ? error.message : String(error), true));
   if (id === 'stock') void stockLibrary.open().catch(error => status(error instanceof Error ? error.message : String(error), true));
@@ -1839,7 +1842,7 @@ async function performDialogAction(): Promise<void> {
     status('New site created.');
   } else if (dialogMode === 'page') {
     const before = new Set(state().site.pages.map(page => page.id));
-    await command('page.add', { name: newPageName.value.trim() || 'Untitled page', slug: newPageSlug.value.trim() || '/new-page' });
+    await command('page.add', { name: newPageName.value.trim() || 'Untitled page', slug: pageSlug.resolve() });
     const page = state().site.pages.find(page => !before.has(page.id));
     if (page) { pageId = page.id; selectedId = page.root; update(state()); }
     closeDialog();
