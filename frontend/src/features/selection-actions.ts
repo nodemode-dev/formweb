@@ -79,6 +79,8 @@ export async function removeSelected(): Promise<void> {
 
 async function copyMany(ids: readonly string[]): Promise<{ behind: number; left: number }> {
   const items = await Promise.all(ids.map(id => request<Record<string, unknown>>('/api/fragment', { node: id, embed: true, clip: true })));
+  const nodes = items.reduce((sum, item) => sum + (Array.isArray(item.nodes) ? item.nodes.length : item.nodes && typeof item.nodes === 'object' ? Object.keys(item.nodes).length : 0), 0);
+  if (nodes > MAX_TOTAL_NODES) throw new Error(t('A paste can bring at most {0} elements in all. Copy fewer elements at a time.', [MAX_TOTAL_NODES.toLocaleString('en')]));
   if (!navigator.clipboard?.writeText) throw new Error('This browser does not allow writing to the clipboard here.');
   await navigator.clipboard.writeText(JSON.stringify({ format: MANY_FORMAT, version: 1, items }));
   let behind = 0;
@@ -93,6 +95,7 @@ async function copyMany(ids: readonly string[]): Promise<{ behind: number; left:
 }
 
 const MAX_FRAGMENTS = 64;
+const MAX_TOTAL_NODES = 8000;
 const tooMany = (count: number): boolean => {
   if (count <= MAX_FRAGMENTS) return false;
   host!.status(t('{0} elements are selected; copy or cut at most {1} at a time, or select their container instead.', [count, MAX_FRAGMENTS]), true);
