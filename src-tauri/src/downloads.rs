@@ -4,6 +4,7 @@
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::sync::atomic::Ordering;
 use std::sync::Mutex;
 
 use tauri::webview::DownloadEvent;
@@ -33,6 +34,10 @@ pub fn on_download<R: Runtime>(webview: Webview<R>, event: DownloadEvent<'_>) ->
                 if let Some(path) = &saved {
                     *LAST.lock().unwrap() = Some(path.clone());
                 }
+            }
+            let editor = webview.url().is_ok_and(|page| page.scheme() == "http" && page.host_str() == Some("127.0.0.1") && page.port() == Some(crate::ENGINE_PORT.load(Ordering::SeqCst)));
+            if !editor {
+                return true;
             }
             let detail = serde_json::json!({
                 "url": url,
