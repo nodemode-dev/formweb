@@ -234,3 +234,36 @@ def test_a_members_link_ticket_needs_a_signed_in_member_and_its_own_publication(
     assert r.status_code == 401
     assert MEMBERS_WORD not in r.text
     assert runtime(client, club["other"], "/member/resume", {"ticket": ticket}).status_code == 401
+
+
+def test_the_publication_script_reads_its_own_pages_and_route_list_with_its_token(client, club):
+    release = club["club"]
+    own = {**OPAQUE, "x-formweb-runtime": release["config"]["context"]["runtimeToken"]}
+    for path in ("", "routes.json", "sitemap.xml"):
+        r = client.get(release["prefix"] + path, headers=own)
+        assert r.status_code == 200, path
+        assert r.headers["access-control-allow-origin"] == "null", path
+        assert "access-control-allow-credentials" not in r.headers, path
+        assert r.headers["cache-control"] == "private, no-store", path
+        assert "x-formweb-runtime" in r.headers["vary"].lower(), path
+    assert any(row["page"] == "members" for row in client.get(release["prefix"] + "routes.json", headers=own).json())
+    r = client.get("/sites/club/", headers=own)
+    assert r.status_code == 200
+    assert 'data-fw-widget="member-login"' in r.text
+
+
+def test_an_opaque_origin_without_the_token_cannot_read_the_pages_or_route_list(client, club):
+    release = club["club"]
+    for headers in (OPAQUE, {**OPAQUE, "x-formweb-runtime": club["other"]["config"]["context"]["runtimeToken"]}, {**OPAQUE, "x-formweb-runtime": "x" * 43}):
+        for path in ("", "routes.json"):
+            r = client.get(release["prefix"] + path, headers=headers)
+            assert r.status_code == 403, path
+            assert "access-control-allow-origin" not in r.headers, path
+            assert "member-login" not in r.text and "members" not in r.text, path
+
+
+def test_the_token_does_not_unlock_a_members_page(client, club):
+    release = club["club"]
+    r = client.get(release["prefix"] + "members/", headers={**OPAQUE, "x-formweb-runtime": release["config"]["context"]["runtimeToken"]})
+    assert r.status_code == 401
+    assert MEMBERS_WORD not in r.text
