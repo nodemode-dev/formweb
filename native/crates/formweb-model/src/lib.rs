@@ -184,6 +184,39 @@ pub fn safe_css_value(value: &str) -> bool {
     let lower = value.to_ascii_lowercase();
     value.len() <= 4096 && !value.chars().any(|c| c.is_control() || matches!(c, ';' | '{' | '}' | '<' | '>' | '\\' | '@'))
         && !["url(", "expression", "javascript:", "-moz-binding", "behavior:", "/*", "*/"].iter().any(|bad| lower.contains(bad))
+        && !names_a_picture_by_address(&lower)
+}
+
+fn names_a_picture_by_address(lower: &str) -> bool {
+    const SOURCES: &[&str] = &["image-set(", "-webkit-image-set(", "image(", "cross-fade(", "-webkit-cross-fade("];
+    const REFERENCES: &[&str] = &["element(", "-moz-element("];
+    let bytes = lower.as_bytes();
+    (0..lower.len()).any(|start| {
+        let starts_word = start == 0 || !(bytes[start - 1].is_ascii_alphanumeric() || matches!(bytes[start - 1], b'-' | b'_'));
+        if !starts_word || !lower.is_char_boundary(start) { return false; }
+        let rest = &lower[start..];
+        if REFERENCES.iter().any(|name| rest.starts_with(name)) { return true; }
+        let Some(name) = SOURCES.iter().find(|name| rest.starts_with(**name)) else { return false };
+        let mut depth = 0usize;
+        let mut inside = String::new();
+        for c in rest[name.len()..].chars() {
+            match c {
+                '(' => depth += 1,
+                ')' if depth == 0 => break,
+                ')' => depth -= 1,
+                _ => {}
+            }
+            inside.push(c);
+        }
+        let mut kept = inside.as_str();
+        let mut without_types = String::new();
+        while let Some(at) = kept.find("type(") {
+            without_types.push_str(&kept[..at]);
+            kept = kept[at..].find(')').map(|end| &kept[at + end + 1..]).unwrap_or("");
+        }
+        without_types.push_str(kept);
+        without_types.contains(['"', '\''])
+    })
 }
 
 pub fn safe_style(name: &str, value: &str) -> bool {
