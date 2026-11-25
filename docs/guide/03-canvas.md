@@ -56,15 +56,13 @@ A move is one undo step. Drag near the top or bottom edge of the canvas to scrol
 
 ### Snap and grid in a page layout
 
-FormWeb lays a page out the way a browser does: each element sits in the flow of its container, one after another in a column, side by side in a row, or in the cells of a CSS grid. That flow is what elements snap to, and the layout grid above is a picture of it. A drop always lands in one of those places, never at a loose x and y position: no offsets are written, nothing ends up overlapping, and nothing flies around. There is no free pixel positioning and no pixel grid to snap to, because a position in pixels would only be right at one screen width, while a place in the flow stays right at every width. The guides and measures only show what the layout will do; they never change a style.
+FormWeb lays a page out the way a browser does: each element sits in the flow of its container, one after another in a column, side by side in a row, or in the cells of a CSS grid. That flow is what elements snap to, and the layout grid above is a picture of it. A drop always lands in one of those places, never at a loose x and y position: no offsets are written, nothing ends up overlapping, and nothing flies around. There is no free pixel positioning and no pixel grid to snap to, because a position in pixels would only be right at one screen width, while a place in the flow stays right at every width. The guides and measures only show what the layout will do; they never change a style. The dots around the page are only the stage behind it.
 
 To put elements side by side or in columns, select their container and choose **Flex** with **Direction** Row, or **Grid**, in the Layout section of the Design tab; then drag to change their order.
 
 ### See the structure without dragging
 
 **View > Show layout outlines** (Ctrl+Alt+G, or Cmd+Option+G on a Mac) outlines the container of the selected element and every container around it, up to the page, and draws the cells of any CSS grid among them, so you can see the structure before you drag. It is off at first, stays as you left it in this browser, is never saved with the site or exported, and is not shown in Preview.
-
-This is how FormWeb snaps: the orange line jumps between the places an element can go, before or after another element, or inside a container. There is no grid of x and y positions to snap to, and the dots around the page are only the stage behind it. To put elements side by side or in columns, select their container and choose **Flex** with **Direction** Row, or **Grid**, in the Layout section of the Design tab; then drag to change their order.
 
 ### On a touch screen or with a pen
 
