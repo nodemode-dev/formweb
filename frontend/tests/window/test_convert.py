@@ -1,5 +1,7 @@
 import io
+import struct
 import zipfile
+import zlib
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect
@@ -106,6 +108,40 @@ def test_after_a_zip_imported_as_elements_the_panel_says_undo_once_gives_code_an
     assert "Fresh bread every morning" in next(iter(code_sections(as_code).values()))["html"]
     editor.page.evaluate("window.formweb.run('edit.undo')")
     editor.restored_to(before)
+
+
+def png(width, height, rgb):
+    raw = b"".join(b"\x00" + bytes(rgb) * width for _ in range(height))
+    chunk = lambda kind, data: struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
+
+
+def test_a_hero_photo_given_as_a_css_background_arrives_as_a_picture_behind_its_heading(editor, tmp_path):
+    hero = """<!doctype html><html><head><style>
+body { margin: 0; }
+.hero { background: linear-gradient(rgba(0,0,0,.5), rgba(0,0,0,.5)), url("img/hero.png") center / cover no-repeat; min-height: 300px; color: #fff; }
+</style></head><body><section class="hero"><h1>Made to measure</h1></section></body></html>"""
+    data = io.BytesIO()
+    with zipfile.ZipFile(data, "w") as archive:
+        archive.writestr("index.html", hero)
+        archive.writestr("img/hero.png", png(40, 20, (20, 60, 120)))
+    path = tmp_path / "hero.zip"
+    path.write_bytes(data.getvalue())
+    with editor.page.expect_file_chooser() as chooser:
+        editor.page.evaluate("window.formweb.run('file.import-site')")
+    chooser.value.set_files(str(path))
+    review = editor.page.locator(".fw-lib-site")
+    review.locator(".fw-lib-insert:not([disabled])").click()
+    expect(review.locator(".fw-lib-note")).to_contain_text("Converted")
+    expect(review.locator(".fw-lib-note")).not_to_contain_text("background picture")
+    site = editor.until(lambda s: nodes_with(s, "h1", "Made to measure"), "the heading to become an element")
+    section = next(n for n in site["nodes"].values() if n["tag"] == "section" and n["name"] == "Section hero")
+    picture, shade = (site["nodes"][child] for child in section["children"][:2])
+    assert picture["tag"] == "img" and picture["attrs"]["src"].startswith("/api/assets/") and picture["attrs"]["alt"] == ""
+    assert picture["styles"]["z-index"] == "-1" and picture["styles"]["object-fit"] == "cover"
+    assert shade["styles"]["background-image"].startswith("linear-gradient(")
+    assert section["styles"]["isolation"] == "isolate"
+    expect(editor.canvas.locator(f'[data-fw-id="{picture["id"]}"]')).to_be_visible()
 
 
 def test_a_zip_imported_as_editable_elements_gives_a_heading_layer_whose_text_is_edited_on_the_canvas(editor, tmp_path):
