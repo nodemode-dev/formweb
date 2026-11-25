@@ -21,6 +21,7 @@ if /i "%FORMWEB_COMMAND%"=="library" goto library
 if /i "%FORMWEB_COMMAND%"=="render" goto render
 if /i "%FORMWEB_COMMAND%"=="desktop" goto desktop
 if /i "%FORMWEB_COMMAND%"=="doctor" goto doctor
+if /i "%FORMWEB_COMMAND%"=="test" goto test
 if /i "%FORMWEB_COMMAND%"=="help" goto help
 if /i "%FORMWEB_COMMAND%"=="--help" goto help
 echo [formweb] unknown command: %FORMWEB_COMMAND%
@@ -79,6 +80,9 @@ exit /b %errorlevel%
 :doctor
 call setup\doctor.bat
 exit /b %errorlevel%
+:test
+call setup\test.bat %2 %3 %4 %5 %6 %7 %8 %9
+exit /b %errorlevel%
 :help
-echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, comparisons status, comparisons build, comparisons embed, run, library check/build/list/insert/preset/starter, render, desktop, doctor
+echo formweb: install, install-core, install-backend, install-frontend, boot, backend, frontend, build, serve, mcp, agents sync, agents install, comparisons status, comparisons build, comparisons embed, run, library check/build/list/insert/preset/starter, render, desktop, doctor, test [unit^|engine^|native]
 exit /b 0

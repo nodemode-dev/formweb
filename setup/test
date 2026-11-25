@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+source "$(dirname "$0")/lib.sh"
+which="${1:-all}"
+[ $# -gt 0 ] && shift
+case "$which" in
+  all|unit|engine|native) ;;
+  *) fw_say "unknown test layer: $which (use unit, engine, native or nothing for all)" >&2; exit 2 ;;
+esac
+fail=0
+run() { fw_say "$1"; shift; "$@" || fail=1; }
+wants() { [ "$which" = all ] || [ "$which" = "$1" ]; }
+if wants native; then
+  [ -n "$FORMWEB_CARGO" ] || { fw_say 'cargo is missing; install Rust from https://rustup.rs' >&2; exit 1; }
+  cd "$FORMWEB_ROOT/native"
+  run "native engine (cargo test)" "$FORMWEB_CARGO" test --release --locked "$@"
+fi
+if wants engine; then
+  "$FORMWEB_PYTHON" -c "import pytest" >/dev/null 2>&1 || { fw_say "pytest is missing, run $FORMWEB_PYTHON -m pip install -r backend/requirements-test.txt" >&2; exit 1; }
+  cd "$FORMWEB_ROOT/backend"
+  run "backend (pytest)" "$FORMWEB_PYTHON" -m pytest tests -q -p no:cacheprovider "$@"
+fi
+if wants unit; then
+  [ -d "$FORMWEB_ROOT/frontend/node_modules/vitest" ] || { fw_say 'the frontend packages are missing, run ./formweb install-frontend' >&2; exit 1; }
+  cd "$FORMWEB_ROOT/frontend"
+  run "editor (vitest)" npx vitest run "$@"
+fi
+exit "$fail"
