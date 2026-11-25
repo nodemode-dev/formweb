@@ -82,7 +82,7 @@ Use the same steps for the padding of the first-site walkthrough: on Mobile, giv
 
 ### When the width does not match the breakpoint
 
-If you type a width that falls outside the picked breakpoint, for example 900 while Mobile is picked, the bar above the canvas says: "Width is outside this breakpoint. Use the live responsive preview to see the switch." The canvas still draws the Mobile styles, at 900 px wide. The note always has room in the bar, on two lines if it needs them; when the selection path is long, the path's steps get shorter instead.
+If you type a width that falls outside the picked breakpoint, for example 900 while Mobile is picked, the bar above the canvas says: "Width is outside this breakpoint. Use the live responsive preview to see the switch." The canvas still draws the Mobile styles, at 900 px wide. The note always has room in the bar, on two lines if it needs them; when the selection path is long, the steps in its middle fold into one "..." step instead. Click "..." for a menu of the hidden steps and pick one to select that element. The selected element's step is always shown.
 
 ![The bar above the canvas with the note Width is outside this breakpoint. Use the live responsive preview to see the switch., and Editing Mobile · 900 px on the right](images/panel-width-hint.webp)
 
