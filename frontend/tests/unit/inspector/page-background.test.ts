@@ -326,3 +326,108 @@ describe('the site background', () => {
     expect(mod.startCommands(site, 'r-new', undefined)).toEqual([{ command: 'node.update', params: { id: 'r-new', patch: { styles: { background: 'var(--page-background)' } } } }]);
   });
 });
+
+describe('the three choices in the Page background group', () => {
+  const radio = (section: HTMLElement, mode: string) => section.querySelector<HTMLInputElement>(`[data-field="page.background-mode-${mode}"]`)!;
+  const checked = (section: HTMLElement) => ['site', 'other', 'own'].filter(mode => radio(section, mode).checked);
+  const visible = (section: HTMLElement) => ({ site: !section.querySelector<HTMLElement>('.fw-pagebg-site')!.hidden, other: !section.querySelector<HTMLElement>('.fw-pagebg-match')!.hidden, own: !section.querySelector<HTMLElement>('.fw-pagebg-own')!.hidden });
+  const siteField = (section: HTMLElement) => section.querySelector<HTMLInputElement>('[data-field="page.site-background"]')!;
+  const paths = () => requests.map(entry => entry.path.replace(/^.*(\/api\/)/, '$1'));
+
+  it('are Site background, Same as another page and This page only, and the one in use is chosen', () => {
+    pageId = 'about';
+    const onAbout = mount();
+    expect(Array.from(onAbout.section.querySelectorAll('.fw-pagebg-mode')).map(row => row.textContent)).toEqual(['Site background', 'Same as another page...', 'This page only']);
+    expect(checked(onAbout.section)).toEqual(['site']);
+    expect(visible(onAbout.section)).toEqual({ site: true, other: false, own: false });
+    document.body.replaceChildren();
+    pageId = 'home';
+    const onHome = mount();
+    expect(checked(onHome.section)).toEqual(['own']);
+    expect(visible(onHome.section)).toEqual({ site: false, other: false, own: true });
+  });
+
+  it('choosing Same as another page shows the page list and changes nothing yet', () => {
+    const { section } = mount();
+    radio(section, 'other').checked = true;
+    radio(section, 'other').dispatchEvent(new Event('change'));
+    expect(visible(section)).toEqual({ site: false, other: true, own: false });
+    expect(requests).toEqual([]);
+  });
+
+  it('typing the first site background colour creates the token and puts the open page on it in one request', async () => {
+    pageId = 'about';
+    const { handle, section } = mount();
+    siteField(section).value = '#0b1d2a';
+    siteField(section).dispatchEvent(new Event('change'));
+    await settle();
+    expect(paths()).toEqual(['/api/batch']);
+    expect(state.site.tokens['page-background']).toBe('#0b1d2a');
+    expect(state.site.nodes['r-about'].styles.background).toBe('var(--page-background)');
+    handle.fill(state);
+    expect(section.textContent).toContain('1 of 3 pages use the site background.');
+  });
+
+  it('once it exists, choosing Site background on a page is one request and the count follows', async () => {
+    state = { ...state, site: applyCommands(state.site, mod.useSiteBackgroundCommands(state.site, [state.site.pages[2]], '#0b1d2a')) };
+    const { handle, section } = mount();
+    radio(section, 'site').checked = true;
+    radio(section, 'site').dispatchEvent(new Event('change'));
+    await settle();
+    expect(requests.length).toBe(1);
+    expect(state.site.nodes['r-home'].styles.background).toBe('var(--page-background)');
+    handle.fill(state);
+    expect(checked(section)).toEqual(['site']);
+    expect(section.textContent).toContain('2 of 3 pages use the site background.');
+  });
+
+  it('Use the site background on all pages is one batch, and is off when every page is on it', async () => {
+    state = { ...state, site: applyCommands(state.site, mod.useSiteBackgroundCommands(state.site, [state.site.pages[2]], '#0b1d2a')) };
+    const { handle } = mount();
+    expect(command(handle, 'page.background-site-all').enabled!()).toBe(true);
+    await command(handle, 'page.background-site-all').run();
+    expect(paths()).toEqual(['/api/batch']);
+    expect(mod.siteBackgroundPages(state.site).length).toBe(3);
+    expect(command(handle, 'page.background-site-all').enabled!()).toBe(false);
+  });
+
+  it('on a site with themes the second colour is the other theme value of the same token', async () => {
+    state = { ...state, site: applyCommands(state.site, [...mod.useSiteBackgroundCommands(state.site, [state.site.pages[2]], '#fafafa'), { command: 'design.set', params: { key: 'themes', value: { default: 'light', followSystem: false, values: {} } } }]) };
+    pageId = 'about';
+    const { section } = mount();
+    const dark = section.querySelector<HTMLInputElement>('[data-field="page.site-background-theme"]')!;
+    expect(dark.closest<HTMLElement>('.field')!.hidden).toBe(false);
+    expect(dark.closest('.field')!.textContent).toContain('Dark');
+    dark.value = '#101010';
+    dark.dispatchEvent(new Event('change'));
+    await settle();
+    expect((state.site.extensions.design as { themes: { values: Record<string, Record<string, string>> } }).themes.values.dark).toEqual({ 'page-background': '#101010' });
+    expect(state.site.tokens['page-background']).toBe('#fafafa');
+  });
+
+  it('offers the theme page colour, and using it makes the site background follow it without a second colour', async () => {
+    pageId = 'about';
+    const { handle, section } = mount();
+    const offer = section.querySelector<HTMLButtonElement>('[data-cmd="page.background-site-theme"]')!;
+    expect(offer.hidden).toBe(false);
+    expect(offer.textContent).toContain('--paper (#f3efe6)');
+    await command(handle, 'page.background-site-theme').run();
+    expect(paths()).toEqual(['/api/batch']);
+    expect(state.site.tokens).toEqual({ paper: '#f3efe6', 'page-background': 'var(--paper)' });
+    handle.fill(state);
+    expect(siteField(section).value).toBe('#f3efe6');
+    expect(offer.hidden).toBe(true);
+  });
+
+  it('an empty site background colour is refused once the token exists', async () => {
+    state = { ...state, site: applyCommands(state.site, mod.useSiteBackgroundCommands(state.site, [state.site.pages[2]], '#0b1d2a')) };
+    pageId = 'about';
+    const { section } = mount();
+    siteField(section).value = '';
+    siteField(section).dispatchEvent(new Event('change'));
+    await settle();
+    expect(requests).toEqual([]);
+    expect(statuses.at(-1)?.error).toBe(true);
+    expect(siteField(section).value).toBe('#0b1d2a');
+  });
+});
