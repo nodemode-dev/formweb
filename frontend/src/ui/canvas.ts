@@ -140,7 +140,8 @@ export class Canvas {
     this.frame = document.createElement('iframe');
     this.frame.className = 'canvas-frame';
     this.frame.title = 'Website canvas';
-    this.frame.setAttribute('sandbox', 'allow-same-origin');
+    // WebKit runs no event listener, not even the editor's, in a frame sandboxed without scripts; the document's CSP still blocks every script.
+    this.frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
     this.shell.append(this.frame);
     this.outer.append(this.label, this.shell);
     stage.append(this.outer);
