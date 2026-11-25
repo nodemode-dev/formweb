@@ -4,6 +4,10 @@
 .stage-panel > .stage-head > .viewport-readout { min-width: 176px; overflow: visible; white-space: nowrap; }
 .stage-panel > .stage-head .readout-width::before { content: " \00B7  "; }
 .stage-head .fw-scrub .fw-seg-btn:last-child { min-width: 84px; }
+@container fw-stage (max-width: 1100px) {
+  .stage-head:has(> .fw-scrub:not([hidden])) .fw-scrub .fw-seg-btn:not(:last-child), .stage-head:has(> .fw-scrub:not([hidden])) .fw-scrub output { display: none; }
+  .stage-head:has(> .fw-scrub:not([hidden])) > .viewport-hint { flex-shrink: 1; min-width: 12em; -webkit-line-clamp: 3; line-clamp: 3; line-height: 1.2; }
+}
 @container fw-stage (max-width: 760px) {
   .stage-head .fw-scrub .fw-seg-btn:not(:last-child) { display: none; }
   .stage-head .fw-scrub .fw-seg-btn:last-child { width: 44px; min-width: 0; padding: 0 var(--space-1); overflow: hidden; text-overflow: ellipsis; }
@@ -14,6 +18,7 @@
 @container fw-stage (max-width: 560px) {
   .stage-panel > .stage-head > .icon + .stage-page + .icon, .stage-panel > .stage-head > .stage-path, .stage-panel > .stage-head > .fw-crumbs { display: none; }
   .stage-panel > .stage-head > .viewport-hint { flex: 0 1 23em; min-width: 0; -webkit-line-clamp: 3; line-clamp: 3; line-height: 1.2; }
+  .stage-panel > .stage-head:has(> .fw-scrub:not([hidden])) > .viewport-hint { display: none; }
   .stage-panel > .stage-head > .stage-page { margin-right: auto; max-width: 30cqi; }
   .stage-head .fw-scrub { gap: var(--space-1); }
   .stage-head .fw-scrub output { display: none; }
