@@ -97,6 +97,20 @@ class Editor:
     def __init__(self, page, base):
         self.page = page
         self.base = base
+        self.window_key = None
+        page.on("request", self._learn_key)
+
+    def _learn_key(self, request):
+        key = request.headers.get("x-formweb-window-key")
+        if key and not self.window_key:
+            self.window_key = key
+
+    def command(self, name, params, batch=False):
+        assert self.window_key, "the window has not sent a change yet"
+        body = {"commands": params} if batch else {"command": name, "params": params}
+        request = urllib.request.Request(self.base + ("/api/batch" if batch else "/api/command"), data=json.dumps(body).encode(), method="POST", headers={"Content-Type": "application/json", "X-FormWeb-Window-Key": self.window_key})
+        with urllib.request.urlopen(request, timeout=30) as r:
+            return json.loads(r.read())
 
     @property
     def canvas(self):
@@ -171,11 +185,15 @@ class Editor:
     def canvas_pointer(self):
         return CanvasPointer(self.page)
 
+    def finger(self):
+        return Finger(self.page)
+
+    def pen(self, barrel=False):
+        return Pen(self.page, barrel)
+
 
 class CanvasPointer:
-    """Trusted mouse input sent straight to Chromium. Playwright's own mouse.move stalls once a button is down over
-    the canvas, because its drag detection runs a script in every frame and the canvas frame is sandboxed without
-    scripts; these are the same browser input events without that detection."""
+    """Trusted mouse input sent straight to Chromium through the DevTools protocol, without Playwright's drag detection."""
 
     def __init__(self, page):
         self.cdp = page.context.new_cdp_session(page)
@@ -197,14 +215,69 @@ class CanvasPointer:
         self._send("mouseReleased", *self.at, 0, "left", 1)
 
 
-@pytest.fixture
-def editor(chromium, fresh_engine):
-    context = chromium.new_context(viewport=VIEWPORT, accept_downloads=True)
+class Finger:
+    """Touch input sent straight to Chromium through the DevTools protocol, one or two fingers."""
+
+    def __init__(self, page):
+        self.cdp = page.context.new_cdp_session(page)
+        self.points = []
+
+    def _send(self, kind):
+        self.cdp.send("Input.dispatchTouchEvent", {"type": kind, "touchPoints": [{"x": x, "y": y, "id": i} for i, (x, y) in enumerate(self.points)]})
+
+    def down(self, x, y):
+        self.points.append((x, y))
+        self._send("touchStart")
+
+    def move(self, x, y, steps=1):
+        x0, y0 = self.points[0]
+        for i in range(1, steps + 1):
+            self.points[0] = (x0 + (x - x0) * i / steps, y0 + (y - y0) * i / steps)
+            self._send("touchMove")
+
+    def up(self):
+        self.points = []
+        self._send("touchEnd")
+
+
+class Pen(CanvasPointer):
+    """Pen input through the DevTools protocol. The barrel button reaches the browser as the right button, pressed
+    before the tip touches, so a press with it held starts as button 2 and moves with the tip as buttons 3."""
+
+    def __init__(self, page, barrel=False):
+        super().__init__(page)
+        self.barrel = barrel
+
+    def _send(self, kind, x, y, buttons, button="none", count=0):
+        if self.barrel and buttons:
+            buttons, button = (2 if kind == "mousePressed" else 3), ("right" if button != "none" else button)
+        elif self.barrel and kind == "mouseReleased":
+            button = "right"
+        self.cdp.send("Input.dispatchMouseEvent", {"type": kind, "x": x, "y": y, "buttons": buttons, "button": button, "clickCount": count, "pointerType": "pen"})
+        self.at = (x, y)
+
+
+def _open_editor(chromium, base, **options):
+    context = chromium.new_context(viewport=VIEWPORT, accept_downloads=True, **options)
     context.set_default_timeout(WAIT_MS)
     page = context.new_page()
-    page.goto(fresh_engine + "/", wait_until="domcontentloaded")
+    editor = Editor(page, base)
+    page.goto(base + "/", wait_until="domcontentloaded")
     page.locator('[data-demo="harbour-ferries"]').wait_for()
-    yield Editor(page, fresh_engine)
+    return context, editor
+
+
+@pytest.fixture
+def editor(chromium, fresh_engine):
+    context, editor = _open_editor(chromium, fresh_engine)
+    yield editor
+    context.close()
+
+
+@pytest.fixture
+def touch_editor(chromium, fresh_engine):
+    context, editor = _open_editor(chromium, fresh_engine, has_touch=True)
+    yield editor
     context.close()
 
 
