@@ -273,6 +273,8 @@ async def serve_release(slug, version, path, request, active=False):
     headers = {'Cache-Control': 'private, no-store' if gated or active else 'public, max-age=31536000, immutable'}
     if path.startswith('assets/components/') and path.endswith('.html'):
         headers['Content-Security-Policy'] = "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'"
+    if path == 'search-index.json':
+        return Response(public_search_index(root, target, release['site']), media_type='application/json', headers=headers)
     if gated and page_file:
         slug_of = canonical_route(root, release['site'], path)
         owner = next((page for page in release['site']['pages'] if page['slug'] == slug_of), None)
@@ -281,6 +283,16 @@ async def serve_release(slug, version, path, request, active=False):
             html = ASSET_LINK.sub(lambda match: f'{match.group(1)}_fw/{key}/{match.group(2)}', target.read_text(encoding='utf-8'))
             return Response(html, media_type='text/html', headers=headers)
     return FileResponse(target, headers=headers)
+
+
+def public_search_index(root, target, site):
+    """A release's search index without the pages behind a password or a member gate, whoever asks: the index is read by script."""
+    entries = json.loads(target.read_text(encoding='utf-8'))
+    if not isinstance(entries, list):
+        return '[]'
+    routes = [(entry, canonical_route(root, site, str(entry.get('path', '')) + 'index.html')) for entry in entries if isinstance(entry, dict)]
+    kept = [entry for entry, route in routes if not studio.passwords.gate_for(site['id'], route) and not member_gated(site, route)]
+    return json.dumps(kept, ensure_ascii=False)
 
 
 async def unlock(request, slug, version, prefix):
