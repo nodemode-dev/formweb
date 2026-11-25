@@ -34,7 +34,8 @@ export function installPageSlug(name: HTMLInputElement, slug: HTMLInputElement, 
   function show(): void {
     const target = path();
     const wrong = problem(target);
-    const base = (site().settings?.baseUrl || '').replace(/\/+$/, '');
+    const given = (site().settings?.baseUrl || '').replace(/\/+$/, '');
+    const base = /^https?:\/\/(www\.)?example\.com$/i.test(given) ? '' : given;
     const message = wrong || t('The page will be at {0}', [base ? base + target : target]);
     text(note, message);
     if (note.title !== message) note.title = message;
