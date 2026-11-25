@@ -87,6 +87,7 @@
       "library_apply_preset",
       "library_apply_starter",
       "library_import_html",
+      "library_import_site",
       "send_to_formpublisher",
       "new_site",
       "copy_element",
