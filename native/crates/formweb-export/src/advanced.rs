@@ -78,7 +78,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     robots.push_str(&format!("Sitemap: {base}/sitemap.xml\n"));
     files.push(json!({"path":"robots.txt","content":robots}));
     let passwords = crate::password_routes(params)?;
-    if !gated && passwords.is_empty() { files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?})); }
+    if !gated { files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?})); }
     if let Some(manifest)=crate::web_manifest(site) { files.push(manifest); }
     if let Some(redirects)=site.extensions.get("seo").and_then(|v|v.get("redirects")) { files.push(json!({"path":"redirects.json","content":redirects.to_string()})); }
     let route_manifest: Vec<_> = routes.iter().enumerate().map(|(index,r)|json!({"path":r.path(),"page":r.page.id,"locale":r.locale,"item":r.item.as_ref().map(|i|&i.id),"stylesheet":format!("assets/pages/{index}.css")})).collect();

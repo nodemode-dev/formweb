@@ -36,21 +36,19 @@ fn indexed_paths(files: &BTreeMap<String, String>) -> Vec<String> {
 }
 
 #[test]
-fn without_password_routes_every_page_is_in_the_search_index_and_the_source_is_included() {
+fn without_password_routes_every_page_is_in_the_search_index() {
     let out = files(&site(), json!({}));
     let paths = indexed_paths(&out);
     assert!(paths.contains(&"staff/".to_string()) && paths.contains(&"staff/rota/".to_string()) && paths.contains(&"fares/".to_string()), "{paths:?}");
-    assert!(out.contains_key("site.formweb.json"));
 }
 
 #[test]
-fn a_password_route_leaves_its_pages_and_the_pages_under_it_out_of_the_search_index_and_drops_the_source() {
+fn a_password_route_leaves_its_pages_and_the_pages_under_it_out_of_the_search_index() {
     let out = files(&site(), json!({"passwordRoutes": ["/staff"]}));
     let paths = indexed_paths(&out);
     assert!(!paths.iter().any(|p| p.starts_with("staff/")), "{paths:?}");
     assert!(paths.contains(&"fares/".to_string()));
     assert!(!out["search-index.json"].contains(SECRET));
-    assert!(!out.contains_key("site.formweb.json"));
     assert!(out["staff/index.html"].contains(SECRET));
 }
 

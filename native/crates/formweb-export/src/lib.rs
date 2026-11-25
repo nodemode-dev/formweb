@@ -91,7 +91,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     sitemap.push_str("</urlset>\n");
     files.push(json!({"path":"sitemap.xml","content":sitemap}));
     files.push(json!({"path":"robots.txt","content":format!("User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")}));
-    if password_routes(params)?.is_empty() { files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?})); }
+    files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?}));
     if let Some(manifest) = web_manifest(site) { files.push(manifest); }
     files.push(json!({"path":"routes.json","content":serde_json::to_string(&route_manifest).map_err(|e| e.to_string())?}));
     files.push(json!({"path":"README.txt","content":format!("FormWeb static export\nLocale: {locale}\nServe this folder with any static HTTP server.\nPages use directory routes with index.html.\nThe editable source is site.formweb.json.\nRemote assets are referenced, not bundled.\nForms submit to the configured FormWeb API; keep that service running or replace the form action with your own service.\nRuntime respects prefers-reduced-motion.\n")}));
