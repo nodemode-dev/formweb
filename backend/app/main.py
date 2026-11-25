@@ -61,7 +61,8 @@ class LocalAccess:
         runtime = path.startswith('/api/runtime/')
         site_space = path.startswith(SITE_SPACE)
         site_form = bool(re.fullmatch(r'/published/[^/]+/[^/]+/api/forms/[^/]+/[^/]+', path))
-        site_page = site_space and origin == 'null' and (scope['method'] in ('GET', 'HEAD', 'OPTIONS') or site_form)
+        site_file = scope['method'] in ('GET', 'HEAD', 'OPTIONS') and bool(re.fullmatch(r'/(?:published/[^/]+/[^/]+|sites/[^/]+)/(?:assets/.+|search-index\.json|site\.webmanifest)', path))
+        site_page = origin == 'null' and (site_file or site_form)
         query = parse_qs(scope.get('query_string', b'').decode(errors='replace'))
         preview_token = preview_match.group(1) if preview_match else headers.get('x-formweb-preview') or query.get('previewToken', [''])[0]
         verified_preview = bool((preview_match or runtime) and studio.releases.valid_preview(preview_token))
