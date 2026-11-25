@@ -137,6 +137,23 @@ describe('inserting', () => {
     Array.from(host.querySelectorAll<HTMLElement>('.fw-flyout-row')).find(row => row.textContent === 'Pricing table')!.click();
     expect(inserted).toEqual(['pricing']);
   });
+
+  it('a clicked row runs its action inside the click, before the flyout hides or focus moves, so a file picker it opens keeps the gesture', () => {
+    const seen: { open: boolean; focus: Element | null }[] = [];
+    const picking = installInsertFlyout({
+      host,
+      groups: () => [{ id: 'elements', title: 'Elements', items: [{ id: 'image', label: 'Image', icon: 'image', raw: true, run: () => { seen.push({ open: picking.isOpen(), focus: document.activeElement }); } }] }],
+      openAll: () => undefined,
+      run: action => action()
+    });
+    picking.open(anchor);
+    const row = Array.from(host.querySelectorAll<HTMLElement>('.fw-flyout-row')).filter(each => each.textContent === 'Image').pop()!;
+    const filterNow = document.activeElement;
+    row.click();
+    expect(seen).toEqual([{ open: true, focus: filterNow }]);
+    expect(picking.isOpen()).toBe(false);
+    expect(document.activeElement).toBe(anchor);
+  });
 });
 
 describe('closing', () => {
