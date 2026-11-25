@@ -44,7 +44,10 @@ function labelOf(node: HTMLElement): string {
   const head = node.matches('.checkbox-field') ? node.querySelector(':scope > span:not(.icon)') : node.querySelector(':scope > .field-label');
   if (!head) return '';
   const own = Array.from(head.childNodes).filter(child => child.nodeType === 3).map(child => child.textContent).join('');
-  return clean(own || head.textContent);
+  if (own.trim()) return clean(own);
+  const copy = head.cloneNode(true) as HTMLElement;
+  copy.querySelectorAll('button').forEach(button => button.remove());
+  return clean(copy.textContent);
 }
 
 function controlOf(node: HTMLElement): HTMLElement | null {
