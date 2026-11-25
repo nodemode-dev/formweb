@@ -4,12 +4,13 @@ import { label, labelAttr, t } from '../../i18n';
 import { SectionDetail } from './detail';
 import { SectionGrid } from './grid';
 import { HtmlImport } from './importer';
+import { SiteImport } from './site-import';
 import { Kits } from './kits';
 import type { LibIndex, LibResult, LibSection, LibraryHooks } from './types';
 import '../../styles/library.css';
 
 export type { LibraryHooks } from './types';
-export type LibraryPanel = { element: HTMLElement; setVisible: (on: boolean) => void; showTab: (id: Tab) => void };
+export type LibraryPanel = { element: HTMLElement; setVisible: (on: boolean) => void; showTab: (id: Tab) => void; importSite: () => void };
 
 type Tab = 'sections' | 'kits' | 'import';
 
@@ -40,7 +41,9 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
     return result.warnings?.[0] ? [inserted, ' ', result.warnings[0]] : [inserted];
   });
   const kits = new Kits(hooks, page => hooks.openPage(page));
-  const importer = new HtmlImport(hooks);
+  let site = false;
+  const importer = new HtmlImport(hooks, () => importSite());
+  const siteImport = new SiteImport(hooks, () => { site = false; paint(); });
 
   const tabs = element('div', 'fw-seg fw-lib-tabs');
   tabs.setAttribute('role', 'tablist');
@@ -57,7 +60,7 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
   }
 
   const views: [Tab, HTMLElement][] = [['sections', grid.element], ['kits', kits.element], ['import', importer.element]];
-  root.append(tabs, grid.element, detail.element, kits.element, importer.element);
+  root.append(tabs, grid.element, detail.element, kits.element, importer.element, siteImport.element);
 
   function paint(): void {
     buttons.forEach((button, id) => {
@@ -66,11 +69,19 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
       button.setAttribute('aria-selected', String(on));
     });
     for (const [id, view] of views) {
-      const show = id === tab && !(id === 'sections' && opened);
+      const show = id === tab && !(id === 'sections' && opened) && !(id === 'import' && site);
       if (view.hidden === show) view.hidden = !show;
     }
+    const showSite = tab === 'import' && site;
+    if (siteImport.element.hidden === showSite) siteImport.element.hidden = !showSite;
     const showDetail = tab === 'sections' && !!opened;
     if (detail.element.hidden === showDetail) detail.element.hidden = !showDetail;
+  }
+  function importSite(): void {
+    tab = 'import';
+    site = true;
+    paint();
+    siteImport.choose();
   }
   function open(section: LibSection): void {
     opened = section.id;
@@ -115,6 +126,7 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
   paint();
   return {
     element: root,
+    importSite,
     setVisible(on: boolean): void {
       if (root.hidden === on) root.hidden = !on;
       if (on) void load();

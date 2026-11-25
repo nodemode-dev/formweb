@@ -18,9 +18,16 @@ export class HtmlImport {
   private go = element('button', 'fw-lib-insert primary');
   private busy = false;
 
-  constructor(private hooks: LibraryHooks) {
+  constructor(private hooks: LibraryHooks, openSite: () => void) {
     const scroller = element('div', 'fw-lib-scroll');
+    const site = element('button', 'fw-lib-choose fw-lib-site-open', t('Import site from zip...'));
+    site.type = 'button';
+    site.prepend(icon('upload'));
+    site.addEventListener('click', openSite);
     scroller.append(
+      element('h3', 'fw-lib-subhead', t('Import a whole site')),
+      element('p', 'fw-lib-help', t('A .zip of a static site made elsewhere: every HTML file becomes a page, with its stylesheets, pictures and fonts. You review the pages before anything changes.')),
+      site,
       element('h3', 'fw-lib-subhead', t('Import HTML')),
       element('p', 'fw-lib-help', t('Turns one whole HTML page into a code section. Its styles and first module script come along, and the formai kit helpers reduced, onTheme and token are provided. A code section runs its own JavaScript in Preview and in exports.'))
     );
