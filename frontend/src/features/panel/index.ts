@@ -8,7 +8,8 @@ import { startRename } from './rename';
 import { LayerFolds, type LayerRow } from './fold';
 import { canContain, canDrag, dropTarget, moveCommands, zoneAt, type DropZone } from './drop';
 import { installRowDrag } from './drag';
-import { dragIds, pageSetFor } from '../selection-actions';
+import { countLabel, dragIds, duplicatePages, pageSetFor, stepPagesCommands } from '../selection-actions';
+import { t } from '../../i18n';
 import { element } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import '../../styles/panel.css';
@@ -93,6 +94,8 @@ export function installPanel(host: PanelHost) {
     if (name !== node.name) await write(name);
   }
   async function duplicatePage(params?: Record<string, unknown>): Promise<void> {
+    const set = pageSetFor(typeof params?.id === 'string' ? params.id : undefined);
+    if (set.length > 1) return duplicatePages(set);
     const page = pageOf(params);
     if (!page) return;
     const before = new Set(site().pages.map(entry => entry.id));
@@ -118,6 +121,8 @@ export function installPanel(host: PanelHost) {
     await batch(list, slug ? `"${page.name}" is now the home page at /, and links to /${slug} now lead there.` : `"${page.name}" is now the home page.`);
   };
   const stepPage = (step: -1 | 1, params?: Record<string, unknown>): Promise<void> => {
+    const set = pageSetFor(typeof params?.id === 'string' ? params.id : undefined);
+    if (set.length > 1) return batch(stepPagesCommands(set, step), step < 0 ? t('{0} pages moved up.', [set.length]) : t('{0} pages moved down.', [set.length]));
     const page = pageOf(params);
     if (!page) return Promise.resolve();
     const list = stepPageCommands(site(), page.id, step);
@@ -142,6 +147,12 @@ export function installPanel(host: PanelHost) {
     host.refresh();
   }
   const several = (): boolean => host.ready() && site().pages.length > 1;
+  const pageIndex = (): number => site().pages.findIndex(page => page.id === host.pageId());
+  const canStepPage = (step: -1 | 1): boolean => {
+    const set = pageSetFor();
+    if (set.length > 1) return stepPagesCommands(set, step).length > 0;
+    return step < 0 ? pageIndex() > 0 : pageIndex() < site().pages.length - 1;
+  };
   const idParam = { id: { type: 'string' as const, description: 'Page id; the open page when left out.' } };
 
   const definitions: CommandDef[] = [
