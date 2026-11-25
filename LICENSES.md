@@ -38,7 +38,7 @@ Retained texts live under `legal/third-party/cargo/<package>-<version>/`. Dual-l
 
 ## Frontend build toolchain
 
-The frontend's runtime dependencies are two font packages shared with formvis and formlit, @fontsource/inter 5.3.0 and @fontsource/jetbrains-mono 5.3.0, both SIL Open Font License 1.1 (fonts bundled unmodified, license files kept in the packages), and the terminal emulator for the live terminal dock, @xterm/xterm 6.0.0 and @xterm/addon-fit 0.11.0, both MIT (texts in `legal/third-party/npm/@xterm__*`). The Windows backend adds pywinpty 3.0.5 (MIT, Spyder IDE; installed only on Windows through an environment marker; its wheel bundles native pseudo-console binaries described by the wheel's own SBOM). TypeScript and Vite are development dependencies; their installed build toolchain is listed below. Exact package resolution, integrity hashes and optional platform packages are in `frontend/package-lock.json`.
+The frontend's runtime dependencies are two font packages shared with formvis and formlit, @fontsource/inter 5.3.0 and @fontsource/jetbrains-mono 5.3.0, both SIL Open Font License 1.1 (fonts bundled unmodified, license files kept in the packages), and the terminal emulator for the live terminal dock, @xterm/xterm 6.0.0 and @xterm/addon-fit 0.11.0, both MIT (texts in `legal/third-party/npm/@xterm__*`). The Windows backend adds pywinpty 3.0.5 (MIT, Spyder IDE; installed only on Windows through an environment marker; its wheel bundles native pseudo-console binaries described by the wheel's own SBOM). TypeScript and Vite are development dependencies; their installed build toolchain is listed below. The interface test runner, vitest 5.0.5 with happy-dom 21.0.4 as its document, is a development dependency too: it runs only `frontend/tests/unit` and none of it is in the built editor. Its rows follow the build toolchain's. Exact package resolution, integrity hashes and optional platform packages are in `frontend/package-lock.json`.
 
 | Package or platform family | Version | License | Role |
 | --- | --- | --- | --- |
@@ -58,6 +58,27 @@ The frontend's runtime dependencies are two font packages shared with formvis an
 | source-map-js | 1.2.2 | BSD-3-Clause | Source map implementation |
 | tinyglobby | 0.2.17 | MIT | File glob traversal |
 | vscode-jsonrpc | 9.0.0 | MIT | Dependency bundled with the installed TypeScript platform compiler |
+| vitest | 5.0.5 | MIT | Interface test runner (tests only) |
+| @vitest/mocker; @vitest/spy | 5.0.5 | MIT | Test runner mocks and spies (tests only) |
+| happy-dom | 21.0.4 | MIT | Document and window for the interface tests (tests only) |
+| chai | 6.3.0 | MIT | Test assertions (tests only) |
+| assertion-error | 2.0.1 | MIT | Test assertion errors (tests only) |
+| expect-type | 1.4.0 | Apache-2.0 | Type assertions (tests only) |
+| tinybench | 6.2.5 | MIT | Test runner benchmarks (tests only) |
+| tinyexec | 1.4.0 | MIT | Test runner process helper (tests only) |
+| std-env | 4.3.0 | MIT | Test runner environment detection (tests only) |
+| obug | 3.0.0 | MIT | Test runner debug output (tests only) |
+| why-is-node-running | 3.2.1 | MIT | Test runner open-handle report (tests only) |
+| es-module-lexer | 2.3.2 | MIT | Test runner module parsing (tests only) |
+| magic-string | 1.4.5 | MIT | Test runner source rewriting (tests only) |
+| estree-walker | 3.0.3 | MIT | Test runner syntax tree walking (tests only) |
+| @jridgewell/resolve-uri; @jridgewell/sourcemap-codec; @jridgewell/trace-mapping | 3.1.3; 1.6.0; 0.3.31 | MIT | Test runner source maps (tests only) |
+| buffer-image-size | 0.6.4 | MIT | happy-dom image sizes (tests only) |
+| entities | 7.0.1 | BSD-2-Clause | happy-dom HTML entities (tests only) |
+| whatwg-mimetype | 3.0.0 | MIT | happy-dom MIME types (tests only) |
+| ws | 8.23.0 | MIT | happy-dom WebSocket (tests only) |
+| @types/chai; @types/deep-eql; @types/estree; @types/node; @types/whatwg-mimetype; @types/ws | 5.2.3; 4.0.2; 1.0.10; 26.6.7; 3.0.2; 8.18.2 | MIT | Type declarations for the test runner (tests only) |
+| undici-types | 8.9.0 | MIT | Type declarations for Node's fetch (tests only) |
 
 Lightning CSS is an unmodified MPL-2.0 build dependency. FormWeb does not edit or embed its source in the application's runtime source. Its MPL text is retained under `legal/third-party/npm/`; obtain its implementation from the upstream package referenced by the lockfile. Optional platform packages were recorded from lock metadata; only Linux x64 packages were unpacked and inspected in this environment.
 
