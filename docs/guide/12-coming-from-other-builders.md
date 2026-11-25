@@ -27,7 +27,7 @@ If you have built sites with Dreamweaver or a similar visual editor, most of wha
 ## What works differently
 
 - **You do not edit HTML files.** FormWeb keeps your site as a structured document and writes the HTML, CSS and JavaScript only when you export or preview. That is why the same site can be previewed at any width, exported many times, and edited by more than one tool at once.
-- **Layout follows the page's flow.** Elements sit one after another in their container, or in a row or grid you set in the Layout section. You move them by dragging into a new place in that order, not to a free x and y position. Nothing ends up overlapping by accident.
+- **Layout follows the page's flow.** Elements sit one after another in their container, or in a row or grid you set in the Layout section. You move them by dragging into a new place in that order, not to a free x and y position. Nothing ends up overlapping by accident. That order is the grid elements snap to: while you drag, the canvas outlines the containers and marks every place in them, and **View > Show layout outlines** shows the same structure at any time ([Working on the canvas](03-canvas.md#snap-and-grid-in-a-page-layout)).
 - **The canvas is for editing.** It does not run scripts, forms or animations. Use Preview to try those.
 - **The canvas never changes breakpoint on its own.** You choose Desktop, Tablet or Mobile; resizing only changes the frame. See [The right panel](04-right-panel.md).
 - **Code you bring in stays code.** Imported HTML becomes a code section that runs in Preview and in the export. To edit it visually, rebuild that part with FormWeb's own elements.
