@@ -83,6 +83,14 @@ The plus button in the Layers header opens Quick insert, a small flyout under th
 
 A website layout uses normal browser flow, flex and grid styles. Use meaningful element names and a clear hierarchy. A stored value becomes part of the site only after the engine acknowledges it. Invalid changes are reported; they do not replace the previous document.
 
+### Search properties
+
+The right panel has a search field between its tabs and its fields. Click it, or press `Ctrl+Alt+F` (`Cmd+Option+F` on macOS; Window > Search properties, command `inspector.search`), which also opens the right panel when it is collapsed. Type a word and the panel shows one list of matches from every tab at once (Design, Motion, Content and Page), grouped as tab > section, for example Design > Appearance with Background, Radius and Shadow under it.
+
+A field matches on its label, its section title, its CSS property name (`padding`, `border-radius`, `font-size`) or a related word: `bg`, `colour` and `fill` find Background and Color; `rounded` and `corner` find Radius; `elevation` finds Shadow; `spacing` finds Padding, Margin and Gap; `font` and `text` find Typography; `href` and `url` find Link URL; `alt` finds Alternative text; `seo` finds the page title and description. Several words must all match. Case does not matter.
+
+Press Up and Down to move through the list and Enter, or click, to go there: the panel switches to that tab, opens the section if it was collapsed, scrolls the field into view, puts the cursor in it and outlines it for a moment (a steady outline when your system asks for reduced motion). Escape clears the search and shows the panel exactly as you left it, with the same tab and scroll position; the clear button in the field does the same. Fields the panel hides for the current selection, such as the image buttons while a heading is selected, are not listed. Fields that are shown but switched off, such as Clear breakpoint overrides on the desktop base, are listed as Unavailable. The list follows the selection while it is open.
+
 ## Responsive design
 
 Desktop, Tablet and Mobile select the responsive profile and set the frame to that profile's width. Default tablet and mobile maximum widths are 991 px and 767 px. Studio > Layout & design creates custom breakpoints; the toolbar dropdown selects any stored profile, and the stage header names the profile being edited. Typing a width only resizes the frame: the canvas keeps drawing and editing the picked profile's styles, and a quiet hint appears when the width falls outside that profile's range. To watch the design switch as the width changes, turn on View > Live responsive preview: it shows the exported site at the typed width, so the browser's own media queries do the switching. Design includes flex wrapping/order, grid rows/placement/spans and self alignment. Inspect each profile after changing layout or type.
