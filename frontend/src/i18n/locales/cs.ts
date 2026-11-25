@@ -2898,4 +2898,5 @@ export default [
   "Jedním vrácením zpět dostanete stránky zpět jako kód, dvěma je odstraníte.",
   "1 stránka byla příliš velká na převod najednou a zůstala sekcí kódu: převeďte ji po částech pomocí Převést na upravitelné prvky.",
   "Stránky příliš velké na převod najednou: {0}; zůstaly sekcemi kódu: převeďte každou po částech pomocí Převést na upravitelné prvky.",
+  "Zkontrolujte ji v Náhledu na šířce telefonu a pak ji upravte u každého zlomového bodu.",
 ] as readonly string[];

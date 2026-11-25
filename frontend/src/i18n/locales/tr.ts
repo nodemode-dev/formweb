@@ -2898,4 +2898,5 @@ export default [
   "Sayfaları kod olarak geri almak için bir kez, kaldırmak için iki kez geri al.",
   "1 sayfa tek seferde dönüştürülemeyecek kadar büyüktü ve kod bölümü olarak kaldı: Düzenlenebilir öğelere dönüştür ile parça parça dönüştür.",
   "{0} sayfa tek seferde dönüştürülemeyecek kadar büyüktü ve kod bölümü olarak kaldı: her birini Düzenlenebilir öğelere dönüştür ile parça parça dönüştür.",
+  "Önizleme'de telefon genişliğinde kontrol edin, ardından her kesme noktasında ayarlayın.",
 ] as readonly string[];

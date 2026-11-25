@@ -2898,4 +2898,5 @@ export default [
   "Ångra en gång för att få tillbaka sidorna som kod, två gånger för att ta bort dem.",
   "1 sida var för stor för att konverteras på en gång och förblev en kodsektion: konvertera den en del i taget med Konvertera till redigerbara element.",
   "{0} sidor var för stora för att konverteras på en gång och förblev kodsektioner: konvertera var och en en del i taget med Konvertera till redigerbara element.",
+  "Kontrollera den i telefonbredd i Förhandsgranska och justera den sedan under varje brytpunkt.",
 ] as readonly string[];

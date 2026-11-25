@@ -2898,4 +2898,5 @@ export default [
   "Einmal rückgängig machen holt die Seiten als Code zurück, zweimal entfernt sie.",
   "1 Seite war zu groß, um auf einmal umgewandelt zu werden, und blieb ein Codeabschnitt: Wandle sie mit In bearbeitbare Elemente umwandeln Teil für Teil um.",
   "{0} Seiten waren zu groß, um auf einmal umgewandelt zu werden, und blieben Codeabschnitte: Wandle jede mit In bearbeitbare Elemente umwandeln Teil für Teil um.",
+  "Prüfe sie in der Vorschau in Handybreite und passe sie dann an jedem Breakpoint an.",
 ] as readonly string[];

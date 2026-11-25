@@ -2898,4 +2898,5 @@ export default [
   "Desfaça uma vez para ter as páginas de volta como código, duas vezes para removê-las.",
   "1 página era grande demais para converter de uma vez e ficou como seção de código: converta-a parte por parte com Converter em elementos editáveis.",
   "{0} páginas eram grandes demais para converter de uma vez e ficaram como seções de código: converta cada uma parte por parte com Converter em elementos editáveis.",
+  "Confira-a na largura de um celular em Visualizar e depois ajuste em cada ponto de interrupção.",
 ] as readonly string[];

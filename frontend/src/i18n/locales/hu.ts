@@ -2898,4 +2898,5 @@ export default [
   "Egy visszavonással kódként kapod vissza az oldalakat, kettővel eltávolítod őket.",
   "1 oldal túl nagy volt az egyszerre történő átalakításhoz, és kódszakasz maradt: alakítsd át részenként az Átalakítás szerkeszthető elemekké paranccsal.",
   "{0} oldal túl nagy volt az egyszerre történő átalakításhoz, és kódszakasz maradt: alakítsd át mindegyiket részenként az Átalakítás szerkeszthető elemekké paranccsal.",
+  "Nézd meg telefonszélességben az Előnézetben, majd igazítsd az egyes töréspontoknál.",
 ] as readonly string[];

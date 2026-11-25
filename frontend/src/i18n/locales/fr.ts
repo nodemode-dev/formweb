@@ -2898,4 +2898,5 @@ export default [
   "Annulez une fois pour retrouver les pages en code, deux fois pour les retirer.",
   "1 page était trop grande pour être convertie d'un coup et est restée une section de code : convertissez-la partie par partie avec Convertir en éléments modifiables.",
   "{0} pages étaient trop grandes pour être converties d'un coup et sont restées des sections de code : convertissez chacune partie par partie avec Convertir en éléments modifiables.",
+  "Vérifiez-la à la largeur d’un téléphone dans Aperçu, puis ajustez-la à chaque point d’arrêt.",
 ] as readonly string[];

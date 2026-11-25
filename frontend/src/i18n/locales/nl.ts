@@ -2898,4 +2898,5 @@ export default [
   "Maak één keer ongedaan om de pagina's terug te krijgen als code, twee keer om ze te verwijderen.",
   "1 pagina was te groot om in één keer om te zetten en bleef een codesectie: zet haar deel voor deel om met Omzetten naar bewerkbare elementen.",
   "{0} pagina's waren te groot om in één keer om te zetten en bleven codesecties: zet elke pagina deel voor deel om met Omzetten naar bewerkbare elementen.",
+  "Controleer de pagina op telefoonbreedte in Voorbeeld en pas haar daarna per breekpunt aan.",
 ] as readonly string[];

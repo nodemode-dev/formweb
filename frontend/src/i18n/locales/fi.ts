@@ -2898,4 +2898,5 @@ export default [
   "Kumoa kerran, niin sivut palaavat koodiksi, ja kahdesti, niin ne poistuvat.",
   "1 sivu oli liian suuri muunnettavaksi kerralla ja jäi koodiosioksi: muunna se osa kerrallaan toiminnolla Muunna muokattaviksi elementeiksi.",
   "{0} sivua oli liian suuria muunnettaviksi kerralla ja jäi koodiosioiksi: muunna kukin osa kerrallaan toiminnolla Muunna muokattaviksi elementeiksi.",
+  "Tarkista se puhelimen leveydellä Esikatselussa ja säädä sitten kunkin breakpointin alla.",
 ] as readonly string[];

@@ -2898,4 +2898,5 @@ export default [
   "Hoàn tác một lần để lấy lại các trang dưới dạng mã, hai lần để xóa chúng.",
   "1 trang quá lớn để chuyển một lần và vẫn là phần mã: hãy chuyển từng phần một bằng Chuyển thành phần tử chỉnh sửa được.",
   "{0} trang quá lớn để chuyển một lần và vẫn là phần mã: hãy chuyển từng trang theo từng phần bằng Chuyển thành phần tử chỉnh sửa được.",
+  "Hãy kiểm tra ở chiều rộng điện thoại trong Xem trước, rồi điều chỉnh ở từng điểm ngắt.",
 ] as readonly string[];

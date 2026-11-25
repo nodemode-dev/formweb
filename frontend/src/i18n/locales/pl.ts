@@ -2898,4 +2898,5 @@ export default [
   "Cofnij raz, aby odzyskać strony jako kod, dwa razy, aby je usunąć.",
   "1 strona była za duża, by zamienić ją naraz, i została sekcją kodu: zamieniaj ją po jednej części poleceniem Zamień na edytowalne elementy.",
   "Strony za duże, by zamienić je naraz: {0}; zostały sekcjami kodu: zamieniaj każdą po jednej części poleceniem Zamień na edytowalne elementy.",
+  "Sprawdź ją przy szerokości telefonu w Podglądzie, a potem dostosuj w każdym punkcie przerwania.",
 ] as readonly string[];

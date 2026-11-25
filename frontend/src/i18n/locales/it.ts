@@ -2898,4 +2898,5 @@ export default [
   "Annulla una volta per riavere le pagine come codice, due volte per rimuoverle.",
   "1 pagina era troppo grande per essere convertita in una volta ed è rimasta una sezione di codice: convertila una parte alla volta con Converti in elementi modificabili.",
   "{0} pagine erano troppo grandi per essere convertite in una volta e sono rimaste sezioni di codice: converti ciascuna una parte alla volta con Converti in elementi modificabili.",
+  "Controllala alla larghezza di un telefono in Anteprima, poi regolala in ogni breakpoint.",
 ] as readonly string[];

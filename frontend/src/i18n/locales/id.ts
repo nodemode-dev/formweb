@@ -2898,4 +2898,5 @@ export default [
   "Urungkan sekali untuk mendapatkan halaman kembali sebagai kode, dua kali untuk menghapusnya.",
   "1 halaman terlalu besar untuk diubah sekaligus dan tetap sebagai bagian kode: ubah satu bagian setiap kali dengan Ubah menjadi elemen yang dapat diedit.",
   "{0} halaman terlalu besar untuk diubah sekaligus dan tetap sebagai bagian kode: ubah masing-masing satu bagian setiap kali dengan Ubah menjadi elemen yang dapat diedit.",
+  "Periksa di lebar ponsel pada Pratinjau, lalu sesuaikan di setiap breakpoint.",
 ] as readonly string[];

@@ -2898,4 +2898,5 @@ export default [
   "Angre én gang for å få sidene tilbake som kode, to ganger for å fjerne dem.",
   "1 side var for stor til å konverteres på én gang og forble en kodeseksjon: konverter den én del om gangen med Konverter til redigerbare elementer.",
   "{0} sider var for store til å konverteres på én gang og forble kodeseksjoner: konverter hver av dem én del om gangen med Konverter til redigerbare elementer.",
+  "Sjekk den i telefonbredde i Forhåndsvisning, og juster den deretter under hvert brytningspunkt.",
 ] as readonly string[];
