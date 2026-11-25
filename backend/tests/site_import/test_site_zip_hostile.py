@@ -115,7 +115,6 @@ def test_a_css_import_loop_ends_and_each_file_arrives_at_most_once(client, blank
     assert css[0].count(".from-a") == 1 and css[0].count(".from-b") == 1
 
 
-@pytest.mark.xfail(strict=True, reason="TEST_PLAN 11 Hostile zips: a CSS @import loop must be skipped with a plain sentence; the review and the import say nothing about it and the page css keeps a bare local @import \"a.css\" that will not resolve in the export")
 def test_a_css_import_loop_is_named_in_a_plain_sentence(client, blank):
     review, result, site = css_of_imported(client, zip_of(LOOP))
     assert any(s.endswith(".") for s in sentences(review, result))
@@ -137,7 +136,6 @@ def test_a_css_import_fan_out_stays_within_the_code_section_cap_and_the_leaf_arr
     assert css.count(".leaf") <= 1
 
 
-@pytest.mark.xfail(strict=True, reason="TEST_PLAN 11 Hostile zips: a CSS @import fan-out must be skipped with a plain sentence; the import stops inlining past four levels without a word and leaves forty bare local @import \"l5.css\" rules in the page css, so the deepest stylesheet is silently lost")
 def test_a_css_import_fan_out_that_is_cut_short_is_named_in_a_plain_sentence(client, blank):
     review, result, site = css_of_imported(client, zip_of(fan_out(5, 40)))
     css = section_css(site, result["pages"][0])[0]
