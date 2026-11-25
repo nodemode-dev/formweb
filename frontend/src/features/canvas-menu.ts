@@ -16,6 +16,9 @@ export interface CanvasMenuHost {
   status(message: string, error?: boolean): void;
   selected(): string;
   select(id: string): void;
+  selectionIds(): string[];
+  topMost(ids: readonly string[]): string[];
+  selectNodes(ids: readonly string[], main: string): void;
   pageRoot(): string;
   breakpoint(): string;
   canDuplicate(): boolean;
@@ -49,7 +52,7 @@ const COPY_BLOCKED = {
 };
 
 export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[] } {
-  const selectionIds = (): string[] => [host.selected()];
+  const selectionIds = (): string[] => host.selectionIds();
   const site = () => state().site;
   const parentOf = (id: string): SiteNode | undefined => Object.values(site().nodes).find(node => node.children.includes(id));
   const selectedNode = (): SiteNode | undefined => site().nodes[host.selected()];
