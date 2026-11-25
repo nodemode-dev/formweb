@@ -704,7 +704,7 @@ export const KEYS: readonly string[] = [
   "Open the New site dialog to start an empty site in the engine.",
   "Open the Publish dialog to create a published snapshot served by this backend.",
   "Open the QR code dialog for the open page.",
-  "Open the Using formweb guide.",
+  "Open the Using FormWeb guide.",
   "Open the background remover for the selected image.",
   "Open the bulk page creator that makes one page per CSV row.",
   "Open the command search.",

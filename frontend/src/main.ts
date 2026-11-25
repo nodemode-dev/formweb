@@ -2306,7 +2306,7 @@ registerCommands([
   { id: 'terminal.toggle', label: 'Toggle agent dock', menu: 'View', keys: ['Mod+J'], global: true, group: 3, run: () => agentDock?.toggle(), checked: () => agentDock?.isOpen() === true },
   { id: 'claude.open', label: 'Claude Code', menu: 'View', keys: ['Mod+Shift+J'], global: true, group: 3, run: () => agentDock?.show('claude') },
   { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: ['Mod+Alt+J'], global: true, group: 3, run: () => agentDock?.show('chat') },
-  { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
+  { id: 'help.guide', label: 'Using FormWeb', menu: 'Help', run: () => openDialog('help') }
 ]);
 const panel = installPanel({ state, ready, command, commands, overlay, pagesList, layersList, run, status, pageId: () => pageId, openPage, selected: () => selectedId, select: selectNode, pageSettings: () => { openDock('right'); setInspector('page'); }, elementSettings: () => { openDock('right'); setInspector('design'); }, refresh: () => update(state()), gates: async () => { await loadPasswordGates(true); return passwordGates; } });
 registerCommands(panel.commands);

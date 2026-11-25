@@ -143,7 +143,7 @@ const META: Record<string, Meta> = {
   'vector.path.divide-below': { description: 'Use the selected path as a cutter: split every filled shape beneath it that it overlaps into separate pieces, then remove the cutter.', flags: 'mr', when: 'Use with a cutter path selected above the shapes to divide.' },
   'vector.path.split-grid': { description: 'Open the Split Into Grid dialog (rows, columns, heights, widths, gutters) to replace each selected rectangle with a group of rectangles.', flags: 'm', when: 'Use with one or more rectangles selected.' },
   'vector.path.clean-up': { description: 'Open the Clean Up dialog to delete stray points, unpainted objects and empty text paths from the current vector and report the count.', flags: 'mr', when: 'Use when the current vector has leftover empty objects.' },
-  'help.guide': { description: 'Open the Using formweb guide.' }
+  'help.guide': { description: 'Open the Using FormWeb guide.' }
 };
 
 function describe(command: Command, label: string): { description: string; when: string; mutates: boolean; risky: boolean } {
