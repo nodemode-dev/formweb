@@ -34,6 +34,16 @@ function subtreeIds(site: Site, root: string): Set<string> {
 function scopedFragment(url: string, ids: Record<string, string>): string {
   return url.startsWith('#') && ids[url.slice(1)] ? '#' + ids[url.slice(1)] : url;
 }
+const REVEAL_MS = 2000;
+const REVEAL_MARGIN = 24;
+function shift(start: number, end: number, low: number, high: number, center: boolean): number {
+  const room = high - low;
+  if (room <= 0) return 0;
+  const margin = Math.min(REVEAL_MARGIN, Math.max(0, (room - (end - start)) / 2));
+  if (center) return end - start + 2 * margin > room ? start - low - margin : (start + end - low - high) / 2;
+  if (start >= low && end <= high) return 0;
+  return start < low || end - start + margin > room ? start - low - margin : end - high + margin;
+}
 
 export class Canvas {
   readonly frame: HTMLIFrameElement;
@@ -137,11 +147,44 @@ export class Canvas {
         resolve();
       }, { once: true });
     });
-    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}body{color:#edf0f5;background:#15171b}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-id]:hover{cursor:default}body[data-preview] [data-fw-id]:hover{cursor:auto}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}body:not([data-preview]) a,body:not([data-preview]) button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark]{display:none!important}.fw-fade{animation:fwFade .5s ease both}@keyframes fwFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style></head><body></body></html>';
+    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}body{color:#edf0f5;background:#15171b}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-reveal]{animation:fwReveal .5s ease-in-out 4 alternate}@keyframes fwReveal{from{outline-offset:2px}to{outline-offset:10px}}@media (prefers-reduced-motion:reduce){[data-fw-reveal]{animation:none;outline-offset:6px}}[data-fw-id]:hover{cursor:default}body[data-preview] [data-fw-id]:hover{cursor:auto}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}body:not([data-preview]) a,body:not([data-preview]) button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark]{display:none!important}.fw-fade{animation:fwFade .5s ease both}@keyframes fwFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style></head><body></body></html>';
     new ResizeObserver(() => this.fit()).observe(stage);
   }
 
   async loaded(): Promise<void> { return this.ready; }
+
+  reveal(id: string): void {
+    const target = this.find(id);
+    if (!target) return;
+    this.bringInto(target, true);
+    if (this.pulse) { window.clearTimeout(this.pulse.timer); this.pulse.node.removeAttribute('data-fw-reveal'); }
+    void target.offsetWidth;
+    target.setAttribute('data-fw-reveal', '');
+    const timer = window.setTimeout(() => { target.removeAttribute('data-fw-reveal'); this.pulse = undefined; }, REVEAL_MS);
+    this.pulse = { node: target, timer };
+  }
+
+  bring(id: string): void {
+    const target = this.find(id);
+    if (target) this.bringInto(target, false);
+  }
+
+  private pulse?: { node: HTMLElement; timer: number };
+
+  private find(id: string): HTMLElement | undefined {
+    if (!this.doc) return undefined;
+    return [...this.doc.querySelectorAll<HTMLElement>(`[data-fw-id="${CSS.escape(id)}"]`)].find(node => node.getClientRects().length > 0);
+  }
+
+  private bringInto(target: HTMLElement, center: boolean): void {
+    const view = this.doc?.defaultView;
+    if (!view) return;
+    const frame = this.frame.getBoundingClientRect(), stage = this.stage.getBoundingClientRect(), box = target.getBoundingClientRect();
+    const top = Math.max(0, (stage.top - frame.top) / this.scale), bottom = Math.min(view.innerHeight, (stage.bottom - frame.top) / this.scale);
+    const left = Math.max(0, (stage.left - frame.left) / this.scale), right = Math.min(view.innerWidth, (stage.right - frame.left) / this.scale);
+    const dy = shift(box.top, box.bottom, top, bottom, center), dx = shift(box.left, box.right, left, right, center);
+    if (dy || dx) view.scrollBy({ top: dy, left: dx, behavior: view.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
 
   // The width only sizes the frame. The styles drawn are those of `scope`, the breakpoint the person picked from the list; the width is never used to choose them.
   render(site: Site, page: Page, selected: string, width: number, locale: string, preview: boolean, scope: string): void {
@@ -390,7 +433,7 @@ export class Canvas {
       const span = this.textNodes.get(element!.dataset.fwKey!);
       if (!span) return;
       span.contentEditable = 'true';
-      span.focus();
+      span.focus({ preventScroll: true });
       const selection = doc.getSelection();
       selection?.selectAllChildren(span);
       span.addEventListener('blur', () => {

@@ -16,7 +16,7 @@ The library is data that ships with FormWeb: 35 section templates from the forma
 | `backend/app/library.py` | The one implementation of template expansion, preset commands and component merging |
 | `backend/app/library_routes.py` | HTTP routes |
 | `setup/library_tool.py` | `./formweb library check` and `build` |
-| `frontend/src/features/library/` | The Library panel |
+| `frontend/src/features/library/` | The Library panel; `showTab(id)` on the panel switches between `sections`, `kits` and `import`, which the editor command `file.import-html` (File > Import HTML...) uses to open the Import HTML tab (`importer.ts`, `POST /api/library/import-html`) |
 
 ## One path for every client
 

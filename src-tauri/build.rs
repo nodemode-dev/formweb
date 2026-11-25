@@ -8,6 +8,7 @@ const APP_COMMANDS: &[&str] = &[
     "set_window_title",
     "text_edit",
     "take_opened_file",
+    "reveal_download",
 ];
 
 fn main() {

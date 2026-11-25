@@ -17,6 +17,9 @@ import { demoCommands, openDemo, type DemoHooks } from './ui/demos';
 import { DemoPreview } from './ui/demo-preview';
 import { unsavedWork } from './ui/unsaved';
 import { watchOpenedFiles } from './ui/opened-file';
+import { Notice } from './ui/notice';
+import { deliver, isBusy } from './ui/downloads';
+import { flash, issueField, rowOf, scrollNearest } from './ui/reveal';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
@@ -44,6 +47,7 @@ await startLanguage();
 
 const app = document.querySelector<HTMLElement>('#app')!;
 const overlay = document.querySelector<HTMLElement>('#overlay-root')!;
+const notice = new Notice(overlay, action => run(action));
 const importer = document.querySelector<HTMLInputElement>('#project-import')!;
 const mediaInput = element('input');
 mediaInput.type = 'file';
@@ -143,6 +147,11 @@ function selectNode(id: string): void {
   if (!state().site.nodes[id]) return;
   selectedId = id;
   update(state());
+}
+function pickNode(id: string): void {
+  selectNode(id);
+  canvas.bring(id);
+  scrollNearest(layersList, rowOf(layersList, id));
 }
 function descendants(id: string, found = new Set<string>()): Set<string> {
   if (found.has(id)) return found;
@@ -1415,7 +1424,7 @@ function update(next: EditorState): void {
   for (let at: SiteNode | undefined = node; at; at = parentOf(at.id)) trail.unshift(at);
   keyed(selectionPath, trail, item => item.id, () => {
     const crumb = button('', undefined, undefined, 'fw-crumb');
-    crumb.addEventListener('click', () => selectNode(crumb.dataset.key!));
+    crumb.addEventListener('click', () => pickNode(crumb.dataset.key!));
     return crumb;
   }, (crumb, item) => {
     text(crumb, item.name);
@@ -1470,7 +1479,7 @@ function update(next: EditorState): void {
   keyed(layersList, layers, item => item.node.id, () => {
     const row = button('', undefined, undefined, 'list-row layer-row');
     row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
-    row.addEventListener('click', () => selectNode(row.dataset.key!));
+    row.addEventListener('click', () => pickNode(row.dataset.key!));
     row.addEventListener('contextmenu', event => showLayerMenu(event, row.dataset.key!));
     return row;
   }, (row, item) => {
@@ -1582,7 +1591,8 @@ async function saveProject(): Promise<void> {
   if (dialogMode === 'projects') await updateProjects();
 }
 async function downloadProject(): Promise<void> {
-  await download('/api/project-file', state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '.fweb');
+  const file = state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '.fweb';
+  await deliver(file, { desktop: 'Saved {0} to your Downloads folder.', placed: 'Saved {0} to {1}.', browser: 'Downloaded {0}. Your browser lists it with its downloads.' }, notice, started => download('/api/project-file', file, started));
   status('Editable .fweb project downloaded.');
 }
 const NOT_FOUND_BASE_KEY = "The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.";
@@ -1609,7 +1619,8 @@ function baseUrlAction(warning: string): { label: string; run: () => unknown } |
   return warning ? { label: 'Set the base URL', run: openBaseUrlField } : undefined;
 }
 async function exportSite(): Promise<void> {
-  const headers = await download(`/api/export?locale=${encodeURIComponent(locale)}`, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip');
+  const file = state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip';
+  const headers = await deliver(file, { desktop: 'Exported {0} to your Downloads folder.', placed: 'Exported {0} to {1}.', browser: 'Downloaded {0}. Your browser lists it with its downloads.' }, notice, started => download(`/api/export?locale=${encodeURIComponent(locale)}`, file, started), exportButton);
   const warning = notFoundBaseWarning();
   status([t('Static site exported for {0}.', [{ lang: locale }]), warning, localFormWarning(localFormHeader(headers))], false, baseUrlAction(warning));
 }
@@ -1844,6 +1855,20 @@ async function updateProjects(): Promise<void> {
     text(row.children[0].children[1] as HTMLElement, new Date(project.updatedAt).toLocaleString());
   });
 }
+function showIssue(row: HTMLElement): void {
+  const message = row.children[1].children[0].textContent || '';
+  const field = row.dataset.node ? undefined : inspectorFields.get(issueField(row.dataset.code || '') || '');
+  if (row.dataset.node) {
+    canvas.reveal(selectedId);
+    scrollNearest(layersList, rowOf(layersList, selectedId));
+  } else if (field) {
+    openDock('right');
+    field.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    field.focus({ preventScroll: true });
+    flash(field);
+  }
+  status(t('Selected {0}: {1}', [row.dataset.node ? currentNode().name : currentPage().name, message]));
+}
 async function auditSite(): Promise<void> {
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
   openDialog('audit');
@@ -1854,25 +1879,27 @@ async function auditSite(): Promise<void> {
     description.append(element('span'), element('small'));
     row.append(element('span', 'audit-severity'), description, button('Select', undefined, () => {
       const id = row.dataset.node;
-      const page = state().site.pages.find(page => page.id === row.dataset.page || !!id && descendants(page.root).has(id));
+      const page = state().site.pages.find(page => page.id === row.dataset.page || !!id && descendants(page.root).has(id)) ?? (issueField(row.dataset.code || '') ? currentPage() : undefined);
       if (page) {
         pageId = page.id;
         selectedId = id && state().site.nodes[id] ? id : page.root;
         if (!id) setInspector('page');
         closeDialog();
         update(state());
+        showIssue(row);
       }
     }));
     return row;
   }, (row, issue) => {
     row.dataset.node = issue.node || '';
     row.dataset.page = issue.page || '';
+    row.dataset.code = issue.code;
     text(row.children[0] as HTMLElement, issue.severity);
     const formPage = issue.code === 'forms.local-address' ? state().site.pages.find(page => page.id === issue.page)?.name : undefined;
     if (formPage !== undefined) label(row.children[1].children[0] as HTMLElement, LOCAL_FORM_KEY, [formPage]);
     else text(row.children[1].children[0] as HTMLElement, issue.message);
     text(row.children[1].children[1] as HTMLElement, `${issue.code}${issue.node ? ' · ' + issue.node : issue.page ? ' · ' + issue.page : ''}`);
-    (row.children[2] as HTMLButtonElement).hidden = !issue.node && !issue.page;
+    (row.children[2] as HTMLButtonElement).hidden = !issue.node && !issue.page && !issueField(issue.code);
   });
 }
 function updateCms(): void {
@@ -2156,9 +2183,10 @@ registerCommands([
   { id: 'file.new', label: 'New site...', menu: 'File', run: () => openDialog('new') },
   { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
   { id: 'file.import', label: 'Import .fweb or .fpub file...', menu: 'File', run: () => importer.click() },
+  { id: 'file.import-html', label: 'Import HTML...', menu: 'File', run: () => { openDock('left'); setSidebar('library'); libraryPanel.showTab('import'); }, enabled: ready },
   { id: 'file.save', label: 'Save', menu: 'File', keys: ['Mod+S'], global: true, group: 1, run: saveProject, enabled: ready },
   { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },
-  { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: ready },
+  { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: () => ready() && !isBusy(exportButton) },
   { id: 'file.send-formpublisher', label: 'Send to FormPublisher', menu: 'File', group: 2, run: sendToFormPublisher, enabled: ready },
   { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
   { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
