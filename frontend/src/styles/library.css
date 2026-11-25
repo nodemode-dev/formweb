@@ -84,6 +84,7 @@
 .fw-lib-site-item { display: flex; flex-direction: column; gap: var(--space-1); padding: var(--space-2); border: 1px solid var(--line-1); border-radius: var(--radius-md); background: var(--surface-1); }
 .fw-lib-site-item > [hidden] { display: none; }
 .fw-lib-site-route { color: var(--accent-text); font-family: var(--font-mono); font-size: var(--fs-10); overflow-wrap: anywhere; }
-.fw-lib-site-modes { flex-wrap: nowrap; margin-bottom: var(--space-1); }
-.fw-lib-site-modes .fw-seg-btn { flex: 1 1 0; min-width: 0; padding: 0 var(--space-1); overflow: hidden; text-overflow: ellipsis; }
+.fw-lib-site-modes { flex-direction: column; flex-wrap: nowrap; margin-bottom: var(--space-1); }
+.fw-lib-site-modes .fw-seg-btn { flex: none; width: 100%; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+.fw-lib-site-modes .fw-seg-btn:disabled { color: var(--text-muted); cursor: default; }
 .fw-lib-import .fw-lib-site-open { align-self: flex-start; }
