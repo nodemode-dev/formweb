@@ -2836,4 +2836,12 @@ export default [
   "Háttér beállítva. Az oldal szövege most {0}, hogy olvasható maradjon.",
   "Háttér beállítva. Az oldal szövege ismét sötét, hogy olvasható maradjon.",
   "Ez a webhely már használja a --page-background tokent erre: {0}, ezért nem lehet a webhely háttere. Nevezd át ezt a tokent, hogy hátteret adhass a webhelynek.",
+  "Elrendezés körvonalainak megjelenítése",
+  "{0} elé",
+  "{0} belsejébe, a végére",
+  "{0} belsejébe",
+  "A helyén marad",
+  "Tipp: a kijelölt elemet húzással mozgathatja; érintőképernyőn előbb tartsa lenyomva. Az elem az elrendezés által megengedett helyekre illeszkedik.",
+  "Az elrendezés körvonalai be vannak kapcsolva: a kijelölt elem körüli tárolók és rácssávjaik körvonalat kapnak.",
+  "Az elrendezés körvonalai ki vannak kapcsolva.",
 ] as readonly string[];

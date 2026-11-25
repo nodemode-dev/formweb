@@ -2836,4 +2836,12 @@ export default [
   "Arrière-plan appliqué. Le texte de la page est maintenant {0} pour rester lisible.",
   "Arrière-plan appliqué. Le texte de la page est de nouveau sombre pour rester lisible.",
   "Ce site utilise déjà --page-background pour {0}, il ne peut donc pas être l’arrière-plan du site. Renommez ce token pour donner un arrière-plan au site.",
+  "Afficher les contours de mise en page",
+  "Avant {0}",
+  "Dans {0}, à la fin",
+  "Dans {0}",
+  "Reste à sa place",
+  "Astuce : faites glisser un élément sélectionné pour le déplacer ; sur un écran tactile, maintenez-le d’abord appuyé. Il s’aligne sur les emplacements que permet la mise en page.",
+  "Les contours de mise en page sont activés : les conteneurs autour de l’élément sélectionné et les pistes de leur grille sont tracés.",
+  "Les contours de mise en page sont désactivés.",
 ] as readonly string[];

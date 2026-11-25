@@ -2836,4 +2836,12 @@ export default [
   "Latar belakang diatur. Teks halaman kini {0} agar tetap mudah dibaca.",
   "Latar belakang diatur. Teks halaman kembali gelap agar tetap mudah dibaca.",
   "Situs ini sudah memakai --page-background untuk {0}, jadi token itu tidak bisa menjadi latar belakang situs. Ganti nama token itu untuk memberi situs latar belakang.",
+  "Tampilkan garis tata letak",
+  "Sebelum {0}",
+  "Di dalam {0}, di akhir",
+  "Di dalam {0}",
+  "Tetap di tempatnya",
+  "Tips: seret elemen yang dipilih untuk memindahkannya; di layar sentuh, tahan dulu. Elemen menempel ke tempat yang diizinkan tata letak.",
+  "Garis tata letak aktif: kontainer di sekitar elemen yang dipilih dan jalur grid-nya diberi garis.",
+  "Garis tata letak nonaktif.",
 ] as readonly string[];

@@ -2836,4 +2836,12 @@ export default [
   "Pozadí nastaveno. Text stránky je teď {0}, aby zůstal čitelný.",
   "Pozadí nastaveno. Text stránky je zase tmavý, aby zůstal čitelný.",
   "Tento web už používá --page-background pro {0}, takže nemůže být pozadím webu. Přejmenujte tento token, abyste webu dali pozadí.",
+  "Zobrazit obrysy rozvržení",
+  "Před {0}",
+  "Uvnitř {0}, na konci",
+  "Uvnitř {0}",
+  "Zůstane na místě",
+  "Tip: vybraný prvek přesunete přetažením; na dotykové obrazovce ho nejdřív podržte. Přichytí se k místům, která rozvržení dovoluje.",
+  "Obrysy rozvržení jsou zapnuté: kontejnery kolem vybraného prvku a stopy jejich mřížky jsou obtažené.",
+  "Obrysy rozvržení jsou vypnuté.",
 ] as readonly string[];

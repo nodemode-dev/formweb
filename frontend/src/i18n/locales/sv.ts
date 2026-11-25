@@ -2836,4 +2836,12 @@ export default [
   "Bakgrunden är satt. Sidans text är nu {0} så att den förblir läsbar.",
   "Bakgrunden är satt. Sidans text är mörk igen så att den förblir läsbar.",
   "Den här webbplatsen använder redan --page-background för {0}, så den kan inte vara webbplatsbakgrunden. Byt namn på den token för att ge webbplatsen en bakgrund.",
+  "Visa layoutkonturer",
+  "Före {0}",
+  "Inuti {0}, sist",
+  "Inuti {0}",
+  "Stannar där det är",
+  "Tips: dra ett markerat element för att flytta det; på en pekskärm håller du först kvar fingret på det. Det fäster vid de platser som layouten tillåter.",
+  "Layoutkonturer är på: behållarna runt det markerade elementet och deras rutnätsspår får en kontur.",
+  "Layoutkonturer är av.",
 ] as readonly string[];

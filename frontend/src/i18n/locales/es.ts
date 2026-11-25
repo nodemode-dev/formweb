@@ -2836,4 +2836,12 @@ export default [
   "Fondo aplicado. El texto de la página ahora es {0} para que siga siendo legible.",
   "Fondo aplicado. El texto de la página vuelve a ser oscuro para que siga siendo legible.",
   "Este sitio ya usa --page-background para {0}, así que no puede ser el fondo del sitio. Cambia el nombre de ese token para darle un fondo al sitio.",
+  "Mostrar contornos del diseño",
+  "Antes de {0}",
+  "Dentro de {0}, al final",
+  "Dentro de {0}",
+  "Se queda donde está",
+  "Consejo: arrastra un elemento seleccionado para moverlo; en una pantalla táctil, mantenlo pulsado primero. Se ajusta a los lugares que permite el diseño.",
+  "Los contornos del diseño están activados: se marcan los contenedores alrededor del elemento seleccionado y las pistas de su cuadrícula.",
+  "Los contornos del diseño están desactivados.",
 ] as readonly string[];

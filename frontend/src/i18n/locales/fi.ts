@@ -2836,4 +2836,12 @@ export default [
   "Tausta asetettu. Sivun teksti on nyt {0}, jotta se pysyy luettavana.",
   "Tausta asetettu. Sivun teksti on taas tumma, jotta se pysyy luettavana.",
   "Tämä sivusto käyttää jo tokenia --page-background arvolle {0}, joten se ei voi olla sivuston tausta. Nimeä token uudelleen, jotta voit antaa sivustolle taustan.",
+  "Näytä asettelun ääriviivat",
+  "Ennen: {0}",
+  "Sisällä: {0}, loppuun",
+  "Sisällä: {0}",
+  "Pysyy paikallaan",
+  "Vinkki: siirrä valittua elementtiä vetämällä; kosketusnäytöllä pidä sitä ensin painettuna. Se kiinnittyy kohtiin, jotka asettelu sallii.",
+  "Asettelun ääriviivat ovat käytössä: valitun elementin ympärillä olevat säiliöt ja niiden ruudukon raidat on rajattu.",
+  "Asettelun ääriviivat eivät ole käytössä.",
 ] as readonly string[];

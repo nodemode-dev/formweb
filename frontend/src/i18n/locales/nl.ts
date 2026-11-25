@@ -2836,4 +2836,12 @@ export default [
   "Achtergrond ingesteld. De tekst van de pagina is nu {0}, zodat hij leesbaar blijft.",
   "Achtergrond ingesteld. De tekst van de pagina is weer donker, zodat hij leesbaar blijft.",
   "Deze site gebruikt --page-background al voor {0}, dus het kan niet de site-achtergrond zijn. Geef dat token een andere naam om de site een achtergrond te geven.",
+  "Lay-outcontouren tonen",
+  "Vóór {0}",
+  "In {0}, aan het eind",
+  "In {0}",
+  "Blijft waar het is",
+  "Tip: sleep een geselecteerd element om het te verplaatsen; houd het op een aanraakscherm eerst ingedrukt. Het klikt vast op de plekken die de lay-out toestaat.",
+  "Lay-outcontouren staan aan: de containers rond het geselecteerde element en hun rastersporen krijgen een contour.",
+  "Lay-outcontouren staan uit.",
 ] as readonly string[];

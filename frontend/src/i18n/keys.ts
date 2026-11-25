@@ -2836,4 +2836,12 @@ export const KEYS: readonly string[] = [
   "Background set. The page text is now {0} so it stays readable on it.",
   "Background set. The page text is dark again so it stays readable on it.",
   "This site already uses --page-background for {0}, so it cannot be the site background. Rename that token to give the site a background.",
+  "Show layout outlines",
+  "Before {0}",
+  "Inside {0}, at the end",
+  "Inside {0}",
+  "Stays where it is",
+  "Tip: drag a selected element to move it; on a touch screen, hold it first. It snaps to the places the layout allows.",
+  "Layout outlines are on: the containers around the selected element and their grid tracks are outlined.",
+  "Layout outlines are off.",
 ];

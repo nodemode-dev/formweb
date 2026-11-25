@@ -2836,4 +2836,12 @@ export default [
   "Đã đặt nền. Chữ trên trang giờ là {0} để vẫn dễ đọc.",
   "Đã đặt nền. Chữ trên trang đã tối trở lại để vẫn dễ đọc.",
   "Trang web này đã dùng --page-background cho {0}, nên nó không thể là nền trang web. Đổi tên token đó để đặt nền cho trang web.",
+  "Hiện đường viền bố cục",
+  "Trước {0}",
+  "Bên trong {0}, ở cuối",
+  "Bên trong {0}",
+  "Giữ nguyên vị trí",
+  "Mẹo: kéo một phần tử đã chọn để di chuyển nó; trên màn hình cảm ứng, hãy giữ nó trước. Phần tử sẽ bám vào những vị trí bố cục cho phép.",
+  "Đường viền bố cục đang bật: các vùng chứa quanh phần tử đã chọn và các rãnh lưới của chúng được viền.",
+  "Đường viền bố cục đang tắt.",
 ] as readonly string[];

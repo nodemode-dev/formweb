@@ -2836,4 +2836,12 @@ export default [
   "Fundo definido. O texto da página agora é {0} para continuar legível.",
   "Fundo definido. O texto da página voltou a ser escuro para continuar legível.",
   "Este site já usa --page-background para {0}, então ele não pode ser o fundo do site. Renomeie esse token para dar um fundo ao site.",
+  "Mostrar contornos do layout",
+  "Antes de {0}",
+  "Dentro de {0}, no final",
+  "Dentro de {0}",
+  "Fica onde está",
+  "Dica: arraste um elemento selecionado para movê-lo; em uma tela sensível ao toque, mantenha-o pressionado primeiro. Ele se encaixa nos lugares que o layout permite.",
+  "Os contornos do layout estão ativados: os contêineres em volta do elemento selecionado e as faixas da grade deles ficam contornados.",
+  "Os contornos do layout estão desativados.",
 ] as readonly string[];

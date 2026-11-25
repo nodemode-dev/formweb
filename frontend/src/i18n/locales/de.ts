@@ -2836,4 +2836,12 @@ export default [
   "Hintergrund gesetzt. Der Seitentext ist jetzt {0}, damit er darauf lesbar bleibt.",
   "Hintergrund gesetzt. Der Seitentext ist wieder dunkel, damit er darauf lesbar bleibt.",
   "Diese Website verwendet --page-background bereits für {0}, daher kann es nicht der Website-Hintergrund sein. Benenne dieses Token um, um der Website einen Hintergrund zu geben.",
+  "Layout-Umrisse anzeigen",
+  "Vor {0}",
+  "In {0}, am Ende",
+  "In {0}",
+  "Bleibt, wo es ist",
+  "Tipp: Ziehe ein ausgewähltes Element, um es zu verschieben; auf einem Touchscreen halte es zuerst gedrückt. Es rastet an den Stellen ein, die das Layout erlaubt.",
+  "Layout-Umrisse sind an: Die Container um das ausgewählte Element und ihre Rasterspuren werden umrandet.",
+  "Layout-Umrisse sind aus.",
 ] as readonly string[];

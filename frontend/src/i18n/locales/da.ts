@@ -2836,4 +2836,12 @@ export default [
   "Baggrunden er sat. Sidens tekst er nu {0}, så den forbliver læselig.",
   "Baggrunden er sat. Sidens tekst er mørk igen, så den forbliver læselig.",
   "Dette site bruger allerede --page-background til {0}, så det kan ikke være sitebaggrunden. Omdøb det token for at give sitet en baggrund.",
+  "Vis layoutkonturer",
+  "Før {0}",
+  "Inde i {0}, til sidst",
+  "Inde i {0}",
+  "Bliver, hvor det er",
+  "Tip: træk et markeret element for at flytte det; på en touchskærm skal du holde det først. Det fastgøres til de steder, layoutet tillader.",
+  "Layoutkonturer er slået til: containerne omkring det markerede element og deres gitterspor får en kontur.",
+  "Layoutkonturer er slået fra.",
 ] as readonly string[];

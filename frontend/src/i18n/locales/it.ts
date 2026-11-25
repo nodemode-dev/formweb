@@ -2836,4 +2836,12 @@ export default [
   "Sfondo impostato. Il testo della pagina ora è {0} per restare leggibile.",
   "Sfondo impostato. Il testo della pagina torna scuro per restare leggibile.",
   "Questo sito usa già --page-background per {0}, quindi non può essere lo sfondo del sito. Rinomina quel token per dare uno sfondo al sito.",
+  "Mostra contorni del layout",
+  "Prima di {0}",
+  "Dentro {0}, alla fine",
+  "Dentro {0}",
+  "Resta dov’è",
+  "Suggerimento: trascina un elemento selezionato per spostarlo; su uno schermo touch, prima tienilo premuto. Si aggancia ai punti consentiti dal layout.",
+  "I contorni del layout sono attivi: i contenitori attorno all’elemento selezionato e le tracce della loro griglia sono evidenziati.",
+  "I contorni del layout sono disattivati.",
 ] as readonly string[];

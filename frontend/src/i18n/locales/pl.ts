@@ -2836,4 +2836,12 @@ export default [
   "Ustawiono tło. Tekst strony ma teraz kolor {0}, aby pozostał czytelny.",
   "Ustawiono tło. Tekst strony znów jest ciemny, aby pozostał czytelny.",
   "Ta witryna używa już --page-background do {0}, więc nie może on być tłem witryny. Zmień nazwę tego tokenu, aby nadać witrynie tło.",
+  "Pokaż kontury układu",
+  "Przed {0}",
+  "Wewnątrz {0}, na końcu",
+  "Wewnątrz {0}",
+  "Zostaje na miejscu",
+  "Wskazówka: przeciągnij zaznaczony element, aby go przenieść; na ekranie dotykowym najpierw go przytrzymaj. Przyciąga się do miejsc, na które pozwala układ.",
+  "Kontury układu są włączone: kontenery wokół zaznaczonego elementu i ścieżki ich siatki są obrysowane.",
+  "Kontury układu są wyłączone.",
 ] as readonly string[];

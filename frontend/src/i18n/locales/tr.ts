@@ -2836,4 +2836,12 @@ export default [
   "Arka plan ayarlandı. Sayfa metni okunaklı kalması için artık {0}.",
   "Arka plan ayarlandı. Sayfa metni okunaklı kalması için yeniden koyu.",
   "Bu site --page-background belirtecini zaten {0} için kullanıyor, bu yüzden site arka planı olamaz. Siteye arka plan vermek için o belirtecin adını değiştirin.",
+  "Düzen ana hatlarını göster",
+  "{0} öğesinden önce",
+  "{0} içinde, sonda",
+  "{0} içinde",
+  "Yerinde kalır",
+  "İpucu: seçili bir öğeyi taşımak için sürükleyin; dokunmatik ekranda önce basılı tutun. Öğe, düzenin izin verdiği yerlere yapışır.",
+  "Düzen ana hatları açık: seçili öğenin çevresindeki kapsayıcılar ve ızgara izleri çerçevelenir.",
+  "Düzen ana hatları kapalı.",
 ] as readonly string[];
