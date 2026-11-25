@@ -11,6 +11,7 @@ from .engine import EngineError
 from .store import now
 
 RUNTIME_TOKEN = re.compile(r'[A-Za-z0-9_-]{32,64}')
+PRIVATE_FILES = ('site.formweb.json', 'asset-access.json')
 
 
 class Releases:
@@ -40,6 +41,20 @@ class Releases:
             return None
         row = self.store.db.execute('SELECT slug,version FROM release_runtime WHERE digest=?', (hashlib.sha256(token.encode()).hexdigest(),)).fetchone()
         return {'slug': row['slug'], 'version': row['version'], 'token': token} if row else None
+
+    def runtime_reads(self, token, path):
+        """Whether a request for path in /published/ or /sites/ carries that publication's own runtime token."""
+        release = self.runtime_release(token)
+        match = re.fullmatch(r'/published/([^/]+)/([^/]+)/(.*)|/sites/([^/]+)/(.*)', path)
+        if not release or not match:
+            return False
+        if match.group(1) is not None:
+            slug, version, rest = match.group(1), match.group(2), match.group(3)
+        else:
+            slug, rest = match.group(4), match.group(5)
+            row = self.store.db.execute('SELECT version FROM active_releases WHERE slug=?', (slug,)).fetchone()
+            version = row['version'] if row else None
+        return (slug, version) == (release['slug'], release['version']) and rest not in PRIVATE_FILES
 
     def remember(self, slug, version):
         self.store.db.execute('INSERT INTO release_projects VALUES(?,?,?)', (slug, version, self.studio.access.project_key()))

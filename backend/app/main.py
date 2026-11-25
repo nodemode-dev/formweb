@@ -69,7 +69,9 @@ class LocalAccess:
         site_space = path.startswith(SITE_SPACE)
         site_form = bool(re.fullmatch(r'/published/[^/]+/[^/]+/api/forms/[^/]+/[^/]+', path))
         site_file = scope['method'] in ('GET', 'HEAD', 'OPTIONS') and bool(re.fullmatch(r'/(?:published/[^/]+/[^/]+|sites/[^/]+)/(?:assets/.+|search-index\.json|site\.webmanifest)', path))
-        site_page = origin == 'null' and (site_file or site_form)
+        site_read = scope['method'] in ('GET', 'HEAD') and site_space and studio.releases.runtime_reads(headers.get('x-formweb-runtime', ''), path)
+        site_preflight = scope['method'] == 'OPTIONS' and site_space
+        site_page = origin == 'null' and (site_file or site_form or site_read or site_preflight)
         verified_release = release is not None
         query = parse_qs(scope.get('query_string', b'').decode(errors='replace'))
         preview_token = preview_match.group(1) if preview_match else headers.get('x-formweb-preview') or query.get('previewToken', [''])[0]
@@ -109,7 +111,7 @@ class LocalAccess:
             cors = {'access-control-allow-origin': origin, 'access-control-allow-credentials': 'true', 'vary': 'Origin'} if origin in ORIGINS else None
             return await JSONResponse({'detail': str(error)}, status_code=error.status, headers=cors)(scope, receive, send)
         if origin == 'null' and (verified_preview or verified_release or site_page) and scope['method'] == 'OPTIONS':
-            return await Response(status_code=204, headers={'Access-Control-Allow-Origin': 'null', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-FormWeb-Preview, X-FormWeb-Visitor, X-FormWeb-Consent', 'Vary': 'Origin'})(scope, receive, send)
+            return await Response(status_code=204, headers={'Access-Control-Allow-Origin': 'null', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-FormWeb-Preview, X-FormWeb-Visitor, X-FormWeb-Consent, X-FormWeb-Runtime', 'Vary': 'Origin'})(scope, receive, send)
         scope['formweb.identity'] = identity
         context_token = actor.set(identity)
         async def guarded_send(message):
@@ -117,11 +119,13 @@ class LocalAccess:
                 message['headers'] = list(message.get('headers', [])) + [(b'x-content-type-options', b'nosniff')]
                 if not any(key.lower() == b'referrer-policy' for key, _ in message['headers']):
                     message['headers'].append((b'referrer-policy', b'no-referrer'))
+                if site_read:
+                    message['headers'] = [(key, value) for key, value in message['headers'] if key.lower() != b'cache-control'] + [(b'cache-control', b'private, no-store')]
                 if origin == 'null' and (verified_preview or verified_release or site_page):
                     message['headers'] = [(key, value) for key, value in message['headers'] if key.lower() != b'access-control-allow-credentials']
-                    message['headers'].extend([(b'access-control-allow-origin', b'null'), (b'vary', b'Origin')])
+                    message['headers'].extend([(b'access-control-allow-origin', b'null'), (b'vary', b'Origin, X-FormWeb-Runtime' if site_space else b'Origin')])
                 elif site_space:
-                    message['headers'].append((b'vary', b'Origin'))
+                    message['headers'].append((b'vary', b'Origin, X-FormWeb-Runtime'))
                 if preview_match and not any(key.lower() == b'content-security-policy' for key, _ in message['headers']):
                     message['headers'].append((b'content-security-policy', b'sandbox allow-scripts allow-forms allow-popups'))
                 if site_space and not any(key.lower() == b'content-security-policy' for key, _ in message['headers']):
