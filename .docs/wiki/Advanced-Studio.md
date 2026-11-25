@@ -47,6 +47,6 @@ Site.extensions uses validated namespaced groups. extension.set replaces one gro
 
 A stored extension establishes configuration. Compiled Preview/export establishes consuming output. Browser actions and service consequences need their own observations. Provider fixtures establish transport and do not prove live vendor hosting, domain/TLS/CDN readiness or completed payment processing.
 
-The design canvas remains a script-free editing surface. Advanced CMS templates/queries/widgets are inspected in compiled Preview. Final visitor-cookie behavior should be exercised in a top-level local publication. Protected member content requires an authorizing backend; public gated export is rejected.
+The design canvas remains a script-free editing surface. Advanced CMS templates/queries/widgets are inspected in compiled Preview. Final member-session behavior (sessions held in page memory and carried between pages by single-use tickets, see Publishing) should be exercised in a local publication. Protected member content requires an authorizing backend; public gated export is rejected.
 
 See the [manual](../../docs/MANUAL.md), [agent quick start](../../docs/AGENT_QUICKSTART.md), [publishing contracts](Publishing.md) and [verification record](Verification.md). Workflow examples are specifications; root records actual executions and their limits separately.
