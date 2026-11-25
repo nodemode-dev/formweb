@@ -192,6 +192,7 @@ class Site:
         self.used: set = set()
         self.room = CSS_CAP
         self.overflow = False
+        self.loops: set = set()
         self.assets ={path: '/api/assets/' + hashlib.sha256(body).hexdigest() + '.' + STORED.get(_ext(path), _ext(path))
                        for path, (kind, body) in files.items() if kind == 'asset'}
 
@@ -242,16 +243,19 @@ class Site:
             self.overflow = True
         return not self.overflow
 
-    def css(self, text: str, base: str, missing: set, depth: int = 0, seen: frozenset = frozenset()) -> str:
+    def css(self, text: str, base: str, missing: set, depth: int = 0, seen: frozenset = frozenset(), source: str = '') -> str:
         def imported(match):
             found = self.locate(match.group(1), base)
-            if found is None or found[0] not in self.files or self.files[found[0]][0] != 'style' or depth >= 4 or found[0] in seen:
+            if found is not None and found[0] in seen:
+                self.loops.add((source, found[0]))
+                return ''
+            if found is None or found[0] not in self.files or self.files[found[0]][0] != 'style' or depth >= 4:
                 if found is not None and found[0] not in self.files:
                     missing.add(match.group(1))
                 return match.group(0)
             if not self.take(found[0]):
                 return ''
-            body = self.css(_text(self.files[found[0]][1]), posixpath.dirname(found[0]), missing, depth + 1, seen | {found[0]})
+            body = self.css(_text(self.files[found[0]][1]), posixpath.dirname(found[0]), missing, depth + 1, seen | {found[0]}, found[0])
             media = match.group(2).strip()
             return f'@media {media} {{\n{body}\n}}' if media else body
 
@@ -303,7 +307,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     missing: set = set()
     warnings: list[str] = []
     outside_scripts, outside_styles = set(), set()
-    site.used, site.room, site.overflow = set(), CSS_CAP, False
+    site.used, site.room, site.overflow, site.loops = set(), CSS_CAP, False, set()
     title = TITLE.search(document)
     title = re.sub(r'\s+', ' ', unescape(title.group(1))).strip()[:200] if title else ''
     description = ''
@@ -350,7 +354,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
                 inlined.add(whole)
                 if not site.take(found[0]):
                     continue
-                css =site.css(_text(site.files[found[0]][1]), posixpath.dirname(found[0]), missing, 0, frozenset({found[0]}))
+                css =site.css(_text(site.files[found[0]][1]), posixpath.dirname(found[0]), missing, 0, frozenset({found[0]}), found[0])
                 media = attrs.get('media', '').strip()
                 styles.append(f'@media {media} {{\n{css}\n}}' if media and media.lower() != 'all' else css)
             else:
@@ -368,6 +372,9 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
         if found:
             shown = sorted(found)
             warnings.append(f'{len(shown)} {noun}{"s" if len(shown) != 1 else ""}{where} {"is" if len(shown) == 1 else "are"} not brought along: {", ".join(shown[:5])}{"..." if len(shown) > 5 else ""}.')
+    if site.loops:
+        shown = [f'{_show(a)} imports itself' if a == b else f'{_show(a)} imports {_show(b)} again' for a, b in sorted(site.loops)]
+        warnings.append(f'The stylesheets import each other in a loop ({"; ".join(shown[:5])}{"; ..." if len(shown) > 5 else ""}). The @import that closes the loop was left out, so each stylesheet arrives once.')
     markup = STRIP.sub('', body)
     markup = LINK.sub(lambda tag: '' if tag.group(0) in inlined else tag.group(0), markup)
     markup = site.markup(markup, base, missing).strip()

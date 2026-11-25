@@ -60,7 +60,7 @@ This brings in a static site built elsewhere: every HTML file becomes a page.
 Each imported page holds one code section, the same kind Import HTML makes:
 
 - the page's body as HTML;
-- its `<style>` blocks and its local stylesheets as CSS;
+- its `<style>` blocks and its local stylesheets as CSS, including the stylesheets they `@import` (stylesheets that import each other in a loop arrive once each, and the review names the loop);
 - its first script, local or inline, as JavaScript.
 
 Pictures (PNG, JPEG, GIF, WebP, SVG), MP4 and WebM videos and WOFF2 fonts go into your site's assets, and every reference to them is updated. Links between the imported pages are changed to their new addresses; links to other websites stay as they are. The page's title and meta description fill its search fields (Page tab, Search & metadata).
