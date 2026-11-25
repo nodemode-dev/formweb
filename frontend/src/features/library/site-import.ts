@@ -3,6 +3,8 @@ import { element, keyed, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import { label, t } from '../../i18n';
 import type { LibraryHooks, SitePage, SiteResult, SiteReview, SiteSkip } from './types';
+import { bringChoice } from './bring';
+import { state } from '../../api';
 
 type Mode = 'new' | 'replace';
 
@@ -30,6 +32,7 @@ export class SiteImport {
   private note = element('p', 'fw-lib-note');
   private go = element('button', 'fw-lib-insert primary');
   private goLabel = element('span');
+  private bring = bringChoice('Bring pages in as');
   private current: File | null = null;
   private plan: SiteReview | null = null;
   private mode: Mode = 'new';
@@ -69,12 +72,13 @@ export class SiteImport {
       element('h3', 'fw-lib-subhead', t('Review')), this.counts,
       element('h3', 'fw-lib-subhead', t('Pages')), this.pages,
       element('h3', 'fw-lib-subhead', t('Add them')), this.modes, this.modeNote,
+      this.bring.element,
       this.skippedHead, this.skipped
     );
     scroller.append(
       backButton,
       element('h3', 'fw-lib-subhead', t('Import site from zip')),
-      element('p', 'fw-lib-help', t('Brings a static site made elsewhere into this site. Every HTML file in the zip becomes a page holding one code section with its HTML, its local stylesheets and its first script, editable as code; it runs in Preview and in exports, not on the canvas. Pictures and WOFF2 fonts go to your assets, links between the pages follow their new addresses, and outside links stay as they are.')),
+      element('p', 'fw-lib-help', t('Brings a static site made elsewhere into this site: every HTML file in the zip becomes a page, with its stylesheets, pictures and WOFF2 fonts. After the review you choose whether the pages arrive as editable elements or as code sections. Links between the pages follow their new addresses, and outside links stay as they are.')),
       this.pick, this.file, this.chosen, this.review
     );
     this.note.setAttribute('role', 'status');
@@ -101,6 +105,7 @@ export class SiteImport {
   private setBusy(on: boolean): void {
     this.busy = on;
     this.pick.disabled = on;
+    this.bring.disable(on);
     this.element.setAttribute('aria-busy', String(on));
     this.paint();
   }
@@ -191,12 +196,19 @@ export class SiteImport {
     try {
       const query = `?mode=${this.mode}&revision=${encodeURIComponent(String(plan.revision))}`;
       const result = await libraryMutate<SiteResult>('/api/library/import-site' + query, this.current);
-      const message = result.message || t('Site imported.');
+      let message = result.message || t('Site imported.');
+      this.done = true;
+      this.current = null;
+      if (this.bring.value() === 'elements' && result.pages?.length) {
+        this.say(t('Converting...'), false);
+        const site = state().site;
+        const hosts = result.pages.flatMap(id => site.nodes[site.pages.find(page => page.id === id)?.root || '']?.children || []);
+        try { message += ' ' + (await this.hooks.convert(hosts)).message; }
+        catch (error) { message += ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
+      }
       this.say(message, false);
       this.hooks.notify(message, false);
       if (result.pages?.[0]) this.hooks.openPage(result.pages[0]);
-      this.done = true;
-      this.current = null;
     } catch (error) {
       this.say(error instanceof Error ? error.message : String(error), true);
     } finally {

@@ -89,3 +89,8 @@
 .fw-lib-site-modes .fw-seg-btn { flex: none; width: 100%; text-align: left; overflow: hidden; text-overflow: ellipsis; }
 .fw-lib-site-modes .fw-seg-btn:disabled { color: var(--text-muted); cursor: default; }
 .fw-lib-import .fw-lib-site-open { align-self: flex-start; }
+.fw-lib-bring-list { display: flex; flex-direction: column; gap: var(--space-1); margin-bottom: var(--space-2); }
+.fw-lib-bring-option { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-1); height: auto; padding: var(--space-2); border: 1px solid var(--line-1); border-radius: var(--radius-md); background: var(--surface-1); color: var(--text-primary); text-align: left; white-space: normal; cursor: pointer; }
+.fw-lib-bring-option.is-on { border-color: var(--accent-line); background: var(--accent-wash); }
+.fw-lib-bring-option:disabled { cursor: default; }
+.fw-lib-bring-option .fw-lib-row-meta { color: var(--text-secondary); }
