@@ -339,6 +339,44 @@ export function scopeSelector(list: string, prefix: string): string {
   }).filter(Boolean).join(', ');
 }
 
+export type Layer = { kind: 'picture'; src: string; fit: string; position: string } | { kind: 'paint'; image: string };
+
+function layersOf(value: string): string[] {
+  const out: string[] = [];
+  let depth = 0, start = 0;
+  for (let i = 0; i < value.length; i++) {
+    if (value[i] === '(') depth++;
+    else if (value[i] === ')') depth--;
+    else if (value[i] === ',' && depth === 0) { out.push(value.slice(start, i).trim()); start = i + 1; }
+  }
+  out.push(value.slice(start).trim());
+  return out;
+}
+
+/**
+ * A measured background that holds url() pictures, as layers placed behind the element's content, bottom first: each
+ * picture from the site's own assets sized cover or contain becomes a picture layer, and gradients between them
+ * become paint layers. Other pictures are counted as dropped. No url() picture at all gives no layers.
+ */
+export function backdropLayers(image: string, size: string, position: string, origin: string): { layers: Layer[]; dropped: number } {
+  const images = layersOf(image).filter(item => item && item !== 'none');
+  if (!images.some(item => /^url\(/i.test(item))) return { layers: [], dropped: 0 };
+  const sizes = layersOf(size), places = layersOf(position);
+  const layers: Layer[] = [];
+  let dropped = 0, paint: string[] = [];
+  for (let i = images.length - 1; i >= 0; i--) {
+    const found = /^url\(\s*(['"]?)(.*)\1\s*\)$/i.exec(images[i]);
+    if (!found) { paint.unshift(images[i]); continue; }
+    if (paint.length) { layers.push({ kind: 'paint', image: paint.join(', ') }); paint = []; }
+    const src = found[2].startsWith(`${origin}/api/assets/`) ? found[2].slice(origin.length) : found[2];
+    const fit = sizes[i % sizes.length] || '';
+    if (!/^\/api\/assets\/[\w.-]+$/.test(src) || !/^(cover|contain)$/.test(fit)) { dropped++; continue; }
+    layers.push({ kind: 'picture', src, fit, position: places[i % places.length] || '50% 50%' });
+  }
+  if (paint.length) layers.push({ kind: 'paint', image: paint.join(', ') });
+  return { layers, dropped };
+}
+
 /** What to take out of the batch when the engine refuses it, read from the engine's message; null when unknown. */
 export function refusal(message: string): { style?: string; attr?: string; node?: string; url?: boolean } | null {
   let found = /unsafe (?:responsive )?style ([\w-]+)(?: on ([\w-]+))?/.exec(message);

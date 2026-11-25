@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { arrange, carryAttrs, compact, emptyOutcome, mapTag, pickFonts, reduceStyles, refusal, scopeSelector, summary, type Run } from '../../../src/features/convert/rules';
+import { arrange, backdropLayers, carryAttrs, compact, emptyOutcome, mapTag, pickFonts, reduceStyles, refusal, scopeSelector, summary, type Run } from '../../../src/features/convert/rules';
 import { t, tn } from '../../../src/i18n';
 
 const attrs = (pairs: Record<string, string>) => Object.entries(pairs).map(([name, value]) => ({ name, value }));
@@ -158,5 +158,24 @@ describe('fonts that come with the page', () => {
   it('a face no element uses, or one from another website, is not added', () => {
     expect(pickFonts([{ family: 'Unused', src: `url(/api/assets/${sha}.woff2)`, weight: '400', style: 'normal' }], new Set(['brand sans']), {})).toEqual({});
     expect(pickFonts([{ family: 'Remote', src: 'url(https://fonts.example/r.woff2)', weight: '400', style: 'normal' }], new Set(['remote']), {})).toEqual({});
+  });
+});
+
+describe('background pictures behind the content', () => {
+  const origin = 'http://127.0.0.1:8000';
+  const hero = `${origin}/api/assets/${'b'.repeat(64)}.jpg`;
+
+  it('a cover picture from the site assets under a dark gradient becomes the picture with the gradient above it', () => {
+    const found = backdropLayers(`linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url("${hero}")`, 'auto, cover', '0% 0%, 50% 50%', origin);
+    expect(found).toEqual({ dropped: 0, layers: [
+      { kind: 'picture', src: `/api/assets/${'b'.repeat(64)}.jpg`, fit: 'cover', position: '50% 50%' },
+      { kind: 'paint', image: 'linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45))' }
+    ] });
+  });
+
+  it('a picture from another website or a tiled pattern is dropped and counted, and a plain gradient is left to the styles', () => {
+    expect(backdropLayers('url("https://cdn.example/a.jpg")', 'cover', '50% 50%', origin)).toEqual({ layers: [], dropped: 1 });
+    expect(backdropLayers(`url("${hero}")`, 'auto', '0% 0%', origin)).toEqual({ layers: [], dropped: 1 });
+    expect(backdropLayers('linear-gradient(red, blue)', 'auto', '0% 0%', origin)).toEqual({ layers: [], dropped: 0 });
   });
 });

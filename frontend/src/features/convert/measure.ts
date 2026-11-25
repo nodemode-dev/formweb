@@ -1,4 +1,4 @@
-import { arrange, carryAttrs, compact, emptyOutcome, families, layerName, LINK_FORCED, mapTag, pickFonts, READ, reduceStyles, ROOT_FORCED, scopeSelector, VOID_TAGS, type FontFaceRule, type Outcome, type Part, type Run, type SiteFont } from './rules';
+import { arrange, backdropLayers, carryAttrs, compact, emptyOutcome, families, layerName, LINK_FORCED, mapTag, pickFonts, READ, reduceStyles, ROOT_FORCED, scopeSelector, VOID_TAGS, type FontFaceRule, type Outcome, type Part, type Run, type SiteFont } from './rules';
 import { t } from '../../i18n';
 
 export interface Source { html: string; css: string; js: string; module: boolean }
@@ -227,6 +227,19 @@ export async function measure(source: Source, options: Options, only?: number): 
       return styles;
     };
 
+    /** Background pictures from the site's assets go behind the element's content as a picture element. */
+    const backdrop = (measured: Record<string, string>, id: string, styles: Record<string, string>): void => {
+      const found = backdropLayers(measured['background-image'] || '', measured['background-size'] || '', measured['background-position'] || '', options.origin);
+      if (!found.layers.length) return;
+      if (!found.dropped && found.layers.some(layer => layer.kind === 'picture')) outcome.pictures--;
+      if (!styles.position && measured.position === 'static') styles.position = 'relative';
+      styles.isolation = 'isolate';
+      const behind = { position: 'absolute', inset: '0', 'z-index': '-1' };
+      for (const layer of found.layers) nodes.push(layer.kind === 'picture'
+        ? { id: fresh(), parent: id, tag: 'img', name: 'Background picture', text: '', attrs: { src: layer.src, alt: '' }, styles: { ...behind, width: '100%', height: '100%', 'max-width': 'none', 'object-fit': layer.fit, 'object-position': layer.position } }
+        : { id: fresh(), parent: id, tag: 'div', name: 'Background', text: '', attrs: {}, styles: { ...behind, 'background-image': layer.image } });
+    };
+
     const rootMeasured = read(view, original.doc.body, READ);
     if (/^rgba\(0, 0, 0, 0\)$|^transparent$/.test(rootMeasured['background-color'])) {
       const page = read(view, original.doc.documentElement, ['background-color']);
@@ -306,9 +319,11 @@ export async function measure(source: Source, options: Options, only?: number): 
         const twin = bare.doc.createElement(rule.tag);
         for (const [name, value] of Object.entries(carried.attrs)) if (!['href', 'src', 'srcset', 'poster', 'action', 'id'].includes(name)) twin.setAttribute(name, value);
         bareEl.append(twin);
-        const styles = settle(read(view, el, READ), twin, rule.tag === 'a' ? LINK_FORCED : []);
+        const measured = read(view, el, READ);
+        const styles = settle(measured, twin, rule.tag === 'a' ? LINK_FORCED : []);
         const id = fresh();
         nodes.push({ id, parent, tag: rule.tag, name: layerName(rule.tag, { id: from.id, className: from.getAttribute('class') || '' }), text: '', attrs: carried.attrs, styles });
+        if (!VOID_TAGS.has(rule.tag)) backdrop(measured, id, styles);
         children(el, twin, id, rule.tag, depth + 1);
       }
     };
@@ -316,7 +331,7 @@ export async function measure(source: Source, options: Options, only?: number): 
     const ROOT = '';
     const top = only === undefined ? original.doc.body : original.doc.body.children[only];
     if (!top) throw new Error(t('That part of the page is no longer there.'));
-    if (only === undefined) children(original.doc.body, bare.doc.body, ROOT, 'body', 1);
+    if (only === undefined) { backdrop(rootMeasured, ROOT, rootStyles); children(original.doc.body, bare.doc.body, ROOT, 'body', 1); }
     else {
       const from = sources.get(top.getAttribute('data-fwk-i') || '') || top;
       const rule = mapTag(from.tagName);
@@ -324,9 +339,11 @@ export async function measure(source: Source, options: Options, only?: number): 
       const carried = carryAttrs(rule.tag, Array.from(from.attributes).filter(attr => attr.name !== 'data-fwk-i'));
       const twin = bare.doc.createElement(rule.tag);
       bare.doc.body.append(twin);
-      const styles = settle(read(view, top, READ), twin, rule.tag === 'a' ? LINK_FORCED : []);
+      const measured = read(view, top, READ);
+      const styles = settle(measured, twin, rule.tag === 'a' ? LINK_FORCED : []);
       const id = fresh();
       nodes.push({ id, parent: ROOT, tag: rule.tag, name: layerName(rule.tag, { id: from.id, className: from.getAttribute('class') || '' }), text: '', attrs: carried.attrs, styles });
+      if (!VOID_TAGS.has(rule.tag)) backdrop(measured, id, styles);
       children(top, twin, id, rule.tag, 2);
     }
     if (only === undefined && options.keepScript && source.js.trim()) {
