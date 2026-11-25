@@ -41,7 +41,8 @@ import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
-import { canvasClick, installSelection, layerClick, pageClick, paintLayerRow, paintPageRow, selectedIds } from './features/selection';
+import { canvasClick, installSelection, isMulti, layerClick, pageClick, paintLayerRow, paintPageRow, selectedIds } from './features/selection';
+import { anyCopyable, anyRemovable, canStep, copySelected, cutSelected, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, stepSelected } from './features/selection-actions';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
@@ -2088,8 +2089,9 @@ function insideLinkedInstance(id: string): boolean {
   for (let at: SiteNode | undefined = nodes[id]; at; at = parentOf(at.id)) if (at.componentId || at.componentSourceId) return true;
   return false;
 }
-const canDuplicate = (): boolean => notRoot() && !!scrim.hidden && !insideLinkedInstance(currentNode().id);
+const canDuplicate = (): boolean => isMulti() ? anyCopyable() : notRoot() && !!scrim.hidden && !insideLinkedInstance(currentNode().id);
 async function duplicateSelection(): Promise<void> {
+  if (isMulti()) return duplicateSelected();
   const original = currentNode().id;
   const next = await command('node.duplicate', { id: original });
   const parent = Object.values(next.site.nodes).find(node => node.children.includes(original));
@@ -2124,11 +2126,13 @@ const notEmbeddedNote = (count: number): string => count === 1 ? ' ' + t('One as
 const behindClipNote = (count: number): string => count === 1 ? ' ' + t('One asset is too large to embed and will only paste on this computer.') : count > 1 ? ' ' + t('{0} assets are too large to embed and will only paste on this computer.', [count]) : '';
 const copyNote = (copied: { behind: number; left: number }): string[] => [behindClipNote(copied.behind), notEmbeddedNote(copied.left)];
 async function copySelection(): Promise<void> {
+  if (isMulti()) return copySelected();
   if (!canDuplicate()) return;
   const copied = await copyFragment();
   status(['Element copied.', ...copyNote(copied)]);
 }
 async function cutSelection(): Promise<void> {
+  if (isMulti()) return cutSelected();
   if (!canDuplicate()) return;
   const id = currentNode().id;
   const copied = await copyFragment();
@@ -2136,6 +2140,7 @@ async function cutSelection(): Promise<void> {
   status(['Element cut. Paste puts it back; Undo restores it in place.', ...copyNote(copied)]);
 }
 async function pasteFragmentText(raw: string): Promise<boolean> {
+  if (await pasteMany(raw)) return true;
   const fragment = parseFragment(raw);
   if (!fragment) return false;
   const before = new Set(Object.keys(state().site.nodes));
@@ -2165,7 +2170,7 @@ document.addEventListener('paste', event => {
   if (!scrim.hidden || !ready() || event.defaultPrevented) return;
   if ((event.target as Element | null)?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"], .xterm, .ft-dock, .ft-consent, .ft-tour, [data-no-keys]')) return;
   const raw = event.clipboardData?.getData('text/plain') || '';
-  if (!parseFragment(raw)) return;
+  if (!parseFragment(raw) && !holdsMany(raw)) return;
   event.preventDefault();
   void run(() => pasteFragmentText(raw));
 });
@@ -2211,7 +2216,7 @@ registerCommands([
     if (!forced && again && commandRegistry.enabled(again)) { runCommand('vector.transform-again'); return; }
     return canDuplicate() ? duplicateSelection() : undefined;
   }, enabled: () => canDuplicate() || (() => { const again = commandRegistry.get('vector.transform-again'); return !!again && commandRegistry.enabled(again); })() },
-  { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete'], group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: () => notRoot() && !!scrim.hidden },
+  { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete'], group: 1, run: () => isMulti() ? removeSelected() : command('node.remove', { id: currentNode().id }), enabled: () => (isMulti() ? anyRemovable() : notRoot()) && !!scrim.hidden },
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
   { id: 'image.edit-in-formvis', label: 'Edit in formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await request<{ message: string }>('/api/formvis/send', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\/[0-9a-f]{64}\.(png|jpg|gif|webp)/.test(currentNode().attrs.src || '') },
   { id: 'image.update-from-formvis', label: 'Update from formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await mutateVia<{ message: string; state: EditorState }>('/api/formvis/update', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' },
@@ -2235,8 +2240,8 @@ registerCommands([
   { id: 'site.favicon-clear', label: 'Clear site icons', menu: 'Page', group: 3, run: async () => { await command('site.update', { patch: { settings: { favicon: '', faviconDark: '' } } }); status('Site icons cleared.'); }, enabled: () => !!lastState?.site.settings?.favicon || !!lastState?.site.settings?.faviconDark },
   { id: 'page.delete', label: 'Delete page...', menu: 'Page', group: 1, run: () => openDialog('delete-page'), enabled: () => !!lastState && lastState.site.pages.length > 1 },
   { id: 'page.audit', label: 'Run SEO and accessibility audit', menu: 'Page', group: 2, run: auditSite, enabled: ready },
-  { id: 'arrange.up', label: 'Move layer up', menu: 'Arrange', run: () => moveLayer(-1), enabled: notRoot },
-  { id: 'arrange.down', label: 'Move layer down', menu: 'Arrange', run: () => moveLayer(1), enabled: notRoot },
+  { id: 'arrange.up', label: 'Move layer up', menu: 'Arrange', run: () => isMulti() ? stepSelected(-1) : moveLayer(-1), enabled: () => isMulti() ? canStep(-1) : notRoot() },
+  { id: 'arrange.down', label: 'Move layer down', menu: 'Arrange', run: () => isMulti() ? stepSelected(1) : moveLayer(1), enabled: () => isMulti() ? canStep(1) : notRoot() },
   { id: 'cms.collections', label: 'Collections...', menu: 'CMS', run: () => openDialog('cms'), enabled: ready },
   { id: 'cms.locales', label: 'Localization...', menu: 'CMS', run: () => openDialog('locales'), enabled: ready },
   { id: 'view.desktop', label: 'Desktop', menu: 'View', run: () => setBreakpoint('desktop'), checked: () => breakpoint === 'desktop', enabled: ready },
@@ -2278,6 +2283,7 @@ registerCommands([
 const panel = installPanel({ state, ready, command, commands, overlay, pagesList, layersList, run, status, pageId: () => pageId, openPage, selected: () => selectedId, select: selectNode, pageSettings: () => { openDock('right'); setInspector('page'); }, elementSettings: () => { openDock('right'); setInspector('design'); }, refresh: () => update(state()), gates: async () => { await loadPasswordGates(true); return passwordGates; } });
 registerCommands(panel.commands);
 installSelection({ site: () => state().site, primary: () => selectedId, select: selectNode, pageId: () => pageId, openPage, pageRoot: () => currentPage().root, refresh: () => update(state()), layersList, pagesList });
+installSelectionActions({ idle: () => !!scrim.hidden, pageRoot: () => currentPage().root, status, copyNote });
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
