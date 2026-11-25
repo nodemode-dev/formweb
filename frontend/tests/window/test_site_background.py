@@ -116,3 +116,34 @@ def test_text_put_in_a_new_section_is_readable(blank, background):
     heading = blank.canvas.locator(f'[data-fw-id="{hello["root"]}"] section h2')
     expect(heading).to_have_text("A new perspective")
     assert heading.evaluate(CONTRAST) >= 4.5
+
+
+def test_white_text_on_a_dark_page_is_shown_in_a_notice_whose_undo_keeps_the_background(blank):
+    site = blank.site()["site"]
+    hello = root_of(blank, site, "Hello")
+    group(blank).get_by_text("This page only", exact=True).click()
+    field = blank.page.locator('[data-field="page.background"]')
+    field.fill("#14161b")
+    field.press("Enter")
+    blank.until(lambda s: s["nodes"][hello["root"]]["styles"].get("color") == "#ffffff", "the white text")
+    notice = blank.page.locator(".fw-notice")
+    expect(notice).to_contain_text("Background set. The page text is now #ffffff so it stays readable on it.")
+    notice.get_by_role("button", name="Undo").click()
+    site = blank.until(lambda s: "color" not in s["nodes"][hello["root"]]["styles"], "the text color to go back")
+    assert site["nodes"][hello["root"]]["styles"]["background"] == "#14161b"
+    expect(notice).to_be_hidden()
+
+
+def test_a_new_page_that_starts_on_a_dark_site_background_has_readable_text(blank):
+    group(blank)
+    color = blank.page.locator('[data-field="page.site-background"]')
+    color.fill("#14161b")
+    color.press("Enter")
+    blank.until(lambda s: "page-background" in s["tokens"], "the site background token")
+    later = add_page(blank, "Later")
+    blank.layer_row(later["root"]).click()
+    blank.page.get_by_role("button", name="Insert element").click()
+    blank.page.locator('.fw-flyout[aria-label="Quick insert"] .fw-flyout-row', has_text=re.compile(r"^Heading$")).first.click()
+    heading = blank.canvas.locator(f'[data-fw-id="{later["root"]}"] h2')
+    expect(heading).to_have_text("A new perspective")
+    assert heading.evaluate(CONTRAST) >= 4.5
