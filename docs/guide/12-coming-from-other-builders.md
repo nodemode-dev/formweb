@@ -21,16 +21,16 @@ If you have built sites with Dreamweaver or a similar visual editor, most of wha
 | Checking links and accessibility | **Audit**. See [Audit](07-audit.md). |
 | Publishing to a server (FTP and the like) | FormWeb does not upload to your server. **Export** gives you a zip of plain HTML, CSS and JavaScript to upload with your host's tools, or **File > Send to FormPublisher** hands the site to FormPublisher. See [Export and publishing](08-export-and-publish.md). |
 | The site definition, or local site folder | The project. **File > Save** keeps it in FormWeb (open it again from Home), and **File > Download .fweb project** gives you one file to back up or move. |
-| Bringing an existing site in | **File > Import site from zip...** turns each HTML page into a page with its code kept as a code section. |
+| Bringing an existing site in | **File > Import site from zip...** turns each HTML page into a page, as **Editable elements** (headings, paragraphs, pictures, tables and boxes you click, retype, restyle and drag) or as **Code sections** (an exact copy edited as code). Pages built with tables, inline styles and `<font>` tags convert too. |
 | History and undo | **Edit > Undo** and **Edit > Redo** (Ctrl+Z, Ctrl+Shift+Z). Each step, even a large one such as an import, is one undo step. |
 
 ## What works differently
 
 - **You do not edit HTML files.** FormWeb keeps your site as a structured document and writes the HTML, CSS and JavaScript only when you export or preview. That is why the same site can be previewed at any width, exported many times, and edited by more than one tool at once.
-- **Layout follows the page's flow.** Elements sit one after another in their container, or in a row or grid you set in the Layout section. You move them by dragging into a new place in that order, not to a free x and y position. Nothing ends up overlapping by accident.
+- **Layout follows the page's flow.** Elements sit one after another in their container, or in a row or grid you set in the Layout section. You move them by dragging into a new place in that order, not to a free x and y position. Nothing ends up overlapping by accident. That order is the grid elements snap to: while you drag, the canvas outlines the containers and marks every place in them, and **View > Show layout outlines** shows the same structure at any time ([Working on the canvas](03-canvas.md#snap-and-grid-in-a-page-layout)).
 - **The canvas is for editing.** It does not run scripts, forms or animations. Use Preview to try those.
 - **The canvas never changes breakpoint on its own.** You choose Desktop, Tablet or Mobile; resizing only changes the frame. See [The right panel](04-right-panel.md).
-- **Code you bring in stays code.** Imported HTML becomes a code section that runs in Preview and in the export. To edit it visually, rebuild that part with FormWeb's own elements.
+- **Code you bring in can become elements.** Import HTML and Import site from zip bring pages in as editable elements by default; a page kept as a code section can be converted later with **Convert to editable elements...** (right-click it). The conversion keeps the desktop look; responsive rules, hover effects, tiled or outside background pictures and floats are not carried over (an imported hero photo becomes a picture behind the content), and scripts and inline frames stay as small code sections. See [Importing](09-importing.md#convert-a-code-section-to-elements).
 
 ## Where to go next
 

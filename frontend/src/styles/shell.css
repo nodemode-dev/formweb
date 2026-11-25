@@ -66,6 +66,7 @@
 .fw-home-action { display: flex; align-items: center; justify-content: flex-start; gap: 8px; height: 38px; min-height: 0; padding: 0 6px 0 12px; border: 1px solid var(--line-1); border-radius: 9px; background: var(--surface-1); color: var(--text-primary); font: inherit; font-size: 13px; white-space: nowrap; cursor: pointer; }
 .fw-home-action.is-primary { border-color: var(--cta-bg); background: var(--cta-bg); color: var(--cta-text); box-shadow: 0 0 22px rgba(255, 255, 255, 0.09); }
 .fw-home-action.is-ghost { background: transparent; }
+a.fw-home-action { text-decoration: none; }
 .fw-home-action:hover { filter: brightness(1.08); }
 .fw-home-action.is-primary:hover { filter: brightness(0.96); background: var(--cta-bg); }
 .fw-home-action:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
@@ -271,9 +272,14 @@
 .fw-reset { margin-left: auto; min-height: 0; height: 18px; padding: 0 6px; border: 0; border-radius: var(--radius-pill); background: var(--accent-tint-strong); color: var(--accent-color); font-size: var(--fs-10); }
 .fw-reset:hover { background: var(--accent-soft); }
 .fw-reset[hidden] { display: none; }
-.fw-crumbs { display: flex; align-items: center; gap: 2px; min-width: 0; overflow: hidden; margin-left: var(--space-2); }
-.fw-crumb { min-height: 0; height: 24px; padding: 0 6px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-muted); font-size: var(--fs-11); white-space: nowrap; flex: 0 1 auto; min-width: 0; overflow: hidden; text-align: start; text-overflow: ellipsis; }
-.fw-crumb + .fw-crumb::before { content: "/"; margin-right: 6px; color: var(--line-3); }
+.fw-crumbs { display: flex; flex: 1 1 0; align-items: center; gap: 2px; min-width: 0; overflow: hidden; margin-left: var(--space-2); }
+.fw-crumb { min-height: 0; height: 24px; padding: 0 6px; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-muted); font-size: var(--fs-11); white-space: nowrap; flex: none; min-width: 0; max-width: 12em; overflow: hidden; text-align: start; text-overflow: ellipsis; }
+.fw-crumb[hidden] { display: none; }
+.fw-crumb:not([hidden]) ~ .fw-crumb::before { content: "/"; margin-right: 6px; color: var(--line-3); }
+.fw-crumb.is-current { max-width: 20em; }
+.fw-crumbs.is-tight > .fw-crumb.is-current { flex: 0 1 auto; min-width: 5em; }
+.fw-crumb-more { display: inline-flex; align-items: center; gap: 0; overflow: visible; }
+.fw-crumb-more .icon { width: 14px; height: 14px; }
 .fw-crumb:hover { color: var(--text-primary); background: var(--bg-hover); }
 .fw-crumb.is-current { color: var(--accent-color); font-weight: 600; }
 @media (max-width: 1280px) {

@@ -174,19 +174,44 @@
     });
   }
   const integration = config.integrations || {};
-  const endpoint = integration.endpointBase?.replace(/\/$/, '');
-  const parameters = new URLSearchParams(Object.entries(config.context || {}).filter(([, value]) => value !== null && value !== ''));
+  const runtimeToken = config.context?.runtimeToken || '';
+  const release = new URL(config.routePrefix || './', location.href);
+  const nativeFetch = window.fetch.bind(window);
+  const ownRelease = address => { try { const target = new URL(address, location.href); return target.origin === release.origin && target.pathname.startsWith(release.pathname); } catch { return false; } };
+  if (runtimeToken) window.fetch = (input, init) => {
+    const method = String(init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+    if (!['GET', 'HEAD'].includes(method) || !ownRelease(input instanceof Request ? input.url : String(input))) return nativeFetch(input, init);
+    const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
+    headers.set('X-FormWeb-Runtime', runtimeToken);
+    return nativeFetch(input, { ...init, headers, credentials: 'omit' });
+  };
+  const endpoint = runtimeToken ? release.origin : integration.endpointBase?.replace(/\/$/, '');
+  const capability = config.context?.previewToken || runtimeToken;
+  const parameters = new URLSearchParams(Object.entries(config.context || {}).filter(([key, value]) => key !== 'runtimeToken' && value !== null && value !== ''));
   let visitorToken = '', consentToken = '';
-  const request = async (path, body) => {
+  const call = async (path, body) => {
     if (!endpoint) throw Error('Configure a backend provider endpoint first.');
     const headers = body === undefined ? {} : { 'Content-Type': 'application/json' };
-    if (config.context?.previewToken) { if (visitorToken) headers['X-FormWeb-Visitor'] = visitorToken; if (consentToken) headers['X-FormWeb-Consent'] = consentToken; }
-    const response = await fetch(`${endpoint}/api/runtime${path}?${parameters}`, { method: body === undefined ? 'GET' : 'POST', credentials: config.context?.previewToken ? 'omit' : 'include', headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    if (capability) { if (visitorToken) headers['X-FormWeb-Visitor'] = visitorToken; if (consentToken) headers['X-FormWeb-Consent'] = consentToken; }
+    const route = runtimeToken ? `/api/runtime/~${runtimeToken}` : '/api/runtime';
+    const response = await nativeFetch(`${endpoint}${route}${path}?${parameters}`, { method: body === undefined ? 'GET' : 'POST', credentials: capability ? 'omit' : 'include', headers, body: body === undefined ? undefined : JSON.stringify(body) });
     const result = await response.json();
     if (!response.ok) throw Error(typeof result.detail === 'string' ? result.detail : 'Backend provider unavailable.');
-    if (config.context?.previewToken) { if (result.visitorToken) visitorToken = result.visitorToken; if (result.consentToken) consentToken = result.consentToken; if (path === '/member/logout') visitorToken = ''; if (path === '/consent' && body?.analytics === false) consentToken = ''; }
+    if (capability) { if (result.visitorToken) visitorToken = result.visitorToken; if (result.consentToken) consentToken = result.consentToken; if (path === '/member/logout') visitorToken = ''; if (path === '/consent' && body?.analytics === false) consentToken = ''; }
     return result;
   };
+  const handoff = runtimeToken ? query.get('fw-member') : null;
+  if (handoff) { const clean = new URL(location.href); clean.searchParams.delete('fw-member'); try { history.replaceState(history.state, '', clean.href); } catch {} }
+  const resumed = handoff ? call('/member/resume', { ticket: handoff }).catch(() => {}) : Promise.resolve();
+  const request = async (path, body) => { await resumed; return call(path, body); };
+  if (runtimeToken) document.addEventListener('click', event => {
+    const link = event.target.closest?.('a[href]');
+    if (!visitorToken || !link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || (link.target && link.target !== '_self') || link.hasAttribute('download')) return;
+    const target = new URL(link.href, location.href);
+    if (!ownRelease(target.href) || target.pathname.slice(release.pathname.length).startsWith('assets/') || (target.pathname === location.pathname && target.hash)) return;
+    event.preventDefault();
+    call('/member/handoff', {}).then(result => { target.searchParams.set('fw-member', result.ticket); location.assign(target.href); }, () => location.assign(target.href));
+  });
   const cartKey = `formweb-cart:${config.context?.site}`;
   const getCart = () => { try { return JSON.parse(readSession(cartKey) || '[]'); } catch { return []; } };
   const setCart = lines => { writeSession(cartKey, JSON.stringify(lines)); dispatchEvent(new Event('formweb-cart')); };

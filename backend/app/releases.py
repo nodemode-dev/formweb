@@ -1,3 +1,6 @@
+import base64
+import hashlib
+import hmac
 import json
 import re
 import secrets
@@ -9,6 +12,9 @@ from .config import DATA_DIR, PUBLIC_BASE
 from .engine import EngineError
 from .store import now
 
+RUNTIME_TOKEN = re.compile(r'[A-Za-z0-9_-]{32,64}')
+PRIVATE_FILES = ('site.formweb.json', 'asset-access.json')
+
 
 class Releases:
     def __init__(self, studio):
@@ -19,8 +25,60 @@ class Releases:
         CREATE TABLE IF NOT EXISTS active_releases (slug TEXT PRIMARY KEY,version TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS release_history (seq INTEGER PRIMARY KEY AUTOINCREMENT,slug TEXT NOT NULL,old_version TEXT,new_version TEXT NOT NULL,operation TEXT NOT NULL,created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS previews (token TEXT PRIMARY KEY,site TEXT NOT NULL,revision INTEGER NOT NULL,expires REAL NOT NULL);
+        CREATE TABLE IF NOT EXISTS release_runtime (digest TEXT PRIMARY KEY,slug TEXT NOT NULL,version TEXT NOT NULL,UNIQUE(slug,version));
         ''')
         self.store.db.commit()
+        secret = self.store.get_meta('releaseAccessSecret')
+        if not secret:
+            secret = secrets.token_hex(32)
+            self.store.set_meta('releaseAccessSecret', secret)
+        self.secret = bytes.fromhex(secret)
+
+    @staticmethod
+    def runtime_token():
+        return secrets.token_urlsafe(32)
+
+    def remember_runtime(self, slug, version, token):
+        self.store.db.execute('INSERT INTO release_runtime VALUES(?,?,?)', (hashlib.sha256(token.encode()).hexdigest(), slug, version))
+        self.store.db.commit()
+
+    def runtime_release(self, token):
+        """The publication a runtime token belongs to, or None. The token is the only way an opaque-origin page reaches its own runtime routes."""
+        if not isinstance(token, str) or not RUNTIME_TOKEN.fullmatch(token):
+            return None
+        row = self.store.db.execute('SELECT slug,version FROM release_runtime WHERE digest=?', (hashlib.sha256(token.encode()).hexdigest(),)).fetchone()
+        return {'slug': row['slug'], 'version': row['version'], 'token': token} if row else None
+
+    def runtime_reads(self, token, path):
+        """Whether a request for path in /published/ or /sites/ carries that publication's own runtime token."""
+        release = self.runtime_release(token)
+        match = re.fullmatch(r'/published/([^/]+)/([^/]+)/(.*)|/sites/([^/]+)/(.*)', path)
+        if not release or not match:
+            return False
+        if match.group(1) is not None:
+            slug, version, rest = match.group(1), match.group(2), match.group(3)
+        else:
+            slug, rest = match.group(4), match.group(5)
+            row = self.store.db.execute('SELECT version FROM active_releases WHERE slug=?', (slug,)).fetchone()
+            version = row['version'] if row else None
+        return (slug, version) == (release['slug'], release['version']) and rest not in PRIVATE_FILES
+
+    def asset_grant(self, slug, version, page_id, lifetime=43200):
+        """A key for a protected page's own assets, written into that page when it is served to someone allowed to see it."""
+        expires = str(int(time.time() + lifetime))
+        page = base64.urlsafe_b64encode(page_id.encode()).decode().rstrip('=')
+        mac = hmac.new(self.secret, f'{slug}\0{version}\0{page}\0{expires}'.encode(), 'sha256').hexdigest()[:32]
+        return f'{page}.{expires}.{mac}'
+
+    def granted_page(self, slug, version, key):
+        try:
+            page, expires, mac = key.split('.')
+            expected = hmac.new(self.secret, f'{slug}\0{version}\0{page}\0{expires}'.encode(), 'sha256').hexdigest()[:32]
+            if not hmac.compare_digest(mac, expected) or int(expires) < time.time():
+                return None
+            return base64.urlsafe_b64decode(page + '=' * (-len(page) % 4)).decode()
+        except (ValueError, UnicodeDecodeError):
+            return None
 
     def remember(self, slug, version):
         self.store.db.execute('INSERT INTO release_projects VALUES(?,?,?)', (slug, version, self.studio.access.project_key()))

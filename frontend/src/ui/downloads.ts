@@ -26,11 +26,22 @@ function whenSaved(url: string): Promise<Saved | null> {
   });
 }
 
+type ShellError = { code?: unknown; file?: unknown; folder?: unknown; detail?: unknown };
+
+export function shellSentence(error: unknown): string {
+  const answer = (error && typeof error === 'object' ? error : {}) as ShellError;
+  const text = (value: unknown): string => typeof value === 'string' ? value : '';
+  if (answer.code === 'download.none') return t('No file has been saved yet.');
+  if (answer.code === 'download.moved') return t('{0} is no longer in {1}. It was moved or deleted.', [text(answer.file), text(answer.folder)]);
+  if (answer.code === 'download.reveal-failed') return t('The file manager could not show {0}: {1}', [text(answer.file), text(answer.detail)]);
+  return error instanceof Error ? error.message : typeof error === 'string' ? error : t('The file manager could not show the file.');
+}
+
 async function showInFolder(notice: Notice): Promise<void> {
   try {
     await core()?.invoke('reveal_download');
   } catch (error) {
-    notice.show(error instanceof Error ? error.message : String(error), { error: true });
+    notice.show(shellSentence(error), { error: true });
   }
 }
 

@@ -145,6 +145,46 @@ fn unsafe_styles_are_refused_on_a_node_and_on_a_breakpoint() {
 }
 
 #[test]
+fn image_functions_that_name_a_picture_by_address_are_refused_like_url_and_those_without_one_are_kept() {
+    let refused_values = [
+        ("background-image", "image-set(\"https://outside.example/x.png\" 1x)"),
+        ("background-image", "image-set('https://outside.example/x.png' 1x, linear-gradient(red, blue) 2x)"),
+        ("background-image", "-webkit-image-set(\"//outside.example/x.png\" 1x)"),
+        ("background-image", "IMAGE-SET(\"/assets/local.png\" 1x)"),
+        ("background", "red image(\"https://outside.example/x.png\")"),
+        ("mask-image", "cross-fade(\"https://outside.example/a.png\", linear-gradient(red, blue), 50%)"),
+        ("background-image", "-webkit-cross-fade(linear-gradient(red, blue), \"x.png\", 50%)"),
+        ("background-image", "image-set(image(\"https://outside.example/x.png\") 1x)"),
+        ("background-image", "element(#hero)"),
+        ("background-image", "-moz-element(#hero)"),
+    ];
+    for (name, value) in refused_values {
+        let mut site = starter("Fixture");
+        site.nodes.get_mut("hero").unwrap().styles.insert(name.into(), value.into());
+        assert!(validate(&site).is_err(), "{name}: {value} must be refused");
+        let mut site = starter("Fixture");
+        site.nodes.get_mut("hero").unwrap().breakpoints.get_mut("mobile").unwrap().insert(name.into(), value.into());
+        assert!(validate(&site).is_err(), "{name}: {value} must be refused at a breakpoint");
+        let mut site = starter("Fixture");
+        site.tokens.insert("--picture".into(), value.into());
+        assert!(validate(&site).is_err(), "token {value} must be refused");
+    }
+    let accepted_values = [
+        ("background-image", "image-set(linear-gradient(red, blue) 1x, radial-gradient(white, black) 2x)"),
+        ("background-image", "cross-fade(linear-gradient(red, blue), radial-gradient(white, black), 50%)"),
+        ("background-image", "image(red)"),
+        ("background-image", "linear-gradient(red, blue)"),
+        ("font-family", "\"Inter\", sans-serif"),
+        ("content", "\"image-set\""),
+    ];
+    for (name, value) in accepted_values {
+        let mut site = starter("Fixture");
+        site.nodes.get_mut("hero").unwrap().styles.insert(name.into(), value.into());
+        assert!(validate(&site).is_ok(), "{name}: {value} must be kept: {:?}", validate(&site));
+    }
+}
+
+#[test]
 fn a_breakpoint_override_for_an_unknown_breakpoint_is_refused() {
     let mut site = starter("Fixture");
     site.nodes.get_mut("hero").unwrap().breakpoints.insert("watch".into(), [("gap".to_string(), "1px".to_string())].into());

@@ -28,7 +28,7 @@ def test_the_width_note_is_readable_beside_a_long_selection_path_and_moves_nothi
     page = coldmere.page
     coldmere.layer_row("hm-t3-t").scroll_into_view_if_needed()
     coldmere.layer_row("hm-t3-t").click()
-    crumbs = page.locator(".fw-crumbs .fw-crumb")
+    crumbs = page.locator(".fw-crumbs .fw-crumb:not(.fw-crumb-more)")
     expect(crumbs).to_have_count(8)
     hint = page.locator(".viewport-hint")
     others = page.locator(".stage-head > :not(.viewport-hint):not(.fw-crumbs)")
@@ -54,6 +54,33 @@ def test_the_width_note_is_readable_beside_a_long_selection_path_and_moves_nothi
     expect(hint).to_be_hidden()
     assert boxes(others) == fixed
     assert page.locator(".stage-head").bounding_box() == head
+
+
+@pytest.mark.parametrize("width", [1100, 1440])
+def test_a_deep_selection_path_folds_its_middle_into_a_menu_and_no_crumbs_overlap(coldmere, width):
+    page = coldmere.page
+    page.set_viewport_size({"width": width, "height": 900})
+    coldmere.layer_row("hm-t3-t").scroll_into_view_if_needed()
+    coldmere.layer_row("hm-t3-t").click()
+    current = page.locator('.fw-crumbs .fw-crumb[aria-current="true"]')
+    expect(current).to_have_text("Hm t3 t")
+    shown = boxes(page.locator(".fw-crumbs > .fw-crumb:visible"))
+    assert len(shown) >= 2
+    for left, right in zip(shown, shown[1:]):
+        assert left[1] + left[3] <= right[1] + 0.5, f"{left} overlaps {right}"
+    trail = page.locator(".fw-crumbs").bounding_box()
+    assert shown[-1][1] + shown[-1][3] <= trail["x"] + trail["width"] + 0.5
+    assert trail["x"] + trail["width"] <= page.locator(".viewport-hint").bounding_box()["x"] + 1
+    assert current.evaluate("e => e.clientWidth >= Math.min(e.scrollWidth, 40)")
+    more = page.get_by_role("button", name="Show the hidden part of the selection path")
+    expect(more).to_be_visible()
+    more.click()
+    hidden = coldmere.menu().locator(".fw-menu-label").all_inner_texts()
+    assert hidden and set(hidden) <= {"Page", "Hm main", "Hm hero", "Hm hero in", "Hm hero copy", "Hm ticks", "Hm t3"}
+    assert "Hm hero" in hidden
+    coldmere.menu().get_by_role("menuitem", name="Hm hero", exact=True).click()
+    expect(current).to_have_text("Hm hero")
+    expect(coldmere.layer_row("hm-hero")).to_have_attribute("aria-selected", "true")
 
 
 def test_a_site_with_no_themes_reads_none_and_neither_theme_button_is_pressed(coldmere):
@@ -207,6 +234,26 @@ def test_add_page_fills_the_address_from_the_name_and_refuses_a_taken_one(coldme
     site = coldmere.until(lambda s: len(s["pages"]) == len(start["pages"]) + 1, "the new page")
     assert site["pages"][-1]["slug"] == "/our-services"
     assert site["pages"][-1]["name"] == "Services again"
+
+
+def test_add_page_refuses_an_address_another_page_has_in_capital_letters_as_the_engine_does(coldmere):
+    page = coldmere.page
+    start = coldmere.site()["site"]
+    owner = next(p["name"] for p in start["pages"] if p["slug"].strip("/") == "services")
+    page.get_by_role("button", name="Add page").click()
+    dialog = page.get_by_role("dialog", name="Add page")
+    dialog.get_by_role("textbox", name="Page name").fill("Loud services")
+    dialog.get_by_role("textbox", name="URL slug").fill("/SERVICES")
+    note = dialog.locator(".fw-page-address")
+    expect(note).to_have_class(re.compile(r"\berror\b"))
+    expect(note).to_contain_text(owner)
+    dialog.get_by_role("button", name="Add page").click()
+    expect(dialog).to_be_visible()
+    assert coldmere.site()["site"] == start
+    with pytest.raises(urllib.error.HTTPError) as refusal:
+        coldmere.command("page.add", {"name": "Loud services", "slug": "/SERVICES"})
+    assert owner in refusal.value.read().decode()
+    assert coldmere.site()["site"] == start
 
 
 @pytest.mark.parametrize("language", ["en", "de"])

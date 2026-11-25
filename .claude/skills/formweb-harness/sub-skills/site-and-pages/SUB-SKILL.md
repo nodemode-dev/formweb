@@ -35,7 +35,7 @@ Change the page list and whole-site settings safely. Pages own their root node a
 
 ## Procedure
 
-1. List existing slugs first. Choose a slug that is unique and starts with `/`; a collision or an unplanned rename breaks links the person already has.
+1. List existing slugs first. Choose a slug that is unique ignoring capital letters and starts with `/`; the engine refuses `/TWO` beside `/two` (one folder on macOS and Windows) and names the page that has it, and a collision or an unplanned rename breaks links the person already has. An audit issue `page.address-case` means an older site already has such a pair: give the named page another slug.
 2. Add or change pages one command per `edit_pages` call, or group related commands in `apply_commands` with the current `expected_revision` so they undo as one step. Re-read the returned page and root IDs; do not derive them.
 3. For `page.update`, send only the keys changing (`name`, `slug`, `seo`). Read the page first, because the editor writes `seo` as a whole object with its existing keys merged in; send title, description and noindex together to avoid dropping one.
 4. For many similar pages, put `{{column}}` tokens in a template page, then run `page.bulk` with `template` and 1 to 300 `rows` of `{slug, name?, values}`. Spot-check two generated pages for filled values rather than leftover tokens.

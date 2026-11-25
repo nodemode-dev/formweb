@@ -185,7 +185,7 @@ export function buildCms(ctx: WishlistContext): Tab[] {
       const path = newSlug.value.trim().replace(/^\/+|\/+$/g, '');
       if (!id || !path) { ctx.notify('Choose a collection page and a new path.', true); return; }
       if (!/^[A-Za-z0-9_-]+(\/[A-Za-z0-9_-]+)*$/.test(path)) { ctx.notify('Use letters, numbers, dashes and slashes in the path.', true); return; }
-      if (ctx.state().site.pages.some(page => page.slug.replace(/^\/+|\/+$/g, '') === path)) { ctx.notify('A page already uses that path.', true); return; }
+      if (ctx.state().site.pages.some(page => page.slug.replace(/^\/+|\/+$/g, '').toLowerCase() === path.toLowerCase())) { ctx.notify('A page already uses that path.', true); return; }
       void ctx.commands([{ command: 'page.duplicate', params: { id, slug: `/${path}` } }]);
       newSlug.value = '';
     }, 'wl-primary'))

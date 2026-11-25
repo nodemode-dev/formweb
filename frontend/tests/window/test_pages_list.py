@@ -2,7 +2,7 @@ import re
 
 from playwright.sync_api import expect
 
-PAGE_MENU = ["Open", "Rename", "Duplicate", "Set as home page", "Move up", "Move down", "Page settings", "Delete..."]
+PAGE_MENU = ["Open", "Preview", "Rename", "Duplicate", "Set as home page", "Move up", "Move down", "Add page...", "Page background...", "Page settings", "Delete..."]
 
 
 def menu_labels(editor):
@@ -27,6 +27,8 @@ def test_the_page_menu_opens_from_the_keyboard_and_its_keys_move_and_close(harbo
     assert menu_labels(harbour) == PAGE_MENU
     assert focused_label(harbour) == "Open"
     page.keyboard.press("ArrowDown")
+    assert focused_label(harbour) == "Preview"
+    page.keyboard.press("ArrowDown")
     assert focused_label(harbour) == "Rename"
     page.keyboard.press("End")
     assert focused_label(harbour) == "Delete..."
@@ -38,6 +40,7 @@ def test_the_page_menu_opens_from_the_keyboard_and_its_keys_move_and_close(harbo
     harbour.page_row("p-fares").focus()
     page.keyboard.press("ContextMenu")
     expect(harbour.menu()).to_be_visible()
+    page.keyboard.press("ArrowDown")
     page.keyboard.press("ArrowDown")
     page.keyboard.press("ArrowDown")
     assert focused_label(harbour) == "Duplicate"
@@ -171,3 +174,26 @@ def test_set_as_home_page_moves_the_page_to_slash_renames_the_old_address_and_re
     expect(harbour.canvas.locator('[data-fw-id="h-nav-fares"]')).not_to_have_attribute("href", re.compile(r".*"))
     harbour.undo()
     harbour.restored_to(start)
+
+
+def test_preview_in_the_page_menu_shows_that_page_as_published_even_when_another_page_is_open(harbour):
+    harbour.page_row("home").click()
+    harbour.page_row("p-fares").click(button="right")
+    harbour.menu().get_by_role("menuitem", name="Preview").click()
+    shown = harbour.page.get_by_role("dialog", name="Preview as published")
+    expect(shown).to_be_visible()
+    expect(shown.locator("select option:checked").first).to_have_text("Timetable and fares")
+
+
+def test_page_background_in_the_page_menu_opens_that_page_at_its_background_field(harbour):
+    harbour.page_row("home").click()
+    harbour.page_row("p-fares").click(button="right")
+    harbour.menu().get_by_role("menuitem", name="Page background...").click()
+    expect(harbour.page_row("p-fares")).to_have_attribute("aria-current", "page")
+    expect(harbour.page.locator('[data-field="page.background"]')).to_be_focused()
+
+
+def test_add_page_in_the_page_menu_opens_the_add_page_dialog(harbour):
+    harbour.page_row("p-fares").click(button="right")
+    harbour.menu().get_by_role("menuitem", name="Add page...").click()
+    expect(harbour.page.get_by_role("dialog", name="Add page")).to_be_visible()

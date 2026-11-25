@@ -35,6 +35,8 @@ def open_page_background(editor):
     editor.page.locator('[data-menu="Page"]').click()
     editor.page.locator('[role="menu"]:visible [data-command="page.background"]').click()
     field = editor.page.locator('[data-field="page.background"]')
+    if field.is_hidden():
+        editor.page.locator('.inspector-section[data-section="page-background"]').get_by_text("This page only", exact=True).click()
     expect(field).to_be_focused()
     return field
 
@@ -98,4 +100,38 @@ def test_apply_to_all_pages_gives_every_page_the_background_in_one_undo_step(new
     editor.page_row("home").click()
     expect(editor.canvas.locator('[data-fw-id="root"]')).to_have_css("background-color", "rgb(10, 20, 30)")
     editor.undo()
+    editor.restored_to(before)
+
+
+HARBOUR_BG = "rgb(243, 246, 247)"
+
+
+def test_a_new_page_can_start_with_the_home_page_background_and_one_undo_takes_the_page_away(harbour):
+    harbour.page_row("p-fares").click()
+    before = harbour.site()["site"]
+    harbour.page.get_by_role("button", name="Add page").click()
+    dialog = harbour.page.get_by_role("dialog", name="Add page")
+    dialog.get_by_role("textbox", name="Page name").fill("Plain")
+    start = dialog.get_by_role("combobox", name="Background")
+    expect(start.locator("option")).to_have_text(["Site background (white)", "Same as Home (home page)", "Same as Timetable and fares, the page open now"])
+    start.select_option(label="Same as Home (home page)")
+    dialog.get_by_role("button", name="Add page").click()
+    site = harbour.until(lambda s: len(s["pages"]) == len(before["pages"]) + 1, "the new page")
+    page = next(p for p in site["pages"] if p["name"] == "Plain")
+    assert site["nodes"][page["root"]]["styles"].get("background") == "var(--bg)"
+    expect(harbour.canvas.locator(f'[data-fw-id="{page["root"]}"]')).to_have_css("background-color", HARBOUR_BG)
+    harbour.undo()
+    harbour.restored_to(before)
+
+
+def test_match_another_page_gives_the_open_page_the_home_page_background_in_one_undo_step(new_page):
+    editor, page, root = new_page
+    open_page_background(editor)
+    before = editor.site()["site"]
+    editor.page.locator('.inspector-section[data-section="page-background"]').get_by_text("Same as another page...", exact=True).click()
+    editor.page.get_by_role("combobox", name="Match another page").select_option(label="Home (home page)")
+    editor.until(lambda s: s["nodes"][page["root"]]["styles"].get("background") == "var(--bg)", "the copied background")
+    expect(root).to_have_css("background-color", HARBOUR_BG)
+    expect(editor.status).to_have_text('The background and text color of "Home" are now used on "Plain".')
+    editor.page.locator('[data-cmd="edit.undo"]').first.click()
     editor.restored_to(before)

@@ -3,6 +3,7 @@ import { element, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import { labelAttr, t } from '../../i18n';
 import type { LibResult, LibraryHooks } from './types';
+import { bringChoice } from './bring';
 
 /**
  * Import HTML: paste a whole page (or pick an .html file) and optionally some CSS; the server turns it into one code
@@ -16,6 +17,7 @@ export class HtmlImport {
   private file = element('input');
   private note = element('p', 'fw-lib-note');
   private go = element('button', 'fw-lib-insert primary');
+  private bring = bringChoice('Bring it in as');
   private busy = false;
 
   constructor(private hooks: LibraryHooks, openSite: () => void) {
@@ -65,7 +67,7 @@ export class HtmlImport {
     };
     const fields = element('div', 'fw-lib-fields');
     fields.append(field(t('Section name'), this.name), field(t('HTML'), this.html), pick, this.file, field(t('Extra CSS (optional)'), this.css));
-    scroller.append(fields);
+    scroller.append(fields, this.bring.element);
     this.note.setAttribute('role', 'status');
     this.go.type = 'button';
     this.go.append(icon('plus'), element('span', '', t('Import as section')));
@@ -92,10 +94,16 @@ export class HtmlImport {
         html: this.html.value, css: this.css.value || undefined, name: this.name.value.trim() || undefined,
         parent: where.parent, index: where.index, page: where.page
       });
+      let message = result.warnings?.[0] || t('HTML section imported.');
+      let note = t('HTML section imported.');
+      if (result.root && this.bring.value() === 'elements') {
+        this.say(t('Converting...'), false);
+        try { const done = await this.hooks.convert([result.root]); message = note = done.message + ' ' + t('Undo once to get the pages back as code, twice to remove them.'); }
+        catch (error) { message = note = t('HTML section imported.') + ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
+      }
       if (result.root) this.hooks.select(result.root);
-      const message = result.warnings?.[0] || t('HTML section imported.');
       this.say(message, false);
-      this.hooks.notify(t('HTML section imported.'), false);
+      this.hooks.notify(note, false);
     } catch (error) {
       this.say(error instanceof Error ? error.message : String(error), true);
     } finally {

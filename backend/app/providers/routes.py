@@ -41,6 +41,11 @@ async def runtime_site(request):
     if not site_id:
         raise EngineError('Runtime requests require a published site identifier.', 400)
     key(site_id, 'site')
+    release = request.scope.get('formweb.release')
+    if release:
+        if (slug is not None and slug != release['slug']) or (version is not None and version != release['version']):
+            raise EngineError('This runtime token belongs to another publication.', 403)
+        slug, version = release['slug'], release['version']
     if slug is not None or version is not None:
         if not slug or not version:
             raise EngineError('Published runtime requires both slug and version.')
@@ -202,6 +207,27 @@ async def login(request: Request):
     result = response(output)
     result.set_cookie('formweb_visitor', token, httponly=True, secure=request.url.scheme == 'https', samesite='strict', path='/', max_age=43200)
     return result
+
+
+@router.post('/api/runtime/member/handoff')
+async def handoff(request: Request):
+    site = await runtime_site(request)
+    release = request.scope.get('formweb.release')
+    if not release:
+        raise EngineError('Only a local publication passes a member session between its pages.', 400)
+    return response(providers.visitor.handoff(request, site['id'], release))
+
+
+@router.post('/api/runtime/member/resume')
+async def resume(request: Request):
+    site = await runtime_site(request)
+    release = request.scope.get('formweb.release')
+    if not release:
+        raise EngineError('Only a local publication passes a member session between its pages.', 400)
+    payload = await body(request, ('ticket',), ('ticket',))
+    token, output = providers.visitor.resume(site['id'], release, payload['ticket'])
+    bind(request, 'Visitor', token)
+    return response({**output, 'visitorToken': token})
 
 
 @router.post('/api/runtime/member/logout')

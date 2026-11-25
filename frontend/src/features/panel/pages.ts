@@ -9,9 +9,9 @@ export function slugWord(text: string): string {
 }
 
 function freeSlug(site: Site, base: string, keep = ''): string {
-  const taken = new Set(site.pages.filter(page => page.id !== keep).map(page => trim(page.slug)));
-  if (!taken.has(base)) return '/' + base;
-  for (let n = 2; ; n++) if (!taken.has(`${base}-${n}`)) return `/${base}-${n}`;
+  const taken = new Set(site.pages.filter(page => page.id !== keep).map(page => trim(page.slug).toLowerCase()));
+  if (!taken.has(base.toLowerCase())) return '/' + base;
+  for (let n = 2; ; n++) if (!taken.has(`${base}-${n}`.toLowerCase())) return `/${base}-${n}`;
 }
 
 export function copyOfPage(site: Site, page: Page): { name: string; slug: string } {

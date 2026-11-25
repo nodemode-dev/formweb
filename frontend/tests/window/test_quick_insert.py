@@ -1,5 +1,7 @@
 from playwright.sync_api import expect
 
+from test_second_round import one_pixel_png
+
 
 def insert_button(editor):
     return editor.page.get_by_role("button", name="Insert element")
@@ -68,6 +70,28 @@ def test_the_last_row_opens_the_full_insert_panel(coldmere):
     last.click()
     expect(flyout(coldmere)).to_be_hidden()
     expect(coldmere.page.locator(".sidebar .fw-panel-title")).to_have_text("Insert")
+
+
+def test_the_image_row_opens_a_file_picker_and_the_chosen_picture_becomes_an_image_layer(coldmere):
+    page = coldmere.page
+    coldmere.layer_row("hm-btns").click()
+    start = coldmere.site()["site"]
+    insert_button(coldmere).click()
+    with page.expect_file_chooser(timeout=5_000) as chooser:
+        flyout(coldmere).locator(".fw-flyout-row", has_text="Image").click()
+    chooser.value.set_files(files=[{"name": "dot.png", "mimeType": "image/png", "buffer": one_pixel_png()}])
+    site = coldmere.changed_from(start)
+    added = [k for k in site["nodes"]["hm-btns"]["children"] if k not in start["nodes"]["hm-btns"]["children"]]
+    assert len(added) == 1 and site["nodes"][added[0]]["tag"] == "img"
+
+
+def test_the_video_row_opens_a_file_picker(coldmere):
+    page = coldmere.page
+    coldmere.layer_row("hm-btns").click()
+    insert_button(coldmere).click()
+    with page.expect_file_chooser(timeout=5_000) as chooser:
+        flyout(coldmere).locator(".fw-flyout-row", has_text="Video").click()
+    assert "video/mp4" in chooser.value.element.get_attribute("accept")
 
 
 def test_the_pages_plus_still_opens_add_page(coldmere):

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { closeContextMenu, menuKeyPressed, showContextMenu, type MenuEntry } from '../../../src/ui/context-menu';
+import { setLanguage } from '../../../src/i18n';
 
 let host: HTMLElement;
 let opener: HTMLButtonElement;
@@ -36,6 +37,18 @@ describe('opening the menu', () => {
   it('a separator at the start, at the end or twice in a row is not drawn', () => {
     showContextMenu([{ separator: true }, entry('open'), { separator: true }, { separator: true }, entry('delete'), { separator: true }], { x: 0, y: 0 }, { host });
     expect(host.querySelectorAll('.fw-menu-sep').length).toBe(1);
+  });
+
+  it('an entry marked raw shows a person\'s own name as written in every language, while other entries are translated', async () => {
+    await setLanguage('de');
+    try {
+      showContextMenu([{ id: 'layer', label: 'Section', raw: true, run: () => undefined }, { id: 'insert', label: 'Section', run: () => undefined }], { x: 0, y: 0 }, { host });
+      const [layer, insert] = items().map(item => item.textContent);
+      expect(layer).toBe('Section');
+      expect(insert).not.toBe('Section');
+    } finally {
+      await setLanguage('en');
+    }
   });
 
   it('the first entry that can run has focus', () => {

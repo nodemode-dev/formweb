@@ -18,7 +18,8 @@ def test_adding_a_page_at_an_address_already_in_use_is_refused_with_a_reason_and
     before = state_of(client)
     r = client.post("/api/command", json={"command": "page.add", "params": {"name": "Again", "slug": slug}})
     assert r.status_code == 400
-    assert "slug" in r.json()["detail"]
+    owner = next(p["name"] for p in before["site"]["pages"] if p["slug"].strip("/") == slug.strip("/"))
+    assert f"already the address of {owner}" in r.json()["detail"]
     after = state_of(client)
     assert after["site"] == before["site"] and after["revision"] == before["revision"]
 

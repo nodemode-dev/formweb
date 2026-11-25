@@ -35,3 +35,10 @@ def test_a_new_site_started_from_blank_has_one_empty_page(editor):
     expect(editor.page_rows()).to_have_count(1)
     expect(editor.page.locator("#fw-layers-list .layer-row")).to_have_count(1)
     expect(editor.canvas.locator(f'[data-fw-id="{site["pages"][0]["root"]}"] > *')).to_have_count(0)
+
+
+def test_the_start_screen_points_a_newcomer_to_the_user_guide(editor):
+    link = editor.page.get_by_role("link", name="New to FormWeb? Read the guide")
+    expect(link).to_be_visible()
+    expect(link).to_have_attribute("href", "https://github.com/nodemode-dev/formweb/tree/main/docs/guide")
+    expect(link).to_have_attribute("target", "_blank")

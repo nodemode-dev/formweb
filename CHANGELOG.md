@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.31.1 · 2026-11-25
+
+- Issue #36 is now covered ask by ask: the report was split into 49 separate asks, each one was checked in the app, and this release closes the last of them.
+- Page background: a site background that every page can share. Page settings offers Site background, Same as another page and This page only, new pages start with the site background, and Use the site background on all pages gives it to every page in one undo step.
+- Add page asks which background the new page starts with: the site background, the home page's, or the open page's.
+- When a dark background would leave the page text unreadable, the text turns white, and a notice says so with Undo.
+- Dragging on the canvas shows a layout grid: every place the element can land, the place it snaps to (the nearest one), a label that names that place, guide lines and gap measures.
+- View > Show layout outlines shows the containers around the selected element without dragging. A selected element shows the move cursor.
+- A card dragged over the next card in its row now lands before or after it, and goes inside it only when held over its middle.
+- Import HTML and Import site from zip can bring pages in as editable elements, the default, or as code sections. Convert to editable elements turns any code section into elements.
+- What a conversion carries over: text, pictures, links, lists, tables, forms and boxes with their desktop look, and a CSS background picture from the site's own files, which arrives as a picture behind the content. Responsive rules, hover effects, floats and before or after decorations are not carried over, and the result says to check the page at phone width in Preview. Scripts, frames and vector graphics stay as small code sections.
+- The page menu gains Preview, Add page and Page background.
+- The Start screen has New to FormWeb? Read the guide.
+- Audit Select keeps the issue in a notice while you work, with Show again to go back to it.
+- Inserted sections and other new elements start with readable, neutral styles that take their colors from the page.
+- Locally published sites: published and active site pages served by FormWeb now run in their own sandbox, apart from the editor.
+- Member sign-in, members-only pages and product and data widgets work in a local publication. A member stays signed in while following the site's own links in one tab, and is signed out after a reload.
+- Password-protected and members-only pages, their pictures and their search entries are never served without access.
+- The editable site document is no longer written into publications. Publish again any publication made before this version.
+- Addresses that differ only in capital letters are refused, and Audit points to an existing clash in an older site.
+- A long selection path above the canvas folds its middle steps into a menu.
+- Quick insert's Image and Video open the file picker straight from the click.
+- Site import no longer reports imported pictures as missing, and keeps web-font imports where browsers read them.
+- Show in folder messages are translated.
+- A design token removed while pages use it no longer lingers on the canvas.
+- The style value check refuses outside pictures written as an image set, as it refuses them written as url().
+- Automated tests at four layers: 182 engine tests, 513 service tests, 323 editor function tests, and 170 tests that drive the real editor window.
+- Known gaps: the desktop app has still run only on Linux under a virtual display; only Chromium was used for the browser checks, and Firefox and Safari were not run; touch was tried in emulation only; the new strings are machine translated; an imported page converted to elements does not reflow at phone widths until its breakpoints are set by hand; and on themed sites a filled starter button's text color is chosen from the default theme.
+
 ## 0.31.0 · 2026-11-25
 
 - The last of four releases that answer issue #36: importing a whole site, the user guide, touch and pen, the desktop app, and what writing the guide turned up.

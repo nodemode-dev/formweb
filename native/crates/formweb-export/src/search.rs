@@ -34,11 +34,12 @@ fn walk(site: &Site, locale: &str, id: &str, texts: &mut Vec<String>, headings: 
     for child in &node.children { walk(site, locale, child, texts, headings, seen, chrome); }
 }
 
-pub fn index(site: &Site, routes: &[Route]) -> Option<String> {
+pub fn index(site: &Site, routes: &[Route], password_routes: &[String]) -> Option<String> {
     let motion = site.extensions.get("motion")?;
     let used = ["actions", "scenes"].iter().any(|key| motion.get(*key).map(uses_search).unwrap_or(false));
     if !used { return None; }
-    let entries: Vec<Value> = routes.iter().filter(|route| route.page.slug.trim_matches('/') != "404").map(|route| {
+    let member_routes: Vec<String> = site.extensions.get("integrations").and_then(|v| v.get("gates")).and_then(Value::as_array).into_iter().flatten().filter_map(|gate| gate.get("route").and_then(Value::as_str)).map(|route| format!("/{}", route.trim_matches('/'))).collect();
+    let entries: Vec<Value> = routes.iter().filter(|route| route.page.slug.trim_matches('/') != "404" && !crate::behind_password(&route.page.slug, password_routes) && !crate::behind_password(&route.page.slug, &member_routes)).map(|route| {
         let (title, _, _) = routing::metadata(site, route);
         let mut texts = Vec::new();
         let mut headings = Vec::new();

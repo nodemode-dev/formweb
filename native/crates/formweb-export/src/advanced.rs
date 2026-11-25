@@ -14,6 +14,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     let forms = params.get("formsEndpoint").and_then(Value::as_str).unwrap_or("").trim_end_matches('/');
     if !safe_url(base) || !(base.starts_with("https://") || base.starts_with("http://")) { return Err("baseUrl must be an http(s) URL".into()); }
     if !forms.is_empty() && (!safe_url(forms) || !(forms.starts_with("https://") || forms.starts_with("http://"))) { return Err("formsEndpoint must be an http(s) URL".into()); }
+    let runtime_token = params.get("runtimeToken").map(|v| v.as_str().filter(|t| (32..=64).contains(&t.len()) && t.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')).ok_or("runtimeToken must be 32 to 64 URL-safe characters")).transpose()?;
     let gated = site.extensions.get("integrations").and_then(|v| v.get("gates")).and_then(Value::as_array).map(|v| !v.is_empty()).unwrap_or(false);
     if gated && params.get("privateMembers").and_then(Value::as_bool) != Some(true) { return Err("Gated sites require an authenticated backend publication; public static export would expose private content".into()); }
     let routes = routing::plan(site, locale, all)?;
@@ -52,6 +53,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         let mut context = json!({"site":site.id});
         if let Some(path) = forms.split("/published/").nth(1) { let mut segments = path.split('/');context["slug"]=json!(segments.next().unwrap_or(""));context["version"]=json!(segments.next().unwrap_or("")); }
         if let Some(token) = forms.split("/preview/").nth(1) { context["previewToken"]=json!(token.split('/').next().unwrap_or("")); }
+        if let Some(token) = runtime_token { context["runtimeToken"]=json!(token); }
         let config = crate::scope::configuration(site,&route.page.root,records,context,&links,&prefix);
         let code = custom_code(site,&route.page.id);
         let boot = boot_script(site);
@@ -75,14 +77,16 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     if let Some(disallow)=rules.and_then(|v|v.get("disallow")).and_then(Value::as_array) { for path in disallow.iter().filter_map(Value::as_str) { robots.push_str(&format!("Disallow: {path}\n")); } }
     robots.push_str(&format!("Sitemap: {base}/sitemap.xml\n"));
     files.push(json!({"path":"robots.txt","content":robots}));
+    let passwords = crate::password_routes(params)?;
     if !gated { files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?})); }
     if let Some(manifest)=crate::web_manifest(site) { files.push(manifest); }
     if let Some(redirects)=site.extensions.get("seo").and_then(|v|v.get("redirects")) { files.push(json!({"path":"redirects.json","content":redirects.to_string()})); }
     let route_manifest: Vec<_> = routes.iter().enumerate().map(|(index,r)|json!({"path":r.path(),"page":r.page.id,"locale":r.locale,"item":r.item.as_ref().map(|i|&i.id),"stylesheet":format!("assets/pages/{index}.css")})).collect();
     files.push(json!({"path":"routes.json","content":serde_json::to_string(&route_manifest).map_err(|e|e.to_string())?}));
-    if let Some(index)=crate::search::index(site,&routes) { files.push(json!({"path":"search-index.json","content":index})); }
+    if let Some(index)=crate::search::index(site,&routes,&passwords) { files.push(json!({"path":"search-index.json","content":index})); }
     files.push(json!({"path":"asset-access.json","content":json!({"schemaVersion":1,"assets":asset_access}).to_string()}));
     files.push(json!({"path":"README.txt","content":"FormWeb static output. Serve over HTTP. Owned assets are bundled by the backend. Browser integrations require the configured backend and do not embed credentials. Isolated code frames cannot access the parent or network. Gated output must be served by an authorizing backend. Keep native .fweb source separately."}));
+    crate::case_clash(&files, &mut warnings);
     Ok(json!({"files":files,"warnings":warnings.into_iter().collect::<Vec<_>>(),"routes":route_manifest}))
 }
 pub fn styles(site:&Site)->String {

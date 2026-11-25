@@ -1,0 +1,13 @@
+.fw-layout[hidden], .fw-layout [hidden] { display: none; }
+.fw-layout-box, .fw-layout-track, .fw-layout-slot, .fw-layout-guide, .fw-layout-gap { position: fixed; left: 0; top: 0; width: 0; height: 0; box-sizing: border-box; pointer-events: none; z-index: var(--z-raised); }
+.fw-layout-box { border: 1px dashed var(--accent-line); border-radius: var(--radius-xs); opacity: 0.6; }
+.fw-layout-track { border: 1px dotted var(--accent-line); background: var(--accent-tint); }
+.fw-layout-slot { background: var(--accent-line); opacity: 0.9; }
+.fw-layout-guide { background: var(--accent-ink); opacity: 0.8; }
+.fw-layout-gap { border: 0 solid var(--accent-ink); }
+.fw-layout-gap[data-axis="y"] { border-left-width: 1px; }
+.fw-layout-gap[data-axis="x"] { border-top-width: 1px; }
+.fw-layout-gap-label { position: absolute; padding: 0 var(--space-1); border-radius: var(--radius-xs); background: var(--surface-2); color: var(--accent-text); font-size: var(--fs-10); line-height: 1.4; white-space: nowrap; }
+.fw-layout-gap[data-axis="y"] .fw-layout-gap-label { left: var(--space-1); top: 50%; transform: translateY(-50%); }
+.fw-layout-gap[data-axis="x"] .fw-layout-gap-label { top: var(--space-1); left: 50%; transform: translateX(-50%); }
+.fw-fp:not([hidden]) ~ .fw-layout { display: none; }

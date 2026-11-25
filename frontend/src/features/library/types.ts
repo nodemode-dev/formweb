@@ -35,6 +35,8 @@ export type LibraryHooks = {
   openPage: (page: string) => void;
   notify: (message: string, error?: boolean) => void;
   url: (path: string) => string;
+  /** Turns imported code sections into editable elements in one undo step; answers with the result sentence. */
+  convert: (hosts: string[]) => Promise<{ message: string; root: string | null }>;
 };
 
 export const thumbUrl = (hooks: LibraryHooks, id: string): string => hooks.url(`/api/library/thumbs/${encodeURIComponent(id)}.webp`);

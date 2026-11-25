@@ -34,7 +34,7 @@ This shows the built site inside the canvas area, at the width in the width box,
 1. Choose **View > Live responsive preview**. The label above the canvas changes to, for example, "Live responsive preview · EN · rev 147".
 2. Type a width in the width box in the top bar (for example `700`) and press Enter. The site switches layouts by itself, the way a browser does, because its own CSS decides at each width.
 
-![The Live responsive preview of Coldmere Plumbing at 700 px: the label above it reads Live responsive preview · EN · rev 147, the header has moved the menu under the logo, and the heading Warm rooms, working taps, no fuss. spans the width](images/preview-live-responsive.webp)
+![The Live responsive preview of Coldmere Plumbing at 700 px: the label above it reads Live responsive preview · EN · rev 138, the header has moved the menu under the logo, and the heading Warm rooms, working taps, no fuss. spans the width](images/preview-live-responsive.webp)
 
 3. Choose **View > Live responsive preview** again to go back to editing.
 

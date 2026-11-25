@@ -144,8 +144,8 @@ export function installInsertFlyout(hooks: FlyoutHooks): InsertFlyout {
 
   function choose(row: HTMLElement): void {
     const action = row === all ? hooks.openAll : actions.get(row);
-    close(true);
     if (action) void hooks.run(action);
+    close(true);
   }
 
   function move(step: number): void {

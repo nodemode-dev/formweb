@@ -9,6 +9,7 @@ export interface MenuItem {
   title?: string;
   keys?: string;
   checked?: boolean;
+  raw?: boolean;
   run: () => unknown;
 }
 export interface MenuSeparator { separator: true }
@@ -119,9 +120,15 @@ export function showContextMenu(entries: readonly MenuEntry[], anchor: MenuAncho
     row.setAttribute('role', entry.checked === undefined ? 'menuitem' : 'menuitemcheckbox');
     if (entry.checked !== undefined) { row.setAttribute('aria-checked', String(entry.checked)); row.classList.toggle('is-checked', entry.checked); }
     row.disabled = !on;
-    labelAttr(row, 'title', entry.title || entry.label);
     const name = element('span', 'fw-menu-label');
-    label(name, entry.label);
+    if (entry.raw) {
+      row.title = entry.title || entry.label;
+      row.dataset.noI18n = '';
+      name.textContent = entry.label;
+    } else {
+      labelAttr(row, 'title', entry.title || entry.label);
+      label(name, entry.label);
+    }
     row.append(element('span', 'fw-menu-check'), name, element('span', 'fw-menu-keys', entry.keys || ''));
     row.addEventListener('click', () => {
       close();

@@ -10,10 +10,10 @@ import type { SiteNode } from '../types';
 type Spec = { tag: string; name: string; text?: string; styles?: Record<string, string>; attrs?: Record<string, string>; mobile?: Record<string, string>; children?: Spec[] };
 export type Command = { command: string; params: Record<string, unknown> };
 
-const LINE = '1px solid rgba(127, 127, 127, 0.28)';
+export const LINE = '1px solid rgba(127, 127, 127, 0.28)';
 const WRAP = { width: '100%', 'max-width': '1120px', margin: '0 auto', 'box-sizing': 'border-box' };
 const BAND = { display: 'flex', 'flex-direction': 'column', gap: '32px', padding: '96px 24px', ...WRAP };
-const MUTED = { opacity: '0.72' };
+export const MUTED = { opacity: '0.72' };
 const BUTTON = { display: 'inline-flex', 'align-items': 'center', padding: '14px 24px', background: 'var(--accent, #f97316)', color: '#111', 'border-radius': '8px', 'text-decoration': 'none', 'font-weight': '600' };
 const GHOST = { ...BUTTON, background: 'transparent', color: 'inherit', border: LINE };
 const CARD = { display: 'flex', 'flex-direction': 'column', gap: '12px', padding: '32px', border: LINE, 'border-radius': '12px' };

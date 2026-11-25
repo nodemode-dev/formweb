@@ -68,7 +68,7 @@ async def clip_asset(token: str, asset_id: str):
     path = _lookup(token, asset_id)
     if path is None or not path.is_file():
         raise EngineError('Not found.', 404)
-    headers = {'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff'}
+    headers = {'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': 'sandbox'}
     if path.suffix == '.svg':
         headers['Content-Security-Policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
     return FileResponse(path, media_type=MIME_TYPES[path.suffix[1:]], headers=headers)

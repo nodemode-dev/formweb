@@ -13,6 +13,8 @@ from .common import key, rate_limit, store
 
 from .tokens import token as request_token
 
+HANDOFF_LIFE = 120
+
 class VisitorMembership:
     def credentials(self, payload):
         email, password = payload.get('email'), payload.get('password')
@@ -48,13 +50,52 @@ class VisitorMembership:
             calculated = self.digest(password, salt)
             if not row or not hmac.compare_digest(calculated, row['digest']) or row['disabled']:
                 raise EngineError('Visitor credentials are invalid.', 401)
-            token = secrets.token_urlsafe(48)
-            digest = hashlib.sha256(token.encode()).hexdigest()
-            db.execute('DELETE FROM sessions WHERE expires<?', (time.time(),))
-            db.execute('INSERT INTO sessions VALUES(?,?,?,?)', (digest, site_id, email, time.time() + 43200))
+            token = self.open_session(db, site_id, email)
         return token, {'authenticated': True, 'email': email, 'groups': json.loads(row['groups_json'])}
 
+    @staticmethod
+    def open_session(db, site_id, email):
+        token = secrets.token_urlsafe(48)
+        digest = hashlib.sha256(token.encode()).hexdigest()
+        db.execute('DELETE FROM sessions WHERE expires<?', (time.time(),))
+        db.execute('INSERT INTO sessions VALUES(?,?,?,?)', (digest, site_id, email, time.time() + 43200))
+        return token
+
+    def handoff(self, request, site_id, release):
+        """A single-use ticket, valid two minutes, that carries a signed-in member to another page of the same publication."""
+        current = self.session(request, site_id)
+        if not current['authenticated']:
+            raise EngineError('Sign in before following a members link.', 401)
+        ticket = secrets.token_urlsafe(32)
+        store.put('member-handoff', hashlib.sha256(ticket.encode()).hexdigest(), {'site': site_id, 'email': current['email'], 'slug': release['slug'], 'version': release['version'], 'expires': time.time() + HANDOFF_LIFE, 'used': False})
+        return {'ticket': ticket, 'expiresIn': HANDOFF_LIFE}
+
+    def ticket_member(self, ticket, site_id, slug, version):
+        if not isinstance(ticket, str) or not 20 <= len(ticket) <= 64:
+            return None
+        record = store.get('member-handoff', hashlib.sha256(ticket.encode()).hexdigest())
+        if not record or record['used'] or record['expires'] <= time.time() or (record['site'], record['slug'], record['version']) != (site_id, slug, version):
+            return None
+        return record
+
+    def resume(self, site_id, release, ticket):
+        record = self.ticket_member(ticket, site_id, release['slug'], release['version'])
+        if not record:
+            raise EngineError('This members link has expired. Sign in again.', 401)
+        store.put('member-handoff', hashlib.sha256(ticket.encode()).hexdigest(), {**record, 'used': True})
+        with store.connection() as db:
+            row = db.execute('SELECT groups_json FROM visitors WHERE site=? AND email=? AND disabled=0', (site_id, record['email'])).fetchone()
+            if not row:
+                raise EngineError('Visitor credentials are invalid.', 401)
+            token = self.open_session(db, site_id, record['email'])
+        return token, {'authenticated': True, 'email': record['email'], 'groups': json.loads(row['groups_json'])}
+
     def session(self, request, site_id):
+        member = request.scope.get('formweb.member')
+        if member and member['site'] == site_id:
+            with store.connection() as db:
+                row = db.execute('SELECT email,groups_json FROM visitors WHERE site=? AND email=? AND disabled=0', (site_id, member['email'])).fetchone()
+            return {'authenticated': True, 'email': row['email'], 'groups': json.loads(row['groups_json'])} if row else {'authenticated': False, 'groups': []}
         token = request_token(request, 'Visitor', 'formweb_visitor')
         if not token:
             return {'authenticated': False, 'groups': []}

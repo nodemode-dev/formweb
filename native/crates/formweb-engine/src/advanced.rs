@@ -1,4 +1,4 @@
-use super::{apply as base_apply, descendants, fresh_id, parent_of, string};
+use super::{address_free, apply as base_apply, descendants, fresh_id, parent_of, string};
 use formweb_model::{advanced::object, component_attr_maps, instance_roots, linked_attrs, validate, Breakpoint, Collection, Component, Item, Node, Site, Strings};
 use serde_json::{json, Value};
 use std::collections::{BTreeMap, BTreeSet};
@@ -22,7 +22,7 @@ pub fn apply(site:&mut Site,command:&str,params:&Value)->Result<(),String>{
         "extension.remove"=>{site.extensions.remove(string(params,"group")?).ok_or("unknown extension group")?;}
         "site.replace"=>{let mut replacement:Site=serde_json::from_value(params.get("site").ok_or("site required")?.clone()).map_err(|e|e.to_string())?;replacement.id=site.id.clone();validate(&replacement)?;*site=replacement;}
         "page.duplicate"=>{
-            let page=site.pages.iter().find(|p|p.id==string(params,"id").unwrap_or("")).ok_or("unknown page")?.clone();let slug=string(params,"slug")?.to_string();let id=fresh_id(site,"page");let mut map=BTreeMap::new();let root=clone_plain(site,&page.root,&mut map)?;
+            let page=site.pages.iter().find(|p|p.id==string(params,"id").unwrap_or("")).ok_or("unknown page")?.clone();let slug=string(params,"slug")?.to_string();address_free(site,&slug,None)?;let id=fresh_id(site,"page");let mut map=BTreeMap::new();let root=clone_plain(site,&page.root,&mut map)?;
             let mut duplicate=page.clone();duplicate.id=id.clone();duplicate.root=root;duplicate.slug=slug;duplicate.name=params.get("name").and_then(Value::as_str).map(String::from).unwrap_or_else(||format!("{} copy",page.name));site.pages.push(duplicate);
             let made:BTreeSet<String>=[page.id.clone(),page.root.clone()].into_iter().collect();
             let html=remap_html_ids(site,&map,&id,&uniform(&map,&made))?;duplicate_extensions(site,&map,&page.id,&id,&html,&made)?;

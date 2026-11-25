@@ -35,12 +35,15 @@ import { AiWriter, SiteGenerator } from './features/ai-writer';
 import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
+import { starterStyles } from './features/starter-elements';
 import { installInspector } from './features/inspector';
-import { installPageBackground } from './features/inspector/page-background';
+import { installPageBackground, startChoices, startCommands } from './features/inspector/page-background';
 import { installCanvasMenu } from './features/canvas-menu';
 import { installInspectorSearch, sectionId } from './features/inspector/search';
 import { installLibrary } from './features/library';
+import { convertSections, installConvert } from './features/convert';
 import { installInsertFlyout } from './features/panel/insert-flyout';
+import { installCrumbs } from './features/crumbs';
 import { watchFit } from './ui/fit';
 import { anchorOf, ctrlClickOffMac, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
@@ -450,7 +453,8 @@ const libraryPanel = installLibrary({
     update(state());
   },
   notify: (message, error) => status(message, error),
-  url: path => apiBase + path
+  url: path => apiBase + path,
+  convert: hosts => convertSections(hosts, true)
 });
 sidebar.append(sidebarTabs, pagesPane, insertPane, agentsPane, libraryPanel.element);
 
@@ -467,17 +471,14 @@ const viewportHint = element('span', 'viewport-hint', 'Width is outside this bre
 viewportHint.dataset.on = 'false';
 const selectionPath = element('nav', 'fw-crumbs');
 selectionPath.setAttribute('aria-label', 'Selection path');
+const crumbs = installCrumbs(selectionPath, { host: overlay, pick: id => pickNode(id) });
 stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, selectionPath, viewportHint, viewportReadout);
 const stage = element('div', 'stage');
 stagePanel.append(stageHead, stage);
 const canvas = new Canvas(stage, (id, event) => canvasClick(event, id), (id, next) => void run(async () => {
   await command('node.update', { id, patch: { text: next } });
   status('Text updated.');
-}), href => {
-  const target = state().site.pages.find(page => page.slug === href || `/${page.slug}`.replace(/\/+/g, '/') === href);
-  if (target) { pageId = target.id; selectedId = target.root; update(state()); }
-  else status(t('Preview link: {0}. Exported sites can follow external links.', [href]));
-});
+}));
 
 const inspector = element('aside', 'inspector');
 inspector.setAttribute('aria-label', 'Element inspector');
@@ -770,7 +771,7 @@ const pageGrid = element('div', 'form-grid');
 addInspectorInput(pageGrid, 'Page name', 'page.name', name => pagePatch({ name }), undefined, true);
 addInspectorInput(pageGrid, 'URL slug', 'page.slug', slug => pagePatch({ slug }), undefined, true);
 pageSection.append(pageGrid);
-const pageBackground = installPageBackground({ section: title => section(pagePane, title), input, button, page: currentPage, state: () => lastState, run, status, showPageTab: () => { openDock('right'); setInspector('page'); } });
+const pageBackground = installPageBackground({ section: title => section(pagePane, title), input, button, page: currentPage, state: () => lastState, run, status, offer: (message, undo) => { status(message); notice.show(message, { action: { label: 'Undo', run: () => { notice.hide(); return undo(); } } }); }, showPageTab: () => { openDock('right'); setInspector('page'); } });
 const seoSection = section(pagePane, 'Search & metadata');
 const seoGrid = element('div', 'form-grid');
 addInspectorInput(seoGrid, 'Title', 'seo.title', title => pagePatch({ seo: { ...currentPage().seo, title } }), undefined, true);
@@ -978,7 +979,9 @@ const pageDialogPane = dialogPane('page');
 const newPageName = input('About');
 const newPageSlug = input('/about');
 const newPageGrid = element('div', 'form-grid');
-newPageGrid.append(field('Page name', newPageName), field('URL slug', newPageSlug));
+const newPageLook = select([]);
+newPageLook.dataset.field = 'page.start-background';
+newPageGrid.append(field('Page name', newPageName), field('URL slug', newPageSlug), field('Background', newPageLook, true));
 pageDialogPane.append(element('p', 'empty-note', 'Add a page with its own root container, content and metadata.'), newPageGrid);
 const pageSlug = installPageSlug(newPageName, newPageSlug, pageDialogPane, () => state().site);
 const bulkPane = dialogPane('bulk');
@@ -1483,17 +1486,7 @@ function update(next: EditorState): void {
   text(pagePath, page.slug || '/');
   const trail: SiteNode[] = [];
   for (let at: SiteNode | undefined = node; at; at = parentOf(at.id)) trail.unshift(at);
-  keyed(selectionPath, trail, item => item.id, () => {
-    const crumb = button('', undefined, undefined, 'fw-crumb');
-    crumb.addEventListener('click', () => pickNode(crumb.dataset.key!));
-    return crumb;
-  }, (crumb, item) => {
-    text(crumb, item.name);
-    crumb.title = `Select ${item.name} <${item.tag}>`;
-    const current = item.id === node.id;
-    crumb.classList.toggle('is-current', current);
-    if (current) crumb.setAttribute('aria-current', 'true'); else crumb.removeAttribute('aria-current');
-  });
+  crumbs.update(trail.map(item => ({ id: item.id, name: item.name, tag: item.tag })), node.id);
   const pickedBreakpoint = site.breakpoints.find(item => item.id === breakpoint);
   label(readoutMode, 'Editing {0}', [pickedBreakpoint?.name || breakpoint]);
   text(readoutWidth, `${widths[breakpoint]} px`);
@@ -1627,7 +1620,7 @@ function update(next: EditorState): void {
   updatePasswordState();
   if (passwordGatesFor !== site.id) void loadPasswordGates().catch(() => undefined);
   canvas.mark(selectedIds());
-  canvas.render(site, page, selectedId, widths[breakpoint], locale, false, breakpoint);
+  canvas.render(site, page, selectedId, widths[breakpoint], locale, breakpoint);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
   if (refreshPreviewButton.classList.contains('active') !== preview) refreshPreviewButton.classList.toggle('active', preview);
   if (refreshPreviewButton.getAttribute('aria-pressed') !== String(preview)) refreshPreviewButton.setAttribute('aria-pressed', String(preview));
@@ -1763,23 +1756,24 @@ async function insertElement(kind: string, asset?: { url: string; name: string; 
   const parent = kind === 'image' ? mediaInput.dataset.parent || insertionParent() : insertionParent();
   let node: SiteNode;
   const children: SiteNode[] = [];
-  if (kind === 'heading') node = makeNode('h2', 'Heading', 'A new perspective', { 'font-size': '40px', 'line-height': '1.1', margin: '0', 'letter-spacing': '-1px' });
-  else if (kind === 'paragraph') node = makeNode('p', 'Paragraph', 'Write something worth reading.', { 'font-size': '18px', 'line-height': '1.6', margin: '0', color: '#b7becb', 'max-width': '640px' });
-  else if (kind === 'button') node = makeNode('a', 'Button', 'Get started', { display: 'inline-flex', padding: '14px 24px', background: 'var(--accent)', color: '#111', 'border-radius': '8px', 'text-decoration': 'none', 'font-weight': '600', 'align-self': 'flex-start' }, { href: '#' });
-  else if (kind === 'link') node = makeNode('a', 'Link', 'Explore more', { color: 'var(--accent)', 'font-size': '16px' }, { href: '#' });
+  const look = starterStyles(state().site);
+  if (kind === 'heading') node = makeNode('h2', 'Heading', 'A new perspective', look.heading);
+  else if (kind === 'paragraph') node = makeNode('p', 'Paragraph', 'Write something worth reading.', look.paragraph);
+  else if (kind === 'button') node = makeNode('a', 'Button', 'Get started', look.button, { href: '#' });
+  else if (kind === 'link') node = makeNode('a', 'Link', 'Explore more', look.link, { href: '#' });
   else if (kind === 'image') {
     node = makeNode('img', asset!.name, '', asset!.styles || { width: '100%', height: '320px', 'object-fit': 'cover', 'border-radius': '12px' }, { src: asset!.url, ...(asset!.alt ? { alt: asset!.alt } : {}), width: String(asset!.width), height: String(asset!.height) });
   } else if (kind === 'form') {
-    node = makeNode('form', 'Contact form', '', { display: 'flex', 'flex-direction': 'column', gap: '16px', 'max-width': '480px', padding: '24px', border: '1px solid #3b3f48', 'border-radius': '12px' }, { name: 'contact' });
-    children.push(makeNode('label', 'Email label', 'Email address', { 'font-size': '14px' }), makeNode('input', 'Email input', '', { padding: '14px', background: '#1d2026', border: '1px solid #444a55', color: '#fff', 'border-radius': '6px' }, { type: 'email', name: 'email', placeholder: 'you@example.com', required: '', 'aria-label': 'Email address' }), makeNode('button', 'Submit button', 'Send message', { padding: '14px', background: 'var(--accent)', border: '0', 'border-radius': '6px', color: '#111', 'font-weight': '600' }, { type: 'submit' }));
+    node = makeNode('form', 'Contact form', '', look.form, { name: 'contact' });
+    children.push(makeNode('label', 'Email label', 'Email address', look.formLabel), makeNode('input', 'Email input', '', look.formInput, { type: 'email', name: 'email', placeholder: 'you@example.com', required: '', 'aria-label': 'Email address' }), makeNode('button', 'Submit button', 'Send message', look.formSubmit, { type: 'submit' }));
   } else if (kind === 'grid') {
-    node = makeNode('div', 'Grid', '', { display: 'grid', 'grid-template-columns': 'repeat(3, minmax(0, 1fr))', gap: '24px', padding: '32px' });
+    node = makeNode('div', 'Grid', '', look.grid);
     node.breakpoints.mobile = { 'grid-template-columns': '1fr' };
-    for (const name of ['First idea', 'Second idea', 'Third idea']) children.push(makeNode('article', name, name, { padding: '32px', background: '#252933', 'border-radius': '12px', 'font-size': '20px' }));
+    for (const name of ['First idea', 'Second idea', 'Third idea']) children.push(makeNode('article', name, name, { ...look.gridItem }));
   } else if (kind === 'embed') {
     if (!asset) { openDialog('embed'); return; }
-    node = makeNode('div', asset.name, `${asset.name}: ${asset.url}`, { display: 'flex', 'align-items': 'center', 'justify-content': 'center', width: '100%', 'min-height': '240px', padding: '24px', background: '#1d2026', color: '#8a93a3', 'border-radius': '12px', 'font-size': '14px', overflow: 'hidden' }, { 'data-fw-embed': asset.url });
-  } else node = makeNode('section', 'Section', '', { display: 'flex', 'flex-direction': 'column', gap: '24px', padding: '64px', 'min-height': '240px', background: '#1d2026' });
+    node = makeNode('div', asset.name, `${asset.name}: ${asset.url}`, look.embed, { 'data-fw-embed': asset.url });
+  } else node = makeNode('section', 'Section', '', look.section);
   await commands([{ command: 'node.add', params: { parent, node } }, ...children.map(child => ({ command: 'node.add', params: { parent: node.id, node: child } }))]);
   selectedId = node.id;
   setSidebar('pages');
@@ -1811,7 +1805,7 @@ function openDialog(id: string): void {
   if (id === 'cms') { updateCms(); fillCmsItem(); }
   if (id === 'locales') { localeEditing = locale; updateLocales(); fillLocale(); }
   if (id === 'tokens') updateTokens();
-  if (id === 'page') pageSlug.reset();
+  if (id === 'page') { pageSlug.reset(); options(newPageLook, startChoices(state().site, currentPage().id)); newPageLook.value = ''; }
   if (id === 'brand') brandKit.update(state());
   if (id === 'team') void teamLibraries.refresh().catch(error => status(error instanceof Error ? error.message : String(error), true));
   if (id === 'stock') void stockLibrary.open().catch(error => status(error instanceof Error ? error.message : String(error), true));
@@ -1848,7 +1842,9 @@ async function performDialogAction(): Promise<void> {
     status('New site created.');
   } else if (dialogMode === 'page') {
     const before = new Set(state().site.pages.map(page => page.id));
-    await command('page.add', { name: newPageName.value.trim() || 'Untitled page', slug: pageSlug.resolve() });
+    const look = startCommands(state().site, uuid('page-root'), state().site.pages.find(page => page.id === newPageLook.value));
+    if (look.length) await commands([{ command: 'page.add', params: { name: newPageName.value.trim() || 'Untitled page', slug: pageSlug.resolve(), id: uuid('page'), root: look[0].params.id } }, ...look]);
+    else await command('page.add', { name: newPageName.value.trim() || 'Untitled page', slug: pageSlug.resolve() });
     const page = state().site.pages.find(page => !before.has(page.id));
     if (page) { pageId = page.id; selectedId = page.root; update(state()); }
     closeDialog();
@@ -1927,11 +1923,14 @@ function showIssue(row: HTMLElement): void {
     scrollNearest(layersList, rowOf(layersList, selectedId));
   } else if (field) {
     openDock('right');
-    field.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    field.scrollIntoView({ block: 'center', inline: 'nearest' });
     field.focus({ preventScroll: true });
     flash(field);
   }
-  status(t('Selected {0}: {1}', [row.dataset.node ? currentNode().name : currentPage().name, message]));
+  const line = t('Selected {0}: {1}', [row.dataset.node ? currentNode().name : currentPage().name, message]);
+  status(line);
+  const key = row.dataset.key;
+  notice.show(line, { error: true, action: { label: 'Show again', run: () => { if (row.isConnected && row.dataset.key === key) (row.children[2] as HTMLButtonElement).click(); } } });
 }
 async function auditSite(): Promise<void> {
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
@@ -2220,7 +2219,7 @@ function showLayerMenu(event: MouseEvent | KeyboardEvent, id: string): void {
     ['edit.duplicate', countLabel('Duplicate', 'Duplicate {0} elements', many), 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
   ];
   const entries: MenuEntry[] = rows.map(([commandId, english, blocked, enabledNow, action]) => ({ id: commandId, label: english, title: enabledNow ? english : blocked, enabled: enabledNow, keys: commandRegistry.keyLabel(commandRegistry.get(commandId)!), run: action }));
-  entries.push(...panel.layerEntries(id));
+  entries.push(...panel.layerEntries(id), ...converter.entries(id));
   const row = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
   const anchor = !(event instanceof MouseEvent) ? row ?? { x: 0, y: 0 } : row ? anchorOf(event, row) : { x: event.clientX, y: event.clientY };
   showContextMenu(entries, anchor, { host: overlay, className: 'fw-layer-menu', run, returnFocus: row });
@@ -2323,7 +2322,7 @@ registerCommands(panel.commands);
 installSelection({ ready, site: () => state().site, primary: () => selectedId, select: selectNode, pageId: () => pageId, openPage, pageRoot: () => currentPage().root, refresh: () => update(state()), layersList, pagesList });
 installSelectionActions({ idle: () => !!scrim.hidden, pageRoot: () => currentPage().root, status, copyNote });
 registerCommands(installSelectMode({ heads: [{ head: pagesHead, kind: 'pages' }, { head: layersHead, kind: 'layers' }], lists: [pagesList, layersList], frame: canvas.frame, loaded: canvas.loaded(), ready, status: message => status(message) }));
-installCanvasDrag({ frame: canvas.frame, stage, overlay, loaded: () => canvas.loaded(), state, ready, editing: () => !preview, root: () => currentPage().root, selectionIds: selectedIds, select: selectNode, commands, run, status });
+registerCommands(installCanvasDrag({ frame: canvas.frame, stage, overlay, loaded: () => canvas.loaded(), state, ready, editing: () => !preview, root: () => currentPage().root, selectionIds: selectedIds, select: selectNode, commands, run, status }).commands);
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
@@ -2331,6 +2330,8 @@ registerCommands(wishlist.commands);
 registerCommands(pageBackground.commands);
 registerCommands(installCanvasMenu({ frame: canvas.frame, loaded: canvas.loaded(), overlay, ready, run, status, selected: () => selectedId, select: selectNode, selectionIds: selectedIds, topMost, selectNodes, pageRoot: () => currentPage().root, breakpoint: () => breakpoint, canDuplicate, copy: copySelection, cut: cutSelection, paste: pasteFromClipboard, duplicate: duplicateSelection, inspector: tab => { openDock('right'); setInspector(tab); }, field: (kind, key) => (kind === 'style' ? styleFields : attrsFields).get(key) }).commands);
 subscribe(() => wishlist.refresh());
+const converter = installConvert({ overlay, selected: () => selectedId, select: selectNode, ready, notify: (message, undo) => notice.show(message, undo ? { action: { label: 'Undo', run: undo } } : {}), status, run, undo: () => command('history.undo') });
+registerCommands(converter.commands);
 const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.askReplace(state().site.name);
 const demoHooks: DemoHooks = { mayReplace: () => { demoPreview.close(); return mayReplace(); }, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
 const demoPreview = new DemoPreview(id => void openDemo(demoHooks, id));

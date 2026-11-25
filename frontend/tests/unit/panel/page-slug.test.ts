@@ -73,6 +73,13 @@ describe('the Add page fields', () => {
     expect(() => page.resolve()).toThrow(/\/fares/);
   });
 
+  it('an address another page uses in other capital letters is the same address, named in red and refused', () => {
+    type(slug, '/FARES');
+    expect(note().classList.contains('error')).toBe(true);
+    expect(note().textContent).toContain('Timetable and fares');
+    expect(() => page.resolve()).toThrow(/\/FARES/);
+  });
+
   it('with both fields empty the page is at /untitled-page', () => {
     expect(page.resolve()).toBe('/untitled-page');
   });

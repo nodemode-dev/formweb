@@ -74,6 +74,9 @@ class PagePasswords:
         self.studio.access.record('password.set', {'route': route})
         return await self.list()
 
+    def routes(self, site_id):
+        return [row['route'] for row in self.store.db.execute('SELECT route FROM page_passwords WHERE site_id=? ORDER BY route', (site_id,))]
+
     def guard_export(self, site_id):
         rows = self.store.db.execute('SELECT route FROM page_passwords WHERE site_id=?', (site_id,)).fetchall()
         if rows:

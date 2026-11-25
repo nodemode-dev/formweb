@@ -11,17 +11,20 @@ The page examples use **Harbour Ferries** and the layer examples use **Coldmere 
 ## Open, add and rename pages
 
 - Click a page in the PAGES list to open it on the canvas.
-- Click the **+** next to PAGES to add a page. You give it a name, and the URL slug, its address such as `/about`, follows the name until you type your own. An address another page already has is refused before the dialog closes.
+- Click the **+** next to PAGES to add a page. You give it a name, and the URL slug, its address such as `/about`, follows the name until you type your own. An address another page already has is refused before the dialog closes, and so is the same address in other capital letters: `/About` beside `/about` would be one folder on a Mac or a Windows computer. The note names the page that has it.
 - To rename a page, double-click its row, or click it and press F2. The name becomes a field: type the new name and press Enter. Escape keeps the old name. This changes the name only; the page's address is changed in **Page > Page settings**.
 
 ## The page menu
 
 Right-click a page (or select it and press Shift+F10) for its menu.
 
-![The right-click menu of the Timetable and fares page in Harbour Ferries: Open, Rename (F2), Duplicate, Set as home page, Move up (Alt+Up), Move down (Alt+Down), Page settings and Delete...](images/pages-page-menu.webp)
+![The right-click menu of the Timetable and fares page in Harbour Ferries, with Home open: Open, Preview, Rename (F2), Duplicate, Set as home page, Move up (Alt+Up), Move down (Alt+Down), Add page..., Page background..., Page settings and Delete...](images/pages-page-menu.webp)
 
+- **Preview** shows that page as published, over the whole window, even when another page is open. See [Preview](06-preview.md).
 - **Duplicate** copies the page and everything on it, under a new name and address, and opens the copy.
 - **Move up** and **Move down** change the order of the list. You can also drag a page: an orange line shows where it will land.
+- **Add page...** adds a new page, the same as the **+** next to PAGES.
+- **Page background...** opens that page with the cursor in its background field. See [Page background and theme colors](05-background-and-theme-colors.md).
 - **Delete...** asks first. A site always keeps at least one page.
 
 ## Set the home page

@@ -1,6 +1,6 @@
 # Keyboard shortcuts
 
-These tables were generated from the app's own list of commands, read from the running app (`window.formweb.commands()` in FormWeb 0.31.0), not written from memory. Every command in that list that has a shortcut is here.
+These tables were generated from the app's own list of commands, read from the running app (`window.formweb.commands()` in FormWeb 0.31.1), not written from memory. Every command in that list that has a shortcut is here.
 
 On Windows and Linux the shortcuts use Ctrl; on a Mac they use Cmd, and Alt is Option.
 
@@ -22,6 +22,7 @@ To find any command by name, with its shortcut, press Ctrl+K (Cmd+K on a Mac) an
 | Settings... | Edit | `Ctrl+,` | `Cmd+,` |
 | Quick insert | Insert | `Ctrl+Shift+L` | `Cmd+Shift+L` |
 | Preview as published | View | `Ctrl+Shift+P` | `Cmd+Shift+P` |
+| Show layout outlines | View | `Ctrl+Alt+G` | `Cmd+Option+G` |
 | Search commands | View | `Ctrl+K` | `Cmd+K` |
 | Search properties | Window | `Ctrl+Alt+F` | `Cmd+Option+F` |
 | Left panel | Window | `Ctrl+[` | `Cmd+[` |

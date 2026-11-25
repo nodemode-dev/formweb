@@ -41,7 +41,7 @@ def chromium():
 
 
 class _Engine:
-    def __init__(self):
+    def __init__(self, extra_env=None):
         self.port = _free_port()
         self.sandbox = Path(tempfile.mkdtemp(prefix="formweb-window-"))
         for name in ("data", "home", "agent"):
@@ -50,6 +50,7 @@ class _Engine:
         env = {k: v for k, v in os.environ.items() if not k.startswith("FORMWEB_")}
         env.update({k: v.format(**values) for k, v in ENGINE_ENV.items()})
         env["HOME"] = str(self.sandbox / "home")
+        env.update(extra_env or {})
         self.log = open(self.sandbox / "engine.log", "wb")
         self.proc = subprocess.Popen([a.format(**values) for a in ENGINE_CMD], cwd=REPO / "backend", env=env, stdout=self.log, stderr=subprocess.STDOUT)
         self.base = f"http://127.0.0.1:{self.port}"

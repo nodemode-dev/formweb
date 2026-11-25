@@ -5,8 +5,15 @@ import time
 from .common import store
 
 
+def capability(request):
+    if request.scope.get('formweb.preview'):
+        return request.scope.get('formweb.previewToken')
+    release = request.scope.get('formweb.release')
+    return release['token'] if release else None
+
+
 def token(request, name, cookie):
-    preview = request.scope.get('formweb.previewToken') if request.scope.get('formweb.preview') else None
+    preview = capability(request)
     value = request.headers.get('X-FormWeb-' + name, '') if preview else request.cookies.get(cookie, '')
     if not value or len(value) > 256:
         return ''
@@ -22,7 +29,7 @@ def token(request, name, cookie):
 
 
 def bind(request, name, value):
-    preview = request.scope.get('formweb.previewToken') if request.scope.get('formweb.preview') else None
+    preview = capability(request)
     if not preview:
         return False
     digest = hashlib.sha256(value.encode()).hexdigest()
