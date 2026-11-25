@@ -80,7 +80,9 @@ async def call_tool(context, params):
             removes = arguments['command'].endswith('.remove') or arguments['command'] == 'site.replace'
         if params.name == 'motion_track':  # judged per call like the domain tools: only a null track deletes
             removes = arguments['track'] is None
-        destructive = BY_NAME[params.name]['annotations'].get('destructiveHint') and params.name not in DOMAIN_BY_NAME and params.name != 'motion_track'
+        if params.name == 'library_import_site':  # only an import that replaces matching routes swaps content away
+            removes = arguments.get('action') == 'import' and arguments.get('mode') == 'replace'
+        destructive = BY_NAME[params.name]['annotations'].get('destructiveHint') and params.name not in DOMAIN_BY_NAME and params.name not in ('motion_track', 'library_import_site')
         if (destructive or removes) and studio.approvals.settings()['agentDestructive']:
             # Agent Connect: the owner asked to approve destructive agent calls; this waits for a person's decision.
             await studio.approvals.wait('agent.tool', {'tool': params.name, 'arguments': json.dumps(arguments, ensure_ascii=False)[:1000], **caller(context)})

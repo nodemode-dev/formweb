@@ -6,6 +6,8 @@ Annotations follow the MCP meaning: readOnlyHint false for anything that changes
 a call deletes or overwrites what a person may have made (removals, a preset applied over existing values);
 idempotentHint where repeating the same call leaves the same result."""
 import asyncio
+import base64
+import binascii
 import json
 import urllib.error
 import urllib.request
@@ -47,6 +49,8 @@ AUTHORING_TOOLS = [
          {'starter': IDENT, 'values': FIELD_VALUES, 'update_components': {'type': 'boolean', 'default': False}}, ['starter']),
     tool('library_import_html', 'Import a finished HTML page as one code section: style tags become its css, the first inline script its js, the body markup its html. Allows code sections on the site. One undo step; the result runs in the exported site, not on the canvas.',
          {'html': {'type': 'string', 'minLength': 1, 'maxLength': 1048576}, 'css': {'type': 'string', 'maxLength': 262144}, 'name': {'type': 'string', 'maxLength': 120}, 'parent': NODE, 'page': NODE, 'index': {'type': 'integer', 'minimum': 0}}, ['html']),
+    tool('library_import_site', 'Import a static site from a zip (data: the .zip bytes as base64): every HTML file becomes a page holding one code section with its local stylesheets and first script, pictures and WOFF2 fonts are stored as assets, and links between the pages follow their new routes. action review (default) changes nothing and lists the pages with their routes, the assets, the skipped files with reasons, canReplace and the revision; show it to the person. action import adds them as new pages (mode new) or swaps the content of pages whose route matches (mode replace, only when the review says canReplace), in one undo step; pass the review\'s revision so a site changed since is refused. At most about 48 MiB of zip through this tool, 1,000 entries, 100 pages and 128 MiB unpacked.',
+         {'data': {'type': 'string', 'minLength': 4, 'maxLength': 67108864}, 'action': {'type': 'string', 'enum': ['review', 'import'], 'default': 'review'}, 'mode': {'type': 'string', 'enum': ['new', 'replace'], 'default': 'new'}, 'revision': {'type': 'integer', 'minimum': 0}}, ['data'], destructive=True),
     tool('send_to_formpublisher', 'Send the open site to FormPublisher on this computer, as File > Send to FormPublisher does: delivered "live" when FormPublisher is running (returns its site id and revision), or "inbox" with the path of the zip it will import next time it runs. Also returns warnings: the export\'s own warning strings, the same as export_site gives. Does not change the site.',
          {'locale': {'type': 'string', 'maxLength': 40}}),
     tool('new_site', 'Replace the open site with a new one, as File > New does: blank true (default) gives one empty home page to assemble from library sections; blank false gives the sample site. The replaced site stays in autosave and saved projects. Save it first with save_project if it matters.',
@@ -175,6 +179,16 @@ async def dispatch(name, arguments):
     if name == 'library_import_html':
         result = await library_routes.library_import_html(JsonBody(_drop(arguments)))
         return _state(result, {'root': result.get('root'), 'warnings': result.get('warnings', [])})
+    if name == 'library_import_site':
+        studio.access.authorize('edit')
+        try:
+            data = base64.b64decode(arguments['data'], validate=True)
+        except (binascii.Error, ValueError, TypeError):
+            raise EngineError('data must be the zip file encoded as base64.', 400)
+        if arguments.get('action', 'review') == 'review':
+            return await library_routes.review_site(data)
+        result = await library_routes.import_site(data, arguments.get('mode', 'new'), arguments.get('revision'))
+        return _state(result, {key: result.get(key) for key in ('pages', 'assets', 'skipped', 'warnings', 'message')})
     if name == 'send_to_formpublisher':
         studio.access.authorize('read')
         return await asyncio.to_thread(_send, arguments.get('locale'))
