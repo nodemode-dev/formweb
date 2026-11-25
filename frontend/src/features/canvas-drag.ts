@@ -257,7 +257,8 @@ export function installCanvasDrag(host: CanvasDragHost): void {
     };
     const begin = (event: PointerEvent): boolean => {
       const site = host.state().site;
-      ids = movableIds(site, host.selectionIds());
+      const picked = host.selectionIds();
+      ids = movableIds(site, pressed === host.root() ? picked : picked.filter(id => id !== host.root()));
       if (!canDrag(site, ids)) {
         host.status(ids.includes(host.root()) ? 'The page itself cannot be moved.' : 'This element is part of a linked component and moves with it. Detach the instance to move it on its own.', true);
         return false;
