@@ -103,7 +103,7 @@ def test_every_file_of_a_publication_is_isolated_and_has_its_own_content_type(cl
     assert any(name.endswith(".js") for name in release["files"])
     checked = 0
     for name in release["files"]:
-        if name.endswith(".html") and name.split("/")[0] in ("fares",):
+        if name.endswith(".html") and name.split("/")[0] in ("fares",) or name == "asset-access.json":
             continue
         r = client.get(release["prefix"] + name)
         assert r.status_code == 200, name

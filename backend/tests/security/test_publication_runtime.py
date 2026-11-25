@@ -267,3 +267,13 @@ def test_the_token_does_not_unlock_a_members_page(client, club):
     r = client.get(release["prefix"] + "members/", headers={**OPAQUE, "x-formweb-runtime": release["config"]["context"]["runtimeToken"]})
     assert r.status_code == 401
     assert MEMBERS_WORD not in r.text
+
+
+def test_the_editable_site_document_is_not_part_of_a_publication(client, club):
+    release = club["club"]
+    assert not (release["folder"] / "site.formweb.json").exists()
+    for headers in ({}, {**OPAQUE, "x-formweb-runtime": release["config"]["context"]["runtimeToken"]}):
+        for path in ("site.formweb.json", "asset-access.json"):
+            r = client.get(release["prefix"] + path, headers=headers)
+            assert r.status_code in (403, 404), path
+            assert MEMBERS_WORD not in r.text, path

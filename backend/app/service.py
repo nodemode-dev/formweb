@@ -356,6 +356,8 @@ class Studio:
             try:
                 temp.mkdir()
                 for file in result['files']:
+                    if file['path'] == 'site.formweb.json':
+                        continue
                     relative = safe_export_path(file['path'])
                     path = temp.joinpath(*relative.parts)
                     path.parent.mkdir(parents=True, exist_ok=True)

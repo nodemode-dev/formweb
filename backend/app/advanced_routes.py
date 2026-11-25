@@ -12,6 +12,7 @@ from .config import DATA_DIR, MAX_FORM_BYTES, MAX_FORM_UPLOAD_BYTES
 from .engine import EngineError
 from .passwords import FORM_PATH as PASSWORD_FORM
 from .providers.service import providers
+from .releases import PRIVATE_FILES
 from .service import safe_export_path, studio
 from .workflows import dispatch
 
@@ -200,6 +201,8 @@ async def serve_release(slug, version, path, request, active=False):
     root = (DATA_DIR / 'publications' / slug / version).resolve()
     if not root.is_relative_to((DATA_DIR / 'publications').resolve()) or version.startswith('.'):
         raise EngineError('Release not found.', 404)
+    if path in PRIVATE_FILES:
+        raise EngineError('Compiled file not found.', 404)
     ticket = request.query_params.get('fw-member')
     member = providers.visitor.ticket_member(ticket, release['site']['id'], slug, version) if ticket else None
     if member:
