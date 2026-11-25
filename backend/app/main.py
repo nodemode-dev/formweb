@@ -235,7 +235,7 @@ async def image_asset(asset_id: str):
     if asset_id not in visible_assets(studio):
         raise EngineError('Asset not found for this identity.', 404)
     target = asset_path(asset_id)
-    headers = {'Cache-Control': 'private, max-age=31536000, immutable', 'X-Content-Type-Options': 'nosniff'}
+    headers = {'Cache-Control': 'private, max-age=31536000, immutable', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': 'sandbox'}
     if target.suffix == '.svg':  # sanitized on the way in; opened directly it still may not run or load anything
         headers['Content-Security-Policy'] = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
     return FileResponse(target, media_type=MIME_TYPES[target.suffix[1:]], headers=headers)
