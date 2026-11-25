@@ -28,7 +28,7 @@ export function installPageSlug(name: HTMLInputElement, slug: HTMLInputElement, 
   function problem(target: string): string {
     const key = bare(target);
     if (!/^[A-Za-z0-9/_-]+$/.test(key) || key.includes('//')) return t('An address can use letters, digits, hyphens, underscores and slashes only.');
-    const owner = site().pages.find(page => bare(page.slug) === key);
+    const owner = site().pages.find(page => bare(page.slug).toLowerCase() === key.toLowerCase());
     return owner ? t('{0} is already the address of {1}. Choose another address.', [target, owner.name]) : '';
   }
   function show(): void {

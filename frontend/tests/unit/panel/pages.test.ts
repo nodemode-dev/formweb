@@ -93,6 +93,14 @@ describe('duplicating a page', () => {
     expect(copyOfPage(site, site.pages[0]).slug).toBe('/hello-copy-3');
   });
 
+  it('a copy skips an address taken in other capital letters, which is the same address', () => {
+    const site = makeSite([
+      { id: 'hello', name: 'Hello', slug: '/Hello', root: 'r' },
+      { id: 'c1', name: 'Shouted copy', slug: '/hello-copy', root: 'r2' }
+    ], { r: { tag: 'main' }, r2: { tag: 'main' } });
+    expect(copyOfPage(site, site.pages[0]).slug.toLowerCase()).toBe('/hello-copy-2');
+  });
+
   it('the copy of the home page gets an address of its own, never /', () => {
     const site = fivePages();
     const copy = copyOfPage(site, site.pages[0]);
