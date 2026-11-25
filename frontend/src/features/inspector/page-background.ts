@@ -303,7 +303,8 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
       { id: 'page.background-clear', label: 'Clear page background', menu: 'Page', group: 4, enabled: () => !!current(), run: async () => {
         const next = host.state()!;
         await apply([setBackgroundCommand(next.site, host.page(), '')]);
-        host.status('Page background cleared. The page uses the site background.');
+        if (siteBackgroundKey(next.site)) host.status(t('Clear removes it and the page shows white. Choose Site background to use {0}.', [siteBackgroundColor(next.site)]));
+        else host.status('Page background cleared. The page uses the site background.');
       } },
       { id: 'page.background-all', label: 'Use this page background on all pages', menu: 'Page', group: 4, enabled: () => ready() && host.state()!.site.pages.length > 1, run: async () => {
         const next = host.state()!;

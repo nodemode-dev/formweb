@@ -225,6 +225,14 @@ describe('Clear', () => {
     expect(mod.pageBackground(state.site, state.site.pages[0])).toBeNull();
   });
 
+  it('on a site with a site background says the page now shows white, not that it uses the site background', async () => {
+    state = { ...state, site: applyCommands(state.site, [{ command: 'token.set', params: { name: 'page-background', value: '#e9dccb' } }]) };
+    const { handle } = mount();
+    await command(handle, 'page.background-clear').run();
+    expect(mod.usesSiteBackground(state.site, state.site.pages[0])).toBe(false);
+    expect(statuses.at(-1)).toEqual({ message: 'Clear removes it and the page shows white. Choose Site background to use #e9dccb.', error: false });
+  });
+
   it('also removes a background-color set elsewhere', () => {
     const site = threePages();
     const after = applyCommands(site, [mod.setBackgroundCommand(site, site.pages[1], '')]);
