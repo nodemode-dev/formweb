@@ -24,6 +24,19 @@ export interface CanvasMenuHost {
   field(kind: 'style' | 'attr', key: string): HTMLElement | undefined;
 }
 
+type Link = { id: string; label: string; tab: 'design' | 'content'; kind: 'style' | 'attr'; key: string; applies: (node: SiteNode) => boolean };
+
+const VECTOR = new Set(['g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath', 'symbol', 'use', 'pattern', 'tspan', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon']);
+const TEXT_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'a', 'button', 'label', 'li', 'blockquote', 'figcaption', 'strong', 'em', 'small', 'b', 'i', 'summary', 'legend', 'dt', 'dd', 'td', 'th', 'caption', 'code', 'pre', 'time']);
+const html = (node: SiteNode): boolean => !VECTOR.has(node.tag);
+const LINKS: Link[] = [
+  { id: 'inspector.text-style', label: 'Text style', tab: 'design', kind: 'style', key: 'font-size', applies: node => html(node) && node.tag !== 'svg' && (!!node.text || TEXT_TAGS.has(node.tag)) },
+  { id: 'inspector.background', label: 'Background', tab: 'design', kind: 'style', key: 'background', applies: node => html(node) && node.tag !== 'img' && node.tag !== 'svg' },
+  { id: 'inspector.spacing', label: 'Spacing', tab: 'design', kind: 'style', key: 'padding', applies: node => html(node) && node.tag !== 'svg' },
+  { id: 'inspector.size', label: 'Size', tab: 'design', kind: 'style', key: 'width', applies: html },
+  { id: 'inspector.link', label: 'Link', tab: 'content', kind: 'attr', key: 'href', applies: node => node.tag === 'a' || 'href' in node.attrs },
+  { id: 'inspector.image', label: 'Image source and alt text', tab: 'content', kind: 'attr', key: 'src', applies: node => node.tag === 'img' }
+];
 const LINKED_MOVE = 'Elements inside a linked component instance cannot be moved';
 
 export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[] } {
@@ -106,13 +119,26 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     host.status(t('Pasted the styles of {0} ({1}). The operation is one undo step.', [styleClip.name, scopeName()]));
   }
 
+  function reveal(link: Link): void {
+    host.inspector(link.tab);
+    const control = host.field(link.kind, link.key);
+    if (!control) return;
+    const group = control.closest('.inspector-section');
+    if (group?.classList.contains('is-collapsed')) group.querySelector<HTMLElement>('.section-title')?.click();
+    requestAnimationFrame(() => {
+      control.scrollIntoView({ block: 'nearest' });
+      control.focus({ preventScroll: true });
+    });
+  }
+
   const notRoot = (): boolean => host.ready() && !!selectedNode() && !isRoot(host.selected());
   const definitions: CommandDef[] = [
     { id: 'edit.text', label: 'Edit text', menu: 'Edit', group: 1, run: () => editText(), enabled: () => host.ready() && !textBlock(host.selected()), description: 'Start editing the selected element\'s text on the canvas, as a double click does; the change is saved when the text loses focus. Only for an element with its own text in the default language that is not bound to a CMS field.' },
     { id: 'edit.select-parent', label: 'Select parent', menu: 'Edit', group: 1, run: () => { const parent = parentOf(host.selected()); if (parent) host.select(parent.id); }, enabled: notRoot, description: 'Select the element that contains the selected one (the page root at the top).' },
     { id: 'edit.wrap', label: 'Wrap in container', menu: 'Arrange', run: wrap, enabled: () => host.ready() && !wrapBlock(host.selected()), mutates: true, description: 'Put the selected element inside a new empty div at its place and select the div. Not for a page root, an element inside a linked component instance or an element whose parent cannot hold elements. One undo step.', when: 'Use when the person wants to group an element so it can be styled or moved as a block.' },
     { id: 'style.copy', label: 'Copy styles', menu: 'Edit', group: 1, run: copyStyles, enabled: () => host.ready() && !!selectedNode(), description: 'Remember the selected element\'s styles for the breakpoint picked in the toolbar (desktop is the base styles, other breakpoints their overrides). Kept in this window only, not in the system clipboard.' },
-    { id: 'style.paste', label: 'Paste styles', menu: 'Edit', group: 1, run: pasteStyles, enabled: () => host.ready() && !!styleClip && !!selectedNode(), mutates: true, description: 'Give the selected element exactly the styles remembered by Copy styles, for the breakpoint picked in the toolbar: styles it has that the copy lacks are removed. One undo step.' }
+    { id: 'style.paste', label: 'Paste styles', menu: 'Edit', group: 1, run: pasteStyles, enabled: () => host.ready() && !!styleClip && !!selectedNode(), mutates: true, description: 'Give the selected element exactly the styles remembered by Copy styles, for the breakpoint picked in the toolbar: styles it has that the copy lacks are removed. One undo step.' },
+    ...LINKS.map(link => ({ id: link.id, label: `${link.label} settings`, run: () => reveal(link), enabled: () => host.ready() && !!selectedNode() && link.applies(selectedNode()!), description: `Open the right panel on the ${link.tab === 'design' ? 'Design' : 'Content'} tab at the ${link.label} field of the selected element.` }))
   ];
   return { commands: definitions };
 }
