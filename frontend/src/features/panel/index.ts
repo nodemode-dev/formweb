@@ -8,6 +8,7 @@ import { startRename } from './rename';
 import { LayerFolds, type LayerRow } from './fold';
 import { canContain, canDrag, dropTarget, moveCommands, zoneAt, type DropZone } from './drop';
 import { installRowDrag } from './drag';
+import { dragIds, pageSetFor } from '../selection-actions';
 import { element } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import '../../styles/panel.css';
@@ -288,15 +289,15 @@ export function installPanel(host: PanelHost) {
 
   installRowDrag({
     list: host.layersList, host: host.overlay,
-    ids: row => [row.dataset.key!],
+    ids: row => dragIds(row.dataset.key!),
     canStart: (_row, ids) => host.ready() && canDrag(site(), ids),
     zone: (ids, row, fraction) => layerZone(ids, row.dataset.key!, fraction),
     drop: (ids, over, zone) => host.run(async () => { if (await moveLayers(ids, over, zone) && ids.length === 1) host.select(ids[0]); })
   });
   installRowDrag({
     list: host.pagesList, host: host.overlay,
-    ids: row => [row.dataset.key!],
-    canStart: () => host.ready() && site().pages.length > 1,
+    ids: row => pageSetFor(row.dataset.key!),
+    canStart: (_row, ids) => host.ready() && ids.length < site().pages.length,
     zone: (ids, row, fraction) => ids.includes(row.dataset.key!) ? null : zoneAt(fraction, false),
     drop: (ids, over, zone) => host.run(() => movePages(ids, over, zone))
   });
