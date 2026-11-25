@@ -42,7 +42,7 @@ import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
 import { canvasClick, installSelection, isMulti, isSelected, layerClick, topMost, pageClick, paintLayerRow, paintPageRow, selectedIds, selectedPageIds } from './features/selection';
-import { anyCopyable, anyRemovable, canStep, copySelected, countLabel, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, stepSelected } from './features/selection-actions';
+import { anyCopyable, anyRemovable, canStep, copySelected, countLabel, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, selectionNote, selectionTitle, stepSelected } from './features/selection-actions';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
@@ -1528,8 +1528,8 @@ function update(next: EditorState): void {
     }));
     return row;
   }, (row, item) => text(row.children[1] as HTMLElement, item.name));
-  text(inspectorName, node.name);
-  text(inspectorTag, `<${node.tag}> · ${node.id}`);
+  text(inspectorName, selectionTitle() ?? node.name);
+  text(inspectorTag, selectionNote(node.name) ?? `<${node.tag}> · ${node.id}`);
   const inspectorValues: Record<string, string> = {
     name: node.name, tag: node.tag, text: node.text,
     'page.name': page.name, 'page.slug': page.slug,
