@@ -1,5 +1,17 @@
 # Native context
 
+## Addresses ignore capitals, publications carry a runtime token, gated pages leave the search index, and image functions are checked · v0.31.1 (2026-11-25)
+
+Part of the final pull request for issue #36 (`frontend/HASHOUT_LOG.md`, same version, has the release split; `backend/HASHOUT_LOG.md` the serving side). No new crate and no new command; the site background is a design token, so the model has no new field (a sister app opens `.fweb` files with an older engine that refuses unknown fields).
+
+`formweb-engine/src/lib.rs`: `address_key(slug)` (trimmed of slashes, lower case) and `address_free` make `page.add` and a slug change in `page.update` refuse an address another page holds in other capitals, naming that page, because `/two` and `/TWO` are one folder on macOS and Windows; CMS item slugs follow the same rule. `formweb-model` `validate` is unchanged, so a site saved earlier with such a pair still opens; the audit reports it as `page.address-case` and the export warns about the two paths (`formweb-export/src/lib.rs`, `tests/address_case.rs`).
+
+`formweb-export`: `runtimeToken` (32 to 64 URL-safe characters, refused otherwise) is written into each page's `fw-config` context and nowhere else, and `runtime.js` sends it in the path `/api/runtime/~{token}/...` of its own origin and as `X-FormWeb-Runtime` on its own GET and HEAD reads, with credentials omitted. Pages under a `passwordRoutes` route or behind a member gate stay out of `search-index.json`, and the output no longer carries `site.formweb.json` for a local publication (`tests/password_routes.rs`, `tests/compile.rs`).
+
+`formweb-model/src/lib.rs` `safe_css_value` (review fix): `url()` was refused in every style value and token, but `background-image: image-set("https://outside/x.png" 1x)` passed, an outside picture named as a string. `names_a_picture_by_address` now refuses `image-set()`, `-webkit-image-set()`, `image()`, `cross-fade()` and `-webkit-cross-fade()` when a quoted string appears in them outside `type()` (every such string is a picture address, and no `url()` is ever accepted, so no address in them is either), and refuses `element()` and `-moz-element()` outright, as `url(#id)` is refused. Gradients and colors inside them are kept; the match starts only at a word boundary and a char boundary. `tests/validation.rs` holds a table of ten refused values, checked on a node, at a breakpoint and as a token, and six accepted ones.
+
+Tests: 182 engine tests at the release (`cargo test --workspace --release --locked`).
+
 ## `page.move` reorders the page list, and the engine gets integration tests · v0.31.0 (2026-11-25)
 
 Part of the issue #36 work, shipped as 0.28.1, 0.29.0, 0.30.0 and 0.31.0; this entry records the native side of all four (`frontend/HASHOUT_LOG.md`, same version, has the release split). `page.move` shipped in 0.29.0; the tests ship in 0.31.0.
