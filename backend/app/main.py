@@ -854,7 +854,7 @@ async def frontend(path: str):
     if not target.is_relative_to(FRONTEND_DIST):
         raise EngineError('File not found.', 404)
     if target.is_file():
-        return FileResponse(target)
+        return FileResponse(target, headers={'Cache-Control': 'no-cache'} if target.suffix == '.html' else None)
     if '.' not in Path(path).name:
-        return FileResponse(FRONTEND_DIST / 'index.html')
+        return FileResponse(FRONTEND_DIST / 'index.html', headers={'Cache-Control': 'no-cache'})
     raise EngineError('File not found.', 404)
