@@ -1616,6 +1616,8 @@ function update(next: EditorState): void {
   canvas.mark(selectedIds());
   canvas.render(site, page, selectedId, widths[breakpoint], locale, false, breakpoint);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
+  if (refreshPreviewButton.classList.contains('active') !== preview) refreshPreviewButton.classList.toggle('active', preview);
+  if (refreshPreviewButton.getAttribute('aria-pressed') !== String(preview)) refreshPreviewButton.setAttribute('aria-pressed', String(preview));
   fullPreview.follow(next.revision);
   if (dialogMode === 'cms') updateCms();
   if (dialogMode === 'locales') updateLocales();
