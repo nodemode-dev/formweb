@@ -3,9 +3,11 @@ import type { Command as Batch } from '../sections';
 import { commands as registry, formatKeys } from '../../commands/registry';
 import type { CommandDef } from '../../ui/shell';
 import { anchorOf, menuKeyPressed, showContextMenu, type MenuAnchor, type MenuEntry } from '../../ui/context-menu';
-import { copyOfPage, homeCommands, stepPageCommands } from './pages';
+import { copyOfPage, homeCommands, pageMoveCommands, stepPageCommands } from './pages';
 import { startRename } from './rename';
 import { LayerFolds, type LayerRow } from './fold';
+import { canContain, canDrag, dropTarget, moveCommands, zoneAt, type DropZone } from './drop';
+import { installRowDrag } from './drag';
 import { element } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import '../../styles/panel.css';
@@ -187,6 +189,7 @@ export function installPanel(host: PanelHost) {
     showContextMenu(pageEntries(id), anchor, { host: host.overlay, className: 'fw-layer-menu fw-page-menu', run: host.run, returnFocus: row });
   }
 
+  const altArrow = (event: KeyboardEvent): boolean => event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown');
   const plainKey = (event: KeyboardEvent, key: string): boolean => event.key === key && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
 
   function pageRow(row: HTMLElement): void {
@@ -196,6 +199,7 @@ export function installPanel(host: PanelHost) {
       if (menuKeyPressed(event)) { event.preventDefault(); showPageMenu(row, row); }
       else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('page.rename', { id: row.dataset.key }); }
       else if (plainKey(event, 'ArrowDown') || plainKey(event, 'ArrowUp')) { event.preventDefault(); focusRow(event.key === 'ArrowDown' ? row.nextElementSibling : row.previousElementSibling); }
+      else if (altArrow(event)) { event.preventDefault(); const id = row.dataset.key!; void host.run(async () => { await stepPage(event.key === 'ArrowUp' ? -1 : 1, { id }); refocus(host.pagesList, id)(); }); }
     });
   }
 
@@ -224,6 +228,7 @@ export function installPanel(host: PanelHost) {
       if (event.defaultPrevented) return;
       if (menuKeyPressed(event)) { event.preventDefault(); menu(event); }
       else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('layer.rename', { id: row.dataset.key }); }
+      else if (altArrow(event)) { event.preventDefault(); const id = row.dataset.key!; void host.run(async () => { await stepLayer(id, event.key === 'ArrowUp' ? -1 : 1); refocus(host.layersList, id)(); }); }
       else if (plainKey(event, event.key) && treeKey(row, event.key)) event.preventDefault();
     });
   }
@@ -235,5 +240,55 @@ export function installPanel(host: PanelHost) {
     if (item.kids) row.setAttribute('aria-expanded', String(!item.folded)); else row.removeAttribute('aria-expanded');
   }
 
-  return { commands: definitions, pageRow, layerRow, layerEntries, layerRows, paintLayer };
+  const rowOpen = (id: string): boolean => {
+    const row = rowIn(host.layersList, id);
+    return !!row && row.dataset.kids === 'true' && !row.classList.contains('is-folded');
+  };
+  function layerZone(ids: string[], over: string, fraction: number): DropZone | null {
+    const zone = zoneAt(fraction, over === rootOf() || canContain(site(), over));
+    const target = dropTarget(site(), rootOf(), ids, over, zone, rowOpen(over));
+    return !target ? null : target.zone === 'into' && target.anchor !== null ? 'after' : target.zone;
+  }
+  async function moveLayers(ids: readonly string[], over: string, zone: DropZone): Promise<boolean> {
+    const target = dropTarget(site(), rootOf(), ids, over, zone, zone === 'after' && rowOpen(over));
+    const list = target ? moveCommands(site(), ids, target) : [];
+    if (!list.length) return false;
+    await host.commands(list);
+    host.status(list.length === 1 ? 'Layer moved. One undo step puts it back.' : `${list.length} layers moved. One undo step puts them back.`);
+    return true;
+  }
+  async function movePages(ids: readonly string[], over: string, zone: DropZone): Promise<boolean> {
+    const pages = site().pages;
+    const at = pages.findIndex(page => page.id === over);
+    const anchor = zone === 'before' ? over : pages.slice(at + 1).find(page => !ids.includes(page.id))?.id ?? null;
+    const list = pageMoveCommands(site(), ids, anchor);
+    if (!list.length) return false;
+    await host.commands(list);
+    host.status(site().pages[0] && ids.includes(site().pages[0].id) ? 'Page moved. It is now first, which the editor marks Home.' : 'Page moved.');
+    return true;
+  }
+  async function stepLayer(id: string, step: -1 | 1): Promise<void> {
+    const parent = parentOf(id);
+    if (!parent) return;
+    const sibling = parent.children[parent.children.indexOf(id) + step];
+    if (sibling) await moveLayers([id], sibling, step < 0 ? 'before' : 'after');
+  }
+  const refocus = (list: HTMLElement, id: string) => (): void => { rowIn(list, id)?.focus({ preventScroll: false }); };
+
+  installRowDrag({
+    list: host.layersList, host: host.overlay,
+    ids: row => [row.dataset.key!],
+    canStart: (_row, ids) => host.ready() && canDrag(site(), ids),
+    zone: (ids, row, fraction) => layerZone(ids, row.dataset.key!, fraction),
+    drop: (ids, over, zone) => host.run(async () => { if (await moveLayers(ids, over, zone) && ids.length === 1) host.select(ids[0]); })
+  });
+  installRowDrag({
+    list: host.pagesList, host: host.overlay,
+    ids: row => [row.dataset.key!],
+    canStart: () => host.ready() && site().pages.length > 1,
+    zone: (ids, row, fraction) => ids.includes(row.dataset.key!) ? null : zoneAt(fraction, false),
+    drop: (ids, over, zone) => host.run(() => movePages(ids, over, zone))
+  });
+
+  return { commands: definitions, pageRow, layerRow, layerEntries, layerRows, paintLayer, moveLayers, movePages, layerZone, stepLayer, refocus };
 }
