@@ -5,6 +5,7 @@ import { menuKeyPressed, showContextMenu, type MenuEntry, type MenuItem, type Op
 import { t } from '../i18n';
 import { invoke } from './panel';
 import { canContain } from './panel/drop';
+import { countLabel } from './selection-actions';
 import type { SiteNode } from '../types';
 
 export interface CanvasMenuHost {
@@ -120,8 +121,9 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
       { command: 'node.move', params: { id: box.id, parent: parent.id, index: parent.children.indexOf(ids[0]) } },
       ...ids.map((each, index) => ({ command: 'node.move', params: { id: each, parent: box.id, index } }))
     ]);
+    const left = selectionIds().length - ids.length;
     host.select(box.id);
-    host.status(t('Wrapped in a container. The operation is one undo step.'));
+    host.status(t('Wrapped in a container. The operation is one undo step.') + (left ? ' ' + countLabel(t('One selected element outside that container was left as it is.'), '{0} selected elements outside that container were left as they are.', left) : ''));
   }
 
   let styleClip: { styles: Record<string, string>; name: string } | null = null;
@@ -196,21 +198,25 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     const at = parent ? parent.children.indexOf(id) : -1;
     const locked = !!parent?.componentSourceId;
     const copyable = host.canDuplicate();
+    const picked = selectionIds();
+    const many = picked.length > 1 ? host.topMost(picked).length : 1;
+    const several = many > 1;
+    const wraps = parent ? picked.filter(each => parent.children.includes(each)).length : 1;
     const entries: MenuEntry[] = [];
     if (node.text) entries.push(item('edit.text', 'Edit text', () => editText(target), textBlock(id)), sep);
     entries.push(
-      item('edit.copy', 'Copy', host.copy, copyable ? '' : COPY_BLOCKED.copy, 'Copy element'),
-      item('edit.cut', 'Cut', host.cut, copyable ? '' : COPY_BLOCKED.cut, 'Cut element'),
+      item('edit.copy', countLabel('Copy', 'Copy {0} elements', many), host.copy, copyable ? '' : several ? 'None of the selected elements can be copied' : COPY_BLOCKED.copy, countLabel('Copy element', 'Copy {0} elements', many)),
+      item('edit.cut', countLabel('Cut', 'Cut {0} elements', many), host.cut, copyable ? '' : several ? 'None of the selected elements can be cut' : COPY_BLOCKED.cut, countLabel('Cut element', 'Cut {0} elements', many)),
       item('edit.paste', 'Paste', host.paste, pasteBlock(id), 'Paste element'),
-      item('edit.duplicate', 'Duplicate', host.duplicate, copyable ? '' : COPY_BLOCKED.duplicate),
-      item('edit.delete', 'Delete', () => invoke('edit.delete'), locked ? 'Elements inside a linked component instance cannot be deleted' : '', 'Delete element'),
+      item('edit.duplicate', countLabel('Duplicate', 'Duplicate {0} elements', many), host.duplicate, copyable ? '' : several ? 'None of the selected elements can be duplicated' : COPY_BLOCKED.duplicate),
+      item('edit.delete', countLabel('Delete', 'Delete {0} elements', many), () => invoke('edit.delete'), several ? '' : locked ? 'Elements inside a linked component instance cannot be deleted' : '', countLabel('Delete element', 'Delete {0} elements', many)),
       sep,
       item('layer.rename', 'Rename', () => invoke('layer.rename', { id })),
       item('edit.select-parent', 'Select parent', () => invoke('edit.select-parent')),
       sep,
-      item('arrange.up', 'Move up', () => invoke('arrange.up'), locked ? LINKED_MOVE : at > 0 ? '' : 'This element is already first'),
-      item('arrange.down', 'Move down', () => invoke('arrange.down'), locked ? LINKED_MOVE : at < (parent?.children.length ?? 0) - 1 ? '' : 'This element is already last'),
-      item('edit.wrap', 'Wrap in container', () => invoke('edit.wrap'), wrapBlock(id)),
+      item('arrange.up', countLabel('Move up', 'Move {0} elements up', many), () => invoke('arrange.up'), several ? '' : locked ? LINKED_MOVE : at > 0 ? '' : 'This element is already first'),
+      item('arrange.down', countLabel('Move down', 'Move {0} elements down', many), () => invoke('arrange.down'), several ? '' : locked ? LINKED_MOVE : at < (parent?.children.length ?? 0) - 1 ? '' : 'This element is already last'),
+      item('edit.wrap', countLabel('Wrap in container', 'Wrap {0} elements in a container', wraps), () => invoke('edit.wrap'), wrapBlock(id)),
       item(insertId(), 'Add element here...', () => invoke(insertId()), insertBlock(id)),
       sep
     );
@@ -218,7 +224,7 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     entries.push(
       sep,
       item('style.copy', 'Copy styles', () => invoke('style.copy')),
-      item('style.paste', 'Paste styles', () => invoke('style.paste'), styleClip ? '' : 'Copy the styles of an element first')
+      item('style.paste', countLabel('Paste styles', 'Paste styles to {0} elements', picked.length), () => invoke('style.paste'), styleClip ? '' : 'Copy the styles of an element first')
     );
     return entries;
   }
@@ -227,8 +233,10 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
   let keyed = 0;
   function show(id: string, target: Element | null, anchor: Point): void {
     if (!host.ready() || !site().nodes[id]) return;
-    if (!selectionIds().includes(id)) host.select(id);
-    open = showContextMenu(isRoot(id) ? rootEntries(id) : elementEntries(id, target), anchor, { host: host.overlay, className: 'fw-layer-menu fw-canvas-menu', run: host.run, returnFocus: host.frame });
+    const picked = selectionIds();
+    if (!picked.includes(id)) host.select(id);
+    else if (id !== host.selected()) host.selectNodes(picked, id);
+    open =showContextMenu(isRoot(id) ? rootEntries(id) : elementEntries(id, target), anchor, { host: host.overlay, className: 'fw-layer-menu fw-canvas-menu', run: host.run, returnFocus: host.frame });
   }
   const close = (): void => { open?.close(false); open = null; };
   const editing = (at: Document): boolean => !!at.querySelector('[contenteditable="true"]');
@@ -260,9 +268,9 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
   const definitions: CommandDef[] = [
     { id: 'edit.text', label: 'Edit text', menu: 'Edit', group: 1, run: () => editText(), enabled: () => host.ready() && !textBlock(host.selected()), description: 'Start editing the selected element\'s text on the canvas, as a double click does; the change is saved when the text loses focus. Only for an element with its own text in the default language that is not bound to a CMS field.' },
     { id: 'edit.select-parent', label: 'Select parent', menu: 'Edit', group: 1, run: () => { const parent = parentOf(host.selected()); if (parent) host.select(parent.id); }, enabled: notRoot, description: 'Select the element that contains the selected one (the page root at the top).' },
-    { id: 'edit.wrap', label: 'Wrap in container', menu: 'Arrange', run: wrap, enabled: () => host.ready() && !wrapBlock(host.selected()), mutates: true, description: 'Put the selected element inside a new empty div at its place and select the div. Not for a page root, an element inside a linked component instance or an element whose parent cannot hold elements. One undo step.', when: 'Use when the person wants to group an element so it can be styled or moved as a block.' },
+    { id: 'edit.wrap', label: 'Wrap in container', menu: 'Arrange', run: wrap, enabled: () => host.ready() && !wrapBlock(host.selected()), mutates: true, description: 'Put the selected element, and the other selected elements beside it in the same parent, inside a new empty div at its place and select the div. Not for a page root, an element inside a linked component instance or an element whose parent cannot hold elements. One undo step.', when: 'Use when the person wants to group an element so it can be styled or moved as a block.' },
     { id: 'style.copy', label: 'Copy styles', menu: 'Edit', group: 1, run: copyStyles, enabled: () => host.ready() && !!selectedNode(), description: 'Remember the selected element\'s styles for the breakpoint picked in the toolbar (desktop is the base styles, other breakpoints their overrides). Kept in this window only, not in the system clipboard.' },
-    { id: 'style.paste', label: 'Paste styles', menu: 'Edit', group: 1, run: pasteStyles, enabled: () => host.ready() && !!styleClip && !!selectedNode(), mutates: true, description: 'Give the selected element exactly the styles remembered by Copy styles, for the breakpoint picked in the toolbar: styles it has that the copy lacks are removed. One undo step.' },
+    { id: 'style.paste', label: 'Paste styles', menu: 'Edit', group: 1, run: pasteStyles, enabled: () => host.ready() && !!styleClip && !!selectedNode(), mutates: true, description: 'Give every selected element exactly the styles remembered by Copy styles, for the breakpoint picked in the toolbar: styles it has that the copy lacks are removed. One undo step.' },
     ...LINKS.map(link => ({ id: link.id, label: `${link.label} settings`, run: () => reveal(link), enabled: () => host.ready() && !!selectedNode() && link.applies(selectedNode()!), description: `Open the right panel on the ${link.tab === 'design' ? 'Design' : 'Content'} tab at the ${link.label} field of the selected element.` }))
   ];
   return { commands: definitions };
