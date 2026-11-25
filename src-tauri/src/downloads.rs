@@ -8,6 +8,8 @@ use std::sync::atomic::Ordering;
 use std::sync::Mutex;
 
 use tauri::webview::DownloadEvent;
+#[cfg(target_os = "linux")]
+use tauri::Manager;
 use tauri::{Runtime, Webview};
 
 static REQUESTED: Mutex<Vec<(String, PathBuf)>> = Mutex::new(Vec::new());
@@ -30,6 +32,8 @@ pub fn on_download<R: Runtime>(webview: Webview<R>, event: DownloadEvent<'_>) ->
                 requested.iter().position(|(seen, _)| *seen == url).map(|at| requested.remove(at).1)
             };
             let saved = path.filter(|path| path.is_file()).or(asked);
+            #[cfg(target_os = "linux")]
+            let saved = saved.map(|path| settle(&webview, path));
             if success {
                 if let Some(path) = &saved {
                     *LAST.lock().unwrap() = Some(path.clone());
@@ -50,6 +54,50 @@ pub fn on_download<R: Runtime>(webview: Webview<R>, event: DownloadEvent<'_>) ->
         _ => {}
     }
     true
+}
+
+/// WebKitGTK picks the folder itself, from ~/.config/user-dirs.dirs, and without a Downloads entry there it saves into
+/// the folder the app was started from. Such a file is moved to ~/Downloads; anything that fails leaves it where it is.
+#[cfg(target_os = "linux")]
+fn settle<R: Runtime>(webview: &Webview<R>, path: PathBuf) -> PathBuf {
+    let (Err(_), Ok(home), Some(name)) = (webview.path().download_dir(), webview.path().home_dir(), path.file_name().and_then(|name| name.to_str())) else { return path };
+    let folder = home.join("Downloads");
+    if !path.is_file() || path.parent() == Some(folder.as_path()) || std::fs::create_dir_all(&folder).is_err() {
+        return path;
+    }
+    let target = free(&folder, &unnumbered(name));
+    if std::fs::rename(&path, &target).is_ok() || (std::fs::copy(&path, &target).is_ok() && std::fs::remove_file(&path).is_ok()) {
+        target
+    } else {
+        path
+    }
+}
+
+/// The base name and extension, split at the first dot as the web view does.
+#[cfg(target_os = "linux")]
+fn split(name: &str) -> (&str, &str) {
+    name.find('.').map_or((name, ""), |at| name.split_at(at))
+}
+
+/// The name without the " (2)" the web view added for a file of that name in the folder it used.
+#[cfg(target_os = "linux")]
+fn unnumbered(name: &str) -> String {
+    let (base, ext) = split(name);
+    let kept = base.rsplit_once(" (").filter(|(_, n)| n.strip_suffix(')').is_some_and(|n| !n.is_empty() && n.bytes().all(|b| b.is_ascii_digit()))).map_or(base, |(kept, _)| kept);
+    format!("{kept}{ext}")
+}
+
+/// `name` in `folder`, or "base (1).ext", "base (2).ext" and so on when that is taken, as the web views do.
+#[cfg(target_os = "linux")]
+fn free(folder: &Path, name: &str) -> PathBuf {
+    let (base, ext) = split(name);
+    let mut path = folder.join(name);
+    let mut count = 1;
+    while path.exists() {
+        path = folder.join(format!("{base} ({count}){ext}"));
+        count += 1;
+    }
+    path
 }
 
 /// Shows the last file the page saved in the system file manager: selected in Finder and Explorer, its folder elsewhere.
