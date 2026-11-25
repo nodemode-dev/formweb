@@ -9,7 +9,7 @@ import type { LibIndex, LibResult, LibSection, LibraryHooks } from './types';
 import '../../styles/library.css';
 
 export type { LibraryHooks } from './types';
-export type LibraryPanel = { element: HTMLElement; setVisible: (on: boolean) => void };
+export type LibraryPanel = { element: HTMLElement; setVisible: (on: boolean) => void; showTab: (id: Tab) => void };
 
 type Tab = 'sections' | 'kits' | 'import';
 
@@ -118,6 +118,11 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
     setVisible(on: boolean): void {
       if (root.hidden === on) root.hidden = !on;
       if (on) void load();
+    },
+    showTab(id: Tab): void {
+      tab = id;
+      paint();
+      buttons.get(id)?.focus({ preventScroll: true });
     }
   };
 }
