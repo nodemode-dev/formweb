@@ -22,6 +22,7 @@ NODE = {'type': 'string', 'minLength': 1, 'maxLength': 160}
 IDENT = {'type': 'string', 'pattern': '^[A-Za-z0-9_-]{1,96}$'}
 MOTION_KINDS = ['reveals', 'scenes', 'loops', 'counters', 'text', 'drag', 'pointer', 'disclosure', 'actions', 'scripts']
 VARIABLE_KINDS = ['values', 'tables', 'formulas', 'inputs', 'outputs']
+BRING_IN = {'type': 'string', 'enum': ['code', 'elements'], 'default': 'code', 'description': 'code (default) keeps each page as a code section, an exact copy edited as code; elements then turns it into editable elements in the open editor window (library.convert-section): base desktop styles, responsive rules not carried over, scripts and frames kept as small code sections.'}
 FIELD_VALUES = {'type': 'object', 'description': 'Field values to re-cast the template (see library_list: each section lists its fields with type and default). Omitted fields keep the template default.'}
 
 AUTHORING_TOOLS = [
@@ -47,10 +48,10 @@ AUTHORING_TOOLS = [
          {'preset': IDENT, 'mode': {'type': 'string', 'enum': ['all', 'missing'], 'default': 'all'}, 'page': NODE}, ['preset'], destructive=True, idempotent=True),
     tool('library_apply_starter', 'Build a starter site: its pages and sections, re-cast with field values shared across the sections that own them. An empty single page is reused for the first starter page. One undo step.',
          {'starter': IDENT, 'values': FIELD_VALUES, 'update_components': {'type': 'boolean', 'default': False}}, ['starter']),
-    tool('library_import_html', 'Import a finished HTML page as one code section: style tags become its css, the first inline script its js, the body markup its html. Allows code sections on the site. One undo step; the result runs in the exported site, not on the canvas.',
-         {'html': {'type': 'string', 'minLength': 1, 'maxLength': 1048576}, 'css': {'type': 'string', 'maxLength': 262144}, 'name': {'type': 'string', 'maxLength': 120}, 'parent': NODE, 'page': NODE, 'index': {'type': 'integer', 'minimum': 0}}, ['html']),
-    tool('library_import_site', 'Import a static site from a zip (data: the .zip bytes as base64): every HTML file becomes a page holding one code section with its local stylesheets and first script, pictures and WOFF2 fonts are stored as assets, and links between the pages follow their new routes. action review (default) changes nothing and lists the pages with their routes, the assets, the skipped files with reasons, canReplace and the revision; show it to the person. action import adds them as new pages (mode new) or swaps the content of pages whose route matches (mode replace, only when the review says canReplace), in one undo step; pass the review\'s revision as expected_revision (the older name revision is still accepted) so a site changed since is refused. At most about 48 MiB of zip through this tool, 1,000 entries, 100 pages and 128 MiB unpacked.',
-         {'data': {'type': 'string', 'minLength': 4, 'maxLength': 67108864}, 'action': {'type': 'string', 'enum': ['review', 'import'], 'default': 'review'}, 'mode': {'type': 'string', 'enum': ['new', 'replace'], 'default': 'new'}, 'expected_revision': {**REVISION, 'description': 'The revision the review returned. A site changed since then is refused without changing anything.'}, 'revision': {'type': 'integer', 'minimum': 0, 'description': 'Older name for expected_revision, still accepted; expected_revision wins when both are given.'}}, ['data'], destructive=True),
+    tool('library_import_html', 'Import a finished HTML page as one code section: style tags become its css, the first inline script its js, the body markup its html. Allows code sections on the site. One undo step; the result runs in the exported site, not on the canvas. With bring_in elements the open editor window then converts it to editable elements (a second undo step) and conversion holds its result sentence; with no window open it stays a code section and conversion says so.',
+         {'html': {'type': 'string', 'minLength': 1, 'maxLength': 1048576}, 'css': {'type': 'string', 'maxLength': 262144}, 'name': {'type': 'string', 'maxLength': 120}, 'parent': NODE, 'page': NODE, 'index': {'type': 'integer', 'minimum': 0}, 'bring_in': BRING_IN}, ['html']),
+    tool('library_import_site', 'Import a static site from a zip (data: the .zip bytes as base64): every HTML file becomes a page holding one code section with its local stylesheets and first script, pictures and WOFF2 fonts are stored as assets, and links between the pages follow their new routes. action review (default) changes nothing and lists the pages with their routes, the assets, the skipped files with reasons, canReplace and the revision; show it to the person. action import adds them as new pages (mode new) or swaps the content of pages whose route matches (mode replace, only when the review says canReplace), in one undo step; pass the review\'s revision as expected_revision (the older name revision is still accepted) so a site changed since is refused. At most about 48 MiB of zip through this tool, 1,000 entries, 100 pages and 128 MiB unpacked. With bring_in elements the open editor window then converts the imported pages to editable elements (a second undo step) and conversion holds its result sentence; with no window open they stay code sections and conversion says so.',
+         {'data': {'type': 'string', 'minLength': 4, 'maxLength': 67108864}, 'action': {'type': 'string', 'enum': ['review', 'import'], 'default': 'review'}, 'mode': {'type': 'string', 'enum': ['new', 'replace'], 'default': 'new'}, 'bring_in': BRING_IN, 'expected_revision': {**REVISION, 'description': 'The revision the review returned. A site changed since then is refused without changing anything.'}, 'revision': {'type': 'integer', 'minimum': 0, 'description': 'Older name for expected_revision, still accepted; expected_revision wins when both are given.'}}, ['data'], destructive=True),
     tool('send_to_formpublisher', 'Send the open site to FormPublisher on this computer, as File > Send to FormPublisher does: delivered "live" when FormPublisher is running (returns its site id and revision), or "inbox" with the path of the zip it will import next time it runs. Also returns warnings: the export\'s own warning strings, the same as export_site gives. Does not change the site.',
          {'locale': {'type': 'string', 'maxLength': 40}}),
     tool('new_site', 'Replace the open site with a new one, as File > New does: blank true (default) gives one empty home page to assemble from library sections; blank false gives the sample site. The replaced site stays in autosave and saved projects. Save it first with save_project if it matters.',
@@ -84,6 +85,20 @@ def _state(result, extra=None):
 
 def _drop(arguments, *keys):
     return {key: value for key, value in arguments.items() if key not in keys and value is not None}
+
+
+async def _bring_in(hosts):
+    """Converts freshly imported code sections in the open editor window, which measures them in a browser; without a
+    window the import stands as code sections and the answer says why."""
+    from . import commands_mirror
+    if not hosts:
+        return {'conversion': 'Nothing was imported that could be converted.'}
+    try:
+        ran = await commands_mirror.run('library.convert-section', {'nodes': hosts})
+    except EngineError as error:
+        return {'conversion': f'The pages stayed code sections: {error} Converting needs the editor window, which measures each page in the browser; open FormWeb and run library.convert-section.'}
+    result = ran.get('result') if isinstance(ran.get('result'), dict) else {}
+    return {'conversion': result.get('message', ''), 'converted': result.get('converted', 0), 'revision': (await studio.state())['revision']}
 
 
 async def _command(command, params, arguments):
@@ -177,8 +192,9 @@ async def dispatch(name, arguments):
         result = await library_routes.library_apply_starter(arguments['starter'], JsonBody(body))
         return _state(result, {'pages': result.get('pages'), 'warnings': result.get('warnings', [])})
     if name == 'library_import_html':
-        result = await library_routes.library_import_html(JsonBody(_drop(arguments)))
-        return _state(result, {'root': result.get('root'), 'warnings': result.get('warnings', [])})
+        result = await library_routes.library_import_html(JsonBody(_drop(arguments, 'bring_in')))
+        made = _state(result, {'root': result.get('root'), 'warnings': result.get('warnings', [])})
+        return {**made, **(await _bring_in([result['root']] if result.get('root') else []))} if arguments.get('bring_in') == 'elements' else made
     if name == 'library_import_site':
         studio.access.authorize('edit')
         try:
@@ -189,7 +205,13 @@ async def dispatch(name, arguments):
             return await library_routes.review_site(data)
         expected = arguments.get('expected_revision')
         result = await library_routes.import_site(data, arguments.get('mode', 'new'), arguments.get('revision') if expected is None else expected)
-        return _state(result, {key: result.get(key) for key in ('pages', 'assets', 'skipped', 'warnings', 'message')})
+        made = _state(result, {key: result.get(key) for key in ('pages', 'assets', 'skipped', 'warnings', 'message')})
+        if arguments.get('bring_in') != 'elements':
+            return made
+        site = (await studio.state())['site']
+        roots = {page['id']: page['root'] for page in site['pages']}
+        hosts = [child for page in result.get('pages') or [] for child in site['nodes'].get(roots.get(page, ''), {}).get('children', [])]
+        return {**made, **(await _bring_in(hosts))}
     if name == 'send_to_formpublisher':
         studio.access.authorize('read')
         return await asyncio.to_thread(_send, arguments.get('locale'))
