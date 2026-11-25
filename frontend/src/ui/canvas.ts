@@ -64,6 +64,7 @@ export class Canvas {
   private ready: Promise<void>;
   private themeMode = '';
   private tokenOverride: Record<string, string> = {};
+  private tokenNames = new Set<string>();
   private faceCss = '';
   private faceStyle?: HTMLStyleElement;
   private motionFrame: Record<string, Record<string, string>> | null = null;
@@ -204,9 +205,13 @@ export class Canvas {
       if (!this.faceStyle) { this.faceStyle = this.doc.createElement('style'); this.doc.head.append(this.faceStyle); }
       if (this.faceStyle.textContent !== this.faceCss) this.faceStyle.textContent = this.faceCss;
     }
+    const names = new Set<string>();
     for (const [name, content] of Object.entries({ ...site.tokens, ...this.tokenOverride })) {
-      if (safeStyle(name.replace(/^--/, ''), content)) this.doc.documentElement.style.setProperty(name.startsWith('--') ? name : '--' + name, content);
+      const property = name.startsWith('--') ? name : '--' + name;
+      if (safeStyle(name.replace(/^--/, ''), content)) { this.doc.documentElement.style.setProperty(property, content); names.add(property); }
     }
+    for (const property of this.tokenNames) if (!names.has(property)) this.doc.documentElement.style.removeProperty(property);
+    this.tokenNames = names;
     const visited = new Set<string>();
     const root = this.patch(site, page.root, selected, scope, locale, visited);
     if (root && root.parentNode !== this.doc.body) this.doc.body.append(root);

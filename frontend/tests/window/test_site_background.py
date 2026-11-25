@@ -118,6 +118,33 @@ def test_text_put_in_a_new_section_is_readable(blank, background):
     assert heading.evaluate(CONTRAST) >= 4.5
 
 
+def published_background(editor, chromium, slug, node):
+    with urllib.request.urlopen(editor.base + "/api/export", timeout=60) as reply:
+        archive = zipfile.ZipFile(io.BytesIO(reply.read()))
+    folder = Path(tempfile.mkdtemp(prefix="formweb-published-"))
+    archive.extractall(folder)
+    published = chromium.new_page()
+    published.goto((folder / slug / "index.html").as_uri())
+    shown = published.locator(f'[data-fw-node="{node}"]').evaluate("e => getComputedStyle(e).backgroundColor")
+    published.close()
+    return shown
+
+
+def test_removing_the_site_background_token_while_a_page_uses_it_shows_the_same_white_on_the_canvas_as_on_the_published_page(blank, chromium):
+    group(blank)
+    color = blank.page.locator('[data-field="page.site-background"]')
+    color.fill("#203040")
+    color.press("Enter")
+    site = blank.until(lambda s: s["tokens"].get("page-background") == "#203040", "the site background token")
+    hello = root_of(blank, site, "Hello")
+    root = blank.canvas.locator(f'[data-fw-id="{hello["root"]}"]')
+    expect(root).to_have_css("background-color", "rgb(32, 48, 64)")
+    blank.command("token.set", {"name": "page-background", "value": None})
+    blank.until(lambda s: "page-background" not in s["tokens"], "the token to go")
+    expect(root).to_have_css("background-color", "rgba(0, 0, 0, 0)")
+    assert published_background(blank, chromium, "hello", hello["root"]) == "rgba(0, 0, 0, 0)"
+
+
 def test_white_text_on_a_dark_page_is_shown_in_a_notice_whose_undo_keeps_the_background(blank):
     site = blank.site()["site"]
     hello = root_of(blank, site, "Hello")
