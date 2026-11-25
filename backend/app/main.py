@@ -68,7 +68,7 @@ class LocalAccess:
         runtime = path.startswith('/api/runtime/')
         site_space = path.startswith(SITE_SPACE)
         site_form = bool(re.fullmatch(r'/published/[^/]+/[^/]+/api/forms/[^/]+/[^/]+', path))
-        site_file = scope['method'] in ('GET', 'HEAD', 'OPTIONS') and bool(re.fullmatch(r'/(?:published/[^/]+/[^/]+|sites/[^/]+)/(?:assets/.+|search-index\.json|site\.webmanifest)', path))
+        site_file = scope['method'] in ('GET', 'HEAD', 'OPTIONS') and bool(re.fullmatch(r'/(?:published/[^/]+/[^/]+|sites/[^/]+)/(?:(?:_fw/[^/]+/)?assets/.+|search-index\.json|site\.webmanifest)', path))
         site_read = scope['method'] in ('GET', 'HEAD') and site_space and studio.releases.runtime_reads(headers.get('x-formweb-runtime', ''), path)
         site_preflight = scope['method'] == 'OPTIONS' and site_space
         site_page = origin == 'null' and (site_file or site_form or site_read or site_preflight)

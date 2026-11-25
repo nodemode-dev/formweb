@@ -1,4 +1,5 @@
 import json
+import re
 from html import escape
 from pathlib import PurePosixPath
 from urllib.parse import parse_qs, quote
@@ -17,6 +18,8 @@ from .service import safe_export_path, studio
 from .workflows import dispatch
 
 router = APIRouter()
+GRANT = re.compile(r'_fw/([A-Za-z0-9_-]+\.[0-9]+\.[0-9a-f]{32})/(assets/.+)')
+ASSET_LINK = re.compile(r'''((?:["'(]|, ?)(?:\.\./)*)(assets/(?!runtime\.js|site\.css)[^"'()\s?#,]+)''')
 GATE_HEADERS = {'Cache-Control': 'private, no-store', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'", 'Referrer-Policy': 'same-origin'}
 
 
@@ -145,31 +148,38 @@ def canonical_route(root, site, path):
     return route
 
 
-def visitor_gate(request, root, site, path):
+def member_gated(site, route):
+    route = '/' + route.strip('/')
     gates = site.get('extensions', {}).get('integrations', {}).get('gates', [])
+    return any(route == gate['route'].rstrip('/') or route.startswith(gate['route'].rstrip('/') + '/') for gate in gates)
+
+
+def visitor_gate(request, root, site, path, granted=None):
+    """Whether path is protected content, raising unless this request may have it. A file under assets/ is protected when every page
+    that uses it sits behind a password or a member gate; it is then answered for an unlocked gate, a member, or a key its page carries."""
     if path in ('assets/runtime.js', 'assets/site.css'):
         return False
-    if gates and path.startswith('assets/'):
+    if path.startswith('assets/'):
         manifest_path = root / 'asset-access.json'
         manifest = json.loads(manifest_path.read_text()) if manifest_path.is_file() else {}
         owners = set(manifest.get('assets', {}).get(path, []))
         pages = [page for page in site['pages'] if page['id'] in owners]
+        if not pages or any(not studio.passwords.gate_for(site['id'], page['slug']) and not member_gated(site, page['slug']) for page in pages):
+            return False
+        if granted in owners:
+            return True
         last_error = None
-        authorized = False
         for page in pages:
+            password = studio.passwords.gate_for(site['id'], page['slug'])
+            if password and not studio.passwords.unlocked(request, password):
+                last_error = EngineError('This file belongs to a password-protected page.', 401)
+                continue
             try:
-                gated = providers.visitor.authorize(request, site, page['slug'])
-                if not gated:
-                    return False
-                authorized = True
+                providers.visitor.authorize(request, site, page['slug'])
+                return True
             except EngineError as error:
                 last_error = error
-        if authorized:
-            return True
-        if last_error:
-            raise last_error
-        session = providers.visitor.session(request, site['id'])
-        raise EngineError('This private asset has no published page ownership.', 403 if session['authenticated'] else 401)
+        raise last_error
     return providers.visitor.authorize(request, site, canonical_route(root, site, path))
 
 
@@ -201,6 +211,13 @@ async def serve_release(slug, version, path, request, active=False):
     root = (DATA_DIR / 'publications' / slug / version).resolve()
     if not root.is_relative_to((DATA_DIR / 'publications').resolve()) or version.startswith('.'):
         raise EngineError('Release not found.', 404)
+    granted = None
+    grant = GRANT.fullmatch(path)
+    if grant:
+        granted = studio.releases.granted_page(slug, version, grant.group(1))
+        if granted is None:
+            raise EngineError('This link to a protected file has expired. Open its page again.', 403)
+        path = grant.group(2)
     if path in PRIVATE_FILES:
         raise EngineError('Compiled file not found.', 404)
     ticket = request.query_params.get('fw-member')
@@ -235,7 +252,7 @@ async def serve_release(slug, version, path, request, active=False):
         # page's own 404/index.html, whose relative URLs work from any missing path through a base tag at its folder.
         base = ('/sites/' + slug if active else '/published/' + slug + '/' + version) + '/404/'
         return Response(missing_page(page, base, request), status_code=404, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
-    gated = visitor_gate(request, root, release['site'], path)
+    gated = visitor_gate(request, root, release['site'], path, granted)
     if path in ('site.formweb.json', 'search-index.json') and studio.passwords.routes(release['site']['id']):
         # A release made before a password was set still holds the page's text in these two files.
         if path == 'site.formweb.json':
@@ -243,9 +260,10 @@ async def serve_release(slug, version, path, request, active=False):
         entries = json.loads(target.read_text(encoding='utf-8'))
         kept = [entry for entry in entries if not studio.passwords.gate_for(release['site']['id'], canonical_route(root, release['site'], (entry.get('path') or '') + 'index.html'))]
         return Response(json.dumps(kept, ensure_ascii=False), media_type='application/json', headers={'Cache-Control': 'private, no-store'})
-    if target.suffix == '.html' and not path.startswith('assets/'):
+    page_file = target.suffix == '.html' and not path.startswith('assets/')
+    if page_file or path == '404.html':
         # FW-078: password gates are checked here, in the serving adapter, before any page bytes leave.
-        gate = studio.passwords.gate_for(release['site']['id'], canonical_route(root, release['site'], path))
+        gate = studio.passwords.gate_for(release['site']['id'], canonical_route(root, release['site'], '404/index.html' if path == '404.html' else path))
         if gate:
             gated = True
             if not studio.passwords.unlocked(request, gate):
@@ -255,6 +273,13 @@ async def serve_release(slug, version, path, request, active=False):
     headers = {'Cache-Control': 'private, no-store' if gated or active else 'public, max-age=31536000, immutable'}
     if path.startswith('assets/components/') and path.endswith('.html'):
         headers['Content-Security-Policy'] = "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'"
+    if gated and page_file:
+        slug_of = canonical_route(root, release['site'], path)
+        owner = next((page for page in release['site']['pages'] if page['slug'] == slug_of), None)
+        if owner:
+            key = studio.releases.asset_grant(slug, version, owner['id'])
+            html = ASSET_LINK.sub(lambda match: f'{match.group(1)}_fw/{key}/{match.group(2)}', target.read_text(encoding='utf-8'))
+            return Response(html, media_type='text/html', headers=headers)
     return FileResponse(target, headers=headers)
 
 

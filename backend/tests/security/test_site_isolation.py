@@ -1,3 +1,4 @@
+import json
 import os
 import struct
 import zlib
@@ -79,7 +80,10 @@ def release(client):
         prefix = f"/published/isolated/{published['version']}/"
     folder = Path(os.environ["FORMWEB_DATA_DIR"]) / "publications" / "isolated" / published["version"]
     files = sorted(path.relative_to(folder).as_posix() for path in folder.rglob("*") if path.is_file())
-    return {"prefix": prefix, "active": "/sites/isolated/", "files": files, "site": site["id"]}
+    gated_pages = {page["id"] for page in site["pages"] if page["slug"] == GATED or page["slug"].startswith(GATED + "/")}
+    owners = json.loads((folder / "asset-access.json").read_text())["assets"]
+    gated_only = {name for name, pages in owners.items() if pages and set(pages) <= gated_pages}
+    return {"prefix": prefix, "active": "/sites/isolated/", "files": files, "site": site["id"], "gatedOnly": gated_only}
 
 
 def test_a_published_home_page_runs_in_a_sandbox_without_the_editor_origin(client, release):
@@ -103,7 +107,7 @@ def test_every_file_of_a_publication_is_isolated_and_has_its_own_content_type(cl
     assert any(name.endswith(".js") for name in release["files"])
     checked = 0
     for name in release["files"]:
-        if name.endswith(".html") and name.split("/")[0] in ("fares",) or name == "asset-access.json":
+        if name.endswith(".html") and name.split("/")[0] in ("fares",) or name == "asset-access.json" or name in release["gatedOnly"]:
             continue
         r = client.get(release["prefix"] + name)
         assert r.status_code == 200, name
