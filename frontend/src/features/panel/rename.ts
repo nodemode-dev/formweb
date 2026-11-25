@@ -34,12 +34,17 @@ export function startRename(row: HTMLElement, options: RenameOptions): void {
     field.style.height = `${Math.round(line.height)}px`;
   };
   let done = false;
+  const watch = new MutationObserver(() => {
+    if (!row.isConnected || row.parentElement !== scroller || row.offsetParent === null) finish(false);
+    else place();
+  });
   const finish = (save: boolean, keepFocus = false): void => {
     if (done) return;
     const name = field.value.trim();
     if (save && !name) { options.refuse(); if (keepFocus) { field.select(); return; } save = false; }
     done = true;
     active = null;
+    watch.disconnect();
     scroller?.removeEventListener('scroll', place);
     window.removeEventListener('resize', place);
     row.classList.remove('is-renaming');
@@ -62,6 +67,7 @@ export function startRename(row: HTMLElement, options: RenameOptions): void {
   place();
   field.style.visibility = '';
   row.classList.add('is-renaming');
+  if (scroller) watch.observe(scroller, { childList: true, attributes: true, attributeFilter: ['hidden'] });
   scroller?.addEventListener('scroll', place, { passive: true });
   window.addEventListener('resize', place);
   field.focus({ preventScroll: true });
