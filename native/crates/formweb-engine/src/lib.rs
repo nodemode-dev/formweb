@@ -185,6 +185,19 @@ fn parent_of(site: &Site, id: &str) -> Option<String> {
     site.nodes.values().find(|n| n.children.iter().any(|c| c == id)).map(|n| n.id.clone())
 }
 
+pub fn address_key(slug: &str) -> String {
+    slug.trim_matches('/').to_lowercase()
+}
+
+fn address_free(site: &Site, slug: &str, except: Option<&str>) -> Result<(), String> {
+    let key = address_key(slug);
+    match site.pages.iter().find(|p| Some(p.id.as_str()) != except && address_key(&p.slug) == key) {
+        Some(owner) if owner.slug.trim_matches('/') == slug.trim_matches('/') => Err(format!("/{} is already the address of {}. Choose another address.", slug.trim_matches('/'), owner.name)),
+        Some(owner) => Err(format!("/{} is the same address as /{}, which {} uses: addresses that differ only in capital letters are the same folder on macOS and Windows. Choose another address.", slug.trim_matches('/'), owner.slug.trim_matches('/'), owner.name)),
+        None => Ok(()),
+    }
+}
+
 fn guard_structure(site: &Site, affected: &[&str]) -> Result<(), String> {
     for id in affected {
         if site.nodes.get(*id).and_then(|n| n.component_source_id.as_ref()).is_some() { return Err("detach is not available; linked instance structure cannot be edited".into()); }
@@ -278,6 +291,7 @@ fn apply(site: &mut Site, command: &str, params: &Value) -> Result<(), String> {
         "page.add" => {
             let name = string(params, "name")?;
             let slug = string(params, "slug")?;
+            address_free(site, slug, None)?;
             // Optional caller-chosen ids let one batch add a page and then fill its root (generated sites, one undo step).
             let taken = |site: &Site, v: &str| site.nodes.contains_key(v) || site.components.contains_key(v) || site.collections.contains_key(v) || site.pages.iter().any(|p| p.id == v);
             let id = match params.get("id").and_then(Value::as_str) {
@@ -296,6 +310,10 @@ fn apply(site: &mut Site, command: &str, params: &Value) -> Result<(), String> {
         "page.update" => {
             let id = string(params, "id")?;
             let patch = object(params, "patch")?;
+            if let Some(slug) = patch.get("slug").and_then(Value::as_str) {
+                let old = site.pages.iter().find(|p| p.id == id).ok_or("unknown page")?;
+                if old.slug.trim_matches('/') != slug.trim_matches('/') { address_free(site, slug, Some(id))?; }
+            }
             let page = site.pages.iter_mut().find(|p| p.id == id).ok_or("unknown page")?;
             for (key, value) in patch {
                 match key.as_str() {
@@ -375,6 +393,11 @@ fn apply(site: &mut Site, command: &str, params: &Value) -> Result<(), String> {
             let id = string(params, "collection")?;
             let item: Item = serde_json::from_value(params.get("item").ok_or("item is required")?.clone()).map_err(|e| e.to_string())?;
             let collection = site.collections.get_mut(id).ok_or("unknown collection")?;
+            if collection.items.iter().find(|i| i.id == item.id).map(|i| i.slug != item.slug).unwrap_or(true) {
+                if let Some(other) = collection.items.iter().find(|i| i.id != item.id && i.slug.to_lowercase() == item.slug.to_lowercase()) {
+                    return Err(format!("The item slug {} is already used by the item {} in {}; slugs that differ only in capital letters are the same address. Choose another slug.", item.slug, other.id, collection.name));
+                }
+            }
             if let Some(existing) = collection.items.iter_mut().find(|i| i.id == item.id) { *existing = item; }
             else { collection.items.push(item); }
         }
@@ -448,6 +471,13 @@ pub fn audit(site: &Site) -> Value {
                     if html_ids.insert((page.id.clone(), html_id.clone()), id.clone()).is_some() { issues.push(json!({"severity":"warning","code":"a11y.duplicate-id","node":id,"message":"HTML id is duplicated on this page"})); }
                 }
             }
+        }
+    }
+    let mut addresses: BTreeMap<String, &Page> = BTreeMap::new();
+    for page in &site.pages {
+        match addresses.get(&address_key(&page.slug)) {
+            Some(first) => issues.push(json!({"severity":"warning","code":"page.address-case","page":page.id,"message":format!("{} and {} use the addresses /{} and /{}, which differ only in capital letters and are the same folder on macOS and Windows. Give {} another address.", first.name, page.name, first.slug.trim_matches('/'), page.slug.trim_matches('/'), page.name)})),
+            None => { addresses.insert(address_key(&page.slug), page); }
         }
     }
     for node in site.nodes.values() {
