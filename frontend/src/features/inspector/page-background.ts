@@ -86,7 +86,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
   const siteColor = element('div', 'field full fw-pagebg-field');
   const siteName = element('span', 'field-label');
   label(siteName, 'Site background colour');
-  const siteField = host.input('white');
+  const siteField = host.input('#ffffff');
   siteField.dataset.field = 'page.site-background';
   siteField.setAttribute('list', 'fw-brand-colors');
   labelAttr(siteField, 'aria-label', 'Site background colour');
@@ -184,7 +184,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     if (force) siteField.value = base;
     else value(siteField, base);
     const shown = siteBackgroundColor(site);
-    if (siteField.placeholder !== (shown || 'white')) siteField.placeholder = shown || 'white';
+    if (siteField.placeholder !== (shown || '#ffffff')) siteField.placeholder = shown || '#ffffff';
     if (themed && target) {
       const alt = otherTheme(themes);
       label(siteName, 'Site background colour, {0}', [{ t: themes.default === 'light' ? 'Light' : 'Dark' }]);
