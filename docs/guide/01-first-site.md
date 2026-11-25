@@ -14,9 +14,9 @@ It takes about fifteen minutes. You need FormWeb open in its window or in your b
 
 ![The New website dialog with Mill Lane Pottery typed in Site name, Start from set to Blank, and the Close and Create site buttons](images/first-site-new-site.webp)
 
-The site opens with one page, Home, which already holds a small sample design (a studio called "aster / studio"). You can delete or change it later. In this walkthrough you leave it alone and build on a new, empty page.
+The site opens with one empty page, Home: its only layer is the page itself. In this walkthrough you leave it for later and build on a new page.
 
-![The editor after Create site: the Home page shows the sample aster / studio design on the canvas, with its layers listed on the left](images/first-site-sample-home.webp)
+![The editor after Create site: the Home page is empty on the canvas, and the Layers list on the left holds only Page](images/first-site-sample-home.webp)
 
 ## 2. Add a page
 
@@ -122,9 +122,9 @@ On the phone the 64 px padding leaves little room for the text. [The right panel
 
 1. Click **Audit** at the right end of the second row of the top bar. The SEO & accessibility audit lists what it found on the whole site.
 
-![The SEO & accessibility audit dialog: 5 issues found. Classes needs a meta description; Classes has 0 h1 headings, prefer one; Link needs a destination; Set the real public base URL before deployment; Text contrast 4.47:1 is below the 4.5:1 minimum. Each row has a Select button](images/first-site-audit.webp)
+![The SEO & accessibility audit dialog: 6 issues found. Home needs a meta description; Home has 0 h1 headings, prefer one; Classes needs a meta description; Classes has 0 h1 headings, prefer one; Link needs a destination; Set the real public base URL before deployment. Each row has a Select button](images/first-site-audit.webp)
 
-The last issue is on the sample Home page; the first three are on your Classes page.
+The first two issues are on the empty Home page; the next three are on your Classes page.
 
 2. Click **Select** next to "Classes needs a meta description". The dialog closes, the **Page** tab opens, and the **Description** field is outlined with the cursor in it. The status line says "Selected Classes: Classes needs a meta description".
 
@@ -132,9 +132,9 @@ The last issue is on the sample Home page; the first three are on your Classes p
 
 3. Type a sentence that describes the page, for example `Beginner pottery classes on Tuesday evenings at Mill Lane: six weeks at the wheel, clay and firings included.`
 4. Press Tab to keep it.
-5. Click **Audit** again. It now says 4 issues found.
+5. Click **Audit** again. It now says 5 issues found.
 
-To fix the others later: select the heading and set **HTML tag** (Design tab, Element section) to `h1`; give the button somewhere to go with **Link URL** on the Content tab (search `href`); and see [Audit](07-audit.md) for the base URL.
+To fix the others later: select the heading and set **HTML tag** (Design tab, Element section) to `h1`; give Home a heading and a description the same way when you build it; give the button somewhere to go with **Link URL** on the Content tab (search `href`); and see [Audit](07-audit.md) for the base URL.
 
 ## 11. Export the site
 

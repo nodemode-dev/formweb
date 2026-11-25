@@ -21,7 +21,7 @@ The default data folder is `backend/data`. Configure `FORMWEB_DATA_DIR` in `back
 
 ## Home and the demos
 
-Home (File > Home, or the formweb mark in the top bar) opens over the editor. Its Start page shows recent sites, the Demos and the New site tiles; Recent and Projects list what you opened and saved.
+Home (File > Home, or the formweb mark in the top bar) opens over the editor. Its Start page shows recent sites, the Demos and the New site tiles; Recent and Projects list what you opened and saved. A new site started from Blank (Home's Blank site, or File > New site... with Start from set to Blank) has one empty Home page; the sample aster / studio page appears only when FormWeb first starts with no site to restore.
 
 Eight finished demo sites come with the app: Lowlight (a studio site made from library sections, with scroll scenes and animated components), Looking Back (a photo essay told in pinned scroll scenes, with a filterable gallery and a lightbox), Harbour Ferries (a service site with a fare calculator, CMS route pages, site search and redirects), and five whole-site starters to begin a real site from:
 
