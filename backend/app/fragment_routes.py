@@ -4,7 +4,8 @@
 `POST /api/paste {fragment, parent?, index?}` checks the fragment's format, version and size, makes sure every asset it
 names is in this FormWeb's asset store (missing ones are named in a 409 and nothing changes), runs the core's
 `node.paste` command through the same mutate path as the editor (one undo step, permissions, attribution, revision),
-and then makes the current project an owner of the assets, the way an upload does."""
+and then makes the current project an owner of the assets, the way an upload does. `fragments` (a list of up to 64
+fragments, each carrying its own embedded and clip) in place of `fragment` pastes them in order as one batch, one undo step."""
 import base64
 import binascii
 import json
@@ -25,6 +26,7 @@ MAX_PASTE_BYTES = 32 * 1024 * 1024
 MAX_EMBED_BYTES = 16 * 1024 * 1024  # raw asset bytes a copy may carry; the base64 form stays under the paste cap
 MAX_CLIP_EMBED_BYTES = 4 * 1024 * 1024  # with clip, only this much rides inline; the rest waits behind the clip link
 MAX_NODES = 2000
+MAX_FRAGMENTS = 64
 
 
 async def _body(request: Request, maximum: int = MAX_PASTE_BYTES) -> dict:
@@ -153,7 +155,20 @@ async def paste_body(body: dict):
 
 async def _paste_staged(body: dict, staged: dict):
     studio.access.authorize('edit')
-    fragment = body.get('fragment')
+    many = body.get('fragments')
+    if many is not None and (not isinstance(many, list) or not 1 <= len(many) <= MAX_FRAGMENTS):
+        raise EngineError(f'fragments must list 1 to {MAX_FRAGMENTS} fragments.', 400)
+    adopt: dict = {}
+    pasted: list = []
+    names: list = []
+    for item in many if many is not None else [body.get('fragment')]:
+        fragment, found = await _prepared(item, {} if many is not None else body, staged, adopt)
+        pasted.append(fragment)
+        names += [name for name in found if name not in names]
+    return await _finish(body, pasted, names, adopt, staged)
+
+
+async def _prepared(fragment, body: dict, staged: dict, adopt: dict):
     names = _check(fragment)
     embedded = body.get('embedded')
     if embedded is None:
@@ -170,10 +185,11 @@ async def _paste_staged(body: dict, staged: dict):
     if 'embedded' in fragment or 'notEmbedded' in fragment or 'clip' in fragment:
         fragment = {key: value for key, value in fragment.items() if key not in ('embedded', 'notEmbedded', 'clip')}
     missing = []
-    adopt: dict = {}
     remote = []
     visible = visible_assets(studio) if names else set()
     for name in names:
+        if name in adopt or name in staged:
+            continue
         try:
             asset_path(name)
             present = True
@@ -208,7 +224,11 @@ async def _paste_staged(body: dict, staged: dict):
                 check_declared_file(name, path, size, digest)  # same proof as embedded bytes, before anything is stored
     if missing:
         raise EngineError('This FormWeb does not have these assets: ' + ', '.join(missing) + '. Nothing was pasted.', 409)
-    params: dict = {'fragment': fragment}
+    return fragment, names
+
+
+async def _finish(body: dict, pasted: list, names: list, adopt: dict, staged: dict):
+    params: dict = {}
     if body.get('parent') is not None:
         if not isinstance(body['parent'], str) or not 1 <= len(body['parent']) <= 160:
             raise EngineError('parent must be an element id.', 400)
@@ -218,10 +238,11 @@ async def _paste_staged(body: dict, staged: dict):
         if isinstance(index, bool) or not isinstance(index, int) or index < 0:
             raise EngineError('index must be a whole number from 0.', 400)
         params['index'] = index
-    payload: dict = {'command': 'node.paste', 'params': params}
+    steps = [{'command': 'node.paste', 'params': {**params, 'fragment': fragment, **({'index': params['index'] + at} if 'index' in params else {})}} for at, fragment in enumerate(pasted)]
+    payload: dict = steps[0] if len(steps) == 1 else {'commands': steps}
     if body.get('expectedRevision') is not None:
         payload['expectedRevision'] = body['expectedRevision']
-    result = await studio.mutate('exec', payload)
+    result = await studio.mutate('exec' if len(steps) == 1 else 'batch', payload)
     for name, data in adopt.items():
         ingest_declared(name, data)
     for name, (path, digest, size) in list(staged.items()):

@@ -22,6 +22,7 @@ import { deliver, isBusy } from './ui/downloads';
 import { flash, issueField, rowOf, scrollNearest } from './ui/reveal';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
+import { FullPreview } from './features/full-preview';
 import { AgentConnect } from './features/agent-connect';
 import { Dock } from './dock/dock';
 import './dock/dock.css';
@@ -36,11 +37,16 @@ import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
 import { installInspector } from './features/inspector';
 import { installPageBackground } from './features/inspector/page-background';
+import { installCanvasMenu } from './features/canvas-menu';
+import { installInspectorSearch, sectionId } from './features/inspector/search';
 import { installLibrary } from './features/library';
 import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
+import { canvasClick, installSelection, isMulti, isSelected, layerClick, topMost, pageClick, paintLayerRow, paintPageRow, selectedIds, selectedPageIds, selectNodes } from './features/selection';
+import { anyCopyable, anyRemovable, canStep, copySelected, countLabel, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, selectionNote, selectionTitle, stepSelected } from './features/selection-actions';
+import { installCanvasDrag } from './features/canvas-drag';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
@@ -113,6 +119,7 @@ function select(items: { id: string; name: string }[]): HTMLSelectElement {
 const NOTE_BELOW = 16;
 function section(container: HTMLElement, title: string, hint = ''): HTMLElement {
   const node = element('section', 'inspector-section');
+  node.dataset.section = sectionId(title);
   const head = element('div', 'section-title');
   const name = element('span');
   const chevron = icon('chevron');
@@ -164,8 +171,13 @@ function openPage(id: string): void {
   selectedId = currentPage().root;
   update(state());
 }
-function pageRowClick(_event: MouseEvent, id: string): void { openPage(id); }
-function layerRowClick(_event: MouseEvent, id: string): void { pickNode(id); }
+function pageRowClick(event: MouseEvent, id: string): void { pageClick(event, id); }
+function layerRowClick(event: MouseEvent, id: string): void {
+  layerClick(event, id);
+  if (event.shiftKey || event.ctrlKey || event.metaKey) return;
+  canvas.bring(id);
+  scrollNearest(layersList, rowOf(layersList, id));
+}
 function descendants(id: string, found = new Set<string>()): Set<string> {
   if (found.has(id)) return found;
   found.add(id);
@@ -230,9 +242,10 @@ async function toggleAgents(): Promise<void> {
 // Not shown in the title bar since v0.4.0: Agent Connect owns the switch. Kept as the agents.toggle command target.
 const agentsButton = button('Agents off', 'bolt', toggleAgents, 'quiet');
 const previewButton = button('Preview', 'eye', undefined, 'quiet');
-previewButton.dataset.cmd = 'view.preview';
+previewButton.dataset.cmd = 'view.preview-full';
+previewButton.setAttribute('aria-haspopup', 'dialog');
 const refreshPreviewButton = iconButton('Refresh live responsive preview', 'redo', undefined, 'view.refresh');
-previewButton.title = 'Live responsive preview';
+previewButton.title = 'Preview as published';
 previewButton.setAttribute('aria-label', previewButton.title);
 const publishButton = button('Publish', 'arrow', undefined, 'primary');
 publishButton.dataset.cmd = 'file.publish';
@@ -453,7 +466,7 @@ selectionPath.setAttribute('aria-label', 'Selection path');
 stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, selectionPath, viewportHint, viewportReadout);
 const stage = element('div', 'stage');
 stagePanel.append(stageHead, stage);
-const canvas = new Canvas(stage, selectNode, (id, next) => void run(async () => {
+const canvas = new Canvas(stage, (id, event) => canvasClick(event, id), (id, next) => void run(async () => {
   await command('node.update', { id, patch: { text: next } });
   status('Text updated.');
 }), href => {
@@ -485,6 +498,10 @@ const motionPane = element('div');
 motionPane.hidden = true;
 inspectorScroll.append(designPane, motionPane, contentPane, pagePane);
 inspector.append(inspectorIdentity, inspectorTabs, inspectorScroll, dockStrip('right', [{ command: 'window.design', label: 'Design', icon: 'sliders' }, { command: 'window.content', label: 'Content', icon: 'text' }, { command: 'page.settings', label: 'Page', icon: 'page' }], { command: 'window.toggle-right', label: 'Expand right panel', icon: 'chevronsLeft' }));
+const inspectorSearch = installInspectorSearch({
+  after: inspectorTabs, scroll: inspectorScroll, select: setInspector,
+  tabs: Object.entries({ design: designPane, motion: motionPane, content: contentPane, page: pagePane }).map(([id, pane]) => ({ id, pane, button: inspectorTabButtons.get(id)! }))
+});
 const rail = new Rail([
   { command: 'window.layers', label: 'Pages and layers', icon: 'layers', active: () => activeSidebar === 'pages' && layout.state.left === 'open' },
   { command: 'window.insert', label: 'Insert', icon: 'plus', active: () => activeSidebar === 'insert' && layout.state.left === 'open' },
@@ -664,6 +681,7 @@ const attributesSection = section(contentPane, 'HTML attributes');
 const attributesGrid = element('div', 'form-grid');
 for (const [name, label] of [['href', 'Link URL'], ['src', 'Image / media URL'], ['alt', 'Alternative text'], ['class', 'CSS classes'], ['id', 'HTML ID'], ['name', 'Form field name'], ['placeholder', 'Placeholder'], ['aria-label', 'Accessible label']]) {
   const control = input();
+  control.dataset.attr = name;
   control.addEventListener('change', () => void run(() => setAttribute(name, control.value)));
   attrsFields.set(name, control);
   attributesGrid.append(field(label, control, true));
@@ -1479,8 +1497,6 @@ function update(next: EditorState): void {
   options(localeSelect, Object.keys(site.locales).map(id => ({ id, name: id.toUpperCase() })));
   if (!site.locales[locale]) locale = site.defaultLocale;
   value(localeSelect, locale);
-  previewButton.classList.toggle('active', preview);
-  previewButton.setAttribute('aria-pressed', String(preview));
   text(statusRevision, `Rust engine · rev ${next.revision} · ${Object.keys(site.nodes).length} nodes`);
   keyed(pagesList, site.pages, page => page.id, () => {
     const row = button('', undefined, undefined, 'list-row');
@@ -1493,6 +1509,7 @@ function update(next: EditorState): void {
     text(row.children[2] as HTMLElement, item.id === site.pages[0].id ? 'Home' : '');
     row.classList.toggle('active', item.id === pageId);
     row.setAttribute('aria-current', item.id === pageId ? 'page' : 'false');
+    paintPageRow(row, item.id);
   });
   const { rows: layers, total: layerTotal } = panel.layerRows();
   text(nodeCount, String(layerTotal));
@@ -1509,7 +1526,7 @@ function update(next: EditorState): void {
     row.style.setProperty('--depth', String(item.depth));
     panel.paintLayer(row, item);
     row.classList.toggle('active', item.node.id === selectedId);
-    row.setAttribute('aria-selected', String(item.node.id === selectedId));
+    paintLayerRow(row, item.node.id);
   });
   keyed(componentList, Object.values(site.components), item => item.id, () => {
     const row = button('', undefined, undefined, 'list-row');
@@ -1520,8 +1537,8 @@ function update(next: EditorState): void {
     }));
     return row;
   }, (row, item) => text(row.children[1] as HTMLElement, item.name));
-  text(inspectorName, node.name);
-  text(inspectorTag, `<${node.tag}> · ${node.id}`);
+  text(inspectorName, selectionTitle() ?? node.name);
+  text(inspectorTag, selectionNote(node.name) ?? `<${node.tag}> · ${node.id}`);
   const inspectorValues: Record<string, string> = {
     name: node.name, tag: node.tag, text: node.text,
     'page.name': page.name, 'page.slug': page.slug,
@@ -1596,8 +1613,12 @@ function update(next: EditorState): void {
   faviconClear.disabled = !favicon && !site.settings.faviconDark;
   updatePasswordState();
   if (passwordGatesFor !== site.id) void loadPasswordGates().catch(() => undefined);
+  canvas.mark(selectedIds());
   canvas.render(site, page, selectedId, widths[breakpoint], locale, false, breakpoint);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
+  if (refreshPreviewButton.classList.contains('active') !== preview) refreshPreviewButton.classList.toggle('active', preview);
+  if (refreshPreviewButton.getAttribute('aria-pressed') !== String(preview)) refreshPreviewButton.setAttribute('aria-pressed', String(preview));
+  fullPreview.follow(next.revision);
   if (dialogMode === 'cms') updateCms();
   if (dialogMode === 'locales') updateLocales();
   if (dialogMode === 'tokens') updateTokens();
@@ -1784,7 +1805,7 @@ function openDialog(id: string): void {
   if (id === 'publish') value(publishSlug, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-'));
   if (id === 'qr') value(qrUrl, pageAddress());
   if (id === 'bulk') { options(bulkTemplate, state().site.pages.map(page => ({ id: page.id, name: `${page.name} (${page.slug})` }))); bulkTemplate.value = currentPage().id; text(bulkNote, ''); }
-  if (id === 'delete-page') text(deletePageNote, `Delete "${currentPage().name}" and its content? You can undo this operation.`);
+  if (id === 'delete-page') text(deletePageNote, deletePagesNote() ?? `Delete "${currentPage().name}" and its content? You can undo this operation.`);
   dialogClose.focus();
 }
 function closeDialog(): void {
@@ -1832,6 +1853,7 @@ async function performDialogAction(): Promise<void> {
     closeDialog();
     status(`${created.length} pages created from CSV. One undo step removes them all.`);
   } else if (dialogMode === 'delete-page') {
+    if (await deleteSelectedPages()) { closeDialog(); return; }
     await command('page.remove', { id: currentPage().id });
     closeDialog();
     status('Page removed.');
@@ -2066,6 +2088,7 @@ document.addEventListener('keydown', event => {
   }
 });
 const runtimePreview = new RuntimePreview(stage, canvas.outer, status);
+const fullPreview = new FullPreview(overlay, { state, page: () => pageId, locale: () => locale, width: id => widths[id], back: previewButton, notify: status });
 const featureStudio = new FeatureStudio({
   selection: () => ({ node: selectedId, page: pageId, breakpoint, locale, width: widths[breakpoint] }),
   notify: status,
@@ -2080,8 +2103,9 @@ function insideLinkedInstance(id: string): boolean {
   for (let at: SiteNode | undefined = nodes[id]; at; at = parentOf(at.id)) if (at.componentId || at.componentSourceId) return true;
   return false;
 }
-const canDuplicate = (): boolean => notRoot() && !!scrim.hidden && !insideLinkedInstance(currentNode().id);
+const canDuplicate = (): boolean => isMulti() ? anyCopyable() : notRoot() && !!scrim.hidden && !insideLinkedInstance(currentNode().id);
 async function duplicateSelection(): Promise<void> {
+  if (isMulti()) return duplicateSelected();
   const original = currentNode().id;
   const next = await command('node.duplicate', { id: original });
   const parent = Object.values(next.site.nodes).find(node => node.children.includes(original));
@@ -2116,11 +2140,13 @@ const notEmbeddedNote = (count: number): string => count === 1 ? ' ' + t('One as
 const behindClipNote = (count: number): string => count === 1 ? ' ' + t('One asset is too large to embed and will only paste on this computer.') : count > 1 ? ' ' + t('{0} assets are too large to embed and will only paste on this computer.', [count]) : '';
 const copyNote = (copied: { behind: number; left: number }): string[] => [behindClipNote(copied.behind), notEmbeddedNote(copied.left)];
 async function copySelection(): Promise<void> {
+  if (isMulti()) return copySelected();
   if (!canDuplicate()) return;
   const copied = await copyFragment();
   status(['Element copied.', ...copyNote(copied)]);
 }
 async function cutSelection(): Promise<void> {
+  if (isMulti()) return cutSelected();
   if (!canDuplicate()) return;
   const id = currentNode().id;
   const copied = await copyFragment();
@@ -2128,6 +2154,7 @@ async function cutSelection(): Promise<void> {
   status(['Element cut. Paste puts it back; Undo restores it in place.', ...copyNote(copied)]);
 }
 async function pasteFragmentText(raw: string): Promise<boolean> {
+  if (await pasteMany(raw)) return true;
   const fragment = parseFragment(raw);
   if (!fragment) return false;
   const before = new Set(Object.keys(state().site.nodes));
@@ -2157,19 +2184,20 @@ document.addEventListener('paste', event => {
   if (!scrim.hidden || !ready() || event.defaultPrevented) return;
   if ((event.target as Element | null)?.closest?.('input, textarea, select, [contenteditable=""], [contenteditable="true"], .xterm, .ft-dock, .ft-consent, .ft-tour, [data-no-keys]')) return;
   const raw = event.clipboardData?.getData('text/plain') || '';
-  if (!parseFragment(raw)) return;
+  if (!parseFragment(raw) && !holdsMany(raw)) return;
   event.preventDefault();
   void run(() => pasteFragmentText(raw));
 });
 function showLayerMenu(event: MouseEvent | KeyboardEvent, id: string): void {
   event.preventDefault();
-  selectNode(id);
+  if (!isSelected(id)) selectNode(id);
   const allowed = canDuplicate();
+  const many = isMulti() ? topMost().length : 1;
   const rows: [string, string, string, boolean, () => Promise<void>][] = [
-    ['edit.copy', 'Copy element', 'A page root or an element inside a linked component instance cannot be copied', allowed, copySelection],
-    ['edit.cut', 'Cut element', 'A page root or an element inside a linked component instance cannot be cut', allowed, cutSelection],
+    ['edit.copy', countLabel('Copy element', 'Copy {0} elements', many), 'A page root or an element inside a linked component instance cannot be copied', allowed, copySelection],
+    ['edit.cut', countLabel('Cut element', 'Cut {0} elements', many), 'A page root or an element inside a linked component instance cannot be cut', allowed, cutSelection],
     ['edit.paste', 'Paste element', 'Paste is not available while a dialog is open', !!scrim.hidden, pasteFromClipboard],
-    ['edit.duplicate', 'Duplicate', 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
+    ['edit.duplicate', countLabel('Duplicate', 'Duplicate {0} elements', many), 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
   ];
   const entries: MenuEntry[] = rows.map(([commandId, english, blocked, enabledNow, action]) => ({ id: commandId, label: english, title: enabledNow ? english : blocked, enabled: enabledNow, keys: commandRegistry.keyLabel(commandRegistry.get(commandId)!), run: action }));
   entries.push(...panel.layerEntries(id));
@@ -2203,7 +2231,7 @@ registerCommands([
     if (!forced && again && commandRegistry.enabled(again)) { runCommand('vector.transform-again'); return; }
     return canDuplicate() ? duplicateSelection() : undefined;
   }, enabled: () => canDuplicate() || (() => { const again = commandRegistry.get('vector.transform-again'); return !!again && commandRegistry.enabled(again); })() },
-  { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete'], group: 1, run: () => command('node.remove', { id: currentNode().id }), enabled: () => notRoot() && !!scrim.hidden },
+  { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete'], group: 1, run: () => isMulti() ? removeSelected() : command('node.remove', { id: currentNode().id }), enabled: () => (isMulti() ? anyRemovable() : notRoot()) && !!scrim.hidden },
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
   { id: 'image.edit-in-formvis', label: 'Edit in formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await request<{ message: string }>('/api/formvis/send', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\/[0-9a-f]{64}\.(png|jpg|gif|webp)/.test(currentNode().attrs.src || '') },
   { id: 'image.update-from-formvis', label: 'Update from formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await mutateVia<{ message: string; state: EditorState }>('/api/formvis/update', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' },
@@ -2225,10 +2253,10 @@ registerCommands([
   { id: 'site.favicon', label: 'Set site icon...', menu: 'Page', group: 3, run: () => { mediaInput.dataset.mode = 'favicon'; mediaInput.click(); }, enabled: ready },
   { id: 'site.favicon-dark', label: 'Set dark mode icon...', menu: 'Page', group: 3, run: () => { mediaInput.dataset.mode = 'faviconDark'; mediaInput.click(); }, enabled: ready },
   { id: 'site.favicon-clear', label: 'Clear site icons', menu: 'Page', group: 3, run: async () => { await command('site.update', { patch: { settings: { favicon: '', faviconDark: '' } } }); status('Site icons cleared.'); }, enabled: () => !!lastState?.site.settings?.favicon || !!lastState?.site.settings?.faviconDark },
-  { id: 'page.delete', label: 'Delete page...', menu: 'Page', group: 1, run: () => openDialog('delete-page'), enabled: () => !!lastState && lastState.site.pages.length > 1 },
+  { id: 'page.delete', label: 'Delete page...', menu: 'Page', group: 1, run: () => openDialog('delete-page'), enabled: () => !!lastState && lastState.site.pages.length > Math.max(1, selectedPageIds().length) },
   { id: 'page.audit', label: 'Run SEO and accessibility audit', menu: 'Page', group: 2, run: auditSite, enabled: ready },
-  { id: 'arrange.up', label: 'Move layer up', menu: 'Arrange', run: () => moveLayer(-1), enabled: notRoot },
-  { id: 'arrange.down', label: 'Move layer down', menu: 'Arrange', run: () => moveLayer(1), enabled: notRoot },
+  { id: 'arrange.up', label: 'Move layer up', menu: 'Arrange', run: () => isMulti() ? stepSelected(-1) : moveLayer(-1), enabled: () => isMulti() ? canStep(-1) : notRoot() },
+  { id: 'arrange.down', label: 'Move layer down', menu: 'Arrange', run: () => isMulti() ? stepSelected(1) : moveLayer(1), enabled: () => isMulti() ? canStep(1) : notRoot() },
   { id: 'cms.collections', label: 'Collections...', menu: 'CMS', run: () => openDialog('cms'), enabled: ready },
   { id: 'cms.locales', label: 'Localization...', menu: 'CMS', run: () => openDialog('locales'), enabled: ready },
   { id: 'view.desktop', label: 'Desktop', menu: 'View', run: () => setBreakpoint('desktop'), checked: () => breakpoint === 'desktop', enabled: ready },
@@ -2236,6 +2264,7 @@ registerCommands([
   { id: 'view.mobile', label: 'Mobile', menu: 'View', run: () => setBreakpoint('mobile'), checked: () => breakpoint === 'mobile', enabled: ready },
   { id: 'view.preview', label: 'Live responsive preview', menu: 'View', group: 1, run: () => { preview = !preview; update(state()); }, checked: () => preview, enabled: ready },
   { id: 'view.refresh', label: 'Refresh live responsive preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
+  { id: 'view.preview-full', label: 'Preview as published', menu: 'View', keys: ['Mod+Shift+P'], group: 1, run: () => fullPreview.toggle(), enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: ['Mod+K'], global: true, group: 2, run: () => commandSearch.show() },
   { id: 'view.menus-in-window', label: 'Menus in Window', menu: 'View', group: 2, enabled: desktopMac, checked: menusInWindow, run: () => { const on = !menusInWindow(); setMenusInWindow(on); status(on ? 'The menus stay in the window from the next start.' : 'The menus go to the menu bar from the next start.'); } },
@@ -2245,6 +2274,7 @@ registerCommands([
   { id: 'window.design', label: 'Design inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('design'); }, checked: () => activeInspector === 'design' && layout.state.right === 'open' },
   { id: 'window.motion', label: 'Motion inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('motion'); }, checked: () => activeInspector === 'motion' && layout.state.right === 'open' },
   { id: 'window.content', label: 'Content inspector', menu: 'Window', group: 1, run: () => { openDock('right'); setInspector('content'); }, checked: () => activeInspector === 'content' && layout.state.right === 'open' },
+  { id: 'inspector.search', label: 'Search properties', menu: 'Window', keys: ['Mod+Alt+F'], global: true, group: 1, run: () => { openDock('right'); inspectorSearch.focus(); } },
   { id: 'window.toggle-left', label: 'Left panel', menu: 'Window', keys: ['Mod+['], global: true, group: 4, run: () => { layout.set({ left: layout.state.left === 'open' ? 'collapsed' : 'open' }); rail.refresh(); }, checked: () => layout.state.left === 'open' },
   { id: 'window.toggle-right', label: 'Right panel', menu: 'Window', keys: ['Mod+]'], global: true, group: 4, run: () => layout.set({ right: layout.state.right === 'open' ? 'collapsed' : 'open' }), checked: () => layout.state.right === 'open' },
   { id: 'window.toggle-rail', label: 'Rail labels', menu: 'Window', group: 4, run: () => layout.set({ rail: layout.state.rail === 'labels' ? 'icons' : 'labels' }), checked: () => layout.state.rail === 'labels' },
@@ -2269,19 +2299,23 @@ registerCommands([
 ]);
 const panel = installPanel({ state, ready, command, commands, overlay, pagesList, layersList, run, status, pageId: () => pageId, openPage, selected: () => selectedId, select: selectNode, pageSettings: () => { openDock('right'); setInspector('page'); }, elementSettings: () => { openDock('right'); setInspector('design'); }, refresh: () => update(state()), gates: async () => { await loadPasswordGates(true); return passwordGates; } });
 registerCommands(panel.commands);
+installSelection({ ready, site: () => state().site, primary: () => selectedId, select: selectNode, pageId: () => pageId, openPage, pageRoot: () => currentPage().root, refresh: () => update(state()), layersList, pagesList });
+installSelectionActions({ idle: () => !!scrim.hidden, pageRoot: () => currentPage().root, status, copyNote });
+installCanvasDrag({ frame: canvas.frame, stage, overlay, loaded: () => canvas.loaded(), state, ready, editing: () => !preview, root: () => currentPage().root, selectionIds: selectedIds, select: selectNode, commands, run, status });
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
 registerCommands(wishlist.commands);
 registerCommands(pageBackground.commands);
+registerCommands(installCanvasMenu({ frame: canvas.frame, loaded: canvas.loaded(), overlay, ready, run, status, selected: () => selectedId, select: selectNode, selectionIds: selectedIds, topMost, selectNodes, pageRoot: () => currentPage().root, breakpoint: () => breakpoint, canDuplicate, copy: copySelection, cut: cutSelection, paste: pasteFromClipboard, duplicate: duplicateSelection, inspector: tab => { openDock('right'); setInspector(tab); }, field: (kind, key) => (kind === 'style' ? styleFields : attrsFields).get(key) }).commands);
 subscribe(() => wishlist.refresh());
 const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.askReplace(state().site.name);
 const demoHooks: DemoHooks = { mayReplace: () => { demoPreview.close(); return mayReplace(); }, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
 const demoPreview = new DemoPreview(id => void openDemo(demoHooks, id));
 registerCommands(demoCommands(demoHooks, ready, { show: id => demoPreview.show(id), close: () => demoPreview.close(), isOpen: () => demoPreview.isOpen }));
-commandRegistry.gate = item => !demoPreview.isOpen || item.id.startsWith('demo.');
+commandRegistry.gate = item => (!demoPreview.isOpen || item.id.startsWith('demo.')) && (!fullPreview.isOpen || item.id === 'view.preview-full');
 menubar.build();
-menubar.blocked = () => !scrim.hidden || featureStudio.opened || demoPreview.isOpen;
+menubar.blocked = () => !scrim.hidden || featureStudio.opened || demoPreview.isOpen || fullPreview.isOpen;
 if (wantsNativeMenus()) {
   const nativeMenus = new NativeMenus(commandRegistry, () => menus);
   void nativeMenus.build().catch(() => undefined);

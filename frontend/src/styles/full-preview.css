@@ -1,0 +1,40 @@
+.fw-fp { position: fixed; inset: 0; z-index: var(--z-overlay); display: grid; grid-template-rows: var(--titlebar-h) minmax(0, 1fr); background: var(--surface-0); color: var(--text-primary); pointer-events: auto; }
+.fw-fp[hidden] { display: none; }
+.fw-fp-bar { display: flex; align-items: center; gap: var(--space-2); min-width: 0; padding: 0 var(--space-3); overflow: hidden; border-bottom: 1px solid var(--line-0); background: linear-gradient(to bottom, var(--surface-2), var(--surface-1)); user-select: none; -webkit-user-select: none; }
+:root.has-overlay-titlebar .fw-fp-bar { padding-left: 78px; }
+.fw-fp-select { flex: 0 1 auto; width: auto; min-width: 0; max-width: 200px; height: var(--ctl-md); min-height: 0; padding-block: 0; padding-left: var(--space-2); font-size: var(--fs-12); }
+.fw-fp-locale { max-width: 88px; }
+.fw-fp-select[hidden] { display: none; }
+.fw-fp-devices { flex: 0 1 auto; flex-wrap: nowrap; min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.fw-fp-devices::-webkit-scrollbar { display: none; }
+@media (max-width: 760px) {
+  .fw-fp-state { display: none; }
+  .fw-fp-btn:not(.is-icon) { justify-content: center; width: var(--ctl-md); padding: 0; }
+  .fw-fp-btn:not(.is-icon) > span:last-child { display: none; }
+}
+.fw-fp-devices .fw-seg-btn.is-on { font-weight: inherit; }
+.fw-fp-btn { flex: none; display: inline-flex; align-items: center; gap: var(--space-1); height: var(--ctl-md); min-height: 0; padding: 0 var(--space-2); border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--bg-tertiary); color: var(--text-secondary); font-size: var(--fs-12); text-decoration: none; white-space: nowrap; cursor: pointer; }
+.fw-fp-btn.is-icon { justify-content: center; width: var(--ctl-md); padding: 0; }
+.fw-fp-btn:hover { background: var(--line-2); color: var(--text-primary); }
+.fw-fp-btn[aria-pressed="true"] { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-color); }
+.fw-fp-btn:disabled, .fw-fp-btn[aria-disabled="true"] { opacity: .35; cursor: default; pointer-events: none; }
+.fw-fp-btn:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 1px; }
+.fw-fp-btn .icon, .fw-fp-btn svg { width: 14px; height: 14px; inline-size: 14px; block-size: 14px; }
+.fw-fp-gap { flex: 1 1 0; min-width: 0; }
+.fw-fp-state { flex: 0 1 auto; min-width: 0; overflow: hidden; color: var(--text-muted); font-size: var(--fs-11); text-overflow: ellipsis; white-space: nowrap; }
+.fw-fp-state.is-error { color: var(--danger-soft); }
+.fw-fp.is-busy .fw-fp-state { color: var(--accent-ink); }
+.fw-fp-stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: var(--surface-0); }
+.fw-fp-empty { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); color: var(--text-muted); font-size: var(--fs-13); }
+.fw-fp-empty[hidden] { display: none; }
+.fw-fp-device { position: absolute; left: 50%; top: 50%; transform-origin: center; box-shadow: var(--shadow-lg); }
+.fw-fp[data-kind="full"] .fw-fp-device { inset: 0; box-shadow: none; }
+.fw-fp-frame { display: block; width: 100%; height: 100%; border: 0; }
+.fw-fp-frame[hidden] { display: none; }
+.fw-fp-device.has-bezel { padding: var(--space-3); border: 1px solid var(--line-3); border-radius: calc(var(--radius-xl) * 3); background: var(--surface-2); box-shadow: var(--shadow-window); }
+.fw-fp-device.has-bezel .fw-fp-frame { border-radius: var(--radius-xl); }
+.fw-fp[data-kind="phone"] .fw-fp-device.has-bezel { padding: var(--space-8) var(--space-3); }
+.fw-fp[data-kind="phone"] .fw-fp-device.has-bezel::before { content: ""; position: absolute; left: 50%; top: var(--space-3); width: 56px; height: 6px; transform: translateX(-50%); border-radius: var(--radius-pill); background: var(--line-3); }
+.fw-fp[data-kind="phone"][data-turned="true"] .fw-fp-device.has-bezel { padding: var(--space-3) var(--space-8); }
+.fw-fp[data-kind="phone"][data-turned="true"] .fw-fp-device.has-bezel::before { left: var(--space-3); top: 50%; width: 6px; height: 56px; transform: translateY(-50%); }
+.fw-fp-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }

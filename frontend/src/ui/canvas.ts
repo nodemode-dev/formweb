@@ -70,6 +70,11 @@ export class Canvas {
   private posters: Record<string, string> = {};
   private posterLights: Record<string, string> = {};
   private posterNodes = new Map<string, HTMLElement>();
+  private marked = new Set<string>();
+
+  mark(ids: readonly string[]): void {
+    this.marked = new Set(ids.length > 1 ? ids : []);
+  }
 
   setMotionFrame(frame: Record<string, Record<string, string>> | null): void {
     const next = frame && Object.keys(frame).length ? frame : null;
@@ -124,7 +129,7 @@ export class Canvas {
     this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
   }
 
-  constructor(private stage: HTMLElement, private onSelect: (id: string) => void, private onText: (id: string, text: string) => void, private onNavigate: (href: string) => void) {
+  constructor(private stage: HTMLElement, private onSelect: (id: string, event?: MouseEvent) => void, private onText: (id: string, text: string) => void, private onNavigate: (href: string) => void) {
     this.outer = document.createElement('div');
     this.outer.className = 'frame-outer';
     this.label = document.createElement('div');
@@ -147,7 +152,7 @@ export class Canvas {
         resolve();
       }, { once: true });
     });
-    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}html{color-scheme:light}body{color:CanvasText;background:Canvas}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-reveal]{animation:fwReveal .5s ease-in-out 4 alternate}@keyframes fwReveal{from{outline-offset:2px}to{outline-offset:10px}}@media (prefers-reduced-motion:reduce){[data-fw-reveal]{animation:none;outline-offset:6px}}[data-fw-id]:hover{cursor:default}body[data-preview] [data-fw-id]:hover{cursor:auto}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}body:not([data-preview]) a,body:not([data-preview]) button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark]{display:none!important}.fw-fade{animation:fwFade .5s ease both}@keyframes fwFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style></head><body></body></html>';
+    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%;font-family:Inter,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}html{color-scheme:light}body{color:CanvasText;background:Canvas}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected],[data-fw-marked]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-marked]{outline-style:dashed!important}[data-fw-reveal]{animation:fwReveal .5s ease-in-out 4 alternate}@keyframes fwReveal{from{outline-offset:2px}to{outline-offset:10px}}@media (prefers-reduced-motion:reduce){[data-fw-reveal]{animation:none;outline-offset:6px}}[data-fw-id]:hover{cursor:default}body[data-preview] [data-fw-id]:hover{cursor:auto}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}body:not([data-preview]) a,body:not([data-preview]) button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark]{display:none!important}.fw-fade{animation:fwFade .5s ease both}@keyframes fwFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style></head><body></body></html>';
     new ResizeObserver(() => this.fit()).observe(stage);
   }
 
@@ -317,6 +322,7 @@ export class Canvas {
       this.nodes.set(key, node);
     }
     node.toggleAttribute('data-fw-selected', selected === id && !this.last?.preview);
+    node.toggleAttribute('data-fw-marked', this.marked.has(id) && selected !== id && !this.last?.preview);
     this.scopes.set(key, context?.ids || {});
     const attributes = { ...data.attrs };
     let displayedText = site.locales[locale]?.[id] ?? data.text;
@@ -423,7 +429,10 @@ export class Canvas {
       }
       event.preventDefault();
       event.stopPropagation();
-      this.onSelect(id);
+      this.onSelect(id, event);
+    });
+    doc.addEventListener('mousedown', event => {
+      if (event.shiftKey && !this.last?.preview && !(event.target as Element).closest?.('[contenteditable="true"]')) event.preventDefault();
     });
     doc.addEventListener('dblclick', event => {
       if (this.last?.preview) return;

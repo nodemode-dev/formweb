@@ -8,6 +8,9 @@ import { startRename } from './rename';
 import { LayerFolds, type LayerRow } from './fold';
 import { canContain, canDrag, dropTarget, moveCommands, zoneAt, type DropZone } from './drop';
 import { installRowDrag } from './drag';
+import { countLabel, dragIds, duplicatePages, pageSetFor, stepPagesCommands } from '../selection-actions';
+import { t } from '../../i18n';
+import { isMulti, isSelected, topMost } from '../selection';
 import { element } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import '../../styles/panel.css';
@@ -92,6 +95,8 @@ export function installPanel(host: PanelHost) {
     if (name !== node.name) await write(name);
   }
   async function duplicatePage(params?: Record<string, unknown>): Promise<void> {
+    const set = pageSetFor(typeof params?.id === 'string' ? params.id : undefined);
+    if (set.length > 1) return duplicatePages(set);
     const page = pageOf(params);
     if (!page) return;
     const before = new Set(site().pages.map(entry => entry.id));
@@ -117,6 +122,8 @@ export function installPanel(host: PanelHost) {
     await batch(list, slug ? `"${page.name}" is now the home page at /, and links to /${slug} now lead there.` : `"${page.name}" is now the home page.`);
   };
   const stepPage = (step: -1 | 1, params?: Record<string, unknown>): Promise<void> => {
+    const set = pageSetFor(typeof params?.id === 'string' ? params.id : undefined);
+    if (set.length > 1) return batch(stepPagesCommands(set, step), step < 0 ? t('{0} pages moved up.', [set.length]) : t('{0} pages moved down.', [set.length]));
     const page = pageOf(params);
     if (!page) return Promise.resolve();
     const list = stepPageCommands(site(), page.id, step);
@@ -141,6 +148,12 @@ export function installPanel(host: PanelHost) {
     host.refresh();
   }
   const several = (): boolean => host.ready() && site().pages.length > 1;
+  const pageIndex = (): number => site().pages.findIndex(page => page.id === host.pageId());
+  const canStepPage = (step: -1 | 1): boolean => {
+    const set = pageSetFor();
+    if (set.length > 1) return stepPagesCommands(set, step).length > 0;
+    return step < 0 ? pageIndex() > 0 : pageIndex() < site().pages.length - 1;
+  };
   const idParam = { id: { type: 'string' as const, description: 'Page id; the open page when left out.' } };
 
   const definitions: CommandDef[] = [
@@ -159,17 +172,22 @@ export function installPanel(host: PanelHost) {
     const pages = site().pages;
     const at = pages.findIndex(page => page.id === id);
     const target = { id };
+    const set = pageSetFor(id);
+    const many = set.length;
+    const up = many > 1 ? stepPagesCommands(set, -1).length > 0 : at > 0;
+    const down = many > 1 ? stepPagesCommands(set, 1).length > 0 : at < pages.length - 1;
+    const removable = many < pages.length;
     return [
       { id: 'page.open', label: 'Open', enabled: id !== host.pageId(), run: () => invoke('page.open', target) },
       { id: 'page.rename', label: 'Rename', keys: KEY_RENAME, run: () => invoke('page.rename', target) },
-      { id: 'page.duplicate', label: 'Duplicate', run: () => invoke('page.duplicate', target) },
+      { id: 'page.duplicate', label: countLabel('Duplicate', 'Duplicate {0} pages', many), run: () => invoke('page.duplicate', target) },
       { id: 'page.set-home', label: 'Set as home page', enabled: at > 0, title: at > 0 ? 'Set as home page' : 'This is the home page', run: () => invoke('page.set-home', target) },
       { separator: true },
-      { id: 'page.move-up', label: 'Move up', keys: formatKeys(KEY_UP), enabled: at > 0, run: () => invoke('page.move-up', target) },
-      { id: 'page.move-down', label: 'Move down', keys: formatKeys(KEY_DOWN), enabled: at < pages.length - 1, run: () => invoke('page.move-down', target) },
+      { id: 'page.move-up', label: countLabel('Move up', 'Move {0} pages up', many), keys: formatKeys(KEY_UP), enabled: up, run: () => invoke('page.move-up', target) },
+      { id: 'page.move-down', label: countLabel('Move down', 'Move {0} pages down', many), keys: formatKeys(KEY_DOWN), enabled: down, run: () => invoke('page.move-down', target) },
       { separator: true },
       { id: 'page.settings', label: 'Page settings', run: () => { host.openPage(id); invoke('page.settings'); } },
-      { id: 'page.delete', label: 'Delete...', enabled: pages.length > 1, title: pages.length > 1 ? 'Delete page...' : 'A site keeps at least one page', run: () => { host.openPage(id); invoke('page.delete'); } }
+      { id: 'page.delete', label: countLabel('Delete...', 'Delete {0} pages...', many), enabled: removable, title: removable ? countLabel('Delete page...', 'Delete {0} pages...', many) : 'A site keeps at least one page', run: () => { if (many < 2) host.openPage(id); invoke('page.delete'); } }
     ];
   }
 
@@ -178,15 +196,18 @@ export function installPanel(host: PanelHost) {
     const parent = parentOf(id);
     const at = parent ? parent.children.indexOf(id) : -1;
     const locked = !!parent?.componentSourceId;
+    const many = isMulti() && isSelected(id) ? topMost().length : 1;
     const movable = !!parent && !locked;
-    const removable = !!parent && registry.enabled(registry.get('edit.delete')!);
+    const removable = (!!parent || many > 1) && registry.enabled(registry.get('edit.delete')!);
+    const up = many > 1 ? registry.enabled(registry.get('arrange.up')!) : movable && at > 0;
+    const down = many > 1 ? registry.enabled(registry.get('arrange.down')!) : movable && at < (parent?.children.length ?? 0) - 1;
     return [
       { separator: true },
       { id: 'layer.rename', label: 'Rename', keys: KEY_RENAME, enabled: !!nodes[id], run: () => invoke('layer.rename', { id }) },
-      { id: 'edit.delete', label: 'Delete', keys: registry.keyLabel(registry.get('edit.delete')!), enabled: removable, title: removable ? 'Delete element' : 'A page root cannot be deleted', run: () => invoke('edit.delete') },
+      { id: 'edit.delete', label: countLabel('Delete', 'Delete {0} elements', many), keys: registry.keyLabel(registry.get('edit.delete')!), enabled: removable, title: removable ? countLabel('Delete element', 'Delete {0} elements', many) : 'A page root cannot be deleted', run: () => invoke('edit.delete') },
       { separator: true },
-      { id: 'arrange.up', label: 'Move up', keys: formatKeys(KEY_UP), enabled: movable && at > 0, title: locked ? 'Elements inside a linked component instance cannot be moved' : 'Move up', run: () => invoke('arrange.up') },
-      { id: 'arrange.down', label: 'Move down', keys: formatKeys(KEY_DOWN), enabled: movable && at < (parent?.children.length ?? 0) - 1, title: locked ? 'Elements inside a linked component instance cannot be moved' : 'Move down', run: () => invoke('arrange.down') },
+      { id: 'arrange.up', label: countLabel('Move up', 'Move {0} elements up', many), keys: formatKeys(KEY_UP), enabled: up, title: locked && many < 2 ? 'Elements inside a linked component instance cannot be moved' : 'Move up', run: () => invoke('arrange.up') },
+      { id: 'arrange.down', label: countLabel('Move down', 'Move {0} elements down', many), keys: formatKeys(KEY_DOWN), enabled: down, title: locked && many < 2 ? 'Elements inside a linked component instance cannot be moved' : 'Move down', run: () => invoke('arrange.down') },
       { separator: true },
       { id: 'layer.collapse-all', label: 'Collapse all', enabled: parents.length > 0, run: () => invoke('layer.collapse-all') },
       { id: 'layer.expand-all', label: 'Expand all', run: () => invoke('layer.expand-all') }
@@ -238,6 +259,7 @@ export function installPanel(host: PanelHost) {
       if (event.defaultPrevented) return;
       if (menuKeyPressed(event)) { event.preventDefault(); menu(event); }
       else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('layer.rename', { id: row.dataset.key }); }
+      else if (altArrow(event) && isMulti() && isSelected(row.dataset.key!)) { event.preventDefault(); invoke(event.key === 'ArrowUp' ? 'arrange.up' : 'arrange.down'); }
       else if (altArrow(event)) { event.preventDefault(); const id = row.dataset.key!; void host.run(async () => { await stepLayer(id, event.key === 'ArrowUp' ? -1 : 1); refocus(host.layersList, id)(); }); }
       else if (plainKey(event, event.key) && treeKey(row, event.key)) event.preventDefault();
     });
@@ -288,15 +310,15 @@ export function installPanel(host: PanelHost) {
 
   installRowDrag({
     list: host.layersList, host: host.overlay,
-    ids: row => [row.dataset.key!],
+    ids: row => dragIds(row.dataset.key!),
     canStart: (_row, ids) => host.ready() && canDrag(site(), ids),
     zone: (ids, row, fraction) => layerZone(ids, row.dataset.key!, fraction),
     drop: (ids, over, zone) => host.run(async () => { if (await moveLayers(ids, over, zone) && ids.length === 1) host.select(ids[0]); })
   });
   installRowDrag({
     list: host.pagesList, host: host.overlay,
-    ids: row => [row.dataset.key!],
-    canStart: () => host.ready() && site().pages.length > 1,
+    ids: row => pageSetFor(row.dataset.key!),
+    canStart: (_row, ids) => host.ready() && ids.length < site().pages.length,
     zone: (ids, row, fraction) => ids.includes(row.dataset.key!) ? null : zoneAt(fraction, false),
     drop: (ids, over, zone) => host.run(() => movePages(ids, over, zone))
   });
