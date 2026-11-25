@@ -140,7 +140,7 @@ export class Canvas {
     this.frame = document.createElement('iframe');
     this.frame.className = 'canvas-frame';
     this.frame.title = 'Website canvas';
-    // WebKit runs no event listener, not even the editor's, in a frame sandboxed without scripts; the document's CSP still blocks every script.
+    // WebKit runs no event listener, not even the editor's, in a frame sandboxed without scripts. The document's CSP blocks every script, and the frame never leaves that document: links carry data-fw-href, forms are refused, and bindEvents cancels any navigation.
     this.frame.setAttribute('sandbox', 'allow-same-origin allow-scripts');
     this.shell.append(this.frame);
     this.outer.append(this.label, this.shell);
@@ -418,6 +418,7 @@ export class Canvas {
   }
 
   private bindEvents(doc: Document): void {
+    (doc.defaultView as (Window & { navigation?: EventTarget }) | null)?.navigation?.addEventListener('navigate', event => { if (event.cancelable) event.preventDefault(); });
     doc.addEventListener('click', event => {
       const element = (event.target as Element).closest<HTMLElement>('[data-fw-id]');
       if (!element) return;
