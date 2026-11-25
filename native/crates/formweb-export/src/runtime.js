@@ -178,6 +178,13 @@
   const release = new URL(config.routePrefix || './', location.href);
   const nativeFetch = window.fetch.bind(window);
   const ownRelease = address => { try { const target = new URL(address, location.href); return target.origin === release.origin && target.pathname.startsWith(release.pathname); } catch { return false; } };
+  if (runtimeToken) window.fetch = (input, init) => {
+    const method = String(init?.method || (input instanceof Request ? input.method : 'GET')).toUpperCase();
+    if (!['GET', 'HEAD'].includes(method) || !ownRelease(input instanceof Request ? input.url : String(input))) return nativeFetch(input, init);
+    const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
+    headers.set('X-FormWeb-Runtime', runtimeToken);
+    return nativeFetch(input, { ...init, headers, credentials: 'omit' });
+  };
   const endpoint = runtimeToken ? release.origin : integration.endpointBase?.replace(/\/$/, '');
   const capability = config.context?.previewToken || runtimeToken;
   const parameters = new URLSearchParams(Object.entries(config.context || {}).filter(([key, value]) => key !== 'runtimeToken' && value !== null && value !== ''));
