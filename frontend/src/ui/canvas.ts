@@ -124,7 +124,7 @@ export class Canvas {
     this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
   }
 
-  constructor(private stage: HTMLElement, private onSelect: (id: string) => void, private onText: (id: string, text: string) => void, private onNavigate: (href: string) => void) {
+  constructor(private stage: HTMLElement, private onSelect: (id: string, event?: MouseEvent) => void, private onText: (id: string, text: string) => void, private onNavigate: (href: string) => void) {
     this.outer = document.createElement('div');
     this.outer.className = 'frame-outer';
     this.label = document.createElement('div');
@@ -423,7 +423,7 @@ export class Canvas {
       }
       event.preventDefault();
       event.stopPropagation();
-      this.onSelect(id);
+      this.onSelect(id, event);
     });
     doc.addEventListener('dblclick', event => {
       if (this.last?.preview) return;

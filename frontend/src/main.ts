@@ -41,7 +41,7 @@ import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
-import { installSelection, layerClick, pageClick, paintLayerRow, paintPageRow } from './features/selection';
+import { canvasClick, installSelection, layerClick, pageClick, paintLayerRow, paintPageRow } from './features/selection';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
@@ -459,7 +459,7 @@ selectionPath.setAttribute('aria-label', 'Selection path');
 stageHead.append(icon('page'), pageName, icon('chevron'), pagePath, selectionPath, viewportHint, viewportReadout);
 const stage = element('div', 'stage');
 stagePanel.append(stageHead, stage);
-const canvas = new Canvas(stage, selectNode, (id, next) => void run(async () => {
+const canvas = new Canvas(stage, (id, event) => canvasClick(event, id), (id, next) => void run(async () => {
   await command('node.update', { id, patch: { text: next } });
   status('Text updated.');
 }), href => {
