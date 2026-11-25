@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.30.0 · 2026-11-24
+
+- The third of four releases that answer issue #36: selection, the canvas, the right panel and preview.
+- Select several layers or pages with Ctrl/Cmd+click, Shift+click, Shift+arrows or Ctrl/Cmd+A in the Pages and Layers lists, or several elements with Ctrl/Cmd+click or Shift+click on the canvas, and copy, cut, paste, duplicate, delete, move or drag them together as one undo step. The right panel says how many are selected and which one its fields edit.
+- Canvas: right-click an element for its actions (edit text, copy, cut, paste, duplicate, delete, rename, select parent, move, wrap in a container, add an element, jump to its Text, Background, Spacing, Size, Link or Image fields, copy and paste styles). Drag a selected element to a new place in the layout: a line shows exactly where it will land, it can only land in valid places, and the Layers list follows.
+- Right panel: Search properties finds any field across Design, Motion, Content and Page by its label, section, CSS name or a related word (Ctrl/Cmd+Alt+F).
+- Preview as published: the eye button (Ctrl/Cmd+Shift+P) shows the finished site over the whole window, with a page picker, the site's breakpoint widths, rotate, a device frame for phone and tablet, language, refresh and Open in browser. The in-canvas Live responsive preview stays in the View menu and now has a Back to design button.
+- For agents and scripts: `/api/paste` takes a list of fragments.
+- Known gaps: the desktop app was not built or run for this version, nothing was run on Windows or macOS, dragging is by mouse only until 0.31.0, and the new interface strings are in English only until 0.31.0.
+
 ## 0.29.0 · 2026-11-24
 
 - The second of four releases that answer issue #36: the Pages and layers panel.
