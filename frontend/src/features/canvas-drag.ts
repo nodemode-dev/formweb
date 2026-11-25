@@ -164,6 +164,8 @@ export interface CanvasDragHost {
 }
 
 const THRESHOLD = 6;
+const EDGE = 40;
+const SPEED = 14;
 const PROXY_W = 280;
 const PROXY_H = 120;
 
@@ -222,6 +224,23 @@ export function installCanvasDrag(host: CanvasDragHost): void {
     let dragging = false;
     let spot: Spot | null = null;
     let grab = { x: 0, y: 0 };
+    let frame = 0;
+
+    const tick = (): void => {
+      frame = 0;
+      if (!dragging) return;
+      const seen = map.visible();
+      const across = pointer.x >= seen.left && pointer.x <= seen.left + seen.width;
+      const step = !across ? 0 : pointer.y < seen.top + EDGE ? -SPEED : pointer.y > seen.top + seen.height - EDGE ? SPEED : 0;
+      if (step) {
+        const scroller = doc.scrollingElement;
+        const before = scroller?.scrollTop ?? 0;
+        if (scroller) scroller.scrollTop += step / map.scale;
+        if (scroller?.scrollTop === before) host.stage.scrollTop += step;
+        place();
+      }
+      frame = requestAnimationFrame(tick);
+    };
 
     const track = (event: PointerEvent): void => {
       pointer = event.view === win ? map.toParent(event.clientX, event.clientY) : { x: event.clientX, y: event.clientY };
@@ -267,6 +286,8 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       document.removeEventListener('pointermove', move, true);
       document.removeEventListener('pointerup', up, true);
       document.removeEventListener('pointercancel', cancel, true);
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
       proxy.hidden = line.hidden = outline.hidden = true;
       doc.querySelectorAll('[data-fw-drag-source]').forEach(node => node.removeAttribute('data-fw-drag-source'));
       doc.documentElement.removeAttribute('data-fw-dragging');
@@ -285,6 +306,7 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       if (!dragging) {
         if (Math.hypot(pointer.x - start.x, pointer.y - start.y) < THRESHOLD) return;
         if (!begin(event)) { end(); return; }
+        frame = requestAnimationFrame(tick);
       }
       event.preventDefault();
       place();
