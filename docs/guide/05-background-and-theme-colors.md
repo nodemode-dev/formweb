@@ -16,7 +16,7 @@ Choose **Page > Page background...**, or right-click an empty part of the page a
 
 ![The Page background section of Coldmere's Home page: Background reads var(--paper), with a Clear link; the note says this page uses var(--paper), which is #f6f4ef, and Clear returns it to the site background, white, the browser default; under it the Apply to all pages button and the Edit site theme colors link](images/background-page-field.webp)
 
-- **Background** takes a color such as `#f3efe6`, a color name, a gradient, or one of the site's colors such as `var(--paper)`. Press Enter to keep it. The field does not check what you type, so type a single value.
+- **Background** takes a color such as `#f3efe6`, a color name, a gradient, or one of the site's colors such as `var(--paper)`. Press Enter to keep it. If the browser cannot read what you typed as a background (for example two values run together, like `var(--bg)#f3efe6`), the field goes back to what it was and the status line says why.
 - The note under the field says what the page uses now, and which other pages use the same value (for example "Home +7 uses var(--bg)").
 - **Clear** (also **Page > Clear page background**) removes this page's own background. The page is white again.
 - **Apply to all pages** (also **Page > Use this page background on all pages**) gives every page this page's background, in one undo step. The status line confirms it, for example "Background #f3efe6 applied to all 8 pages."
