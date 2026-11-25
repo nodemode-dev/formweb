@@ -208,16 +208,24 @@ export async function connect(onConnection: (connected: boolean) => void): Promi
   events.onopen = () => { onConnection(true); approvalListeners.forEach(listener => listener({ type: 'open' })); };
   events.onerror = () => onConnection(false);
 }
-export async function download(path: string, filename: string): Promise<Headers> {
+export async function download(path: string, filename: string, started?: (url: string) => void): Promise<Headers> {
   await queue.catch(() => undefined);
   const response = await fetch(apiBase + path, { headers: authHeaders(), credentials: 'same-origin' });
-  if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+  if (!response.ok) {
+    let detail = '';
+    try { const body = await response.json(); if (typeof body?.detail === 'string') detail = body.detail; } catch {}
+    throw new Error(detail || `Download failed: ${response.status}`);
+  }
   const url = URL.createObjectURL(await response.blob());
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
+  link.hidden = true;
+  document.body.append(link);
+  started?.(url);
   link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
   return response.headers;
 }
 export async function upload(file: File): Promise<{ id: string; url: string; mime: string; size: number }> {
