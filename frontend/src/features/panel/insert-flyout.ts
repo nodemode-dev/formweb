@@ -40,6 +40,7 @@ export function installInsertFlyout(hooks: FlyoutHooks): InsertFlyout {
   search.append(filter);
   const list = element('div', 'fw-flyout-list');
   list.id = 'fw-flyout-list';
+  list.tabIndex = -1;
   list.setAttribute('role', 'listbox');
   filter.setAttribute('aria-controls', list.id);
   const groupsEl = element('div', 'fw-flyout-groups');
@@ -210,6 +211,7 @@ export function installInsertFlyout(hooks: FlyoutHooks): InsertFlyout {
     if (event.key === 'ArrowDown') { event.preventDefault(); move(1); }
     else if (event.key === 'ArrowUp') { event.preventDefault(); move(-1); }
     else if (event.key === 'Enter') { event.preventDefault(); if (active) choose(active); }
+    else if (event.key === 'Tab') { event.preventDefault(); close(true); }
     else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(true); }
   });
 
