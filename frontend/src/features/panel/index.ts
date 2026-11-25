@@ -4,6 +4,8 @@ import { commands as registry, formatKeys } from '../../commands/registry';
 import type { CommandDef } from '../../ui/shell';
 import { anchorOf, menuKeyPressed, showContextMenu, type MenuAnchor, type MenuEntry } from '../../ui/context-menu';
 import { copyOfPage, homeCommands, stepPageCommands } from './pages';
+import { startRename } from './rename';
+import '../../styles/panel.css';
 
 export interface PanelHost {
   state: () => EditorState;
@@ -17,6 +19,8 @@ export interface PanelHost {
   status: (message: string, error?: boolean) => void;
   run: (action: () => unknown) => Promise<void>;
   overlay: HTMLElement;
+  pagesList: HTMLElement;
+  layersList: HTMLElement;
   pageSettings: () => void;
   elementSettings: () => void;
 }
@@ -43,21 +47,37 @@ export function installPanel(host: PanelHost) {
   const nameOf = (params?: Record<string, unknown>): string | null => typeof params?.name === 'string' ? params.name.trim() : null;
   const focusField = (key: string): void => document.querySelector<HTMLInputElement>(`[data-field="${key}"]`)?.focus();
 
+  const rowIn = (list: HTMLElement, id: string): HTMLElement | undefined =>
+    Array.from(list.children).find(row => (row as HTMLElement).dataset.key === id && (row as HTMLElement).offsetParent !== null) as HTMLElement | undefined;
+  function inPlace(row: HTMLElement | undefined, current: string, english: string, commit: (name: string) => Promise<unknown>): boolean {
+    if (!row) return false;
+    startRename(row, { host: host.overlay, current, refuse: () => host.status(english, true), commit: name => void host.run(() => commit(name)) });
+    return true;
+  }
   async function renamePage(params?: Record<string, unknown>): Promise<void> {
     const page = pageOf(params);
     if (!page) return;
     const name = nameOf(params);
-    if (name === null) { host.openPage(page.id); host.pageSettings(); focusField('page.name'); return; }
+    const write = (next: string): Promise<unknown> => host.command('page.update', { id: page.id, patch: { name: next } });
+    if (name === null) {
+      if (!inPlace(rowIn(host.pagesList, page.id), page.name, 'A page needs a name.', write)) { host.openPage(page.id); host.pageSettings(); focusField('page.name'); }
+      return;
+    }
     if (!name) { host.status('A page needs a name.', true); return; }
-    if (name !== page.name) await host.command('page.update', { id: page.id, patch: { name } });
+    if (name !== page.name) await write(name);
   }
   async function renameLayer(params?: Record<string, unknown>): Promise<void> {
     const node = nodeOf(params);
     if (!node) return;
     const name = nameOf(params);
-    if (name === null) { host.select(node.id); host.elementSettings(); focusField('name'); return; }
+    const write = (next: string): Promise<unknown> => host.command('node.update', { id: node.id, patch: { name: next } });
+    if (name === null) {
+      if (host.selected() !== node.id) host.select(node.id);
+      if (!inPlace(rowIn(host.layersList, node.id), node.name, 'An element needs a name.', write)) { host.elementSettings(); focusField('name'); }
+      return;
+    }
     if (!name) { host.status('An element needs a name.', true); return; }
-    if (name !== node.name) await host.command('node.update', { id: node.id, patch: { name } });
+    if (name !== node.name) await write(name);
   }
   async function duplicatePage(params?: Record<string, unknown>): Promise<void> {
     const page = pageOf(params);
@@ -136,16 +156,22 @@ export function installPanel(host: PanelHost) {
     showContextMenu(pageEntries(id), anchor, { host: host.overlay, className: 'fw-layer-menu fw-page-menu', run: host.run, returnFocus: row });
   }
 
+  const plainKey = (event: KeyboardEvent, key: string): boolean => event.key === key && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
+
   function pageRow(row: HTMLElement): void {
     row.addEventListener('contextmenu', event => { event.preventDefault(); showPageMenu(anchorOf(event, row), row); });
+    row.addEventListener('dblclick', () => invoke('page.rename', { id: row.dataset.key }));
     row.addEventListener('keydown', event => {
       if (menuKeyPressed(event)) { event.preventDefault(); showPageMenu(row, row); }
+      else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('page.rename', { id: row.dataset.key }); }
     });
   }
 
   function layerRow(row: HTMLElement, menu: (event: KeyboardEvent) => void): void {
+    row.addEventListener('dblclick', () => invoke('layer.rename', { id: row.dataset.key }));
     row.addEventListener('keydown', event => {
       if (menuKeyPressed(event)) { event.preventDefault(); menu(event); }
+      else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('layer.rename', { id: row.dataset.key }); }
     });
   }
 
