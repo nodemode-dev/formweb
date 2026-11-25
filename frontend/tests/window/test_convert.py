@@ -59,6 +59,19 @@ def import_html_as_code(editor, html):
     return site, next(iter(code_sections(site)))
 
 
+def test_a_page_too_large_for_one_conversion_is_imported_as_code_and_the_panel_says_why_in_words(editor):
+    with editor.page.expect_file_chooser():
+        editor.page.evaluate("window.formweb.run('file.import-site')")
+    editor.page.keyboard.press("Escape")
+    editor.page.locator(".fw-lib-site-back").click()
+    panel = editor.page.locator(".fw-lib-import:not(.fw-lib-site)")
+    panel.locator("textarea.fw-lib-code").first.fill("<main>" + "".join(f"<p>Line {i}</p>" for i in range(600)) + "</main>")
+    expect(panel.locator('[data-bring="elements"]')).to_have_attribute("aria-checked", "true")
+    panel.locator(".fw-lib-insert").click()
+    expect(panel.locator(".fw-lib-note")).to_contain_text("The pages stayed code sections: This page has more than 480 elements, more than one conversion makes. Convert it one part at a time")
+    assert len(code_sections(editor.site()["site"])) == 1
+
+
 def test_a_zip_imported_as_editable_elements_gives_a_heading_layer_whose_text_is_edited_on_the_canvas(editor, tmp_path):
     with editor.page.expect_file_chooser() as chooser:
         editor.page.evaluate("window.formweb.run('file.import-site')")

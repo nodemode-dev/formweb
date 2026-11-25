@@ -128,12 +128,6 @@ async function apply(build: () => Command[], plans: [Plan, string][]): Promise<{
   }
 }
 
-function tooLarge(error: TooLarge): string {
-  if (error.reason === 'depth') return t('This page nests elements more than {0} levels deep, more than one conversion takes.', [error.limit]);
-  if (error.reason === 'time') return t('Measuring this page took longer than {0} seconds.', [error.limit]);
-  return t('This page has more than {0} elements, more than one conversion makes.', [error.limit]);
-}
-
 /** Measures and converts code sections in one batch (one undo step). `part` converts one top-level block of one section. */
 export async function convertSections(ids: string[], keepScript: boolean, part?: number): Promise<Converted> {
   const site = state().site;
@@ -268,7 +262,7 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
       if (error instanceof TooLarge) {
         const record = sectionOf(state().site, target);
         if (record) paintParts(blocks(sourceOf(record)).blocks);
-        text(partsHead, tooLarge(error) + ' ' + t('Convert it one part at a time; the rest stays code until you convert it too.'));
+        text(partsHead, error.message);
         say('');
         return undefined;
       }

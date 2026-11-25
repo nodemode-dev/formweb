@@ -26,8 +26,13 @@ function split(html: string, only: number): { before: string; after: string } {
 export const SCOPE = '__FWSCOPE__';
 export interface Block { index: number; label: string; count: number }
 
+/** A page past one conversion's limits; its message is the sentence a person reads, wherever it ends up. */
 export class TooLarge extends Error {
-  constructor(readonly reason: 'count' | 'depth' | 'time', readonly count: number, readonly limit: number) { super(reason); }
+  constructor(readonly reason: 'count' | 'depth' | 'time', readonly count: number, readonly limit: number) {
+    super((reason === 'depth' ? t('This page nests elements more than {0} levels deep, more than one conversion takes.', [limit])
+      : reason === 'time' ? t('Measuring this page took longer than {0} seconds.', [limit])
+        : t('This page has more than {0} elements, more than one conversion makes.', [limit])) + ' ' + t('Convert it one part at a time; the rest stays code until you convert it too.'));
+  }
 }
 
 /** The styles the exported page starts from (formweb-export stylesheet), so a baseline matches what visitors get. */
