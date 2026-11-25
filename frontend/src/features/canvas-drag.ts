@@ -225,6 +225,7 @@ export function installCanvasDrag(host: CanvasDragHost): void {
     let spot: Spot | null = null;
     let grab = { x: 0, y: 0 };
     let frame = 0;
+    let aborted = false;
 
     const tick = (): void => {
       frame = 0;
@@ -286,6 +287,11 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       document.removeEventListener('pointermove', move, true);
       document.removeEventListener('pointerup', up, true);
       document.removeEventListener('pointercancel', cancel, true);
+      win.removeEventListener('keydown', keys, true);
+      window.removeEventListener('keydown', keys, true);
+      clear();
+    };
+    const clear = (): void => {
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
       proxy.hidden = line.hidden = outline.hidden = true;
@@ -301,7 +307,17 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       }
     };
     const block = (event: Event): void => event.preventDefault();
+    const keys = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape' || !dragging) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      dragging = false;
+      aborted = true;
+      clear();
+      host.status('Drag cancelled. Nothing moved.');
+    };
     const move = (event: PointerEvent): void => {
+      if (aborted) return;
       track(event);
       if (!dragging) {
         if (Math.hypot(pointer.x - start.x, pointer.y - start.y) < THRESHOLD) return;
@@ -312,6 +328,7 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       place();
     };
     const up = (event: PointerEvent): void => {
+      if (aborted) { end(); swallow(); return; }
       if (!dragging) { end(); return; }
       track(event);
       place();
@@ -326,7 +343,9 @@ export function installCanvasDrag(host: CanvasDragHost): void {
         host.status(ids.length === 1 ? 'Element moved. One undo step puts it back.' : `${ids.length} elements moved. One undo step puts them back.`);
       });
     };
-    const cancel = (): void => { const was = dragging; end(); if (was) swallow(); };
+    const cancel = (): void => { const was = dragging || aborted; end(); if (was) swallow(); };
+    win.addEventListener('keydown', keys, true);
+    window.addEventListener('keydown', keys, true);
     doc.addEventListener('pointermove', move, true);
     doc.addEventListener('pointerup', up, true);
     doc.addEventListener('pointercancel', cancel, true);
