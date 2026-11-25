@@ -60,7 +60,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     const next = host.state();
     if (!next) return;
     const page = host.page();
-    const refusal = brandRefusal(next, field.value);
+    const refusal = brandRefusal(next, field.value) || backgroundRefusal(next.site, field.value);
     if (refusal) { field.value = pageBackground(next.site, page)?.value || ''; throw new Error(refusal); }
     const step = setBackgroundCommand(next.site, page, field.value);
     await command(step.command, step.params);
@@ -110,6 +110,8 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
       { id: 'page.background-all', label: 'Use this page background on all pages', menu: 'Page', group: 4, enabled: () => ready() && host.state()!.site.pages.length > 1, run: async () => {
         const next = host.state()!;
         const mine = current()?.value || '';
+        const refusal = backgroundRefusal(next.site, mine);
+        if (refusal) { host.status(refusal, true); return; }
         const list = allPagesCommands(next.site, mine);
         if (!list.length) { host.status('Every page already has this background.'); return; }
         await commands(list);
@@ -174,6 +176,12 @@ export function allPagesCommands(site: Site, content: string): Command[] {
     const styles = site.nodes[page.root]?.styles;
     return styles && ((styles.background || '').trim() !== wanted || !!styles['background-color']);
   }).map(page => setBackgroundCommand(site, page, content));
+}
+
+export function backgroundRefusal(site: Site, content: string): string {
+  const entered = content.trim();
+  if (!entered || CSS.supports('background', resolveTokens(site, entered).replace(/var\(\s*--[\w-]+\s*(?:,[^()]*)?\)/g, 'transparent'))) return '';
+  return `"${entered}" is not a background the browser can read. Use a color such as #f3efe6, a theme color such as var(--paper), or a gradient.`;
 }
 
 export function brandRefusal(next: EditorState | undefined, content: string): string {
