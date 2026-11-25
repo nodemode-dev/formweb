@@ -98,7 +98,7 @@ An inserted section is built from your site's tokens and text presets, so changi
 
 Kits lists presets and starters. Apply preset sets every value the preset defines, including ones you changed, and is one undo step. Use starter asks for a product name and a tint, then adds the starter's pages and sections in one step; the first page replaces an empty home page.
 
-Import HTML turns a pasted page, or an `.html` file you pick, plus optional CSS into one code section on the page. Code sections must be allowed for the site, which Import HTML turns on. Relative pictures and scripts in the pasted page are not brought along, and the section does not run on the canvas, so open Preview to see it. [The library guide](LIBRARY.md) describes the template format, components, routes and limits.
+Import HTML turns a pasted page, or an `.html` file you pick, plus optional CSS into one code section on the page. File > Import HTML... (also in the command search) opens the Library straight on this tab. Code sections must be allowed for the site, which Import HTML turns on. Relative pictures and scripts in the pasted page are not brought along, and the section does not run on the canvas, so open Preview to see it. [The library guide](LIBRARY.md) describes the template format, components, routes and limits.
 
 ## Interactions
 
