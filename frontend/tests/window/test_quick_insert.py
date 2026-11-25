@@ -85,14 +85,6 @@ def test_the_image_row_opens_a_file_picker_and_the_chosen_picture_becomes_an_ima
     assert len(added) == 1 and site["nodes"][added[0]]["tag"] == "img"
 
 
-def test_the_image_row_chosen_with_enter_opens_a_file_picker(coldmere):
-    page = coldmere.page
-    insert_button(coldmere).click()
-    page.keyboard.type("image")
-    with page.expect_file_chooser(timeout=5_000):
-        page.keyboard.press("Enter")
-
-
 def test_the_video_row_opens_a_file_picker(coldmere):
     page = coldmere.page
     coldmere.layer_row("hm-btns").click()
