@@ -20,6 +20,12 @@ export type LibStarter = { id: string; name?: string; description?: string; pres
 export type LibIndex = { categories: string[]; sections: LibSection[]; components: LibComponent[]; presets: LibPreset[]; starters: LibStarter[] };
 /** What a mutating library route adds to the batch state. */
 export type LibResult = { root?: string; pages?: string[]; warnings?: string[]; changed?: boolean };
+/** POST /api/library/import-site/review: what importing a site zip would do, nothing changed yet. */
+export type SiteSkip = { file: string; reason: string };
+export type SitePage = { file: string; name: string; title: string; description: string; route: string; newRoute: string; replaces: { id: string; name: string; safe: boolean } | null; bytes: number; warnings: string[] };
+export type SiteReview = { pages: SitePage[]; assets: { count: number; bytes: number }; supportFiles: number; skipped: SiteSkip[]; ignored: number; canReplace: boolean; replaceNote: string; notes: string[]; revision: number };
+/** POST /api/library/import-site: the batch state plus the pages made, assets stored and files skipped. */
+export type SiteResult = { pages?: string[]; assets?: number; skipped?: SiteSkip[]; warnings?: string[]; message?: string };
 
 export type LibraryHooks = {
   /** Where an insert goes: the page, its parent, and the index after the selected top-level section (none means the end). */

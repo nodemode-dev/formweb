@@ -74,7 +74,7 @@ export async function request<T>(path: string, body?: unknown, method?: string):
   return send<T>(path, body, method);
 }
 async function send<T>(path: string, body?: unknown, method?: string): Promise<T> {
-  if (['/api/projects/save', '/api/publish', '/api/audit', '/api/preview'].includes(path) || path.startsWith('/api/libraries') || path.startsWith('/api/cms/') || path.startsWith('/api/branches') || path.startsWith('/api/providers/')) await queue.catch(() => undefined);
+  if (['/api/projects/save', '/api/publish', '/api/audit', '/api/preview', '/api/library/import-site/review'].includes(path) || path.startsWith('/api/libraries') || path.startsWith('/api/cms/') || path.startsWith('/api/branches') || path.startsWith('/api/providers/')) await queue.catch(() => undefined);
   const response = await fetch(apiBase + path, {
     method: method || (body === undefined ? 'GET' : 'POST'),
     headers: { ...authHeaders(), ...(body === undefined ? {} : { 'Content-Type': body instanceof Blob ? (body.type || 'application/octet-stream') : 'application/json' }) },
@@ -172,7 +172,7 @@ export function mutateVia<T extends { state: EditorState }>(path: string, body: 
   queue = work;
   return work;
 }
-/** Library routes (section insert, preset and starter apply, Import HTML) answer with the /api/batch state plus extras (`root`, `pages`, `warnings`, `changed`). The state is accepted when the answer carries one; the whole answer comes back. */
+/** Library routes (section insert, preset and starter apply, Import HTML, Import site) answer with the /api/batch state plus extras (`root`, `pages`, `warnings`, `changed`). The state is accepted when the answer carries one; the whole answer comes back. */
 export function libraryMutate<T extends object>(path: string, body: unknown): Promise<T> {
   const work = queue.catch(() => undefined).then(async () => {
     const result = await request<T>(path, body);
