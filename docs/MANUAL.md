@@ -85,9 +85,20 @@ A website layout uses normal browser flow, flex and grid styles. Use meaningful 
 
 ## Responsive design
 
-Desktop, Tablet and Mobile select the responsive profile and set the frame to that profile's width. Default tablet and mobile maximum widths are 991 px and 767 px. Studio > Layout & design creates custom breakpoints; the toolbar dropdown selects any stored profile, and the stage header names the profile being edited. Typing a width only resizes the frame: the canvas keeps drawing and editing the picked profile's styles, and a quiet hint appears when the width falls outside that profile's range. To watch the design switch as the width changes, turn on the Live responsive preview (the Preview button): it shows the exported site at the typed width, so the browser's own media queries do the switching. Design includes flex wrapping/order, grid rows/placement/spans and self alignment. Inspect each profile after changing layout or type.
+Desktop, Tablet and Mobile select the responsive profile and set the frame to that profile's width. Default tablet and mobile maximum widths are 991 px and 767 px. Studio > Layout & design creates custom breakpoints; the toolbar dropdown selects any stored profile, and the stage header names the profile being edited. Typing a width only resizes the frame: the canvas keeps drawing and editing the picked profile's styles, and a quiet hint appears when the width falls outside that profile's range. To watch the design switch as the width changes, turn on View > Live responsive preview: it shows the exported site at the typed width, so the browser's own media queries do the switching. Design includes flex wrapping/order, grid rows/placement/spans and self alignment. Inspect each profile after changing layout or type.
 
-Preview compiles the selected page and locale through the backend and loads the actual exported runtime in an isolated iframe. The preceding design/runtime stays visible until the new preview loads. The adjacent refresh icon recompiles it; clicking Preview again returns to design. The design canvas remains a script-free selection surface, while advanced CMS queries, templates and widgets are reviewed in compiled Preview. Narrow-screen layout still requires author judgment.
+Preview compiles the selected page and locale through the backend and loads the actual exported runtime in an isolated iframe. The preceding design/runtime stays visible until the new preview loads. The refresh icon beside the Preview button recompiles it and turns it on; choosing View > Live responsive preview again returns to design. The design canvas remains a script-free selection surface, while advanced CMS queries, templates and widgets are reviewed in compiled Preview. Narrow-screen layout still requires author judgment.
+
+Preview as published (the Preview button with the eye, View > Preview as published, Ctrl/Cmd+Shift+P) opens the compiled site over the whole window, with none of the editor around it. The bar along the top has:
+
+- a page picker; when you follow a link inside the preview it reads "Page opened from a link" until you pick a page again;
+- widths: Full width (the whole window) and one button per breakpoint of the site, named with the breakpoint and its width (the width you last typed for that breakpoint, kept inside its range). A width sizes the preview only; the exported CSS switches layouts by the browser's own media queries, as on the published site. Narrow widths are scaled down to fit the window;
+- for phone and tablet widths, Rotate (swaps width and height) and Device frame (a plain drawn frame, on by default);
+- a language picker when the site has more than one locale;
+- the revision on show, Refresh (compiles the current revision again), and Open in browser, which opens the same compiled page in your browser (in the desktop app, your system browser). That link is private to this computer and works for one hour;
+- Close. Escape and Ctrl/Cmd+Shift+P also close it, and the Preview button gets the focus back.
+
+While it is open the editor underneath cannot be clicked or reached with Tab, its menus and shortcuts do nothing, and when the site changes (for example an agent edits it) the preview compiles the new revision and swaps it in once it has loaded. If you followed a link inside the preview it stays where you are and says the site has changed; press Refresh. Keys typed inside the previewed page belong to that page, so click the bar before pressing Escape.
 
 ## Components and tokens
 
