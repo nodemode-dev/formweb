@@ -35,6 +35,7 @@ import { AiWriter, SiteGenerator } from './features/ai-writer';
 import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
+import { starterStyles } from './features/starter-elements';
 import { installInspector } from './features/inspector';
 import { installPageBackground, startChoices, startCommands } from './features/inspector/page-background';
 import { installCanvasMenu } from './features/canvas-menu';
@@ -1753,23 +1754,24 @@ async function insertElement(kind: string, asset?: { url: string; name: string; 
   const parent = kind === 'image' ? mediaInput.dataset.parent || insertionParent() : insertionParent();
   let node: SiteNode;
   const children: SiteNode[] = [];
-  if (kind === 'heading') node = makeNode('h2', 'Heading', 'A new perspective', { 'font-size': '40px', 'line-height': '1.1', margin: '0', 'letter-spacing': '-1px' });
-  else if (kind === 'paragraph') node = makeNode('p', 'Paragraph', 'Write something worth reading.', { 'font-size': '18px', 'line-height': '1.6', margin: '0', color: '#b7becb', 'max-width': '640px' });
-  else if (kind === 'button') node = makeNode('a', 'Button', 'Get started', { display: 'inline-flex', padding: '14px 24px', background: 'var(--accent)', color: '#111', 'border-radius': '8px', 'text-decoration': 'none', 'font-weight': '600', 'align-self': 'flex-start' }, { href: '#' });
-  else if (kind === 'link') node = makeNode('a', 'Link', 'Explore more', { color: 'var(--accent)', 'font-size': '16px' }, { href: '#' });
+  const look = starterStyles(state().site);
+  if (kind === 'heading') node = makeNode('h2', 'Heading', 'A new perspective', look.heading);
+  else if (kind === 'paragraph') node = makeNode('p', 'Paragraph', 'Write something worth reading.', look.paragraph);
+  else if (kind === 'button') node = makeNode('a', 'Button', 'Get started', look.button, { href: '#' });
+  else if (kind === 'link') node = makeNode('a', 'Link', 'Explore more', look.link, { href: '#' });
   else if (kind === 'image') {
     node = makeNode('img', asset!.name, '', asset!.styles || { width: '100%', height: '320px', 'object-fit': 'cover', 'border-radius': '12px' }, { src: asset!.url, ...(asset!.alt ? { alt: asset!.alt } : {}), width: String(asset!.width), height: String(asset!.height) });
   } else if (kind === 'form') {
-    node = makeNode('form', 'Contact form', '', { display: 'flex', 'flex-direction': 'column', gap: '16px', 'max-width': '480px', padding: '24px', border: '1px solid #3b3f48', 'border-radius': '12px' }, { name: 'contact' });
-    children.push(makeNode('label', 'Email label', 'Email address', { 'font-size': '14px' }), makeNode('input', 'Email input', '', { padding: '14px', background: '#1d2026', border: '1px solid #444a55', color: '#fff', 'border-radius': '6px' }, { type: 'email', name: 'email', placeholder: 'you@example.com', required: '', 'aria-label': 'Email address' }), makeNode('button', 'Submit button', 'Send message', { padding: '14px', background: 'var(--accent)', border: '0', 'border-radius': '6px', color: '#111', 'font-weight': '600' }, { type: 'submit' }));
+    node = makeNode('form', 'Contact form', '', look.form, { name: 'contact' });
+    children.push(makeNode('label', 'Email label', 'Email address', look.formLabel), makeNode('input', 'Email input', '', look.formInput, { type: 'email', name: 'email', placeholder: 'you@example.com', required: '', 'aria-label': 'Email address' }), makeNode('button', 'Submit button', 'Send message', look.formSubmit, { type: 'submit' }));
   } else if (kind === 'grid') {
-    node = makeNode('div', 'Grid', '', { display: 'grid', 'grid-template-columns': 'repeat(3, minmax(0, 1fr))', gap: '24px', padding: '32px' });
+    node = makeNode('div', 'Grid', '', look.grid);
     node.breakpoints.mobile = { 'grid-template-columns': '1fr' };
-    for (const name of ['First idea', 'Second idea', 'Third idea']) children.push(makeNode('article', name, name, { padding: '32px', background: '#252933', 'border-radius': '12px', 'font-size': '20px' }));
+    for (const name of ['First idea', 'Second idea', 'Third idea']) children.push(makeNode('article', name, name, { ...look.gridItem }));
   } else if (kind === 'embed') {
     if (!asset) { openDialog('embed'); return; }
-    node = makeNode('div', asset.name, `${asset.name}: ${asset.url}`, { display: 'flex', 'align-items': 'center', 'justify-content': 'center', width: '100%', 'min-height': '240px', padding: '24px', background: '#1d2026', color: '#8a93a3', 'border-radius': '12px', 'font-size': '14px', overflow: 'hidden' }, { 'data-fw-embed': asset.url });
-  } else node = makeNode('section', 'Section', '', { display: 'flex', 'flex-direction': 'column', gap: '24px', padding: '64px', 'min-height': '240px', background: '#1d2026' });
+    node = makeNode('div', asset.name, `${asset.name}: ${asset.url}`, look.embed, { 'data-fw-embed': asset.url });
+  } else node = makeNode('section', 'Section', '', look.section);
   await commands([{ command: 'node.add', params: { parent, node } }, ...children.map(child => ({ command: 'node.add', params: { parent: node.id, node: child } }))]);
   selectedId = node.id;
   setSidebar('pages');
