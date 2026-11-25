@@ -1609,6 +1609,7 @@ function update(next: EditorState): void {
   canvas.mark(selectedIds());
   canvas.render(site, page, selectedId, widths[breakpoint], locale, false, breakpoint);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
+  fullPreview.follow(next.revision);
   if (dialogMode === 'cms') updateCms();
   if (dialogMode === 'locales') updateLocales();
   if (dialogMode === 'tokens') updateTokens();

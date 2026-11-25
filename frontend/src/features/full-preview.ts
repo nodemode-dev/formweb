@@ -111,6 +111,17 @@ export class FullPreview {
 
   get isOpen(): boolean { return !this.root.hidden; }
 
+  follow(revision: number): void {
+    if (this.root.hidden || revision === this.target.revision) return;
+    if (this.linked) this.state('Revision {0}. The site has changed since: press Refresh.', false, [String(this.target.revision)]);
+    else {
+      const site = this.host.state().site;
+      const page = site.pages.some(item => item.id === this.target.page) ? this.target.page : this.host.page();
+      const locale = site.locales[this.target.locale] ? this.target.locale : site.defaultLocale;
+      this.show({ revision, page, locale });
+    }
+  }
+
   toggle(): void {
     if (this.isOpen) this.close();
     else this.show();
