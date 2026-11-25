@@ -82,4 +82,6 @@ export default {
   "How to add the pages": "Cómo agregar las páginas",
   "Add them": "Agregarlas",
   "{0} could not be saved to your Downloads folder. Check that the folder exists and has free space, then try again.": "No se pudo guardar {0} en tu carpeta Descargas. Verifica que la carpeta exista y tenga espacio libre, y vuelve a intentarlo.",
+  "Select several is on: tap or click layers, pages or elements on the canvas to add them to the selection or take them out. Done or Escape turns it off.": "Seleccionar varios está activado: toca o haz clic en capas, páginas o elementos del lienzo para agregarlos a la selección o quitarlos. Hecho o Escape lo desactiva.",
+  "Token --{0} added.": "Token --{0} agregado.",
 } as Record<string, string>;

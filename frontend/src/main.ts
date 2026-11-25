@@ -1217,7 +1217,7 @@ const tokenGrid = element('div', 'form-grid');
 const tokenName = input('accent');
 const tokenValue = input('#f97316');
 tokenGrid.append(field('New token name', tokenName), field('CSS value', tokenValue));
-tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS custom properties. Use var(--token-name) in element style fields.'), tokensList, tokenGrid, button('Add token', 'plus', () => command('token.set', { name: tokenName.value.trim(), value: tokenValue.value.trim() }).then(() => status(`Token --${tokenName.value.trim().replace(/^--/, '')} added.`))));
+tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS custom properties. Use var(--token-name) in element style fields.'), tokensList, tokenGrid, button('Add token', 'plus', () => command('token.set', { name: tokenName.value.trim(), value: tokenValue.value.trim() }).then(() => status(t('Token --{0} added.', [tokenName.value.trim().replace(/^--/, '')])))));
 const inspectorExt = installInspector({
   section, field, select, input, button, addStyle, addSegments, setStyle, nodePatch, run, status, insertionParent, makeNode, selectNode, canvas,
   showLayers: () => setSidebar('pages'),
@@ -1824,7 +1824,7 @@ function openDialog(id: string): void {
   if (id === 'publish') value(publishSlug, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-'));
   if (id === 'qr') value(qrUrl, pageAddress());
   if (id === 'bulk') { options(bulkTemplate, state().site.pages.map(page => ({ id: page.id, name: `${page.name} (${page.slug})` }))); bulkTemplate.value = currentPage().id; text(bulkNote, ''); }
-  if (id === 'delete-page') text(deletePageNote, deletePagesNote() ?? `Delete "${currentPage().name}" and its content? You can undo this operation.`);
+  if (id === 'delete-page') text(deletePageNote, deletePagesNote() ?? t('Delete "{0}" and its content? You can undo this operation.', [currentPage().name]));
   dialogClose.focus();
 }
 function closeDialog(): void {
@@ -1936,7 +1936,7 @@ function showIssue(row: HTMLElement): void {
 async function auditSite(): Promise<void> {
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
   openDialog('audit');
-  text(auditSummary, result.issues.length === 1 ? '1 issue found. Select an element to resolve it in the inspector.' : result.issues.length ? `${result.issues.length} issues found. Select an element to resolve it in the inspector.` : 'No issues found by the built-in audit. Review content and exported pages before release.');
+  text(auditSummary, result.issues.length === 1 ? '1 issue found. Select an element to resolve it in the inspector.' : result.issues.length ? t('{0} issues found. Select an element to resolve it in the inspector.', [result.issues.length]) : 'No issues found by the built-in audit. Review content and exported pages before release.');
   keyed(auditList, result.issues.map((issue, index) => ({ ...issue, key: `${issue.code}-${issue.page || ''}-${issue.node || ''}-${index}` })), issue => issue.key, () => {
     const row = element('div', 'audit-row');
     const description = element('div', 'audit-description');
@@ -2045,7 +2045,7 @@ function updateTokens(): void {
     const row = element('div', 'tokens-row');
     const name = element('span', 'micro');
     const control = input();
-    control.addEventListener('change', () => void run(() => command('token.set', { name: row.dataset.key, value: control.value }).then(() => status(`Token --${row.dataset.key!.replace(/^--/, '')} updated.`))));
+    control.addEventListener('change', () => void run(() => command('token.set', { name: row.dataset.key, value: control.value }).then(() => status(t('Token --{0} updated.', [row.dataset.key!.replace(/^--/, '')])))));
     row.append(name, control);
     return row;
   }, (row, [name, content]) => {
