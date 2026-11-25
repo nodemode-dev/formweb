@@ -103,7 +103,12 @@ fn free(folder: &Path, name: &str) -> PathBuf {
 /// Shows the last file the page saved in the system file manager: selected in Finder and Explorer, its folder elsewhere.
 #[tauri::command]
 pub fn reveal_download() -> Result<(), String> {
-    let path = LAST.lock().unwrap().clone().filter(|path| path.exists()).ok_or("The downloaded file is no longer there.")?;
+    let path = LAST.lock().unwrap().clone().ok_or("No file has been saved yet.")?;
+    if !path.exists() {
+        let name = path.file_name().map(|name| name.to_string_lossy().into_owned()).unwrap_or_default();
+        let folder = path.parent().map(|folder| folder.to_string_lossy().into_owned()).unwrap_or_default();
+        return Err(format!("{name} is no longer in {folder}. It was moved or deleted."));
+    }
     #[cfg(target_os = "macos")]
     let mut command = {
         let mut command = Command::new("open");
