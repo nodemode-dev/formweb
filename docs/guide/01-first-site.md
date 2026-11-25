@@ -35,7 +35,7 @@ The new page opens on the canvas. It is completely white: a new page has no back
 You add everything from the **+** in the **LAYERS** heading. It opens Quick insert, a short list of elements, sections and components.
 
 1. Click the **+** to the right of **LAYERS**.
-2. Click **Section**. A dark grey section appears on the page and is selected.
+2. Click **Section**. An empty section appears on the page and is selected. It has space inside it but no color of its own: it shows the page behind it, so what you put in it is readable on a light page and on a dark one.
 
 ![The Quick insert list open under the plus button of the Layers heading, with a filter field and the elements Section, Heading, Paragraph, Button, Image, Grid, Form, Link, Embed and Video, then the sections Navigation bar, Hero, Feature grid and more](images/first-site-quick-insert.webp)
 
@@ -46,9 +46,9 @@ You add everything from the **+** in the **LAYERS** heading. It opens Quick inse
 
 Each new element goes at the end of the section, after the element that was added last, so add them in the order you want them. You can always move them later (see [Pages and layers](02-pages-and-layers.md)).
 
-![The Classes page with a dark section holding the heading "A new perspective", the text "Write something worth reading.", the pottery picture and a yellow Get started button; the Layers list shows Classes, Section, Heading, Paragraph, pottery-shelf.png and Button](images/first-site-inserted.webp)
+![The white Classes page with the section holding the heading "A new perspective" in black, the grey text "Write something worth reading.", the pottery picture and a yellow Get started button; the Layers list shows Classes, Section, Heading, Paragraph, pottery-shelf.png and Button](images/first-site-inserted.webp)
 
-The heading is hard to read: dark text on a dark section. You fix that in step 5.
+The heading and the text take the page's text color, black on this white page. You give the section and the text colors of their own in step 5.
 
 Typing a few letters in the filter field at the top of Quick insert narrows the list. Up and Down move through it, and Enter inserts.
 
@@ -70,11 +70,11 @@ The right panel has hundreds of settings. You do not need to know where each one
 1. In the Layers list, click **Section**.
 2. Click **Search properties** and type `background`. The list shows the matching settings, grouped by tab and section.
 3. Press Enter, or click **Background**. The panel jumps to the Background field and puts the cursor in it.
-4. Select what is in the field, type `#f4ece1` and press Enter. The section turns light.
+4. Select what is in the field, type `#f4ece1` and press Enter. The section turns a light beige.
 
-![The right panel with background typed in Search properties; the results list Design > Appearance with Background and Color, then Page > Page background](images/first-site-search-background.webp)
+![The right panel with background typed in Search properties; the results list Design > Appearance with Background and Color, then Page > Page background with Page background, Site background and more](images/first-site-search-background.webp)
 
-Now the paragraph text is too pale. Give it a darker color:
+Now give the paragraph a warm brown that goes with the beige:
 
 1. In the Layers list, click **Paragraph**.
 2. In Search properties type `colour` (either spelling works).
@@ -83,11 +83,13 @@ Now the paragraph text is too pale. Give it a darker color:
 
 You can type a color as `#5b4636`, as a name such as `white`, or as one of the site's own colors such as `var(--paper)` (see [Page background and theme colors](05-background-and-theme-colors.md)).
 
-## 6. Add space inside the section
+## 6. Check the space inside the section
+
+A new section starts with 64 px of space inside it, its padding. To see it or change it:
 
 1. Click **Section** in the Layers list.
-2. In Search properties type `padding` and press Enter.
-3. Type `64px` and press Enter.
+2. In Search properties type `padding` and press Enter. The Padding field reads `64px`.
+3. To change it, type another value, such as `48px`, and press Enter. This walkthrough keeps `64px`.
 
 ![The Layout fields of the right panel: Gap reads 24px and Padding reads 64px, both with a Reset link](images/first-site-padding.webp)
 
@@ -95,16 +97,16 @@ The **Reset** link next to a field removes your value, so the field goes back to
 
 ## 7. Check the result on the canvas
 
-![The Classes page on the canvas: a light section with the heading Pottery classes for beginners, the paragraph, the pottery picture and the Book a class button, on a beige page; the Section layer is selected](images/first-site-result.webp)
+![The Classes page on the canvas: a light beige section with the heading Pottery classes for beginners, the brown paragraph, the pottery picture and the Book a class button, on the white page; the Section layer is selected](images/first-site-result.webp)
 
-## 8. Set the page background
+## 8. Set the site background
 
-1. Choose **Page > Page background...**. The right panel opens the **Page** tab at its Page background field.
-2. Type `#e9dccb` and press Enter.
+1. Choose **Page > Page background...**. The right panel opens the **Page** tab at its Page background section. It offers three choices: **Site background** (chosen, because Classes has no background of its own), **Same as another page...** and **This page only**.
+2. The cursor is in **Site background colour**. Type `#e9dccb` and press Enter. The status line says "Site background #e9dccb created. "Classes" uses it, and new pages start with it."
 
-![The Page background part of the Page tab: Background reads #e9dccb with a Clear link, a note saying this page uses #e9dccb and Clear returns it to the site background, white, the browser default, then the Match another page list, the Apply to all pages button and the Edit site theme colors link](images/first-site-page-background.webp)
+![The Page background part of the Page tab: Site background is chosen, Site background colour reads #e9dccb, the note says 1 of 2 pages use the site background and new pages start with it, then the Use the site background on all pages button and the Edit site theme colors link](images/first-site-page-background.webp)
 
-This colors this page only. **Apply to all pages** gives every page the same background, and **Match another page** copies another page's background onto this one. [Page background and theme colors](05-background-and-theme-colors.md) explains the rest.
+The site background is one color for the whole site. Every page you add from now on starts with it, and changing it here changes every page that uses it. **Use the site background on all pages** puts Home on it too. To give Classes a color of its own instead, choose **This page only**. [Page background and theme colors](05-background-and-theme-colors.md) explains the rest.
 
 ## 9. See it as a visitor would
 
@@ -123,9 +125,9 @@ On the phone the 64 px padding leaves little room for the text. [The right panel
 
 1. Click **Audit** at the right end of the second row of the top bar. The SEO & accessibility audit lists what it found on the whole site.
 
-![The SEO & accessibility audit dialog: 6 issues found. Home needs a meta description; Home has 0 h1 headings, prefer one; Classes needs a meta description; Classes has 0 h1 headings, prefer one; Link needs a destination; Set the real public base URL before deployment. Each row has a Select button](images/first-site-audit.webp)
+![The SEO & accessibility audit dialog: 7 issues found. Home needs a meta description; Home has 0 h1 headings, prefer one; Classes needs a meta description; Classes has 0 h1 headings, prefer one; Link needs a destination; Image needs alt text; Set the real public base URL before deployment. Each row has a Select button](images/first-site-audit.webp)
 
-The first two issues are on the empty Home page; the next three are on your Classes page.
+The first two issues are on the empty Home page; the next four are on your Classes page.
 
 2. Click **Select** next to "Classes needs a meta description". The dialog closes, the **Page** tab opens, and the **Description** field is outlined with the cursor in it. The status line says "Selected Classes: Classes needs a meta description", and a notice at the bottom right repeats it, with **Show again** to come back here later.
 
@@ -133,9 +135,9 @@ The first two issues are on the empty Home page; the next three are on your Clas
 
 3. Type a sentence that describes the page, for example `Beginner pottery classes on Tuesday evenings at Mill Lane: six weeks at the wheel, clay and firings included.`
 4. Press Tab to keep it.
-5. Click **Audit** again. It now says 5 issues found.
+5. Click **Audit** again. It now says 6 issues found.
 
-To fix the others later: select the heading and set **HTML tag** (Design tab, Element section) to `h1`; give Home a heading and a description the same way when you build it; give the button somewhere to go with **Link URL** on the Content tab (search `href`); and see [Audit](07-audit.md) for the base URL.
+To fix the others later: select the heading and set **HTML tag** (Design tab, Element section) to `h1`; give Home a heading and a description the same way when you build it; give the button somewhere to go with **Link URL** on the Content tab (search `href`); describe the picture for people who cannot see it with **Alternative text** (search `alt`); and see [Audit](07-audit.md) for the base URL.
 
 ## 11. Export the site
 
