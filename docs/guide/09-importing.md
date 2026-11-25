@@ -104,7 +104,7 @@ Any code section that holds plain HTML and CSS, an imported page or one you wrot
 
 ![The Convert to editable elements window: Turns this code section's HTML and CSS into elements you can click, retype, restyle and drag. The look is measured at desktop width; responsive rules are not carried over. One undo step. A ticked box Keep the page's script as a code section, and the buttons Cancel and Convert](images/convert-dialog.webp)
 
-3. A notice gives the result, such as "Converted 48 elements. 3 parts stayed as code: a script, an inline frame, a vector graphic. Responsive rules were not carried over.", with an **Undo** button. The conversion is one undo step, so Ctrl+Z (Cmd+Z on a Mac) brings the code section back exactly.
+3. A notice gives the result, such as "Converted 48 elements. 3 parts stayed as code: a script, an inline frame, a vector graphic. Responsive rules were not carried over. Check it at phone width in Preview, then adjust under each breakpoint.", with an **Undo** button. The last sentence appears whenever the page had responsive rules; [Making it responsive again](#making-it-responsive-again) below says how. The conversion is one undo step, so Ctrl+Z (Cmd+Z on a Mac) brings the code section back exactly.
 
 The section's element stays where it was and takes the page body's look (background, font, colour and spacing); everything inside it becomes its children. When the section is the only thing on its page, as after a site import, the page's padding is set to 0 and the section gets a minimum height of the window when it has a background, so the page fills the window as the original did.
 
