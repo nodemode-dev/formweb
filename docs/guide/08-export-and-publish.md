@@ -36,7 +36,7 @@ The zip is the finished site, not your editable project. Keep the project too: *
 
 ## Send to FormPublisher
 
-[FormPublisher](https://github.com/nodemode-dev/formpublisher) is a separate app from the same family that checks, builds and publishes a finished site. **File > Send to FormPublisher** exports the open site and hands it over. If FormPublisher is running on this computer the site arrives at once, and sending again adds a new revision of the same site. If it is not running, the zip is put in its inbox folder (by default `FormPublisher/inbox` in your home folder) and the status line says, for example, "FormPublisher is not running. The site was saved to its inbox (...) and imports when FormPublisher starts." Your FormWeb project is not changed.
+[FormPublisher](https://github.com/nodemode-dev/formpublisher) is a separate app from the same family that checks, builds and publishes a finished site. **File > Send to FormPublisher** exports the open site and hands it over. If FormPublisher is running on this computer the site arrives at once, and sending again adds a new revision of the same site. If it is not running, the zip is put in its inbox folder (by default `FormPublisher/inbox` in your home folder) and the status line says, for example, "FormPublisher is not running. The site was saved to its inbox (...) and imports when FormPublisher starts." A long folder path is shortened in the middle there; point at the status line to read it in full. Your FormWeb project is not changed.
 
 ## Publish on this computer
 
