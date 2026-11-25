@@ -77,6 +77,11 @@ def test_no_file_of_a_publication_shows_a_password_protected_page_to_someone_wit
     assert WORD.encode() not in r.content
 
 
+def test_a_local_publication_holds_no_copy_of_the_editable_site_document(gated):
+    assert "site.formweb.json" not in gated["files"]
+    assert "routes.json" in gated["files"]
+
+
 def test_a_picture_used_only_on_a_protected_page_is_refused_without_the_password(client, gated):
     r = client.get(gated["prefix"] + "assets/" + gated["picture"])
     assert r.status_code == 401
