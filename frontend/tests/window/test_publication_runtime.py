@@ -25,6 +25,7 @@ FRAME = """<!doctype html><script>
   await probe('page', base + prefix);
   await probe('routes', base + prefix + 'routes.json');
   await probe('members', base + prefix + 'members/');
+  await probe('page with a made-up token', base + prefix, { headers: { 'X-FormWeb-Runtime': made } });
   await probe('runtime without a token', `${base}/api/runtime/member/session?${context}`);
   await probe('runtime with a made-up token', `${base}/api/runtime/~${made}/member/session?${context}`);
   await probe('sign in with a made-up token', `${base}/api/runtime/~${made}/member/login?${context}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'grace@example.org', password: 'harbour-member-2026' }) });
@@ -142,6 +143,8 @@ def test_a_local_publication_signs_a_member_in_opens_the_members_page_and_shows_
         assert call(editor, "/api/releases/promote", {"slug": "club", "version": club["published"]["version"]})["status"] == 200
     url = club["published"]["url"] if address == "published" else club["base"] + "/sites/club/"
     page = open_widgets(club, url, f"{address}@example.org")
+    page.wait_for_function("() => document.documentElement.dataset.routes")
+    assert page.evaluate("() => document.documentElement.dataset.routes") == "2"
     page.get_by_text("Members area").click()
     page.wait_for_function(f"() => document.body.innerText.includes('{MEMBERS_WORD}')")
     page.wait_for_function("() => document.querySelector('[data-fw-owner=members-gate] [data-fw-output]').textContent === 'Authenticated member session.'")
@@ -167,7 +170,7 @@ def test_a_sandboxed_frame_on_another_website_cannot_use_the_publication_runtime
     page.evaluate("([base, prefix, site, version]) => { document.getElementById('held').src = 'frame.html?' + new URLSearchParams({ base, prefix, site, slug: 'club', version }); }", [club["base"], f"/published/club/{published['version']}/", club["site"], published["version"]])
     page.wait_for_function("() => document.documentElement.dataset.probe")
     probe = json.loads(page.evaluate("() => document.documentElement.dataset.probe"))
-    assert probe == {name: "refused" for name in ("page", "routes", "members", "runtime without a token", "runtime with a made-up token", "sign in with a made-up token", "engine", "window key")}
+    assert probe == {name: "refused" for name in ("page", "routes", "members", "page with a made-up token", "runtime without a token", "runtime with a made-up token", "sign in with a made-up token", "engine", "window key")}
     after = editor.site()
     assert after["revision"] == before["revision"] and after["site"]["name"] == "Harbour Club"
     assert editor.page.evaluate("() => sessionStorage.getItem('formweb_window_key')")
