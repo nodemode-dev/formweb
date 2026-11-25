@@ -128,6 +128,8 @@ The conversion writes base (desktop) styles only and never creates breakpoints. 
 
 One conversion makes at most 480 elements and follows elements at most 60 levels deep. For a larger page the window lists the page's top-level parts with their size; click **Convert this part** on one of them. That part becomes elements in place, and the parts before and after it stay code sections, with their stylesheet kept to themselves so it does not restyle the new elements. Convert the others the same way. Each part is one undo step.
 
+When you import a whole site as editable elements, every page converts together. A page too large for one conversion stays a code section, and the result says so, for example "1 page was too large to convert at once and stayed a code section: convert it one part at a time with Convert to editable elements."; open that page and convert it part by part as above.
+
 ### How close the result is
 
 Three small sites were imported as editable elements and compared at 1440 px with the original opened in Chromium (pixels that differ by more than a trace, as a share of the page):

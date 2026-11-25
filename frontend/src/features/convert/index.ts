@@ -11,8 +11,10 @@ import { refusal, ROOT_FORCED, summary, type SiteFont } from './rules';
 import '../../styles/convert.css';
 
 export const CONVERT_ID = 'library.convert-section';
-/** One batch holds at most 500 commands; a few go to the root, the fonts and the moves. */
+/** The most elements one section's conversion makes, which keeps its measuring short. */
 export const LIMIT = 480;
+/** The engine's batch takes up to 4000 commands; sections that would pass it in one conversion wait for their own. */
+const BATCH = 4000;
 const DEPTH = 60;
 const SECONDS = 20;
 const RETRIES = 40;
@@ -136,30 +138,46 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
   const taken = new Set(Object.keys(site.nodes));
   let fonts = { ...(((site.extensions?.design as { fonts?: Record<string, SiteFont> } | undefined)?.fonts) || {}) };
   const plans: Plan[] = [];
+  const done: SiteNode[] = [];
+  let skipped: TooLarge | null = null, skips = 0, size = 0;
   for (const host of hosts) {
-    const plan = await measure(sourceOf(sectionOf(site, host.id)!), {
-      origin: location.origin, keepScript, fonts, taken: id => taken.has(id), limit: LIMIT, depth: DEPTH, seconds: SECONDS, scope: host.id
-    }, part);
+    let plan: Plan;
+    try {
+      plan = await measure(sourceOf(sectionOf(site, host.id)!), {
+        origin: location.origin, keepScript, fonts, taken: id => taken.has(id), limit: LIMIT, depth: DEPTH, seconds: SECONDS, scope: host.id
+      }, part);
+    } catch (error) {
+      if (!(error instanceof TooLarge) || hosts.length === 1) throw error;
+      skipped ??= error;
+      skips++;
+      continue;
+    }
+    const need = plan.nodes.length * 2 + 4;
+    if (hosts.length > 1 && size + need > BATCH) { skipped ??= new TooLarge('count', plan.nodes.length, LIMIT); skips++; continue; }
+    size += need;
     plan.nodes.forEach(item => taken.add(item.id));
     if (plan.fonts) fonts = plan.fonts;
     plans.push(plan);
+    done.push(host);
   }
+  if (!plans.length) throw skipped!;
   let fresh = `cvpart-${Math.random().toString(36).slice(2, 7)}`;
   while (taken.has(fresh)) fresh += 'x';
   const build = (): Command[] => [
     ...fontsCommand(site, plans.reduce<Record<string, SiteFont> | null>((last, plan) => plan.fonts || last, null)),
-    ...hosts.flatMap((host, index) => part === undefined ? wholeCommands(site, host, plans[index]) : partCommands(site, host, sectionOf(site, host.id)!, plans[index], fresh))
+    ...done.flatMap((host, index) => part === undefined ? wholeCommands(site, host, plans[index]) : partCommands(site, host, sectionOf(site, host.id)!, plans[index], fresh))
   ];
-  if (build().length > 500) throw new TooLarge('count', plans.reduce((sum, plan) => sum + plan.nodes.length, 0), LIMIT);
-  const { left } = await apply(build, plans.map((plan, index): [Plan, string] => [plan, hosts[index].id]));
+  if (build().length > BATCH) throw new TooLarge('count', plans.reduce((sum, plan) => sum + plan.nodes.length, 0), LIMIT);
+  const { left } = await apply(build, plans.map((plan, index): [Plan, string] => [plan, done[index].id]));
   const outcome = plans.map(plan => plan.outcome).reduce((all, one) => ({
     converted: all.converted + one.converted, responsive: all.responsive + one.responsive, effects: all.effects + one.effects, floats: all.floats + one.floats,
     pictures: all.pictures + one.pictures, refused: all.refused + one.refused, scripted: all.scripted + one.scripted, left: all.left + one.left,
     parts: Object.fromEntries([...new Set([...Object.keys(all.parts), ...Object.keys(one.parts)])].map(key => [key, (all.parts[key as keyof typeof all.parts] || 0) + (one.parts[key as keyof typeof one.parts] || 0)]))
   }));
   outcome.left += left;
-  const root = part === undefined ? hosts[0].id : plans[0].nodes.find(item => item.parent === '')?.id || null;
-  return { message: summary(outcome, t, tn), converted: outcome.converted, root };
+  const root = part === undefined ? done[0].id : plans[0].nodes.find(item => item.parent === '')?.id || null;
+  const stayed = skips ? ' ' + tn(skips, '1 page was too large to convert at once and stayed a code section: convert it one part at a time with Convert to editable elements.', '{0} pages were too large to convert at once and stayed code sections: convert each one part at a time with Convert to editable elements.', [skips]) : '';
+  return { message: summary(outcome, t, tn) + stayed, converted: outcome.converted, root };
 }
 
 /**

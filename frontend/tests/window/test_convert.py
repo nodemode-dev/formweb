@@ -72,6 +72,25 @@ def test_a_page_too_large_for_one_conversion_is_imported_as_code_and_the_panel_s
     assert len(code_sections(editor.site()["site"])) == 1
 
 
+def test_a_zip_of_pages_with_more_than_500_elements_together_converts_and_only_a_page_too_large_alone_stays_code(editor, tmp_path):
+    data = io.BytesIO()
+    with zipfile.ZipFile(data, "w") as archive:
+        for name, count in (("a.html", 200), ("b.html", 200), ("c.html", 600)):
+            archive.writestr(name, "<!doctype html><html><body>" + "".join(f"<p>{name} line {i}</p>" for i in range(count)) + "</body></html>")
+    path = tmp_path / "three.zip"
+    path.write_bytes(data.getvalue())
+    with editor.page.expect_file_chooser() as chooser:
+        editor.page.evaluate("window.formweb.run('file.import-site')")
+    chooser.value.set_files(str(path))
+    review = editor.page.locator(".fw-lib-site")
+    review.locator(".fw-lib-insert:not([disabled])").click()
+    expect(review.locator(".fw-lib-note")).to_contain_text("Converted 400 elements.", timeout=60_000)
+    expect(review.locator(".fw-lib-note")).to_contain_text("1 page was too large to convert at once and stayed a code section")
+    site = editor.site()["site"]
+    assert len(code_sections(site)) == 1
+    assert nodes_with(site, "p", "a.html line 199") and nodes_with(site, "p", "b.html line 0")
+
+
 def test_a_zip_imported_as_editable_elements_gives_a_heading_layer_whose_text_is_edited_on_the_canvas(editor, tmp_path):
     with editor.page.expect_file_chooser() as chooser:
         editor.page.evaluate("window.formweb.run('file.import-site')")
