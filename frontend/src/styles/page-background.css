@@ -1,4 +1,4 @@
-.fw-pagebg-note { min-height: calc(1.6em * 3); margin: var(--space-2) 0 0; }
+.fw-pagebg-note { min-height: 3lh; margin: var(--space-2) 0 0; }
 .fw-pagebg-note > span[hidden] { display: none; }
 .fw-pagebg-note > span:not([hidden]) ~ span:not([hidden])::before { content: ' '; }
 .fw-pagebg-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
