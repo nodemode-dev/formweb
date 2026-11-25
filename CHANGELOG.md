@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.31.2 · 2026-11-25
+
+- The editor no longer falls back to an older state of the site. When a change from outside the window (the assistant, the command line, another window) landed just after one of your own, the window could show the site as it was before the outside change, and stay that way until the next change. It now keeps the newest state it has received.
+- Automated tests: 6 more editor function tests and 1 more window test cover this, which brings them to 329 and 171. The window test that failed once in the 0.31.1 checks failed for this reason.
+
 ## 0.31.1 · 2026-11-25
 
 - Issue #36 is now covered ask by ask: the report was split into 49 separate asks, each one was checked in the app, and this release closes the last of them.

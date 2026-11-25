@@ -14,6 +14,10 @@ export function accept(next: EditorState): EditorState {
   listeners.forEach(listener => listener(next));
   return next;
 }
+function settle(next: EditorState): EditorState {
+  if (current && next.site.id === current.site.id && next.revision < current.revision) return current;
+  return accept(next);
+}
 export function subscribe(listener: (next: EditorState) => void): void { listeners.add(listener); }
 let windowKey = '';
 function bearer(): Record<string, string> {
@@ -98,14 +102,14 @@ async function send<T>(path: string, body?: unknown, method?: string): Promise<T
   return response.json() as Promise<T>;
 }
 export function commands(commands: Command[]): Promise<EditorState> {
-  const work = queue.catch(() => undefined).then(async () => accept(await request<EditorState>('/api/batch', {
+  const work = queue.catch(() => undefined).then(async () => settle(await request<EditorState>('/api/batch', {
     commands, expectedRevision: current?.revision
   })));
   queue = work;
   return work;
 }
 export function command(command: string, params: Record<string, unknown> = {}): Promise<EditorState> {
-  const work = queue.catch(() => undefined).then(async () => accept(await request<EditorState>('/api/command', {
+  const work = queue.catch(() => undefined).then(async () => settle(await request<EditorState>('/api/command', {
     command, params, expectedRevision: current?.revision
   })));
   queue = work;
@@ -168,7 +172,7 @@ export async function stream(path: string, body: unknown, onEvent: (name: string
 }
 /** For service routes that change the site and return `{ state, ... }` (team library link and sync). */
 export function mutateVia<T extends { state: EditorState }>(path: string, body: unknown): Promise<T> {
-  const work = queue.catch(() => undefined).then(async () => { const result = await request<T>(path, body); accept(result.state); return result; });
+  const work = queue.catch(() => undefined).then(async () => { const result = await request<T>(path, body); settle(result.state); return result; });
   queue = work;
   return work;
 }
@@ -176,7 +180,7 @@ export function mutateVia<T extends { state: EditorState }>(path: string, body: 
 export function libraryMutate<T extends object>(path: string, body: unknown): Promise<T> {
   const work = queue.catch(() => undefined).then(async () => {
     const result = await request<T>(path, body);
-    if ('site' in result && 'revision' in result) accept(result as unknown as EditorState);
+    if ('site' in result && 'revision' in result) settle(result as unknown as EditorState);
     return result;
   });
   queue = work;
