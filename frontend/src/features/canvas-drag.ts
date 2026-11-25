@@ -289,6 +289,7 @@ export function installCanvasDrag(host: CanvasDragHost): { commands: CommandDef[
   let canvasDoc: Document | null = null;
   let pressedAt = -Infinity;
   let painting = 0;
+  let resized: (() => void) | null = null;
   const watcher = new MutationObserver(() => schedule());
   const schedule = (): void => { if (!painting) painting = requestAnimationFrame(paint); };
   const sized = new ResizeObserver(() => schedule());
@@ -312,7 +313,7 @@ export function installCanvasDrag(host: CanvasDragHost): { commands: CommandDef[
 
   function paint(): void {
     painting = 0;
-    if (dragOn) return;
+    if (dragOn) { resized?.(); return; }
     const doc = canvasDoc;
     if (!outlinesOn || !doc || !host.ready() || !host.editing() || !host.frame.offsetWidth) { layer.hide(); return; }
     const nodes = chain(doc);
@@ -376,6 +377,7 @@ export function installCanvasDrag(host: CanvasDragHost): { commands: CommandDef[
     const pressed = grabbed?.dataset.fwId;
     if (!grabbed || !pressed || (!touch && !host.selectionIds().includes(pressed))) return;
     const win = doc.defaultView!;
+    const page = host.root();
     const start = map.toParent(down.clientX, down.clientY);
     let pointer = start;
     let ids: string[] = [];
@@ -412,11 +414,13 @@ export function installCanvasDrag(host: CanvasDragHost): { commands: CommandDef[
       };
       walk(root);
       base = { x: win.scrollX, y: win.scrollY };
+      const size = `${window.innerWidth}x${window.innerHeight}x${map.scale}`;
+      resized = () => { if (dragging && !aborted && `${window.innerWidth}x${window.innerHeight}x${map.scale}` !== size) { measure(); place(); } };
     };
     const scene = (): void => {
       const site = host.state().site;
       const origin = map.toParent(0, 0);
-      const key = `${win.scrollX},${win.scrollY},${origin.x},${origin.y}|${spot ? `${spot.lane}|${spot.target.parent}|${spot.target.anchor}|${spot.line?.at}|${spot.line?.from}|${spot.commands.length}` : ''}`;
+      const key = `${win.scrollX},${win.scrollY},${origin.x},${origin.y},${map.scale}|${spot ? `${spot.lane}|${spot.target.parent}|${spot.target.anchor}|${spot.line?.at}|${spot.line?.from}|${spot.commands.length}` : ''}`;
       if (key === shown) return;
       shown = key;
       const dx = base.x - win.scrollX, dy = base.y - win.scrollY;
@@ -442,6 +446,7 @@ export function installCanvasDrag(host: CanvasDragHost): { commands: CommandDef[
     const tick = (): void => {
       frame = 0;
       if (!dragging) return;
+      if (host.root() !== page || !host.editing()) { stop(); return; }
       const seen = map.visible();
       const across = pointer.x >= seen.left && pointer.x <= seen.left + seen.width;
       const step = !across ? 0 : pointer.y < seen.top + EDGE ? -SPEED : pointer.y > seen.top + seen.height - EDGE ? SPEED : 0;
@@ -540,6 +545,7 @@ export function installCanvasDrag(host: CanvasDragHost): { commands: CommandDef[
       doc.documentElement.removeAttribute('data-fw-holding');
       document.body.classList.remove('fw-canvas-dragging');
       if (dragging) doc.getSelection()?.removeAllRanges();
+      resized = null;
       if (dragOn) { dragOn = false; layer.hide(); schedule(); }
     };
     const swallow = (): void => swallowClick([win, window], touch ? 400 : 0);

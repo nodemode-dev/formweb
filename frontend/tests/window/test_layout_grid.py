@@ -95,6 +95,42 @@ def test_a_shortcut_pressed_during_a_canvas_drag_ends_the_drag_first_so_nothing_
     assert coldmere.site()["site"]["nodes"]["hm-hero-copy"]["children"] == before["nodes"]["hm-hero-copy"]["children"]
 
 
+def test_a_page_that_changes_under_a_canvas_drag_ends_the_drag_and_removes_what_it_drew(coldmere):
+    coldmere.page.locator('[data-menu="Page"]').click()
+    coldmere.page.locator('[role="menu"]:visible [data-command="page.duplicate"]').click()
+    site = coldmere.until(lambda s: len(s["pages"]) == 6, "the copy of Home")
+    copy = next(page for page in site["pages"] if page["name"] == "Home copy")
+    lead_id = next(key for key, node in site["nodes"].items() if node["name"] == site["nodes"]["hm-lead"]["name"] and key != "hm-lead")
+    h1_id = next(key for key, node in site["nodes"].items() if node["name"] == site["nodes"]["hm-h1"]["name"] and key != "hm-h1")
+    coldmere.canvas.locator(f'[data-fw-id="{lead_id}"]').click()
+    lead, h1 = box_of(coldmere, lead_id), box_of(coldmere, h1_id)
+    pointer = press_and_move(coldmere, lead, (h1["x"] + 6, h1["y"] + h1["height"] * 0.3))
+    expect(coldmere.page.locator(SLOTS).first).to_be_visible()
+    coldmere.command("page.remove", {"id": copy["id"]})
+    for drawn in (LAYER, ".fw-canvas-proxy:visible", ".fw-canvas-line:visible"):
+        expect(coldmere.page.locator(drawn)).to_have_count(0)
+    expect(coldmere.status).to_have_text("Drag cancelled. Nothing moved.")
+    pointer.up()
+
+
+def test_the_layout_grid_follows_the_canvas_when_the_window_is_resized_during_a_drag(coldmere):
+    coldmere.canvas.locator('[data-fw-id="hm-lead"]').click()
+    lead, h1 = box_of(coldmere, "hm-lead"), box_of(coldmere, "hm-h1")
+    pointer = press_and_move(coldmere, lead, (h1["x"] + 6, h1["y"] + h1["height"] * 0.3))
+    expect(coldmere.page.locator(SLOTS).first).to_be_visible()
+    lines = lambda: sorted((round(box["x"]), round(box["y"])) for box in (slot.bounding_box() for slot in coldmere.page.locator(SLOTS).all()) if box)
+    before = lines()
+    coldmere.page.set_viewport_size({"width": 1340, "height": 900})
+    coldmere.eventually(lambda: lines() != before, "the landing lines to move with the resized canvas")
+    coldmere.page.wait_for_timeout(300)
+    after = lines()
+    pointer.move(*pointer.at, held=True)
+    coldmere.page.wait_for_timeout(300)
+    assert after and lines() == after
+    coldmere.page.keyboard.press("Escape")
+    pointer.up()
+
+
 def test_dragging_the_first_heading_below_the_second_reads_inside_the_section_at_the_end(section_with_two_headings):
     editor, section, first, second = section_with_two_headings
     site = editor.site()["site"]
