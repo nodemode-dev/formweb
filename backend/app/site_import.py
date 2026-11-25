@@ -29,6 +29,7 @@ MAX_COMMANDS = 4000
 EXTENSION_LIMIT = 4 * 1024 * 1024
 HTML_CAP = 512 * 1024
 CSS_CAP = 256 * 1024
+IMPORT_DEPTH = 4
 JS_CAP = 512 * 1024
 FILE_CAPS = {'page': 1024 * 1024, 'style': CSS_CAP, 'script': JS_CAP}
 KINDS = {'html': 'page', 'htm': 'page', 'css': 'style', 'js': 'script', 'mjs': 'script',
@@ -193,6 +194,7 @@ class Site:
         self.room = CSS_CAP
         self.overflow = False
         self.loops: set = set()
+        self.deep: set = set()
         self.assets ={path: '/api/assets/' + hashlib.sha256(body).hexdigest() + '.' + STORED.get(_ext(path), _ext(path))
                        for path, (kind, body) in files.items() if kind == 'asset'}
 
@@ -239,8 +241,8 @@ class Site:
             return False
         self.used.add(path)
         self.room -= len(self.files[path][1])
-        if self.room < 0:
-            self.overflow = True
+        if self.room < 0 and not self.overflow:
+            self.overflow = path
         return not self.overflow
 
     def css(self, text: str, base: str, missing: set, depth: int = 0, seen: frozenset = frozenset(), source: str = '') -> str:
@@ -249,7 +251,10 @@ class Site:
             if found is not None and found[0] in seen:
                 self.loops.add((source, found[0]))
                 return ''
-            if found is None or found[0] not in self.files or self.files[found[0]][0] != 'style' or depth >= 4:
+            if found is not None and depth >= IMPORT_DEPTH and self.files.get(found[0], ('',))[0] == 'style':
+                self.deep.add(found[0])
+                return ''
+            if found is None or found[0] not in self.files or self.files[found[0]][0] != 'style':
                 if found is not None and found[0] not in self.files:
                     missing.add(match.group(1))
                 return match.group(0)
@@ -307,7 +312,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     missing: set = set()
     warnings: list[str] = []
     outside_scripts, outside_styles = set(), set()
-    site.used, site.room, site.overflow, site.loops = set(), CSS_CAP, False, set()
+    site.used, site.room, site.overflow, site.loops, site.deep = set(), CSS_CAP, False, set(), set()
     title = TITLE.search(document)
     title = re.sub(r'\s+', ' ', unescape(title.group(1))).strip()[:200] if title else ''
     description = ''
@@ -375,6 +380,10 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     if site.loops:
         shown = [f'{_show(a)} imports itself' if a == b else f'{_show(a)} imports {_show(b)} again' for a, b in sorted(site.loops)]
         warnings.append(f'The stylesheets import each other in a loop ({"; ".join(shown[:5])}{"; ..." if len(shown) > 5 else ""}). The @import that closes the loop was left out, so each stylesheet arrives once.')
+    deep = sorted(site.deep - site.used)
+    if deep:
+        shown = [_show(path) for path in deep]
+        warnings.append(f'Stylesheet @import is followed at most {IMPORT_DEPTH} levels deep, so {", ".join(shown[:5])}{"..." if len(shown) > 5 else ""} {"was" if len(shown) == 1 else "were"} left out with {"its" if len(shown) == 1 else "their"} rules.')
     markup = STRIP.sub('', body)
     markup = LINK.sub(lambda tag: '' if tag.group(0) in inlined else tag.group(0), markup)
     markup = site.markup(markup, base, missing).strip()
@@ -432,7 +441,10 @@ def plan(archive: dict, site: dict, kit_script) -> dict:
     allow = (((site.get('extensions') or {}).get('code') or {}).get('allowSections')) is True
     for path in pages:
         page = _page(resolver, path, files[path][1], kit_script)
-        if page['overflow'] or len(page['html'].encode()) > HTML_CAP or len(page['css'].encode()) > CSS_CAP or len(page['js'].encode()) > JS_CAP:
+        if page['overflow']:
+            skipped.append({'file': path, 'reason': f'The page\'s styles pass 256 KiB, the most a code section holds, once {_show(page["overflow"])} is inlined.'})
+            continue
+        if len(page['html'].encode()) > HTML_CAP or len(page['css'].encode()) > CSS_CAP or len(page['js'].encode()) > JS_CAP:
             skipped.append({'file': path, 'reason': 'The page is larger than a code section holds (512 KiB markup, 256 KiB styles, 512 KiB script).'})
             continue
         cost = len(json.dumps({'enabled': True, 'html': page['html'], 'css': page['css'], 'js': page['js'], 'module': page['module']}, ensure_ascii=False, separators=(',', ':')).encode()) + 64
