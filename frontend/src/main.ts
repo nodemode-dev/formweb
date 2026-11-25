@@ -41,7 +41,7 @@ import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
-import { canvasClick, installSelection, layerClick, pageClick, paintLayerRow, paintPageRow } from './features/selection';
+import { canvasClick, installSelection, layerClick, pageClick, paintLayerRow, paintPageRow, selectedIds } from './features/selection';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
@@ -1603,6 +1603,7 @@ function update(next: EditorState): void {
   faviconClear.disabled = !favicon && !site.settings.faviconDark;
   updatePasswordState();
   if (passwordGatesFor !== site.id) void loadPasswordGates().catch(() => undefined);
+  canvas.mark(selectedIds());
   canvas.render(site, page, selectedId, widths[breakpoint], locale, false, breakpoint);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
   if (dialogMode === 'cms') updateCms();
