@@ -200,6 +200,10 @@ async def serve_release(slug, version, path, request, active=False):
     root = (DATA_DIR / 'publications' / slug / version).resolve()
     if not root.is_relative_to((DATA_DIR / 'publications').resolve()) or version.startswith('.'):
         raise EngineError('Release not found.', 404)
+    ticket = request.query_params.get('fw-member')
+    member = providers.visitor.ticket_member(ticket, release['site']['id'], slug, version) if ticket else None
+    if member:
+        request.scope['formweb.member'] = {'site': member['site'], 'email': member['email']}
     redirect = studio.releases.redirect(slug, version, path)
     if redirect:
         target, status = redirect
