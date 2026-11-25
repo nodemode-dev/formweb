@@ -4,14 +4,29 @@ import { icon, type Icon } from '../../ui/icons';
 import { label, labelAttr } from '../../i18n';
 import { designGroup, readThemes, type InspectorContext } from './context';
 import { fieldOf, labeled, selectOf } from './labeled';
-import type { DesignThemes, EditorState, ThemeMode } from '../../types';
+import type { Command, DesignThemes, EditorState, ThemeMode } from '../../types';
 
 export interface ThemeHandle {
   fill(next: EditorState): void;
   preview(next: EditorState): { mode: ThemeMode | ''; overrides: Record<string, string> };
 }
 
-const hasThemes = (next: EditorState): boolean => !!designGroup(next).themes;
+export const hasThemes = (next: EditorState): boolean => !!designGroup(next).themes;
+
+export function otherTheme(themes: DesignThemes): ThemeMode { return themes.default === 'dark' ? 'light' : 'dark'; }
+
+export function themesCommand(themes: DesignThemes): Command {
+  const values: Record<string, Record<string, string>> = {};
+  for (const mode of ['dark', 'light'] as ThemeMode[]) if (Object.keys(themes.values[mode]).length) values[mode] = themes.values[mode];
+  return { command: 'design.set', params: { key: 'themes', value: { default: themes.default, followSystem: themes.followSystem, values } } };
+}
+
+export function otherThemeValueCommand(next: EditorState, key: string, content: string): Command {
+  const themes = readThemes(next);
+  const map = themes.values[otherTheme(themes)];
+  if (content.trim()) map[key] = content.trim(); else delete map[key];
+  return themesCommand(themes);
+}
 
 export function installTheme(ctx: InspectorContext, onPreview: () => void): ThemeHandle {
   let chosen: ThemeMode | '' = '';
@@ -51,11 +66,9 @@ export function installTheme(ctx: InspectorContext, onPreview: () => void): Them
   block.append(head, grid, otherHead, rows, labeled('p', 'micro', 'Tokens above hold the default theme. Fill a token here to give it another value in the other theme; empty keeps the default value. Visitors can switch themes and the choice is remembered on their device.'));
   ctx.panes.tokens.append(block);
 
-  function other(themes: DesignThemes): ThemeMode { return themes.default === 'dark' ? 'light' : 'dark'; }
   function save(themes: DesignThemes): Promise<unknown> {
-    const values: Record<string, Record<string, string>> = {};
-    for (const mode of ['dark', 'light'] as ThemeMode[]) if (Object.keys(themes.values[mode]).length) values[mode] = themes.values[mode];
-    return command('design.set', { key: 'themes', value: { default: themes.default, followSystem: themes.followSystem, values } });
+    const step = themesCommand(themes);
+    return command(step.command, step.params);
   }
   defaultMode.addEventListener('change', () => void ctx.run(() => { if (!defaultMode.value) return command('design.set', { key: 'themes', value: null }); const themes = readThemes(latest!); themes.default = defaultMode.value === 'light' ? 'light' : 'dark'; return save(themes); }));
   follow.addEventListener('change', () => void ctx.run(() => { const themes = readThemes(latest!); themes.followSystem = follow.checked; return save(themes); }));
@@ -69,7 +82,7 @@ export function installTheme(ctx: InspectorContext, onPreview: () => void): Them
       if (follow.checked !== themes.followSystem) follow.checked = themes.followSystem;
       if (follow.disabled === defined) follow.disabled = !defined;
       if (rows.hidden === defined) rows.hidden = !defined;
-      const alt = other(themes);
+      const alt = otherTheme(themes);
       if (defined) label(otherHead, 'Values for {0} mode', [{ t: alt === 'light' ? 'Light' : 'Dark' }]);
       else label(otherHead, 'This site has no themes, so every visitor sees the colors above. Pick a default theme to give it a second set of values.');
       keyed(rows, Object.entries(next.site.tokens), item => item[0], () => {
@@ -77,11 +90,8 @@ export function installTheme(ctx: InspectorContext, onPreview: () => void): Them
         const name = element('span', 'micro');
         const control = ctx.input();
         control.addEventListener('change', () => void ctx.run(() => {
-          const current = readThemes(latest!);
-          const map = current.values[other(current)];
-          const key = row.dataset.key!;
-          if (control.value.trim()) map[key] = control.value.trim(); else delete map[key];
-          return save(current);
+          const step = otherThemeValueCommand(latest!, row.dataset.key!, control.value);
+          return command(step.command, step.params);
         }));
         row.append(name, control);
         return row;
