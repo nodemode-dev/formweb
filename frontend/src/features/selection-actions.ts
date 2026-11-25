@@ -92,9 +92,17 @@ async function copyMany(ids: readonly string[]): Promise<{ behind: number; left:
   return { behind, left };
 }
 
+const MAX_FRAGMENTS = 64;
+const tooMany = (count: number): boolean => {
+  if (count <= MAX_FRAGMENTS) return false;
+  host!.status(t('{0} elements are selected; copy or cut at most {1} at a time, or select their container instead.', [count, MAX_FRAGMENTS]), true);
+  return true;
+};
+
 export async function copySelected(): Promise<void> {
   const { ids, skipped } = split(copyable);
   if (!ids.length) { host!.status(t('None of the selected elements can be copied.'), true); return; }
+  if (tooMany(ids.length)) return;
   const copied = await copyMany(ids);
   host!.status([t('{0} copied.', [elements(ids.length)]), ...host!.copyNote(copied), skipNote(skipped)]);
 }
@@ -102,6 +110,7 @@ export async function copySelected(): Promise<void> {
 export async function cutSelected(): Promise<void> {
   const { ids, skipped } = split(copyable);
   if (!ids.length) { host!.status(t('None of the selected elements can be cut.'), true); return; }
+  if (tooMany(ids.length)) return;
   const copied = await copyMany(ids);
   await commands(ids.map(id => ({ command: 'node.remove', params: { id } })));
   host!.status([t('{0} cut. Paste puts them back; Undo restores them in place.', [elements(ids.length)]), ...host!.copyNote(copied), skipNote(skipped)]);
