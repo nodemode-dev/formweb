@@ -1424,7 +1424,12 @@ for (const [heading, paragraph] of [
   block.append(element('h3', '', heading), element('p', '', paragraph));
   helpGrid.append(block);
 }
-helpPane.append(helpGrid);
+const helpGuide = element('a', 'help-guide-link');
+helpGuide.href = 'https://github.com/nodemode-dev/formweb/tree/main/docs/guide';
+helpGuide.target = '_blank';
+helpGuide.rel = 'noopener';
+helpGuide.append(icon('external'), element('span', '', 'Open the full guide'));
+helpPane.append(helpGuide, helpGrid);
 
 function setSidebar(id: string): void {
   activeSidebar = id;
