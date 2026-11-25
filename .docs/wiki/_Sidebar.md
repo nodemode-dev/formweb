@@ -1,6 +1,7 @@
 **Start**
 
 - [[Home]]
+- [[Guide]]
 - [[Getting-Started]]
 - [[Architecture]]
 
