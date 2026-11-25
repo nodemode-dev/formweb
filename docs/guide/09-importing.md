@@ -21,6 +21,9 @@ Import HTML turns a whole HTML page, with its styles and first script, into one 
    ```
 
 3. Leave **Section name** empty to use the page's title, or type a name.
+
+![The Import HTML view after pasting: the HTML box holds the pasted code, showing its last characters, and the orange Import as section button waits at the bottom of the panel](images/import-html-pasted.webp)
+
 4. Click **Import as section** at the bottom of the panel. The status line says "HTML section imported." and the new section, here **Winter timetable notice**, is selected. With the page itself selected, as here, it goes at the end of the page.
 
 On the canvas a code section is drawn as a plain strip labelled Component, because its code does not run there:
