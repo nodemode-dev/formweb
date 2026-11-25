@@ -228,6 +228,13 @@ async def serve_release(slug, version, path, request, active=False):
         base = ('/sites/' + slug if active else '/published/' + slug + '/' + version) + '/404/'
         return Response(missing_page(page, base, request), status_code=404, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
     gated = visitor_gate(request, root, release['site'], path)
+    if path in ('site.formweb.json', 'search-index.json') and studio.passwords.routes(release['site']['id']):
+        # A release made before a password was set still holds the page's text in these two files.
+        if path == 'site.formweb.json':
+            raise EngineError('Compiled file not found.', 404)
+        entries = json.loads(target.read_text(encoding='utf-8'))
+        kept = [entry for entry in entries if not studio.passwords.gate_for(release['site']['id'], canonical_route(root, release['site'], (entry.get('path') or '') + 'index.html'))]
+        return Response(json.dumps(kept, ensure_ascii=False), media_type='application/json', headers={'Cache-Control': 'private, no-store'})
     if target.suffix == '.html' and not path.startswith('assets/'):
         # FW-078: password gates are checked here, in the serving adapter, before any page bytes leave.
         gate = studio.passwords.gate_for(release['site']['id'], canonical_route(root, release['site'], path))
