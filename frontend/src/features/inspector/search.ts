@@ -109,7 +109,12 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
   empty.setAttribute('role', 'status');
   empty.hidden = true;
   label(empty, 'No matching properties');
-  results.append(list, empty);
+  const more = element('p', 'inspector-results-more');
+  more.setAttribute('role', 'status');
+  more.hidden = true;
+  label(more, 'Showing the first {0} results. Type more to narrow it down.', [MAX_ROWS]);
+  labelAttr(more, 'title', 'Showing the first {0} results. Type more to narrow it down.', [MAX_ROWS]);
+  results.append(list, more, empty);
   input.setAttribute('aria-controls', list.id);
   options.after.after(bar);
   options.scroll.before(results);
@@ -265,6 +270,8 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
     });
     keyed(list, rows, row => row.key, createRow, updateRow);
     if (empty.hidden !== rows.length > 0) empty.hidden = rows.length > 0;
+    const capped = groups.size + scored.length > MAX_ROWS;
+    if (more.hidden === capped) more.hidden = !capped;
     if (!picks.some(entry => entry.key === activeKey)) activeKey = picks[0]?.key || '';
     mark(false);
   }
