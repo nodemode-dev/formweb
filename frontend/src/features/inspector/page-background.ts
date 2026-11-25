@@ -2,7 +2,7 @@ import { command, commands } from '../../api';
 import { element, value } from '../../ui/dom';
 import { runCommand, type CommandDef } from '../../ui/shell';
 import type { Icon } from '../../ui/icons';
-import { label, labelAttr } from '../../i18n';
+import { label, labelAttr, t } from '../../i18n';
 import { readBrand } from '../brand-kit';
 import type { Command, EditorState, Page, Site } from '../../types';
 import '../../styles/page-background.css';
@@ -115,7 +115,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
         const list = allPagesCommands(next.site, mine);
         if (!list.length) { host.status('Every page already has this background.'); return; }
         await commands(list);
-        host.status(mine ? `Background ${mine} applied to all ${next.site.pages.length} pages.` : `Backgrounds cleared on all ${next.site.pages.length} pages; they use the site background.`);
+        host.status(mine ? t('Background {0} applied to all {1} pages.', [mine, next.site.pages.length]) : t('Backgrounds cleared on all {0} pages; they use the site background.', [next.site.pages.length]));
       } },
       { id: 'window.theme-colors', label: 'Site theme colors...', enabled: ready, run: () => {
         runCommand('window.tokens');
@@ -181,7 +181,7 @@ export function allPagesCommands(site: Site, content: string): Command[] {
 export function backgroundRefusal(site: Site, content: string): string {
   const entered = content.trim();
   if (!entered || CSS.supports('background', resolveTokens(site, entered).replace(/var\(\s*--[\w-]+\s*(?:,[^()]*)?\)/g, 'transparent'))) return '';
-  return `"${entered}" is not a background the browser can read. Use a color such as #f3efe6, a theme color such as var(--paper), or a gradient.`;
+  return t('"{0}" is not a background the browser can read. Use a color such as #f3efe6, a theme color such as var(--paper), or a gradient.', [entered]);
 }
 
 export function brandRefusal(next: EditorState | undefined, content: string): string {
