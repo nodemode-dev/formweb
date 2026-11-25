@@ -50,8 +50,6 @@ def test_foreign_origin_cannot_post(client, origin):
 @pytest.mark.parametrize("origin", ["http://evil.example", "null"])
 def test_foreign_origin_is_refused_on_public_paths_too(client, origin):
     for path in PUBLIC_PATHS:
-        if origin == "null" and path.startswith(("/published/", "/sites/")):
-            continue
         assert client.get(path, headers={"origin": origin}).status_code == 403, path
 
 
