@@ -199,6 +199,19 @@ def test_a_foreign_origin_cannot_use_a_publication_token(client, club):
     assert "visitorToken" not in r.text
 
 
+@pytest.mark.parametrize("metadata", [{}, {"sec-fetch-site": "same-origin", "sec-fetch-mode": "cors"}], ids=["no-fetch-metadata", "claims-same-origin"])
+def test_the_guard_judges_an_opaque_origin_by_its_origin_whatever_fetch_metadata_it_sends(client, club, metadata):
+    release = club["club"]
+    for path, body in (("/api/state", None), ("/api/window/key", {}), ("/api/runtime/member/session", None)):
+        r = client.request("GET" if body is None else "POST", path, params={"site": club["site"], "slug": "club", "version": release["version"]}, json=body, headers={**OPAQUE, **metadata})
+        assert r.status_code == 403, path
+        assert "access-control-allow-origin" not in r.headers, path
+    r = client.get(release["prefix"] + "routes.json", headers={**OPAQUE, **metadata})
+    assert r.status_code == 403
+    r = client.get(release["prefix"] + "routes.json", headers={**OPAQUE, **metadata, "x-formweb-runtime": release["config"]["context"]["runtimeToken"]})
+    assert r.status_code == 200
+
+
 def test_the_members_page_is_refused_without_a_session(client, club):
     r = client.get(club["club"]["prefix"] + "members/")
     assert r.status_code == 401
