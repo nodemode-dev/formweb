@@ -47,6 +47,7 @@ import { installPanel } from './features/panel';
 import { canvasClick, installSelection, isMulti, isSelected, layerClick, topMost, pageClick, paintLayerRow, paintPageRow, selectedIds, selectedPageIds, selectNodes } from './features/selection';
 import { anyCopyable, anyRemovable, canStep, copySelected, countLabel, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, selectionNote, selectionTitle, stepSelected } from './features/selection-actions';
 import { installCanvasDrag } from './features/canvas-drag';
+import { installSelectMode, paintSelectMode } from './features/select-mode';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
@@ -1518,6 +1519,7 @@ function update(next: EditorState): void {
   });
   const { rows: layers, total: layerTotal } = panel.layerRows();
   text(nodeCount, String(layerTotal));
+  paintSelectMode();
   keyed(layersList, layers, item => item.node.id, () => {
     const row = button('', undefined, undefined, 'list-row layer-row');
     row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
@@ -2307,6 +2309,7 @@ const panel = installPanel({ state, ready, command, commands, overlay, pagesList
 registerCommands(panel.commands);
 installSelection({ ready, site: () => state().site, primary: () => selectedId, select: selectNode, pageId: () => pageId, openPage, pageRoot: () => currentPage().root, refresh: () => update(state()), layersList, pagesList });
 installSelectionActions({ idle: () => !!scrim.hidden, pageRoot: () => currentPage().root, status, copyNote });
+registerCommands(installSelectMode({ heads: [{ head: pagesHead, kind: 'pages' }, { head: layersHead, kind: 'layers' }], lists: [pagesList, layersList], frame: canvas.frame, loaded: canvas.loaded(), ready, status: message => status(message) }));
 installCanvasDrag({ frame: canvas.frame, stage, overlay, loaded: () => canvas.loaded(), state, ready, editing: () => !preview, root: () => currentPage().root, selectionIds: selectedIds, select: selectNode, commands, run, status });
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
