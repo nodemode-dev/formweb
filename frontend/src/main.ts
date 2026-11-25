@@ -1919,7 +1919,7 @@ function showIssue(row: HTMLElement): void {
     scrollNearest(layersList, rowOf(layersList, selectedId));
   } else if (field) {
     openDock('right');
-    field.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    field.scrollIntoView({ block: 'center', inline: 'nearest' });
     field.focus({ preventScroll: true });
     flash(field);
   }
