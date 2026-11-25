@@ -255,6 +255,20 @@ async def library_apply_starter(starter_id: str, request: Request):
     return {**(result if isinstance(result, dict) else {}), 'pages': made_pages, 'warnings': warnings}
 
 
+def kit_script(script: str) -> tuple[str, bool]:
+    shim = []
+    for found in KIT_IMPORT.finditer(script):
+        for name in (n.strip().split(' as ')[0].strip() for n in found.group(1).split(',')):
+            if name in SHIM and SHIM[name] not in shim:
+                shim.append(SHIM[name])
+            elif name and name not in SHIM:
+                raise EngineError(f'The kit helper {name} has no FormWeb equivalent; only reduced, onTheme and token are provided.')
+    script = KIT_IMPORT.sub('', script)
+    if ANY_IMPORT.search(script):
+        raise EngineError('Code sections cannot bring in other modules; only the formai kit helpers are replaced.')
+    return (('\n'.join(shim) + '\n' + script).strip() if shim else script.strip()), bool(shim)
+
+
 def _between(html: str, tag: str) -> str | None:
     opened = re.search(rf'<{tag}\b[^>]*>', html, re.I)
     if not opened:
@@ -279,18 +293,7 @@ async def library_import_html(request: Request):
     # The whole body, chrome included: page scripts often measure the header (the kit's filmstrip reads .bar).
     markup = _between(document, 'body') or document
     markup = re.sub(r'<script\b[^>]*>.*?</script>', '', markup, flags=re.I | re.S).strip()
-    script = scripts[0] if scripts else ''
-    shim = []
-    for found in KIT_IMPORT.finditer(script):
-        for name in (n.strip().split(' as ')[0].strip() for n in found.group(1).split(',')):
-            if name in SHIM and SHIM[name] not in shim:
-                shim.append(SHIM[name])
-            elif name and name not in SHIM:
-                raise EngineError(f'The kit helper {name} has no FormWeb equivalent; only reduced, onTheme and token are provided.')
-    script = KIT_IMPORT.sub('', script)
-    if ANY_IMPORT.search(script):
-        raise EngineError('Code sections cannot bring in other modules; only the formai kit helpers are replaced.')
-    script = ('\n'.join(shim) + '\n' + script).strip() if shim else script.strip()
+    script, shim = kit_script(scripts[0] if scripts else '')
     css = (extra_css + '\n' + '\n'.join(styles)).strip()
     if len(markup.encode()) > HTML_CAP or len(css.encode()) > CSS_CAP or len(script.encode()) > JS_CAP:
         raise EngineError('The page is larger than a code section holds (512 KiB markup, 256 KiB styles, 512 KiB script).', 413)
