@@ -31,6 +31,7 @@ case "$cmd" in
   build-app) exec ./build_app "$@" ;;
   install-desktop) exec setup/install_desktop "$@" ;;
   doctor) exec setup/doctor "$@" ;;
+  test) exec setup/test "$@" ;;
   help|-h|--help)
     cat <<'HELP'
 formweb · visual website authoring
@@ -65,6 +66,7 @@ Usage: ./formweb COMMAND
   build-app           build the desktop app start to finish (same as ./build_app, or desktop build)
   install-desktop     install PyInstaller and check the Tauri toolchain
   doctor             inspect tools, installs and service ports
+  test [LAYER]        run the tests: native (cargo), engine (pytest), unit (vitest), or all three
   help                this message
 
 Enable Agents in the editor before using MCP.

@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.31.0 · 2026-11-25
+
+- The last of four releases that answer issue #36: importing a whole site, the user guide, touch and pen, the desktop app, and what writing the guide turned up.
+- Import site from zip, in the File menu and at the top of the Library's Import HTML view, brings in a static site built elsewhere. A review lists each page with the address it will get, the pictures and fonts, and every file left out with the reason, before anything changes; the import is one undo step.
+- Each imported page arrives as one code section with its HTML, its CSS and its first script. Its pictures, videos and WOFF2 fonts become assets, and links between the pages follow their new addresses.
+- A site import names stylesheets that import each other in a loop, and any stylesheet it stops following after four levels of @import, and brings each stylesheet in once.
+- Agents can review and import a site zip with the `library_import_site` tool.
+- Import HTML no longer takes JSON-LD as the section's script. Script elements that are not JavaScript are left out with a note, in Import HTML and in the site import alike.
+- A user guide with worked examples and pictures is in `docs/guide`. Help > Using FormWeb opens with an Open the full guide button.
+- Touch and pen: a long press picks up a page, a layer or an element on the canvas so you can drag it, while a swipe still scrolls and a tap still selects. A pen drags like a mouse.
+- A long press that you release without moving opens the right-click menu of that page, layer or element.
+- Select several, in the Pages and Layers headings and the Edit menu, lets a tap or click add items to the selection or take them out, without Ctrl or Shift.
+- Desktop app: it was run for the first time, on Linux under a virtual display, and what that found is fixed. The canvas now responds to clicks, double-clicks, right-clicks and drags there.
+- Desktop app: Open in browser and the guide link open your system browser.
+- Desktop app: on Linux an export goes to your Downloads folder even when the desktop names none.
+- Desktop app: Show in folder says so when the file was moved or deleted, and on Windows it works when a folder name has a comma.
+- Desktop app: after an update the new editor shows at once.
+- Links on the canvas can no longer be opened, and the canvas cannot be navigated away from its own page, so the canvas only ever shows your site as you edit it.
+- Fixed: New site from Blank, and Blank site on Home, opened the sample page. They now open one empty page.
+- Fixed: on the five whole-site starters the canvas drew a page opened earlier over the open one. Only the open page is drawn now.
+- Backspace deletes the selected element as Delete does, never while you are typing.
+- Page background refuses a value that is not a CSS background.
+- The audit says "1 issue found" for a single issue.
+- The width note above the canvas is readable beside a long selection path.
+- A site without themes says None for its default theme.
+- The shortcut on the + key shows as + in menus and the command list.
+- A new picture has no alt text until you describe it, so the audit asks for it. Decorative image marks a picture that needs none.
+- Undo, Redo, a rename and a change to a token say what they did on the status line.
+- Import HTML explains itself in plain words.
+- The scene scrubber's labels stay inside its bar.
+- The Help menu says Using FormWeb, like the dialog it opens.
+- Add page fills the address from the name until you change it, and refuses an address another page already uses.
+- The Library tabs no longer clip their labels.
+- Text with no font of its own uses the same font on the canvas as on the published page.
+- One paste brings at most 8,000 elements in all, and a copy that could not be pasted is refused at once.
+- Search properties says when it shows only the first results.
+- `library_import_site` takes the review's revision as `expected_revision`, like the other tools.
+- On Windows and Linux Ctrl+click never opens a menu; it only adds to the selection.
+- The new interface text of 0.28.1 to 0.31.0 (223 strings) is in all 23 translated languages, machine translated and not yet read by native speakers.
+- Automated tests at four layers, all run in CI and the first three also by `./formweb test`: 163 engine tests, 451 service tests and 221 editor function tests, and 115 tests that drive the real editor window.
+- Known gaps: the desktop app ran only on Linux under a virtual display and never on macOS or Windows, whose code was compiled but not run; on Linux, after one failed download the web view reports every later download as failed too, a fault in its library; touch was tried only with a browser's touch emulation, not on a real device; the translations are unreviewed; and a locally published site should only be one you trust, as a change that isolates such pages from the editor is prepared for the next release.
+
 ## 0.30.0 · 2026-11-24
 
 - The third of four releases that answer issue #36: selection, the canvas, the right panel and preview.

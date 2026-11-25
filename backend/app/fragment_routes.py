@@ -5,7 +5,8 @@
 names is in this FormWeb's asset store (missing ones are named in a 409 and nothing changes), runs the core's
 `node.paste` command through the same mutate path as the editor (one undo step, permissions, attribution, revision),
 and then makes the current project an owner of the assets, the way an upload does. `fragments` (a list of up to 64
-fragments, each carrying its own embedded and clip) in place of `fragment` pastes them in order as one batch, one undo step."""
+fragments, each carrying its own embedded and clip, at most 8,000 nodes in all) in place of `fragment` pastes them in order as one
+batch, one undo step."""
 import base64
 import binascii
 import json
@@ -27,6 +28,8 @@ MAX_EMBED_BYTES = 16 * 1024 * 1024  # raw asset bytes a copy may carry; the base
 MAX_CLIP_EMBED_BYTES = 4 * 1024 * 1024  # with clip, only this much rides inline; the rest waits behind the clip link
 MAX_NODES = 2000
 MAX_FRAGMENTS = 64
+MAX_TOTAL_NODES = 4 * MAX_NODES
+TOO_MANY_NODES = f'A paste can bring at most {MAX_TOTAL_NODES:,} elements in all. Copy fewer elements at a time.'
 
 
 async def _body(request: Request, maximum: int = MAX_PASTE_BYTES) -> dict:
@@ -158,6 +161,8 @@ async def _paste_staged(body: dict, staged: dict):
     many = body.get('fragments')
     if many is not None and (not isinstance(many, list) or not 1 <= len(many) <= MAX_FRAGMENTS):
         raise EngineError(f'fragments must list 1 to {MAX_FRAGMENTS} fragments.', 400)
+    if many is not None and sum(len(item['nodes']) for item in many if isinstance(item, dict) and isinstance(item.get('nodes'), (list, dict))) > MAX_TOTAL_NODES:
+        raise EngineError(TOO_MANY_NODES, 400)
     adopt: dict = {}
     pasted: list = []
     names: list = []

@@ -33,6 +33,7 @@ The code lives in:
 | `backend/app` | the service (Python, FastAPI): persistence, forms, local releases, hand-offs, the MCP server |
 | `backend/tests` | the service tests |
 | `frontend/src` | the editor (TypeScript, Vite): canvas, layers, inspector and commands |
+| `frontend/tests/unit` | the editor tests (vitest) |
 | `frontend/tests/window` | the window smoke test |
 | `library` | the section library: components, sections, presets and starters |
 | `src-tauri` | the desktop shell (Rust, Tauri) |
@@ -48,6 +49,7 @@ Run the same checks CI runs:
 ./formweb install
 (cd frontend && npm audit --audit-level=low)
 ./formweb build
+(cd frontend && npx vitest run)
 backend/venv/bin/python -m compileall -q backend/app setup
 ./formweb agents sync --check
 ./formweb library check && ./formweb library build --check
@@ -58,7 +60,9 @@ python -m pytest frontend/tests/window -q -p no:cacheprovider
 ```
 
 The window smoke tests need `pytest` and `playwright` with Chromium installed, and a
-built editor. CI also checks the shell scripts with `bash -n`.
+built editor. CI also checks the shell scripts with `bash -n`. `./formweb test` runs the
+native, engine and editor tests in one go; [docs/TESTING.md](docs/TESTING.md) describes the
+layers and what a test must do to be accepted.
 
 - Keep each pull request to one change, with tests for what it adds or fixes.
 - Write commit subjects the way the history does, in Conventional Commits with the

@@ -2,7 +2,7 @@ import type { EditorState, Page, SiteNode } from '../../types';
 import type { Command as Batch } from '../sections';
 import { commands as registry, formatKeys } from '../../commands/registry';
 import type { CommandDef } from '../../ui/shell';
-import { anchorOf, menuKeyPressed, showContextMenu, type MenuAnchor, type MenuEntry } from '../../ui/context-menu';
+import { anchorOf, ctrlClickOffMac, menuKeyPressed, showContextMenu, type MenuAnchor, type MenuEntry } from '../../ui/context-menu';
 import { copyOfPage, homeCommands, homeRefusal, pageMoveCommands, stepPageCommands } from './pages';
 import { startRename } from './rename';
 import { LayerFolds, type LayerRow } from './fold';
@@ -68,7 +68,7 @@ export function installPanel(host: PanelHost) {
     const page = pageOf(params);
     if (!page) return;
     const name = nameOf(params);
-    const write = (next: string): Promise<unknown> => host.command('page.update', { id: page.id, patch: { name: next } });
+    const write = (next: string): Promise<unknown> => host.command('page.update', { id: page.id, patch: { name: next } }).then(() => host.status(t('Page renamed to "{0}".', [next])));
     if (name === null) {
       if (!inPlace(rowIn(host.pagesList, page.id), page.name, 'A page needs a name.', write)) { host.openPage(page.id); host.pageSettings(); focusField('page.name'); }
       return;
@@ -80,7 +80,7 @@ export function installPanel(host: PanelHost) {
     const node = nodeOf(params);
     if (!node) return;
     const name = nameOf(params);
-    const write = (next: string): Promise<unknown> => host.command('node.update', { id: node.id, patch: { name: next } });
+    const write = (next: string): Promise<unknown> => host.command('node.update', { id: node.id, patch: { name: next } }).then(() => host.status(t('Renamed to "{0}".', [next])));
     if (name === null) {
       let top = node.id;
       for (let up = parentOf(top); up; up = parentOf(top)) top = up.id;
@@ -104,7 +104,7 @@ export function installPanel(host: PanelHost) {
     const next = await host.command('page.duplicate', { id: page.id, ...copy });
     const made = next.site.pages.find(entry => !before.has(entry.id));
     if (made) host.openPage(made.id);
-    host.status(`Page duplicated as "${copy.name}" at ${copy.slug}.`);
+    host.status(t('Page duplicated as "{0}" at {1}.', [copy.name, copy.slug]));
   }
   async function batch(list: Batch[], done: string): Promise<void> {
     if (!list.length) return;
@@ -118,8 +118,8 @@ export function installPanel(host: PanelHost) {
     if (refusal) { host.status(refusal, true); return; }
     const slug = page.slug.replace(/^\/+|\/+$/g, '');
     const list = homeCommands(site(), page.id);
-    if (!list.length) { host.status(`"${page.name}" is already the home page.`); return; }
-    await batch(list, slug ? `"${page.name}" is now the home page at /, and links to /${slug} now lead there.` : `"${page.name}" is now the home page.`);
+    if (!list.length) { host.status(t('"{0}" is already the home page.', [page.name])); return; }
+    await batch(list, slug ? t('"{0}" is now the home page at /, and links to /{1} now lead there.', [page.name, slug]) : t('"{0}" is now the home page.', [page.name]));
   };
   const stepPage = (step: -1 | 1, params?: Record<string, unknown>): Promise<void> => {
     const set = pageSetFor(typeof params?.id === 'string' ? params.id : undefined);
@@ -127,7 +127,7 @@ export function installPanel(host: PanelHost) {
     const page = pageOf(params);
     if (!page) return Promise.resolve();
     const list = stepPageCommands(site(), page.id, step);
-    if (!list.length) { host.status(step < 0 ? `"${page.name}" is already the first page.` : `"${page.name}" is already the last page.`); return Promise.resolve(); }
+    if (!list.length) { host.status(step < 0 ? t('"{0}" is already the first page.', [page.name]) : t('"{0}" is already the last page.', [page.name])); return Promise.resolve(); }
     return batch(list, step < 0 ? 'Page moved up.' : 'Page moved down.');
   };
   const folds = new LayerFolds();
@@ -224,7 +224,7 @@ export function installPanel(host: PanelHost) {
   const plainKey = (event: KeyboardEvent, key: string): boolean => event.key === key && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
 
   function pageRow(row: HTMLElement): void {
-    row.addEventListener('contextmenu', event => { event.preventDefault(); showPageMenu(anchorOf(event, row), row); });
+    row.addEventListener('contextmenu', event => { event.preventDefault(); if (ctrlClickOffMac(event)) return; showPageMenu(anchorOf(event, row), row); });
     row.addEventListener('dblclick', () => invoke('page.rename', { id: row.dataset.key }));
     row.addEventListener('keydown', event => {
       if (menuKeyPressed(event)) { event.preventDefault(); showPageMenu(row, row); }
@@ -287,7 +287,7 @@ export function installPanel(host: PanelHost) {
     if (!list.length) return false;
     await host.commands(list);
     if (ids.map(id => folds.reveal(site(), host.pageId(), id)).includes(true)) host.refresh();
-    host.status(list.length === 1 ? 'Layer moved. One undo step puts it back.' : `${list.length} layers moved. One undo step puts them back.`);
+    host.status(list.length === 1 ? 'Layer moved. One undo step puts it back.' : t('{0} layers moved. One undo step puts them back.', [list.length]));
     return true;
   }
   async function movePages(ids: readonly string[], over: string, zone: DropZone): Promise<boolean> {

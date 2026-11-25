@@ -122,6 +122,11 @@ export function selectPages(ids: readonly string[], main = ids[ids.length - 1]):
 
 const toggles = (event: MouseEvent | KeyboardEvent): boolean => event.ctrlKey || event.metaKey;
 
+let several = false;
+export function picking(): boolean { return several; }
+export function setPicking(on: boolean): void { several = on; }
+const adds = (event: MouseEvent): boolean => toggles(event) || (several && !event.shiftKey);
+
 function toggled(list: readonly string[], id: string): { ids: string[]; main: string } | null {
   if (!list.includes(id)) return { ids: [...list, id], main: id };
   if (list.length === 1) return null;
@@ -144,7 +149,7 @@ export function layerClick(event: MouseEvent, id: string): void {
   if (!host) return;
   const list = host.layersList;
   syncNodes();
-  if (toggles(event)) {
+  if (adds(event)) {
     const next = toggled(nodes, id);
     if (!next) return;
     if (!nodes.includes(id)) anchor = id;
@@ -162,7 +167,7 @@ export function layerClick(event: MouseEvent, id: string): void {
 export function canvasClick(event: MouseEvent | undefined, id: string): void {
   if (!host) return;
   syncNodes();
-  if (event && (toggles(event) || event.shiftKey)) {
+  if (event && (several || toggles(event) || event.shiftKey)) {
     const next = toggled(nodes, id);
     if (!next) return;
     anchor = next.main;
@@ -177,7 +182,7 @@ export function pageClick(event: MouseEvent, id: string): void {
   if (!host) return;
   syncPages();
   const order = host.site().pages.map(page => page.id);
-  if (toggles(event)) {
+  if (adds(event)) {
     const next = toggled(pages, id);
     if (!next) return;
     if (!pages.includes(id)) pageAnchor = id;
@@ -252,7 +257,7 @@ function selectionKeys(list: HTMLElement, kind: 'layers' | 'pages'): void {
       if (kind === 'layers') selectAllLayers();
       else { const order = host.site().pages.map(page => page.id); selectPages(order, host.pageId()); }
       row.focus();
-    } else if (event.key === 'Escape' && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+    } else if (event.key === 'Escape' && !several && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
       if (kind === 'layers' ? isMulti() : selectedPageIds().length > 1) { event.preventDefault(); collapse(kind); }
     } else if (shiftOnly && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
       event.preventDefault();

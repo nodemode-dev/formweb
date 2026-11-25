@@ -1,6 +1,7 @@
 import type { EditorState } from '../types';
 import { element, text } from '../ui/dom';
 import { CompiledFrames } from './compiled-frames';
+import { label, labelAttr, onLanguage } from '../i18n';
 
 interface PreviewTarget { revision: number; page: string; locale: string; width: number }
 export class RuntimePreview {
@@ -13,10 +14,12 @@ export class RuntimePreview {
 
   constructor(private stage: HTMLElement, private design: HTMLElement, private notify: (message: string, error?: boolean) => void) {
     this.outer.hidden = true;
-    const back = element('button', 'frame-back', 'Back to design');
+    const back = element('button', 'frame-back');
     back.type = 'button';
     back.dataset.cmd = 'view.preview';
-    back.title = 'Turn off the live responsive preview and return to the design canvas';
+    const words = (): void => { label(back, 'Back to design'); labelAttr(back, 'title', 'Turn off the live responsive preview and return to the design canvas'); };
+    words();
+    onLanguage(words);
     this.label.append(element('span', '', 'Live responsive preview'), element('span'), back);
     this.buffer = new CompiledFrames(this.shell, 'canvas-frame', notify);
     this.buffer.onShown = (result, target) => {

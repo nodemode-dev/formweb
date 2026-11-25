@@ -42,13 +42,16 @@ import { installInspectorSearch, sectionId } from './features/inspector/search';
 import { installLibrary } from './features/library';
 import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
-import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
+import { anchorOf, ctrlClickOffMac, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
 import { canvasClick, installSelection, isMulti, isSelected, layerClick, topMost, pageClick, paintLayerRow, paintPageRow, selectedIds, selectedPageIds, selectNodes } from './features/selection';
 import { anyCopyable, anyRemovable, canStep, copySelected, countLabel, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, selectionNote, selectionTitle, stepSelected } from './features/selection-actions';
 import { installCanvasDrag } from './features/canvas-drag';
+import { installSelectMode, paintSelectMode } from './features/select-mode';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
+import { installDecorativeImage } from './features/decorative-image';
+import { installPageSlug } from './features/page-slug';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 import './styles/stage-head.css';
@@ -193,6 +196,7 @@ function status(parts: string | readonly string[], error = false, action?: { lab
   const message = typeof parts === 'string' ? parts : parts.filter(Boolean).join('');
   if (typeof parts === 'string') { text(statusMessage, parts); text(dialogStatus, parts); } else { pieces(statusMessage, parts); pieces(dialogStatus, parts); }
   statusMessage.classList.toggle('error', error);
+  if (statusMessage.title !== message) statusMessage.title = message;
   if (dialogStatus.title !== message) dialogStatus.title = message;
   dialogStatus.classList.toggle('error', error);
   statusActionRun = action ? action.run : null;
@@ -221,7 +225,7 @@ function setStyle(name: string, content: string): Promise<EditorState> {
   return nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } });
 }
 function setAttribute(name: string, content: string): Promise<EditorState> {
-  return nodePatch({ attrs: { [name]: content.trim() || (name === 'alt' ? '' : null) } });
+  return nodePatch({ attrs: { [name]: content.trim() || null } });
 }
 
 const topbar = element('header', 'topbar');
@@ -597,7 +601,7 @@ function addSegments(container: HTMLElement, label: string, key: string, choices
 }
 const elementSection = section(designPane, 'Element');
 const elementGrid = element('div', 'form-grid');
-addInspectorInput(elementGrid, 'Name', 'name', name => nodePatch({ name }), undefined, true);
+addInspectorInput(elementGrid, 'Name', 'name', name => nodePatch({ name }).then(() => status(t('Renamed to "{0}".', [name]))), undefined, true);
 const HTML_TAGS = ['main', 'section', 'div', 'article', 'header', 'footer', 'nav', 'h1', 'h2', 'h3', 'p', 'span', 'a', 'button', 'img', 'form', 'label', 'input', 'textarea', 'ul', 'ol', 'li'];
 const SVG_TAGS = new Set(['svg', 'g', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'defs', 'clippath', 'lineargradient', 'radialgradient', 'stop', 'use', 'symbol', 'mask']);
 const tagSelect = addInspectorInput(elementGrid, 'HTML tag', 'tag', tag => nodePatch({ tag }), HTML_TAGS) as HTMLSelectElement;
@@ -686,6 +690,7 @@ for (const [name, label] of [['href', 'Link URL'], ['src', 'Image / media URL'],
   attrsFields.set(name, control);
   attributesGrid.append(field(label, control, true));
 }
+const decorativeImage = installDecorativeImage(attrsFields.get('alt')!, next => void run(() => nodePatch({ attrs: { alt: next } })));
 // FW-072: shown for image elements only (toggled where the attribute fields refresh).
 const removeBackgroundButton = button('Remove background...', 'wand', () => runCommand('image.remove-background'));
 removeBackgroundButton.dataset.command = 'image.remove-background';
@@ -975,6 +980,7 @@ const newPageSlug = input('/about');
 const newPageGrid = element('div', 'form-grid');
 newPageGrid.append(field('Page name', newPageName), field('URL slug', newPageSlug));
 pageDialogPane.append(element('p', 'empty-note', 'Add a page with its own root container, content and metadata.'), newPageGrid);
+const pageSlug = installPageSlug(newPageName, newPageSlug, pageDialogPane, () => state().site);
 const bulkPane = dialogPane('bulk');
 const bulkTemplate = select([]);
 const bulkCsv = element('textarea');
@@ -1211,7 +1217,7 @@ const tokenGrid = element('div', 'form-grid');
 const tokenName = input('accent');
 const tokenValue = input('#f97316');
 tokenGrid.append(field('New token name', tokenName), field('CSS value', tokenValue));
-tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS custom properties. Use var(--token-name) in element style fields.'), tokensList, tokenGrid, button('Add token', 'plus', () => command('token.set', { name: tokenName.value.trim(), value: tokenValue.value.trim() })));
+tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS custom properties. Use var(--token-name) in element style fields.'), tokensList, tokenGrid, button('Add token', 'plus', () => command('token.set', { name: tokenName.value.trim(), value: tokenValue.value.trim() }).then(() => status(t('Token --{0} added.', [tokenName.value.trim().replace(/^--/, '')])))));
 const inspectorExt = installInspector({
   section, field, select, input, button, addStyle, addSegments, setStyle, nodePatch, run, status, insertionParent, makeNode, selectNode, canvas,
   showLayers: () => setSidebar('pages'),
@@ -1424,7 +1430,12 @@ for (const [heading, paragraph] of [
   block.append(element('h3', '', heading), element('p', '', paragraph));
   helpGrid.append(block);
 }
-helpPane.append(helpGrid);
+const helpGuide = element('a', 'help-guide-link');
+helpGuide.href = 'https://github.com/nodemode-dev/formweb/tree/main/docs/guide';
+helpGuide.target = '_blank';
+helpGuide.rel = 'noopener';
+helpGuide.append(icon('external'), element('span', '', 'Open the full guide'));
+helpPane.append(helpGuide, helpGrid);
 
 function setSidebar(id: string): void {
   activeSidebar = id;
@@ -1513,6 +1524,7 @@ function update(next: EditorState): void {
   });
   const { rows: layers, total: layerTotal } = panel.layerRows();
   text(nodeCount, String(layerTotal));
+  paintSelectMode();
   keyed(layersList, layers, item => item.node.id, () => {
     const row = button('', undefined, undefined, 'list-row layer-row');
     row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
@@ -1567,6 +1579,7 @@ function update(next: EditorState): void {
   });
   resetButtons.forEach((reset, name) => { const hide = !override[name]; if (reset.hidden !== hide) reset.hidden = hide; });
   attrsFields.forEach((control, name) => value(control, node.attrs[name] || ''));
+  decorativeImage.update(node);
   aiWriter.update(node.id);
   removeBackgroundButton.hidden = node.tag !== 'img';
   editInFormvisButton.hidden = updateFromFormvisButton.hidden = node.tag !== 'img';
@@ -1674,7 +1687,12 @@ async function sendToFormPublisher(): Promise<void> {
     const warning = notFoundBaseWarning(sent.warnings || []);
     const forms = localFormWarning(sent.localForms || []);
     if (sent.delivered === 'live') status([t('Sent to FormPublisher: {0} is now at revision {1}.', [state().site.name, sent.revision ?? '']), warning, forms], false, baseUrlAction(warning));
-    else status([t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [sent.path ?? '']), warning, forms], false, baseUrlAction(warning));
+    else {
+      const path = sent.path ?? '';
+      const short = path.length > 44 ? `${path.slice(0, 14)}…${path.slice(-28)}` : path;
+      status([t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [short]), warning, forms], false, baseUrlAction(warning));
+      statusMessage.title = [t('FormPublisher is not running. The site was saved to its inbox ({0}) and imports when FormPublisher starts.', [path]), warning, forms].filter(Boolean).join('');
+    }
   } catch (error) {
     status(t('Could not send to FormPublisher: {0}', [error instanceof Error ? error.message : String(error)]), true);
   }
@@ -1750,7 +1768,7 @@ async function insertElement(kind: string, asset?: { url: string; name: string; 
   else if (kind === 'button') node = makeNode('a', 'Button', 'Get started', { display: 'inline-flex', padding: '14px 24px', background: 'var(--accent)', color: '#111', 'border-radius': '8px', 'text-decoration': 'none', 'font-weight': '600', 'align-self': 'flex-start' }, { href: '#' });
   else if (kind === 'link') node = makeNode('a', 'Link', 'Explore more', { color: 'var(--accent)', 'font-size': '16px' }, { href: '#' });
   else if (kind === 'image') {
-    node = makeNode('img', asset!.name, '', asset!.styles || { width: '100%', height: '320px', 'object-fit': 'cover', 'border-radius': '12px' }, { src: asset!.url, alt: asset!.alt || '', width: String(asset!.width), height: String(asset!.height) });
+    node = makeNode('img', asset!.name, '', asset!.styles || { width: '100%', height: '320px', 'object-fit': 'cover', 'border-radius': '12px' }, { src: asset!.url, ...(asset!.alt ? { alt: asset!.alt } : {}), width: String(asset!.width), height: String(asset!.height) });
   } else if (kind === 'form') {
     node = makeNode('form', 'Contact form', '', { display: 'flex', 'flex-direction': 'column', gap: '16px', 'max-width': '480px', padding: '24px', border: '1px solid #3b3f48', 'border-radius': '12px' }, { name: 'contact' });
     children.push(makeNode('label', 'Email label', 'Email address', { 'font-size': '14px' }), makeNode('input', 'Email input', '', { padding: '14px', background: '#1d2026', border: '1px solid #444a55', color: '#fff', 'border-radius': '6px' }, { type: 'email', name: 'email', placeholder: 'you@example.com', required: '', 'aria-label': 'Email address' }), makeNode('button', 'Submit button', 'Send message', { padding: '14px', background: 'var(--accent)', border: '0', 'border-radius': '6px', color: '#111', 'font-weight': '600' }, { type: 'submit' }));
@@ -1793,6 +1811,7 @@ function openDialog(id: string): void {
   if (id === 'cms') { updateCms(); fillCmsItem(); }
   if (id === 'locales') { localeEditing = locale; updateLocales(); fillLocale(); }
   if (id === 'tokens') updateTokens();
+  if (id === 'page') pageSlug.reset();
   if (id === 'brand') brandKit.update(state());
   if (id === 'team') void teamLibraries.refresh().catch(error => status(error instanceof Error ? error.message : String(error), true));
   if (id === 'stock') void stockLibrary.open().catch(error => status(error instanceof Error ? error.message : String(error), true));
@@ -1805,7 +1824,7 @@ function openDialog(id: string): void {
   if (id === 'publish') value(publishSlug, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-'));
   if (id === 'qr') value(qrUrl, pageAddress());
   if (id === 'bulk') { options(bulkTemplate, state().site.pages.map(page => ({ id: page.id, name: `${page.name} (${page.slug})` }))); bulkTemplate.value = currentPage().id; text(bulkNote, ''); }
-  if (id === 'delete-page') text(deletePageNote, deletePagesNote() ?? `Delete "${currentPage().name}" and its content? You can undo this operation.`);
+  if (id === 'delete-page') text(deletePageNote, deletePagesNote() ?? t('Delete "{0}" and its content? You can undo this operation.', [currentPage().name]));
   dialogClose.focus();
 }
 function closeDialog(): void {
@@ -1814,7 +1833,7 @@ function closeDialog(): void {
   lastFocus?.focus();
 }
 async function createSite(name: string, starter: string): Promise<void> {
-  await replace('/api/new', { name, ...(starter ? { blank: true } : {}) });
+  await replace('/api/new', { name, blank: true });
   if (starter) await commands(starterSiteCommands(starter).commands);
   pageId = state().site.pages[0].id;
   selectedId = state().site.pages[0].root;
@@ -1829,7 +1848,7 @@ async function performDialogAction(): Promise<void> {
     status('New site created.');
   } else if (dialogMode === 'page') {
     const before = new Set(state().site.pages.map(page => page.id));
-    await command('page.add', { name: newPageName.value.trim() || 'Untitled page', slug: newPageSlug.value.trim() || '/new-page' });
+    await command('page.add', { name: newPageName.value.trim() || 'Untitled page', slug: pageSlug.resolve() });
     const page = state().site.pages.find(page => !before.has(page.id));
     if (page) { pageId = page.id; selectedId = page.root; update(state()); }
     closeDialog();
@@ -1917,7 +1936,7 @@ function showIssue(row: HTMLElement): void {
 async function auditSite(): Promise<void> {
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
   openDialog('audit');
-  text(auditSummary, result.issues.length ? `${result.issues.length} issues found. Select an element to resolve it in the inspector.` : 'No issues found by the built-in audit. Review content and exported pages before release.');
+  text(auditSummary, result.issues.length === 1 ? '1 issue found. Select an element to resolve it in the inspector.' : result.issues.length ? t('{0} issues found. Select an element to resolve it in the inspector.', [result.issues.length]) : 'No issues found by the built-in audit. Review content and exported pages before release.');
   keyed(auditList, result.issues.map((issue, index) => ({ ...issue, key: `${issue.code}-${issue.page || ''}-${issue.node || ''}-${index}` })), issue => issue.key, () => {
     const row = element('div', 'audit-row');
     const description = element('div', 'audit-description');
@@ -2026,7 +2045,7 @@ function updateTokens(): void {
     const row = element('div', 'tokens-row');
     const name = element('span', 'micro');
     const control = input();
-    control.addEventListener('change', () => void run(() => command('token.set', { name: row.dataset.key, value: control.value })));
+    control.addEventListener('change', () => void run(() => command('token.set', { name: row.dataset.key, value: control.value }).then(() => status(t('Token --{0} updated.', [row.dataset.key!.replace(/^--/, '')])))));
     row.append(name, control);
     return row;
   }, (row, [name, content]) => {
@@ -2190,6 +2209,7 @@ document.addEventListener('paste', event => {
 });
 function showLayerMenu(event: MouseEvent | KeyboardEvent, id: string): void {
   event.preventDefault();
+  if (event instanceof MouseEvent && ctrlClickOffMac(event)) return;
   if (!isSelected(id)) selectNode(id);
   const allowed = canDuplicate();
   const many = isMulti() ? topMost().length : 1;
@@ -2214,13 +2234,14 @@ registerCommands([
   { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
   { id: 'file.import', label: 'Import .fweb or .fpub file...', menu: 'File', run: () => importer.click() },
   { id: 'file.import-html', label: 'Import HTML...', menu: 'File', run: () => { openDock('left'); setSidebar('library'); libraryPanel.showTab('import'); }, enabled: ready },
+  { id: 'file.import-site', label: 'Import site from zip...', menu: 'File', run: () => { if (home.isShown) home.dismiss(); if (layout.state.left !== 'open' || activeSidebar !== 'library') toggleLeft('library'); libraryPanel.importSite(); }, enabled: ready },
   { id: 'file.save', label: 'Save', menu: 'File', keys: ['Mod+S'], global: true, group: 1, run: saveProject, enabled: ready },
   { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },
   { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: () => ready() && !isBusy(exportButton) },
   { id: 'file.send-formpublisher', label: 'Send to FormPublisher', menu: 'File', group: 2, run: sendToFormPublisher, enabled: ready },
   { id: 'file.publish', label: 'Publish...', menu: 'File', group: 2, run: () => openDialog('publish'), enabled: ready },
-  { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo'), enabled: () => !!lastState?.canUndo },
-  { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z'], repeat: true, run: () => command('history.redo'), enabled: () => !!lastState?.canRedo },
+  { id: 'edit.undo', label: 'Undo', menu: 'Edit', keys: ['Mod+Z'], repeat: true, run: () => command('history.undo').then(() => status('Undone.')), enabled: () => !!lastState?.canUndo },
+  { id: 'edit.redo', label: 'Redo', menu: 'Edit', keys: ['Mod+Shift+Z'], repeat: true, run: () => command('history.redo').then(() => status('Redone.')), enabled: () => !!lastState?.canRedo },
   { id: 'edit.copy', label: 'Copy element', menu: 'Edit', keys: ['Mod+C'], group: 1, run: copySelection, enabled: canDuplicate, native: panelTextSelected },
   { id: 'edit.cut', label: 'Cut element', menu: 'Edit', keys: ['Mod+X'], group: 1, run: cutSelection, enabled: canDuplicate, native: panelTextSelected },
   { id: 'edit.paste', label: 'Paste element', menu: 'Edit', keys: ['Mod+V'], group: 1, run: pasteFromClipboard, enabled: () => ready() && !!scrim.hidden, native: () => true },
@@ -2231,7 +2252,7 @@ registerCommands([
     if (!forced && again && commandRegistry.enabled(again)) { runCommand('vector.transform-again'); return; }
     return canDuplicate() ? duplicateSelection() : undefined;
   }, enabled: () => canDuplicate() || (() => { const again = commandRegistry.get('vector.transform-again'); return !!again && commandRegistry.enabled(again); })() },
-  { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete'], group: 1, run: () => isMulti() ? removeSelected() : command('node.remove', { id: currentNode().id }), enabled: () => (isMulti() ? anyRemovable() : notRoot()) && !!scrim.hidden },
+  { id: 'edit.delete', label: 'Delete element', menu: 'Edit', keys: ['Delete', 'Backspace'], group: 1, run: () => isMulti() ? removeSelected() : command('node.remove', { id: currentNode().id }), enabled: () => (isMulti() ? anyRemovable() : notRoot()) && !!scrim.hidden },
   { id: 'image.remove-background', label: 'Remove background...', menu: 'Edit', group: 1, run: () => openDialog('background'), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\//.test(currentNode().attrs['data-fw-original-src'] || currentNode().attrs.src || '') },
   { id: 'image.edit-in-formvis', label: 'Edit in formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await request<{ message: string }>('/api/formvis/send', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' && /\/api\/assets\/[0-9a-f]{64}\.(png|jpg|gif|webp)/.test(currentNode().attrs.src || '') },
   { id: 'image.update-from-formvis', label: 'Update from formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await mutateVia<{ message: string; state: EditorState }>('/api/formvis/update', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' },
@@ -2295,12 +2316,13 @@ registerCommands([
   { id: 'terminal.toggle', label: 'Toggle agent dock', menu: 'View', keys: ['Mod+J'], global: true, group: 3, run: () => agentDock?.toggle(), checked: () => agentDock?.isOpen() === true },
   { id: 'claude.open', label: 'Claude Code', menu: 'View', keys: ['Mod+Shift+J'], global: true, group: 3, run: () => agentDock?.show('claude') },
   { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: ['Mod+Alt+J'], global: true, group: 3, run: () => agentDock?.show('chat') },
-  { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
+  { id: 'help.guide', label: 'Using FormWeb', menu: 'Help', run: () => openDialog('help') }
 ]);
 const panel = installPanel({ state, ready, command, commands, overlay, pagesList, layersList, run, status, pageId: () => pageId, openPage, selected: () => selectedId, select: selectNode, pageSettings: () => { openDock('right'); setInspector('page'); }, elementSettings: () => { openDock('right'); setInspector('design'); }, refresh: () => update(state()), gates: async () => { await loadPasswordGates(true); return passwordGates; } });
 registerCommands(panel.commands);
 installSelection({ ready, site: () => state().site, primary: () => selectedId, select: selectNode, pageId: () => pageId, openPage, pageRoot: () => currentPage().root, refresh: () => update(state()), layersList, pagesList });
 installSelectionActions({ idle: () => !!scrim.hidden, pageRoot: () => currentPage().root, status, copyNote });
+registerCommands(installSelectMode({ heads: [{ head: pagesHead, kind: 'pages' }, { head: layersHead, kind: 'layers' }], lists: [pagesList, layersList], frame: canvas.frame, loaded: canvas.loaded(), ready, status: message => status(message) }));
 installCanvasDrag({ frame: canvas.frame, stage, overlay, loaded: () => canvas.loaded(), state, ready, editing: () => !preview, root: () => currentPage().root, selectionIds: selectedIds, select: selectNode, commands, run, status });
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);

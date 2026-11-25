@@ -1,5 +1,6 @@
 import { element } from '../../ui/dom';
 import type { DropZone } from './drop';
+import { HOLD_MS, SLOP, blockScroll, buzz, hushMenus, isTouch, openMenu, startsDrag, swallowClick } from '../hold';
 
 export interface RowDrag {
   list: HTMLElement;
@@ -16,14 +17,22 @@ const SPEED = 12;
 
 export function installRowDrag(options: RowDrag): void {
   const { list } = options;
+  let blocking = false;
+  blockScroll(list, () => blocking);
   list.addEventListener('pointerdown', down => {
-    if (down.button !== 0 || down.pointerType === 'touch') return;
+    if (!startsDrag(down) || !down.isPrimary) return;
     const row = (down.target as Element | null)?.closest<HTMLElement>('.list-row');
     if (!row || row.parentElement !== list || row.classList.contains('is-renaming')) return;
+    const touch = isTouch(down);
     const startX = down.clientX;
     const startY = down.clientY;
     let ids: string[] = [];
     let dragging = false;
+    let held = false;
+    let lifted = false;
+    let hush: (() => void) | null = null;
+    let timer = 0;
+    let pointerX = startX;
     let pointerY = startY;
     let over: HTMLElement | null = null;
     let zone: DropZone | null = null;
@@ -46,6 +55,7 @@ export function installRowDrag(options: RowDrag): void {
     };
     const locate = (): void => {
       const area = list.getBoundingClientRect();
+      if (touch && (pointerX < area.left || pointerX > area.right)) { mark(null, null); return; }
       const x = Math.min(Math.max(area.left + 2, startX), area.right - 2);
       const y = Math.min(Math.max(area.top + 1, pointerY), area.bottom - 1);
       const hit = document.elementFromPoint(x, y)?.closest<HTMLElement>('.list-row');
@@ -70,52 +80,93 @@ export function installRowDrag(options: RowDrag): void {
       document.removeEventListener('pointerup', up, true);
       document.removeEventListener('pointercancel', cancel, true);
       window.removeEventListener('keydown', keys, true);
+      document.removeEventListener('pointerdown', other, true);
+      if (timer) clearTimeout(timer);
+      timer = 0;
+      hush?.();
+      hush = null;
+      blocking = false;
       if (frame) cancelAnimationFrame(frame);
       mark(null, null);
       line.remove();
       list.querySelectorAll('.is-drag-source').forEach(node => node.classList.remove('is-drag-source'));
-      document.body.classList.remove('fw-row-dragging');
+      row.classList.remove('is-lifted');
+      document.body.classList.remove('fw-row-dragging', 'fw-row-holding');
     };
-    const swallowClick = (): void => {
-      const stop = (click: Event): void => { click.preventDefault(); click.stopPropagation(); };
-      window.addEventListener('click', stop, { capture: true, once: true });
-      setTimeout(() => window.removeEventListener('click', stop, { capture: true }), 0);
+    const swallow = (): void => swallowClick([window], touch ? 400 : 0);
+    const hold = (): void => {
+      timer = 0;
+      held = true;
+      hush = hushMenus([window]);
+      ids = options.ids(row);
+      if (!options.canStart(row, ids)) return;
+      lifted = true;
+      blocking = true;
+      row.classList.add('is-lifted');
+      document.body.classList.add('fw-row-holding');
+      buzz();
     };
     const move = (event: PointerEvent): void => {
+      if (event.pointerId !== down.pointerId) return;
+      pointerX = event.clientX;
       pointerY = event.clientY;
       if (!dragging) {
-        if (Math.hypot(event.clientX - startX, event.clientY - startY) < THRESHOLD) return;
-        ids = options.ids(row);
-        if (!options.canStart(row, ids)) { end(); return; }
+        const far = Math.hypot(event.clientX - startX, event.clientY - startY);
+        if (touch && !lifted) { if (far >= SLOP) end(); return; }
+        if (far < (touch ? SLOP : THRESHOLD)) return;
+        if (!touch) {
+          ids = options.ids(row);
+          if (!options.canStart(row, ids)) { end(); return; }
+        }
         dragging = true;
+        blocking = true;
         document.body.classList.add('fw-row-dragging');
+        row.classList.remove('is-lifted');
         for (const id of ids) Array.from(list.children).find(node => (node as HTMLElement).dataset.key === id)?.classList.add('is-drag-source');
         options.host.append(line);
+        if (touch && row.isConnected) row.setPointerCapture(event.pointerId);
       }
       event.preventDefault();
       locate();
       if (!frame) frame = requestAnimationFrame(tick);
     };
-    const up = (): void => {
+    const up = (event: PointerEvent): void => {
+      if (event.pointerId !== down.pointerId) return;
       const target = over?.dataset.key;
       const chosen = zone;
       const was = dragging;
+      const menu = held && !dragging;
       end();
+      if (menu) { swallow(); openMenu(row, event.clientX, event.clientY); return; }
       if (!was) return;
-      swallowClick();
+      swallow();
       if (target && chosen) void options.drop(ids, target, chosen);
     };
-    const cancel = (): void => { const was = dragging; end(); if (was) swallowClick(); };
+    const cancel = (event: PointerEvent): void => {
+      if (event.pointerId !== down.pointerId) return;
+      const was = dragging || held;
+      end();
+      if (was) swallow();
+    };
+    const other = (event: PointerEvent): void => {
+      if (event.pointerId === down.pointerId) return;
+      const was = dragging || held;
+      end();
+      if (was) swallow();
+    };
     const keys = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape' || !dragging) return;
+      if (event.key !== 'Escape' || !(dragging || held)) return;
       event.preventDefault();
       event.stopPropagation();
       dragging = false;
+      held = false;
       end();
     };
     document.addEventListener('pointermove', move, true);
     document.addEventListener('pointerup', up, true);
     document.addEventListener('pointercancel', cancel, true);
+    document.addEventListener('pointerdown', other, true);
     window.addEventListener('keydown', keys, true);
+    if (touch) timer = window.setTimeout(hold, HOLD_MS);
   });
 }

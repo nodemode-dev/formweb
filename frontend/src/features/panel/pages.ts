@@ -1,5 +1,6 @@
 import type { Page, Site } from '../../types';
 import type { Command } from '../sections';
+import { t } from '../../i18n';
 
 const trim = (slug: string): string => slug.replace(/^\/+|\/+$/g, '');
 
@@ -55,14 +56,14 @@ export function homeRefusal(site: Site, id: string, gates: readonly string[] = [
   if (!page || !trim(page.slug)) return '';
   const old = homePage(site, id);
   const templates = Object.keys((site.extensions?.cms as { templates?: Record<string, unknown> } | undefined)?.templates || {});
-  if ([page.id, old?.id].some(entry => entry && templates.includes(entry))) return `"${(templates.includes(page.id) ? page : old!).name}" is a CMS template page, which makes one page per item rather than a page at its own address, so Set as home page cannot swap it with the page at /.`;
+  if ([page.id, old?.id].some(entry => entry && templates.includes(entry))) return t('"{0}" is a CMS template page, which makes one page per item rather than a page at its own address, so Set as home page cannot swap it with the page at /.', [(templates.includes(page.id) ? page : old!).name]);
   const localized = (site.extensions?.localization as { pageSlugs?: Record<string, Record<string, string>> } | undefined)?.pageSlugs || {};
-  if ([page, old].some(entry => entry && Object.keys(localized[entry.id] || {}).length)) return `"${(Object.keys(localized[page.id] || {}).length ? page : old!).name}" has its own address in another language, so changing which page is at / would leave a language without a home page. Change the slugs in Page settings and CMS > Localization instead.`;
+  if ([page, old].some(entry => entry && Object.keys(localized[entry.id] || {}).length)) return t('"{0}" has its own address in another language, so changing which page is at / would leave a language without a home page. Change the slugs in Page settings and CMS > Localization instead.', [(Object.keys(localized[page.id] || {}).length ? page : old!).name]);
   const covers = (route: string): string | undefined => gates.find(gate => gate !== '/' && (route === gate || route.startsWith(gate + '/')));
   const lost = covers('/' + trim(page.slug));
-  if (lost) return `"${page.name}" is password protected through ${lost}. At / it would be open to everyone, so it was not made the home page. Remove that password first, or protect the whole site on the home page.`;
+  if (lost) return t('"{0}" is password protected through {1}. At / it would be open to everyone, so it was not made the home page. Remove that password first, or protect the whole site on the home page.', [page.name, lost]);
   const gained = old ? covers(freeSlug(site, slugWord(old.name), old.id)) : undefined;
-  if (gained) return `"${old!.name}" would move to ${freeSlug(site, slugWord(old!.name), old!.id)}, which the password on ${gained} covers. Remove that password first.`;
+  if (gained) return t('"{0}" would move to {1}, which the password on {2} covers. Remove that password first.', [old!.name, freeSlug(site, slugWord(old!.name), old!.id), gained]);
   return '';
 }
 

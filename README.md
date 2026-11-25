@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="version 0.30.0" src="https://img.shields.io/badge/version-0.30.0-eef0f4?style=flat-square">
+  <img alt="version 0.31.0" src="https://img.shields.io/badge/version-0.31.0-eef0f4?style=flat-square">
   <img alt="TypeScript 7" src="https://img.shields.io/badge/TypeScript-7-3178c6?style=flat-square&logo=typescript&logoColor=white">
   <img alt="Rust engine" src="https://img.shields.io/badge/Rust-engine-b7410e?style=flat-square">
   <img alt="macOS, Linux, Windows" src="https://img.shields.io/badge/macOS%20%C2%B7%20Linux%20%C2%B7%20Windows-native-2f7bf5?style=flat-square">
@@ -22,6 +22,7 @@
 <p align="center">
   <a href="https://formweb.formai.studio/"><b>Download FormWeb on formai.studio</b></a> ·
   <a href="https://github.com/nodemode-dev/formcompiler/releases?q=formweb-v&expanded=true">Latest release</a> ·
+  <a href="docs/guide/README.md">User guide</a> ·
   <a href="#run-it-from-source">Run it from source</a>
 </p>
 
@@ -119,7 +120,7 @@ One MCP server and one command line reach the same running document as the edito
 ./formweb library insert formcut-proxy-monitor tint=#ff9a3c   # insert one, re-cast, as one undo step
 ```
 
-Agents can also start a blank site, set native motion and variables, build and place page components, insert, re-cast and import library sections, and send the site to FormPublisher, and copy and paste an element between pages, with 16 authoring tools, `copy_element` and `paste_element` among them (103 MCP tools in all), described in [docs/ADVANCED_SCHEMA.md](docs/ADVANCED_SCHEMA.md).
+Agents can also start a blank site, set native motion and variables, build and place page components, insert, re-cast and import library sections, import a whole static site from a zip, and send the site to FormPublisher, and copy and paste an element between pages, with 17 authoring tools, `copy_element` and `paste_element` among them (104 MCP tools in all), described in [docs/ADVANCED_SCHEMA.md](docs/ADVANCED_SCHEMA.md).
 
 `.mcp.json`, `.codex/config.toml` and `.cursor/mcp.json` are already wired in this repo. Start with the [agent quick start](docs/AGENT_QUICKSTART.md) and [`AGENTS.md`](AGENTS.md).
 

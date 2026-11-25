@@ -27,7 +27,7 @@ FormWeb is one document engine with several faces. The Rust engine owns every si
 - **One region per edit.** Change existing files with hand-made single-region edits against a fresh read. No sed, patch, diff application or codemods on source.
 - **Zero DOM flash.** Mounted nodes stay mounted: toggle `hidden`, data attributes or text, and update lists with `keyed()` from `ui/dom.ts`. Verify in Chromium with 4x CPU throttling and a slow network: nothing visible before `app-ready`, no visible scrollbars.
 - **Hidden scrollbars, one z-index scale, tokens only.** Colors, spacing and layers come from `styles/tokens.css`; icons are inline currentColor SVG from `ui/icons.ts`. No icon libraries, no emoji, no em dash in any file.
-- **Tests live in `tests/` folders and run in CI.** `backend/tests` (pytest) and `native/crates/*/tests` (cargo). Write only the tests FAMILY_TEST_PLAN (formai_dev sidecar) or its successor names; also run the real product paths and record exact observations in the sidecar `TEST_PLAN_vX.Y.Z.md`.
+- **Tests live in `tests/` folders and run in CI.** `backend/tests` (pytest), `native/crates/*/tests` (cargo) and `frontend/tests/unit` (vitest); `./formweb test` runs all three and `docs/TESTING.md` has the rules. Write only the tests FAMILY_TEST_PLAN (formai_dev sidecar) or its successor names; also run the real product paths and record exact observations in the sidecar `TEST_PLAN_vX.Y.Z.md`.
 - **Loopback only.** Vite `host: false`; the service accepts exact loopback hosts; WebSockets repeat the host, origin and identity checks because they skip the HTTP middleware.
 
 ## Recipes

@@ -17,7 +17,7 @@ export const wantsNativeMenus = (): boolean => desktopMac() && !menusInWindow();
 
 export function accelerator(combo: string | undefined): string | null {
   if (!combo) return null;
-  const parts = combo.endsWith('++') ? [...combo.slice(0, -2).split('+'), 'Plus'] : combo.split('+');
+  const parts = combo === '+' ? ['Plus'] : combo.endsWith('++') ? [...combo.slice(0, -2).split('+'), 'Plus'] : combo.split('+');
   const names: Record<string, string> = { Mod: 'CmdOrCtrl', Alt: 'Alt', Shift: 'Shift', '=': '=', '-': '-', '[': '[', ']': ']', ',': ',', '.': '.', '/': '/', '`': '`', Delete: 'Delete', Backspace: 'Backspace', Escape: 'Escape', Enter: 'Enter', Tab: 'Tab', Space: 'Space', Plus: 'Plus', Up: 'Up', Down: 'Down', Left: 'Left', Right: 'Right' };
   const out: string[] = [];
   for (const part of parts) {

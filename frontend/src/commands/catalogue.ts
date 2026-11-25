@@ -25,6 +25,7 @@ const META: Record<string, Meta> = {
   'file.projects': { description: 'Open the saved projects list to load one.', flags: 'm', when: 'Use when switching to another saved project.' },
   'file.import': { description: 'Pick a .fweb project file, or a .fpub package of a FormWeb site made by FormPublisher, from disk and load it into the editor.', flags: 'mr', when: 'Use when the person gives a project file to open; it replaces the open site.' },
   'file.import-html': { description: 'Open the Library panel on its Import HTML tab, where a pasted page or an .html file becomes one code section.', when: 'Use when the person has an HTML page to bring into the open site.' },
+  'file.import-site': { description: 'Open Library > Import site from zip and its file picker: the person picks a .zip of a static site, reviews the pages, routes, assets and skipped files, then imports them as new pages (or replaces matching routes) in one undo step. Agents with the zip bytes can use the library_import_site tool instead.', flags: 'm', when: 'Use when the person has a site built elsewhere as HTML, CSS and JS files to bring in.' },
   'file.save': { description: 'Save the open site as a local project.', flags: 'm', when: 'Use after a set of edits the person wants kept.' },
   'file.download': { description: 'Download the open site as a .fweb project file.' },
   'file.export': { description: 'Export the open site as a portable static HTML ZIP.', flags: 'm' },
@@ -142,7 +143,7 @@ const META: Record<string, Meta> = {
   'vector.path.divide-below': { description: 'Use the selected path as a cutter: split every filled shape beneath it that it overlaps into separate pieces, then remove the cutter.', flags: 'mr', when: 'Use with a cutter path selected above the shapes to divide.' },
   'vector.path.split-grid': { description: 'Open the Split Into Grid dialog (rows, columns, heights, widths, gutters) to replace each selected rectangle with a group of rectangles.', flags: 'm', when: 'Use with one or more rectangles selected.' },
   'vector.path.clean-up': { description: 'Open the Clean Up dialog to delete stray points, unpainted objects and empty text paths from the current vector and report the count.', flags: 'mr', when: 'Use when the current vector has leftover empty objects.' },
-  'help.guide': { description: 'Open the Using formweb guide.' }
+  'help.guide': { description: 'Open the Using FormWeb guide.' }
 };
 
 function describe(command: Command, label: string): { description: string; when: string; mutates: boolean; risky: boolean } {

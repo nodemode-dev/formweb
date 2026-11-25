@@ -25,3 +25,4 @@
 .fw-scrub input[type="range"] { width: 88px; margin: 0; accent-color: var(--accent-color); }
 .fw-scrub output { min-width: 32px; text-align: right; color: var(--text-secondary); font-size: var(--fs-10); font-variant-numeric: tabular-nums; }
 .fw-scrub .fw-seg-btn { flex: 0 0 auto; min-width: 28px; }
+.fw-scrub .fw-seg { flex: none; flex-wrap: nowrap; }

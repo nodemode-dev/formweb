@@ -1,0 +1,13 @@
+.panel-head.has-pick { grid-template-columns: minmax(0, 1fr) auto auto; }
+.panel-head.has-pick > :first-child, .panel-head.has-pick > .fw-pick-bar { grid-row: 1; grid-column: 1; min-width: 0; }
+.panel-head.has-pick > .fw-pick-toggle { grid-row: 1; grid-column: 2; }
+.panel-head.has-pick > :last-child { grid-row: 1; grid-column: 3; }
+.panel-head.is-picking > :first-child { visibility: hidden; }
+.panel-head .fw-pick-toggle { color: var(--text-muted); }
+.panel-head .fw-pick-toggle:hover { color: var(--text-primary); }
+.panel-head .fw-pick-toggle.active { color: var(--accent-text); background: var(--accent-soft); border-color: var(--accent-line); }
+.fw-pick-bar { display: flex; align-items: center; gap: var(--space-2); }
+.fw-pick-bar[hidden] { display: none; }
+.fw-pick-count { flex: 1; min-width: 0; overflow: hidden; color: var(--text-primary); font-size: var(--fs-11); font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.panel-head .fw-pick-bar .fw-pick-done { width: auto; height: var(--ctl-md); min-height: 0; padding: 0 var(--space-2); border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-text); font-size: var(--fs-11); font-weight: 600; }
+.panel-head .fw-pick-bar .fw-pick-done:hover { background: var(--accent-wash); }

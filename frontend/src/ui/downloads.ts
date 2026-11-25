@@ -26,9 +26,12 @@ function whenSaved(url: string): Promise<Saved | null> {
   });
 }
 
-async function showInFolder(): Promise<void> {
-  const shell = core();
-  if (shell) await shell.invoke('reveal_download');
+async function showInFolder(notice: Notice): Promise<void> {
+  try {
+    await core()?.invoke('reveal_download');
+  } catch (error) {
+    notice.show(error instanceof Error ? error.message : String(error), { error: true });
+  }
 }
 
 export const isBusy = (button: HTMLButtonElement): boolean => button.getAttribute('aria-busy') === 'true';
@@ -50,7 +53,7 @@ export async function deliver(file: string, words: Words, notice: Notice, fetch:
   void (pending as Promise<Saved | null> | null)?.then(saved => {
     if (!saved) return;
     if (!saved.ok) notice.show(t('{0} could not be saved to your Downloads folder. Check that the folder exists and has free space, then try again.', [file]), { error: true });
-    else if (saved.folder) notice.show(t(words.placed, [saved.file || file, saved.folder]), { action: { label: 'Show in folder', run: showInFolder } });
+    else if (saved.folder) notice.show(t(words.placed, [saved.file || file, saved.folder]), { action: { label: 'Show in folder', run: () => showInFolder(notice) } });
     else notice.show(t(words.desktop, [saved.file || file]));
   });
   return headers;

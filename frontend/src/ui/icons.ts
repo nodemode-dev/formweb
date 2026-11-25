@@ -44,6 +44,7 @@ const paths = {
   rotate: '<rect x="9" y="9" width="12" height="8" rx="1.5"/><path d="M5 15V7a2 2 0 0 1 2-2h5m-2-2 2 2-2 2"/>',
   external: '<path d="M14 4h6v6m0-6-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
   more: '<path stroke-width="3" d="M5 12h.01M12 12h.01M19 12h.01"/>',
+  selectSeveral: '<rect x="3" y="4" width="7" height="7" rx="1.5"/><path d="m4.8 7.6 1.4 1.4 2.4-2.6"/><rect x="3" y="13" width="7" height="7" rx="1.5"/><path d="m4.8 16.6 1.4 1.4 2.4-2.6M14 7.5h7M14 16.5h7"/>',
   video: '<rect x="3" y="5" width="14" height="14" rx="2"/><path d="m17 10 4-2.5v9L17 14"/>',
   pfGeneral: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
   pfInterface: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M6.5 6.5h.01M9 6.5h.01M7 13h10M7 16h6"/>',

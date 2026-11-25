@@ -75,4 +75,13 @@ export default {
   "One asset is too large to embed and will only paste on this computer.": "Un recurso es demasiado grande para incrustarlo y solo se podrá pegar en esta computadora.",
   "{n} assets are too large to embed and will only paste on this computer.": "{n} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en esta computadora.",
   "{0} assets are too large to embed and will only paste on this computer.": "{0} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en esta computadora.",
+  "Add element here": "Agregar elemento aquí",
+  "Nothing can be added inside a linked component instance": "No se puede agregar nada dentro de una instancia de componente vinculada",
+  "Revision {0}. The site has changed since: press Refresh.": "Revisión {0}. El sitio cambió desde entonces: presiona Actualizar.",
+  "Add as new pages": "Agregar como páginas nuevas",
+  "How to add the pages": "Cómo agregar las páginas",
+  "Add them": "Agregarlas",
+  "{0} could not be saved to your Downloads folder. Check that the folder exists and has free space, then try again.": "No se pudo guardar {0} en tu carpeta Descargas. Verifica que la carpeta exista y tenga espacio libre, y vuelve a intentarlo.",
+  "Select several is on: tap or click layers, pages or elements on the canvas to add them to the selection or take them out. Done or Escape turns it off.": "Seleccionar varios está activado: toca o haz clic en capas, páginas o elementos del lienzo para agregarlos a la selección o quitarlos. Hecho o Escape lo desactiva.",
+  "Token --{0} added.": "Token --{0} agregado.",
 } as Record<string, string>;

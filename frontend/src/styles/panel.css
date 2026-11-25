@@ -15,5 +15,9 @@
 .list-row.is-drop-into { border-color: var(--accent-color); background: var(--accent-wash); }
 .list-row.is-drag-source { opacity: 0.45; }
 body.fw-row-dragging, body.fw-row-dragging * { cursor: grabbing; user-select: none; }
+.list-row { -webkit-touch-callout: none; }
+.list-row.is-lifted { border-color: var(--accent-line); background: var(--accent-soft); box-shadow: var(--shadow-sm); }
+body.fw-row-holding, body.fw-row-dragging { touch-action: none; }
+body.fw-row-holding, body.fw-row-holding * { -webkit-user-select: none; user-select: none; }
 .fw-rename-input { position: fixed; z-index: var(--z-popover); box-sizing: border-box; min-height: 0; margin: 0; padding: 0 var(--space-1); border: 1px solid var(--accent-color); border-radius: var(--radius-small); background: var(--bg-secondary); color: var(--text-primary); font: inherit; outline: none; }
 .fw-rename-input:focus-visible { outline: none; }

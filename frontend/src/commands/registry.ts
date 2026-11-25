@@ -34,8 +34,13 @@ const CODE_KEYS: Record<string, string> = {
 
 const MODIFIERS = new Set(['Alt', 'Shift', 'Mod']);
 
+function partsOf(combo: string): string[] {
+  if (combo === '+') return ['+'];
+  return combo.endsWith('++') ? [...combo.slice(0, -2).split('+'), '+'] : combo.split('+');
+}
+
 export function canon(combo: string): string {
-  const parts = combo.endsWith('++') ? [...combo.slice(0, -2).split('+'), '+'] : combo.split('+');
+  const parts = partsOf(combo);
   const key = parts.filter(part => !MODIFIERS.has(part)).pop() ?? '';
   const mods = parts.filter(part => MODIFIERS.has(part));
   return (mods.includes('Alt') ? 'Alt+' : '') + (mods.includes('Shift') ? 'Shift+' : '') + (mods.includes('Mod') ? 'Mod+' : '') + (key.length === 1 ? key.toUpperCase() : key);
@@ -55,9 +60,9 @@ export function comboOf(event: KeyboardEvent): string {
 const GLYPHS: Record<string, string> = { Mod: '⌘', Shift: '⇧', Alt: '⌥', Backspace: '⌫', Delete: '⌦', Enter: '↩', Up: '↑', Down: '↓', Left: '←', Right: '→', Escape: 'Esc' };
 
 export function formatKeys(combo: string): string {
-  const parts = canon(combo).split('+');
-  const key = parts[parts.length - 1] || '+';
-  const mods = combo.endsWith('++') ? parts.slice(0, -2) : parts.slice(0, -1);
+  const parts = partsOf(canon(combo));
+  const key = parts[parts.length - 1];
+  const mods = parts.slice(0, -1);
   if (isMac) return [...mods, key].map(part => GLYPHS[part] ?? part).join('');
   const order = ['Mod', 'Alt', 'Shift'].filter(name => mods.includes(name)).map(name => (name === 'Mod' ? 'Ctrl' : name));
   return [...order, key].join('+');

@@ -2,6 +2,8 @@ import type { EditorState, Site } from '../types';
 import type { Command } from './sections';
 import { canContain, canDrag, dropTarget, moveCommands, movableIds, type DropTarget, type DropZone } from './panel/drop';
 import { element } from '../ui/dom';
+import { t } from '../i18n';
+import { HOLD_MS, SLOP, blockScroll, buzz, hushMenus, isTouch, openMenu, startsDrag, swallowClick } from './hold';
 import '../styles/canvas-drag.css';
 
 export type Axis = 'x' | 'y';
@@ -190,12 +192,14 @@ export function installCanvasDrag(host: CanvasDragHost): void {
   const outline = element('div', 'fw-canvas-box');
   proxy.hidden = line.hidden = outline.hidden = true;
   host.overlay.append(outline, line, proxy);
+  let blocking = false;
   void host.loaded().then(() => {
     const doc = host.frame.contentDocument;
     if (!doc) return;
     const style = doc.createElement('style');
-    style.textContent = 'html[data-fw-dragging],html[data-fw-dragging] *{cursor:grabbing!important;user-select:none!important}[data-fw-drag-source]{opacity:.4!important}';
+    style.textContent = 'html[data-fw-dragging],html[data-fw-dragging] *{cursor:grabbing!important;user-select:none!important}[data-fw-drag-source]{opacity:.4!important}html{-webkit-touch-callout:none}html[data-fw-holding],html[data-fw-holding] *{-webkit-user-select:none!important;user-select:none!important;touch-action:none!important}[data-fw-lifted]{outline-style:solid!important;outline-width:3px!important;outline-offset:6px!important}';
     doc.head.append(style);
+    blockScroll(doc, () => blocking);
     doc.addEventListener('pointerdown', down => press(doc, down));
   });
 
@@ -211,12 +215,13 @@ export function installCanvasDrag(host: CanvasDragHost): void {
   }
 
   function press(doc: Document, down: PointerEvent): void {
-    if (down.button !== 0 || down.ctrlKey || down.metaKey || down.shiftKey || down.altKey || !host.ready() || !host.editing()) return;
+    if (!startsDrag(down) || !down.isPrimary || down.ctrlKey || down.metaKey || down.shiftKey || down.altKey || !host.ready() || !host.editing()) return;
     const from = down.target as Element | null;
     if (!from?.closest || from.closest('[contenteditable="true"]') || (doc.activeElement as HTMLElement | null)?.isContentEditable) return;
+    const touch = isTouch(down);
     const grabbed = from.closest<HTMLElement>('[data-fw-id]');
     const pressed = grabbed?.dataset.fwId;
-    if (!grabbed || !pressed || !host.selectionIds().includes(pressed)) return;
+    if (!grabbed || !pressed || (!touch && !host.selectionIds().includes(pressed))) return;
     const win = doc.defaultView!;
     const start = map.toParent(down.clientX, down.clientY);
     let pointer = start;
@@ -226,6 +231,10 @@ export function installCanvasDrag(host: CanvasDragHost): void {
     let grab = { x: 0, y: 0 };
     let frame = 0;
     let aborted = false;
+    let held = false;
+    let lifted = false;
+    let timer = 0;
+    let hush: (() => void) | null = null;
 
     const tick = (): void => {
       frame = 0;
@@ -255,20 +264,35 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       spot = inside ? findDrop(doc, site, host.root(), ids, at.x, at.y) : null;
       draw(spot ? markOf(doc, site, ids, spot) : null, seen);
     };
-    const begin = (event: PointerEvent): boolean => {
+    const pick = (): boolean => {
       const site = host.state().site;
       const picked = host.selectionIds();
       ids = movableIds(site, pressed === host.root() ? picked : picked.filter(id => id !== host.root()));
-      if (!canDrag(site, ids)) {
-        host.status(ids.includes(host.root()) ? 'The page itself cannot be moved.' : 'This element is part of a linked component and moves with it. Detach the instance to move it on its own.', true);
-        return false;
-      }
+      return canDrag(site, ids);
+    };
+    const refuse = (): void => host.status(ids.includes(host.root()) ? 'The page itself cannot be moved.' : 'This element is part of a linked component and moves with it. Detach the instance to move it on its own.', true);
+    const hold = (): void => {
+      timer = 0;
+      held = true;
+      hush = hushMenus([win, window]);
+      if (!host.selectionIds().includes(pressed)) host.select(pressed);
+      doc.documentElement.setAttribute('data-fw-holding', '');
+      if (!pick()) return;
+      lifted = true;
+      blocking = true;
+      grabbed.setAttribute('data-fw-lifted', '');
+      buzz();
+    };
+    const begin = (event: PointerEvent): boolean => {
+      if (!lifted && !pick()) { refuse(); return false; }
       dragging = true;
+      blocking = true;
+      grabbed.removeAttribute('data-fw-lifted');
       const source = bounds(grabbed);
       const scaled = source ? map.box(source) : { left: start.x, top: start.y, width: 0, height: 0 };
       const width = Math.min(PROXY_W, Math.max(48, scaled.width)), height = Math.min(PROXY_H, Math.max(24, scaled.height));
       grab = { x: Math.min(Math.max(0, start.x - scaled.left), width), y: Math.min(Math.max(0, start.y - scaled.top), height) };
-      const node = site.nodes[pressed];
+      const node = host.state().site.nodes[pressed];
       proxy.textContent = ids.length > 1 ? `${ids.length} elements` : node?.name || node?.tag || '';
       proxy.style.width = `${Math.round(width)}px`;
       proxy.style.height = `${Math.round(height)}px`;
@@ -288,6 +312,8 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       document.removeEventListener('pointermove', move, true);
       document.removeEventListener('pointerup', up, true);
       document.removeEventListener('pointercancel', cancel, true);
+      doc.removeEventListener('pointerdown', other, true);
+      document.removeEventListener('pointerdown', other, true);
       win.removeEventListener('keydown', keys, true);
       window.removeEventListener('keydown', keys, true);
       clear();
@@ -295,33 +321,44 @@ export function installCanvasDrag(host: CanvasDragHost): void {
     const clear = (): void => {
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
+      if (timer) clearTimeout(timer);
+      timer = 0;
+      hush?.();
+      hush = null;
+      blocking = false;
       proxy.hidden = line.hidden = outline.hidden = true;
       doc.querySelectorAll('[data-fw-drag-source]').forEach(node => node.removeAttribute('data-fw-drag-source'));
+      grabbed.removeAttribute('data-fw-lifted');
       doc.documentElement.removeAttribute('data-fw-dragging');
+      doc.documentElement.removeAttribute('data-fw-holding');
       document.body.classList.remove('fw-canvas-dragging');
+      if (dragging) doc.getSelection()?.removeAllRanges();
     };
-    const swallow = (): void => {
-      const stop = (click: Event): void => { click.preventDefault(); click.stopImmediatePropagation(); };
-      for (const target of [win, window]) {
-        target.addEventListener('click', stop, { capture: true, once: true });
-        setTimeout(() => target.removeEventListener('click', stop, { capture: true }), 0);
-      }
-    };
+    const swallow = (): void => swallowClick([win, window], touch ? 400 : 0);
     const block = (event: Event): void => event.preventDefault();
     const keys = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape' || !dragging) return;
+      if (event.key !== 'Escape' || !(dragging || held) || aborted) return;
       event.preventDefault();
       event.stopImmediatePropagation();
+      const was = dragging;
       dragging = false;
+      held = false;
       aborted = true;
       clear();
-      host.status('Drag cancelled. Nothing moved.');
+      if (was) host.status('Drag cancelled. Nothing moved.');
     };
     const move = (event: PointerEvent): void => {
-      if (aborted) return;
+      if (aborted || event.pointerId !== down.pointerId) return;
       track(event);
       if (!dragging) {
-        if (Math.hypot(pointer.x - start.x, pointer.y - start.y) < THRESHOLD) return;
+        const far = Math.hypot(pointer.x - start.x, pointer.y - start.y);
+        if (touch && !lifted) {
+          if (far < SLOP) return;
+          if (held) refuse();
+          end();
+          return;
+        }
+        if (far < (touch ? SLOP : THRESHOLD)) return;
         if (!begin(event)) { aborted = true; return; }
         frame = requestAnimationFrame(tick);
       }
@@ -329,8 +366,18 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       place();
     };
     const up = (event: PointerEvent): void => {
+      if (event.pointerId !== down.pointerId) return;
       if (aborted) { end(); swallow(); return; }
-      if (!dragging) { end(); return; }
+      if (!dragging) {
+        const menu = held;
+        track(event);
+        end();
+        if (!menu) return;
+        swallow();
+        const at = map.toFrame(pointer.x, pointer.y);
+        openMenu(from.isConnected ? from : grabbed, at.x, at.y);
+        return;
+      }
       track(event);
       place();
       const chosen = spot;
@@ -341,10 +388,20 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       void host.run(async () => {
         await host.commands(list);
         if (!host.selectionIds().includes(ids[0])) host.select(ids[0]);
-        host.status(ids.length === 1 ? 'Element moved. One undo step puts it back.' : `${ids.length} elements moved. One undo step puts them back.`);
+        host.status(ids.length === 1 ? 'Element moved. One undo step puts it back.' : t('{0} elements moved. One undo step puts them back.', [ids.length]));
       });
     };
-    const cancel = (): void => { const was = dragging || aborted; end(); if (was) swallow(); };
+    const stop = (): void => {
+      const was = dragging || aborted || held;
+      const note = dragging;
+      end();
+      if (was) swallow();
+      if (note) host.status('Drag cancelled. Nothing moved.');
+    };
+    const cancel = (event: PointerEvent): void => { if (event.pointerId === down.pointerId) stop(); };
+    const other = (event: PointerEvent): void => { if (event.pointerId !== down.pointerId) stop(); };
+    doc.addEventListener('pointerdown', other, true);
+    document.addEventListener('pointerdown', other, true);
     win.addEventListener('keydown', keys, true);
     window.addEventListener('keydown', keys, true);
     doc.addEventListener('pointermove', move, true);
@@ -354,5 +411,6 @@ export function installCanvasDrag(host: CanvasDragHost): void {
     document.addEventListener('pointermove', move, true);
     document.addEventListener('pointerup', up, true);
     document.addEventListener('pointercancel', cancel, true);
+    if (touch) timer = window.setTimeout(hold, HOLD_MS);
   }
 }

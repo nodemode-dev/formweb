@@ -1,23 +1,26 @@
 """HTTP routes for section library v2 (DEV_PLAN AD7, TURN_C_SPEC section 9). Every write is one engine batch, so one
 undo step, sent through the same `studio.mutate` path as `/api/batch` with the revision it was computed against."""
+import asyncio
 import re
 import secrets
 
 from fastapi import APIRouter, Request
 from starlette.responses import FileResponse
 
-from . import library
+from . import library, site_import
 from .assets import ingest, own_asset
 from .code_components import build_component
+from .config import MAX_SITE_ARCHIVE_BYTES
 from .engine import EngineError
 from .service import studio
 
 router = APIRouter()
+SITE_ARCHIVE_PATHS = ('/api/library/import-site/review', '/api/library/import-site')
 
 HTML_CAP = 512 * 1024
 CSS_CAP = 256 * 1024
 JS_CAP = 512 * 1024
-KIT_IMPORT = re.compile(r'^[ \t]*import\s*\{([^}]*)\}\s*from\s*["\'][^"\']*kit\.js["\']\s*;?[ \t]*$', re.M)
+KIT_IMPORT = re.compile(r'^[ \t]*import\s*\{([^{}]*)\}\s*from\s*["\'][^"\']*kit\.js["\']\s*;?[ \t]*$', re.M)
 ANY_IMPORT = re.compile(r'^[ \t]*import[\s{*"\']', re.M)
 SHIM = {
     'reduced': "const reduced = () => document.documentElement.classList.contains('fw-r') || matchMedia('(prefers-reduced-motion: reduce)').matches;",
@@ -255,6 +258,20 @@ async def library_apply_starter(starter_id: str, request: Request):
     return {**(result if isinstance(result, dict) else {}), 'pages': made_pages, 'warnings': warnings}
 
 
+def kit_script(script: str) -> tuple[str, bool]:
+    shim = []
+    for found in KIT_IMPORT.finditer(script):
+        for name in (n.strip().split(' as ')[0].strip() for n in found.group(1).split(',')):
+            if name in SHIM and SHIM[name] not in shim:
+                shim.append(SHIM[name])
+            elif name and name not in SHIM:
+                raise EngineError(f'The kit helper {name} has no FormWeb equivalent; only reduced, onTheme and token are provided.')
+    script = KIT_IMPORT.sub('', script)
+    if ANY_IMPORT.search(script):
+        raise EngineError('Code sections cannot bring in other modules; only the formai kit helpers are replaced.')
+    return (('\n'.join(shim) + '\n' + script).strip() if shim else script.strip()), bool(shim)
+
+
 def _between(html: str, tag: str) -> str | None:
     opened = re.search(rf'<{tag}\b[^>]*>', html, re.I)
     if not opened:
@@ -274,23 +291,14 @@ async def library_import_html(request: Request):
     if not isinstance(extra_css, str):
         raise EngineError('css must be text.')
     styles = [m.group(1) for m in re.finditer(r'<style\b[^>]*>(.*?)</style>', document, re.I | re.S)]
-    scripts = [m.group(2) for m in re.finditer(r'<script\b([^>]*)>(.*?)</script>', document, re.I | re.S) if 'src=' not in m.group(1).lower() and m.group(2).strip()]
+    kinds = [(m, site_import.script_type('<script' + m.group(1) + '>')) for m in re.finditer(r'<script\b([^>]*)>(.*?)</script>', document, re.I | re.S)]
+    foreign = [kind for _, kind in kinds if kind is not None]
+    scripts = [m.group(2) for m, kind in kinds if kind is None and 'src=' not in m.group(1).lower() and m.group(2).strip()]
     module = any('type="module"' in m.group(1).lower() or "type='module'" in m.group(1).lower() for m in re.finditer(r'<script\b([^>]*)>(.*?)</script>', document, re.I | re.S) if m.group(2).strip())
     # The whole body, chrome included: page scripts often measure the header (the kit's filmstrip reads .bar).
     markup = _between(document, 'body') or document
     markup = re.sub(r'<script\b[^>]*>.*?</script>', '', markup, flags=re.I | re.S).strip()
-    script = scripts[0] if scripts else ''
-    shim = []
-    for found in KIT_IMPORT.finditer(script):
-        for name in (n.strip().split(' as ')[0].strip() for n in found.group(1).split(',')):
-            if name in SHIM and SHIM[name] not in shim:
-                shim.append(SHIM[name])
-            elif name and name not in SHIM:
-                raise EngineError(f'The kit helper {name} has no FormWeb equivalent; only reduced, onTheme and token are provided.')
-    script = KIT_IMPORT.sub('', script)
-    if ANY_IMPORT.search(script):
-        raise EngineError('Code sections cannot bring in other modules; only the formai kit helpers are replaced.')
-    script = ('\n'.join(shim) + '\n' + script).strip() if shim else script.strip()
+    script, shim = kit_script(scripts[0] if scripts else '')
     css = (extra_css + '\n' + '\n'.join(styles)).strip()
     if len(markup.encode()) > HTML_CAP or len(css.encode()) > CSS_CAP or len(script.encode()) > JS_CAP:
         raise EngineError('The page is larger than a code section holds (512 KiB markup, 256 KiB styles, 512 KiB script).', 413)
@@ -310,4 +318,51 @@ async def library_import_html(request: Request):
     commands.append({'command': 'code.section.set', 'params': {'node': host, 'value': {'enabled': True, 'html': markup, 'css': css, 'js': script, 'module': module}}})
     result = await studio.mutate('batch', {'commands': commands, 'expectedRevision': revision})
     studio.access.record('library.import-html', {'node': host, 'bytes': len(document)})
-    return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': [] if shim or not module else ['The script ran as a module with no kit helpers.']}
+    warnings = [] if shim or not module else ['The script ran as a module with no kit helpers.']
+    return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': warnings + ([site_import.left_out_scripts(foreign)] if foreign else [])}
+
+
+async def _archive(request: Request) -> bytes:
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > MAX_SITE_ARCHIVE_BYTES:
+            raise EngineError('The archive is larger than 64 MiB, the most a site import takes.', 413)
+    return bytes(body)
+
+
+async def review_site(data: bytes) -> dict:
+    archive = await asyncio.to_thread(site_import.read_archive, data)
+    site, revision = await _current()
+    result = await asyncio.to_thread(site_import.plan, archive, site, kit_script)
+    return {**site_import.review(result), 'revision': revision}
+
+
+async def import_site(data: bytes, mode: str, revision: int | None) -> dict:
+    if mode not in ('new', 'replace'):
+        raise EngineError('Mode must be new or replace.')
+    archive = await asyncio.to_thread(site_import.read_archive, data)
+    site, current = await _current()
+    if revision is not None and revision != current:
+        raise EngineError('The site changed after the review. Review the archive again before importing.', 409)
+    result = await asyncio.to_thread(site_import.plan, archive, site, kit_script)
+    commands, pages = await asyncio.to_thread(site_import.commands, result, site, mode, archive, kit_script)
+    assets = site_import.store_assets(result, archive, studio)
+    outcome = await studio.mutate('batch', {'commands': commands, 'expectedRevision': current})
+    studio.access.record('library.import-site', {'pages': pages, 'assets': assets, 'mode': mode, 'bytes': len(data)})
+    skipped = result['skipped']
+    warnings = [f'{page["name"]}: {warning}' for page in result['pages'] for warning in page['warnings']]
+    return {**(outcome if isinstance(outcome, dict) else {}), 'pages': pages, 'assets': assets, 'skipped': skipped, 'warnings': warnings,
+            'message': site_import.summary(len(pages), assets, len(skipped))}
+
+
+@router.post('/api/library/import-site/review')
+async def library_review_site(request: Request):
+    studio.access.authorize('edit')
+    return await review_site(await _archive(request))
+
+
+@router.post('/api/library/import-site')
+async def library_import_site(request: Request, mode: str = 'new', revision: int | None = None):
+    studio.access.authorize('edit')
+    return await import_site(await _archive(request), mode, revision)

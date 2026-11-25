@@ -2,7 +2,7 @@ import { command, commands } from '../../api';
 import { element, value } from '../../ui/dom';
 import { runCommand, type CommandDef } from '../../ui/shell';
 import type { Icon } from '../../ui/icons';
-import { label, labelAttr } from '../../i18n';
+import { label, labelAttr, t } from '../../i18n';
 import { readBrand } from '../brand-kit';
 import type { Command, EditorState, Page, Site } from '../../types';
 import '../../styles/page-background.css';
@@ -60,7 +60,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     const next = host.state();
     if (!next) return;
     const page = host.page();
-    const refusal = brandRefusal(next, field.value);
+    const refusal = brandRefusal(next, field.value) || backgroundRefusal(next.site, field.value);
     if (refusal) { field.value = pageBackground(next.site, page)?.value || ''; throw new Error(refusal); }
     const step = setBackgroundCommand(next.site, page, field.value);
     await command(step.command, step.params);
@@ -97,7 +97,8 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     commands: [
       { id: 'page.background', label: 'Page background...', menu: 'Page', group: 4, enabled: ready, run: () => {
         host.showPageTab();
-        field.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        if (group.classList.contains('is-collapsed')) (group.firstElementChild as HTMLElement).click();
+        group.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         field.focus({ preventScroll: true });
       } },
       { id: 'page.background-clear', label: 'Clear page background', menu: 'Page', group: 4, enabled: () => !!current(), run: async () => {
@@ -109,10 +110,12 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
       { id: 'page.background-all', label: 'Use this page background on all pages', menu: 'Page', group: 4, enabled: () => ready() && host.state()!.site.pages.length > 1, run: async () => {
         const next = host.state()!;
         const mine = current()?.value || '';
+        const refusal = backgroundRefusal(next.site, mine);
+        if (refusal) { host.status(refusal, true); return; }
         const list = allPagesCommands(next.site, mine);
         if (!list.length) { host.status('Every page already has this background.'); return; }
         await commands(list);
-        host.status(mine ? `Background ${mine} applied to all ${next.site.pages.length} pages.` : `Backgrounds cleared on all ${next.site.pages.length} pages; they use the site background.`);
+        host.status(mine ? t('Background {0} applied to all {1} pages.', [mine, next.site.pages.length]) : t('Backgrounds cleared on all {0} pages; they use the site background.', [next.site.pages.length]));
       } },
       { id: 'window.theme-colors', label: 'Site theme colors...', enabled: ready, run: () => {
         runCommand('window.tokens');
@@ -173,6 +176,12 @@ export function allPagesCommands(site: Site, content: string): Command[] {
     const styles = site.nodes[page.root]?.styles;
     return styles && ((styles.background || '').trim() !== wanted || !!styles['background-color']);
   }).map(page => setBackgroundCommand(site, page, content));
+}
+
+export function backgroundRefusal(site: Site, content: string): string {
+  const entered = content.trim();
+  if (!entered || CSS.supports('background', resolveTokens(site, entered).replace(/var\(\s*--[\w-]+\s*(?:,[^()]*)?\)/g, 'transparent'))) return '';
+  return t('"{0}" is not a background the browser can read. Use a color such as #f3efe6, a theme color such as var(--paper), or a gradient.', [entered]);
 }
 
 export function brandRefusal(next: EditorState | undefined, content: string): string {
