@@ -364,7 +364,6 @@ fn main() {
     let app = tauri::Builder::default()
         // First, as the plugin asks: a second launch is detected before the rest of the set-up runs.
         .plugin(single_instance())
-        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(Service(Mutex::new(None)))
         .manage(Opened(Mutex::new(project_arg(std::env::args_os(), None).into_iter().collect())))
