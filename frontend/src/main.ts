@@ -1819,7 +1819,7 @@ function closeDialog(): void {
   lastFocus?.focus();
 }
 async function createSite(name: string, starter: string): Promise<void> {
-  await replace('/api/new', { name, ...(starter ? { blank: true } : {}) });
+  await replace('/api/new', { name, blank: true });
   if (starter) await commands(starterSiteCommands(starter).commands);
   pageId = state().site.pages[0].id;
   selectedId = state().site.pages[0].root;
