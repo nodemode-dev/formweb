@@ -601,7 +601,7 @@ function addSegments(container: HTMLElement, label: string, key: string, choices
 }
 const elementSection = section(designPane, 'Element');
 const elementGrid = element('div', 'form-grid');
-addInspectorInput(elementGrid, 'Name', 'name', name => nodePatch({ name }).then(() => status(`Renamed to "${name}".`)), undefined, true);
+addInspectorInput(elementGrid, 'Name', 'name', name => nodePatch({ name }).then(() => status(t('Renamed to "{0}".', [name]))), undefined, true);
 const HTML_TAGS = ['main', 'section', 'div', 'article', 'header', 'footer', 'nav', 'h1', 'h2', 'h3', 'p', 'span', 'a', 'button', 'img', 'form', 'label', 'input', 'textarea', 'ul', 'ol', 'li'];
 const SVG_TAGS = new Set(['svg', 'g', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'defs', 'clippath', 'lineargradient', 'radialgradient', 'stop', 'use', 'symbol', 'mask']);
 const tagSelect = addInspectorInput(elementGrid, 'HTML tag', 'tag', tag => nodePatch({ tag }), HTML_TAGS) as HTMLSelectElement;
