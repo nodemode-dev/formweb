@@ -50,6 +50,7 @@ import { installCanvasDrag } from './features/canvas-drag';
 import { installSelectMode, paintSelectMode } from './features/select-mode';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
+import { installDecorativeImage } from './features/decorative-image';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 import './styles/stage-head.css';
@@ -222,7 +223,7 @@ function setStyle(name: string, content: string): Promise<EditorState> {
   return nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } });
 }
 function setAttribute(name: string, content: string): Promise<EditorState> {
-  return nodePatch({ attrs: { [name]: content.trim() || (name === 'alt' ? '' : null) } });
+  return nodePatch({ attrs: { [name]: content.trim() || null } });
 }
 
 const topbar = element('header', 'topbar');
@@ -687,6 +688,7 @@ for (const [name, label] of [['href', 'Link URL'], ['src', 'Image / media URL'],
   attrsFields.set(name, control);
   attributesGrid.append(field(label, control, true));
 }
+const decorativeImage = installDecorativeImage(attrsFields.get('alt')!, next => void run(() => nodePatch({ attrs: { alt: next } })));
 // FW-072: shown for image elements only (toggled where the attribute fields refresh).
 const removeBackgroundButton = button('Remove background...', 'wand', () => runCommand('image.remove-background'));
 removeBackgroundButton.dataset.command = 'image.remove-background';
@@ -1574,6 +1576,7 @@ function update(next: EditorState): void {
   });
   resetButtons.forEach((reset, name) => { const hide = !override[name]; if (reset.hidden !== hide) reset.hidden = hide; });
   attrsFields.forEach((control, name) => value(control, node.attrs[name] || ''));
+  decorativeImage.update(node);
   aiWriter.update(node.id);
   removeBackgroundButton.hidden = node.tag !== 'img';
   editInFormvisButton.hidden = updateFromFormvisButton.hidden = node.tag !== 'img';
@@ -1757,7 +1760,7 @@ async function insertElement(kind: string, asset?: { url: string; name: string; 
   else if (kind === 'button') node = makeNode('a', 'Button', 'Get started', { display: 'inline-flex', padding: '14px 24px', background: 'var(--accent)', color: '#111', 'border-radius': '8px', 'text-decoration': 'none', 'font-weight': '600', 'align-self': 'flex-start' }, { href: '#' });
   else if (kind === 'link') node = makeNode('a', 'Link', 'Explore more', { color: 'var(--accent)', 'font-size': '16px' }, { href: '#' });
   else if (kind === 'image') {
-    node = makeNode('img', asset!.name, '', asset!.styles || { width: '100%', height: '320px', 'object-fit': 'cover', 'border-radius': '12px' }, { src: asset!.url, alt: asset!.alt || '', width: String(asset!.width), height: String(asset!.height) });
+    node = makeNode('img', asset!.name, '', asset!.styles || { width: '100%', height: '320px', 'object-fit': 'cover', 'border-radius': '12px' }, { src: asset!.url, ...(asset!.alt ? { alt: asset!.alt } : {}), width: String(asset!.width), height: String(asset!.height) });
   } else if (kind === 'form') {
     node = makeNode('form', 'Contact form', '', { display: 'flex', 'flex-direction': 'column', gap: '16px', 'max-width': '480px', padding: '24px', border: '1px solid #3b3f48', 'border-radius': '12px' }, { name: 'contact' });
     children.push(makeNode('label', 'Email label', 'Email address', { 'font-size': '14px' }), makeNode('input', 'Email input', '', { padding: '14px', background: '#1d2026', border: '1px solid #444a55', color: '#fff', 'border-radius': '6px' }, { type: 'email', name: 'email', placeholder: 'you@example.com', required: '', 'aria-label': 'Email address' }), makeNode('button', 'Submit button', 'Send message', { padding: '14px', background: 'var(--accent)', border: '0', 'border-radius': '6px', color: '#111', 'font-weight': '600' }, { type: 'submit' }));
