@@ -259,6 +259,7 @@ export function installPanel(host: PanelHost) {
       if (event.defaultPrevented) return;
       if (menuKeyPressed(event)) { event.preventDefault(); menu(event); }
       else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('layer.rename', { id: row.dataset.key }); }
+      else if (altArrow(event) && isMulti() && isSelected(row.dataset.key!)) { event.preventDefault(); invoke(event.key === 'ArrowUp' ? 'arrange.up' : 'arrange.down'); }
       else if (altArrow(event)) { event.preventDefault(); const id = row.dataset.key!; void host.run(async () => { await stepLayer(id, event.key === 'ArrowUp' ? -1 : 1); refocus(host.layersList, id)(); }); }
       else if (plainKey(event, event.key) && treeKey(row, event.key)) event.preventDefault();
     });
