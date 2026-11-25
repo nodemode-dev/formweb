@@ -42,6 +42,7 @@ These work while you draw or edit vector shapes (the **Vector** menu).
 | Pen | Vector | `P` | `P` |
 | Paintbrush | Vector | `B` | `B` |
 | Pencil | Vector | `N` | `N` |
+| Add Anchor Point | Vector | `+` | `+` |
 | Delete Anchor Point | Vector | `-` | `-` |
 | Anchor Point | Vector | `Shift+C` | `Shift+C` |
 | Scissors | Vector | `C` | `C` |
