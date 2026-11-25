@@ -24,6 +24,7 @@ const META: Record<string, Meta> = {
   'file.new': { description: 'Open the New site dialog to start an empty site in the engine.', flags: 'mr', when: 'Use when the person wants a blank site; it replaces the open site.' },
   'file.projects': { description: 'Open the saved projects list to load one.', flags: 'm', when: 'Use when switching to another saved project.' },
   'file.import': { description: 'Pick a .fweb project file, or a .fpub package of a FormWeb site made by FormPublisher, from disk and load it into the editor.', flags: 'mr', when: 'Use when the person gives a project file to open; it replaces the open site.' },
+  'file.import-html': { description: 'Open the Library panel on its Import HTML tab, where a pasted page or an .html file becomes one code section.', when: 'Use when the person has an HTML page to bring into the open site.' },
   'file.save': { description: 'Save the open site as a local project.', flags: 'm', when: 'Use after a set of edits the person wants kept.' },
   'file.download': { description: 'Download the open site as a .fweb project file.' },
   'file.export': { description: 'Export the open site as a portable static HTML ZIP.', flags: 'm' },
