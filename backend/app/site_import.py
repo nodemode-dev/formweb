@@ -35,6 +35,8 @@ FILE_CAPS = {'page': 1024 * 1024, 'style': CSS_CAP, 'script': JS_CAP}
 KINDS = {'html': 'page', 'htm': 'page', 'css': 'style', 'js': 'script', 'mjs': 'script',
          'png': 'asset', 'jpg': 'asset', 'jpeg': 'asset', 'gif': 'asset', 'webp': 'asset', 'svg': 'asset', 'mp4': 'asset', 'webm': 'asset', 'woff2': 'asset'}
 STORED = {'jpeg': 'jpg'}
+JS_TYPES = frozenset({'', 'module', 'text/javascript', 'application/javascript', 'application/ecmascript', 'application/x-ecmascript', 'application/x-javascript',
+                      'text/ecmascript', 'text/jscript', 'text/livescript', 'text/x-ecmascript', 'text/x-javascript', *(f'text/javascript1.{n}' for n in range(6))})
 REASONS = {
     'woff': 'Only WOFF2 fonts can be stored. Convert this font to WOFF2.',
     'ttf': 'Only WOFF2 fonts can be stored. Convert this font to WOFF2.',
@@ -174,6 +176,19 @@ def _text(body: bytes) -> str:
 def _attrs(tag: str) -> dict:
     inner = re.sub(r'^<[A-Za-z][-A-Za-z0-9]*', '', tag).rstrip('>').rstrip('/')
     return {m.group(1).lower(): unescape(next((g for g in m.group(2, 3, 4) if g is not None), '')) for m in PAIR.finditer(inner)}
+
+
+def script_type(opening: str) -> str | None:
+    """The type of a script element's opening tag when it is not JavaScript (JSON-LD, JSON, an import map, a template); None for JavaScript."""
+    kind = _attrs(opening).get('type', '').strip()
+    return None if kind.split(';')[0].strip().lower() in JS_TYPES else _show(kind)[:60]
+
+
+def left_out_scripts(types: list[str]) -> str:
+    """The one sentence both import paths give for script elements that are not JavaScript."""
+    shown = sorted(set(types))
+    return (f'{len(types)} script element{"s" if len(types) != 1 else ""} that {"is" if len(types) == 1 else "are"} not JavaScript ({", ".join(shown[:5])}{"..." if len(shown) > 5 else ""}) '
+            f'{"was" if len(types) == 1 else "were"} left out; an import does not bring structured data such as JSON-LD, import maps or templates along.')
 
 
 def _route(path: str) -> str:
@@ -321,7 +336,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
         if found.get('name', '').lower() == 'description':
             description = re.sub(r'\s+', ' ', found.get('content', '')).strip()[:500]
             break
-    styles, scripts, inlined = [], [], set()
+    styles, scripts, inlined, foreign = [], [], set(), []
     body = _between(document, 'body') or document
     body_at = document.find(body) if body is not document else 0
     for block in BLOCK.finditer(document):
@@ -332,7 +347,9 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             attrs = _attrs('<script' + block.group(2) + '>')
             module = attrs.get('type', '').strip().lower() == 'module'
             source = attrs.get('src')
-            if attrs.get('type', '').strip().lower() not in ('', 'module', 'text/javascript', 'application/javascript'):
+            kind = script_type('<script' + block.group(2) + '>')
+            if kind is not None:
+                foreign.append(kind)
                 continue
             if source is not None:
                 found = site.locate(source, base)
@@ -373,6 +390,8 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             module = any(item[1] for item in scripts)
         except EngineError as error:
             warnings.append(f'The script was left out: {error}')
+    if foreign:
+        warnings.append(left_out_scripts(foreign))
     for found, noun, where in ((outside_scripts, 'external script', ''), (outside_styles, 'external stylesheet', ' in the page head, which an import leaves out')):
         if found:
             shown = sorted(found)

@@ -65,7 +65,7 @@ Each imported page holds one code section, the same kind Import HTML makes:
 
 Pictures (PNG, JPEG, GIF, WebP, SVG), MP4 and WebM videos and WOFF2 fonts go into your site's assets, and every reference to them is updated. Links between the imported pages are changed to their new addresses; links to other websites stay as they are. The page's title and meta description fill its search fields (Page tab, Search & metadata).
 
-Left out, with a note in the review: the rest of the page head, stylesheets and scripts loaded from other websites, scripts after the first one, other font formats, icons in ICO format, and any other kind of file.
+Left out, with a note in the review: the rest of the page head, stylesheets and scripts loaded from other websites, scripts after the first one, scripts that are not JavaScript (such as JSON-LD structured data; Import HTML leaves them out the same way), other font formats, icons in ICO format, and any other kind of file.
 
 The zip may be up to 64 MiB, with at most 1,000 files and 100 pages. A zip with a password, links, or files outside its own folder is refused as a whole. System files such as `__MACOSX` folders are ignored, and a single top folder is stripped.
 

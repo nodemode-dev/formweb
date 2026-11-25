@@ -291,7 +291,9 @@ async def library_import_html(request: Request):
     if not isinstance(extra_css, str):
         raise EngineError('css must be text.')
     styles = [m.group(1) for m in re.finditer(r'<style\b[^>]*>(.*?)</style>', document, re.I | re.S)]
-    scripts = [m.group(2) for m in re.finditer(r'<script\b([^>]*)>(.*?)</script>', document, re.I | re.S) if 'src=' not in m.group(1).lower() and m.group(2).strip()]
+    kinds = [(m, site_import.script_type('<script' + m.group(1) + '>')) for m in re.finditer(r'<script\b([^>]*)>(.*?)</script>', document, re.I | re.S)]
+    foreign = [kind for _, kind in kinds if kind is not None]
+    scripts = [m.group(2) for m, kind in kinds if kind is None and 'src=' not in m.group(1).lower() and m.group(2).strip()]
     module = any('type="module"' in m.group(1).lower() or "type='module'" in m.group(1).lower() for m in re.finditer(r'<script\b([^>]*)>(.*?)</script>', document, re.I | re.S) if m.group(2).strip())
     # The whole body, chrome included: page scripts often measure the header (the kit's filmstrip reads .bar).
     markup = _between(document, 'body') or document
@@ -316,7 +318,8 @@ async def library_import_html(request: Request):
     commands.append({'command': 'code.section.set', 'params': {'node': host, 'value': {'enabled': True, 'html': markup, 'css': css, 'js': script, 'module': module}}})
     result = await studio.mutate('batch', {'commands': commands, 'expectedRevision': revision})
     studio.access.record('library.import-html', {'node': host, 'bytes': len(document)})
-    return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': [] if shim or not module else ['The script ran as a module with no kit helpers.']}
+    warnings = [] if shim or not module else ['The script ran as a module with no kit helpers.']
+    return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': warnings + ([site_import.left_out_scripts(foreign)] if foreign else [])}
 
 
 async def _archive(request: Request) -> bytes:
