@@ -1,5 +1,80 @@
+import { command } from '../../api';
+import { element, value } from '../../ui/dom';
+import type { Icon } from '../../ui/icons';
+import { label, labelAttr } from '../../i18n';
 import { readBrand } from '../brand-kit';
 import type { Command, EditorState, Page, Site } from '../../types';
+
+export interface PageBackgroundHost {
+  section(title: string): HTMLElement;
+  input(placeholder?: string): HTMLInputElement;
+  button(label: string, symbol?: Icon, action?: () => unknown, className?: string): HTMLButtonElement;
+  page(): Page;
+  state(): EditorState | undefined;
+  run(action: () => unknown): Promise<void>;
+  status(message: string, error?: boolean): void;
+}
+
+export interface PageBackgroundHandle {
+  field: HTMLInputElement;
+  fill(next: EditorState): void;
+}
+
+export function installPageBackground(host: PageBackgroundHost): PageBackgroundHandle {
+  const group = host.section('Page background');
+  const wrapper = element('div', 'field full fw-pagebg-field');
+  const head = element('span', 'field-label');
+  const name = element('span', '', 'Background');
+  const field = host.input('Site background');
+  field.dataset.field = 'page.background';
+  field.setAttribute('list', 'fw-brand-colors');
+  labelAttr(field, 'aria-label', 'Page background');
+  head.append(name);
+  wrapper.append(head, field);
+  const note = element('p', 'micro fw-pagebg-note');
+  note.setAttribute('aria-live', 'polite');
+  const own = element('span');
+  const inherited = element('span');
+  const others = element('span');
+  const overrides = element('span');
+  note.append(own, inherited, others, overrides);
+  group.append(wrapper, note);
+
+  field.addEventListener('change', () => void host.run(async () => {
+    const next = host.state();
+    if (!next) return;
+    const page = host.page();
+    const refusal = brandRefusal(next, field.value);
+    if (refusal) { field.value = pageBackground(next.site, page)?.value || ''; throw new Error(refusal); }
+    const step = setBackgroundCommand(next.site, page, field.value);
+    await command(step.command, step.params);
+  }));
+
+  function show(node: HTMLElement, on: boolean): void { if (node.hidden === on) node.hidden = !on; }
+
+  return {
+    field,
+    fill(next) {
+      const site = next.site;
+      const page = host.page();
+      const mine = pageBackground(site, page);
+      value(field, mine?.value || '');
+      if (mine) {
+        const resolved = resolveTokens(site, mine.value);
+        if (resolved !== mine.value) label(own, 'This page uses {0}, which is {1}.', [mine.value, resolved]);
+        else label(own, 'This page uses {0}.', [mine.value]);
+        label(inherited, 'Clear returns it to the site background: white, the browser default.');
+      } else label(inherited, 'Using the site background: white, the browser default.');
+      show(own, !!mine);
+      const common = mine ? null : commonBackground(site, page.id);
+      if (common) label(others, '{0} uses {1}.',[common.pages.length > 1 ? `${common.pages[0]} +${common.pages.length - 1}` : common.pages[0], common.value]);
+      show(others, !!common);
+      const bps = breakpointOverrides(site, page);
+      if (bps.length) label(overrides, 'Own background at: {0}.', [bps.join(', ')]);
+      show(overrides, bps.length > 0);
+    }
+  };
+}
 
 export const PAGE_BACKGROUND_KEYS = ['background', 'background-color'] as const;
 
