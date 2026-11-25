@@ -1,7 +1,7 @@
 import { commands, state } from '../api';
 import { commands as registry } from '../commands/registry';
 import type { CommandDef } from '../ui/shell';
-import { showContextMenu, type MenuEntry, type MenuItem, type OpenMenu } from '../ui/context-menu';
+import { menuKeyPressed, showContextMenu, type MenuEntry, type MenuItem, type OpenMenu } from '../ui/context-menu';
 import { t } from '../i18n';
 import { invoke } from './panel';
 import { canContain } from './panel/drop';
@@ -67,6 +67,19 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     const box = frame.getBoundingClientRect();
     const scale = frame.offsetWidth ? box.width / frame.offsetWidth : 1;
     return { x: box.left + (frame.clientLeft + x) * scale, y: box.top + (frame.clientTop + y) * scale };
+  };
+  const visibleBox = (): DOMRect => {
+    const frame = host.frame.getBoundingClientRect();
+    const stage = host.frame.closest('.stage')?.getBoundingClientRect() ?? frame;
+    const left = Math.max(frame.left, stage.left);
+    const top = Math.max(frame.top, stage.top);
+    return new DOMRect(left, top, Math.max(0, Math.min(frame.right, stage.right) - left), Math.max(0, Math.min(frame.bottom, stage.bottom) - top));
+  };
+  const keyAnchor = (id: string): Point => {
+    const area = visibleBox();
+    const box = isRoot(id) ? undefined : elementOf(id)?.getBoundingClientRect();
+    const corner = box ? toParent(box.left + Math.min(24, box.width / 2), box.bottom) : { x: area.left + 24, y: area.top + 24 };
+    return { x: Math.min(Math.max(corner.x, area.left), area.right), y: Math.min(Math.max(corner.y, area.top), area.bottom) };
   };
 
   function textBlock(id: string): string {
@@ -208,6 +221,7 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
   }
 
   let open: OpenMenu | null = null;
+  let keyed = 0;
   function show(id: string, target: Element | null, anchor: Point): void {
     if (!host.ready() || !site().nodes[id]) return;
     if (!selectionIds().includes(id)) host.select(id);
@@ -220,11 +234,21 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     at.addEventListener('pointerdown', close, true);
     at.addEventListener('scroll', close, true);
     at.addEventListener('contextmenu', event => {
+      if (performance.now() - keyed < 500) { event.preventDefault(); return; }
       if (!host.ready() || at.body.hasAttribute('data-preview') || editing(at)) return;
       const hit = (event.target as Element | null)?.closest?.<HTMLElement>('[data-fw-id]') ?? null;
       const id = hit?.dataset.fwId && site().nodes[hit.dataset.fwId] ? hit.dataset.fwId : host.pageRoot();
       event.preventDefault();
-      show(id, hit, toParent(event.clientX, event.clientY));
+      const keyboard = event.button < 0 || (event.clientX === 0 && event.clientY === 0);
+      show(id, hit, keyboard ? keyAnchor(id) : toParent(event.clientX, event.clientY));
+    });
+    at.addEventListener('keydown', event => {
+      if (!menuKeyPressed(event) || !host.ready() || at.body.hasAttribute('data-preview') || editing(at)) return;
+      if ((event.target as Element | null)?.closest?.('input, textarea, select')) return;
+      event.preventDefault();
+      keyed = performance.now();
+      const id = site().nodes[host.selected()] ? host.selected() : host.pageRoot();
+      show(id, null, keyAnchor(id));
     });
   }
   void host.loaded.then(() => { const at = doc(); if (at) bind(at); });
