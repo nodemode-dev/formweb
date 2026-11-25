@@ -303,7 +303,7 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
     refresh();
   }
 
-  input.addEventListener('input', refresh);
+  input.addEventListener('input', () => { activeKey = ''; refresh(); });
   input.addEventListener('keydown', event => {
     if (event.isComposing) return;
     if (event.key === 'ArrowDown') { event.preventDefault(); move(1); }
