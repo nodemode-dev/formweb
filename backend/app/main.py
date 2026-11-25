@@ -109,6 +109,7 @@ class LocalAccess:
                 if not any(key.lower() == b'referrer-policy' for key, _ in message['headers']):
                     message['headers'].append((b'referrer-policy', b'no-referrer'))
                 if origin == 'null' and (verified_preview or site_page):
+                    message['headers'] = [(key, value) for key, value in message['headers'] if key.lower() != b'access-control-allow-credentials']
                     message['headers'].extend([(b'access-control-allow-origin', b'null'), (b'vary', b'Origin')])
                 elif site_space:
                     message['headers'].append((b'vary', b'Origin'))
