@@ -2209,7 +2209,7 @@ registerCommands([
   { id: 'image.update-from-formvis', label: 'Update from formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await mutateVia<{ message: string; state: EditorState }>('/api/formvis/update', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' },
   { id: 'edit.settings', label: 'Settings...', menu: 'Edit', keys: ['Mod+,'], group: 2, run: () => openDialog('settings') },
   ...insertKinds.map(([kind, label]) => ({ id: `insert.${kind}`, label, menu: 'Insert', run: () => insertElement(kind), enabled: ready })),
-  { id: 'insert.quick', label: 'Quick insert', menu: 'Insert', keys: ['Mod+Shift+L'], group: 1, run: () => { openDock('left'); setSidebar('pages'); insertFlyout.toggle(layersAdd); }, enabled: ready },
+  { id: 'insert.quick', label: 'Quick insert', menu: 'Insert', keys: ['Mod+Shift+L'], group: 1, run: () => { home.dismiss(); openDock('left'); setSidebar('pages'); insertFlyout.toggle(layersAdd); }, enabled: ready },
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
   { id: 'insert.stock', label: 'Stock icons and photos...', menu: 'Insert', group: 1, run: () => openDialog('stock'), enabled: ready },
   { id: 'page.add', label: 'Add page...', menu: 'Page', run: () => openDialog('page'), enabled: ready },
