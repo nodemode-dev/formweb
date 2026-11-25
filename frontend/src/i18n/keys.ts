@@ -2794,4 +2794,8 @@ export const KEYS: readonly string[] = [
   "Undone.",
   "Redone.",
   "Show the hidden part of the selection path",
+  "No file has been saved yet.",
+  "{0} is no longer in {1}. It was moved or deleted.",
+  "The file manager could not show {0}: {1}",
+  "The file manager could not show the file.",
 ];

@@ -2794,4 +2794,8 @@ export default [
   "Rückgängig gemacht.",
   "Wiederhergestellt.",
   "Ausgeblendeten Teil des Auswahlpfads zeigen",
+  "Es wurde noch keine Datei gespeichert.",
+  "{0} ist nicht mehr in {1}. Die Datei wurde verschoben oder gelöscht.",
+  "Der Dateimanager konnte {0} nicht anzeigen: {1}",
+  "Der Dateimanager konnte die Datei nicht anzeigen.",
 ] as readonly string[];

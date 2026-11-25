@@ -2794,4 +2794,8 @@ export default [
   "Annullato.",
   "Ripristinato.",
   "Mostra la parte nascosta del percorso di selezione",
+  "Non è ancora stato salvato alcun file.",
+  "{0} non è più in {1}. È stato spostato o eliminato.",
+  "Il gestore file non ha potuto mostrare {0}: {1}",
+  "Il gestore file non ha potuto mostrare il file.",
 ] as readonly string[];

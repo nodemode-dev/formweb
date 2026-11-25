@@ -2794,4 +2794,8 @@ export default [
   "Vráceno zpět.",
   "Znovu provedeno.",
   "Zobrazit skrytou část cesty výběru",
+  "Zatím nebyl uložen žádný soubor.",
+  "{0} už není ve složce {1}. Byl přesunut nebo smazán.",
+  "Správce souborů nemohl zobrazit {0}: {1}",
+  "Správce souborů nemohl soubor zobrazit.",
 ] as readonly string[];

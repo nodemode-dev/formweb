@@ -2794,4 +2794,8 @@ export default [
   "Ongedaan gemaakt.",
   "Opnieuw uitgevoerd.",
   "Verborgen deel van het selectiepad tonen",
+  "Er is nog geen bestand opgeslagen.",
+  "{0} staat niet meer in {1}. Het is verplaatst of verwijderd.",
+  "Bestandsbeheer kon {0} niet tonen: {1}",
+  "Bestandsbeheer kon het bestand niet tonen.",
 ] as readonly string[];

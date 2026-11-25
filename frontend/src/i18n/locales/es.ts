@@ -2794,4 +2794,8 @@ export default [
   "Deshecho.",
   "Rehecho.",
   "Mostrar la parte oculta de la ruta de selección",
+  "Todavía no se ha guardado ningún archivo.",
+  "{0} ya no está en {1}. Se movió o se eliminó.",
+  "El administrador de archivos no pudo mostrar {0}: {1}",
+  "El administrador de archivos no pudo mostrar el archivo.",
 ] as readonly string[];

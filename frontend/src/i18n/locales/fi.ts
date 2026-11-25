@@ -2794,4 +2794,8 @@ export default [
   "Kumottu.",
   "Tehty uudelleen.",
   "Näytä valintapolun piilotettu osa",
+  "Yhtään tiedostoa ei ole vielä tallennettu.",
+  "{0} ei ole enää kansiossa {1}. Se on siirretty tai poistettu.",
+  "Tiedostonhallinta ei voinut näyttää kohdetta {0}: {1}",
+  "Tiedostonhallinta ei voinut näyttää tiedostoa.",
 ] as readonly string[];

@@ -2794,4 +2794,8 @@ export default [
   "Geri alındı.",
   "Yinelendi.",
   "Seçim yolunun gizli kısmını göster",
+  "Henüz kaydedilmiş bir dosya yok.",
+  "{0} artık {1} içinde değil. Taşındı veya silindi.",
+  "Dosya yöneticisi {0} dosyasını gösteremedi: {1}",
+  "Dosya yöneticisi dosyayı gösteremedi.",
 ] as readonly string[];

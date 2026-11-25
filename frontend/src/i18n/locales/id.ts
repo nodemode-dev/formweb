@@ -2794,4 +2794,8 @@ export default [
   "Diurungkan.",
   "Diulangi.",
   "Tampilkan bagian jalur pilihan yang tersembunyi",
+  "Belum ada file yang disimpan.",
+  "{0} tidak lagi ada di {1}. File itu dipindahkan atau dihapus.",
+  "Pengelola file tidak dapat menampilkan {0}: {1}",
+  "Pengelola file tidak dapat menampilkan file.",
 ] as readonly string[];

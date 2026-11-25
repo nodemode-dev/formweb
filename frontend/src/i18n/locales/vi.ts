@@ -2794,4 +2794,8 @@ export default [
   "Đã hoàn tác.",
   "Đã làm lại.",
   "Hiện phần bị ẩn của đường dẫn vùng chọn",
+  "Chưa có tệp nào được lưu.",
+  "{0} không còn trong {1}. Tệp đã bị di chuyển hoặc xóa.",
+  "Trình quản lý tệp không thể hiển thị {0}: {1}",
+  "Trình quản lý tệp không thể hiển thị tệp.",
 ] as readonly string[];

@@ -2794,4 +2794,8 @@ export default [
   "Annulé.",
   "Rétabli.",
   "Afficher la partie masquée du chemin de sélection",
+  "Aucun fichier n'a encore été enregistré.",
+  "{0} n'est plus dans {1}. Il a été déplacé ou supprimé.",
+  "Le gestionnaire de fichiers n'a pas pu afficher {0} : {1}",
+  "Le gestionnaire de fichiers n'a pas pu afficher le fichier.",
 ] as readonly string[];

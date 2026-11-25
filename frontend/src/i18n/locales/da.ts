@@ -2794,4 +2794,8 @@ export default [
   "Fortrudt.",
   "Gentaget.",
   "Vis den skjulte del af markeringsstien",
+  "Der er ikke gemt nogen fil endnu.",
+  "{0} er ikke længere i {1}. Den blev flyttet eller slettet.",
+  "Filhåndteringen kunne ikke vise {0}: {1}",
+  "Filhåndteringen kunne ikke vise filen.",
 ] as readonly string[];

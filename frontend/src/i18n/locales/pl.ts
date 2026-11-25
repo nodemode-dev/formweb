@@ -2794,4 +2794,8 @@ export default [
   "Cofnięto.",
   "Ponowiono.",
   "Pokaż ukrytą część ścieżki zaznaczenia",
+  "Nie zapisano jeszcze żadnego pliku.",
+  "{0} nie ma już w {1}. Plik został przeniesiony lub usunięty.",
+  "Menedżer plików nie mógł pokazać {0}: {1}",
+  "Menedżer plików nie mógł pokazać pliku.",
 ] as readonly string[];

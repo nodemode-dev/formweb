@@ -2794,4 +2794,8 @@ export default [
   "Visszavonva.",
   "Újra végrehajtva.",
   "A kijelölési útvonal rejtett részének megjelenítése",
+  "Még nincs mentett fájl.",
+  "{0} már nincs itt: {1}. Áthelyezték vagy törölték.",
+  "A fájlkezelő nem tudta megjeleníteni ezt: {0}: {1}",
+  "A fájlkezelő nem tudta megjeleníteni a fájlt.",
 ] as readonly string[];

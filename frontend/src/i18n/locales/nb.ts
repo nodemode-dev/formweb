@@ -2794,4 +2794,8 @@ export default [
   "Angret.",
   "Gjort om.",
   "Vis den skjulte delen av markeringsbanen",
+  "Ingen fil er lagret ennå.",
+  "{0} ligger ikke lenger i {1}. Den ble flyttet eller slettet.",
+  "Filbehandleren kunne ikke vise {0}: {1}",
+  "Filbehandleren kunne ikke vise filen.",
 ] as readonly string[];

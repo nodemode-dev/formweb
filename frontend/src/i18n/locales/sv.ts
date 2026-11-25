@@ -2794,4 +2794,8 @@ export default [
   "Ångrat.",
   "Gjort om.",
   "Visa den dolda delen av markeringens sökväg",
+  "Ingen fil har sparats än.",
+  "{0} finns inte längre i {1}. Den har flyttats eller tagits bort.",
+  "Filhanteraren kunde inte visa {0}: {1}",
+  "Filhanteraren kunde inte visa filen.",
 ] as readonly string[];

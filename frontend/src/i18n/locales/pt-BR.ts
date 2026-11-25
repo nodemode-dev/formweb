@@ -2794,4 +2794,8 @@ export default [
   "Desfeito.",
   "Refeito.",
   "Mostrar a parte oculta do caminho da seleção",
+  "Nenhum arquivo foi salvo ainda.",
+  "{0} não está mais em {1}. Ele foi movido ou excluído.",
+  "O gerenciador de arquivos não conseguiu mostrar {0}: {1}",
+  "O gerenciador de arquivos não conseguiu mostrar o arquivo.",
 ] as readonly string[];
