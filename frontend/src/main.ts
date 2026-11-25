@@ -41,8 +41,8 @@ import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
-import { canvasClick, installSelection, isMulti, layerClick, pageClick, paintLayerRow, paintPageRow, selectedIds } from './features/selection';
-import { anyCopyable, anyRemovable, canStep, copySelected, cutSelected, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, stepSelected } from './features/selection-actions';
+import { canvasClick, installSelection, isMulti, layerClick, pageClick, paintLayerRow, paintPageRow, selectedIds, selectedPageIds } from './features/selection';
+import { anyCopyable, anyRemovable, canStep, copySelected, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, stepSelected } from './features/selection-actions';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
@@ -1793,7 +1793,7 @@ function openDialog(id: string): void {
   if (id === 'publish') value(publishSlug, state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-'));
   if (id === 'qr') value(qrUrl, pageAddress());
   if (id === 'bulk') { options(bulkTemplate, state().site.pages.map(page => ({ id: page.id, name: `${page.name} (${page.slug})` }))); bulkTemplate.value = currentPage().id; text(bulkNote, ''); }
-  if (id === 'delete-page') text(deletePageNote, `Delete "${currentPage().name}" and its content? You can undo this operation.`);
+  if (id === 'delete-page') text(deletePageNote, deletePagesNote() ?? `Delete "${currentPage().name}" and its content? You can undo this operation.`);
   dialogClose.focus();
 }
 function closeDialog(): void {
@@ -1841,6 +1841,7 @@ async function performDialogAction(): Promise<void> {
     closeDialog();
     status(`${created.length} pages created from CSV. One undo step removes them all.`);
   } else if (dialogMode === 'delete-page') {
+    if (await deleteSelectedPages()) { closeDialog(); return; }
     await command('page.remove', { id: currentPage().id });
     closeDialog();
     status('Page removed.');
@@ -2238,7 +2239,7 @@ registerCommands([
   { id: 'site.favicon', label: 'Set site icon...', menu: 'Page', group: 3, run: () => { mediaInput.dataset.mode = 'favicon'; mediaInput.click(); }, enabled: ready },
   { id: 'site.favicon-dark', label: 'Set dark mode icon...', menu: 'Page', group: 3, run: () => { mediaInput.dataset.mode = 'faviconDark'; mediaInput.click(); }, enabled: ready },
   { id: 'site.favicon-clear', label: 'Clear site icons', menu: 'Page', group: 3, run: async () => { await command('site.update', { patch: { settings: { favicon: '', faviconDark: '' } } }); status('Site icons cleared.'); }, enabled: () => !!lastState?.site.settings?.favicon || !!lastState?.site.settings?.faviconDark },
-  { id: 'page.delete', label: 'Delete page...', menu: 'Page', group: 1, run: () => openDialog('delete-page'), enabled: () => !!lastState && lastState.site.pages.length > 1 },
+  { id: 'page.delete', label: 'Delete page...', menu: 'Page', group: 1, run: () => openDialog('delete-page'), enabled: () => !!lastState && lastState.site.pages.length > Math.max(1, selectedPageIds().length) },
   { id: 'page.audit', label: 'Run SEO and accessibility audit', menu: 'Page', group: 2, run: auditSite, enabled: ready },
   { id: 'arrange.up', label: 'Move layer up', menu: 'Arrange', run: () => isMulti() ? stepSelected(-1) : moveLayer(-1), enabled: () => isMulti() ? canStep(-1) : notRoot() },
   { id: 'arrange.down', label: 'Move layer down', menu: 'Arrange', run: () => isMulti() ? stepSelected(1) : moveLayer(1), enabled: () => isMulti() ? canStep(1) : notRoot() },

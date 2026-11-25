@@ -171,17 +171,22 @@ export function installPanel(host: PanelHost) {
     const pages = site().pages;
     const at = pages.findIndex(page => page.id === id);
     const target = { id };
+    const set = pageSetFor(id);
+    const many = set.length;
+    const up = many > 1 ? stepPagesCommands(set, -1).length > 0 : at > 0;
+    const down = many > 1 ? stepPagesCommands(set, 1).length > 0 : at < pages.length - 1;
+    const removable = many < pages.length;
     return [
       { id: 'page.open', label: 'Open', enabled: id !== host.pageId(), run: () => invoke('page.open', target) },
       { id: 'page.rename', label: 'Rename', keys: KEY_RENAME, run: () => invoke('page.rename', target) },
-      { id: 'page.duplicate', label: 'Duplicate', run: () => invoke('page.duplicate', target) },
+      { id: 'page.duplicate', label: countLabel('Duplicate', 'Duplicate {0} pages', many), run: () => invoke('page.duplicate', target) },
       { id: 'page.set-home', label: 'Set as home page', enabled: at > 0, title: at > 0 ? 'Set as home page' : 'This is the home page', run: () => invoke('page.set-home', target) },
       { separator: true },
-      { id: 'page.move-up', label: 'Move up', keys: formatKeys(KEY_UP), enabled: at > 0, run: () => invoke('page.move-up', target) },
-      { id: 'page.move-down', label: 'Move down', keys: formatKeys(KEY_DOWN), enabled: at < pages.length - 1, run: () => invoke('page.move-down', target) },
+      { id: 'page.move-up', label: countLabel('Move up', 'Move {0} pages up', many), keys: formatKeys(KEY_UP), enabled: up, run: () => invoke('page.move-up', target) },
+      { id: 'page.move-down', label: countLabel('Move down', 'Move {0} pages down', many), keys: formatKeys(KEY_DOWN), enabled: down, run: () => invoke('page.move-down', target) },
       { separator: true },
       { id: 'page.settings', label: 'Page settings', run: () => { host.openPage(id); invoke('page.settings'); } },
-      { id: 'page.delete', label: 'Delete...', enabled: pages.length > 1, title: pages.length > 1 ? 'Delete page...' : 'A site keeps at least one page', run: () => { host.openPage(id); invoke('page.delete'); } }
+      { id: 'page.delete', label: countLabel('Delete...', 'Delete {0} pages...', many), enabled: removable, title: removable ? countLabel('Delete page...', 'Delete {0} pages...', many) : 'A site keeps at least one page', run: () => { if (many < 2) host.openPage(id); invoke('page.delete'); } }
     ];
   }
 
