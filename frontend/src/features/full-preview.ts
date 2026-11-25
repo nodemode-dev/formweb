@@ -1,5 +1,5 @@
 import { commands } from '../commands/registry';
-import { label, labelAttr } from '../i18n';
+import { label, labelAttr, t } from '../i18n';
 import type { EditorState } from '../types';
 import { element, keyed, options, text, value } from '../ui/dom';
 import { icon, type Icon } from '../ui/icons';
@@ -188,7 +188,7 @@ export class FullPreview {
   private sync(): void {
     const site = this.host.state().site;
     const rows = site.pages.map(page => ({ id: page.id, name: page.name }));
-    if (this.linked) rows.push({ id: LINKED, name: 'Page opened from a link' });
+    if (this.linked) rows.push({ id: LINKED, name: t('Page opened from a link') });
     options(this.pages, rows);
     this.pages.value = this.linked ? LINKED : this.target.page;
     value(this.locales, this.target.locale);
