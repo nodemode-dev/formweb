@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.28.1 · 2026-11-24
+
+- The first of four releases that answer one report from a new user, issue #36. Thank you.
+- Fixed: Export seemed to do nothing. The Export button now shows that it is working, and a notice names the file and where it went; a failed export says why. In the desktop app the notice has Show in folder. Download .fweb project does the same.
+- Audit: Select scrolls the canvas to the element, pulses it, scrolls the layer into view and keeps the issue in the status line. Page issues open Page settings and flash their field.
+- Picking a layer or a breadcrumb brings an off-screen element into view, and a click on the canvas never scrolls it.
+- File > Import HTML... opens the importer that was already under Library > Import HTML.
+- Known gaps: the desktop app was not built or run for this version, so Show in folder is untried there (0.31.0 is the version that was run on Linux), nothing was run on Windows or macOS, and the new interface strings are in English only.
+
 ## 0.28.0 · 2026-11-22
 
 - Five whole-site starters join the demos, one for each common kind of site: Coldmere Plumbing (a local business with services and prices, about and contact), Northfold Studio (a designer's portfolio with project pages), The Slow Allotment (a blog with a post archive and three sample posts), Wenlow Type Day (a one-day event with programme, speakers, venue and tickets) and Fernhollow Pottery (a shop window whose orders go by email). Each is a complete, editable site with a shared header and footer, a 404 page, a site icon, a share picture and a description on every page, and looks right on a phone. Open one from Home or Help > Demos and make it yours.
