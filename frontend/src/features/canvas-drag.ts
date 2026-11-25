@@ -2,6 +2,7 @@ import type { EditorState, Site } from '../types';
 import type { Command } from './sections';
 import { canContain, canDrag, dropTarget, moveCommands, movableIds, type DropTarget, type DropZone } from './panel/drop';
 import { element } from '../ui/dom';
+import { t } from '../i18n';
 import { HOLD_MS, SLOP, blockScroll, buzz, hushMenus, isTouch, openMenu, startsDrag, swallowClick } from './hold';
 import '../styles/canvas-drag.css';
 
@@ -387,7 +388,7 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       void host.run(async () => {
         await host.commands(list);
         if (!host.selectionIds().includes(ids[0])) host.select(ids[0]);
-        host.status(ids.length === 1 ? 'Element moved. One undo step puts it back.' : `${ids.length} elements moved. One undo step puts them back.`);
+        host.status(ids.length === 1 ? 'Element moved. One undo step puts it back.' : t('{0} elements moved. One undo step puts them back.', [ids.length]));
       });
     };
     const stop = (): void => {

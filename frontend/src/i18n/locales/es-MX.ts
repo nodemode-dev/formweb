@@ -75,4 +75,6 @@ export default {
   "One asset is too large to embed and will only paste on this computer.": "Un recurso es demasiado grande para incrustarlo y solo se podrá pegar en esta computadora.",
   "{n} assets are too large to embed and will only paste on this computer.": "{n} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en esta computadora.",
   "{0} assets are too large to embed and will only paste on this computer.": "{0} recursos son demasiado grandes para incrustarlos y solo se podrán pegar en esta computadora.",
+  "Add element here": "Agregar elemento aquí",
+  "Nothing can be added inside a linked component instance": "No se puede agregar nada dentro de una instancia de componente vinculada",
 } as Record<string, string>;
