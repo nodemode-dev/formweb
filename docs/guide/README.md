@@ -38,7 +38,7 @@ A demo opens as a new site that is not saved yet. Your saved projects are not to
 2. [Pages and layers](02-pages-and-layers.md): add, rename, reorder and fold pages and layers, set the home page, select several layers at once.
 3. [Working on the canvas](03-canvas.md): select, the right-click menu, drag to move, wrap in a container, copy and paste styles.
 4. [The right panel](04-right-panel.md): the tabs, Search properties, and editing a breakpoint.
-5. [Page background and theme colors](05-background-and-theme-colors.md): why a new page is white, one page or all pages, the site's theme colors.
+5. [Page background and theme colors](05-background-and-theme-colors.md): why a new page is white, starting a page with the home page's background, matching another page, one page or all pages, the site's theme colors.
 6. [Preview](06-preview.md): Preview as published, and the Live responsive preview on the canvas.
 7. [Audit](07-audit.md): what the audit checks and how Select takes you to the problem.
 8. [Export and publishing](08-export-and-publish.md): the zip file, where it goes, and Send to FormPublisher.
@@ -49,6 +49,10 @@ A demo opens as a new site that is not saved yet. Your saved projects are not to
 
 ## More help
 
-- In the app, **Help > Using FormWeb** gives a one-screen summary and a button that opens this guide.
+- In the app, the Start screen (**File > Home**) has **New to FormWeb? Read the guide** under New site, Open and Generate from a description. It opens this guide in your browser.
+
+![The Start a website panel of the Start screen: New site..., Open..., Generate from a description and New to FormWeb? Read the guide](images/start-guide-link.webp)
+
+- **Help > Using FormWeb** gives a one-screen summary and a button that opens this guide.
 - The [manual](../MANUAL.md) describes every feature in detail. Use it when you need the exact rules.
 - The [library guide](../LIBRARY.md) explains how library sections and page components are made.
