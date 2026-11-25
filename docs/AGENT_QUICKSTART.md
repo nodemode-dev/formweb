@@ -47,6 +47,7 @@ A saved extension is configuration evidence. A browser interaction needs observe
 | Goal | MCP call | Check |
 | --- | --- | --- |
 | Site icon | Upload the square PNG (editor or `POST /api/assets`), then `apply_commands` with `site.update` `{patch:{settings:{favicon:"/api/assets/<id>"}}}`; `faviconDark` adds a dark-scheme icon | Exported `index.html` has `rel="icon"`, `apple-touch-icon` and `rel="manifest"`; the ZIP holds `site.webmanifest` and the icon |
+| Page background | `apply_commands` with `node.update` `{id:<page root>, patch:{styles:{background:"#1d3557"}}}` (a `var(--token)` works too); `null` clears it. For every page, one batch with one `node.update` per page root (one undo step). A page with no background is white, the browser default, in the editor and in the export | `get_state` shows the root's `styles.background`; the exported `site.css` has it on `[data-fw-node="<root>"]` |
 | Many pages from data | Put `{{column}}` tokens in a template page, then `page.bulk` `{template, rows:[{slug, name?, values}]}` (1 to 300 rows, one undo step) | Page count grew by the row count; sample pages show values, not tokens |
 | Embed media | `node.add` a `div` with attribute `data-fw-embed` set to a YouTube, Vimeo, Loom, Spotify, Google Maps embed or OpenStreetMap embed URL, or an X post (`https://x.com/[user]/status/[id]`) | Preview or export shows `iframe[data-fw-embed-frame]`; an unsupported URL renders a visible `fw-embed-error` note |
 | Load embeds on click | Site-wide: `site.update` `{patch:{settings:{embedClickToLoad:"true"}}}`; one embed: attribute `data-fw-embed-load` set to `click`. X posts are always click-to-load | Export shows `[data-fw-embed-gate]` with a Load button and an "Open on ..." link and no iframe until the visitor presses Load |
@@ -81,7 +82,7 @@ Inside the editor's terminal (or any shell in the FormWeb folder) `./formweb run
 
 If a call waits and then reports that no one approved it, the owner has turned on approvals in Agent Connect; ask them to watch the panel and retry once.
 
-Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`, `brand.check`, `brand.fix-all`, `brand.restrict`, `window.team`, `image.remove-background`, `insert.stock`, `image.edit-in-formvis`, `image.update-from-formvis`, `page.generate`, `ai.suggest`, `ai.accept`, `ai.site-reference`, `ai.site-revise`.
+Editor ids for the same actions: `site.favicon`, `site.favicon-dark`, `site.favicon-clear`, `page.bulk`, `insert.embed`, `page.qr`, `brand.check`, `brand.fix-all`, `brand.restrict`, `window.team`, `image.remove-background`, `insert.stock`, `image.edit-in-formvis`, `image.update-from-formvis`, `page.generate`, `ai.suggest`, `ai.accept`, `ai.site-reference`, `ai.site-revise`, `page.background`, `page.background-clear`, `page.background-all`, `window.theme-colors`.
 
 ## Creative, CMS and vector commands (v0.7)
 
