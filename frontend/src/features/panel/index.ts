@@ -254,6 +254,7 @@ export function installPanel(host: PanelHost) {
     const list = target ? moveCommands(site(), ids, target) : [];
     if (!list.length) return false;
     await host.commands(list);
+    if (ids.map(id => folds.reveal(site(), host.pageId(), id)).includes(true)) host.refresh();
     host.status(list.length === 1 ? 'Layer moved. One undo step puts it back.' : `${list.length} layers moved. One undo step puts them back.`);
     return true;
   }
