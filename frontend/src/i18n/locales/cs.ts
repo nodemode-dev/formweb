@@ -2793,4 +2793,5 @@ export default [
   "Odstranit „{0}“ i s obsahem? Tuto operaci můžete vrátit.",
   "Vráceno zpět.",
   "Znovu provedeno.",
+  "Zobrazit skrytou část cesty výběru",
 ] as readonly string[];

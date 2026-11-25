@@ -2793,4 +2793,5 @@ export default [
   "Eliminare «{0}» e il suo contenuto? Puoi annullare questa operazione.",
   "Annullato.",
   "Ripristinato.",
+  "Mostra la parte nascosta del percorso di selezione",
 ] as readonly string[];

@@ -2793,4 +2793,5 @@ export default [
   "Ta bort \"{0}\" och dess innehåll? Du kan ångra den här åtgärden.",
   "Ångrat.",
   "Gjort om.",
+  "Visa den dolda delen av markeringens sökväg",
 ] as readonly string[];

@@ -2793,4 +2793,5 @@ export const KEYS: readonly string[] = [
   "Delete \"{0}\" and its content? You can undo this operation.",
   "Undone.",
   "Redone.",
+  "Show the hidden part of the selection path",
 ];

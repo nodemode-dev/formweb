@@ -2793,4 +2793,5 @@ export default [
   "Törli ezt a tartalmával együtt: „{0}”? Ez a művelet visszavonható.",
   "Visszavonva.",
   "Újra végrehajtva.",
+  "A kijelölési útvonal rejtett részének megjelenítése",
 ] as readonly string[];

@@ -2793,4 +2793,5 @@ export default [
   "Xóa \"{0}\" cùng nội dung của nó? Bạn có thể hoàn tác thao tác này.",
   "Đã hoàn tác.",
   "Đã làm lại.",
+  "Hiện phần bị ẩn của đường dẫn vùng chọn",
 ] as readonly string[];

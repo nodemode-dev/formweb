@@ -2793,4 +2793,5 @@ export default [
   "\"{0}\" en de inhoud verwijderen? Je kunt deze bewerking ongedaan maken.",
   "Ongedaan gemaakt.",
   "Opnieuw uitgevoerd.",
+  "Verborgen deel van het selectiepad tonen",
 ] as readonly string[];

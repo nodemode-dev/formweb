@@ -2793,4 +2793,5 @@ export default [
   "Hapus \"{0}\" beserta isinya? Anda dapat mengurungkan operasi ini.",
   "Diurungkan.",
   "Diulangi.",
+  "Tampilkan bagian jalur pilihan yang tersembunyi",
 ] as readonly string[];

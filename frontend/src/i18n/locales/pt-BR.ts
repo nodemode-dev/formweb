@@ -2793,4 +2793,5 @@ export default [
   "Excluir “{0}” e o conteúdo dela? Você pode desfazer esta operação.",
   "Desfeito.",
   "Refeito.",
+  "Mostrar a parte oculta do caminho da seleção",
 ] as readonly string[];

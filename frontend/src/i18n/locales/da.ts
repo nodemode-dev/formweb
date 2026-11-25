@@ -2793,4 +2793,5 @@ export default [
   "Slet \"{0}\" og dens indhold? Du kan fortryde denne handling.",
   "Fortrudt.",
   "Gentaget.",
+  "Vis den skjulte del af markeringsstien",
 ] as readonly string[];

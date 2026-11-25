@@ -2793,4 +2793,5 @@ export default [
   "Usunąć „{0}” razem z zawartością? Tę operację można cofnąć.",
   "Cofnięto.",
   "Ponowiono.",
+  "Pokaż ukrytą część ścieżki zaznaczenia",
 ] as readonly string[];

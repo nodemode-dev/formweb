@@ -2793,4 +2793,5 @@ export default [
   "„{0}“ und ihren Inhalt löschen? Du kannst diesen Vorgang rückgängig machen.",
   "Rückgängig gemacht.",
   "Wiederhergestellt.",
+  "Ausgeblendeten Teil des Auswahlpfads zeigen",
 ] as readonly string[];

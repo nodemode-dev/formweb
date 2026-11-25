@@ -2793,4 +2793,5 @@ export default [
   "Poistetaanko \"{0}\" ja sen sisältö? Voit kumota tämän toiminnon.",
   "Kumottu.",
   "Tehty uudelleen.",
+  "Näytä valintapolun piilotettu osa",
 ] as readonly string[];

@@ -2793,4 +2793,5 @@ export default [
   "\"{0}\" ve içeriği silinsin mi? Bu işlemi geri alabilirsiniz.",
   "Geri alındı.",
   "Yinelendi.",
+  "Seçim yolunun gizli kısmını göster",
 ] as readonly string[];

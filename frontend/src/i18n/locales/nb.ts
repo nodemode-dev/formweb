@@ -2793,4 +2793,5 @@ export default [
   "Slette \"{0}\" og innholdet? Du kan angre denne handlingen.",
   "Angret.",
   "Gjort om.",
+  "Vis den skjulte delen av markeringsbanen",
 ] as readonly string[];
