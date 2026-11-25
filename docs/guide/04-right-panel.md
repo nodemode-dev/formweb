@@ -12,7 +12,7 @@ At the top the panel names the selected element and its HTML tag, for example **
 
 - **Design**: how the element looks and sits on the page. Its sections are Element (name, HTML tag and Style scope), Layout (display, direction, alignment, width, height, gap, padding, margin), Appearance (background, color, radius, border, opacity, shadow), Typography (font size, weight, line height and more), Position, Transform 3D and Effects.
 - **Motion**: movement and behavior: Presets, Reveal, Scene, Loop, Counter, Text, Drag, Pointer, Disclosure (accordion, tabs or filter chips), Actions (run an action on a trigger) and Script.
-- **Content**: the text, and the HTML attributes such as **Link URL**, **Image / media URL** and **Alternative text** (the description of a picture for people who cannot see it).
+- **Content**: the text, and the HTML attributes such as **Link URL**, **Image / media URL** and **Alternative text** (the description of a picture for people who cannot see it), with **Decorative image (no description)** under it for a picture that carries no meaning.
 - **Page**: settings for the open page, whatever is selected: Page settings (name and address), Page background, Search & metadata (the title and description search engines show), Custom code, Password, Whole site (settings such as the base URL) and Actions.
 
 Many fields show a grey placeholder such as Auto / inherit. That means the element has no value of its own and uses what it inherits. A field you have set gets a **Reset** link that removes your value again.

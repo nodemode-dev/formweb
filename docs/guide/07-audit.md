@@ -52,7 +52,7 @@ These are the checks the audit runs in this version, with the sentence you will 
 - Pictures loaded from another website, which are not copied into your zip.
 - A form that sends its answers to this computer, which will not work once the site is on another host (see [Export and publishing](08-export-and-publish.md)).
 
-An empty alt text counts as decoration, so the audit does not flag it. A picture you insert from a file starts with an empty alt text: describe each meaningful picture yourself in the Content tab, **Alternative text** (search `alt`).
+A picture you insert from a file starts with no alt text, so the audit lists it until you describe it in the Content tab, **Alternative text** (search `alt`). Clearing that field takes the description away again. A picture that is only decoration, such as a pattern or a divider, needs no description: tick **Decorative image (no description)** under the field. That writes an empty alt text on purpose, screen readers skip the picture, and the audit no longer flags it.
 
 ## Next
 
