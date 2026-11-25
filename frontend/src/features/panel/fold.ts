@@ -67,6 +67,15 @@ export class LayerFolds {
     write(FOLDED_KEY, out);
   }
 
+  reveal(site: Site, page: string, id: string): boolean {
+    const set = this.folded.get(page);
+    if (!set?.size) return false;
+    let changed = false;
+    for (let at = parentIn(site, id); at; at = parentIn(site, at)) if (set.delete(at)) changed = true;
+    if (changed) this.save();
+    return changed;
+  }
+
   isFolded(page: string, id: string): boolean { return !!this.folded.get(page)?.has(id); }
 
   set(page: string, id: string, folded: boolean): boolean {
@@ -87,12 +96,7 @@ export class LayerFolds {
   rows(site: Site, page: string, root: string, selected: string): { rows: LayerRow[]; total: number; parents: string[] } {
     if (selected !== this.revealed) {
       this.revealed = selected;
-      const set = this.folded.get(page);
-      if (set?.size) {
-        let changed = false;
-        for (let at = parentIn(site, selected); at; at = parentIn(site, at)) if (set.delete(at)) changed = true;
-        if (changed) this.save();
-      }
+      this.reveal(site, page, selected);
     }
     const rows: LayerRow[] = [];
     const parents: string[] = [];
