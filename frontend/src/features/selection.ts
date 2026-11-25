@@ -3,6 +3,7 @@ import { movableIds } from './panel/drop';
 import '../styles/selection.css';
 
 export interface SelectionHost {
+  ready: () => boolean;
   site: () => Site;
   primary: () => string;
   select: (id: string) => void;
@@ -63,19 +64,19 @@ function syncPages(): void {
 }
 
 export function selectedIds(): string[] {
-  if (!host) return [];
+  if (!host?.ready()) return [];
   syncNodes();
   return [...nodes];
 }
 
 export function primaryId(): string {
-  if (!host) return '';
+  if (!host?.ready()) return '';
   syncNodes();
   return primary;
 }
 
 export function topMost(ids: readonly string[] = selectedIds()): string[] {
-  return host ? movableIds(host.site(), ids) : [];
+  return host?.ready() ? movableIds(host.site(), ids) : [];
 }
 
 export function isSelected(id: string): boolean {
@@ -87,7 +88,7 @@ export function isMulti(): boolean {
 }
 
 export function selectedPageIds(): string[] {
-  if (!host) return [];
+  if (!host?.ready()) return [];
   syncPages();
   return host.site().pages.map(page => page.id).filter(id => pages.includes(id));
 }
