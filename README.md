@@ -22,6 +22,7 @@
 <p align="center">
   <a href="https://formweb.formai.studio/"><b>Download FormWeb on formai.studio</b></a> ·
   <a href="https://github.com/nodemode-dev/formcompiler/releases?q=formweb-v&expanded=true">Latest release</a> ·
+  <a href="docs/guide/README.md">User guide</a> ·
   <a href="#run-it-from-source">Run it from source</a>
 </p>
 

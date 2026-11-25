@@ -2,6 +2,10 @@
 
 FormWeb is a visual website authoring application with editable pages, a node hierarchy, responsive styles, reusable components, CMS data, translations and static website export. The Rust engine owns the document; the editor and agents change that same document.
 
+## Guide
+
+New to FormWeb? The [user guide](guide/README.md) teaches the app step by step, in plain words, with a screenshot for every step and a worked example on one of the demo sites. Start with [Your first site](guide/01-first-site.md), which goes from an empty page to an exported zip. The task guides cover [pages and layers](guide/02-pages-and-layers.md), [working on the canvas](guide/03-canvas.md), [the right panel](guide/04-right-panel.md), [page background and theme colors](guide/05-background-and-theme-colors.md), [preview](guide/06-preview.md), [the audit](guide/07-audit.md), [export and publishing](guide/08-export-and-publish.md), [importing](guide/09-importing.md), [components and the Library](guide/10-components-and-library.md) and [keyboard shortcuts](guide/11-keyboard-shortcuts.md). [Coming from Dreamweaver or another visual builder](guide/12-coming-from-other-builders.md) maps familiar tools to FormWeb. This manual is the full reference the guide links to.
+
 ## Start the editor
 
 Install Node 22.12 or later, Python 3.12 and Rust stable. From the repository:
