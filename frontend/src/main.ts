@@ -2214,6 +2214,7 @@ registerCommands([
   { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
   { id: 'file.import', label: 'Import .fweb or .fpub file...', menu: 'File', run: () => importer.click() },
   { id: 'file.import-html', label: 'Import HTML...', menu: 'File', run: () => { openDock('left'); setSidebar('library'); libraryPanel.showTab('import'); }, enabled: ready },
+  { id: 'file.import-site', label: 'Import site from zip...', menu: 'File', run: () => { if (layout.state.left !== 'open' || activeSidebar !== 'library') toggleLeft('library'); libraryPanel.importSite(); }, enabled: ready },
   { id: 'file.save', label: 'Save', menu: 'File', keys: ['Mod+S'], global: true, group: 1, run: saveProject, enabled: ready },
   { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },
   { id: 'file.export', label: 'Export static site', menu: 'File', group: 2, run: exportSite, enabled: () => ready() && !isBusy(exportButton) },
