@@ -22,6 +22,7 @@ To find any command by name, with its shortcut, press Ctrl+K (Cmd+K on a Mac) an
 | Settings... | Edit | `Ctrl+,` | `Cmd+,` |
 | Quick insert | Insert | `Ctrl+Shift+L` | `Cmd+Shift+L` |
 | Preview as published | View | `Ctrl+Shift+P` | `Cmd+Shift+P` |
+| Show layout outlines | View | `Ctrl+Alt+G` | `Cmd+Option+G` |
 | Search commands | View | `Ctrl+K` | `Cmd+K` |
 | Search properties | Window | `Ctrl+Alt+F` | `Cmd+Option+F` |
 | Left panel | Window | `Ctrl+[` | `Cmd+[` |
