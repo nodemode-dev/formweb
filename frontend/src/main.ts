@@ -39,6 +39,7 @@ import { installLibrary } from './features/library';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
+import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
@@ -310,6 +311,8 @@ layersHead.append(layersTitle, button('', 'plus', () => setSidebar('insert')));
 layersHead.lastElementChild?.setAttribute('aria-label', 'Insert element');
 const layersList = element('div', 'list layers-scroll');
 pagesPane.append(pagesHead, pagesList, layersHead, layersList);
+sectionToggle(pagesHead.firstElementChild as HTMLElement, pagesList, 'pages');
+sectionToggle(layersTitle.firstElementChild as HTMLElement, layersList, 'layers');
 const insertPane = element('div', 'library-scroll');
 insertPane.hidden = true;
 const insertHead = element('div', 'panel-head');
@@ -1472,17 +1475,8 @@ function update(next: EditorState): void {
     row.classList.toggle('active', item.id === pageId);
     row.setAttribute('aria-current', item.id === pageId ? 'page' : 'false');
   });
-  const layers: { node: SiteNode; depth: number }[] = [];
-  function walk(id: string, depth: number): void {
-    const item = site.nodes[id];
-    if (!item) return;
-    /* Paint definitions (patterns and gradients) are not layers; listing them made each new one push the rows below it. */
-    if (item.tag === 'pattern' || item.tag === 'linearGradient' || item.tag === 'radialGradient') return;
-    layers.push({ node: item, depth });
-    item.children.forEach(child => { if (site.nodes[child]?.tag !== 'tspan') walk(child, depth + 1); });
-  }
-  walk(page.root, 0);
-  text(nodeCount, String(layers.length));
+  const { rows: layers, total: layerTotal } = panel.layerRows();
+  text(nodeCount, String(layerTotal));
   keyed(layersList, layers, item => item.node.id, () => {
     const row = button('', undefined, undefined, 'list-row layer-row');
     row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
@@ -1494,6 +1488,7 @@ function update(next: EditorState): void {
     text(row.children[1] as HTMLElement, item.node.name);
     text(row.children[2] as HTMLElement, item.node.componentId ? 'instance' : item.node.tag);
     row.style.setProperty('--depth', String(item.depth));
+    panel.paintLayer(row, item);
     row.classList.toggle('active', item.node.id === selectedId);
     row.setAttribute('aria-selected', String(item.node.id === selectedId));
   });
@@ -2251,7 +2246,7 @@ registerCommands([
   { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: ['Mod+Alt+J'], global: true, group: 3, run: () => agentDock?.show('chat') },
   { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
 ]);
-const panel = installPanel({ state, ready, command, commands, overlay, pagesList, layersList, run, status, pageId: () => pageId, openPage, selected: () => selectedId, select: selectNode, pageSettings: () => { openDock('right'); setInspector('page'); }, elementSettings: () => { openDock('right'); setInspector('design'); } });
+const panel = installPanel({ state, ready, command, commands, overlay, pagesList, layersList, run, status, pageId: () => pageId, openPage, selected: () => selectedId, select: selectNode, pageSettings: () => { openDock('right'); setInspector('page'); }, elementSettings: () => { openDock('right'); setInspector('design'); }, refresh: () => update(state()) });
 registerCommands(panel.commands);
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);

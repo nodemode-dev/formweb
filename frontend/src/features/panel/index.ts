@@ -5,6 +5,9 @@ import type { CommandDef } from '../../ui/shell';
 import { anchorOf, menuKeyPressed, showContextMenu, type MenuAnchor, type MenuEntry } from '../../ui/context-menu';
 import { copyOfPage, homeCommands, stepPageCommands } from './pages';
 import { startRename } from './rename';
+import { LayerFolds, type LayerRow } from './fold';
+import { element } from '../../ui/dom';
+import { icon } from '../../ui/icons';
 import '../../styles/panel.css';
 
 export interface PanelHost {
@@ -23,6 +26,7 @@ export interface PanelHost {
   layersList: HTMLElement;
   pageSettings: () => void;
   elementSettings: () => void;
+  refresh: () => void;
 }
 
 const KEY_RENAME = 'F2';
@@ -72,7 +76,12 @@ export function installPanel(host: PanelHost) {
     const name = nameOf(params);
     const write = (next: string): Promise<unknown> => host.command('node.update', { id: node.id, patch: { name: next } });
     if (name === null) {
+      let top = node.id;
+      for (let up = parentOf(top); up; up = parentOf(top)) top = up.id;
+      const owner = site().pages.find(page => page.root === top);
+      if (owner && owner.id !== host.pageId()) host.openPage(owner.id);
       if (host.selected() !== node.id) host.select(node.id);
+      if (folds.reveal(site(), host.pageId(), node.id)) host.refresh();
       if (!inPlace(rowIn(host.layersList, node.id), node.name, 'An element needs a name.', write)) { host.elementSettings(); focusField('name'); }
       return;
     }
@@ -102,6 +111,23 @@ export function installPanel(host: PanelHost) {
     const page = pageOf(params);
     return page ? batch(stepPageCommands(site(), page.id, step), step < 0 ? 'Page moved up.' : 'Page moved down.') : Promise.resolve();
   };
+  const folds = new LayerFolds();
+  let parents: string[] = [];
+  const rootOf = (): string => site().pages.find(page => page.id === host.pageId())?.root ?? site().pages[0].root;
+  function layerRows(): { rows: LayerRow[]; total: number } {
+    const result = folds.rows(site(), host.pageId(), rootOf(), host.selected());
+    parents = result.parents;
+    return result;
+  }
+  function fold(id: string, folded: boolean): boolean {
+    const changed = folds.set(host.pageId(), id, folded);
+    if (changed) host.refresh();
+    return changed;
+  }
+  function foldAll(folded: boolean): void {
+    folds.all(host.pageId(), folded ? parents : []);
+    host.refresh();
+  }
   const pageIndex = (): number => site().pages.findIndex(page => page.id === host.pageId());
   const idParam = { id: { type: 'string' as const, description: 'Page id; the open page when left out.' } };
 
@@ -112,6 +138,8 @@ export function installPanel(host: PanelHost) {
     { id: 'page.set-home', label: 'Set as home page', menu: 'Page', group: 4, run: setHome, enabled: () => host.ready() && pageIndex() > 0, params: idParam, mutates: true, description: 'Make a page the home page: it moves to the top of the page list and takes the / address, and the old home page gets an address from its name. One undo step.' },
     { id: 'page.move-up', label: 'Move page up', menu: 'Page', group: 4, run: params => stepPage(-1, params), enabled: () => host.ready() && pageIndex() > 0, params: idParam, mutates: true, description: 'Move a page one place up in the page list. Moving a page to the top makes it the first page, which the editor marks Home.' },
     { id: 'page.move-down', label: 'Move page down', menu: 'Page', group: 4, run: params => stepPage(1, params), enabled: () => host.ready() && pageIndex() < site().pages.length - 1, params: idParam, mutates: true, description: 'Move a page one place down in the page list.' },
+    { id: 'layer.collapse-all', label: 'Collapse all layers', run: () => foldAll(true), enabled: host.ready, description: 'Fold every layer that has children on the open page, leaving the page and its top-level elements. Changes only the layers list.' },
+    { id: 'layer.expand-all', label: 'Expand all layers', run: () => foldAll(false), enabled: host.ready, description: 'Unfold every layer on the open page. Changes only the layers list.' },
     { id: 'layer.rename', label: 'Rename element...', menu: 'Edit', group: 1, run: renameLayer, enabled: host.ready, params: { id: { type: 'string', description: 'Element id; the selected element when left out.' }, name: { type: 'string', description: 'New name; without it the name opens for typing.' } }, mutates: true, description: 'Rename an element in the layers list (its layer name, not its text).' }
   ];
 
@@ -146,7 +174,10 @@ export function installPanel(host: PanelHost) {
       { id: 'edit.delete', label: 'Delete', keys: registry.keyLabel(registry.get('edit.delete')!), enabled: removable, title: removable ? 'Delete element' : 'A page root cannot be deleted', run: () => invoke('edit.delete') },
       { separator: true },
       { id: 'arrange.up', label: 'Move up', keys: formatKeys(KEY_UP), enabled: movable && at > 0, title: locked ? 'Elements inside a linked component instance cannot be moved' : 'Move up', run: () => invoke('arrange.up') },
-      { id: 'arrange.down', label: 'Move down', keys: formatKeys(KEY_DOWN), enabled: movable && at < (parent?.children.length ?? 0) - 1, title: locked ? 'Elements inside a linked component instance cannot be moved' : 'Move down', run: () => invoke('arrange.down') }
+      { id: 'arrange.down', label: 'Move down', keys: formatKeys(KEY_DOWN), enabled: movable && at < (parent?.children.length ?? 0) - 1, title: locked ? 'Elements inside a linked component instance cannot be moved' : 'Move down', run: () => invoke('arrange.down') },
+      { separator: true },
+      { id: 'layer.collapse-all', label: 'Collapse all', enabled: parents.length > 0, run: () => invoke('layer.collapse-all') },
+      { id: 'layer.expand-all', label: 'Expand all', run: () => invoke('layer.expand-all') }
     ];
   }
 
@@ -164,16 +195,45 @@ export function installPanel(host: PanelHost) {
     row.addEventListener('keydown', event => {
       if (menuKeyPressed(event)) { event.preventDefault(); showPageMenu(row, row); }
       else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('page.rename', { id: row.dataset.key }); }
+      else if (plainKey(event, 'ArrowDown') || plainKey(event, 'ArrowUp')) { event.preventDefault(); focusRow(event.key === 'ArrowDown' ? row.nextElementSibling : row.previousElementSibling); }
     });
+  }
+
+  const focusRow = (row: Element | null | undefined): void => { if (row instanceof HTMLElement) row.focus(); };
+  function treeKey(row: HTMLElement, key: string): boolean {
+    const id = row.dataset.key!;
+    const kids = row.dataset.kids === 'true';
+    const folded = row.classList.contains('is-folded');
+    if (key === 'ArrowDown') focusRow(row.nextElementSibling);
+    else if (key === 'ArrowUp') focusRow(row.previousElementSibling);
+    else if (key === 'ArrowRight') { if (kids && folded) fold(id, false); else if (kids) focusRow(row.nextElementSibling); }
+    else if (key === 'ArrowLeft') { if (kids && !folded) fold(id, true); else { const up = parentOf(id); if (up) focusRow(rowIn(host.layersList, up.id)); } }
+    else return false;
+    return true;
   }
 
   function layerRow(row: HTMLElement, menu: (event: KeyboardEvent) => void): void {
+    const twisty = element('span', 'fw-twisty');
+    twisty.setAttribute('aria-hidden', 'true');
+    twisty.append(icon('chevron'));
+    twisty.addEventListener('click', event => { event.stopPropagation(); fold(row.dataset.key!, !row.classList.contains('is-folded')); });
+    twisty.addEventListener('dblclick', event => event.stopPropagation());
+    row.append(twisty);
     row.addEventListener('dblclick', () => invoke('layer.rename', { id: row.dataset.key }));
     row.addEventListener('keydown', event => {
+      if (event.defaultPrevented) return;
       if (menuKeyPressed(event)) { event.preventDefault(); menu(event); }
       else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('layer.rename', { id: row.dataset.key }); }
+      else if (plainKey(event, event.key) && treeKey(row, event.key)) event.preventDefault();
     });
   }
 
-  return { commands: definitions, pageRow, layerRow, layerEntries };
+  function paintLayer(row: HTMLElement, item: LayerRow): void {
+    const kids = String(item.kids);
+    if (row.dataset.kids !== kids) row.dataset.kids = kids;
+    if (row.classList.contains('is-folded') !== item.folded) row.classList.toggle('is-folded', item.folded);
+    if (item.kids) row.setAttribute('aria-expanded', String(!item.folded)); else row.removeAttribute('aria-expanded');
+  }
+
+  return { commands: definitions, pageRow, layerRow, layerEntries, layerRows, paintLayer };
 }
