@@ -54,3 +54,20 @@ something outside it could get in:
 
 Bugs that need someone to already control your machine, or to run a modified build
 of FormWeb, are ordinary bugs: please open an issue for those.
+
+## How site pages are kept apart from the editor
+
+A site can come from someone else (a `.fweb` or `.fpub` file, Import HTML, Import
+site from zip, a starter), and its own scripts (custom code, code sections, embeds)
+run when its pages are shown. Every page and file the service serves for a site,
+under `/preview/<token>/`, `/published/` and `/sites/`, carries a
+`Content-Security-Policy: sandbox` header that allows scripts, forms and pop-ups but
+not the same origin, so the browser gives the page an opaque origin of its own
+wherever it is opened: in a tab, in a window the editor opened, or in a frame. The
+page cannot read the editor's storage or window key, reach into the editor's window,
+or make a request the engine accepts: the engine refuses an opaque or foreign
+`Origin` on its API, and only the site's own files and its form endpoint answer an
+opaque origin, never with cookies or other credentials. Isolated code components get
+a stricter policy of their own, uploaded pictures, video and fonts are served with a sandbox
+that allows no script at all, and the page password form is the service's own page,
+which allows no script and posts with the service's own origin.
