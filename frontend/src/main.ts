@@ -36,6 +36,7 @@ import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
 import { installInspector } from './features/inspector';
 import { installLibrary } from './features/library';
+import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
@@ -307,7 +308,8 @@ const layersHead = element('div', 'panel-head');
 const nodeCount = element('span', 'row-detail');
 const layersTitle = element('div', 'control-row');
 layersTitle.append(element('span', 'eyebrow', 'Layers'), nodeCount);
-layersHead.append(layersTitle, button('', 'plus', () => setSidebar('insert')));
+const layersAdd = button('', 'plus', () => insertFlyout.toggle(layersAdd));
+layersHead.append(layersTitle, layersAdd);
 layersHead.lastElementChild?.setAttribute('aria-label', 'Insert element');
 const layersList = element('div', 'list layers-scroll');
 pagesPane.append(pagesHead, pagesList, layersHead, layersList);
@@ -382,6 +384,16 @@ async function insertComponent(id: string): Promise<void> {
   status('Component instance inserted.');
 }
 insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), sectionsHead, sectionsGrid, startersHead, startersGrid, element('div', 'sidebar-note', 'Sections insert after the selected section. Starter pages add a new page with its sections. Every insert is one undo step.'), componentsHead, captureWrap, componentList);
+const insertFlyout = installInsertFlyout({
+  host: overlay,
+  groups: () => [
+    { id: 'elements', title: 'Elements', items: [...INSERT_ELEMENTS.map(([name, symbol, kind]) => ({ id: kind, label: name, icon: symbol, run: () => insertElement(kind) })), { id: 'video', label: 'Video', icon: 'video' as Icon, run: () => inspectorExt.insertVideo() }] },
+    { id: 'sections', title: 'Sections', items: SECTIONS.map(entry => ({ id: entry.id, label: entry.label, icon: SECTION_ICONS[entry.id] || 'box', run: () => insertSection(entry.id) })) },
+    { id: 'components', title: 'Components', items: Object.values(state().site.components).map(entry => ({ id: entry.id, label: entry.name, icon: 'component' as Icon, raw: true, run: () => insertComponent(entry.id) })) }
+  ],
+  openAll: () => setSidebar('insert'),
+  run
+});
 let agentDock: Dock<'antigravity'> | null = null;
 const dockHost = formwebDock({
   dock: () => agentDock,
