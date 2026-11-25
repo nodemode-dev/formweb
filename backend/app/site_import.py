@@ -140,9 +140,12 @@ def read_archive(data: bytes) -> dict:
         if kind == 'asset':
             wanted = STORED.get(extension, extension)
             try:
-                found = sniff_extension(body, 'application/octet-stream')
+                try:
+                    found = sniff_extension(body, 'application/octet-stream')
+                except EngineError:
+                    found = ''
                 if found != wanted:
-                    raise EngineError(f'Its content is not a {wanted.upper()} file.')
+                    raise EngineError(f'Its content does not match its .{extension} name.')
                 if found == 'svg':
                     check_upload_svg(body)
                 if len(body) < 20:
@@ -341,7 +344,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     css = '\n'.join(part.strip() for part in styles if part.strip())
     if missing:
         shown = sorted(missing)
-        warnings.append(f'{len(shown)} reference{"s" if len(shown) != 1 else ""} point{"" if len(shown) != 1 else "s"} at files not in the archive: {", ".join(item[:80] for item in shown[:5])}{"..." if len(shown) > 5 else ""}.')
+        warnings.append(f'{len(shown)} reference{"s" if len(shown) != 1 else ""} point{"" if len(shown) != 1 else "s"} at files that were skipped or are not in the archive:{", ".join(item[:80] for item in shown[:5])}{"..." if len(shown) > 5 else ""}.')
     name = (title or posixpath.basename(path).rsplit('.', 1)[0] or 'Imported page')[:120]
     return {'file': path, 'name': name, 'title': title, 'description': description, 'html': markup, 'css': css, 'js': script.strip(), 'module': module and bool(script.strip()), 'warnings': warnings}
 
