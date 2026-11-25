@@ -16,7 +16,7 @@ The example uses **Harbour Ferries** (**Help > Demos > Harbour Ferries**). Out o
 1. Click **Audit** at the right end of the second row of the top bar (or choose **Page > Run SEO and accessibility audit**).
 2. The SEO & accessibility audit dialog lists each issue with its kind (WARNING), a sentence, a short code and the page or element it is about.
 
-![The SEO & accessibility audit dialog of Harbour Ferries: 1 issues found. Select an element to resolve it in the inspector. One warning: Routes needs a meta description, seo.description, p-routes, with a Select button](images/audit-results.webp)
+![The SEO & accessibility audit dialog of Harbour Ferries: 1 issue found. Select an element to resolve it in the inspector. One warning: Routes needs a meta description, seo.description, p-routes, with a Select button](images/audit-results.webp)
 
 ## Go straight to the problem with Select
 

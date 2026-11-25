@@ -46,12 +46,12 @@ This brings in a static site built elsewhere: every HTML file becomes a page.
 ![The Import site from zip view: a back button to Import HTML, the explanation of what an import does, and the Choose a .zip file button](images/import-site-panel.webp)
 
 3. Nothing changes yet. FormWeb shows a **Review** of what it found:
-   - the counts, for example "3 pages. 1 asset (42 KiB). 1 stylesheets and scripts. 1 file is skipped.";
+   - the counts, for example "3 pages. 1 asset (42 KiB). 1 stylesheet or script. 1 file is skipped.";
    - **Pages**: each page with its file and the address it will get. `index.html` becomes `/`, `about.html` becomes `/about`, `blog/index.html` becomes `/blog`. When your site already uses an address, the page gets another one and the review says why, for example "/about is taken, so it gets /about-2.";
    - **Add them**: **Add as new pages** (the default), or **Replace matching routes**, which keeps your existing page and its address and swaps its content. Replacing is offered only when nothing else on your site points into that page; otherwise the review says why it is not offered;
    - **Skipped**: each file left out, with the reason.
 
-![The review for a three-page zip imported into Coldmere Plumbing: 3 pages, 1 asset (42 KiB), 1 stylesheets and scripts, 1 file is skipped; Mill Lane Pottery from index.html goes to /home because / is taken; About us from about.html goes to /about-2 because /about is taken; Journal from blog/index.html goes to /blog; Add as new pages is chosen and Replace matching routes is greyed out with the reason; notes.txt is skipped because this type of file is not part of a static site import](images/import-site-review.webp)
+![The review for a three-page zip imported into Coldmere Plumbing: 3 pages, 1 asset (42 KiB), 1 stylesheet or script, 1 file is skipped; Mill Lane Pottery from index.html goes to /home because / is taken; About us from about.html goes to /about-2 because /about is taken; Journal from blog/index.html goes to /blog; Add as new pages is chosen and Replace matching routes is greyed out with the reason; notes.txt is skipped because this type of file is not part of a static site import](images/import-site-review.webp)
 
 4. Click **Import 3 pages** (the button names the count). The status line says "Imported 3 pages and 1 asset. 1 file was skipped." The whole import is one undo step.
 
