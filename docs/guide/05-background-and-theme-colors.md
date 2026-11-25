@@ -57,23 +57,23 @@ The site background is one color for the whole site. Every page that uses it sho
 
 A site does not have one until you set it. Until then, **Site background** means white, the browser default, as before, and opening an older site changes nothing.
 
-1. Choose **Site background**. The section shows **Site background colour**.
+1. Choose **Site background**. The section shows **Site background color**.
 2. Type a color and press Enter. The site background is created, this page uses it, and the status line says, for example, "Site background #f3efe6 created. "Hello" uses it, and new pages start with it." It is one undo step.
 
-If the site's design already has a page color, the section offers it as a link, such as **Use --bg (#f3f6f7), the theme page colour**. Click it to make that color the site background instead of typing a second one: the site background then follows the theme color, and the field edits that color.
+If the site's design already has a page color, the section offers it as a link, such as **Use --bg (#f3f6f7), the theme page color**. Click it to make that color the site background instead of typing a second one: the site background then follows the theme color, and the field edits that color.
 
-![The Page background section of Harbour Ferries' Timetable and fares page with Site background chosen: an empty Site background colour field, the link Use --bg (#f3f6f7), the theme page colour, the note that the page uses white, the browser default, and that a colour gives the site a background that new pages start with](images/background-site-offer.webp)
+![The Page background section of Harbour Ferries' Timetable and fares page with Site background chosen: an empty Site background color field, the link Use --bg (#f3f6f7), the theme page color, the note that the page uses white, the browser default, and that a color gives the site a background that new pages start with](images/background-site-offer.webp)
 
 Once the site has one:
 
-- **Site background colour** changes it. On a site with light and dark themes there are two fields, one per theme.
+- **Site background color** changes it. On a site with light and dark themes there are two fields, one per theme.
 - The note says how many pages use it, for example "8 of 8 pages use the site background."
 - **Use the site background on all pages** (also **Page > Use the site background on all pages**) puts every page on it, in one undo step. **Apply to all pages**, under **This page only**, still copies one page's own color to every page.
 - Choosing **Site background** on another page puts that page on it at once.
 
-Worked example in Harbour Ferries: open **Timetable and fares**, choose **Page > Page background...**, choose **Site background** and click **Use --bg (#f3f6f7), the theme page colour**. Then click **Use the site background on all pages**: the status line says "All 8 pages use the site background, #f3f6f7." Add a page with the **+** next to PAGES: its Background list starts with **Site background (#f3f6f7)**, and the new page opens in that color.
+Worked example in Harbour Ferries: open **Timetable and fares**, choose **Page > Page background...**, choose **Site background** and click **Use --bg (#f3f6f7), the theme page color**. Then click **Use the site background on all pages**: the status line says "All 8 pages use the site background, #f3f6f7." Add a page with the **+** next to PAGES: its Background list starts with **Site background (#f3f6f7)**, and the new page opens in that color.
 
-![The same section after the worked example: Site background chosen, Site background colour, Light reads #f3f6f7 and Site background colour, Dark reads #061722; the note says 8 of 8 pages use the site background and that it follows --bg, so changing it changes that theme colour everywhere it is used](images/background-site.webp)
+![The same section after the worked example: Site background chosen, Site background color, Light reads #f3f6f7 and Site background color, Dark reads #061722; the note says 8 of 8 pages use the site background and that it follows --bg, so changing it changes that theme color everywhere it is used](images/background-site.webp)
 
 ## Theme colors: change a color everywhere at once
 

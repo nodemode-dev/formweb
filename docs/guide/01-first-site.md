@@ -102,9 +102,9 @@ The **Reset** link next to a field removes your value, so the field goes back to
 ## 8. Set the site background
 
 1. Choose **Page > Page background...**. The right panel opens the **Page** tab at its Page background section. It offers three choices: **Site background** (chosen, because Classes has no background of its own), **Same as another page...** and **This page only**.
-2. The cursor is in **Site background colour**. Type `#e9dccb` and press Enter. The status line says "Site background #e9dccb created. "Classes" uses it, and new pages start with it."
+2. The cursor is in **Site background color**. Type `#e9dccb` and press Enter. The status line says "Site background #e9dccb created. "Classes" uses it, and new pages start with it."
 
-![The Page background part of the Page tab: Site background is chosen, Site background colour reads #e9dccb, the note says 1 of 2 pages use the site background and new pages start with it, then the Use the site background on all pages button and the Edit site theme colors link](images/first-site-page-background.webp)
+![The Page background part of the Page tab: Site background is chosen, Site background color reads #e9dccb, the note says 1 of 2 pages use the site background and new pages start with it, then the Use the site background on all pages button and the Edit site theme colors link](images/first-site-page-background.webp)
 
 The site background is one color for the whole site. Every page you add from now on starts with it, and changing it here changes every page that uses it. **Use the site background on all pages** puts Home on it too. To give Classes a color of its own instead, choose **This page only**. [Page background and theme colors](05-background-and-theme-colors.md) explains the rest.
 

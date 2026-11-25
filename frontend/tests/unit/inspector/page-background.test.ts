@@ -119,7 +119,7 @@ describe('text stays readable on a page background', () => {
     return (x + 0.05) / (y + 0.05);
   };
 
-  it('a dark background on a page with no text colour also gives it a readable text colour in the same request', async () => {
+  it('a dark background on a page with no text color also gives it a readable text color in the same request', async () => {
     pageId = 'about';
     const { handle } = mount();
     handle.field.value = '#0a2540';
@@ -137,7 +137,7 @@ describe('text stays readable on a page background', () => {
     expect(site.nodes['r-about'].styles.color).toBeUndefined();
   });
 
-  it('a text colour the page sets itself is kept', () => {
+  it('a text color the page sets itself is kept', () => {
     const site = threePages();
     site.nodes['r-about'].styles.color = '#ffcc00';
     const after = applyCommands(site, [mod.setBackgroundCommand(site, site.pages[2], '#111111')]);
@@ -321,7 +321,7 @@ describe('the site background', () => {
     expect(mod.startCommands(site, 'r-new', undefined)).toEqual([]);
   });
 
-  it('setting it the first time creates the token with the picked colour and points the page at it in one list of commands', () => {
+  it('setting it the first time creates the token with the picked color and points the page at it in one list of commands', () => {
     const site = threePages();
     const list = mod.useSiteBackgroundCommands(site, [site.pages[2]], '#0b1d2a');
     expect(list.map(step => step.command)).toEqual(['token.set', 'node.update']);
@@ -332,7 +332,7 @@ describe('the site background', () => {
     expect(mod.siteBackgroundColor(after)).toBe('#0b1d2a');
   });
 
-  it('is not created without a colour', () => {
+  it('is not created without a color', () => {
     const site = threePages();
     expect(mod.useSiteBackgroundCommands(site, site.pages, '')).toEqual([]);
   });
@@ -346,14 +346,14 @@ describe('the site background', () => {
     expect(mod.useSiteBackgroundCommands(after, after.pages)).toEqual([]);
   });
 
-  it('changing its colour changes the one token, so every page on it follows', () => {
+  it('changing its color changes the one token, so every page on it follows', () => {
     const site = applyCommands(withSiteBackground(), [{ command: 'node.update', params: { id: 'r-home', patch: { styles: { background: 'var(--page-background)' } } } }]);
     const after = applyCommands(site, [mod.siteBackgroundColorCommand(site, '#fdf6e3')]);
     expect(Object.keys(after.tokens).sort()).toEqual(['page-background', 'paper']);
     expect(mod.siteBackgroundPages(after).map(page => mod.resolveColor(after, mod.pageBackground(after, page)!.value))).toEqual(['#fdf6e3', '#fdf6e3']);
   });
 
-  it('offers the theme colour the home page already uses, and adopting it adds no second colour', () => {
+  it('offers the theme color the home page already uses, and adopting it adds no second color', () => {
     const site = threePages();
     expect(mod.pageColorToken(site)).toBe('paper');
     const after = applyCommands(site, mod.useSiteBackgroundCommands(site, [site.pages[2]], 'var(--paper)'));
@@ -364,7 +364,7 @@ describe('the site background', () => {
     expect(mod.pageColorToken(after)).toBeNull();
   });
 
-  it('a new page starts on it once it exists, and the choice names its colour', () => {
+  it('a new page starts on it once it exists, and the choice names its color', () => {
     const site = withSiteBackground();
     expect(mod.startChoices(site, 'fares')[0]).toEqual({ id: '', name: 'Site background (#0b1d2a)' });
     expect(mod.startCommands(site, 'r-new', undefined)).toEqual([{ command: 'node.update', params: { id: 'r-new', patch: { styles: { background: 'var(--page-background)' } } } }]);
@@ -399,7 +399,16 @@ describe('the three choices in the Page background group', () => {
     expect(requests).toEqual([]);
   });
 
-  it('typing the first site background colour creates the token and puts the open page on it in one request', async () => {
+  it('the site background field and the theme page color offer are spelled color, like the rest of the app', () => {
+    pageId = 'about';
+    const { section } = mount();
+    expect(siteField(section).closest('.field')!.textContent).toBe('Site background color');
+    expect(siteField(section).getAttribute('aria-label')).toBe('Site background color');
+    expect(section.querySelector('[data-cmd="page.background-site-theme"]')!.textContent).toBe('Use --paper (#f3efe6), the theme page color');
+    expect(section.textContent).not.toMatch(/colour/i);
+  });
+
+  it('typing the first site background color creates the token and puts the open page on it in one request', async () => {
     pageId = 'about';
     const { handle, section } = mount();
     siteField(section).value = '#0b1d2a';
@@ -435,7 +444,7 @@ describe('the three choices in the Page background group', () => {
     expect(command(handle, 'page.background-site-all').enabled!()).toBe(false);
   });
 
-  it('on a site with themes the second colour is the other theme value of the same token', async () => {
+  it('on a site with themes the second color is the other theme value of the same token', async () => {
     state = { ...state, site: applyCommands(state.site, [...mod.useSiteBackgroundCommands(state.site, [state.site.pages[2]], '#fafafa'), { command: 'design.set', params: { key: 'themes', value: { default: 'light', followSystem: false, values: {} } } }]) };
     pageId = 'about';
     const { section } = mount();
@@ -449,7 +458,7 @@ describe('the three choices in the Page background group', () => {
     expect(state.site.tokens['page-background']).toBe('#fafafa');
   });
 
-  it('offers the theme page colour, and using it makes the site background follow it without a second colour', async () => {
+  it('offers the theme page color, and using it makes the site background follow it without a second color', async () => {
     pageId = 'about';
     const { handle, section } = mount();
     const offer = section.querySelector<HTMLButtonElement>('[data-cmd="page.background-site-theme"]')!;
@@ -463,7 +472,7 @@ describe('the three choices in the Page background group', () => {
     expect(offer.hidden).toBe(true);
   });
 
-  it('an empty site background colour is refused once the token exists', async () => {
+  it('an empty site background color is refused once the token exists', async () => {
     state = { ...state, site: applyCommands(state.site, mod.useSiteBackgroundCommands(state.site, [state.site.pages[2]], '#0b1d2a')) };
     pageId = 'about';
     const { section } = mount();

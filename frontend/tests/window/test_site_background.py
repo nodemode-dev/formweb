@@ -51,7 +51,7 @@ def root_of(editor, site, name):
     return next(p for p in site["pages"] if p["name"] == name)
 
 
-def test_the_first_site_background_colour_shows_on_the_canvas_and_on_the_published_page(blank, chromium):
+def test_the_first_site_background_color_shows_on_the_canvas_and_on_the_published_page(blank, chromium):
     shown = group(blank)
     expect(shown.get_by_role("radio", name="Site background")).to_be_checked()
     before = blank.site()["site"]

@@ -85,18 +85,18 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
   const sitePart = element('div', 'fw-pagebg-site');
   const siteColor = element('div', 'field full fw-pagebg-field');
   const siteName = element('span', 'field-label');
-  label(siteName, 'Site background colour');
+  label(siteName, 'Site background color');
   const siteField = host.input('#ffffff');
   siteField.dataset.field = 'page.site-background';
   siteField.setAttribute('list', 'fw-brand-colors');
-  labelAttr(siteField, 'aria-label', 'Site background colour');
+  labelAttr(siteField, 'aria-label', 'Site background color');
   siteColor.append(siteName, siteField);
   const altColor = element('div', 'field full fw-pagebg-field');
   const altName = element('span', 'field-label');
   const altField = host.input();
   altField.dataset.field = 'page.site-background-theme';
   altColor.append(altName, altField);
-  const adopt = element('button', 'fw-pagebg-link', 'Use the theme page colour');
+  const adopt = element('button', 'fw-pagebg-link', 'Use the theme page color');
   adopt.type = 'button';
   adopt.dataset.cmd = 'page.background-site-theme';
   const siteNote = element('p', 'micro fw-pagebg-note');
@@ -129,7 +129,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     const created = !siteBackgroundKey(next.site);
     const refusal = color ? brandRefusal(next, color) || backgroundRefusal(next.site, color) : '';
     if (refusal) throw new Error(refusal);
-    if (created && !color) throw new Error(t('Pick a colour for the site background first.'));
+    if (created && !color) throw new Error(t('Pick a color for the site background first.'));
     const list = useSiteBackgroundCommands(next.site, pages, color);
     picked = null;
     if (!list.length) { host.status(t('Every page already uses the site background.')); if (filled) paint(filled); return; }
@@ -147,14 +147,14 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     if (!siteBackgroundKey(next.site)) { if (!other) await useSite(next.site.pages.filter(entry => entry.id === host.page().id), entered); return; }
     const refusal = brandRefusal(next, entered) || backgroundRefusal(next.site, entered);
     if (refusal) throw new Error(refusal);
-    if (!other && !entered) throw new Error(t('The site background needs a colour. To stop using it on this page, choose This page only.'));
+    if (!other && !entered) throw new Error(t('The site background needs a color. To stop using it on this page, choose This page only.'));
     const target = siteBackgroundTarget(next.site)!;
     const step = other ? otherThemeValueCommand(next, target, entered) : siteBackgroundColorCommand(next.site, entered);
     const seen = { ...next.site, tokens: { ...next.site.tokens, [target]: entered } };
     const text = other ? [] : readableTextCommands(seen, siteBackgroundPages(next.site), SITE_BACKGROUND_VALUE);
     await commands([step, ...text]);
     const count = siteBackgroundPages(host.state()?.site ?? next.site).length;
-    host.status(tn(count, 'Site background colour is now {0}; {1} page uses it.', 'Site background colour is now {0}; {1} pages use it.', [entered || resolveColor(next.site, `var(--${target})`), count]));
+    host.status(tn(count, 'Site background color is now {0}; {1} page uses it.', 'Site background color is now {0}; {1} pages use it.', [entered || resolveColor(next.site, `var(--${target})`), count]));
   }
   siteField.addEventListener('change', () => void host.run(async () => {
     try { await setSiteColor(siteField.value, false); } catch (error) { if (filled) { value(siteField, ''); paint(filled, true); } throw error; }
@@ -187,18 +187,18 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     if (siteField.placeholder !== (shown || '#ffffff')) siteField.placeholder = shown || '#ffffff';
     if (themed && target) {
       const alt = otherTheme(themes);
-      label(siteName, 'Site background colour, {0}', [{ t: themes.default === 'light' ? 'Light' : 'Dark' }]);
-      label(altName, 'Site background colour, {0}', [{ t: alt === 'light' ? 'Light' : 'Dark' }]);
+      label(siteName, 'Site background color, {0}', [{ t: themes.default === 'light' ? 'Light' : 'Dark' }]);
+      label(altName, 'Site background color, {0}', [{ t: alt === 'light' ? 'Light' : 'Dark' }]);
       value(altField, themes.values[alt][target] || '');
       if (altField.placeholder !== base) altField.placeholder = base;
-    } else label(siteName, 'Site background colour');
+    } else label(siteName, 'Site background color');
     show(altColor, themed && !!target);
     const candidate = pageColorToken(site);
-    if (candidate) label(adopt, 'Use --{0} ({1}), the theme page colour',[candidate.replace(/^--/, ''), resolveColor(site, site.tokens[candidate])]);
+    if (candidate) label(adopt, 'Use --{0} ({1}), the theme page color',[candidate.replace(/^--/, ''), resolveColor(site, site.tokens[candidate])]);
     show(adopt, !!candidate);
     const count = siteBackgroundPages(site).length;
-    if (!key) label(siteNote, 'Using the site background: white, the browser default. Pick a colour to give the site a background; this page uses it at once and new pages start with it.');
-    else if (target !== key) label(siteNote, '{0} of {1} pages use the site background. It follows --{2}, so changing it changes that theme colour everywhere it is used.', [count, site.pages.length, target!.replace(/^--/, '')]);
+    if (!key) label(siteNote, 'Using the site background: white, the browser default. Pick a color to give the site a background; this page uses it at once and new pages start with it.');
+    else if (target !== key) label(siteNote, '{0} of {1} pages use the site background. It follows --{2}, so changing it changes that theme color everywhere it is used.', [count, site.pages.length, target!.replace(/^--/, '')]);
     else label(siteNote, '{0} of {1} pages use the site background. New pages start with it.', [count, site.pages.length]);
     const allOn = !!key && count === site.pages.length;
     if (siteAll.disabled !== (!key || allOn)) siteAll.disabled = !key || allOn;
@@ -250,7 +250,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
         else label(own, 'This page uses {0}.', [mine.value]);
         if (siteKey) label(inherited, 'Clear removes it and the page shows white. Choose Site background to use {0}.', [siteBackgroundColor(site)]);
         else label(inherited, 'Clear returns it to the site background: white, the browser default.');
-      } else if (siteKey) label(inherited, 'This page has no background of its own and shows white. Type a colour to give it one.');
+      } else if (siteKey) label(inherited, 'This page has no background of its own and shows white. Type a color to give it one.');
       else label(inherited, 'Using the site background: white, the browser default.');
       show(own, !!mine);
       const common = mine ? null : commonBackground(site, page.id);
@@ -277,20 +277,20 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
         const mode = next ? picked?.mode ?? backgroundMode(next.site, host.page()) : 'own';
         (mode === 'site' ? siteField : mode === 'own' ? field : radios.get(mode)!).focus({ preventScroll: true });
       } },
-      { id: 'page.background-site', label: 'Use the site background', menu: 'Page', group: 4, enabled: () => { const next = host.state(); return !!next && !usesSiteBackground(next.site, host.page()); }, params: { color: { type: 'string', description: 'Colour for the site background. Needed only when the site has none yet: it creates the --page-background token in the same undo step.' } }, mutates: true, description: 'Give the open page the site background, var(--page-background). One undo step.', run: params => {
+      { id: 'page.background-site', label: 'Use the site background', menu: 'Page', group: 4, enabled: () => { const next = host.state(); return !!next && !usesSiteBackground(next.site, host.page()); }, params: { color: { type: 'string', description: 'Color for the site background. Needed only when the site has none yet: it creates the --page-background token in the same undo step.' } }, mutates: true, description: 'Give the open page the site background, var(--page-background). One undo step.', run: params => {
         const next = host.state();
         const color = typeof params?.color === 'string' ? params.color : '';
         if (next && !siteBackgroundKey(next.site) && !color) { choose('site'); return; }
         return useSite(next ? next.site.pages.filter(entry => entry.id === host.page().id) : [], color);
       } },
       { id: 'page.background-site-all', label: 'Use the site background on all pages', menu: 'Page', group: 4, enabled: () => { const next = host.state(); return !!next && !!siteBackgroundKey(next.site) && siteBackgroundPages(next.site).length < next.site.pages.length; }, mutates: true, description: 'Give every page the site background, var(--page-background), in one undo step.', run: () => useSite(host.state()?.site.pages ?? []) },
-      { id: 'page.background-site-color', label: 'Set the site background colour', enabled: ready, params: { color: { type: 'string', required: true, description: 'A CSS colour such as #f3efe6 or a theme colour such as var(--paper).' }, theme: { type: 'string', enum: ['light', 'dark'], description: 'On a site with themes, the theme this colour is for; leave out for the default theme.' } }, mutates: true, description: 'Change the colour of the site background, the --page-background token, which every page on the site background shows. On a site without one it is created and the open page uses it, in one undo step.', run: params => {
+      { id: 'page.background-site-color', label: 'Set the site background color', enabled: ready, params: { color: { type: 'string', required: true, description: 'A CSS color such as #f3efe6 or a theme color such as var(--paper).' }, theme: { type: 'string', enum: ['light', 'dark'], description: 'On a site with themes, the theme this color is for; leave out for the default theme.' } }, mutates: true, description: 'Change the color of the site background, the --page-background token, which every page on the site background shows. On a site without one it is created and the open page uses it, in one undo step.', run: params => {
         const next = host.state();
         const color = typeof params?.color === 'string' ? params.color : '';
         const other = !!next && hasThemes(next) && params?.theme === otherTheme(readThemes(next));
         return setSiteColor(color, other);
       } },
-      { id: 'page.background-site-theme', label: 'Use the theme page colour as the site background', enabled: () => { const next = host.state(); return !!next && !!pageColorToken(next.site); }, mutates: true, description: 'On a site without a site background whose theme has a page colour such as --paper, make --page-background follow it and give the open page the site background. One undo step.', run: () => adoptThemeColor() },
+      { id: 'page.background-site-theme', label: 'Use the theme page color as the site background', enabled: () => { const next = host.state(); return !!next && !!pageColorToken(next.site); }, mutates: true, description: 'On a site without a site background whose theme has a page color such as --paper, make --page-background follow it and give the open page the site background. One undo step.', run: () => adoptThemeColor() },
       { id: 'page.background-clear', label: 'Clear page background', menu: 'Page', group: 4, enabled: () => !!current(), run: async () => {
         const next = host.state()!;
         const step = setBackgroundCommand(next.site, host.page(), '');

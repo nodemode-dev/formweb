@@ -36,7 +36,7 @@ describe('the styles an inserted element starts with', () => {
     expect(section.padding).toBeTruthy();
   });
 
-  it('every part without a fill of its own takes its text colour from the page', () => {
+  it('every part without a fill of its own takes its text color from the page', () => {
     const styles = starterStyles(siteWith({ accent: '#d6f05d' }));
     for (const part of ALL) {
       const own = styles[part];
