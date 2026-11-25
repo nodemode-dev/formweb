@@ -36,7 +36,7 @@ import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
 import { installInspector } from './features/inspector';
-import { installPageBackground } from './features/inspector/page-background';
+import { installPageBackground, startChoices, startCommands } from './features/inspector/page-background';
 import { installCanvasMenu } from './features/canvas-menu';
 import { installInspectorSearch, sectionId } from './features/inspector/search';
 import { installLibrary } from './features/library';
@@ -976,7 +976,9 @@ const pageDialogPane = dialogPane('page');
 const newPageName = input('About');
 const newPageSlug = input('/about');
 const newPageGrid = element('div', 'form-grid');
-newPageGrid.append(field('Page name', newPageName), field('URL slug', newPageSlug));
+const newPageLook = select([]);
+newPageLook.dataset.field = 'page.start-background';
+newPageGrid.append(field('Page name', newPageName), field('URL slug', newPageSlug), field('Background', newPageLook, true));
 pageDialogPane.append(element('p', 'empty-note', 'Add a page with its own root container, content and metadata.'), newPageGrid);
 const pageSlug = installPageSlug(newPageName, newPageSlug, pageDialogPane, () => state().site);
 const bulkPane = dialogPane('bulk');
@@ -1799,7 +1801,7 @@ function openDialog(id: string): void {
   if (id === 'cms') { updateCms(); fillCmsItem(); }
   if (id === 'locales') { localeEditing = locale; updateLocales(); fillLocale(); }
   if (id === 'tokens') updateTokens();
-  if (id === 'page') pageSlug.reset();
+  if (id === 'page') { pageSlug.reset(); options(newPageLook, startChoices(state().site, currentPage().id)); newPageLook.value = ''; }
   if (id === 'brand') brandKit.update(state());
   if (id === 'team') void teamLibraries.refresh().catch(error => status(error instanceof Error ? error.message : String(error), true));
   if (id === 'stock') void stockLibrary.open().catch(error => status(error instanceof Error ? error.message : String(error), true));
@@ -1836,7 +1838,9 @@ async function performDialogAction(): Promise<void> {
     status('New site created.');
   } else if (dialogMode === 'page') {
     const before = new Set(state().site.pages.map(page => page.id));
-    await command('page.add', { name: newPageName.value.trim() || 'Untitled page', slug: pageSlug.resolve() });
+    const look = startCommands(state().site, uuid('page-root'), state().site.pages.find(page => page.id === newPageLook.value));
+    if (look.length) await commands([{ command: 'page.add', params: { name: newPageName.value.trim() || 'Untitled page', slug: pageSlug.resolve(), id: uuid('page'), root: look[0].params.id } }, ...look]);
+    else await command('page.add', { name: newPageName.value.trim() || 'Untitled page', slug: pageSlug.resolve() });
     const page = state().site.pages.find(page => !before.has(page.id));
     if (page) { pageId = page.id; selectedId = page.root; update(state()); }
     closeDialog();
