@@ -27,6 +27,7 @@ const PREF_KEY = 'formweb.homePrefs';
 const NAV_W_KEY = 'formweb.homeNav';
 const NAV_HIDDEN_KEY = 'formweb.homeNavHidden';
 const START_CARDS = 5;
+export const GUIDE_URL = 'https://github.com/nodemode-dev/formweb/tree/main/docs/guide';
 
 const escapeHtml = (value: string): string => value.replace(/[&<>"]/g, c => (c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : '&quot;'));
 
@@ -99,6 +100,7 @@ export class HomeScreen {
             <button class="fw-home-action is-primary" type="button" data-run="file.new">${glyph('plus')}<span class="fw-home-label" data-t>New site...</span></button>
             <button class="fw-home-action" type="button" data-run="file.projects">${glyph('folder')}<span class="fw-home-label" data-t>Open...</span></button>
             <button class="fw-home-action is-ghost" type="button" data-run="page.generate">${glyph('wand')}<span class="fw-home-label" data-t>Generate from a description</span></button>
+            <a class="fw-home-action is-ghost" href="${GUIDE_URL}" target="_blank" rel="noopener">${glyph('info')}<span class="fw-home-label" data-t>New to FormWeb? Read the guide</span></a>
           </div>
         </div>
         <section class="fw-home-section"><div class="fw-home-section-head"><h2 class="fw-home-section-title" data-t>Recent</h2><button class="fw-home-btn is-ghost" type="button" data-v="recent" data-t>See all</button></div><div class="fw-home-slot" data-slot="start"></div></section>

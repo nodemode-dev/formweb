@@ -66,6 +66,7 @@
 .fw-home-action { display: flex; align-items: center; justify-content: flex-start; gap: 8px; height: 38px; min-height: 0; padding: 0 6px 0 12px; border: 1px solid var(--line-1); border-radius: 9px; background: var(--surface-1); color: var(--text-primary); font: inherit; font-size: 13px; white-space: nowrap; cursor: pointer; }
 .fw-home-action.is-primary { border-color: var(--cta-bg); background: var(--cta-bg); color: var(--cta-text); box-shadow: 0 0 22px rgba(255, 255, 255, 0.09); }
 .fw-home-action.is-ghost { background: transparent; }
+a.fw-home-action { text-decoration: none; }
 .fw-home-action:hover { filter: brightness(1.08); }
 .fw-home-action.is-primary:hover { filter: brightness(0.96); background: var(--cta-bg); }
 .fw-home-action:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
