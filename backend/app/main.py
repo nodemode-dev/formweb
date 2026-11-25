@@ -103,7 +103,9 @@ class LocalAccess:
         context_token = actor.set(identity)
         async def guarded_send(message):
             if message['type'] == 'http.response.start':
-                message['headers'] = list(message.get('headers', [])) + [(b'x-content-type-options', b'nosniff'), (b'referrer-policy', b'no-referrer')]
+                message['headers'] = list(message.get('headers', [])) + [(b'x-content-type-options', b'nosniff')]
+                if not any(key.lower() == b'referrer-policy' for key, _ in message['headers']):
+                    message['headers'].append((b'referrer-policy', b'no-referrer'))
                 if origin == 'null' and (verified_preview or site_page):
                     message['headers'].extend([(b'access-control-allow-origin', b'null'), (b'vary', b'Origin')])
                 elif site_space:

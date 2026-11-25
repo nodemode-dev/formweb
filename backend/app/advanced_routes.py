@@ -16,6 +16,7 @@ from .service import safe_export_path, studio
 from .workflows import dispatch
 
 router = APIRouter()
+GATE_HEADERS = {'Cache-Control': 'private, no-store', 'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'", 'Referrer-Policy': 'same-origin'}
 
 
 async def read_body(request, limit=8 * 1024 * 1024):
@@ -243,7 +244,7 @@ async def serve_release(slug, version, path, request, active=False):
             if not studio.passwords.unlocked(request, gate):
                 prefix = '/sites/' + slug if active else '/published/' + slug + '/' + version
                 page = studio.passwords.form(f'{prefix}/{PASSWORD_FORM}', '/' + path.strip('/'), release['site'].get('name', 'Protected page'))
-                return Response(page, status_code=401, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
+                return Response(page, status_code=401, media_type='text/html', headers=GATE_HEADERS)
     headers = {'Cache-Control': 'private, no-store' if gated or active else 'public, max-age=31536000, immutable'}
     if path.startswith('assets/components/') and path.endswith('.html'):
         headers['Content-Security-Policy'] = "sandbox allow-scripts; default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'"
@@ -263,7 +264,7 @@ async def unlock(request, slug, version, prefix):
     client = request.client.host if request.client else 'local'
     if not password or not studio.passwords.check(gate, password, client):
         page = studio.passwords.form(f'{prefix}/{PASSWORD_FORM}', safe_route, release['site'].get('name', 'Protected page'), 'That password is not right.')
-        return Response(page, status_code=401, media_type='text/html', headers={'Cache-Control': 'private, no-store'})
+        return Response(page, status_code=401, media_type='text/html', headers=GATE_HEADERS)
     response = RedirectResponse(prefix + safe_route + ('' if safe_route.endswith('/') else '/'), status_code=303, headers={'Cache-Control': 'private, no-store'})
     response.set_cookie(studio.passwords.cookie_name(gate), studio.passwords.token(gate), httponly=True, samesite='lax', path=prefix, max_age=7 * 86400)
     return response
