@@ -381,7 +381,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
 
 def _emptiable(site: dict, root: str) -> bool:
     """A page's content can be swapped for an import when nothing outside its tree points into it: no component
-    source and no code, motion or variables entry naming one of its elements."""
+    source and no code, motion or variables entry naming one of its elements; its own code sections go with it."""
     nodes = site.get('nodes') or {}
     inside, stack = set(), list(nodes.get(root, {}).get('children') or [])
     while stack:
@@ -394,7 +394,11 @@ def _emptiable(site: dict, root: str) -> bool:
         return True
     if any(component.get('root') in inside for component in (site.get('components') or {}).values()):
         return False
-    named = set(re.findall(r'"([A-Za-z0-9_-]{1,96})"', json.dumps(site.get('extensions') or {})))
+    extensions = dict(site.get('extensions') or {})
+    code = dict(extensions.get('code') or {})
+    code['sections'] = {key: value for key, value in (code.get('sections') or {}).items() if key not in inside}
+    extensions['code'] = code
+    named = set(re.findall(r'"([A-Za-z0-9_-]{1,96})"', json.dumps(extensions)))
     return not (inside & named)
 
 
