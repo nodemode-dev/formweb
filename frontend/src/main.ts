@@ -41,6 +41,7 @@ import { installPageBackground, startChoices, startCommands } from './features/i
 import { installCanvasMenu } from './features/canvas-menu';
 import { installInspectorSearch, sectionId } from './features/inspector/search';
 import { installLibrary } from './features/library';
+import { convertSections, installConvert } from './features/convert';
 import { installInsertFlyout } from './features/panel/insert-flyout';
 import { installCrumbs } from './features/crumbs';
 import { watchFit } from './ui/fit';
@@ -452,7 +453,8 @@ const libraryPanel = installLibrary({
     update(state());
   },
   notify: (message, error) => status(message, error),
-  url: path => apiBase + path
+  url: path => apiBase + path,
+  convert: hosts => convertSections(hosts, true)
 });
 sidebar.append(sidebarTabs, pagesPane, insertPane, agentsPane, libraryPanel.element);
 
@@ -2217,7 +2219,7 @@ function showLayerMenu(event: MouseEvent | KeyboardEvent, id: string): void {
     ['edit.duplicate', countLabel('Duplicate', 'Duplicate {0} elements', many), 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
   ];
   const entries: MenuEntry[] = rows.map(([commandId, english, blocked, enabledNow, action]) => ({ id: commandId, label: english, title: enabledNow ? english : blocked, enabled: enabledNow, keys: commandRegistry.keyLabel(commandRegistry.get(commandId)!), run: action }));
-  entries.push(...panel.layerEntries(id));
+  entries.push(...panel.layerEntries(id), ...converter.entries(id));
   const row = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
   const anchor = !(event instanceof MouseEvent) ? row ?? { x: 0, y: 0 } : row ? anchorOf(event, row) : { x: event.clientX, y: event.clientY };
   showContextMenu(entries, anchor, { host: overlay, className: 'fw-layer-menu', run, returnFocus: row });
@@ -2328,6 +2330,8 @@ registerCommands(wishlist.commands);
 registerCommands(pageBackground.commands);
 registerCommands(installCanvasMenu({ frame: canvas.frame, loaded: canvas.loaded(), overlay, ready, run, status, selected: () => selectedId, select: selectNode, selectionIds: selectedIds, topMost, selectNodes, pageRoot: () => currentPage().root, breakpoint: () => breakpoint, canDuplicate, copy: copySelection, cut: cutSelection, paste: pasteFromClipboard, duplicate: duplicateSelection, inspector: tab => { openDock('right'); setInspector(tab); }, field: (kind, key) => (kind === 'style' ? styleFields : attrsFields).get(key) }).commands);
 subscribe(() => wishlist.refresh());
+const converter = installConvert({ overlay, selected: () => selectedId, select: selectNode, ready, notify: (message, undo) => notice.show(message, undo ? { action: { label: 'Undo', run: undo } } : {}), status, run, undo: () => command('history.undo') });
+registerCommands(converter.commands);
 const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.askReplace(state().site.name);
 const demoHooks: DemoHooks = { mayReplace: () => { demoPreview.close(); return mayReplace(); }, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
 const demoPreview = new DemoPreview(id => void openDemo(demoHooks, id));

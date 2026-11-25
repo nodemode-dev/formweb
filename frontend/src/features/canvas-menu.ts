@@ -6,6 +6,7 @@ import { t } from '../i18n';
 import { invoke } from './panel';
 import { canContain } from './panel/drop';
 import { countLabel } from './selection-actions';
+import { convertEntries } from './convert';
 import type { SiteNode } from '../types';
 
 export interface CanvasMenuHost {
@@ -221,6 +222,7 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
       sep
     );
     for (const link of LINKS) if (link.applies(node)) entries.push(item(link.id, link.label, () => invoke(link.id)));
+    entries.push(...convertEntries(id));
     entries.push(
       sep,
       item('style.copy', 'Copy styles', () => invoke('style.copy')),
