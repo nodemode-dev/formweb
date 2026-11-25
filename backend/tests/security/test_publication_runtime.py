@@ -236,6 +236,24 @@ def test_a_members_link_ticket_needs_a_signed_in_member_and_its_own_publication(
     assert runtime(client, club["other"], "/member/resume", {"ticket": ticket}).status_code == 401
 
 
+def test_a_members_page_names_its_own_files_with_a_key_that_answers_its_sandbox(client, club):
+    release = club["club"]
+    visitor = signed_in(client, release).json()["visitorToken"]
+    ticket = runtime(client, release, "/member/handoff", {}, headers={"x-formweb-visitor": visitor}).json()["ticket"]
+    html = client.get(release["prefix"] + "members/", params={"fw-member": ticket}).text
+    stylesheet = re.search(r'href="\.\./(_fw/[^"]+/assets/pages/[0-9]+\.css)"', html).group(1)
+    own = stylesheet.split("/", 2)[2]
+    assert client.get(release["prefix"] + own, headers=OPAQUE).status_code == 401
+    r = client.get(release["prefix"] + stylesheet, headers=OPAQUE)
+    assert r.status_code == 200
+    assert r.headers["content-type"].startswith("text/css")
+    assert r.headers["access-control-allow-origin"] == "null"
+    forged = stylesheet.replace("_fw/", "_fw/A", 1)
+    assert client.get(release["prefix"] + forged, headers=OPAQUE).status_code in (403, 404)
+    elsewhere = stylesheet.split("/assets/", 1)[0] + "/assets/pages/0.css"
+    assert client.get(club["other"]["prefix"] + elsewhere, headers=OPAQUE).status_code in (403, 404)
+
+
 def test_the_publication_script_reads_its_own_pages_and_route_list_with_its_token(client, club):
     release = club["club"]
     own = {**OPAQUE, "x-formweb-runtime": release["config"]["context"]["runtimeToken"]}

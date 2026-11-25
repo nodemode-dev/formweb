@@ -150,6 +150,7 @@ def test_a_local_publication_signs_a_member_in_opens_the_members_page_and_shows_
     page.wait_for_function("() => document.querySelector('[data-fw-owner=members-gate] [data-fw-output]').textContent === 'Authenticated member session.'")
     assert page.evaluate("() => location.pathname").endswith("/members/")
     assert "fw-member" not in page.evaluate("() => location.href")
+    assert page.evaluate("() => getComputedStyle(document.querySelector('main')).paddingTop") == "64px"
     page.reload()
     page.wait_for_load_state("load")
     assert MEMBERS_WORD not in page.content()
