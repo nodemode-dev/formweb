@@ -41,6 +41,7 @@ COMMAND_DOCS = {
     'page.update': '{id, patch:{name?, slug?, seo?}}',
     'page.remove': '{id}',
     'page.duplicate': '{id, name?, slug} copies the whole page tree with fresh IDs',
+    'page.move': '{id, index} moves the page to that place in the page list (0 is first); the first page is the home page the editor opens and marks Home, while the exported index.html is the page whose slug is /',
     'page.bulk': '{template, rows:[{slug, name?, values:{column:value}}]} 1 to 300 pages from a template; {{column}} tokens in text, attributes and SEO are filled',
     'token.set': '{name, value} sets a CSS custom property',
     'token.define': '{name, type: color|number|length|text, value} typed design token',
@@ -89,7 +90,7 @@ COMMAND_DOCS = {
 
 DOMAINS = [
     ('edit_nodes', 'Edit elements', 'Add, change, move or remove elements (sections, text, images, buttons, forms) on a page. Use for most visual edits.', ['node.add', 'node.update', 'node.move', 'node.remove', 'node.duplicate', 'node.paste']),
-    ('edit_pages', 'Edit pages', 'Create, rename, re-slug, duplicate, bulk-create from data, or remove pages, and set page SEO.', ['page.add', 'page.update', 'page.duplicate', 'page.bulk', 'page.remove']),
+    ('edit_pages', 'Edit pages', 'Create, rename, re-slug, duplicate, reorder, bulk-create from data, or remove pages, and set page SEO.', ['page.add', 'page.update', 'page.duplicate', 'page.move', 'page.bulk', 'page.remove']),
     ('edit_styles', 'Edit design system', 'Change design tokens, text presets and responsive breakpoints shared across the site.', ['token.set', 'token.define', 'textpreset.set', 'textpreset.apply', 'breakpoint.set', 'breakpoint.remove']),
     ('edit_components', 'Edit components', 'Create reusable components, insert linked instances, set props, variants and slots, or work with pinned libraries.', ['component.create', 'component.insert', 'component.configure', 'component.props', 'component.variant', 'component.reset', 'component.slot', 'component.detach', 'library.import', 'library.update', 'library.detach']),
     ('edit_cms', 'Edit CMS', 'Create collections, add or replace items, bind elements to fields and set list queries for dynamic pages.', ['collection.create', 'collection.update', 'cms.upsert', 'cms.remove', 'cms.replace', 'cms.query', 'cms.binding', 'cms.localize', 'cms.list', 'cms.reorder', 'cms.move', 'cms.folder']),

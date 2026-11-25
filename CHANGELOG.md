@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.29.0 · 2026-11-24
+
+- The second of four releases that answer issue #36: the Pages and layers panel.
+- Pages: right-click a page (or press the Menu key or Shift+F10 on it) for Open, Rename, Duplicate, Set as home page, Move up, Move down, Page settings and Delete. Drag pages to reorder them. Set as home page also gives the page the / address and carries links to it, and refuses with a reason when a CMS template, a translated address or a page password makes that unsafe.
+- Layers: drag a layer to reorder it or drop it into a container, with a line that shows where it will land. Double-click or F2 renames a page or a layer in place. The Pages and Layers lists fold, and so does any layer with children, with Collapse all and Expand all. The layers menu gains Rename, Delete, Move up and Move down.
+- Quick insert: the plus button in Layers opens a small list of elements, sections and components with a filter, without leaving Pages and layers (Ctrl/Cmd+Shift+L). Its last row opens the full Insert panel.
+- Page background: Page settings has a Page background field with Clear, Apply to all pages and a link to the site theme colours.
+- Fixed: a new page looked black in the editor but was published white. The canvas now draws a page with no background white, as it is published.
+- For agents and scripts: the engine command `page.move {id, index}` reorders pages.
+- Known gaps: the desktop app was not built or run for this version, nothing was run on Windows or macOS, dragging is by mouse only until 0.31.0, and the new interface strings are in English only until 0.31.0.
+
 ## 0.28.1 · 2026-11-24
 
 - The first of four releases that answer one report from a new user, issue #36. Thank you.

@@ -1,0 +1,305 @@
+import type { EditorState, Page, SiteNode } from '../../types';
+import type { Command as Batch } from '../sections';
+import { commands as registry, formatKeys } from '../../commands/registry';
+import type { CommandDef } from '../../ui/shell';
+import { anchorOf, menuKeyPressed, showContextMenu, type MenuAnchor, type MenuEntry } from '../../ui/context-menu';
+import { copyOfPage, homeCommands, homeRefusal, pageMoveCommands, stepPageCommands } from './pages';
+import { startRename } from './rename';
+import { LayerFolds, type LayerRow } from './fold';
+import { canContain, canDrag, dropTarget, moveCommands, zoneAt, type DropZone } from './drop';
+import { installRowDrag } from './drag';
+import { element } from '../../ui/dom';
+import { icon } from '../../ui/icons';
+import '../../styles/panel.css';
+
+export interface PanelHost {
+  state: () => EditorState;
+  ready: () => boolean;
+  command: (name: string, params: Record<string, unknown>) => Promise<EditorState>;
+  commands: (list: Batch[]) => Promise<EditorState>;
+  pageId: () => string;
+  openPage: (id: string) => void;
+  selected: () => string;
+  select: (id: string) => void;
+  status: (message: string, error?: boolean) => void;
+  run: (action: () => unknown) => Promise<void>;
+  overlay: HTMLElement;
+  pagesList: HTMLElement;
+  layersList: HTMLElement;
+  pageSettings: () => void;
+  elementSettings: () => void;
+  refresh: () => void;
+  gates?: () => Promise<readonly string[]>;
+}
+
+const KEY_RENAME = 'F2';
+const KEY_UP = 'Alt+Up';
+const KEY_DOWN = 'Alt+Down';
+
+export function invoke(id: string, params?: Record<string, unknown>): void {
+  const command = registry.get(id);
+  if (!command) return;
+  void registry.execute(() => command.run(params));
+  registry.onRun?.(command, registry.label(command));
+}
+
+export function installPanel(host: PanelHost) {
+  const site = () => host.state().site;
+  const pageOf = (params?: Record<string, unknown>): Page | undefined => {
+    const id = typeof params?.id === 'string' ? params.id : host.pageId();
+    return site().pages.find(page => page.id === id);
+  };
+  const nodeOf = (params?: Record<string, unknown>): SiteNode | undefined => site().nodes[typeof params?.id === 'string' ? params.id : host.selected()];
+  const parentOf = (id: string): SiteNode | undefined => Object.values(site().nodes).find(node => node.children.includes(id));
+  const nameOf = (params?: Record<string, unknown>): string | null => typeof params?.name === 'string' ? params.name.trim() : null;
+  const focusField = (key: string): void => document.querySelector<HTMLInputElement>(`[data-field="${key}"]`)?.focus();
+
+  const rowIn = (list: HTMLElement, id: string): HTMLElement | undefined =>
+    Array.from(list.children).find(row => (row as HTMLElement).dataset.key === id && (row as HTMLElement).offsetParent !== null) as HTMLElement | undefined;
+  function inPlace(row: HTMLElement | undefined, current: string, english: string, commit: (name: string) => Promise<unknown>): boolean {
+    if (!row) return false;
+    startRename(row, { host: host.overlay, current, refuse: () => host.status(english, true), commit: name => void host.run(() => commit(name)) });
+    return true;
+  }
+  async function renamePage(params?: Record<string, unknown>): Promise<void> {
+    const page = pageOf(params);
+    if (!page) return;
+    const name = nameOf(params);
+    const write = (next: string): Promise<unknown> => host.command('page.update', { id: page.id, patch: { name: next } });
+    if (name === null) {
+      if (!inPlace(rowIn(host.pagesList, page.id), page.name, 'A page needs a name.', write)) { host.openPage(page.id); host.pageSettings(); focusField('page.name'); }
+      return;
+    }
+    if (!name) { host.status('A page needs a name.', true); return; }
+    if (name !== page.name) await write(name);
+  }
+  async function renameLayer(params?: Record<string, unknown>): Promise<void> {
+    const node = nodeOf(params);
+    if (!node) return;
+    const name = nameOf(params);
+    const write = (next: string): Promise<unknown> => host.command('node.update', { id: node.id, patch: { name: next } });
+    if (name === null) {
+      let top = node.id;
+      for (let up = parentOf(top); up; up = parentOf(top)) top = up.id;
+      const owner = site().pages.find(page => page.root === top);
+      if (owner && owner.id !== host.pageId()) host.openPage(owner.id);
+      if (host.selected() !== node.id) host.select(node.id);
+      if (folds.reveal(site(), host.pageId(), node.id)) host.refresh();
+      if (!inPlace(rowIn(host.layersList, node.id), node.name, 'An element needs a name.', write)) { host.elementSettings(); focusField('name'); }
+      return;
+    }
+    if (!name) { host.status('An element needs a name.', true); return; }
+    if (name !== node.name) await write(name);
+  }
+  async function duplicatePage(params?: Record<string, unknown>): Promise<void> {
+    const page = pageOf(params);
+    if (!page) return;
+    const before = new Set(site().pages.map(entry => entry.id));
+    const copy = copyOfPage(site(), page);
+    const next = await host.command('page.duplicate', { id: page.id, ...copy });
+    const made = next.site.pages.find(entry => !before.has(entry.id));
+    if (made) host.openPage(made.id);
+    host.status(`Page duplicated as "${copy.name}" at ${copy.slug}.`);
+  }
+  async function batch(list: Batch[], done: string): Promise<void> {
+    if (!list.length) return;
+    await host.commands(list);
+    host.status(done);
+  }
+  const setHome = async (params?: Record<string, unknown>): Promise<void> => {
+    const page = pageOf(params);
+    if (!page) return;
+    const refusal = homeRefusal(site(), page.id, host.gates ? await host.gates() : []);
+    if (refusal) { host.status(refusal, true); return; }
+    const slug = page.slug.replace(/^\/+|\/+$/g, '');
+    const list = homeCommands(site(), page.id);
+    if (!list.length) { host.status(`"${page.name}" is already the home page.`); return; }
+    await batch(list, slug ? `"${page.name}" is now the home page at /, and links to /${slug} now lead there.` : `"${page.name}" is now the home page.`);
+  };
+  const stepPage = (step: -1 | 1, params?: Record<string, unknown>): Promise<void> => {
+    const page = pageOf(params);
+    if (!page) return Promise.resolve();
+    const list = stepPageCommands(site(), page.id, step);
+    if (!list.length) { host.status(step < 0 ? `"${page.name}" is already the first page.` : `"${page.name}" is already the last page.`); return Promise.resolve(); }
+    return batch(list, step < 0 ? 'Page moved up.' : 'Page moved down.');
+  };
+  const folds = new LayerFolds();
+  let parents: string[] = [];
+  const rootOf = (): string => site().pages.find(page => page.id === host.pageId())?.root ?? site().pages[0].root;
+  function layerRows(): { rows: LayerRow[]; total: number } {
+    const result = folds.rows(site(), host.pageId(), rootOf(), host.selected());
+    parents = result.parents;
+    return result;
+  }
+  function fold(id: string, folded: boolean): boolean {
+    const changed = folds.set(host.pageId(), id, folded);
+    if (changed) host.refresh();
+    return changed;
+  }
+  function foldAll(folded: boolean): void {
+    folds.all(host.pageId(), folded ? parents : []);
+    host.refresh();
+  }
+  const several = (): boolean => host.ready() && site().pages.length > 1;
+  const idParam = { id: { type: 'string' as const, description: 'Page id; the open page when left out.' } };
+
+  const definitions: CommandDef[] = [
+    { id: 'page.open', label: 'Open page', run: params => { const page = pageOf(params); if (page) host.openPage(page.id); }, enabled: host.ready, params: { id: { type: 'string', required: true, description: 'Page id.' } }, description: 'Open a page in the canvas and the layers list.' },
+    { id: 'page.rename', label: 'Rename page...', menu: 'Page', group: 4, run: renamePage, enabled: host.ready, params: { ...idParam, name: { type: 'string', description: 'New name; without it the name opens for typing.' } }, mutates: true, description: 'Rename a page (its name in the editor, not its URL slug).' },
+    { id: 'page.duplicate', label: 'Duplicate page', menu: 'Page', group: 4, run: duplicatePage, enabled: host.ready, params: idParam, mutates: true, description: 'Copy a page with everything on it under a free name and slug, such as "About copy" at /about-copy, and open the copy. One undo step.' },
+    { id: 'page.set-home', label: 'Set as home page', menu: 'Page', group: 4, run: setHome, enabled: several, params: idParam, mutates: true, description: 'Make a page the home page: it moves to the top of the page list and takes the / address, links to its old address follow it, and the old home page gets an address from its name. Refused for a CMS template page, a page with a translated address, and a page a password protects below /. One undo step.' },
+    { id: 'page.move-up', label: 'Move page up', menu: 'Page', group: 4, run: params => stepPage(-1, params), enabled: several, params: idParam, mutates: true, description: 'Move a page one place up in the page list. Moving a page to the top makes it the first page, which the editor marks Home.' },
+    { id: 'page.move-down', label: 'Move page down', menu: 'Page', group: 4, run: params => stepPage(1, params), enabled: several, params: idParam, mutates: true, description: 'Move a page one place down in the page list.' },
+    { id: 'layer.collapse-all', label: 'Collapse all layers', run: () => foldAll(true), enabled: host.ready, description: 'Fold every layer that has children on the open page, leaving the page and its top-level elements. Changes only the layers list.' },
+    { id: 'layer.expand-all', label: 'Expand all layers', run: () => foldAll(false), enabled: host.ready, description: 'Unfold every layer on the open page. Changes only the layers list.' },
+    { id: 'layer.rename', label: 'Rename element...', menu: 'Edit', group: 1, run: renameLayer, enabled: host.ready, params: { id: { type: 'string', description: 'Element id; the selected element when left out.' }, name: { type: 'string', description: 'New name; without it the name opens for typing.' } }, mutates: true, description: 'Rename an element in the layers list (its layer name, not its text).' }
+  ];
+
+  function pageEntries(id: string): MenuEntry[] {
+    const pages = site().pages;
+    const at = pages.findIndex(page => page.id === id);
+    const target = { id };
+    return [
+      { id: 'page.open', label: 'Open', enabled: id !== host.pageId(), run: () => invoke('page.open', target) },
+      { id: 'page.rename', label: 'Rename', keys: KEY_RENAME, run: () => invoke('page.rename', target) },
+      { id: 'page.duplicate', label: 'Duplicate', run: () => invoke('page.duplicate', target) },
+      { id: 'page.set-home', label: 'Set as home page', enabled: at > 0, title: at > 0 ? 'Set as home page' : 'This is the home page', run: () => invoke('page.set-home', target) },
+      { separator: true },
+      { id: 'page.move-up', label: 'Move up', keys: formatKeys(KEY_UP), enabled: at > 0, run: () => invoke('page.move-up', target) },
+      { id: 'page.move-down', label: 'Move down', keys: formatKeys(KEY_DOWN), enabled: at < pages.length - 1, run: () => invoke('page.move-down', target) },
+      { separator: true },
+      { id: 'page.settings', label: 'Page settings', run: () => { host.openPage(id); invoke('page.settings'); } },
+      { id: 'page.delete', label: 'Delete...', enabled: pages.length > 1, title: pages.length > 1 ? 'Delete page...' : 'A site keeps at least one page', run: () => { host.openPage(id); invoke('page.delete'); } }
+    ];
+  }
+
+  function layerEntries(id: string): MenuEntry[] {
+    const nodes = site().nodes;
+    const parent = parentOf(id);
+    const at = parent ? parent.children.indexOf(id) : -1;
+    const locked = !!parent?.componentSourceId;
+    const movable = !!parent && !locked;
+    const removable = !!parent && registry.enabled(registry.get('edit.delete')!);
+    return [
+      { separator: true },
+      { id: 'layer.rename', label: 'Rename', keys: KEY_RENAME, enabled: !!nodes[id], run: () => invoke('layer.rename', { id }) },
+      { id: 'edit.delete', label: 'Delete', keys: registry.keyLabel(registry.get('edit.delete')!), enabled: removable, title: removable ? 'Delete element' : 'A page root cannot be deleted', run: () => invoke('edit.delete') },
+      { separator: true },
+      { id: 'arrange.up', label: 'Move up', keys: formatKeys(KEY_UP), enabled: movable && at > 0, title: locked ? 'Elements inside a linked component instance cannot be moved' : 'Move up', run: () => invoke('arrange.up') },
+      { id: 'arrange.down', label: 'Move down', keys: formatKeys(KEY_DOWN), enabled: movable && at < (parent?.children.length ?? 0) - 1, title: locked ? 'Elements inside a linked component instance cannot be moved' : 'Move down', run: () => invoke('arrange.down') },
+      { separator: true },
+      { id: 'layer.collapse-all', label: 'Collapse all', enabled: parents.length > 0, run: () => invoke('layer.collapse-all') },
+      { id: 'layer.expand-all', label: 'Expand all', run: () => invoke('layer.expand-all') }
+    ];
+  }
+
+  function showPageMenu(anchor: MenuAnchor, row: HTMLElement): void {
+    const id = row.dataset.key;
+    if (!id || !host.ready()) return;
+    showContextMenu(pageEntries(id), anchor, { host: host.overlay, className: 'fw-layer-menu fw-page-menu', run: host.run, returnFocus: row });
+  }
+
+  const altArrow = (event: KeyboardEvent): boolean => event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown');
+  const plainKey = (event: KeyboardEvent, key: string): boolean => event.key === key && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey;
+
+  function pageRow(row: HTMLElement): void {
+    row.addEventListener('contextmenu', event => { event.preventDefault(); showPageMenu(anchorOf(event, row), row); });
+    row.addEventListener('dblclick', () => invoke('page.rename', { id: row.dataset.key }));
+    row.addEventListener('keydown', event => {
+      if (menuKeyPressed(event)) { event.preventDefault(); showPageMenu(row, row); }
+      else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('page.rename', { id: row.dataset.key }); }
+      else if (plainKey(event, 'ArrowDown') || plainKey(event, 'ArrowUp')) { event.preventDefault(); focusRow(event.key === 'ArrowDown' ? row.nextElementSibling : row.previousElementSibling); }
+      else if (altArrow(event)) { event.preventDefault(); const id = row.dataset.key!; void host.run(async () => { await stepPage(event.key === 'ArrowUp' ? -1 : 1, { id }); refocus(host.pagesList, id)(); }); }
+    });
+  }
+
+  const focusRow = (row: Element | null | undefined): void => { if (row instanceof HTMLElement) row.focus(); };
+  function treeKey(row: HTMLElement, key: string): boolean {
+    const id = row.dataset.key!;
+    const kids = row.dataset.kids === 'true';
+    const folded = row.classList.contains('is-folded');
+    if (key === 'ArrowDown') focusRow(row.nextElementSibling);
+    else if (key === 'ArrowUp') focusRow(row.previousElementSibling);
+    else if (key === 'ArrowRight') { if (kids && folded) fold(id, false); else if (kids) focusRow(row.nextElementSibling); }
+    else if (key === 'ArrowLeft') { if (kids && !folded) fold(id, true); else { const up = parentOf(id); if (up) focusRow(rowIn(host.layersList, up.id)); } }
+    else return false;
+    return true;
+  }
+
+  function layerRow(row: HTMLElement, menu: (event: KeyboardEvent) => void): void {
+    const twisty = element('span', 'fw-twisty');
+    twisty.setAttribute('aria-hidden', 'true');
+    twisty.append(icon('chevron'));
+    twisty.addEventListener('click', event => { event.stopPropagation(); fold(row.dataset.key!, !row.classList.contains('is-folded')); });
+    twisty.addEventListener('dblclick', event => event.stopPropagation());
+    row.append(twisty);
+    row.addEventListener('dblclick', () => invoke('layer.rename', { id: row.dataset.key }));
+    row.addEventListener('keydown', event => {
+      if (event.defaultPrevented) return;
+      if (menuKeyPressed(event)) { event.preventDefault(); menu(event); }
+      else if (plainKey(event, 'F2')) { event.preventDefault(); invoke('layer.rename', { id: row.dataset.key }); }
+      else if (altArrow(event)) { event.preventDefault(); const id = row.dataset.key!; void host.run(async () => { await stepLayer(id, event.key === 'ArrowUp' ? -1 : 1); refocus(host.layersList, id)(); }); }
+      else if (plainKey(event, event.key) && treeKey(row, event.key)) event.preventDefault();
+    });
+  }
+
+  function paintLayer(row: HTMLElement, item: LayerRow): void {
+    const kids = String(item.kids);
+    if (row.dataset.kids !== kids) row.dataset.kids = kids;
+    if (row.classList.contains('is-folded') !== item.folded) row.classList.toggle('is-folded', item.folded);
+    if (item.kids) row.setAttribute('aria-expanded', String(!item.folded)); else row.removeAttribute('aria-expanded');
+  }
+
+  const rowOpen = (id: string): boolean => {
+    const row = rowIn(host.layersList, id);
+    return !!row && row.dataset.kids === 'true' && !row.classList.contains('is-folded');
+  };
+  function layerZone(ids: string[], over: string, fraction: number): DropZone | null {
+    const zone = zoneAt(fraction, over === rootOf() || canContain(site(), over));
+    const target = dropTarget(site(), rootOf(), ids, over, zone, rowOpen(over));
+    return !target ? null : target.zone === 'into' && target.anchor !== null ? 'after' : target.zone;
+  }
+  async function moveLayers(ids: readonly string[], over: string, zone: DropZone): Promise<boolean> {
+    const target = dropTarget(site(), rootOf(), ids, over, zone, zone === 'after' && rowOpen(over));
+    const list = target ? moveCommands(site(), ids, target) : [];
+    if (!list.length) return false;
+    await host.commands(list);
+    if (ids.map(id => folds.reveal(site(), host.pageId(), id)).includes(true)) host.refresh();
+    host.status(list.length === 1 ? 'Layer moved. One undo step puts it back.' : `${list.length} layers moved. One undo step puts them back.`);
+    return true;
+  }
+  async function movePages(ids: readonly string[], over: string, zone: DropZone): Promise<boolean> {
+    const pages = site().pages;
+    const at = pages.findIndex(page => page.id === over);
+    const anchor = zone === 'before' ? over : pages.slice(at + 1).find(page => !ids.includes(page.id))?.id ?? null;
+    const list = pageMoveCommands(site(), ids, anchor);
+    if (!list.length) return false;
+    await host.commands(list);
+    host.status(site().pages[0] && ids.includes(site().pages[0].id) ? 'Page moved. It is now first, which the editor marks Home.' : 'Page moved.');
+    return true;
+  }
+  async function stepLayer(id: string, step: -1 | 1): Promise<void> {
+    const parent = parentOf(id);
+    if (!parent) return;
+    const sibling = parent.children[parent.children.indexOf(id) + step];
+    if (sibling) await moveLayers([id], sibling, step < 0 ? 'before' : 'after');
+  }
+  const refocus = (list: HTMLElement, id: string) => (): void => { rowIn(list, id)?.focus({ preventScroll: false }); };
+
+  installRowDrag({
+    list: host.layersList, host: host.overlay,
+    ids: row => [row.dataset.key!],
+    canStart: (_row, ids) => host.ready() && canDrag(site(), ids),
+    zone: (ids, row, fraction) => layerZone(ids, row.dataset.key!, fraction),
+    drop: (ids, over, zone) => host.run(async () => { if (await moveLayers(ids, over, zone) && ids.length === 1) host.select(ids[0]); })
+  });
+  installRowDrag({
+    list: host.pagesList, host: host.overlay,
+    ids: row => [row.dataset.key!],
+    canStart: () => host.ready() && site().pages.length > 1,
+    zone: (ids, row, fraction) => ids.includes(row.dataset.key!) ? null : zoneAt(fraction, false),
+    drop: (ids, over, zone) => host.run(() => movePages(ids, over, zone))
+  });
+
+  return { commands: definitions, pageRow, layerRow, layerEntries, layerRows, paintLayer, moveLayers, movePages, layerZone, stepLayer, refocus };
+}

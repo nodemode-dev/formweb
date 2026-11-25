@@ -1,0 +1,18 @@
+.fw-flyout { position: fixed; z-index: var(--z-popover); display: flex; flex-direction: column; width: min(300px, calc(100vw - var(--space-4))); max-height: calc(100vh - var(--space-4)); overflow: hidden; pointer-events: auto; border: 1px solid var(--line-2); border-radius: var(--radius-xl); background: color-mix(in srgb, var(--surface-2) 92%, transparent); -webkit-backdrop-filter: blur(40px) saturate(1.8); backdrop-filter: blur(40px) saturate(1.8); box-shadow: var(--shadow-lg); }
+.fw-flyout[hidden] { display: none; }
+.fw-flyout-search { flex: none; padding: var(--space-2); border-bottom: 1px solid var(--line-1); }
+.fw-flyout-filter { display: block; width: 100%; height: var(--ctl); min-height: 0; box-sizing: border-box; padding: 0 var(--space-3); border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--surface-field); color: var(--text-primary); font-size: var(--fs-13); }
+.fw-flyout-filter:focus, .fw-flyout-filter:focus-visible { outline: none; border-color: var(--accent-line); }
+.fw-flyout-list { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: var(--space-1) var(--space-2); }
+.fw-flyout-group[hidden] { display: none; }
+.fw-flyout-head { padding: var(--space-2) var(--space-2) var(--space-1); color: var(--text-muted); font-size: var(--fs-11); letter-spacing: 0.08em; text-transform: uppercase; }
+.fw-flyout-none { padding: var(--space-3) var(--space-2); color: var(--text-muted); font-size: var(--fs-12); }
+.fw-flyout-none[hidden] { display: none; }
+.fw-flyout-foot { flex: none; padding: var(--space-1) var(--space-2) var(--space-2); border-top: 1px solid var(--line-1); }
+.fw-flyout-row { display: grid; grid-template-columns: 16px minmax(0, 1fr); align-items: center; justify-content: stretch; column-gap: var(--space-2); width: 100%; height: var(--ctl-md); min-height: 0; padding: 0 var(--space-2); border: 0; border-radius: var(--radius); background: transparent; color: var(--text-primary); font-size: var(--fs-13); text-align: left; cursor: default; }
+.fw-flyout-row[hidden] { display: none; }
+.fw-flyout-row:hover, .fw-flyout-row.is-active { background: var(--bg-hover); }
+.fw-flyout-row.is-active { box-shadow: inset 2px 0 0 var(--accent-color); }
+.fw-flyout-row .icon, .fw-flyout-row .icon svg { display: block; width: 16px; height: 16px; }
+.fw-flyout-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fw-flyout-all { color: var(--text-secondary); }

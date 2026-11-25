@@ -35,8 +35,13 @@ import { installVector } from './vector';
 import { installWishlist } from './features/wishlist';
 import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from './features/sections';
 import { installInspector } from './features/inspector';
+import { installPageBackground } from './features/inspector/page-background';
 import { installLibrary } from './features/library';
+import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
+import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
+import { installPanel } from './features/panel';
+import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
@@ -153,6 +158,14 @@ function pickNode(id: string): void {
   canvas.bring(id);
   scrollNearest(layersList, rowOf(layersList, id));
 }
+function openPage(id: string): void {
+  if (!state().site.pages.some(page => page.id === id)) return;
+  pageId = id;
+  selectedId = currentPage().root;
+  update(state());
+}
+function pageRowClick(_event: MouseEvent, id: string): void { openPage(id); }
+function layerRowClick(_event: MouseEvent, id: string): void { pickNode(id); }
 function descendants(id: string, found = new Set<string>()): Set<string> {
   if (found.has(id)) return found;
   found.add(id);
@@ -296,16 +309,20 @@ const layersHead = element('div', 'panel-head');
 const nodeCount = element('span', 'row-detail');
 const layersTitle = element('div', 'control-row');
 layersTitle.append(element('span', 'eyebrow', 'Layers'), nodeCount);
-layersHead.append(layersTitle, button('', 'plus', () => setSidebar('insert')));
+const layersAdd = button('', 'plus', () => insertFlyout.toggle(layersAdd));
+layersHead.append(layersTitle, layersAdd);
 layersHead.lastElementChild?.setAttribute('aria-label', 'Insert element');
 const layersList = element('div', 'list layers-scroll');
 pagesPane.append(pagesHead, pagesList, layersHead, layersList);
+sectionToggle(pagesHead.firstElementChild as HTMLElement, pagesList, 'pages');
+sectionToggle(layersTitle.firstElementChild as HTMLElement, layersList, 'layers');
 const insertPane = element('div', 'library-scroll');
 insertPane.hidden = true;
 const insertHead = element('div', 'panel-head');
 insertHead.append(element('span', 'eyebrow', 'Elements'));
 const insertGrid = element('div', 'insert-grid');
-for (const [label, symbol, kind] of [['Section', 'box', 'section'], ['Heading', 'text', 'heading'], ['Paragraph', 'text', 'paragraph'], ['Button', 'arrow', 'button'], ['Image', 'image', 'image'], ['Grid', 'grid', 'grid'], ['Form', 'box', 'form'], ['Link', 'globe', 'link'], ['Embed', 'eye', 'embed']] as [string, Icon, string][]) insertGrid.append(button(label, symbol, () => insertElement(kind), 'insert-card'));
+const INSERT_ELEMENTS: [string, Icon, string][] = [['Section', 'box', 'section'], ['Heading', 'text', 'heading'], ['Paragraph', 'text', 'paragraph'], ['Button', 'arrow', 'button'], ['Image', 'image', 'image'], ['Grid', 'grid', 'grid'], ['Form', 'box', 'form'], ['Link', 'globe', 'link'], ['Embed', 'eye', 'embed']];
+for (const [label, symbol, kind] of INSERT_ELEMENTS) insertGrid.append(button(label, symbol, () => insertElement(kind), 'insert-card'));
 insertGrid.append(button('Video', 'video', () => inspectorExt.insertVideo(), 'insert-card'));
 const componentsHead = element('div', 'panel-head');
 componentsHead.append(element('span', 'eyebrow', 'Components'));
@@ -363,7 +380,21 @@ async function insertStarter(id: string): Promise<void> {
   selectedId = root;
   update(state());
 }
+async function insertComponent(id: string): Promise<void> {
+  await command('component.insert', { component: id, parent: insertionParent() });
+  status('Component instance inserted.');
+}
 insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), sectionsHead, sectionsGrid, startersHead, startersGrid, element('div', 'sidebar-note', 'Sections insert after the selected section. Starter pages add a new page with its sections. Every insert is one undo step.'), componentsHead, captureWrap, componentList);
+const insertFlyout = installInsertFlyout({
+  host: overlay,
+  groups: () => [
+    { id: 'elements', title: 'Elements', items: [...INSERT_ELEMENTS.map(([name, symbol, kind]) => ({ id: kind, label: name, icon: symbol, run: () => insertElement(kind) })), { id: 'video', label: 'Video', icon: 'video' as Icon, run: () => inspectorExt.insertVideo() }] },
+    { id: 'sections', title: 'Sections', items: SECTIONS.map(entry => ({ id: entry.id, label: entry.label, icon: SECTION_ICONS[entry.id] || 'box', run: () => insertSection(entry.id) })) },
+    { id: 'components', title: 'Components', items: Object.values(state().site.components).map(entry => ({ id: entry.id, label: entry.name, icon: 'component' as Icon, raw: true, run: () => insertComponent(entry.id) })) }
+  ],
+  openAll: () => setSidebar('insert'),
+  run
+});
 let agentDock: Dock<'antigravity'> | null = null;
 const dockHost = formwebDock({
   dock: () => agentDock,
@@ -716,6 +747,7 @@ const pageGrid = element('div', 'form-grid');
 addInspectorInput(pageGrid, 'Page name', 'page.name', name => pagePatch({ name }), undefined, true);
 addInspectorInput(pageGrid, 'URL slug', 'page.slug', slug => pagePatch({ slug }), undefined, true);
 pageSection.append(pageGrid);
+const pageBackground = installPageBackground({ section: title => section(pagePane, title), input, button, page: currentPage, state: () => lastState, run, status, showPageTab: () => { openDock('right'); setInspector('page'); } });
 const seoSection = section(pagePane, 'Search & metadata');
 const seoGrid = element('div', 'form-grid');
 addInspectorInput(seoGrid, 'Title', 'seo.title', title => pagePatch({ seo: { ...currentPage().seo, title } }), undefined, true);
@@ -1453,11 +1485,8 @@ function update(next: EditorState): void {
   keyed(pagesList, site.pages, page => page.id, () => {
     const row = button('', undefined, undefined, 'list-row');
     row.append(icon('page'), element('span', 'row-label'), element('span', 'row-detail'));
-    row.addEventListener('click', () => {
-      pageId = row.dataset.key!;
-      selectedId = currentPage().root;
-      update(state());
-    });
+    row.addEventListener('click', event => pageRowClick(event, row.dataset.key!));
+    panel.pageRow(row);
     return row;
   }, (row, item) => {
     text(row.children[1] as HTMLElement, item.name);
@@ -1465,27 +1494,20 @@ function update(next: EditorState): void {
     row.classList.toggle('active', item.id === pageId);
     row.setAttribute('aria-current', item.id === pageId ? 'page' : 'false');
   });
-  const layers: { node: SiteNode; depth: number }[] = [];
-  function walk(id: string, depth: number): void {
-    const item = site.nodes[id];
-    if (!item) return;
-    /* Paint definitions (patterns and gradients) are not layers; listing them made each new one push the rows below it. */
-    if (item.tag === 'pattern' || item.tag === 'linearGradient' || item.tag === 'radialGradient') return;
-    layers.push({ node: item, depth });
-    item.children.forEach(child => { if (site.nodes[child]?.tag !== 'tspan') walk(child, depth + 1); });
-  }
-  walk(page.root, 0);
-  text(nodeCount, String(layers.length));
+  const { rows: layers, total: layerTotal } = panel.layerRows();
+  text(nodeCount, String(layerTotal));
   keyed(layersList, layers, item => item.node.id, () => {
     const row = button('', undefined, undefined, 'list-row layer-row');
     row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
-    row.addEventListener('click', () => pickNode(row.dataset.key!));
+    row.addEventListener('click', event => layerRowClick(event, row.dataset.key!));
     row.addEventListener('contextmenu', event => showLayerMenu(event, row.dataset.key!));
+    panel.layerRow(row, event => showLayerMenu(event, row.dataset.key!));
     return row;
   }, (row, item) => {
     text(row.children[1] as HTMLElement, item.node.name);
     text(row.children[2] as HTMLElement, item.node.componentId ? 'instance' : item.node.tag);
     row.style.setProperty('--depth', String(item.depth));
+    panel.paintLayer(row, item);
     row.classList.toggle('active', item.node.id === selectedId);
     row.setAttribute('aria-selected', String(item.node.id === selectedId));
   });
@@ -1564,6 +1586,7 @@ function update(next: EditorState): void {
   downButton.disabled = !parent || parent.children.indexOf(node.id) === parent.children.length - 1;
   deleteNodeButton.disabled = node.id === page.root;
   noindex.checked = !!page.seo.noindex;
+  pageBackground.fill(next);
   fillCustomCode();
   hideScrollbars.checked = site.settings.hideScrollbars === 'true';
   embedClick.checked = site.settings.embedClickToLoad === 'true';
@@ -2138,42 +2161,21 @@ document.addEventListener('paste', event => {
   event.preventDefault();
   void run(() => pasteFragmentText(raw));
 });
-function showLayerMenu(event: MouseEvent, id: string): void {
+function showLayerMenu(event: MouseEvent | KeyboardEvent, id: string): void {
   event.preventDefault();
   selectNode(id);
-  overlay.querySelector('.fw-layer-menu')?.remove();
-  const menu = element('div', 'fw-menu fw-layer-menu');
-  menu.setAttribute('role', 'menu');
   const allowed = canDuplicate();
-  const close = (): void => { menu.remove(); document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape, true); };
-  const outside = (down: Event): void => { if (!menu.contains(down.target as Node)) close(); };
-  const escape = (key: KeyboardEvent): void => { if (key.key === 'Escape') close(); };
   const rows: [string, string, string, boolean, () => Promise<void>][] = [
     ['edit.copy', 'Copy element', 'A page root or an element inside a linked component instance cannot be copied', allowed, copySelection],
     ['edit.cut', 'Cut element', 'A page root or an element inside a linked component instance cannot be cut', allowed, cutSelection],
     ['edit.paste', 'Paste element', 'Paste is not available while a dialog is open', !!scrim.hidden, pasteFromClipboard],
     ['edit.duplicate', 'Duplicate', 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
   ];
-  let first: HTMLButtonElement | undefined;
-  for (const [commandId, english, blocked, enabledNow, action] of rows) {
-    const row = element('button', 'fw-menu-item');
-    row.type = 'button';
-    row.setAttribute('role', 'menuitem');
-    row.disabled = !enabledNow;
-    labelAttr(row, 'title', enabledNow ? english : blocked);
-    const name = element('span', 'fw-menu-label');
-    label(name, english);
-    row.append(element('span', 'fw-menu-check'), name, element('span', 'fw-menu-keys', commandRegistry.keyLabel(commandRegistry.get(commandId)!)));
-    row.addEventListener('click', () => { close(); void run(action); });
-    menu.append(row);
-    if (enabledNow && !first) first = row;
-  }
-  menu.style.left = `${Math.min(event.clientX, window.innerWidth - 260)}px`;
-  menu.style.top = `${Math.min(event.clientY, window.innerHeight - 150)}px`;
-  overlay.append(menu);
-  document.addEventListener('pointerdown', outside, true);
-  document.addEventListener('keydown', escape, true);
-  first?.focus({ preventScroll: true });
+  const entries: MenuEntry[] = rows.map(([commandId, english, blocked, enabledNow, action]) => ({ id: commandId, label: english, title: enabledNow ? english : blocked, enabled: enabledNow, keys: commandRegistry.keyLabel(commandRegistry.get(commandId)!), run: action }));
+  entries.push(...panel.layerEntries(id));
+  const row = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+  const anchor = !(event instanceof MouseEvent) ? row ?? { x: 0, y: 0 } : row ? anchorOf(event, row) : { x: event.clientX, y: event.clientY };
+  showContextMenu(entries, anchor, { host: overlay, className: 'fw-layer-menu', run, returnFocus: row });
 }
 const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); };
 const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link'], ['embed', 'Embed media']];
@@ -2207,6 +2209,7 @@ registerCommands([
   { id: 'image.update-from-formvis', label: 'Update from formvis', menu: 'Edit', group: 1, run: () => run(async () => { const result = await mutateVia<{ message: string; state: EditorState }>('/api/formvis/update', { node: currentNode().id }); status(result.message); }), enabled: () => ready() && currentNode().tag === 'img' },
   { id: 'edit.settings', label: 'Settings...', menu: 'Edit', keys: ['Mod+,'], group: 2, run: () => openDialog('settings') },
   ...insertKinds.map(([kind, label]) => ({ id: `insert.${kind}`, label, menu: 'Insert', run: () => insertElement(kind), enabled: ready })),
+  { id: 'insert.quick', label: 'Quick insert', menu: 'Insert', keys: ['Mod+Shift+L'], group: 1, run: () => { home.dismiss(); openDock('left'); setSidebar('pages'); insertFlyout.toggle(layersAdd); }, enabled: ready },
   { id: 'insert.panel', label: 'Elements and components', menu: 'Insert', group: 1, run: () => setSidebar('insert') },
   { id: 'insert.stock', label: 'Stock icons and photos...', menu: 'Insert', group: 1, run: () => openDialog('stock'), enabled: ready },
   { id: 'page.add', label: 'Add page...', menu: 'Page', run: () => openDialog('page'), enabled: ready },
@@ -2264,10 +2267,13 @@ registerCommands([
   { id: 'chat.open', label: 'Chat with Claude', menu: 'View', keys: ['Mod+Alt+J'], global: true, group: 3, run: () => agentDock?.show('chat') },
   { id: 'help.guide', label: 'Using formweb', menu: 'Help', run: () => openDialog('help') }
 ]);
+const panel = installPanel({ state, ready, command, commands, overlay, pagesList, layersList, run, status, pageId: () => pageId, openPage, selected: () => selectedId, select: selectNode, pageSettings: () => { openDock('right'); setInspector('page'); }, elementSettings: () => { openDock('right'); setInspector('design'); }, refresh: () => update(state()), gates: async () => { await loadPasswordGates(true); return passwordGates; } });
+registerCommands(panel.commands);
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
 registerCommands(wishlist.commands);
+registerCommands(pageBackground.commands);
 subscribe(() => wishlist.refresh());
 const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.askReplace(state().site.name);
 const demoHooks: DemoHooks = { mayReplace: () => { demoPreview.close(); return mayReplace(); }, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
