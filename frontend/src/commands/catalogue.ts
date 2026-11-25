@@ -50,6 +50,7 @@ const META: Record<string, Meta> = {
   'insert.form': { description: 'Insert a form into the selected container.', flags: 'm' },
   'insert.link': { description: 'Insert a link into the selected container.', flags: 'm' },
   'insert.embed': { description: 'Insert an embed (media) element into the selected container.', flags: 'm' },
+  'insert.quick': { description: 'Open the Quick insert flyout at the layers plus button, with a filter for elements, sections and components; Enter inserts the highlighted one into the selected container.', flags: 'm', when: 'Use when the person wants to pick an element to add without leaving the layers list.' },
   'insert.panel': { description: 'Show the Elements and components panel.' },
   'insert.stock': { description: 'Open the stock icons and photos library.', flags: 'm' },
   'page.add': { description: 'Open the Add page dialog.', flags: 'm' },
