@@ -1,8 +1,9 @@
+import hashlib
 import re
 
 import pytest
 
-from site_zips import zip_of
+from site_zips import png_bytes, zip_of
 
 REVIEW = "/api/library/import-site/review"
 IMPORT = "/api/library/import-site"
@@ -83,3 +84,34 @@ def test_an_import_of_an_outside_stylesheet_stays_as_written(client, blank):
     assert outside in css
     assert ".own" in css
     assert local_imports(css) == []
+
+
+def test_a_picture_in_an_imported_stylesheet_points_at_its_stored_asset_without_a_false_missing_file_note(client, blank):
+    files = {"index.html": LINKED.format("css/site.css"), "css/site.css": '@import "parts/hero.css";\n.own{color:red}', "css/parts/hero.css": ".hero{background:url(../../img/dot.png)}", "img/dot.png": png_bytes()}
+    css, notes = imported_css(client, files)
+    asset = "/api/assets/" + hashlib.sha256(png_bytes()).hexdigest() + ".png"
+    assert f'url("{asset}")' in css
+    assert not any("not in the archive" in note for note in notes["review"] + notes["import"]), notes
+
+
+def test_a_missing_picture_in_an_imported_stylesheet_is_named_once_as_written(client, blank):
+    files = {"index.html": LINKED.format("css/site.css"), "css/site.css": '@import "parts/hero.css";', "css/parts/hero.css": ".hero{background:url(gone.png)}"}
+    _, notes = imported_css(client, files)
+    said = [note for note in notes["review"] if "not in the archive" in note]
+    assert len(said) == 1 and said[0].startswith("1 reference points") and "gone.png" in said[0], said
+
+
+def css_rules_before(css, statement):
+    head = css[:css.index(statement)]
+    return re.sub(r"@import[^;]*;|\s+", "", head)
+
+
+@pytest.mark.parametrize("step", ["review", "import"])
+def test_an_outside_import_after_other_rules_moves_to_the_top_of_the_page_styles_and_is_named(client, blank, step):
+    outside = '@import url("https://fonts.example.org/family.css");'
+    page = '<html><head><style>.first{color:blue}</style><link rel="stylesheet" href="s.css"></head><body><p>x</p></body></html>'
+    css, notes = imported_css(client, {"index.html": page, "s.css": ".second{color:red}\n" + outside})
+    assert css.count(outside) == 1
+    assert css_rules_before(css, outside) == "", css
+    assert ".first" in css and ".second" in css
+    assert any("https://fonts.example.org/family.css" in note and "outside stylesheet" in note for note in notes[step]), notes

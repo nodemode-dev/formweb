@@ -210,6 +210,7 @@ class Site:
         self.overflow = False
         self.loops: set = set()
         self.deep: set = set()
+        self.outside: list[str] = []
         self.assets ={path: '/api/assets/' + hashlib.sha256(body).hexdigest() + '.' + STORED.get(_ext(path), _ext(path))
                        for path, (kind, body) in files.items() if kind == 'asset'}
 
@@ -263,6 +264,10 @@ class Site:
     def css(self, text: str, base: str, missing: set, depth: int = 0, seen: frozenset = frozenset(), source: str = '') -> str:
         def imported(match):
             found = self.locate(match.group(1), base)
+            if found is None and not match.group(1).strip().lower().startswith('data:'):
+                if match.group(0) not in self.outside:
+                    self.outside.append(match.group(0))
+                return ''
             if found is not None and found[0] in seen:
                 self.loops.add((source, found[0]))
                 return ''
@@ -286,7 +291,14 @@ class Site:
             new = self.rewrite(original, base, missing)
             return f'url("{new}")' if new else match.group(0)
 
-        return CSS_URL.sub(url, CSS_IMPORT.sub(imported, text))
+        held: list[str] = []
+
+        def hold(match):
+            held.append(imported(match))
+            return f'\x00{len(held) - 1}\x00'
+
+        own = CSS_URL.sub(url, CSS_IMPORT.sub(hold, text.replace('\x00', '')))
+        return re.sub(r'\x00(\d+)\x00', lambda m: held[int(m.group(1))], own)
 
     def markup(self, text: str, base: str, missing: set) -> str:
         def attribute(match):
@@ -327,7 +339,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     missing: set = set()
     warnings: list[str] = []
     outside_scripts, outside_styles = set(), set()
-    site.used, site.room, site.overflow, site.loops, site.deep = set(), CSS_CAP, False, set(), set()
+    site.used, site.room, site.overflow, site.loops, site.deep, site.outside = set(), CSS_CAP, False, set(), set(), []
     title = TITLE.search(document)
     title = re.sub(r'\s+', ' ', unescape(title.group(1))).strip()[:200] if title else ''
     description = ''
@@ -406,7 +418,10 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     markup = STRIP.sub('', body)
     markup = LINK.sub(lambda tag: '' if tag.group(0) in inlined else tag.group(0), markup)
     markup = site.markup(markup, base, missing).strip()
-    css = '\n'.join(part.strip() for part in styles if part.strip())
+    css = '\n'.join(part.strip() for part in [*site.outside, *styles] if part.strip())
+    if site.outside:
+        shown = [CSS_IMPORT.match(statement).group(1)[:120] for statement in site.outside]
+        warnings.append(f'The styles import {len(shown)} outside stylesheet{"s" if len(shown) != 1 else ""}, which {"loads" if len(shown) == 1 else "load"} from {"its" if len(shown) == 1 else "their"} own site when the page opens; {"it was" if len(shown) == 1 else "they were"} moved to the top of the page\'s styles, where a browser reads @import: {", ".join(shown[:5])}{"..." if len(shown) > 5 else ""}.')
     if missing:
         shown = sorted(missing)
         warnings.append(f'{len(shown)} reference{"s" if len(shown) != 1 else ""} point{"" if len(shown) != 1 else "s"} at files that were skipped or are not in the archive: {", ".join(item[:80] for item in shown[:5])}{"..." if len(shown) > 5 else ""}.')
