@@ -203,7 +203,7 @@ export class SiteImport {
         this.say(t('Converting...'), false);
         const site = state().site;
         const hosts = result.pages.flatMap(id => site.nodes[site.pages.find(page => page.id === id)?.root || '']?.children || []);
-        try { message += ' ' + (await this.hooks.convert(hosts)).message; }
+        try { message += ' ' + (await this.hooks.convert(hosts)).message + ' ' + t('Undo once to get the pages back as code, twice to remove them.'); }
         catch (error) { message += ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
       }
       this.say(message, false);

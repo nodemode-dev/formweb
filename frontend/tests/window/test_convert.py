@@ -91,6 +91,23 @@ def test_a_zip_of_pages_with_more_than_500_elements_together_converts_and_only_a
     assert nodes_with(site, "p", "a.html line 199") and nodes_with(site, "p", "b.html line 0")
 
 
+def test_after_a_zip_imported_as_elements_the_panel_says_undo_once_gives_code_and_twice_removes_the_pages_and_it_does(editor, tmp_path):
+    before = editor.site()["site"]
+    with editor.page.expect_file_chooser() as chooser:
+        editor.page.evaluate("window.formweb.run('file.import-site')")
+    chooser.value.set_files(str(site_zip(tmp_path)))
+    review = editor.page.locator(".fw-lib-site")
+    review.locator(".fw-lib-insert:not([disabled])").click()
+    expect(review.locator(".fw-lib-note")).to_contain_text("Undo once to get the pages back as code, twice to remove them.")
+    converted = editor.until(lambda s: nodes_with(s, "h1", "Fresh bread every morning"), "the heading to become an element")
+    editor.page.evaluate("window.formweb.run('edit.undo')")
+    as_code = editor.until(lambda s: s != converted and code_sections(s), "one undo to bring the page back as code")
+    assert not nodes_with(as_code, "h1", "Fresh bread every morning")
+    assert "Fresh bread every morning" in next(iter(code_sections(as_code).values()))["html"]
+    editor.page.evaluate("window.formweb.run('edit.undo')")
+    editor.restored_to(before)
+
+
 def test_a_zip_imported_as_editable_elements_gives_a_heading_layer_whose_text_is_edited_on_the_canvas(editor, tmp_path):
     with editor.page.expect_file_chooser() as chooser:
         editor.page.evaluate("window.formweb.run('file.import-site')")

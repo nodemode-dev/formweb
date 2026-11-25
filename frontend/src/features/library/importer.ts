@@ -98,7 +98,7 @@ export class HtmlImport {
       let note = t('HTML section imported.');
       if (result.root && this.bring.value() === 'elements') {
         this.say(t('Converting...'), false);
-        try { const done = await this.hooks.convert([result.root]); message = note = done.message; }
+        try { const done = await this.hooks.convert([result.root]); message = note = done.message + ' ' + t('Undo once to get the pages back as code, twice to remove them.'); }
         catch (error) { message = note = t('HTML section imported.') + ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
       }
       if (result.root) this.hooks.select(result.root);
