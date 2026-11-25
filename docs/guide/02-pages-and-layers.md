@@ -11,7 +11,7 @@ The page examples use **Harbour Ferries** and the layer examples use **Coldmere 
 ## Open, add and rename pages
 
 - Click a page in the PAGES list to open it on the canvas.
-- Click the **+** next to PAGES to add a page. You give it a name, and the URL slug, its address such as `/about`, follows the name until you type your own. An address another page already has is refused before the dialog closes.
+- Click the **+** next to PAGES to add a page. You give it a name, and the URL slug, its address such as `/about`, follows the name until you type your own. An address another page already has is refused before the dialog closes, and so is the same address in other capital letters: `/About` beside `/about` would be one folder on a Mac or a Windows computer. The note names the page that has it.
 - To rename a page, double-click its row, or click it and press F2. The name becomes a field: type the new name and press Enter. Escape keeps the old name. This changes the name only; the page's address is changed in **Page > Page settings**.
 
 ## The page menu

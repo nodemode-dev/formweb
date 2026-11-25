@@ -37,6 +37,7 @@ These are the checks the audit runs in this version, with the sentence you will 
 
 - A page without a title, or without a description ("... needs a meta description").
 - A site whose base URL is not set yet ("Set the real public base URL before deployment"). Set it in the Page tab, **Whole site** section, once you know your site's address. A site with a 404 page also gets a note about its links.
+- Two pages whose addresses differ only in capital letters, such as `/two` and `/TWO`, which a site saved by an older FormWeb can have. On a Mac or a Windows computer they would be one folder. Select opens the second page's settings at its URL slug: give it another address.
 
 **People using a keyboard, a screen reader or a small screen**
 
