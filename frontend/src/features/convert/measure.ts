@@ -41,6 +41,8 @@ const HIDE = 'html{display:none!important}';
 const PHRASING = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'strong', 'em', 'b', 'i', 'small', 'label', 'button', 'sup', 'sub', 'code', 'time', 'legend', 'summary', 'caption', 'figcaption', 'dt', 'option']);
 const KEEP_EXTRA = ['float', 'clear', 'fill', 'stroke', 'stroke-width', 'fill-opacity', 'stroke-opacity', 'background-image'];
 const URL_ATTRS = ['href', 'src', 'action', 'formaction', 'poster', 'xlink:href', 'data'];
+/** Elements whose data: address opens a document that can run script, in the code kept for them. */
+const FRAMED = new Set(['iframe', 'frame', 'object', 'embed']);
 
 /** The page script and every handler or script link are left out of the measured copy; what is counted is said later. */
 export function sanitize(source: Source): { doc: Document; css: string; scripted: number } {
@@ -55,6 +57,8 @@ export function sanitize(source: Source): { doc: Document; css: string; scripted
       const name = attr.name.toLowerCase();
       if (name.startsWith('on')) { el.removeAttribute(attr.name); scripted++; }
       else if (URL_ATTRS.includes(name) && /^\s*(javascript|vbscript):/i.test(attr.value)) { el.removeAttribute(attr.name); scripted++; if (name === 'href') el.setAttribute('data-fwk-link', ''); }
+      else if (FRAMED.has(el.localName) && ['src', 'data'].includes(name) && /^\s*data:/i.test(attr.value)) { el.removeAttribute(attr.name); scripted++; }
+      else if (['to', 'from', 'by', 'values'].includes(name) && /(javascript|vbscript):/i.test(attr.value)) { el.removeAttribute(attr.name); scripted++; }
       else if (name === 'srcdoc' || name.startsWith('data-fwk')) el.removeAttribute(attr.name);
     }
     if (doc.body.contains(el) && el !== doc.body) el.setAttribute('data-fwk-i', String(index++));
