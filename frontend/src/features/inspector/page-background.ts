@@ -1,5 +1,6 @@
-import { command } from '../../api';
+import { command, commands } from '../../api';
 import { element, value } from '../../ui/dom';
+import { runCommand, type CommandDef } from '../../ui/shell';
 import type { Icon } from '../../ui/icons';
 import { label, labelAttr } from '../../i18n';
 import { readBrand } from '../brand-kit';
@@ -14,11 +15,13 @@ export interface PageBackgroundHost {
   state(): EditorState | undefined;
   run(action: () => unknown): Promise<void>;
   status(message: string, error?: boolean): void;
+  showPageTab(): void;
 }
 
 export interface PageBackgroundHandle {
   field: HTMLInputElement;
   fill(next: EditorState): void;
+  commands: CommandDef[];
 }
 
 export function installPageBackground(host: PageBackgroundHost): PageBackgroundHandle {
@@ -30,7 +33,12 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
   field.dataset.field = 'page.background';
   field.setAttribute('list', 'fw-brand-colors');
   labelAttr(field, 'aria-label', 'Page background');
-  head.append(name);
+  const clear = element('button', 'fw-reset', 'Clear');
+  clear.type = 'button';
+  clear.dataset.cmd = 'page.background-clear';
+  labelAttr(clear, 'title', 'Clear the page background and use the site background');
+  clear.hidden = true;
+  head.append(name, clear);
   wrapper.append(head, field);
   const note = element('p', 'micro fw-pagebg-note');
   note.setAttribute('aria-live', 'polite');
@@ -39,7 +47,14 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
   const others = element('span');
   const overrides = element('span');
   note.append(own, inherited, others, overrides);
-  group.append(wrapper, note);
+  const actions = element('div', 'fw-pagebg-actions');
+  const applyAll = host.button('Apply to all pages', 'layers');
+  applyAll.dataset.cmd = 'page.background-all';
+  const themeLink = element('button', 'fw-pagebg-link', 'Edit site theme colors');
+  themeLink.type = 'button';
+  themeLink.dataset.cmd = 'window.theme-colors';
+  actions.append(applyAll, themeLink);
+  group.append(wrapper, note, actions);
 
   field.addEventListener('change', () => void host.run(async () => {
     const next = host.state();
@@ -52,6 +67,8 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
   }));
 
   function show(node: HTMLElement, on: boolean): void { if (node.hidden === on) node.hidden = !on; }
+  function ready(): boolean { return !!host.state(); }
+  function current(): PageBackground | null { const next = host.state(); return next ? pageBackground(next.site, host.page()) : null; }
 
   return {
     field,
@@ -68,12 +85,42 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
       } else label(inherited, 'Using the site background: white, the browser default.');
       show(own, !!mine);
       const common = mine ? null : commonBackground(site, page.id);
-      if (common) label(others, '{0} uses {1}.',[common.pages.length > 1 ? `${common.pages[0]} +${common.pages.length - 1}` : common.pages[0], common.value]);
+      if (common) label(others, '{0} uses {1}.', [common.pages.length > 1 ? `${common.pages[0]} +${common.pages.length - 1}` : common.pages[0], common.value]);
       show(others, !!common);
       const bps = breakpointOverrides(site, page);
       if (bps.length) label(overrides, 'Own background at: {0}.', [bps.join(', ')]);
       show(overrides, bps.length > 0);
-    }
+      show(clear, !!mine);
+      const single = site.pages.length < 2;
+      if (applyAll.disabled !== single) applyAll.disabled = single;
+    },
+    commands: [
+      { id: 'page.background', label: 'Page background...', menu: 'Page', group: 4, enabled: ready, run: () => {
+        host.showPageTab();
+        field.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        field.focus({ preventScroll: true });
+      } },
+      { id: 'page.background-clear', label: 'Clear page background', menu: 'Page', group: 4, enabled: () => !!current(), run: async () => {
+        const next = host.state()!;
+        const step = setBackgroundCommand(next.site, host.page(), '');
+        await command(step.command, step.params);
+        host.status('Page background cleared. The page uses the site background.');
+      } },
+      { id: 'page.background-all', label: 'Use this page background on all pages', menu: 'Page', group: 4, enabled: () => ready() && host.state()!.site.pages.length > 1, run: async () => {
+        const next = host.state()!;
+        const mine = current()?.value || '';
+        const list = allPagesCommands(next.site, mine);
+        if (!list.length) { host.status('Every page already has this background.'); return; }
+        await commands(list);
+        host.status(mine ? `Background ${mine} applied to all ${next.site.pages.length} pages.` : `Backgrounds cleared on all ${next.site.pages.length} pages; they use the site background.`);
+      } },
+      { id: 'window.theme-colors', label: 'Site theme colors...', enabled: ready, run: () => {
+        runCommand('window.tokens');
+        const target = document.querySelector<HTMLElement>('[data-field="themes.default"]');
+        target?.closest<HTMLElement>('.fw-ext-block')?.scrollIntoView({ block: 'start', inline: 'nearest' });
+        target?.focus({ preventScroll: true });
+      } }
+    ]
   };
 }
 

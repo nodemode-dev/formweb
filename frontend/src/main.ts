@@ -747,7 +747,7 @@ const pageGrid = element('div', 'form-grid');
 addInspectorInput(pageGrid, 'Page name', 'page.name', name => pagePatch({ name }), undefined, true);
 addInspectorInput(pageGrid, 'URL slug', 'page.slug', slug => pagePatch({ slug }), undefined, true);
 pageSection.append(pageGrid);
-const pageBackground = installPageBackground({ section: title => section(pagePane, title), input, button, page: currentPage, state: () => lastState, run, status });
+const pageBackground = installPageBackground({ section: title => section(pagePane, title), input, button, page: currentPage, state: () => lastState, run, status, showPageTab: () => { openDock('right'); setInspector('page'); } });
 const seoSection = section(pagePane, 'Search & metadata');
 const seoGrid = element('div', 'form-grid');
 addInspectorInput(seoGrid, 'Title', 'seo.title', title => pagePatch({ seo: { ...currentPage().seo, title } }), undefined, true);
@@ -2273,6 +2273,7 @@ const vector = installVector({ canvas, getSelected: () => selectedId, select: se
 registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
 registerCommands(wishlist.commands);
+registerCommands(pageBackground.commands);
 subscribe(() => wishlist.refresh());
 const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.askReplace(state().site.name);
 const demoHooks: DemoHooks = { mayReplace: () => { demoPreview.close(); return mayReplace(); }, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
