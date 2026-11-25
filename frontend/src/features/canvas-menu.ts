@@ -1,6 +1,9 @@
 import { commands, state } from '../api';
+import { commands as registry } from '../commands/registry';
 import type { CommandDef } from '../ui/shell';
+import { showContextMenu, type MenuEntry, type MenuItem, type OpenMenu } from '../ui/context-menu';
 import { t } from '../i18n';
+import { invoke } from './panel';
 import { canContain } from './panel/drop';
 import type { SiteNode } from '../types';
 
@@ -24,6 +27,7 @@ export interface CanvasMenuHost {
   field(kind: 'style' | 'attr', key: string): HTMLElement | undefined;
 }
 
+type Point = { x: number; y: number };
 type Link = { id: string; label: string; tab: 'design' | 'content'; kind: 'style' | 'attr'; key: string; applies: (node: SiteNode) => boolean };
 
 const VECTOR = new Set(['g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath', 'symbol', 'use', 'pattern', 'tspan', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon']);
@@ -38,6 +42,11 @@ const LINKS: Link[] = [
   { id: 'inspector.image', label: 'Image source and alt text', tab: 'content', kind: 'attr', key: 'src', applies: node => node.tag === 'img' }
 ];
 const LINKED_MOVE = 'Elements inside a linked component instance cannot be moved';
+const COPY_BLOCKED = {
+  copy: 'A page root or an element inside a linked component instance cannot be copied',
+  cut: 'A page root or an element inside a linked component instance cannot be cut',
+  duplicate: 'A page root or an element inside a linked component instance cannot be duplicated'
+};
 
 export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[] } {
   const selectionIds = (): string[] => [host.selected()];
@@ -52,6 +61,12 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     if (!at) return null;
     const key = CSS.escape(id);
     return at.querySelector<HTMLElement>(`[data-fw-key="${key}"]`) || at.querySelector<HTMLElement>(`[data-fw-id="${key}"]`);
+  };
+  const toParent = (x: number, y: number): Point => {
+    const frame = host.frame;
+    const box = frame.getBoundingClientRect();
+    const scale = frame.offsetWidth ? box.width / frame.offsetWidth : 1;
+    return { x: box.left + (frame.clientLeft + x) * scale, y: box.top + (frame.clientTop + y) * scale };
   };
 
   function textBlock(id: string): string {
@@ -130,6 +145,79 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
       control.focus({ preventScroll: true });
     });
   }
+
+  const insertId = (): string => registry.get('insert.quick') ? 'insert.quick' : 'insert.panel';
+  const insertBlock = (id: string): string => {
+    const node = site().nodes[id];
+    const into = node && canContain(site(), id) ? node : parentOf(id) ?? node;
+    return into?.componentSourceId ? 'Nothing can be added inside a linked component instance' : '';
+  };
+  const pasteBlock = (id: string): string => {
+    const into = isRoot(id) ? site().nodes[id] : parentOf(id);
+    return into?.componentSourceId ? 'Nothing can be pasted inside a linked component instance' : '';
+  };
+  function item(id: string, english: string, run: () => unknown, blocked = '', title = ''): MenuItem {
+    const command = registry.get(id);
+    const on = !!command && registry.enabled(command) && !blocked;
+    return { id, label: english, enabled: on, title: on ? title || english : blocked || english, keys: command ? registry.keyLabel(command) : '', run };
+  }
+  const sep: MenuEntry = { separator: true };
+
+  function elementEntries(id: string, target: Element | null): MenuEntry[] {
+    const node = site().nodes[id];
+    const parent = parentOf(id);
+    const at = parent ? parent.children.indexOf(id) : -1;
+    const locked = !!parent?.componentSourceId;
+    const copyable = host.canDuplicate();
+    const entries: MenuEntry[] = [];
+    if (node.text) entries.push(item('edit.text', 'Edit text', () => editText(target), textBlock(id)), sep);
+    entries.push(
+      item('edit.copy', 'Copy', host.copy, copyable ? '' : COPY_BLOCKED.copy, 'Copy element'),
+      item('edit.cut', 'Cut', host.cut, copyable ? '' : COPY_BLOCKED.cut, 'Cut element'),
+      item('edit.paste', 'Paste', host.paste, pasteBlock(id), 'Paste element'),
+      item('edit.duplicate', 'Duplicate', host.duplicate, copyable ? '' : COPY_BLOCKED.duplicate),
+      item('edit.delete', 'Delete', () => invoke('edit.delete'), locked ? 'Elements inside a linked component instance cannot be deleted' : '', 'Delete element'),
+      sep,
+      item('layer.rename', 'Rename', () => invoke('layer.rename', { id })),
+      item('edit.select-parent', 'Select parent', () => invoke('edit.select-parent')),
+      sep,
+      item('arrange.up', 'Move up', () => invoke('arrange.up'), locked ? LINKED_MOVE : at > 0 ? '' : 'This element is already first'),
+      item('arrange.down', 'Move down', () => invoke('arrange.down'), locked ? LINKED_MOVE : at < (parent?.children.length ?? 0) - 1 ? '' : 'This element is already last'),
+      item('edit.wrap', 'Wrap in container', () => invoke('edit.wrap'), wrapBlock(id)),
+      item(insertId(), 'Add element here...', () => invoke(insertId()), insertBlock(id)),
+      sep
+    );
+    for (const link of LINKS) if (link.applies(node)) entries.push(item(link.id, link.label, () => invoke(link.id)));
+    entries.push(
+      sep,
+      item('style.copy', 'Copy styles', () => invoke('style.copy')),
+      item('style.paste', 'Paste styles', () => invoke('style.paste'), styleClip ? '' : 'Copy the styles of an element first')
+    );
+    return entries;
+  }
+
+  let open: OpenMenu | null = null;
+  function show(id: string, target: Element | null, anchor: Point): void {
+    if (!host.ready() || !site().nodes[id] || isRoot(id)) return;
+    if (!selectionIds().includes(id)) host.select(id);
+    open = showContextMenu(elementEntries(id, target), anchor, { host: host.overlay, className: 'fw-layer-menu fw-canvas-menu', run: host.run, returnFocus: host.frame });
+  }
+  const close = (): void => { open?.close(false); open = null; };
+  const editing = (at: Document): boolean => !!at.querySelector('[contenteditable="true"]');
+
+  function bind(at: Document): void {
+    at.addEventListener('pointerdown', close, true);
+    at.addEventListener('scroll', close, true);
+    at.addEventListener('contextmenu', event => {
+      if (!host.ready() || at.body.hasAttribute('data-preview') || editing(at)) return;
+      const hit = (event.target as Element | null)?.closest?.<HTMLElement>('[data-fw-id]') ?? null;
+      const id = hit?.dataset.fwId;
+      if (!id || !site().nodes[id] || isRoot(id)) return;
+      event.preventDefault();
+      show(id, hit, toParent(event.clientX, event.clientY));
+    });
+  }
+  void host.loaded.then(() => { const at = doc(); if (at) bind(at); });
 
   const notRoot = (): boolean => host.ready() && !!selectedNode() && !isRoot(host.selected());
   const definitions: CommandDef[] = [
