@@ -44,6 +44,27 @@ def test_select_on_an_element_issue_brings_the_element_into_view_and_names_the_i
     expect(harbour.status).to_contain_text("Link needs a destination")
 
 
+def test_after_select_a_notice_keeps_the_issue_in_view_and_show_again_goes_back_to_it(harbour):
+    harbour.layer_row("root").click()
+    start = harbour.site()["site"]
+    harbour.page.get_by_role("button", name="Insert element").click()
+    harbour.page.keyboard.type("Link")
+    harbour.page.keyboard.press("Enter")
+    site = harbour.changed_from(start)
+    link = site["nodes"]["root"]["children"][-1]
+    dialog = run_audit(harbour)
+    dialog.locator(f'.audit-row[data-node="{link}"]', has_text="Link needs a destination").get_by_role("button", name="Select").click()
+    notice = harbour.page.locator(".fw-notice")
+    expect(notice).to_be_visible()
+    expect(notice).to_contain_text(f"Selected {site['nodes'][link]['name']}: Link needs a destination")
+    harbour.page_row("p-fares").click()
+    expect(harbour.page_row("p-fares")).to_have_attribute("aria-current", "page")
+    notice.get_by_role("button", name="Show again").click()
+    expect(harbour.page_row("home")).to_have_attribute("aria-current", "page")
+    expect(harbour.layer_row(link)).to_have_attribute("aria-selected", "true")
+    expect(dialog).to_be_hidden()
+
+
 def test_with_one_issue_the_summary_reads_1_issue_found(harbour):
     harbour.page_row("p-routes").click()
     expect(harbour.page_row("p-routes")).to_have_attribute("aria-current", "page")

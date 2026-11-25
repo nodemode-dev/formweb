@@ -1923,7 +1923,10 @@ function showIssue(row: HTMLElement): void {
     field.focus({ preventScroll: true });
     flash(field);
   }
-  status(t('Selected {0}: {1}', [row.dataset.node ? currentNode().name : currentPage().name, message]));
+  const line = t('Selected {0}: {1}', [row.dataset.node ? currentNode().name : currentPage().name, message]);
+  status(line);
+  const key = row.dataset.key;
+  notice.show(line, { error: true, action: { label: 'Show again', run: () => { if (row.isConnected && row.dataset.key === key) (row.children[2] as HTMLButtonElement).click(); } } });
 }
 async function auditSite(): Promise<void> {
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
