@@ -62,8 +62,8 @@ def unlock(client, gated):
 
 def test_the_gated_word_is_in_the_publication_only_on_its_own_page_and_picture(gated):
     holders = {name for name in gated["files"] if WORD.encode() in (gated["folder"] / name).read_bytes()}
-    assert "fares/index.html" in holders
-    assert f"assets/{gated['picture']}" in holders
+    assert "search-index.json" in gated["files"]
+    assert holders == {"fares/index.html", f"assets/{gated['picture']}"}
 
 
 @pytest.mark.parametrize("asker", ["plain", "opaque", "opaque-with-token"])

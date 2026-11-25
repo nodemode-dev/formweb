@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 SECRET = "Quillowbramble"
@@ -34,32 +32,6 @@ def searchable_site_with_a_password_page(client):
     return client
 
 
-def test_a_password_page_is_left_out_of_the_published_search_index_and_every_file_served_without_the_password(searchable_site_with_a_password_page):
-    client = searchable_site_with_a_password_page
-    r = client.post("/api/publish", json={"slug": "gated-search"})
-    assert r.status_code == 200, r.text
-    base = f"/published/gated-search/{r.json()['version']}/"
-    from app.config import DATA_DIR
-    folder = Path(DATA_DIR) / "publications" / "gated-search" / r.json()["version"]
-    files = sorted(path.relative_to(folder).as_posix() for path in folder.rglob("*") if path.is_file())
-    assert "search-index.json" in files
-    index = client.get(base + "search-index.json")
-    assert index.status_code == 200
-    assert "Ferries leave the harbour" in index.text
-    leaked = []
-    with_password = []
-    for name in files:
-        answer = client.get(base + name, follow_redirects=False)
-        if answer.status_code == 200 and SECRET.encode() in answer.content:
-            leaked.append(name)
-        if SECRET.encode() in (folder / name).read_bytes():
-            with_password.append(name)
-    assert leaked == [], leaked
-    assert with_password, "the password page itself still holds its text for those who unlock it"
-    page = client.get(base + "staff/", follow_redirects=False)
-    assert page.status_code == 401 and SECRET not in page.text
-
-
 def test_a_password_set_after_publishing_also_hides_the_page_text_in_that_earlier_release(searchable_site_with_a_password_page):
     client = searchable_site_with_a_password_page
     assert client.post("/api/page-passwords", json={"route": "/staff", "password": None}).status_code == 200
@@ -71,6 +43,7 @@ def test_a_password_set_after_publishing_also_hides_the_page_text_in_that_earlie
     index = client.get(base + "search-index.json")
     assert index.status_code == 200
     assert SECRET not in index.text and "Ferries leave the harbour" in index.text
+    assert index.headers["cache-control"] == "private, no-store"
     assert client.get(base + "site.formweb.json").status_code == 404
 
 
