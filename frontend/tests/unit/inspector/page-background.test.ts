@@ -109,6 +109,50 @@ describe('typing a page background', () => {
   });
 });
 
+describe('text stays readable on a page background', () => {
+  const contrast = (a: string, b: string): number => {
+    const lum = (hex: string) => {
+      const [r, g, b2] = [1, 3, 5].map(at => parseInt(hex.slice(at, at + 2), 16) / 255).map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b2;
+    };
+    const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+    return (x + 0.05) / (y + 0.05);
+  };
+
+  it('a dark background on a page with no text colour also gives it a readable text colour in the same request', async () => {
+    pageId = 'about';
+    const { handle } = mount();
+    handle.field.value = '#0a2540';
+    handle.field.dispatchEvent(new Event('change'));
+    await settle();
+    expect(requests.length).toBe(1);
+    const text = state.site.nodes['r-about'].styles.color;
+    expect(contrast(text, '#0a2540')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('a light background afterwards gives back the dark default text', () => {
+    let site = threePages();
+    site = applyCommands(site, [mod.setBackgroundCommand(site, site.pages[2], '#111111')]);
+    site = applyCommands(site, [mod.setBackgroundCommand(site, site.pages[2], '#fafafa')]);
+    expect(site.nodes['r-about'].styles.color).toBeUndefined();
+  });
+
+  it('a text colour the page sets itself is kept', () => {
+    const site = threePages();
+    site.nodes['r-about'].styles.color = '#ffcc00';
+    const after = applyCommands(site, [mod.setBackgroundCommand(site, site.pages[2], '#111111')]);
+    expect(after.nodes['r-about'].styles.color).toBe('#ffcc00');
+  });
+
+  it('a dark site background, first set or changed later, makes the text readable on the pages that use it', () => {
+    let site = threePages();
+    site = applyCommands(site, mod.useSiteBackgroundCommands(site, [site.pages[2]], '#101418'));
+    expect(contrast(site.nodes['r-about'].styles.color, '#101418')).toBeGreaterThanOrEqual(4.5);
+    site = applyCommands(site, [mod.siteBackgroundColorCommand(site, '#f5f5f5'), ...mod.readableTextCommands({ ...site, tokens: { ...site.tokens, 'page-background': '#f5f5f5' } }, mod.siteBackgroundPages(site), 'var(--page-background)')]);
+    expect(site.nodes['r-about'].styles.color).toBeUndefined();
+  });
+});
+
 describe('what the line under the field says', () => {
   it('a page with no background of its own says it uses the site background and hides Clear', () => {
     pageId = 'about';
