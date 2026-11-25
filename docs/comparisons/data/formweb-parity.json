@@ -1,10 +1,10 @@
 {
  "product": "FormWeb",
- "version": "0.13.2",
- "previous": "0.13.1",
- "date": "2026-10-17",
+ "version": "0.31.0",
+ "previous": "0.13.2",
+ "date": "2026-11-25",
  "title": "FormWeb, measured against Framer, Figma, Webflow and Canva",
- "release_note": "Scroll and pointer effects (FW-185) Full: parallax, scroll transform, mouse parallax, marquee and cursor follow, off under reduced motion. 124 of 144.",
+ "release_note": "Issue #36, shipped as 0.28.1, 0.29.0, 0.30.0 and 0.31.0 (page and layer menus, dragging in Layers and on the canvas by mouse, touch and pen, multi-select and Select several, Preview as published, Audit Select that shows the element, a decorative image option, a site zip import, and the first run of the desktop app on Linux), strengthens FW-001, FW-002, FW-003, FW-006, FW-045 and FW-046, which were already Full, and FW-153, FW-155 and FW-187, which stay Partial; no grade moves, 124 of 144. Releases 0.13.3 to 0.30.0 were not recorded on this page, so rows they changed still carry their v0.13.2 grades.",
  "lanes": [
   [
    "m",
@@ -1079,8 +1079,8 @@
    "added": "0.1.0",
    "m": [
     "full",
-    "UI page duplicate with fresh owned IDs; current independent browser served all seven root/nested/localized CMS paths with distinct content.",
-    "None within exact page-route acceptance."
+    "UI page duplicate with fresh owned IDs; current independent browser served all seven root/nested/localized CMS paths with distinct content. v0.31.0 (issue #36, from 0.29.0 on): a page menu (Open, Rename, Duplicate, Set as home page, Move up, Move down, Page settings, Delete; Menu key and Shift+F10), rename in place by double-click or F2, Duplicate under a free name and slug, drag to reorder through the engine command page.move by mouse, touch (long press) and pen, Set as home page, which gives the page / and carries links to it in one batch and refuses a CMS template, a translated address or a page a password protects below /, and Add page, which fills the slug from the name and refuses an address in use. Covered by the engine tests (page_move, page_duplicate, page_flow) and the window tests (test_pages_list, test_touch), and the page menu was used in the desktop app on Linux.",
+    "None within exact page-route acceptance. Touch was driven only through Chromium's touch emulation, not on a real device, and the desktop app was run on Linux only."
    ],
    "fr": [
     "full",
@@ -1130,8 +1130,8 @@
    "added": "0.1.0",
    "m": [
     "full",
-    "Actual parent/child selection and property updates; current SSE preserved same focused textarea, pending JSON and selection 3..10 with zero mounted-pane removals.",
-    "None within catalog selection/focus acceptance; individual advanced consumers remain separately graded."
+    "Actual parent/child selection and property updates; current SSE preserved same focused textarea, pending JSON and selection 3..10 with zero mounted-pane removals. v0.31.0 (issue #36, from 0.30.0 on): several layers or pages selected with Ctrl/Cmd+click, Shift+click, Shift+arrows or Ctrl/Cmd+A in the lists and Ctrl/Cmd or Shift click on the canvas, with copy, cut, paste, duplicate, delete and move acting on the set as one undo step; Select several (Pages and Layers headings, Edit menu) does the same by tap or click without a modifier; the tree folds per layer and per list, with Collapse all and Expand all. Covered by the unit tests of the selection rules and the window tests (test_multi_select, test_layers_list, test_touch).",
+    "None within catalog selection/focus acceptance; individual advanced consumers remain separately graded. Ctrl/Cmd+A and Shift+arrows select in the Pages and Layers lists only, not on the canvas; fold state is kept in the browser, not in the project."
    ],
    "fr": [
     "full",
@@ -1180,8 +1180,8 @@
    "added": "0.1.0",
    "m": [
     "full",
-    "Carry-forward actual valid cross-parent movement, sibling reorder and atomic descendant-cycle rejection; native slot ownership guards observed.",
-    "No new browser grade claimed for library/slot workflows."
+    "Carry-forward actual valid cross-parent movement, sibling reorder and atomic descendant-cycle rejection; native slot ownership guards observed. v0.31.0 (issue #36, from 0.29.0 on): drag in Layers and drag of a selected element on the canvas, both with an insertion line, share one drop rule set that refuses page roots, a node into its own descendants, non-containers and linked instance structure, and send node.move as one batch per drop; the canvas drag writes no x/y offsets. In 0.31.0 both drags also work by touch (a long press of about a third of a second lifts the row or element; a swipe still scrolls) and by pen (a barrel-button press never drags). Covered by the engine tests (node_move), the unit tests of the drop rules and the long press, and the window tests (test_layers_list, test_canvas, test_touch); a layer drag and a canvas drag were done in the desktop app on Linux.",
+    "No new browser grade claimed for library/slot workflows. Touch was driven only through Chromium's touch emulation, not on a real device."
    ],
    "fr": [
     "full",
@@ -1325,8 +1325,8 @@
    "added": "0.1.0",
    "m": [
     "full",
-    "Actual compiled Preview consumed scoped component fragment links, form POST/nonce thanks redirect and counter0->1 without editor affordances. Studio prop/preset/owned locale assets matched independent ZIP; previous mounted frame retained during delayed compile; parent/top access rejected.",
-    "Translated preview route404 was a real defect corrected and reobserved200; diagnostic wrapper selector mistakes retained separately."
+    "Actual compiled Preview consumed scoped component fragment links, form POST/nonce thanks redirect and counter0->1 without editor affordances. Studio prop/preset/owned locale assets matched independent ZIP; previous mounted frame retained during delayed compile; parent/top access rejected. v0.31.0 (issue #36, from 0.30.0 on): Preview as published shows the compiled site over the whole window from the same double-buffered, sandboxed frame pair as the in-canvas live preview, with a page picker, the site's breakpoint widths, rotate, a phone and tablet frame, language, refresh and Open in browser, and swaps to a new revision only when its build has loaded. Covered by the window tests (test_preview); opened from Mod+Shift+P in the desktop app on Linux, where Open in browser reaches the system browser.",
+    "Translated preview route404 was a real defect corrected and reobserved200; diagnostic wrapper selector mistakes retained separately. The desktop app was run on Linux only; Open in browser was checked by the command the shell ran, not in a real browser."
    ],
    "fr": [
     "full",
@@ -3190,7 +3190,7 @@
    "added": "0.1.0",
    "m": [
     "full",
-    "Carry-forward actual semantic tags, decorative alt and explicit label/aria names edit and export correctly.",
+    "Carry-forward actual semantic tags, decorative alt and explicit label/aria names edit and export correctly. v0.31.0: a new picture has no alt until it is described, so the audit asks for one; Decorative image (no description), under Alternative text in the inspector, writes alt=\"\" on purpose and turns the text field off, and clearing the text removes the attribute. Covered by the service tests (images: audit and export agree on missing, empty and written alt) and the window tests (test_second_round).",
     "Advanced overlay focus and repeated CMS IDs remain separately graded."
    ],
    "fr": [
@@ -3242,8 +3242,8 @@
    "added": "0.1.0",
    "m": [
     "full",
-    "Actual native audit returned a11y.alt warning for node missing-alt-image plus seo.title and seo.description warnings for page home; retained editor findings expose Select controls.",
-    "None within exact node/page/code/severity catalog acceptance; broader navigation/edit/recheck remains independent plan."
+    "Actual native audit returned a11y.alt warning for node missing-alt-image plus seo.title and seo.description warnings for page home; retained editor findings expose Select controls. v0.31.0 (issue #36, from 0.28.1 on): Select scrolls the canvas to the element, pulses it, scrolls its layer into view and keeps the issue in the status line; a page issue opens Page settings and flashes its field; one issue reads 1 issue found. Covered by the window tests (test_audit, test_first_round_gaps).",
+    "None within exact node/page/code/severity catalog acceptance. Navigation from a finding is built and tested in headless Chromium; the audit still reruns only when asked, not after each edit."
    ],
    "fr": [
     "full",
@@ -6123,8 +6123,8 @@
    "added": "0.6.0",
    "m": [
     "partial",
-    "v0.6.0: ./build_app (and build_app.bat) freezes the backend and engine and builds the Tauri shell; the app spawns its sidecar and keeps user data in ~/FormWeb. Verified: ./build_app on Linux ran start to finish in 371 s and produced formweb_0.5.8_amd64.deb containing usr/bin/formweb and usr/bin/formweb-engine, and the frozen engine served the editor, the Rust engine and Claude Code status from an empty HOME. v0.8.1: the 0.8.0 deb (formweb_0.8.0_amd64.deb, usr/bin/formweb beside usr/bin/formweb-engine) was extracted and launched under xvfb-run with a fresh HOME, from /tmp with FORMWEB_ROOT unset; the sidecar and its core started from the bundle, /api/health answered, the window loaded the editor (screenshot of the X display shows the site, layers and inspector), and data went to ~/FormWeb/Data. Quitting stopped the sidecar by SIGTERM and by window close; a bug found there (closing the window left the engine running because stop_service ran an ambiguous `kill -TERM -<pgid>`) was fixed in main.rs with libc kill on the process group and re-checked on a rebuilt deb.",
-    "Linux only: build_app.bat, the Windows freeze and the Windows and macOS shells were not run; ./build_app itself stopped at a tsc error in another engineer's wishlist file, so the remaining steps (vite build, freeze_backend, tauri build) were run directly; the deb was extracted rather than installed with apt; no prebuilt bundles ship."
+    "v0.6.0: ./build_app (and build_app.bat) freezes the backend and engine and builds the Tauri shell; the app spawns its sidecar and keeps user data in ~/FormWeb. Verified: ./build_app on Linux ran start to finish in 371 s and produced formweb_0.5.8_amd64.deb containing usr/bin/formweb and usr/bin/formweb-engine, and the frozen engine served the editor, the Rust engine and Claude Code status from an empty HOME. v0.8.1: the 0.8.0 deb (formweb_0.8.0_amd64.deb, usr/bin/formweb beside usr/bin/formweb-engine) was extracted and launched under xvfb-run with a fresh HOME, from /tmp with FORMWEB_ROOT unset; the sidecar and its core started from the bundle, /api/health answered, the window loaded the editor (screenshot of the X display shows the site, layers and inspector), and data went to ~/FormWeb/Data. Quitting stopped the sidecar by SIGTERM and by window close; a bug found there (closing the window left the engine running because stop_service ran an ambiguous `kill -TERM -<pgid>`) was fixed in main.rs with libc kill on the process group and re-checked on a rebuilt deb. v0.31.0 (issue #36): the .deb that ./build_app made was unpacked and started under a virtual display with its frozen engine and driven with real clicks and keys (a demo from Home, exports and their notice, Show in folder, Download .fweb project, Preview as published, Open the full guide, the canvas menu), all passed, as recorded in docs/DESKTOP_TESTING.md; the Linux runs of the debug shell and the deb found, and this release fixed, a canvas that took no clicks in WebKitGTK, new-window links that never reached the system browser, Linux exports saved outside Downloads and an editor page kept after an update.",
+    "Linux only: build_app.bat, the Windows freeze and the Windows and macOS shells were not run (their shell code was compiled with cargo check for those targets in v0.31.0, not run); the deb was unpacked rather than installed with apt; on Linux, after one failed download WebKitGTK reports every later download as failed; no prebuilt bundles ship."
    ],
    "fr": [
     "none",
@@ -6204,7 +6204,7 @@
    "m": [
     "partial",
     "v0.7.0: i18n with a page translator (text nodes, title, aria-label and placeholder, translated before paint), lazy per-language tables, 1199 keys, Settings > Editor language. ./formweb i18n check passes (23 full languages with 1199 entries each plus 33 es-MX and 24 fr-CA overrides). Driven in headless Chromium: the menus switched live to German and Japanese with no reload, Japanese persisted across a reload, and layer names stayed as written.",
-    "Only German and Japanese were driven in a browser; translations were written by model and not reviewed by native speakers, the zh, ja, ko, id, th, vi and tr tables were written without the family glossary, and strings built at run time from templates are not translated."
+    "Only German and Japanese were driven in a browser; translations were written by model and not reviewed by native speakers, the zh, ja, ko, id, th, vi and tr tables were written without the family glossary, and strings built at run time from templates are not translated. v0.31.0: the 223 interface strings added for issue #36 (0.28.1 to 0.31.0) are in all 23 full tables, also machine translated and not reviewed, and the templates of the sentences that work touched now go through the translator with placeholders; ./formweb i18n check passes with 2794 keys and 2794 entries in each of the 23 tables (85 es-MX and 28 fr-CA overrides). Older run-time templates elsewhere were not converted."
    ],
    "fr": [
     "none",
@@ -7295,7 +7295,7 @@
    "m": [
     "partial",
     "v0.12.8: an SVG in Figma's export style (a named frame group, a rounded rectangle, a path and a clipPath) posted to /api/vector/import-svg came back with the layer ids, shapes, fills and strokes kept.",
-    "SVG only: the importer drops the clipPath id and the clip-path reference, so frame clipping is lost, and auto layout, components and text styles do not come across."
+    "SVG only for design tools: the importer drops the clipPath id and the clip-path reference, so frame clipping is lost, and auto layout, components and text styles do not come across. v0.31.0 imports a static HTML site from a zip, after a review, but each page arrives as one code section (HTML, CSS and its first script), not as editable layers, so it does not meet this row."
    ],
    "fr": ["full", "The official Figma to HTML with Framer plugin copies layers that paste as editable elements.", ["F42"], "integration"],
    "wf": ["partial", "The Figma to Webflow plugin pastes auto layout frames as elements; variants are unsupported.", ["W40"], "integration"],
@@ -8275,31 +8275,68 @@
    "same_as": "0.13.0",
    "moved": {"FW-186": "full"},
    "note": "Starter sites in New site: prebuilt sections and templates Full, 123 of 144."
+  },
+  {
+   "version": "0.13.2",
+   "date": "2026-10-17",
+   "same_as": "0.13.1",
+   "moved": {"FW-185": "full"},
+   "note": "Scroll and pointer effects (FW-185) Full: parallax, scroll transform, mouse parallax, marquee and cursor follow, off under reduced motion. 124 of 144."
   }
  ],
  "changes": [
   [
-   "Vector tools driven in the editor (FW-080, 083, 084, 085, 086, 089, 091, 096)",
-   "Partial: compiled or only partly driven",
-   "Full: driven in headless Chromium against the real engine in v0.7.1; canvas tag-case fix lets gradients, inside strokes and type on a path render"
+   "Releases 0.13.3 to 0.30.0",
+   "Not recorded",
+   "Not recorded: no per-row grades were kept for these releases, so they have no line in the history below, and rows they changed still carry their v0.13.2 grades. The changelog shows, for example, site search (FW-179) and light and dark themes (FW-181) shipping in that span; both still read None here until they are regraded."
   ],
   [
-   "Vector rows that stay Partial (FW-081, 082, 087, 088, 090, 092, 093, 094, 095)",
-   "Partial: not driven",
-   "Partial: driven and working, with the recorded gap on each row (clip release loses paint, no invert or link on opacity masks, Shape Builder merge only, closed-path width gives two rings, one snap kind driven, no shear or perspective, blend and repeat are expanded copies, four warp presets, no on-canvas type on a path editing)"
+   "FW-001 · Pages and routes (Full, unchanged)",
+   "Full",
+   "Full, strengthened: page menu, rename in place, drag to reorder through page.move by mouse, touch and pen, Set as home page with its refusals, Add page's address from the name"
   ],
   [
-   "Creative rows regraded after editor wiring (FW-142, 143, 148)",
-   "Partial: editor panel pending",
-   "Full: wishlist panel wired into main.ts and driven against a mocked context, with export and engine checks executed"
+   "FW-002 · Nested scene tree and selection (Full, unchanged)",
+   "Full",
+   "Full, strengthened: several layers, pages or canvas elements selected at once and acted on as one undo step, also by tap with Select several; folding tree"
   ],
   [
-   "Creative rows that stay Partial (FW-140, 141, 144, 145, 146, 147, 149)",
+   "FW-003 · Reparent and reorder (Full, unchanged)",
+   "Full",
+   "Full, strengthened: drag in Layers and on the canvas under one drop rule set, by mouse, touch (long press) and pen; touch tried only in emulation"
+  ],
+  [
+   "FW-006 · Preview without editor affordances (Full, unchanged)",
+   "Full",
+   "Full, strengthened: Preview as published over the whole window, with page, width, rotate, device frame and language"
+  ],
+  [
+   "FW-045 · Semantics, alt text, labels (Full, unchanged)",
+   "Full",
+   "Full, strengthened: a new picture has no alt until described, and Decorative image writes an empty alt on purpose"
+  ],
+  [
+   "FW-046 · Audit findings (Full, unchanged)",
+   "Full",
+   "Full, strengthened: Select scrolls to and pulses the element and its layer; page findings flash their field"
+  ],
+  [
+   "FW-153 · One-command desktop build with a bundled engine (Partial, unchanged)",
    "Partial",
-   "Partial: no per-option counts, no recorded editor flow for several tabs, nested lists not filtered by parent item, element-level superscript only, no live form POST"
+   "Partial: the .deb from ./build_app was run and driven on Linux, and the faults the Linux runs showed were fixed; Windows and macOS still not run"
+  ],
+  [
+   "FW-155 · Editor interface in 26 languages (Partial, unchanged)",
+   "Partial",
+   "Partial: the 223 strings added for issue #36 are in all 23 tables, machine translated and unreviewed"
+  ],
+  [
+   "FW-187 · Import designs from another design tool (Partial, unchanged)",
+   "Partial",
+   "Partial: the new site zip import brings HTML pages in as code sections, not editable layers, so it does not meet the row"
   ]
  ],
- "closed_note": "Still open: the five v0.12.8 rows that are not built (FW-179 to FW-182, FW-184) and annotations in image export (FW-150); hosting, payments and AI images (FW-050, FW-063, FW-071) wait on real provider accounts.",
+ "closed_note": "No row closes in v0.31.0: the issue #36 work strengthens rows that were already Full and widens the evidence of three Partial rows without meeting their wording. Still open on this page: the v0.12.8 rows recorded as not built (FW-179 to FW-182, FW-184) and annotations in image export (FW-150); hosting, payments and AI images (FW-050, FW-063, FW-071) wait on real provider accounts. Releases 0.13.3 to 0.30.0 were not recorded, and some of these rows (at least FW-179 site search and FW-181 light and dark themes) were built in that span without being regraded.",
  "platform": [
   [
    "What it is",
@@ -8420,8 +8457,8 @@
   "eyebrow": "FormWeb · Framer, Figma, Webflow and Canva alternative · Apache-2.0",
   "dek": "144 researched capabilities, measured against Framer, Figma, Webflow and Canva. FormWeb is graded on executed local acceptance; the four others are graded from their official documentation (Framer, Webflow and Canva fetched on 10, 11 and 17 October 2026, Figma on 17 October 2026 across every row), so their scores are lower bounds rather than proof of absence. Framer, Webflow and Canva were not graded on the FormWeb-side rows added from v0.5.7 to v0.10.6, so their tiles undercount those; the ten rows added at v0.12.8 are graded in every lane.",
   "baseline": "65 targets from Framer and Webflow (v0.1.0), 14 more checked against Canva (v0.3.0), FormWeb-side targets added from v0.7.0 on, and ten rows researched from the four products' own documentation at v0.12.8; the Figma lane was graded across all rows on 17 October 2026",
-  "changes": "v0.13.2 adds scroll and pointer effects: parallax, scroll transform, mouse parallax, marquee and cursor follow, set per element in the Content inspector and run by the exported site, off for visitors who ask for reduced motion. FW-185 moves from None to Full, and the score from 123 to 124 of 144.",
-  "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression.",
+  "changes": "v0.31.0 completes the answer to issue #36, shipped as 0.28.1, 0.29.0, 0.30.0 and 0.31.0: a page menu, rename in place, page reorder and Set as home page; dragging in Layers and on the canvas under one drop rule set, by mouse, touch and pen; several layers, pages or elements selected at once, also by tap with Select several; Preview as published over the whole window; Audit Select that shows the element; a decorative image option; a site zip import; the interface strings in all 23 tables; and the first run of the desktop app, on Linux. These strengthen FW-001, FW-002, FW-003, FW-006, FW-045 and FW-046, which were already Full, and add evidence to FW-153, FW-155 and FW-187, which stay Partial; no grade moves, and the score stays 124 of 144. This page was last recorded at v0.13.2: releases 0.13.3 to 0.30.0 were not recorded, so the table compares with v0.13.2 and rows those releases changed have not been regraded.",
+  "history": "Scores are recomputed from each release's recorded per-row grades. The jump in rows at v0.3.0 is the wider baseline, not a regression. Releases 0.13.3 to 0.30.0 have no line: their grades were never recorded, and none is invented here.",
   "parity": "Full means implemented and accepted end to end in FormWeb, or documented natively by a vendor. Partial means narrower than the target, or reached only through an integration. None means not built (FormWeb) or not found in the sources read (vendors); the status word says which: Not found, Not offered or Retired.",
   "method": [
    [
@@ -8438,9 +8475,9 @@
    ],
    [
     "Tracking",
-    "Per-row grades for every release are kept in docs/comparisons/data/formweb-parity.json; ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
+    "Per-row grades for each recorded release are kept in docs/comparisons/data/formweb-parity.json (releases 0.13.3 to 0.30.0 were not recorded); ./formweb comparisons build renders this page and the change tables from them, and ./formweb comparisons embed puts it in the FormAI matrix."
    ]
   ],
-  "footer": "Compiled 17 October 2026 from FormWeb and the sources listed. Framer, Figma, Webflow and Canva are research references; no proprietary source or vendor assets are bundled."
+  "footer": "Vendor lanes compiled 17 October 2026 from the sources listed; FormWeb rows updated 25 November 2026 for v0.31.0. Framer, Figma, Webflow and Canva are research references; no proprietary source or vendor assets are bundled."
  }
 }
