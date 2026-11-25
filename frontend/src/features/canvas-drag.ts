@@ -545,9 +545,11 @@ export function installCanvasDrag(host: CanvasDragHost): { commands: CommandDef[
     const swallow = (): void => swallowClick([win, window], touch ? 400 : 0);
     const block = (event: Event): void => event.preventDefault();
     const keys = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape' || !(dragging || held) || aborted) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
+      if (!(dragging || held) || aborted || ['Shift', 'Control', 'Alt', 'Meta', 'AltGraph'].includes(event.key)) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
       const was = dragging;
       dragging = false;
       held = false;

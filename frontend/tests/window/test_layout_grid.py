@@ -79,6 +79,22 @@ def test_escape_during_a_canvas_drag_removes_the_layout_grid_and_moves_nothing(c
     assert coldmere.site()["site"] == start
 
 
+@pytest.mark.parametrize("key", ["Control+d", "Control+Shift+p"], ids=["duplicate", "preview"])
+def test_a_shortcut_pressed_during_a_canvas_drag_ends_the_drag_first_so_nothing_is_left_drawn_and_nothing_is_dropped(coldmere, key):
+    coldmere.canvas.locator('[data-fw-id="hm-lead"]').click()
+    lead, h1 = box_of(coldmere, "hm-lead"), box_of(coldmere, "hm-h1")
+    pointer = press_and_move(coldmere, lead, (h1["x"] + 6, h1["y"] + h1["height"] * 0.3))
+    expect(coldmere.page.locator(SLOTS).first).to_be_visible()
+    coldmere.page.keyboard.press(key)
+    for drawn in (LAYER, ".fw-canvas-proxy:visible", ".fw-canvas-line:visible", ".fw-canvas-box:visible"):
+        expect(coldmere.page.locator(drawn)).to_have_count(0)
+    before = coldmere.site()["site"]
+    pointer.move(h1["x"] + 6, h1["y"] + 2, steps=3, held=True)
+    pointer.up()
+    coldmere.page.wait_for_timeout(300)
+    assert coldmere.site()["site"]["nodes"]["hm-hero-copy"]["children"] == before["nodes"]["hm-hero-copy"]["children"]
+
+
 def test_dragging_the_first_heading_below_the_second_reads_inside_the_section_at_the_end(section_with_two_headings):
     editor, section, first, second = section_with_two_headings
     site = editor.site()["site"]
