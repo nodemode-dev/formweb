@@ -91,12 +91,24 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     sitemap.push_str("</urlset>\n");
     files.push(json!({"path":"sitemap.xml","content":sitemap}));
     files.push(json!({"path":"robots.txt","content":format!("User-agent: *\nAllow: /\nSitemap: {base}/sitemap.xml\n")}));
-    files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?}));
+    if password_routes(params)?.is_empty() { files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?})); }
     if let Some(manifest) = web_manifest(site) { files.push(manifest); }
     files.push(json!({"path":"routes.json","content":serde_json::to_string(&route_manifest).map_err(|e| e.to_string())?}));
     files.push(json!({"path":"README.txt","content":format!("FormWeb static export\nLocale: {locale}\nServe this folder with any static HTTP server.\nPages use directory routes with index.html.\nThe editable source is site.formweb.json.\nRemote assets are referenced, not bundled.\nForms submit to the configured FormWeb API; keep that service running or replace the form action with your own service.\nRuntime respects prefers-reduced-motion.\n")}));
     case_clash(&files, &mut warnings);
     Ok(json!({"files": files, "warnings": warnings.into_iter().collect::<Vec<_>>()}))
+}
+
+pub(crate) fn password_routes(params: &Value) -> Result<Vec<String>, String> {
+    let Some(list) = params.get("passwordRoutes") else { return Ok(vec![]) };
+    let list = list.as_array().ok_or("passwordRoutes must be a list of routes")?;
+    if list.len() > 1000 { return Err("passwordRoutes holds at most 1000 routes".into()); }
+    list.iter().map(|v| v.as_str().map(|r| format!("/{}", r.trim_matches('/'))).ok_or_else(|| "passwordRoutes must be a list of routes".to_string())).collect()
+}
+
+pub(crate) fn behind_password(slug: &str, gates: &[String]) -> bool {
+    let route = format!("/{}", slug.trim_matches('/'));
+    gates.iter().any(|gate| gate == "/" || route == *gate || route.starts_with(&format!("{gate}/")))
 }
 
 pub(crate) fn case_clash(files: &[Value], warnings: &mut BTreeSet<String>) {

@@ -75,12 +75,13 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     if let Some(disallow)=rules.and_then(|v|v.get("disallow")).and_then(Value::as_array) { for path in disallow.iter().filter_map(Value::as_str) { robots.push_str(&format!("Disallow: {path}\n")); } }
     robots.push_str(&format!("Sitemap: {base}/sitemap.xml\n"));
     files.push(json!({"path":"robots.txt","content":robots}));
-    if !gated { files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?})); }
+    let passwords = crate::password_routes(params)?;
+    if !gated && passwords.is_empty() { files.push(json!({"path":"site.formweb.json","content":serde_json::to_string_pretty(site).map_err(|e|e.to_string())?})); }
     if let Some(manifest)=crate::web_manifest(site) { files.push(manifest); }
     if let Some(redirects)=site.extensions.get("seo").and_then(|v|v.get("redirects")) { files.push(json!({"path":"redirects.json","content":redirects.to_string()})); }
     let route_manifest: Vec<_> = routes.iter().enumerate().map(|(index,r)|json!({"path":r.path(),"page":r.page.id,"locale":r.locale,"item":r.item.as_ref().map(|i|&i.id),"stylesheet":format!("assets/pages/{index}.css")})).collect();
     files.push(json!({"path":"routes.json","content":serde_json::to_string(&route_manifest).map_err(|e|e.to_string())?}));
-    if let Some(index)=crate::search::index(site,&routes) { files.push(json!({"path":"search-index.json","content":index})); }
+    if let Some(index)=crate::search::index(site,&routes,&passwords) { files.push(json!({"path":"search-index.json","content":index})); }
     files.push(json!({"path":"asset-access.json","content":json!({"schemaVersion":1,"assets":asset_access}).to_string()}));
     files.push(json!({"path":"README.txt","content":"FormWeb static output. Serve over HTTP. Owned assets are bundled by the backend. Browser integrations require the configured backend and do not embed credentials. Isolated code frames cannot access the parent or network. Gated output must be served by an authorizing backend. Keep native .fweb source separately."}));
     crate::case_clash(&files, &mut warnings);
