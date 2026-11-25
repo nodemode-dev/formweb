@@ -53,6 +53,19 @@ fn a_password_route_leaves_its_pages_and_the_pages_under_it_out_of_the_search_in
 }
 
 #[test]
+fn a_members_only_route_leaves_its_pages_out_of_the_search_index_and_keeps_the_page_itself() {
+    let mut site = site();
+    site.extensions.insert("integrations".into(), json!({"gates": [{"route": "/staff", "groups": ["crew"]}]}));
+    formweb_model::validate(&site).unwrap();
+    let out = files(&site, json!({"privateMembers": true}));
+    let paths = indexed_paths(&out);
+    assert_eq!(paths.iter().filter(|p| p.starts_with("staff/")).count(), 0, "{paths:?}");
+    assert!(paths.contains(&"fares/".to_string()));
+    assert!(!out["search-index.json"].contains(SECRET));
+    assert!(out["staff/index.html"].contains(SECRET));
+}
+
+#[test]
 fn a_password_on_the_whole_site_leaves_every_page_out_of_the_search_index() {
     let out = files(&site(), json!({"passwordRoutes": ["/"]}));
     assert_eq!(indexed_paths(&out), Vec::<String>::new());
