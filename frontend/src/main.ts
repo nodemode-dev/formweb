@@ -318,7 +318,8 @@ insertPane.hidden = true;
 const insertHead = element('div', 'panel-head');
 insertHead.append(element('span', 'eyebrow', 'Elements'));
 const insertGrid = element('div', 'insert-grid');
-for (const [label, symbol, kind] of [['Section', 'box', 'section'], ['Heading', 'text', 'heading'], ['Paragraph', 'text', 'paragraph'], ['Button', 'arrow', 'button'], ['Image', 'image', 'image'], ['Grid', 'grid', 'grid'], ['Form', 'box', 'form'], ['Link', 'globe', 'link'], ['Embed', 'eye', 'embed']] as [string, Icon, string][]) insertGrid.append(button(label, symbol, () => insertElement(kind), 'insert-card'));
+const INSERT_ELEMENTS: [string, Icon, string][] = [['Section', 'box', 'section'], ['Heading', 'text', 'heading'], ['Paragraph', 'text', 'paragraph'], ['Button', 'arrow', 'button'], ['Image', 'image', 'image'], ['Grid', 'grid', 'grid'], ['Form', 'box', 'form'], ['Link', 'globe', 'link'], ['Embed', 'eye', 'embed']];
+for (const [label, symbol, kind] of INSERT_ELEMENTS) insertGrid.append(button(label, symbol, () => insertElement(kind), 'insert-card'));
 insertGrid.append(button('Video', 'video', () => inspectorExt.insertVideo(), 'insert-card'));
 const componentsHead = element('div', 'panel-head');
 componentsHead.append(element('span', 'eyebrow', 'Components'));
@@ -375,6 +376,10 @@ async function insertStarter(id: string): Promise<void> {
   pageId = page;
   selectedId = root;
   update(state());
+}
+async function insertComponent(id: string): Promise<void> {
+  await command('component.insert', { component: id, parent: insertionParent() });
+  status('Component instance inserted.');
 }
 insertPane.append(insertHead, insertGrid, element('div', 'sidebar-note', 'Elements insert into the selected container. Select a layer or click the canvas to edit it.'), sectionsHead, sectionsGrid, startersHead, startersGrid, element('div', 'sidebar-note', 'Sections insert after the selected section. Starter pages add a new page with its sections. Every insert is one undo step.'), componentsHead, captureWrap, componentList);
 let agentDock: Dock<'antigravity'> | null = null;
