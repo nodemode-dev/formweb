@@ -39,6 +39,7 @@ You can move an element by dragging it on the canvas. Over a selected element th
    - every container that can take the element gets a faint dashed outline;
    - inside the container under the pointer, a thin line marks each place: before its first element, between each two, and after its last;
    - the orange line is the place the element snaps to. It is always the place nearest the pointer, so anywhere inside a container that can take the element one place is offered;
+   - over a container that sits next to the element you drag, such as another card in the same row, the first and last quarter of it (along the row or column) place the element before or after that container, and only its middle puts the element inside it;
    - a darker line through the neighbours shows the edge the element will line up with when that container lines its elements up on it (left, centre or right in a column; top, middle or bottom in a row), and a small measure such as **14 px** shows the gap or margin the layout will put between them.
 4. Release to drop it there, or press Escape to cancel. The status line then says "Drag cancelled. Nothing moved." and everything the drag drew is gone. Any other key you press during the drag, such as a shortcut, cancels it the same way before it does its own work.
 
