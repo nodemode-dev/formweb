@@ -2,7 +2,8 @@
 .fw-lib { display: flex; flex: 1; flex-direction: column; gap: var(--space-2); min-height: 0; padding: var(--space-2) 0 0; }
 .fw-lib[hidden] { display: none; }
 .fw-lib-tabs { flex: none; margin: 0 var(--space-3); flex-wrap: nowrap; }
-.fw-lib-tabs .fw-seg-btn { flex: 1 1 0; min-width: 0; padding: 0 var(--space-1); overflow: hidden; text-overflow: ellipsis; }
+.fw-lib-tabs .fw-seg-btn { flex: 1 1 auto; height: auto; min-height: var(--ctl-sm); padding: 2px var(--space-1); white-space: normal; line-height: 1.2; hyphens: auto; }
+.fw-lib-tabs .fw-seg-btn.is-on { font-weight: inherit; }
 .fw-lib-view { display: flex; flex: 1; flex-direction: column; min-height: 0; }
 .fw-lib-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 
