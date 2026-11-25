@@ -161,6 +161,8 @@ function openPage(id: string): void {
   selectedId = currentPage().root;
   update(state());
 }
+function pageRowClick(_event: MouseEvent, id: string): void { openPage(id); }
+function layerRowClick(_event: MouseEvent, id: string): void { pickNode(id); }
 function descendants(id: string, found = new Set<string>()): Set<string> {
   if (found.has(id)) return found;
   found.add(id);
@@ -1461,11 +1463,8 @@ function update(next: EditorState): void {
   keyed(pagesList, site.pages, page => page.id, () => {
     const row = button('', undefined, undefined, 'list-row');
     row.append(icon('page'), element('span', 'row-label'), element('span', 'row-detail'));
-    row.addEventListener('click', () => {
-      pageId = row.dataset.key!;
-      selectedId = currentPage().root;
-      update(state());
-    });
+    row.addEventListener('click', event => pageRowClick(event, row.dataset.key!));
+    panel.pageRow(row);
     return row;
   }, (row, item) => {
     text(row.children[1] as HTMLElement, item.name);
@@ -1487,8 +1486,9 @@ function update(next: EditorState): void {
   keyed(layersList, layers, item => item.node.id, () => {
     const row = button('', undefined, undefined, 'list-row layer-row');
     row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
-    row.addEventListener('click', () => pickNode(row.dataset.key!));
+    row.addEventListener('click', event => layerRowClick(event, row.dataset.key!));
     row.addEventListener('contextmenu', event => showLayerMenu(event, row.dataset.key!));
+    panel.layerRow(row, event => showLayerMenu(event, row.dataset.key!));
     return row;
   }, (row, item) => {
     text(row.children[1] as HTMLElement, item.node.name);
@@ -2146,7 +2146,7 @@ document.addEventListener('paste', event => {
   event.preventDefault();
   void run(() => pasteFragmentText(raw));
 });
-function showLayerMenu(event: MouseEvent, id: string): void {
+function showLayerMenu(event: MouseEvent | KeyboardEvent, id: string): void {
   event.preventDefault();
   selectNode(id);
   const allowed = canDuplicate();
@@ -2157,8 +2157,10 @@ function showLayerMenu(event: MouseEvent, id: string): void {
     ['edit.duplicate', 'Duplicate', 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
   ];
   const entries: MenuEntry[] = rows.map(([commandId, english, blocked, enabledNow, action]) => ({ id: commandId, label: english, title: enabledNow ? english : blocked, enabled: enabledNow, keys: commandRegistry.keyLabel(commandRegistry.get(commandId)!), run: action }));
+  entries.push(...panel.layerEntries(id));
   const row = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
-  showContextMenu(entries, row ? anchorOf(event, row) : { x: event.clientX, y: event.clientY }, { host: overlay, className: 'fw-layer-menu', run, returnFocus: row });
+  const anchor = !(event instanceof MouseEvent) ? row ?? { x: 0, y: 0 } : row ? anchorOf(event, row) : { x: event.clientX, y: event.clientY };
+  showContextMenu(entries, anchor, { host: overlay, className: 'fw-layer-menu', run, returnFocus: row });
 }
 const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); };
 const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link'], ['embed', 'Embed media']];
