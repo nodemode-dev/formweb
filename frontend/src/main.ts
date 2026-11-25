@@ -1585,7 +1585,8 @@ async function saveProject(): Promise<void> {
   if (dialogMode === 'projects') await updateProjects();
 }
 async function downloadProject(): Promise<void> {
-  await download('/api/project-file', state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '.fweb');
+  const file = state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '.fweb';
+  await deliver(file, { desktop: 'Saved {0} to your Downloads folder.', placed: 'Saved {0} to {1}.', browser: 'Downloaded {0}. Your browser lists it with its downloads.' }, notice, started => download('/api/project-file', file, started));
   status('Editable .fweb project downloaded.');
 }
 const NOT_FOUND_BASE_KEY = "The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.";
