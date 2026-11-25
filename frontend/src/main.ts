@@ -19,6 +19,7 @@ import { unsavedWork } from './ui/unsaved';
 import { watchOpenedFiles } from './ui/opened-file';
 import { Notice } from './ui/notice';
 import { deliver, isBusy } from './ui/downloads';
+import { flash, issueField, rowOf, scrollNearest } from './ui/reveal';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
 import { AgentConnect } from './features/agent-connect';
@@ -1849,6 +1850,20 @@ async function updateProjects(): Promise<void> {
     text(row.children[0].children[1] as HTMLElement, new Date(project.updatedAt).toLocaleString());
   });
 }
+function showIssue(row: HTMLElement): void {
+  const message = row.children[1].children[0].textContent || '';
+  const field = row.dataset.node ? undefined : inspectorFields.get(issueField(row.dataset.code || '') || '');
+  if (row.dataset.node) {
+    canvas.reveal(selectedId);
+    scrollNearest(layersList, rowOf(layersList, selectedId));
+  } else if (field) {
+    openDock('right');
+    field.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    field.focus({ preventScroll: true });
+    flash(field);
+  }
+  status(t('Selected {0}: {1}', [row.dataset.node ? currentNode().name : currentPage().name, message]));
+}
 async function auditSite(): Promise<void> {
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
   openDialog('audit');
@@ -1859,25 +1874,27 @@ async function auditSite(): Promise<void> {
     description.append(element('span'), element('small'));
     row.append(element('span', 'audit-severity'), description, button('Select', undefined, () => {
       const id = row.dataset.node;
-      const page = state().site.pages.find(page => page.id === row.dataset.page || !!id && descendants(page.root).has(id));
+      const page = state().site.pages.find(page => page.id === row.dataset.page || !!id && descendants(page.root).has(id)) ?? (issueField(row.dataset.code || '') ? currentPage() : undefined);
       if (page) {
         pageId = page.id;
         selectedId = id && state().site.nodes[id] ? id : page.root;
         if (!id) setInspector('page');
         closeDialog();
         update(state());
+        showIssue(row);
       }
     }));
     return row;
   }, (row, issue) => {
     row.dataset.node = issue.node || '';
     row.dataset.page = issue.page || '';
+    row.dataset.code = issue.code;
     text(row.children[0] as HTMLElement, issue.severity);
     const formPage = issue.code === 'forms.local-address' ? state().site.pages.find(page => page.id === issue.page)?.name : undefined;
     if (formPage !== undefined) label(row.children[1].children[0] as HTMLElement, LOCAL_FORM_KEY, [formPage]);
     else text(row.children[1].children[0] as HTMLElement, issue.message);
     text(row.children[1].children[1] as HTMLElement, `${issue.code}${issue.node ? ' · ' + issue.node : issue.page ? ' · ' + issue.page : ''}`);
-    (row.children[2] as HTMLButtonElement).hidden = !issue.node && !issue.page;
+    (row.children[2] as HTMLButtonElement).hidden = !issue.node && !issue.page && !issueField(issue.code);
   });
 }
 function updateCms(): void {
