@@ -236,6 +236,26 @@ def test_add_page_fills_the_address_from_the_name_and_refuses_a_taken_one(coldme
     assert site["pages"][-1]["name"] == "Services again"
 
 
+def test_add_page_refuses_an_address_another_page_has_in_capital_letters_as_the_engine_does(coldmere):
+    page = coldmere.page
+    start = coldmere.site()["site"]
+    owner = next(p["name"] for p in start["pages"] if p["slug"].strip("/") == "services")
+    page.get_by_role("button", name="Add page").click()
+    dialog = page.get_by_role("dialog", name="Add page")
+    dialog.get_by_role("textbox", name="Page name").fill("Loud services")
+    dialog.get_by_role("textbox", name="URL slug").fill("/SERVICES")
+    note = dialog.locator(".fw-page-address")
+    expect(note).to_have_class(re.compile(r"\berror\b"))
+    expect(note).to_contain_text(owner)
+    dialog.get_by_role("button", name="Add page").click()
+    expect(dialog).to_be_visible()
+    assert coldmere.site()["site"] == start
+    with pytest.raises(urllib.error.HTTPError) as refusal:
+        coldmere.command("page.add", {"name": "Loud services", "slug": "/SERVICES"})
+    assert owner in refusal.value.read().decode()
+    assert coldmere.site()["site"] == start
+
+
 @pytest.mark.parametrize("language", ["en", "de"])
 def test_library_tabs_are_not_clipped_at_the_minimum_window_size(editor, language):
     page = editor.page

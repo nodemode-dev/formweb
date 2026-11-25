@@ -1,7 +1,7 @@
 import '../styles/reveal.css';
 
 const FLASH_MS = 2000;
-const FIELD_OF: Record<string, string> = { 'seo.title': 'seo.title', 'seo.description': 'seo.description', 'seo.base-url': 'site.baseUrl', 'seo.base-url-404': 'site.baseUrl' };
+const FIELD_OF: Record<string, string> = { 'seo.title': 'seo.title', 'seo.description': 'seo.description', 'seo.base-url': 'site.baseUrl', 'seo.base-url-404': 'site.baseUrl', 'page.address-case': 'page.slug' };
 const flashes = new WeakMap<Element, number>();
 
 export const issueField = (code: string): string | undefined => FIELD_OF[code];

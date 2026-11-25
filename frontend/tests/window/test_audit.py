@@ -58,3 +58,26 @@ def test_with_one_issue_the_summary_reads_1_issue_found(harbour):
     dialog = run_audit(harbour)
     expect(dialog.locator(".empty-note:visible").first).to_have_text(re.compile(r"^1 issue found\.(\s|$)"))
     expect(dialog.locator(".audit-row")).to_have_count(1)
+
+
+def test_an_older_site_with_two_addresses_in_different_capitals_opens_and_select_on_the_audit_issue_shows_the_address(harbour):
+    harbour.page_row("p-routes").click()
+    site = harbour.site()["site"]
+    routes = next(p for p in site["pages"] if p["id"] == "p-routes")
+    other = next(p for p in site["pages"] if p["id"] not in ("p-routes",) and p["slug"].strip("/"))
+    shouted = "/" + other["slug"].strip("/").upper()
+    site["pages"] = [dict(p, slug=shouted) if p["id"] == "p-routes" else p for p in site["pages"]]
+    harbour.command("site.replace", {"site": site})
+    harbour.until(lambda s: next(p for p in s["pages"] if p["id"] == "p-routes")["slug"] == shouted, "the older site")
+    harbour.page_row("home").click()
+    dialog = run_audit(harbour)
+    row = dialog.locator('.audit-row[data-page="p-routes"]', has_text="capital letters")
+    expect(row).to_contain_text(other["name"])
+    expect(row).to_contain_text(routes["name"])
+    row.get_by_role("button", name="Select").click()
+    expect(dialog).to_be_hidden()
+    expect(harbour.page_row("p-routes")).to_have_attribute("aria-current", "page")
+    field = harbour.page.locator('[data-field="page.slug"]')
+    expect(field).to_have_value(shouted)
+    expect(field).to_be_in_viewport()
+    expect(field).to_have_class(re.compile(r"\bfw-flash\b"))
