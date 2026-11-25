@@ -41,8 +41,8 @@ import { installInsertFlyout } from './features/panel/insert-flyout';
 import { watchFit } from './ui/fit';
 import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { installPanel } from './features/panel';
-import { canvasClick, installSelection, isMulti, layerClick, pageClick, paintLayerRow, paintPageRow, selectedIds, selectedPageIds } from './features/selection';
-import { anyCopyable, anyRemovable, canStep, copySelected, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, stepSelected } from './features/selection-actions';
+import { canvasClick, installSelection, isMulti, isSelected, layerClick, topMost, pageClick, paintLayerRow, paintPageRow, selectedIds, selectedPageIds } from './features/selection';
+import { anyCopyable, anyRemovable, canStep, copySelected, countLabel, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, stepSelected } from './features/selection-actions';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
@@ -2177,13 +2177,14 @@ document.addEventListener('paste', event => {
 });
 function showLayerMenu(event: MouseEvent | KeyboardEvent, id: string): void {
   event.preventDefault();
-  selectNode(id);
+  if (!isSelected(id)) selectNode(id);
   const allowed = canDuplicate();
+  const many = isMulti() ? topMost().length : 1;
   const rows: [string, string, string, boolean, () => Promise<void>][] = [
-    ['edit.copy', 'Copy element', 'A page root or an element inside a linked component instance cannot be copied', allowed, copySelection],
-    ['edit.cut', 'Cut element', 'A page root or an element inside a linked component instance cannot be cut', allowed, cutSelection],
+    ['edit.copy', countLabel('Copy element', 'Copy {0} elements', many), 'A page root or an element inside a linked component instance cannot be copied', allowed, copySelection],
+    ['edit.cut', countLabel('Cut element', 'Cut {0} elements', many), 'A page root or an element inside a linked component instance cannot be cut', allowed, cutSelection],
     ['edit.paste', 'Paste element', 'Paste is not available while a dialog is open', !!scrim.hidden, pasteFromClipboard],
-    ['edit.duplicate', 'Duplicate', 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
+    ['edit.duplicate', countLabel('Duplicate', 'Duplicate {0} elements', many), 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
   ];
   const entries: MenuEntry[] = rows.map(([commandId, english, blocked, enabledNow, action]) => ({ id: commandId, label: english, title: enabledNow ? english : blocked, enabled: enabledNow, keys: commandRegistry.keyLabel(commandRegistry.get(commandId)!), run: action }));
   entries.push(...panel.layerEntries(id));

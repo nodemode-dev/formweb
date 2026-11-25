@@ -10,6 +10,7 @@ import { canContain, canDrag, dropTarget, moveCommands, zoneAt, type DropZone } 
 import { installRowDrag } from './drag';
 import { countLabel, dragIds, duplicatePages, pageSetFor, stepPagesCommands } from '../selection-actions';
 import { t } from '../../i18n';
+import { isMulti, isSelected, topMost } from '../selection';
 import { element } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import '../../styles/panel.css';
@@ -195,15 +196,18 @@ export function installPanel(host: PanelHost) {
     const parent = parentOf(id);
     const at = parent ? parent.children.indexOf(id) : -1;
     const locked = !!parent?.componentSourceId;
+    const many = isMulti() && isSelected(id) ? topMost().length : 1;
     const movable = !!parent && !locked;
-    const removable = !!parent && registry.enabled(registry.get('edit.delete')!);
+    const removable = (!!parent || many > 1) && registry.enabled(registry.get('edit.delete')!);
+    const up = many > 1 ? registry.enabled(registry.get('arrange.up')!) : movable && at > 0;
+    const down = many > 1 ? registry.enabled(registry.get('arrange.down')!) : movable && at < (parent?.children.length ?? 0) - 1;
     return [
       { separator: true },
       { id: 'layer.rename', label: 'Rename', keys: KEY_RENAME, enabled: !!nodes[id], run: () => invoke('layer.rename', { id }) },
-      { id: 'edit.delete', label: 'Delete', keys: registry.keyLabel(registry.get('edit.delete')!), enabled: removable, title: removable ? 'Delete element' : 'A page root cannot be deleted', run: () => invoke('edit.delete') },
+      { id: 'edit.delete', label: countLabel('Delete', 'Delete {0} elements', many), keys: registry.keyLabel(registry.get('edit.delete')!), enabled: removable, title: removable ? countLabel('Delete element', 'Delete {0} elements', many) : 'A page root cannot be deleted', run: () => invoke('edit.delete') },
       { separator: true },
-      { id: 'arrange.up', label: 'Move up', keys: formatKeys(KEY_UP), enabled: movable && at > 0, title: locked ? 'Elements inside a linked component instance cannot be moved' : 'Move up', run: () => invoke('arrange.up') },
-      { id: 'arrange.down', label: 'Move down', keys: formatKeys(KEY_DOWN), enabled: movable && at < (parent?.children.length ?? 0) - 1, title: locked ? 'Elements inside a linked component instance cannot be moved' : 'Move down', run: () => invoke('arrange.down') },
+      { id: 'arrange.up', label: countLabel('Move up', 'Move {0} elements up', many), keys: formatKeys(KEY_UP), enabled: up, title: locked && many < 2 ? 'Elements inside a linked component instance cannot be moved' : 'Move up', run: () => invoke('arrange.up') },
+      { id: 'arrange.down', label: countLabel('Move down', 'Move {0} elements down', many), keys: formatKeys(KEY_DOWN), enabled: down, title: locked && many < 2 ? 'Elements inside a linked component instance cannot be moved' : 'Move down', run: () => invoke('arrange.down') },
       { separator: true },
       { id: 'layer.collapse-all', label: 'Collapse all', enabled: parents.length > 0, run: () => invoke('layer.collapse-all') },
       { id: 'layer.expand-all', label: 'Expand all', run: () => invoke('layer.expand-all') }
