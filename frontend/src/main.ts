@@ -1922,7 +1922,7 @@ function showIssue(row: HTMLElement): void {
 async function auditSite(): Promise<void> {
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
   openDialog('audit');
-  text(auditSummary, result.issues.length ? `${result.issues.length} issues found. Select an element to resolve it in the inspector.` : 'No issues found by the built-in audit. Review content and exported pages before release.');
+  text(auditSummary, result.issues.length === 1 ? '1 issue found. Select an element to resolve it in the inspector.' : result.issues.length ? `${result.issues.length} issues found. Select an element to resolve it in the inspector.` : 'No issues found by the built-in audit. Review content and exported pages before release.');
   keyed(auditList, result.issues.map((issue, index) => ({ ...issue, key: `${issue.code}-${issue.page || ''}-${issue.node || ''}-${index}` })), issue => issue.key, () => {
     const row = element('div', 'audit-row');
     const description = element('div', 'audit-description');
