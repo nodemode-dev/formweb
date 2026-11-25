@@ -37,6 +37,7 @@ import { SECTIONS, STARTERS, STARTER_SITES, sectionCommands, type Command } from
 import { installInspector } from './features/inspector';
 import { installLibrary } from './features/library';
 import { watchFit } from './ui/fit';
+import { anchorOf, showContextMenu, type MenuEntry } from './ui/context-menu';
 import { watchHelp } from './ui/help-fit';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
@@ -2141,39 +2142,16 @@ document.addEventListener('paste', event => {
 function showLayerMenu(event: MouseEvent, id: string): void {
   event.preventDefault();
   selectNode(id);
-  overlay.querySelector('.fw-layer-menu')?.remove();
-  const menu = element('div', 'fw-menu fw-layer-menu');
-  menu.setAttribute('role', 'menu');
   const allowed = canDuplicate();
-  const close = (): void => { menu.remove(); document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', escape, true); };
-  const outside = (down: Event): void => { if (!menu.contains(down.target as Node)) close(); };
-  const escape = (key: KeyboardEvent): void => { if (key.key === 'Escape') close(); };
   const rows: [string, string, string, boolean, () => Promise<void>][] = [
     ['edit.copy', 'Copy element', 'A page root or an element inside a linked component instance cannot be copied', allowed, copySelection],
     ['edit.cut', 'Cut element', 'A page root or an element inside a linked component instance cannot be cut', allowed, cutSelection],
     ['edit.paste', 'Paste element', 'Paste is not available while a dialog is open', !!scrim.hidden, pasteFromClipboard],
     ['edit.duplicate', 'Duplicate', 'A page root or an element inside a linked component instance cannot be duplicated', allowed, duplicateSelection]
   ];
-  let first: HTMLButtonElement | undefined;
-  for (const [commandId, english, blocked, enabledNow, action] of rows) {
-    const row = element('button', 'fw-menu-item');
-    row.type = 'button';
-    row.setAttribute('role', 'menuitem');
-    row.disabled = !enabledNow;
-    labelAttr(row, 'title', enabledNow ? english : blocked);
-    const name = element('span', 'fw-menu-label');
-    label(name, english);
-    row.append(element('span', 'fw-menu-check'), name, element('span', 'fw-menu-keys', commandRegistry.keyLabel(commandRegistry.get(commandId)!)));
-    row.addEventListener('click', () => { close(); void run(action); });
-    menu.append(row);
-    if (enabledNow && !first) first = row;
-  }
-  menu.style.left = `${Math.min(event.clientX, window.innerWidth - 260)}px`;
-  menu.style.top = `${Math.min(event.clientY, window.innerHeight - 150)}px`;
-  overlay.append(menu);
-  document.addEventListener('pointerdown', outside, true);
-  document.addEventListener('keydown', escape, true);
-  first?.focus({ preventScroll: true });
+  const entries: MenuEntry[] = rows.map(([commandId, english, blocked, enabledNow, action]) => ({ id: commandId, label: english, title: enabledNow ? english : blocked, enabled: enabledNow, keys: commandRegistry.keyLabel(commandRegistry.get(commandId)!), run: action }));
+  const row = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+  showContextMenu(entries, row ? anchorOf(event, row) : { x: event.clientX, y: event.clientY }, { host: overlay, className: 'fw-layer-menu', run, returnFocus: row });
 }
 const setBreakpoint = (id: string): void => { breakpoint = id; update(state()); };
 const insertKinds: [string, string][] = [['section', 'Section'], ['heading', 'Heading'], ['paragraph', 'Paragraph'], ['button', 'Button'], ['image', 'Image'], ['grid', 'Grid'], ['form', 'Form'], ['link', 'Link'], ['embed', 'Embed media']];
