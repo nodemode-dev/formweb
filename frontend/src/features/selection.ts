@@ -68,6 +68,12 @@ export function selectedIds(): string[] {
   return [...nodes];
 }
 
+export function primaryId(): string {
+  if (!host) return '';
+  syncNodes();
+  return primary;
+}
+
 export function topMost(ids: readonly string[] = selectedIds()): string[] {
   return host ? movableIds(host.site(), ids) : [];
 }
