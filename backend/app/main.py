@@ -38,6 +38,8 @@ mimetypes.add_type("text/javascript", ".js")
 mimetypes.add_type("text/javascript", ".mjs")
 mimetypes.add_type("text/css", ".css")
 
+SITE_SANDBOX = b'sandbox allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads'
+SITE_SPACE = ('/published/', '/sites/')
 
 
 class LocalAccess:
@@ -55,6 +57,7 @@ class LocalAccess:
         allowed_hosts = {f'localhost:{PORT}', f'127.0.0.1:{PORT}', f'[::1]:{PORT}'}
         preview_match = re.match(r'^/preview/([^/]+)(?:/|$)', path)
         runtime = path.startswith('/api/runtime/')
+        site_space = path.startswith(SITE_SPACE)
         query = parse_qs(scope.get('query_string', b'').decode(errors='replace'))
         preview_token = preview_match.group(1) if preview_match else headers.get('x-formweb-preview') or query.get('previewToken', [''])[0]
         verified_preview = bool((preview_match or runtime) and studio.releases.valid_preview(preview_token))
@@ -63,7 +66,7 @@ class LocalAccess:
             scope['formweb.previewToken'] = preview_token
         public_form = bool(re.fullmatch(r'/api/forms/[^/]+/[^/]+', path))
         clip_fetch = bool(re.fullmatch(r'/api/clips/[0-9a-f]{64}/[0-9a-f]{64}\.(?:png|jpg|gif|webp|svg|mp4|webm|woff2)', path)) and scope['method'] == 'GET'
-        public = public_form or runtime or clip_fetch or path == '/api/providers/commerce/webhook' or path.startswith(('/published/', '/sites/', '/preview/'))
+        public = public_form or runtime or clip_fetch or path == '/api/providers/commerce/webhook' or site_space or path.startswith('/preview/')
         control = path == '/mcp' or path.startswith('/api/') and not public and path not in ('/api/health', '/api/system')
         identity = {'id': 'visitor', 'name': 'Website visitor', 'root': False}
         try:
@@ -103,6 +106,8 @@ class LocalAccess:
                     message['headers'].extend([(b'access-control-allow-origin', b'null'), (b'vary', b'Origin')])
                 if preview_match and not any(key.lower() == b'content-security-policy' for key, _ in message['headers']):
                     message['headers'].append((b'content-security-policy', b'sandbox allow-scripts allow-forms allow-popups'))
+                if site_space and not any(key.lower() == b'content-security-policy' for key, _ in message['headers']):
+                    message['headers'].append((b'content-security-policy', SITE_SANDBOX))
             await send(message)
         requested_channel = headers.get('x-formweb-channel', '')
         channel_token = channel.set('agent' if path == '/mcp' else requested_channel if requested_channel in CHANNELS else 'human')
