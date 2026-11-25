@@ -25,6 +25,7 @@ function threePages(settings: Record<string, string> = {}): Site {
 let mod: Module;
 let requests: { path: string; body: Record<string, unknown> }[];
 let statuses: { message: string; error: boolean }[];
+let offers: { message: string; undo: () => Promise<unknown> }[];
 let state: EditorState;
 let pageId: string;
 
@@ -39,6 +40,7 @@ function mount() {
     state: () => state,
     run: async action => { try { await action(); } catch (error) { statuses.push({ message: (error as Error).message, error: true }); } },
     status: (message, error = false) => { statuses.push({ message, error }); },
+    offer: (message, undo) => { offers.push({ message, undo }); },
     showPageTab: () => undefined
   });
   handle.fill(state);
@@ -55,6 +57,7 @@ beforeEach(async () => {
   (window as unknown as { __FORMWEB_WINDOW_KEY?: string }).__FORMWEB_WINDOW_KEY = 'test-window';
   requests = [];
   statuses = [];
+  offers = [];
   state = { site: threePages(), revision: 1, canUndo: false, canRedo: false };
   pageId = 'home';
   vi.stubGlobal('fetch', vi.fn(async (url: string, init: RequestInit = {}) => {
@@ -150,6 +153,45 @@ describe('text stays readable on a page background', () => {
     expect(contrast(site.nodes['r-about'].styles.color, '#101418')).toBeGreaterThanOrEqual(4.5);
     site = applyCommands(site, [mod.siteBackgroundColorCommand(site, '#f5f5f5'), ...mod.readableTextCommands({ ...site, tokens: { ...site.tokens, 'page-background': '#f5f5f5' } }, mod.siteBackgroundPages(site), 'var(--page-background)')]);
     expect(site.nodes['r-about'].styles.color).toBeUndefined();
+  });
+
+  it('the white text is offered in a notice with Undo, and Undo takes back the text color and keeps the background', async () => {
+    pageId = 'about';
+    const { handle } = mount();
+    handle.field.value = '#0a2540';
+    handle.field.dispatchEvent(new Event('change'));
+    await settle();
+    expect(offers.map(offer => offer.message)).toEqual(['Background set. The page text is now #ffffff so it stays readable on it.']);
+    await offers[0].undo();
+    expect(state.site.nodes['r-about'].styles.color).toBeUndefined();
+    expect(state.site.nodes['r-about'].styles.background).toBe('#0a2540');
+  });
+
+  it('clearing a dark page background takes its white text away too, so the white page does not get white text', () => {
+    let site = threePages();
+    site = applyCommands(site, [mod.setBackgroundCommand(site, site.pages[2], '#111111')]);
+    expect(site.nodes['r-about'].styles.color).toBe('#ffffff');
+    site = applyCommands(site, [mod.setBackgroundCommand(site, site.pages[2], '')]);
+    expect(site.nodes['r-about'].styles).toEqual({});
+  });
+
+  it('on a site with light and dark themes the text color is never changed, because one fixed color cannot suit both themes', () => {
+    const site = threePages();
+    site.extensions = { design: { themes: { default: 'dark', followSystem: false, values: { light: { paper: '#ffffff' } } } } };
+    expect(mod.setBackgroundCommand(site, site.pages[2], '#111111').params.patch).toEqual({ styles: { background: '#111111' } });
+    expect(mod.useSiteBackgroundCommands(site, [site.pages[2]], '#101418').some(step => 'color' in ((step.params.patch as { styles?: object } | undefined)?.styles ?? {}))).toBe(false);
+  });
+
+  it('a background with see-through parts is not judged, so the text is left alone', () => {
+    const site = threePages();
+    expect(mod.setBackgroundCommand(site, site.pages[2], '#00000080').params.patch).toEqual({ styles: { background: '#00000080' } });
+  });
+
+  it('a new page that starts on a dark site background gets white text, and on a light one none', () => {
+    const dark = applyCommands(threePages(), [{ command: 'token.set', params: { name: 'page-background', value: '#101418' } }]);
+    expect(mod.startCommands(dark, 'r-new', undefined)).toEqual([{ command: 'node.update', params: { id: 'r-new', patch: { styles: { background: 'var(--page-background)', color: '#ffffff' } } } }]);
+    const light = applyCommands(threePages(), [{ command: 'token.set', params: { name: 'page-background', value: '#f3efe6' } }]);
+    expect(mod.startCommands(light, 'r-new', undefined)).toEqual([{ command: 'node.update', params: { id: 'r-new', patch: { styles: { background: 'var(--page-background)' } } } }]);
   });
 });
 
@@ -367,7 +409,7 @@ describe('the site background', () => {
   it('a new page starts on it once it exists, and the choice names its color', () => {
     const site = withSiteBackground();
     expect(mod.startChoices(site, 'fares')[0]).toEqual({ id: '', name: 'Site background (#0b1d2a)' });
-    expect(mod.startCommands(site, 'r-new', undefined)).toEqual([{ command: 'node.update', params: { id: 'r-new', patch: { styles: { background: 'var(--page-background)' } } } }]);
+    expect(mod.startCommands(site, 'r-new', undefined)).toEqual([{ command: 'node.update', params: { id: 'r-new', patch: { styles: { background: 'var(--page-background)', color: '#ffffff' } } } }]);
   });
 });
 

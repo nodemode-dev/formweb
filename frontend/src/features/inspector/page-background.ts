@@ -18,6 +18,7 @@ export interface PageBackgroundHost {
   state(): EditorState | undefined;
   run(action: () => unknown): Promise<void>;
   status(message: string, error?: boolean): void;
+  offer(message: string, undo: () => Promise<unknown>): void;
   showPageTab(): void;
 }
 
@@ -114,6 +115,17 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
   let picked: { page: string; mode: BackgroundMode } | null = null;
   let filled: EditorState | undefined;
 
+  async function apply(list: Command[]): Promise<void> {
+    const before = host.state()?.site;
+    if (list.length === 1) await command(list[0].command, list[0].params);
+    else await commands(list);
+    const changed = list.filter(step => step.command === 'node.update' && 'color' in ((step.params.patch as { styles?: Record<string, unknown> }).styles ?? {}));
+    if (!before || !changed.length) return;
+    const ink = (changed[0].params.patch as { styles: Record<string, string | null> }).styles.color;
+    const revert = changed.map(step => ({ command: 'node.update', params: { id: step.params.id, patch: { styles: { color: before.nodes[step.params.id as string]?.styles.color ?? null } } } }));
+    host.offer(ink ? t('Background set. The page text is now {0} so it stays readable on it.', [ink]) : t('Background set. The page text is dark again so it stays readable on it.'), () => commands(revert));
+  }
+
   function choose(mode: BackgroundMode): void {
     const next = host.state();
     if (!next) return;
@@ -133,7 +145,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     const list = useSiteBackgroundCommands(next.site, pages, color);
     picked = null;
     if (!list.length) { host.status(t('Every page already uses the site background.')); if (filled) paint(filled); return; }
-    await commands(list);
+    await apply(list);
     const after = host.state()?.site ?? next.site;
     const shown = siteBackgroundColor(after);
     if (pages.length > 1) host.status(t('All {0} pages use the site background, {1}.', [pages.length, shown]));
@@ -152,7 +164,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     const step = other ? otherThemeValueCommand(next, target, entered) : siteBackgroundColorCommand(next.site, entered);
     const seen = { ...next.site, tokens: { ...next.site.tokens, [target]: entered } };
     const text = other ? [] : readableTextCommands(seen, siteBackgroundPages(next.site), SITE_BACKGROUND_VALUE);
-    await commands([step, ...text]);
+    await apply([step, ...text]);
     const count = siteBackgroundPages(host.state()?.site ?? next.site).length;
     host.status(tn(count, 'Site background color is now {0}; {1} page uses it.', 'Site background color is now {0}; {1} pages use it.', [entered || resolveColor(next.site, `var(--${target})`), count]));
   }
@@ -224,10 +236,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     const page = host.page();
     const refusal = brandRefusal(next, field.value) || backgroundRefusal(next.site, field.value);
     if (refusal) { field.value = pageBackground(next.site, page)?.value || ''; throw new Error(refusal); }
-    const step = setBackgroundCommand(next.site, page, field.value);
-    await command(step.command, step.params);
-    const ink = (step.params.patch as { styles: Record<string, string | null> }).styles.color;
-    if (ink !== undefined) host.status(ink ? t('Background set. The page text is now {0} so it stays readable on it.', [ink]) : t('Background set. The page text is dark again so it stays readable on it.'));
+    await apply([setBackgroundCommand(next.site, page, field.value)]);
   }));
 
   function show(node: HTMLElement, on: boolean): void { if (node.hidden === on) node.hidden = !on; }
@@ -293,8 +302,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
       { id: 'page.background-site-theme', label: 'Use the theme page color as the site background', enabled: () => { const next = host.state(); return !!next && !!pageColorToken(next.site); }, mutates: true, description: 'On a site without a site background whose theme has a page color such as --paper, make --page-background follow it and give the open page the site background. One undo step.', run: () => adoptThemeColor() },
       { id: 'page.background-clear', label: 'Clear page background', menu: 'Page', group: 4, enabled: () => !!current(), run: async () => {
         const next = host.state()!;
-        const step = setBackgroundCommand(next.site, host.page(), '');
-        await command(step.command, step.params);
+        await apply([setBackgroundCommand(next.site, host.page(), '')]);
         host.status('Page background cleared. The page uses the site background.');
       } },
       { id: 'page.background-all', label: 'Use this page background on all pages', menu: 'Page', group: 4, enabled: () => ready() && host.state()!.site.pages.length > 1, run: async () => {
@@ -304,7 +312,7 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
         if (refusal) { host.status(refusal, true); return; }
         const list = allPagesCommands(next.site, mine);
         if (!list.length) { host.status('Every page already has this background.'); return; }
-        await commands(list);
+        await apply(list);
         host.status(mine ? t('Background {0} applied to all {1} pages.', [mine, next.site.pages.length]) : t('Backgrounds cleared on all {0} pages; they use the site background.', [next.site.pages.length]));
       } },
       { id: 'page.background-from', label: 'Match another page', enabled: () => ready() && host.state()!.site.pages.length > 1, params: { from: { type: 'string', required: true, description: 'Id of the page whose background and text color the open page takes.' } }, mutates: true, description: 'Give the open page the background and text color of another page, as a copy of its values. One undo step.', run: params => matchPage(typeof params?.from === 'string' ? params.from : '') },
@@ -356,8 +364,9 @@ export function backgroundPatch(content: string): Record<string, string | null> 
 }
 
 export function readableTextPatch(site: Site, page: Page, content: string): Record<string, string | null> {
+  if ((site.extensions?.design as { themes?: unknown } | undefined)?.themes) return {};
   const own = (site.nodes[page.root]?.styles.color || '').trim().toLowerCase();
-  const ink = content.trim() ? inkOn(resolveColor(site, content.trim())) : null;
+  const ink = inkOn(resolveColor(site, content.trim() || LIGHT_INK));
   if (ink === LIGHT_INK && !own) return { color: LIGHT_INK };
   if (ink === DARK_INK && own === LIGHT_INK) return { color: null };
   return {};
@@ -417,7 +426,7 @@ export function startChoices(site: Site, open: string): { id: string; name: stri
 }
 
 export function startCommands(site: Site, root: string, from: Page | undefined): Command[] {
-  if (!from) return siteBackgroundKey(site) ? [{ command: 'node.update', params: { id: root, patch: { styles: { background: SITE_BACKGROUND_VALUE } } } }] : [];
+  if (!from) return siteBackgroundKey(site) ? [{ command: 'node.update', params: { id: root, patch: { styles: { background: SITE_BACKGROUND_VALUE, ...readableTextPatch(site, { root } as Page, SITE_BACKGROUND_VALUE) } } } }] : [];
   const patch = matchPatch(site, from);
   const styles = Object.fromEntries(Object.entries(patch).filter(([, entry]) => entry !== null));
   return Object.keys(styles).length ? [{ command: 'node.update', params: { id: root, patch: { styles } } }] : [];

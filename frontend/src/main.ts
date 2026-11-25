@@ -769,7 +769,7 @@ const pageGrid = element('div', 'form-grid');
 addInspectorInput(pageGrid, 'Page name', 'page.name', name => pagePatch({ name }), undefined, true);
 addInspectorInput(pageGrid, 'URL slug', 'page.slug', slug => pagePatch({ slug }), undefined, true);
 pageSection.append(pageGrid);
-const pageBackground = installPageBackground({ section: title => section(pagePane, title), input, button, page: currentPage, state: () => lastState, run, status, showPageTab: () => { openDock('right'); setInspector('page'); } });
+const pageBackground = installPageBackground({ section: title => section(pagePane, title), input, button, page: currentPage, state: () => lastState, run, status, offer: (message, undo) => { status(message); notice.show(message, { action: { label: 'Undo', run: () => { notice.hide(); return undo(); } } }); }, showPageTab: () => { openDock('right'); setInspector('page'); } });
 const seoSection = section(pagePane, 'Search & metadata');
 const seoGrid = element('div', 'form-grid');
 addInspectorInput(seoGrid, 'Title', 'seo.title', title => pagePatch({ seo: { ...currentPage().seo, title } }), undefined, true);

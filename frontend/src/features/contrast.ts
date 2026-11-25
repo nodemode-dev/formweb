@@ -2,8 +2,9 @@ export const DARK_INK = '#111111';
 export const LIGHT_INK = '#ffffff';
 
 export function rgb(content: string): [number, number, number] | null {
-  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})(?:[0-9a-f]{2})?$/i.exec(content.trim())?.[1];
-  if (!hex) return null;
+  const found = /^#([0-9a-f]{3}|[0-9a-f]{6})([0-9a-f]{2})?$/i.exec(content.trim());
+  if (!found || (found[2] && found[2].toLowerCase() !== 'ff')) return null;
+  const hex = found[1];
   const full = hex.length === 3 ? hex.replace(/./g, c => c + c) : hex;
   return [0, 2, 4].map(at => parseInt(full.slice(at, at + 2), 16)) as [number, number, number];
 }
