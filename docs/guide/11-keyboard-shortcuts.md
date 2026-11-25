@@ -18,7 +18,7 @@ To find any command by name, with its shortcut, press Ctrl+K (Cmd+K on a Mac) an
 | Cut element | Edit | `Ctrl+X` | `Cmd+X` |
 | Paste element | Edit | `Ctrl+V` | `Cmd+V` |
 | Duplicate element | Edit | `Ctrl+D`, `Ctrl+Shift+D` | `Cmd+D`, `Cmd+Shift+D` |
-| Delete element | Edit | `Delete` | `Delete` (forward delete; Fn+Delete on most Mac laptops) |
+| Delete element | Edit | `Delete`, `Backspace` | `Delete` (the key above Return), or forward delete (`Fn+Delete` on most Mac laptops) |
 | Settings... | Edit | `Ctrl+,` | `Cmd+,` |
 | Quick insert | Insert | `Ctrl+Shift+L` | `Cmd+Shift+L` |
 | Preview as published | View | `Ctrl+Shift+P` | `Cmd+Shift+P` |
