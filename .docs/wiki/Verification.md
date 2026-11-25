@@ -14,6 +14,7 @@ Verify the browser-visible behavior, persisted project and exported output indep
 | Persistence | Save, reopen and native JSON import preserve structure |
 | Responsive output | Desktop, tablet and phone preview match exported CSS |
 | Publication | Returned local URL loads its versioned files |
+| Tests | `./formweb test` passes every layer (native, engine, unit); the layers and the rules for a test are in [docs/TESTING.md](../../docs/TESTING.md) |
 | Skill mirrors | `./formweb agents sync --check` reports no drift |
 | Interface languages | `./formweb i18n check` reports every language with one entry per English key (`--json` for machine output); switch language in a browser and confirm menus change live with no reload |
 | Shortcuts | In a browser, press Mod+K, Mod+Z and Delete from the body and again after clicking the canvas; typing in a field or editing text in place must trigger none of them |
