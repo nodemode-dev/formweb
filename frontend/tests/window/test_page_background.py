@@ -35,6 +35,8 @@ def open_page_background(editor):
     editor.page.locator('[data-menu="Page"]').click()
     editor.page.locator('[role="menu"]:visible [data-command="page.background"]').click()
     field = editor.page.locator('[data-field="page.background"]')
+    if field.is_hidden():
+        editor.page.locator('.inspector-section[data-section="page-background"]').get_by_text("This page only", exact=True).click()
     expect(field).to_be_focused()
     return field
 
@@ -126,6 +128,7 @@ def test_match_another_page_gives_the_open_page_the_home_page_background_in_one_
     editor, page, root = new_page
     open_page_background(editor)
     before = editor.site()["site"]
+    editor.page.locator('.inspector-section[data-section="page-background"]').get_by_text("Same as another page...", exact=True).click()
     editor.page.get_by_role("combobox", name="Match another page").select_option(label="Home (home page)")
     editor.until(lambda s: s["nodes"][page["root"]]["styles"].get("background") == "var(--bg)", "the copied background")
     expect(root).to_have_css("background-color", HARBOUR_BG)
