@@ -80,11 +80,39 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     host.status(t('Wrapped in a container. The operation is one undo step.'));
   }
 
+  let styleClip: { styles: Record<string, string>; name: string } | null = null;
+  const scopeOf = (node: SiteNode): Record<string, string> => host.breakpoint() === 'desktop' ? node.styles : node.breakpoints?.[host.breakpoint()] || {};
+  const scopeName = (): string => site().breakpoints.find(each => each.id === host.breakpoint())?.name || host.breakpoint();
+  function copyStyles(): void {
+    const node = selectedNode();
+    if (!node) return;
+    styleClip = { styles: { ...scopeOf(node) }, name: node.name };
+    host.status(t('Copied {0} styles from {1} ({2}).', [Object.keys(styleClip.styles).length, node.name, scopeName()]));
+  }
+  async function pasteStyles(): Promise<void> {
+    if (!styleClip) return;
+    const clip = styleClip.styles;
+    const bp = host.breakpoint();
+    const batch = selectionIds().map(id => site().nodes[id]).filter((node): node is SiteNode => !!node).flatMap(node => {
+      const current = scopeOf(node);
+      const patch: Record<string, string | null> = {};
+      for (const name of Object.keys(current)) if (!(name in clip)) patch[name] = null;
+      for (const [name, content] of Object.entries(clip)) if (current[name] !== content) patch[name] = content;
+      if (!Object.keys(patch).length) return [];
+      return [{ command: 'node.update', params: { id: node.id, patch: bp === 'desktop' ? { styles: patch } : { breakpoints: { [bp]: patch } } } }];
+    });
+    if (!batch.length) { host.status(t('The styles are already the same.')); return; }
+    await commands(batch);
+    host.status(t('Pasted the styles of {0} ({1}). The operation is one undo step.', [styleClip.name, scopeName()]));
+  }
+
   const notRoot = (): boolean => host.ready() && !!selectedNode() && !isRoot(host.selected());
   const definitions: CommandDef[] = [
     { id: 'edit.text', label: 'Edit text', menu: 'Edit', group: 1, run: () => editText(), enabled: () => host.ready() && !textBlock(host.selected()), description: 'Start editing the selected element\'s text on the canvas, as a double click does; the change is saved when the text loses focus. Only for an element with its own text in the default language that is not bound to a CMS field.' },
     { id: 'edit.select-parent', label: 'Select parent', menu: 'Edit', group: 1, run: () => { const parent = parentOf(host.selected()); if (parent) host.select(parent.id); }, enabled: notRoot, description: 'Select the element that contains the selected one (the page root at the top).' },
-    { id: 'edit.wrap', label: 'Wrap in container', menu: 'Arrange', run: wrap, enabled: () => host.ready() && !wrapBlock(host.selected()), mutates: true, description: 'Put the selected element inside a new empty div at its place and select the div. Not for a page root, an element inside a linked component instance or an element whose parent cannot hold elements. One undo step.', when: 'Use when the person wants to group an element so it can be styled or moved as a block.' }
+    { id: 'edit.wrap', label: 'Wrap in container', menu: 'Arrange', run: wrap, enabled: () => host.ready() && !wrapBlock(host.selected()), mutates: true, description: 'Put the selected element inside a new empty div at its place and select the div. Not for a page root, an element inside a linked component instance or an element whose parent cannot hold elements. One undo step.', when: 'Use when the person wants to group an element so it can be styled or moved as a block.' },
+    { id: 'style.copy', label: 'Copy styles', menu: 'Edit', group: 1, run: copyStyles, enabled: () => host.ready() && !!selectedNode(), description: 'Remember the selected element\'s styles for the breakpoint picked in the toolbar (desktop is the base styles, other breakpoints their overrides). Kept in this window only, not in the system clipboard.' },
+    { id: 'style.paste', label: 'Paste styles', menu: 'Edit', group: 1, run: pasteStyles, enabled: () => host.ready() && !!styleClip && !!selectedNode(), mutates: true, description: 'Give the selected element exactly the styles remembered by Copy styles, for the breakpoint picked in the toolbar: styles it has that the copy lacks are removed. One undo step.' }
   ];
   return { commands: definitions };
 }
