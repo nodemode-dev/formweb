@@ -1,5 +1,5 @@
 import { command, commands } from '../../api';
-import { element, value } from '../../ui/dom';
+import { element, options, value } from '../../ui/dom';
 import { runCommand, type CommandDef } from '../../ui/shell';
 import type { Icon } from '../../ui/icons';
 import { label, labelAttr, t } from '../../i18n';
@@ -54,7 +54,28 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
   themeLink.type = 'button';
   themeLink.dataset.cmd = 'window.theme-colors';
   actions.append(applyAll, themeLink);
-  group.append(wrapper, note, actions);
+  const match = element('div', 'field full fw-pagebg-match');
+  const matchName = element('span', 'field-label', 'Match another page');
+  const matchSelect = element('select');
+  matchSelect.dataset.field = 'page.background-from';
+  labelAttr(matchSelect, 'aria-label', 'Match another page');
+  labelAttr(matchSelect, 'title', 'Use the background and text color of the page you pick');
+  match.append(matchName, matchSelect);
+  group.append(wrapper, note, match, actions);
+
+  matchSelect.addEventListener('change', () => {
+    const from = matchSelect.value;
+    matchSelect.value = '';
+    if (from) void host.run(() => matchPage(from));
+  });
+  async function matchPage(from: string): Promise<void> {
+    const next = host.state();
+    const source = next?.site.pages.find(entry => entry.id === from);
+    const page = host.page();
+    if (!next || !source || source.id === page.id) return;
+    await command('node.update', { id: page.root, patch: { styles: matchPatch(next.site, source, page) } });
+    host.status(t('The background and text color of "{0}" are now used on "{1}".', [source.name, page.name]));
+  }
 
   field.addEventListener('change', () => void host.run(async () => {
     const next = host.state();
@@ -93,6 +114,9 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
       show(clear, !!mine);
       const single = site.pages.length < 2;
       if (applyAll.disabled !== single) applyAll.disabled = single;
+      if (matchSelect.disabled !== single) matchSelect.disabled = single;
+      options(matchSelect, matchChoices(site, page.id));
+      if (document.activeElement !== matchSelect && matchSelect.value) matchSelect.value = '';
     },
     commands: [
       { id: 'page.background', label: 'Page background...', menu: 'Page', group: 4, enabled: ready, run: () => {
@@ -117,6 +141,8 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
         await commands(list);
         host.status(mine ? t('Background {0} applied to all {1} pages.', [mine, next.site.pages.length]) : t('Backgrounds cleared on all {0} pages; they use the site background.', [next.site.pages.length]));
       } },
+      { id: 'page.background-from', label: 'Match another page', enabled: () => ready() && host.state()!.site.pages.length > 1, params: { from: { type: 'string', required: true, description: 'Id of the page whose background and text color the open page takes.' } }, mutates: true, description: 'Give the open page the background and text color of another page, as a copy of its values. One undo step.', run: params => matchPage(typeof params?.from === 'string' ? params.from : '') },
+      { id: 'page.background-home', label: 'Use the home page background', menu: 'Page', group: 4, enabled: () => { const next = host.state(); return !!next && homePage(next.site)?.id !== host.page().id; }, mutates: true, description: 'Give the open page the background and text color of the home page, as a copy of its values. One undo step.', run: () => { const next = host.state(); const home = next && homePage(next.site); return home ? matchPage(home.id) : undefined; } },
       { id: 'window.theme-colors', label: 'Site theme colors...', enabled: ready, run: () => {
         runCommand('window.tokens');
         const target = document.querySelector<HTMLElement>('[data-field="themes.default"]');
@@ -176,6 +202,43 @@ export function allPagesCommands(site: Site, content: string): Command[] {
     const styles = site.nodes[page.root]?.styles;
     return styles && ((styles.background || '').trim() !== wanted || !!styles['background-color']);
   }).map(page => setBackgroundCommand(site, page, content));
+}
+
+export function homePage(site: Site): Page | undefined {
+  return site.pages.find(page => page.slug === '/') ?? site.pages[0];
+}
+
+export function matchPatch(site: Site, from: Page, target?: Page): Record<string, string | null> {
+  const source = site.nodes[from.root]?.styles || {};
+  const mine = target ? site.nodes[target.root]?.styles || {} : {};
+  const patch: Record<string, string | null> = { background: pageBackground(site, from)?.value || null };
+  if (mine['background-color']) patch['background-color'] = null;
+  const color = source.color?.trim();
+  if (color || mine.color) patch.color = color || null;
+  return patch;
+}
+
+export function matchChoices(site: Site, except: string): { id: string; name: string }[] {
+  const home = homePage(site);
+  const others = site.pages.filter(page => page.id !== except);
+  const ordered = home && home.id !== except ? [home, ...others.filter(page => page.id !== home.id)] : others;
+  return [{ id: '', name: t('Choose a page...') }, ...ordered.map(page => ({ id: page.id, name: page.id === home?.id ? t('{0} (home page)', [page.name]) : page.name }))];
+}
+
+export function startChoices(site: Site, open: string): { id: string; name: string }[] {
+  const home = homePage(site);
+  const current = site.pages.find(page => page.id === open);
+  const list = [{ id: '', name: t('Site background (white)') }];
+  if (home) list.push({ id: home.id, name: t('Same as {0} (home page)', [home.name]) });
+  if (current && current.id !== home?.id) list.push({ id: current.id, name: t('Same as {0}, the page open now', [current.name]) });
+  return list;
+}
+
+export function startCommands(site: Site, root: string, from: Page | undefined): Command[] {
+  if (!from) return [];
+  const patch = matchPatch(site, from);
+  const styles = Object.fromEntries(Object.entries(patch).filter(([, entry]) => entry !== null));
+  return Object.keys(styles).length ? [{ command: 'node.update', params: { id: root, patch: { styles } } }] : [];
 }
 
 export function backgroundRefusal(site: Site, content: string): string {

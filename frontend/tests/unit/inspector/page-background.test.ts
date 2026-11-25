@@ -185,3 +185,80 @@ describe('Apply to all pages', () => {
     expect(statuses.at(-1)?.error).toBe(true);
   });
 });
+
+describe('Match another page', () => {
+  const pick = (section: HTMLElement, id: string): HTMLSelectElement => {
+    const list = section.querySelector<HTMLSelectElement>('[data-field="page.background-from"]')!;
+    list.value = id;
+    list.dispatchEvent(new Event('change'));
+    return list;
+  };
+
+  it('lists the home page first, marked as the home page, and leaves out the open page', () => {
+    pageId = 'about';
+    const { section } = mount();
+    const list = section.querySelector<HTMLSelectElement>('[data-field="page.background-from"]')!;
+    expect(Array.from(list.options).map(option => option.value)).toEqual(['', 'home', 'fares']);
+    expect(list.options[1].textContent).toBe('Home (home page)');
+  });
+
+  it('picking the home page gives the open page its background in one request and the list goes back to its prompt', async () => {
+    pageId = 'about';
+    const { section } = mount();
+    const list = pick(section, 'home');
+    await settle();
+    expect(requests.length).toBe(1);
+    expect(mod.pageBackground(state.site, state.site.pages[2])?.value).toBe('var(--paper)');
+    expect(list.value).toBe('');
+    expect(statuses.at(-1)?.message).toBe('The background and text color of "Home" are now used on "About".');
+  });
+
+  it('a background-color the open page had is removed so the copied background shows', async () => {
+    pageId = 'fares';
+    const { section } = mount();
+    pick(section, 'home');
+    await settle();
+    expect(state.site.nodes['r-fares'].styles['background-color']).toBeUndefined();
+    expect(state.site.nodes['r-fares'].styles.background).toBe('var(--paper)');
+  });
+
+  it('the text color travels with the background, and goes when the other page has none', async () => {
+    state.site.nodes['r-home'].styles.color = 'var(--ink)';
+    pageId = 'about';
+    const { section } = mount();
+    pick(section, 'home');
+    await settle();
+    expect(state.site.nodes['r-about'].styles.color).toBe('var(--ink)');
+    pageId = 'home';
+    const again = mount();
+    pick(again.section, 'fares');
+    await settle();
+    expect(state.site.nodes['r-home'].styles.color).toBeUndefined();
+    expect(mod.pageBackground(state.site, state.site.pages[0])?.value).toBe('#123456');
+  });
+
+  it('Use the home page background is off on the home page and copies it on another page', async () => {
+    const onHome = mount();
+    expect(command(onHome.handle, 'page.background-home').enabled!()).toBe(false);
+    pageId = 'fares';
+    const { handle } = mount();
+    expect(command(handle, 'page.background-home').enabled!()).toBe(true);
+    await command(handle, 'page.background-home').run();
+    expect(mod.pageBackground(state.site, state.site.pages[1])?.value).toBe('var(--paper)');
+  });
+});
+
+describe('the background a new page starts with', () => {
+  it('offers the site background, the home page and the page open now, in that order', () => {
+    const site = threePages();
+    expect(mod.startChoices(site, 'fares').map(choice => choice.name)).toEqual(['Site background (white)', 'Same as Home (home page)', 'Same as Fares, the page open now']);
+    expect(mod.startChoices(site, 'home').map(choice => choice.id)).toEqual(['', 'home']);
+  });
+
+  it('the site background adds nothing to the new page, and the home page adds its background to the new root', () => {
+    const site = threePages();
+    expect(mod.startCommands(site, 'r-new', undefined)).toEqual([]);
+    expect(mod.startCommands(site, 'r-new', site.pages[0])).toEqual([{ command: 'node.update', params: { id: 'r-new', patch: { styles: { background: 'var(--paper)' } } } }]);
+    expect(mod.startCommands(site, 'r-new', site.pages[2])).toEqual([]);
+  });
+});

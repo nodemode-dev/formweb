@@ -5,3 +5,4 @@
 .fw-pagebg-link { min-height: 0; padding: 0; border: 0; background: none; color: var(--accent-color); font-size: var(--fs-11); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .fw-pagebg-link:hover { color: var(--accent-color-hover); }
 .fw-pagebg-field .field-label { min-height: 18px; }
+.fw-pagebg-match { margin-top: var(--space-2); }
