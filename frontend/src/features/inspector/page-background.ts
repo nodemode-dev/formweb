@@ -97,7 +97,8 @@ export function installPageBackground(host: PageBackgroundHost): PageBackgroundH
     commands: [
       { id: 'page.background', label: 'Page background...', menu: 'Page', group: 4, enabled: ready, run: () => {
         host.showPageTab();
-        field.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        if (group.classList.contains('is-collapsed')) (group.firstElementChild as HTMLElement).click();
+        group.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         field.focus({ preventScroll: true });
       } },
       { id: 'page.background-clear', label: 'Clear page background', menu: 'Page', group: 4, enabled: () => !!current(), run: async () => {
