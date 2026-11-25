@@ -1,3 +1,14 @@
 .list-row.is-renaming .row-label { visibility: hidden; }
+.panel-head .fw-fold-head { width: auto; min-height: 0; height: var(--ctl-md); padding: 0; gap: var(--space-1); justify-content: flex-start; justify-self: start; border-color: transparent; background: transparent; color: var(--text-muted); }
+.panel-head .fw-fold-head:hover { background: transparent; color: var(--text-primary); }
+.fw-fold-chevron, .fw-fold-chevron svg { width: 12px; height: 12px; }
+.fw-fold-head[aria-expanded="true"] .fw-fold-chevron { transform: rotate(90deg); }
+.layer-row { grid-template-columns: 12px 16px minmax(0, 1fr) auto; column-gap: var(--space-1); padding-left: calc(var(--space-1) + var(--depth) * var(--space-4)); }
+.layer-row > .icon { margin-right: var(--space-1); }
+.fw-twisty { grid-column: 1; grid-row: 1; display: grid; place-items: center; width: 12px; height: 12px; color: var(--text-muted); visibility: hidden; }
+.fw-twisty svg { width: 12px; height: 12px; }
+.layer-row[data-kids="true"] .fw-twisty { visibility: visible; }
+.layer-row[data-kids="true"]:not(.is-folded) .fw-twisty svg { transform: rotate(90deg); }
+.fw-twisty:hover { color: var(--text-primary); }
 .fw-rename-input { position: fixed; z-index: var(--z-popover); box-sizing: border-box; min-height: 0; margin: 0; padding: 0 var(--space-1); border: 1px solid var(--accent-color); border-radius: var(--radius-small); background: var(--bg-secondary); color: var(--text-primary); font: inherit; outline: none; }
 .fw-rename-input:focus-visible { outline: none; }
