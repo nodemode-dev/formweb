@@ -1,3 +1,5 @@
+import re
+
 from playwright.sync_api import expect
 
 PAGE_MENU = ["Open", "Rename", "Duplicate", "Set as home page", "Move up", "Move down", "Page settings", "Delete..."]
@@ -165,6 +167,7 @@ def test_set_as_home_page_moves_the_page_to_slash_renames_the_old_address_and_re
     expect(harbour.page_rows().first).to_have_text("Timetable and fares")
     expect(harbour.status).to_contain_text('"Timetable and fares" is now the home page at /')
     harbour.page_row("home").click()
-    expect(harbour.canvas.locator('[data-fw-id="h-nav-fares"]')).to_have_attribute("href", "/")
+    expect(harbour.canvas.locator('[data-fw-id="h-nav-fares"]')).to_have_attribute("data-fw-href", "/")
+    expect(harbour.canvas.locator('[data-fw-id="h-nav-fares"]')).not_to_have_attribute("href", re.compile(r".*"))
     harbour.undo()
     harbour.restored_to(start)
