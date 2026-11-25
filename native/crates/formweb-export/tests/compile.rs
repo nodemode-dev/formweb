@@ -206,3 +206,46 @@ fn tokens_are_exported_as_custom_properties() {
     let css = compile(&fixture())["assets/site.css"].clone();
     assert!(css.contains("--accent:#d6f05d;"));
 }
+
+fn runtime_fixture() -> Site {
+    let mut site = fixture();
+    site.extensions.insert("integrations".into(), json!({"widgets": {}}));
+    formweb_model::validate(&site).unwrap();
+    site
+}
+
+const RUNTIME_TOKEN: &str = "Rt0ken-for-one-publication_0123456789abcd";
+
+#[test]
+fn a_publication_token_reaches_every_page_config_and_no_other_file() {
+    let output = formweb_export::export(&runtime_fixture(), &json!({"formsEndpoint": "http://127.0.0.1:8240/published/one/v1", "runtimeToken": RUNTIME_TOKEN})).unwrap();
+    let mut pages = 0;
+    for file in output["files"].as_array().unwrap() {
+        let path = file["path"].as_str().unwrap();
+        let content = file["content"].as_str().unwrap_or("");
+        if path.ends_with(".html") && !path.starts_with("assets/") {
+            let config = content.split("id=\"fw-config\">").nth(1).and_then(|rest| rest.split("</script>").next()).unwrap();
+            let config: Value = serde_json::from_str(config).unwrap();
+            assert_eq!(config["context"]["runtimeToken"], RUNTIME_TOKEN, "{path}");
+            pages += 1;
+        } else {
+            assert!(!content.contains(RUNTIME_TOKEN), "{path} carries the publication token");
+        }
+    }
+    assert_eq!(pages, 3);
+}
+
+#[test]
+fn a_publication_token_that_is_short_or_not_url_safe_is_refused() {
+    for token in ["short", "has a space and is long enough to pass the length test", "quote\"and<angle>brackets-make-this-long-enough"] {
+        let refused = formweb_export::export(&runtime_fixture(), &json!({"runtimeToken": token}));
+        assert!(refused.unwrap_err().contains("runtimeToken"), "{token}");
+    }
+}
+
+#[test]
+fn an_export_without_a_publication_token_carries_none() {
+    let output = formweb_export::export(&runtime_fixture(), &json!({})).unwrap();
+    let home = output["files"].as_array().unwrap().iter().find(|f| f["path"] == "index.html").unwrap()["content"].as_str().unwrap().to_string();
+    assert!(!home.contains("runtimeToken"));
+}

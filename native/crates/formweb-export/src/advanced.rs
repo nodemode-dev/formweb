@@ -14,6 +14,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
     let forms = params.get("formsEndpoint").and_then(Value::as_str).unwrap_or("").trim_end_matches('/');
     if !safe_url(base) || !(base.starts_with("https://") || base.starts_with("http://")) { return Err("baseUrl must be an http(s) URL".into()); }
     if !forms.is_empty() && (!safe_url(forms) || !(forms.starts_with("https://") || forms.starts_with("http://"))) { return Err("formsEndpoint must be an http(s) URL".into()); }
+    let runtime_token = params.get("runtimeToken").map(|v| v.as_str().filter(|t| (32..=64).contains(&t.len()) && t.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')).ok_or("runtimeToken must be 32 to 64 URL-safe characters")).transpose()?;
     let gated = site.extensions.get("integrations").and_then(|v| v.get("gates")).and_then(Value::as_array).map(|v| !v.is_empty()).unwrap_or(false);
     if gated && params.get("privateMembers").and_then(Value::as_bool) != Some(true) { return Err("Gated sites require an authenticated backend publication; public static export would expose private content".into()); }
     let routes = routing::plan(site, locale, all)?;
@@ -52,6 +53,7 @@ pub fn export(site: &Site, params: &Value) -> Result<Value, String> {
         let mut context = json!({"site":site.id});
         if let Some(path) = forms.split("/published/").nth(1) { let mut segments = path.split('/');context["slug"]=json!(segments.next().unwrap_or(""));context["version"]=json!(segments.next().unwrap_or("")); }
         if let Some(token) = forms.split("/preview/").nth(1) { context["previewToken"]=json!(token.split('/').next().unwrap_or("")); }
+        if let Some(token) = runtime_token { context["runtimeToken"]=json!(token); }
         let config = crate::scope::configuration(site,&route.page.root,records,context,&links,&prefix);
         let code = custom_code(site,&route.page.id);
         let boot = boot_script(site);
