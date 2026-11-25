@@ -100,14 +100,28 @@ fn free(folder: &Path, name: &str) -> PathBuf {
     path
 }
 
+/// What went wrong, as a stable code the page turns into a sentence in the person's language, with the file's name and
+/// folder and, for a file manager that did not start, the system's own reason.
+#[derive(serde::Serialize, Debug, PartialEq)]
+pub struct RevealError {
+    code: &'static str,
+    file: String,
+    folder: String,
+    detail: String,
+}
+
+fn reveal_error(code: &'static str, path: Option<&Path>, detail: String) -> RevealError {
+    let file = path.and_then(Path::file_name).map(|name| name.to_string_lossy().into_owned()).unwrap_or_default();
+    let folder = path.and_then(Path::parent).map(|folder| folder.to_string_lossy().into_owned()).unwrap_or_default();
+    RevealError { code, file, folder, detail }
+}
+
 /// Shows the last file the page saved in the system file manager: selected in Finder and Explorer, its folder elsewhere.
 #[tauri::command]
-pub fn reveal_download() -> Result<(), String> {
-    let path = LAST.lock().unwrap().clone().ok_or("No file has been saved yet.")?;
+pub fn reveal_download() -> Result<(), RevealError> {
+    let path = LAST.lock().unwrap().clone().ok_or_else(|| reveal_error("download.none", None, String::new()))?;
     if !path.exists() {
-        let name = path.file_name().map(|name| name.to_string_lossy().into_owned()).unwrap_or_default();
-        let folder = path.parent().map(|folder| folder.to_string_lossy().into_owned()).unwrap_or_default();
-        return Err(format!("{name} is no longer in {folder}. It was moved or deleted."));
+        return Err(reveal_error("download.moved", Some(&path), String::new()));
     }
     #[cfg(target_os = "macos")]
     let mut command = {
@@ -133,9 +147,24 @@ pub fn reveal_download() -> Result<(), String> {
         command.arg(path.parent().unwrap_or(&path));
         command
     };
-    let mut child = command.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).spawn().map_err(|error| error.to_string())?;
+    let mut child = command.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).spawn().map_err(|error| reveal_error("download.reveal-failed", Some(&path), error.to_string()))?;
     std::thread::spawn(move || {
         let _ = child.wait();
     });
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn show_in_folder_answers_codes_with_the_file_and_folder_for_the_page_to_put_in_words() {
+        *LAST.lock().unwrap() = None;
+        assert_eq!(serde_json::to_value(reveal_download().unwrap_err()).unwrap()["code"], "download.none");
+        let gone = std::env::temp_dir().join("formweb-reveal-test").join("site export.zip");
+        *LAST.lock().unwrap() = Some(gone.clone());
+        let answer = serde_json::to_value(reveal_download().unwrap_err()).unwrap();
+        assert_eq!(answer, serde_json::json!({"code": "download.moved", "file": "site export.zip", "folder": gone.parent().unwrap().to_string_lossy(), "detail": ""}));
+    }
 }
