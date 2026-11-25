@@ -13,7 +13,11 @@ export class RuntimePreview {
 
   constructor(private stage: HTMLElement, private design: HTMLElement, private notify: (message: string, error?: boolean) => void) {
     this.outer.hidden = true;
-    this.label.append(element('span', '', 'Live responsive preview'), element('span'));
+    const back = element('button', 'frame-back', 'Back to design');
+    back.type = 'button';
+    back.dataset.cmd = 'view.preview';
+    back.title = 'Turn off the live responsive preview and return to the design canvas';
+    this.label.append(element('span', '', 'Live responsive preview'), element('span'), back);
     this.buffer = new CompiledFrames(this.shell, 'canvas-frame', notify);
     this.buffer.onShown = (result, target) => {
       this.outer.hidden = false;
