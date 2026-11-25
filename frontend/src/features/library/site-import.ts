@@ -142,7 +142,7 @@ export class SiteImport {
     const parts = [
       count === 1 ? t('1 page.') : t('{0} pages.', [count]),
       plan.assets.count === 1 ? t('1 asset ({0}).', [size(plan.assets.bytes)]) : t('{0} assets ({1}).', [plan.assets.count, size(plan.assets.bytes)]),
-      plan.supportFiles ? t('{0} stylesheets and scripts.', [plan.supportFiles]) : '',
+      plan.supportFiles === 1 ? t('1 stylesheet or script.') : plan.supportFiles ? t('{0} stylesheets and scripts.', [plan.supportFiles]) : '',
       plan.skipped.length === 1 ? t('1 file is skipped.') : plan.skipped.length ? t('{0} files are skipped.', [plan.skipped.length]) : '',
       plan.ignored ? t('{0} system files are ignored.', [plan.ignored]) : ''
     ];
