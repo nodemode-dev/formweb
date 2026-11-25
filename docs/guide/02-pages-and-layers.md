@@ -78,7 +78,7 @@ With a layer row selected, Alt+Up and Alt+Down move it one place without draggin
 ## Select several layers
 
 - Click a layer to select it.
-- Ctrl+click (Cmd+click on a Mac) another layer to add it to the selection, or to take it out again.
+- Ctrl+click (Cmd+click on a Mac) another layer to add it to the selection, or to take it out again. On a Mac, Ctrl+click is a right-click and opens the layer's menu, so use Cmd.
 - Shift+click selects every row from the last one you clicked to this one.
 - Escape goes back to one layer.
 

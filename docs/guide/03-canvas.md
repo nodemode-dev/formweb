@@ -10,7 +10,7 @@ The examples use **Coldmere Plumbing** (**Help > Demos > Coldmere Plumbing**), o
 
 - Click an element to select it. It gets an orange outline, its layer is highlighted in the Layers list, and the bar above the canvas shows its path, for example Home / Page / Hm main / Hm hero / Hm hero in / Hm hero copy / Hm h1.
 - Click a step of that path to select a parent.
-- Ctrl+click (Cmd+click on a Mac) or Shift+click adds an element to the selection or takes it out.
+- Ctrl+click (Cmd+click on a Mac) or Shift+click adds an element to the selection or takes it out. On a Mac, Ctrl+click is a right-click and opens the canvas menu, so use Cmd or Shift there.
 - Double-click text to edit it in place. Click outside it to keep the change.
 
 ## The right-click menu

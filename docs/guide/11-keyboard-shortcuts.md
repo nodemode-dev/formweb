@@ -97,7 +97,7 @@ These keys belong to the Pages and Layers lists, menus and text fields rather th
 | Shift+F10 | A page or layer row | Open its right-click menu |
 | Alt+Up, Alt+Down | A page or layer row | Move it up or down one place |
 | Left, Right | A layer row | Fold or unfold its children |
-| Ctrl+click, Shift+click (Cmd+click on a Mac) | Rows, or elements on the canvas | Add to the selection, or select a range of rows |
+| Ctrl+click, Shift+click (Cmd+click on a Mac, where Ctrl+click is a right-click) | Rows, or elements on the canvas | Add to the selection, or select a range of rows |
 | Escape | Several rows selected | Go back to one |
 | Escape | While dragging | Cancel the drag |
 | Escape | Select several is on | Turn it off and keep the selection |
