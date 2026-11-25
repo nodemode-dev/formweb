@@ -4,6 +4,7 @@ import type { Icon } from '../../ui/icons';
 import { label, labelAttr } from '../../i18n';
 import { readBrand } from '../brand-kit';
 import type { Command, EditorState, Page, Site } from '../../types';
+import '../../styles/page-background.css';
 
 export interface PageBackgroundHost {
   section(title: string): HTMLElement;

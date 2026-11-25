@@ -1,0 +1,7 @@
+.fw-pagebg-note { min-height: calc(1.6em * 3); margin: var(--space-2) 0 0; }
+.fw-pagebg-note > span[hidden] { display: none; }
+.fw-pagebg-note > span:not([hidden]) ~ span:not([hidden])::before { content: ' '; }
+.fw-pagebg-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
+.fw-pagebg-link { min-height: 0; padding: 0; border: 0; background: none; color: var(--accent-color); font-size: var(--fs-11); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.fw-pagebg-link:hover { color: var(--accent-color-hover); }
+.fw-pagebg-field .field-label { min-height: 18px; }
