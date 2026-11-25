@@ -78,4 +78,8 @@ export default {
   "Add element here": "Agregar elemento aquí",
   "Nothing can be added inside a linked component instance": "No se puede agregar nada dentro de una instancia de componente vinculada",
   "Revision {0}. The site has changed since: press Refresh.": "Revisión {0}. El sitio cambió desde entonces: presiona Actualizar.",
+  "Add as new pages": "Agregar como páginas nuevas",
+  "How to add the pages": "Cómo agregar las páginas",
+  "Add them": "Agregarlas",
+  "{0} could not be saved to your Downloads folder. Check that the folder exists and has free space, then try again.": "No se pudo guardar {0} en tu carpeta Descargas. Verifica que la carpeta exista y tenga espacio libre, y vuelve a intentarlo.",
 } as Record<string, string>;
