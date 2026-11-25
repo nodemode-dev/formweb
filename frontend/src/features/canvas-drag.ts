@@ -331,6 +331,7 @@ export function installCanvasDrag(host: CanvasDragHost): void {
       doc.documentElement.removeAttribute('data-fw-dragging');
       doc.documentElement.removeAttribute('data-fw-holding');
       document.body.classList.remove('fw-canvas-dragging');
+      if (dragging) doc.getSelection()?.removeAllRanges();
     };
     const swallow = (): void => swallowClick([win, window], touch ? 400 : 0);
     const block = (event: Event): void => event.preventDefault();
