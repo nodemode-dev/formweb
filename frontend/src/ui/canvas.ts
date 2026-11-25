@@ -431,6 +431,9 @@ export class Canvas {
       event.stopPropagation();
       this.onSelect(id, event);
     });
+    doc.addEventListener('mousedown', event => {
+      if (event.shiftKey && !this.last?.preview && !(event.target as Element).closest?.('[contenteditable="true"]')) event.preventDefault();
+    });
     doc.addEventListener('dblclick', event => {
       if (this.last?.preview) return;
       const element = (event.target as Element).closest<HTMLElement>('[data-fw-id]');
