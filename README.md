@@ -119,7 +119,7 @@ One MCP server and one command line reach the same running document as the edito
 ./formweb library insert formcut-proxy-monitor tint=#ff9a3c   # insert one, re-cast, as one undo step
 ```
 
-Agents can also start a blank site, set native motion and variables, build and place page components, insert, re-cast and import library sections, and send the site to FormPublisher, and copy and paste an element between pages, with 16 authoring tools, `copy_element` and `paste_element` among them (103 MCP tools in all), described in [docs/ADVANCED_SCHEMA.md](docs/ADVANCED_SCHEMA.md).
+Agents can also start a blank site, set native motion and variables, build and place page components, insert, re-cast and import library sections, import a whole static site from a zip, and send the site to FormPublisher, and copy and paste an element between pages, with 17 authoring tools, `copy_element` and `paste_element` among them (104 MCP tools in all), described in [docs/ADVANCED_SCHEMA.md](docs/ADVANCED_SCHEMA.md).
 
 `.mcp.json`, `.codex/config.toml` and `.cursor/mcp.json` are already wired in this repo. Start with the [agent quick start](docs/AGENT_QUICKSTART.md) and [`AGENTS.md`](AGENTS.md).
 

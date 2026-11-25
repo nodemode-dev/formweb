@@ -304,7 +304,7 @@ Clip links (0.19.7): `POST /api/fragment {node, embed: true, clip: true}` keeps 
 
 ## Authoring MCP tools (0.19.3)
 
-The MCP server has 16 authoring tools for the native vocabulary (`copy_element` and `paste_element` joined them in 0.19.5; 103 tools in all), each over the existing routes or engine commands and one undo step. The motion, variables and component tools accept `expected_revision`.
+The MCP server has 17 authoring tools for the native vocabulary (`copy_element` and `paste_element` joined them in 0.19.5, `library_import_site` later; 104 tools in all), each over the existing routes or engine commands and one undo step. The motion, variables and component tools accept `expected_revision`.
 
 | Tool | Effect | Hints |
 | --- | --- | --- |
@@ -320,6 +320,7 @@ The MCP server has 16 authoring tools for the native vocabulary (`copy_element` 
 | `library_apply_preset` | the preset route, mode `all` or `missing` | destructive, idempotent |
 | `library_apply_starter` | the starter route | |
 | `library_import_html` | `POST /api/library/import-html` | |
+| `library_import_site` | `data` (the zip as base64): `action` `review` (default) is `POST /api/library/import-site/review`; `import` is `POST /api/library/import-site` with `mode` `new` or `replace` and the review's `revision` | destructive; approval only for an import with mode `replace` |
 | `send_to_formpublisher` | `POST /api/handoff/formpublisher` | does not change the site |
 | `new_site` | replaces the open site with a blank home page (`blank` true, the default) or the sample site, as File > New does | destructive, approval-gated |
 | `copy_element` | `POST /api/fragment` for `node` (0.19.5); returns the fragment JSON; `embed_assets` (default false, 0.19.6) adds `embedded` and `notEmbedded`; `clip` (default false, 0.19.8, needs `embed_assets`, else 400) keeps 4 MiB inline and puts larger assets behind the loopback clip link (15 minutes by default) in `fragment.clip`; one clip serves any number of pastes, into one installation or several, until it expires, then answers 404 (0.19.9) | read-only, idempotent |
