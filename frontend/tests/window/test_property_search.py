@@ -64,14 +64,39 @@ def test_the_plan_example_queries_give_results_grouped_by_tab_and_section(image_
     assert result_names(image_selected) == upper
 
 
-@pytest.mark.xfail(strict=True, reason="TEST_PLAN 6 says no result's name contains a button's text; with an image selected, bg lists a result named 'Remove background...', the text of the button in the Content tab")
-def test_no_search_result_is_named_after_a_button(image_selected):
-    tab(image_selected, "Content").click()
-    buttons = {text.strip() for text in image_selected.page.locator(".inspector-scroll button:visible").all_inner_texts() if text.strip()}
+def grouped_results(editor):
+    return editor.page.locator("#inspector-results-list").evaluate(
+        """list => { let group = ''; const out = [];
+        for (const node of list.children) {
+            if (node.classList.contains('inspector-results-group')) group = node.textContent.trim();
+            else if (node.classList.contains('inspector-result')) out.push([group, node.querySelector('.inspector-result-name').textContent.trim()]);
+        } return out; }"""
+    )
+
+
+def test_the_page_background_field_result_reads_background_without_its_clear_button(coldmere):
+    coldmere.canvas.locator('[data-fw-id="hm-h1"]').click()
+    expect(coldmere.page.locator(".inspector-name")).to_have_text("Hm h1")
+    search(coldmere).fill("bg")
+    expect(coldmere.page.locator("#inspector-results-list .inspector-result").first).to_be_visible()
+    page_background = [name for group, name in grouped_results(coldmere) if group == "Page > Page background"]
+    assert "Background" in page_background, page_background
+    assert not [name for name in result_names(coldmere) if "Clear" in name]
+
+
+def test_no_field_result_name_ends_with_the_text_of_a_button_for_an_image(image_selected):
+    buttons = set()
+    for name in ("Design", "Motion", "Content", "Page"):
+        tab(image_selected, name).click()
+        expect(tab(image_selected, name)).to_have_class(re.compile(r"\bactive\b"))
+        buttons |= {text.strip() for text in image_selected.page.locator(".inspector-scroll button").evaluate_all("bs => bs.map(b => b.textContent)") if text.strip()}
+    assert "Clear" in buttons
     tab(image_selected, "Design").click()
-    search(image_selected).fill("bg")
-    expect(image_selected.page.locator("#inspector-results-list .inspector-result").first).to_be_visible()
-    assert not [name for name in result_names(image_selected) if any(button in name for button in buttons)]
+    for query in ("bg", "background", "alt", "image"):
+        search(image_selected).fill(query)
+        expect(image_selected.page.locator("#inspector-results-list .inspector-result").first).to_be_visible()
+        joined = [name for name in result_names(image_selected) if name not in buttons and any(name.endswith(button) for button in buttons)]
+        assert not joined, f"{query!r}: {joined}"
 
 
 def test_enter_switches_to_the_tab_of_the_field_and_focuses_it(image_selected):
