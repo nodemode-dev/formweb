@@ -58,11 +58,19 @@ class LocalAccess:
         origin = headers.get('origin')
         allowed_hosts = {f'localhost:{PORT}', f'127.0.0.1:{PORT}', f'[::1]:{PORT}'}
         preview_match = re.match(r'^/preview/([^/]+)(?:/|$)', path)
+        release_match = re.fullmatch(r'/api/runtime/~([^/]*)(/.+)', path)
+        release = studio.releases.runtime_release(release_match.group(1)) if release_match else None
+        if release:
+            path = '/api/runtime' + release_match.group(2)
+            scope['path'] = path
+            scope['raw_path'] = path.encode()
+            scope['formweb.release'] = release
         runtime = path.startswith('/api/runtime/')
         site_space = path.startswith(SITE_SPACE)
         site_form = bool(re.fullmatch(r'/published/[^/]+/[^/]+/api/forms/[^/]+/[^/]+', path))
         site_file = scope['method'] in ('GET', 'HEAD', 'OPTIONS') and bool(re.fullmatch(r'/(?:published/[^/]+/[^/]+|sites/[^/]+)/(?:assets/.+|search-index\.json|site\.webmanifest)', path))
         site_page = origin == 'null' and (site_file or site_form)
+        verified_release = release is not None
         query = parse_qs(scope.get('query_string', b'').decode(errors='replace'))
         preview_token = preview_match.group(1) if preview_match else headers.get('x-formweb-preview') or query.get('previewToken', [''])[0]
         verified_preview = bool((preview_match or runtime) and studio.releases.valid_preview(preview_token))
@@ -77,9 +85,9 @@ class LocalAccess:
         try:
             if headers.get('host', '') not in allowed_hosts:
                 raise EngineError('This service accepts exact loopback hostnames only.', 421)
-            if origin == 'null' and not verified_preview and (path == '/mcp' or path.startswith('/api/')):
-                raise EngineError('Opaque origins may only use a verified preview.', 403)
-            if origin is not None and origin not in ORIGINS and not (origin == 'null' and (verified_preview or site_page)):
+            if origin == 'null' and not verified_preview and not verified_release and (path == '/mcp' or path.startswith('/api/')):
+                raise EngineError('Opaque origins may only use a verified preview or their own publication.', 403)
+            if origin is not None and origin not in ORIGINS and not (origin == 'null' and (verified_preview or verified_release or site_page)):
                 raise EngineError('Origin is not allowed.', 403)
             if origin in (None, 'null') and not public and headers.get('sec-fetch-site', '').strip().lower() == 'cross-site':
                 raise EngineError('Cross-site requests are not allowed.', 403)
@@ -100,7 +108,7 @@ class LocalAccess:
         except EngineError as error:
             cors = {'access-control-allow-origin': origin, 'access-control-allow-credentials': 'true', 'vary': 'Origin'} if origin in ORIGINS else None
             return await JSONResponse({'detail': str(error)}, status_code=error.status, headers=cors)(scope, receive, send)
-        if origin == 'null' and (verified_preview or site_page) and scope['method'] == 'OPTIONS':
+        if origin == 'null' and (verified_preview or verified_release or site_page) and scope['method'] == 'OPTIONS':
             return await Response(status_code=204, headers={'Access-Control-Allow-Origin': 'null', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, X-FormWeb-Preview, X-FormWeb-Visitor, X-FormWeb-Consent', 'Vary': 'Origin'})(scope, receive, send)
         scope['formweb.identity'] = identity
         context_token = actor.set(identity)
@@ -109,7 +117,7 @@ class LocalAccess:
                 message['headers'] = list(message.get('headers', [])) + [(b'x-content-type-options', b'nosniff')]
                 if not any(key.lower() == b'referrer-policy' for key, _ in message['headers']):
                     message['headers'].append((b'referrer-policy', b'no-referrer'))
-                if origin == 'null' and (verified_preview or site_page):
+                if origin == 'null' and (verified_preview or verified_release or site_page):
                     message['headers'] = [(key, value) for key, value in message['headers'] if key.lower() != b'access-control-allow-credentials']
                     message['headers'].extend([(b'access-control-allow-origin', b'null'), (b'vary', b'Origin')])
                 elif site_space:
