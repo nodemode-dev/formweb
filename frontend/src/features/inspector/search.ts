@@ -261,7 +261,7 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
       });
     });
     keyed(list, rows, row => row.key, createRow, updateRow);
-    if (empty.hidden === rows.length > 0) empty.hidden = rows.length > 0;
+    if (empty.hidden !== rows.length > 0) empty.hidden = rows.length > 0;
     if (!picks.some(entry => entry.key === activeKey)) activeKey = picks[0]?.key || '';
     mark(false);
   }
