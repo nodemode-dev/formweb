@@ -433,7 +433,7 @@ export class Canvas {
       const span = this.textNodes.get(element!.dataset.fwKey!);
       if (!span) return;
       span.contentEditable = 'true';
-      span.focus();
+      span.focus({ preventScroll: true });
       const selection = doc.getSelection();
       selection?.selectAllChildren(span);
       span.addEventListener('blur', () => {
