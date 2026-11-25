@@ -475,11 +475,7 @@ stagePanel.append(stageHead, stage);
 const canvas = new Canvas(stage, (id, event) => canvasClick(event, id), (id, next) => void run(async () => {
   await command('node.update', { id, patch: { text: next } });
   status('Text updated.');
-}), href => {
-  const target = state().site.pages.find(page => page.slug === href || `/${page.slug}`.replace(/\/+/g, '/') === href);
-  if (target) { pageId = target.id; selectedId = target.root; update(state()); }
-  else status(t('Preview link: {0}. Exported sites can follow external links.', [href]));
-});
+}));
 
 const inspector = element('aside', 'inspector');
 inspector.setAttribute('aria-label', 'Element inspector');
@@ -1619,7 +1615,7 @@ function update(next: EditorState): void {
   updatePasswordState();
   if (passwordGatesFor !== site.id) void loadPasswordGates().catch(() => undefined);
   canvas.mark(selectedIds());
-  canvas.render(site, page, selectedId, widths[breakpoint], locale, false, breakpoint);
+  canvas.render(site, page, selectedId, widths[breakpoint], locale, breakpoint);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
   if (refreshPreviewButton.classList.contains('active') !== preview) refreshPreviewButton.classList.toggle('active', preview);
   if (refreshPreviewButton.getAttribute('aria-pressed') !== String(preview)) refreshPreviewButton.setAttribute('aria-pressed', String(preview));

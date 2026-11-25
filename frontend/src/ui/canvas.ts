@@ -57,7 +57,7 @@ export class Canvas {
   private textNodes = new Map<string, HTMLSpanElement>();
   private imageSources = new Map<string, string>();
   private scopes = new Map<string, Record<string, string>>();
-  private last?: { site: Site; page: Page; selected: string; width: number; locale: string; preview: boolean; scope: string };
+  private last?: { site: Site; page: Page; selected: string; width: number; locale: string; scope: string };
   private scale = 1;
   private height = 860;
   private width = 1280;
@@ -80,14 +80,14 @@ export class Canvas {
     const next = frame && Object.keys(frame).length ? frame : null;
     if (JSON.stringify(next) === JSON.stringify(this.motionFrame)) return;
     this.motionFrame = next;
-    if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
+    if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.scope);
   }
 
   setPosters(posters: Record<string, string>, lights: Record<string, string> = {}): void {
     if (JSON.stringify(Object.entries(posters)) === JSON.stringify(Object.entries(this.posters)) && JSON.stringify(Object.entries(lights)) === JSON.stringify(Object.entries(this.posterLights))) return;
     this.posters = { ...posters };
     this.posterLights = { ...lights };
-    if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
+    if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.scope);
   }
 
   private syncPoster(node: HTMLElement, key: string, id: string, tag: string): void {
@@ -126,10 +126,10 @@ export class Canvas {
     this.tokenOverride = overrides;
     this.faceCss = faces;
     if (same || !rerender || !this.last) return;
-    this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
+    this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.scope);
   }
 
-  constructor(private stage: HTMLElement, private onSelect: (id: string, event?: MouseEvent) => void, private onText: (id: string, text: string) => void, private onNavigate: (href: string) => void) {
+  constructor(private stage: HTMLElement, private onSelect: (id: string, event?: MouseEvent) => void, private onText: (id: string, text: string) => void) {
     this.outer = document.createElement('div');
     this.outer.className = 'frame-outer';
     this.label = document.createElement('div');
@@ -149,11 +149,11 @@ export class Canvas {
       this.frame.addEventListener('load', () => {
         this.doc = this.frame.contentDocument || undefined;
         if (this.doc) this.bindEvents(this.doc);
-        if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.preview, this.last.scope);
+        if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.scope);
         resolve();
       }, { once: true });
     });
-    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%}html{color-scheme:light}body{color:CanvasText;background:Canvas}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected],[data-fw-marked]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-marked]{outline-style:dashed!important}[data-fw-reveal]{animation:fwReveal .5s ease-in-out 4 alternate}@keyframes fwReveal{from{outline-offset:2px}to{outline-offset:10px}}@media (prefers-reduced-motion:reduce){[data-fw-reveal]{animation:none;outline-offset:6px}}[data-fw-id]:hover{cursor:default}body[data-preview] [data-fw-id]:hover{cursor:auto}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}a[data-fw-href]{text-decoration:underline}body:not([data-preview]) a,body:not([data-preview]) button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark],html:not([data-theme]) [data-fw-theme-only=light],body>[hidden]{display:none!important}.fw-fade{animation:fwFade .5s ease both}@keyframes fwFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}</style></head><body></body></html>';
+    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%}html{color-scheme:light}body{color:CanvasText;background:Canvas}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected],[data-fw-marked]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-marked]{outline-style:dashed!important}[data-fw-reveal]{animation:fwReveal .5s ease-in-out 4 alternate}@keyframes fwReveal{from{outline-offset:2px}to{outline-offset:10px}}@media (prefers-reduced-motion:reduce){[data-fw-reveal]{animation:none;outline-offset:6px}}[data-fw-id]:hover{cursor:default}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}a[data-fw-href]{text-decoration:underline}a,button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark],html:not([data-theme]) [data-fw-theme-only=light],body>[hidden]{display:none!important}</style></head><body></body></html>';
     new ResizeObserver(() => this.fit()).observe(stage);
   }
 
@@ -193,11 +193,10 @@ export class Canvas {
   }
 
   // The width only sizes the frame. The styles drawn are those of `scope`, the breakpoint the person picked from the list; the width is never used to choose them.
-  render(site: Site, page: Page, selected: string, width: number, locale: string, preview: boolean, scope: string): void {
-    this.last = { site, page, selected, width, locale, preview, scope };
+  render(site: Site, page: Page, selected: string, width: number, locale: string, scope: string): void {
+    this.last = { site, page, selected, width, locale, scope };
     this.width = width;
     if (!this.doc) return;
-    this.doc.body.toggleAttribute('data-preview', preview);
     if (this.doc.documentElement.lang !== locale) this.doc.documentElement.lang = locale;
     if (this.themeMode) { if (this.doc.documentElement.dataset.theme !== this.themeMode) this.doc.documentElement.dataset.theme = this.themeMode; }
     else if (this.doc.documentElement.hasAttribute('data-theme')) this.doc.documentElement.removeAttribute('data-theme');
@@ -226,7 +225,7 @@ export class Canvas {
     }
     if (root) root.hidden = false;
     this.foreignSymbols(site, page.root);
-    this.label.children[0].textContent = page.name + (preview ? ' · Preview' : '');
+    this.label.children[0].textContent = page.name;
     this.fit();
   }
 
@@ -322,8 +321,8 @@ export class Canvas {
       node = replacement;
       this.nodes.set(key, node);
     }
-    node.toggleAttribute('data-fw-selected', selected === id && !this.last?.preview);
-    node.toggleAttribute('data-fw-marked', this.marked.has(id) && selected !== id && !this.last?.preview);
+    node.toggleAttribute('data-fw-selected', selected === id);
+    node.toggleAttribute('data-fw-marked', this.marked.has(id) && selected !== id);
     this.scopes.set(key, context?.ids || {});
     const attributes = { ...data.attrs };
     let displayedText = site.locales[locale]?.[id] ?? data.text;
@@ -423,22 +422,14 @@ export class Canvas {
       const element = (event.target as Element).closest<HTMLElement>('[data-fw-id]');
       if (!element) return;
       const id = element.dataset.fwId!;
-      if (this.last?.preview) {
-        const node = this.last.site.nodes[id];
-        for (const interaction of node?.interactions || []) if (interaction.trigger === 'click') this.interact(element, interaction.action, interaction.className, interaction.url);
-        const anchor = (event.target as Element).closest('a');
-        if (anchor) { event.preventDefault(); const href = anchor.getAttribute('data-fw-href'); if (href) this.navigate(href); }
-        return;
-      }
       event.preventDefault();
       event.stopPropagation();
       this.onSelect(id, event);
     });
     doc.addEventListener('mousedown', event => {
-      if (event.shiftKey && !this.last?.preview && !(event.target as Element).closest?.('[contenteditable="true"]')) event.preventDefault();
+      if (event.shiftKey && !(event.target as Element).closest?.('[contenteditable="true"]')) event.preventDefault();
     });
     doc.addEventListener('dblclick', event => {
-      if (this.last?.preview) return;
       const element = (event.target as Element).closest<HTMLElement>('[data-fw-id]');
       const id = element?.dataset.fwId;
       if (!id || !this.last?.site.nodes[id].text || this.last.site.nodes[id].binding || this.last.locale !== this.last.site.defaultLocale) return;
@@ -459,30 +450,6 @@ export class Canvas {
       const forwarded = new KeyboardEvent('keydown', { key: event.key, code: event.code, location: event.location, repeat: event.repeat, ctrlKey: event.ctrlKey, shiftKey: event.shiftKey, altKey: event.altKey, metaKey: event.metaKey, bubbles: true, cancelable: true, composed: true });
       if (!this.frame.dispatchEvent(forwarded)) event.preventDefault();
     });
-    doc.addEventListener('mouseover', event => {
-      if (!this.last?.preview) return;
-      const element = (event.target as Element).closest<HTMLElement>('[data-fw-id]');
-      if (!element) return;
-      const from = event.relatedTarget as Node | null;
-      if (from && element.contains(from)) return;
-      const node = this.last.site.nodes[element.dataset.fwId!];
-      for (const interaction of node?.interactions || []) if (interaction.trigger === 'hover') this.interact(element, interaction.action, interaction.className, interaction.url);
-    });
-  }
-
-  private interact(element: HTMLElement, action: string, className?: string, url?: string): void {
-    if (action === 'toggle-class' && className && /^[a-zA-Z_][\w-]*$/.test(className)) element.classList.toggle(className);
-    if (action === 'fade-in') {
-      element.classList.remove('fw-fade');
-      requestAnimationFrame(() => element.classList.add('fw-fade'));
-    }
-    if (action === 'navigate' && url) this.navigate(scopedFragment(url, this.scopes.get(element.dataset.fwKey || '') || {}));
-  }
-
-  private navigate(url: string): void {
-    const target = url.startsWith('#') ? this.doc?.getElementById(url.slice(1)) : undefined;
-    if (target) target.scrollIntoView({ block: 'start' });
-    else this.onNavigate(url);
   }
 
   private fit(): void {

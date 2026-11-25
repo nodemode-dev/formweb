@@ -247,7 +247,7 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
     at.addEventListener('scroll', close, true);
     at.addEventListener('contextmenu', event => {
       if (performance.now() - keyed < 500 || dragging(at) || ctrlClickOffMac(event)) { event.preventDefault(); return; }
-      if (!host.ready() || at.body.hasAttribute('data-preview') || editing(at)) return;
+      if (!host.ready() || editing(at)) return;
       const hit = (event.target as Element | null)?.closest?.<HTMLElement>('[data-fw-id]') ?? null;
       const id = hit?.dataset.fwId && site().nodes[hit.dataset.fwId] ? hit.dataset.fwId : host.pageRoot();
       event.preventDefault();
@@ -255,7 +255,7 @@ export function installCanvasMenu(host: CanvasMenuHost): { commands: CommandDef[
       show(id, hit, keyboard ? keyAnchor(id) : toParent(event.clientX, event.clientY));
     });
     at.addEventListener('keydown', event => {
-      if (!menuKeyPressed(event) || !host.ready() || at.body.hasAttribute('data-preview') || editing(at)) return;
+      if (!menuKeyPressed(event) || !host.ready() || editing(at)) return;
       if (dragging(at)) { event.preventDefault(); return; }
       if ((event.target as Element | null)?.closest?.('input, textarea, select')) return;
       event.preventDefault();
