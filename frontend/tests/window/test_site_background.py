@@ -23,6 +23,7 @@ CONTRAST = """el => {
 def blank(editor):
     editor.page.locator('[data-run="file.new"]').first.click()
     editor.page.get_by_role("dialog", name="New website").get_by_role("button", name="Create site").click()
+    expect(editor.status).to_have_text("New site created.")
     editor.until(lambda s: len(s["pages"]) == 1, "the new site")
     for name in ("Contact", "Hello"):
         add_page(editor, name)
