@@ -128,22 +128,22 @@ describe('alignment guides', () => {
 });
 
 describe('spacing measures', () => {
-  it('shows the gap from each neighbour towards the slot, a quarter of the way across the neighbour', () => {
+  it('shows the gap from each neighbour towards the slot, a quarter of the way across the one before and three quarters across the one after', () => {
     expect(spacing(box(0, 0, 100, 20), box(0, 40, 100, 20), column, 12, 12)).toEqual([
       { axis: 'y', from: 20, to: 32, at: 25, value: 12 },
-      { axis: 'y', from: 28, to: 40, at: 25, value: 12 }
+      { axis: 'y', from: 28, to: 40, at: 75, value: 12 }
     ]);
   });
 
   it('a gap of zero shows nothing, and a missing neighbour shows nothing on its side', () => {
     expect(spacing(box(0, 0, 100, 20), box(0, 40, 100, 20), column, 0, 0)).toEqual([]);
-    expect(spacing(null, box(0, 40, 100, 20), column, 8, 8)).toEqual([{ axis: 'y', from: 32, to: 40, at: 25, value: 8 }]);
+    expect(spacing(null, box(0, 40, 100, 20), column, 8, 8)).toEqual([{ axis: 'y', from: 32, to: 40, at: 75, value: 8 }]);
   });
 
   it('in a reversed row the measures point the other way', () => {
     expect(spacing(box(60, 0, 40, 10), box(0, 0, 40, 10), { axis: 'x', reverse: true }, 8, 8)).toEqual([
       { axis: 'x', from: 52, to: 60, at: 2.5, value: 8 },
-      { axis: 'x', from: 40, to: 48, at: 2.5, value: 8 }
+      { axis: 'x', from: 40, to: 48, at: 7.5, value: 8 }
     ]);
   });
 });

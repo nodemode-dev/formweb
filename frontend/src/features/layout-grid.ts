@@ -100,11 +100,11 @@ export function spacing(before: Box | null, after: Box | null, flow: Flow, after
   const along = flow.axis, side = cross(along);
   const sign = flow.reverse ? -1 : 1;
   const out: Measure[] = [];
-  const mark = (start: number, length: number, box: Box, value: number): void => {
-    out.push({ axis: along, from: Math.min(start, start + length), to: Math.max(start, start + length), at: low(box, side) + (high(box, side) - low(box, side)) / 4, value });
+  const mark = (start: number, length: number, box: Box, value: number, part: number): void => {
+    out.push({ axis: along, from: Math.min(start, start + length), to: Math.max(start, start + length), at: low(box, side) + (high(box, side) - low(box, side)) * part, value });
   };
-  if (before && afterBefore > 0) mark(flow.reverse ? low(before, along) : high(before, along), sign * afterBefore, before, afterBefore);
-  if (after && beforeAfter > 0) mark(flow.reverse ? high(after, along) : low(after, along), -sign * beforeAfter, after, beforeAfter);
+  if (before && afterBefore > 0) mark(flow.reverse ? low(before, along) : high(before, along), sign * afterBefore, before, afterBefore, 1 / 4);
+  if (after && beforeAfter > 0) mark(flow.reverse ? high(after, along) : low(after, along), -sign * beforeAfter, after, beforeAfter, 3 / 4);
   return out;
 }
 
