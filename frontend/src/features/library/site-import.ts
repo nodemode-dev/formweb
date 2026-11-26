@@ -15,6 +15,11 @@ const size = (bytes: number): string => bytes >= 1048576 ? `${(bytes / 1048576).
 const HTML_ACCEPT = '.html,.htm,text/html';
 const isHtml = (file: File): boolean => /\.html?$/i.test(file.name);
 const isZip = (file: File): boolean => /\.zip$/i.test(file.name);
+/** Decodes a picked page exactly as the service decodes one inside a zip: UTF-8 (a byte order mark dropped), else Windows-1252 with its five unassigned bytes as U+FFFD. */
+function decode(bytes: ArrayBuffer): string {
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+  catch { return new TextDecoder('windows-1252').decode(bytes).replace(/[\u0081\u008d\u008f\u0090\u009d]/g, '�'); }
+}
 
 /**
  * Import HTML files or a site from a zip: pick one .zip holding a static site, or one or several loose .html files,
@@ -90,7 +95,7 @@ export class SiteImport {
       button.type = 'button';
       label(button, english);
       button.setAttribute('role', 'radio');
-      button.addEventListener('click', () => { if (!button.disabled) { this.use = use; this.paint(); } });
+      button.addEventListener('click', () => { if (!button.disabled) { this.use = use; this.paint(); this.reveal(); } });
       this.uses.append(button);
     }
     this.uses.setAttribute('role', 'radiogroup');
@@ -161,6 +166,11 @@ export class SiteImport {
     this.note.classList.toggle('is-error', error);
   }
 
+  /** Keeps a refusal sentence in view; the note is the scroller's last child, so this scrolls and moves nothing. */
+  private reveal(): void {
+    if (this.note.classList.contains('is-error') && this.note.textContent) this.note.scrollIntoView({ block: 'nearest' });
+  }
+
   /** Work in progress reads on the import button, so the note changes only once, to the result. */
   private progress(message: string): void {
     this.working = message;
@@ -192,26 +202,31 @@ export class SiteImport {
     if (zips.length + pages.length !== files.length || (zips.length && files.length > 1)) {
       this.paint();
       this.say(t('Choose one .zip file, or one or more .html files.'), true);
+      this.reveal();
       return;
     }
     if (files.reduce((sum, file) => sum + file.size, 0) > 64 * 1024 * 1024) {
       this.paint();
       this.say(zips.length ? t('The archive is larger than 64 MiB, the most a site import takes.') : t('The files are larger than 64 MiB together, the most an import takes.'), true);
+      this.reveal();
       return;
     }
     this.working = zips.length ? t('Reading the archive...') : t('Reading the files...');
     this.setBusy(true);
     try {
       if (zips.length) this.current = zips[0];
-      else this.loose = await Promise.all(pages.map(async file => ({ name: file.name, html: await file.text() })));
+      else this.loose = await Promise.all(pages.map(async file => ({ name: file.name, html: decode(await file.arrayBuffer()) })));
       this.plan = await request<SiteReview>('/api/library/import-site/review', this.body());
       const empty = !this.plan.pages.length;
+      if (empty) this.loose = null;
       this.say(empty ? (zips.length ? t('The archive has no HTML page that can be imported.') : t('None of the files is an HTML page that can be imported.')) : '', empty);
     } catch (error) {
       this.current = null;
+      this.loose = null;
       this.say(error instanceof Error ? error.message : String(error), true);
     } finally {
       this.setBusy(false);
+      this.reveal();
     }
   }
 
