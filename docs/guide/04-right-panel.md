@@ -15,6 +15,8 @@ At the top the panel names the selected element and its HTML tag, for example **
 - **Content**: the text, and the HTML attributes such as **Link URL**, **Image / media URL** and **Alternative text** (the description of a picture for people who cannot see it), with **Decorative image (no description)** under it for a picture that carries no meaning.
 - **Page**: settings for the open page, whatever is selected: Page settings (name and address), Page background, Search & metadata (the title and description search engines show), Custom code, Password, Whole site (settings such as the base URL) and Actions.
 
+With a Page script selected (a script imported without HTML of its own), the panel opens the Content tab on its code, and Design and Motion only say that these settings do not apply to it, because a script has no box on the page. See [A page script](09-importing.md#a-page-script).
+
 Many fields show a grey placeholder such as Auto / inherit. That means the element has no value of its own and uses what it inherits. A field you have set gets a **Reset** link that removes your value again.
 
 ## Search properties

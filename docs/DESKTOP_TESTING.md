@@ -1,6 +1,6 @@
 # Testing the desktop app by hand
 
-These steps check four things that only the desktop app does, because it saves downloads itself and hands links to the system browser: the export notice, Show in folder, the " (1)" name for a second copy, and Open in browser. Run them on each system before a release and write the result in the table below.
+These steps check four things that only the desktop app does, because it saves downloads itself and hands links to the system browser: the export notice, Show in folder, the " (1)" name for a second copy, and Open in browser. Run them on each system before a release and write the result in the table below. Step 6 reads how long the app took to start.
 
 ## What has been run
 
@@ -12,7 +12,7 @@ These steps check four things that only the desktop app does, because it saves d
 | 2026-11-25 | macOS | Not run | Nothing | Not verified |
 | 2026-11-25 | Windows | Not run | Nothing | Not verified |
 
-The Windows and macOS code of the shell was compiled for those systems on Linux (`cargo check` for `x86_64-pc-windows-gnu` and `aarch64-apple-darwin`), which shows that it builds, not that it works.
+The Windows and macOS code of the shell was compiled for those systems on Linux (`cargo check` for `x86_64-pc-windows-gnu` and `aarch64-apple-darwin`), which shows that it builds, not that it works. The 0.32.0 start-up change (step 6) was checked the same way for `x86_64-pc-windows-msvc` only, and has not been run on any system.
 
 ## Before you start (every system)
 
@@ -65,6 +65,29 @@ The folder in the notice is:
 4. Links never open inside the canvas. Double-click the text of a link in the navigation to edit it and right-click it: the menu that appears has no Open Link item. Press Escape and click elsewhere. Middle-click the link: nothing opens. The canvas still shows the page you are editing.
 
 The canvas frame is allowed to run scripts because WebKit, which the desktop app uses on macOS and Linux, runs none of the editor's click, key and drag handlers in a frame that is not. No script from the site runs there: the canvas document's own policy blocks every script, the canvas never builds script, frame or plugin elements, and the frame never leaves that document, since canvas links have no `href` and every other navigation of the frame is cancelled. Step 4 checks the last part; the reasoning is in the wiki's Architecture page under "Canvas frame and scripts".
+
+## 6. Start-up time
+
+The app shows its window as soon as the editor is ready, after at least 0.5 s of the splash. When the window is shown it writes one line to its error output:
+
+`[formweb] start-up: service started 120 ms, service ready 2140 ms, editor ready 2630 ms, window shown 2850 ms`
+
+Each time is counted from the moment the app started: the local service was started, the service answered and the window could open, the editor reported that it was ready, and the window was shown. "Window shown" is normally "editor ready" plus about 220 ms, the time the splash bar takes to finish. A moment that never happened reads, for example, `editor ready not reached`, which means the window was shown by the 20-second fallback. When the app found a FormWeb service of the same version already running, the line starts with `service already running`.
+
+Windows. The app has no console, so its error output must be sent to a file:
+
+1. Quit FormWeb if it is running.
+2. In PowerShell, run `Start-Process -FilePath "$env:LOCALAPPDATA\FormWeb\FormWeb.exe" -RedirectStandardError "$env:TEMP\formweb-start.txt" -Wait`, with the real path of the installed `FormWeb.exe` if yours is elsewhere.
+3. Wait for the window, then quit the app.
+4. Run `Select-String "start-up" $env:TEMP\formweb-start.txt`.
+
+macOS:
+
+1. Quit FormWeb if it is running.
+2. Run `ls /Applications/FormWeb.app/Contents/MacOS/` and note the program that is not `formweb-engine`.
+3. Start it from Terminal, for example `/Applications/FormWeb.app/Contents/MacOS/<that name> 2>&1 | grep start-up`, wait for the window, then quit the app.
+
+On both, expect one line starting `[formweb] start-up:` with four values. Start the app twice and write down both lines, to compare a first start with a second one. When "service ready" is close to "editor ready", most of the wait is the service starting; on Windows that includes the service unpacking itself, between "service started" and "service ready". To see the `service already running` form, start a service first with `./formweb serve` from a copy of the source of the same version.
 
 ## When something fails
 

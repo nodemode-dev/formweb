@@ -36,13 +36,13 @@ A demo opens as a new site that is not saved yet. Your saved projects are not to
 
 1. [Your first site](01-first-site.md): from an empty page to an exported zip, every step pictured. Start here.
 2. [Pages and layers](02-pages-and-layers.md): add, rename, reorder and fold pages and layers, set the home page, select several layers at once.
-3. [Working on the canvas](03-canvas.md): select, the right-click menu, drag to move, wrap in a container, copy and paste styles.
+3. [Working on the canvas](03-canvas.md): select, the right-click menu, drag to move, hover outlines, wrap in a container, copy and paste styles.
 4. [The right panel](04-right-panel.md): the tabs, Search properties, and editing a breakpoint.
 5. [Page background and theme colors](05-background-and-theme-colors.md): why a new page is white, the site background every page can share, starting a page with the home page's background, matching another page, one page or all pages, the site's theme colors.
 6. [Preview](06-preview.md): Preview as published, and the Live responsive preview on the canvas.
 7. [Audit](07-audit.md): what the audit checks and how Select takes you to the problem.
 8. [Export and publishing](08-export-and-publish.md): the zip file, where it goes, and Send to FormPublisher.
-9. [Importing](09-importing.md): one HTML page, a whole site from a zip, and .fweb and .fpub files.
+9. [Importing](09-importing.md): HTML files as pages or a section, pasted HTML, a whole site from a zip, and .fweb and .fpub files.
 10. [Components and the Library](10-components-and-library.md): reusable parts and ready-made sections.
 11. [Keyboard shortcuts](11-keyboard-shortcuts.md): every shortcut the app registers.
 12. [Coming from Dreamweaver or another visual builder](12-coming-from-other-builders.md): where to find the things you already know.

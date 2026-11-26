@@ -2,7 +2,7 @@
 
 The left panel lists the pages of your site (**PAGES**) and everything on the open page (**LAYERS**). If you see something else there, click the top icon of the rail on the far left, **Pages and layers**.
 
-A layer is one element of the page: a section, a heading, a picture, a button. Layers inside another layer are indented under it, like files in a folder.
+A layer is one element of the page: a section, a heading, a picture, a button. Layers inside another layer are indented under it, like files in a folder. Rest the mouse on a layer and its element gets a light outline on the canvas, so you can see where it is without selecting it (see [Hover outlines](03-canvas.md#hover-outlines)).
 
 ## Follow along
 
