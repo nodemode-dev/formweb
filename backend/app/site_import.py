@@ -21,7 +21,9 @@ from .engine import EngineError
 
 MAX_ENTRIES = 1000
 MAX_RAW_ENTRIES = 40000
-MAX_PEEK = 300000
+MAX_PEEK = 200000
+PEEK_BYTES = 16 * 1024 * 1024
+PEEK_KEEP = 100
 MAX_LISTING = 2 * 1024 * 1024
 MAX_NAME = 255
 BUILD_SCRIPTS = ('.ts', '.tsx', '.jsx', '.vue', '.svelte')
@@ -84,42 +86,87 @@ def _ignored(parts: list[str]) -> bool:
 
 
 def _peek(data: bytes, end: int, listing: int) -> list[list[str]]:
-    """Names from the archive's file list, read record by record without zipfile, only to choose the sentence for an
-    archive that is refused before it is opened."""
-    names, position = [], end - listing if 0 < listing <= end else struct.unpack('<I', data[end + 16:end + 20])[0]
-    while position + 46 <= end and len(names) < MAX_PEEK and data[position:position + 4] == b'PK\x01\x02':
+    """The names _project reads from the archive's file list, read record by record without zipfile, only to choose the
+    sentence for an archive that is refused before it is opened. Bounded by records read and bytes scanned, and it keeps
+    at most PEEK_KEEP names of each kind."""
+    position = end - listing if 0 < listing <= end else struct.unpack('<I', data[end + 16:end + 20])[0]
+    stop, records, names, kept = min(end, position + PEEK_BYTES), 0, [], {'package': 0, 'page': 0, 'build': 0}
+    while position + 46 <= stop and records < MAX_PEEK and data[position:position + 4] == b'PK\x01\x02':
+        records += 1
         flags = struct.unpack('<H', data[position + 8:position + 10])[0]
         length, extra, comment = struct.unpack('<HHH', data[position + 28:position + 34])
-        raw = data[position + 46:position + 46 + length]
-        parts = _parts(raw.decode('utf-8' if flags & 0x800 else 'cp437', errors='replace'))
-        if parts and not raw.endswith(b'/') and not _ignored(parts):
-            names.append(parts)
+        raw = data[position + 46:position + 46 + length].lower()
         position += 46 + length + extra + comment
+        kind = ('package' if raw.endswith(b'package.json') else 'page' if raw.endswith((b'.html', b'.htm'))
+                else 'build' if raw.endswith(tuple(item.encode() for item in BUILD_SCRIPTS)) else None)
+        if kind is None or kept[kind] >= PEEK_KEEP:
+            continue
+        parts = _parts(data[position - length - extra - comment:position - extra - comment].decode('utf-8' if flags & 0x800 else 'cp437', errors='replace'))
+        if parts and not _ignored(parts):
+            kept[kind] += 1
+            names.append(parts)
     return names
 
 
-def _project(names: list[list[str]], pages: dict | None = None) -> str | None:
-    """The refusal for a project's source rather than a built site: a package.json at the top or one folder down, and
-    no HTML page or a page that loads a script needing a build step. Without the pages' text, any such script file counts."""
-    if not any(parts[-1].lower() == 'package.json' and len(parts) <= 2 for parts in names):
+def _bare(script: str) -> str | None:
+    """The first package a module script loads by name (a bare specifier), which only a build or an import map resolves."""
+    for match in re.finditer(r'''^[ \t]*(?:import\s*["']|import\b[^'"`;()]*?\bfrom\s*["']|export\b[^'"`;()]*?\bfrom\s*["'])([^"'\s]+)["']''', script, re.M):
+        specifier = match.group(1)
+        if not specifier.startswith(('.', '/')) and ':' not in specifier:
+            return specifier
+    return None
+
+
+def _project(names: list[list[str]], files: dict | None = None) -> str | None:
+    """The refusal for a project's source rather than a built site. It needs a package.json at the top or one folder
+    down, and then one of: no HTML page; a .ts, .tsx, .jsx, .vue or .svelte file under that project's src folder; or,
+    with the pages' text, a page that loads such a script, holds a %PUBLIC_URL% placeholder, or loads a module script
+    that imports a package by name while no page has an import map. Without the pages' text (a refusal for count or
+    size), a .tsx, .jsx, .vue or .svelte file anywhere, or a .ts file under any src folder, counts too."""
+    homes = [parts[:-1] for parts in names if parts[-1].lower() == 'package.json' and len(parts) <= 2]
+    if not homes:
         return None
     html = [parts for parts in names if _ext(parts[-1]) in ('html', 'htm')]
-    if pages is None:
-        found = sorted((parts for parts in names if parts[-1].lower().endswith(BUILD_SCRIPTS)),
-                       key=lambda parts: (parts[-1].rsplit('.', 1)[0].lower() not in ('main', 'index'), len(parts), '/'.join(parts).lower()))
-        needs = ['/'.join(parts) for parts in found]
-    else:
-        needs = []
-        for body in pages.values():
-            for tag in re.finditer(r'<script\b[^>]*>', _text(body), re.I):
-                source = _attrs(tag.group(0)).get('src', '').strip()
+    builds = [parts for parts in names if parts[-1].lower().endswith(BUILD_SCRIPTS)]
+    found = [parts for parts in builds if any(parts[:len(home) + 1] == home + ['src'] and len(parts) > len(home) + 1 for home in homes)]
+    if files is None:
+        found += [parts for parts in builds if not parts[-1].lower().endswith('.ts') or 'src' in parts[:-1]]
+    found.sort(key=lambda parts: (parts[-1].rsplit('.', 1)[0].lower() not in ('main', 'index'), len(parts), '/'.join(parts).lower()))
+    needs, placeholders, packages = ['/'.join(parts) for parts in found], [], []
+    if files is not None:
+        mapped = False
+        top = names[0][0] + '/' if names and all(len(parts) > 1 for parts in names) and len({parts[0] for parts in names}) == 1 else ''
+        for path, (kind, body) in files.items():
+            if kind != 'page':
+                continue
+            document = _text(body)
+            if '%PUBLIC_URL%' in document:
+                placeholders.append(top + path)
+            for tag in re.finditer(r'<script\b[^>]*>', document, re.I):
+                attrs = _attrs(tag.group(0))
+                sort = attrs.get('type', '').strip().lower()
+                mapped = mapped or sort == 'importmap'
+                source = attrs.get('src', '').strip()
                 address = urlsplit(source)
-                if source and not address.scheme and not address.netloc and unquote(address.path).lower().endswith(BUILD_SCRIPTS):
-                    needs.append(unquote(address.path).lstrip('./'))
-    if html and not needs:
+                if not source or address.scheme or address.netloc:
+                    continue
+                target = unquote(address.path)
+                target = posixpath.normpath(target.lstrip('/') if target.startswith('/') else posixpath.join(posixpath.dirname(path), target))
+                if target.lower().endswith(BUILD_SCRIPTS):
+                    needs.append(top + target)
+                elif sort == 'module':
+                    script = files.get(target)
+                    if script and script[0] == 'script' and _bare(_text(script[1])):
+                        packages.append(f'{top + target} loads {_bare(_text(script[1]))}')
+        if mapped:
+            packages = []
+    if html and not needs and not placeholders and not packages:
         return None
-    shown = list(dict.fromkeys(_show(item) for item in needs))
-    reason = (f'it has package.json and scripts that still need building ({", ".join(shown[:3])}{"..." if len(shown) > 3 else ""})' if needs
+    shown = list(dict.fromkeys(_show(item) for item in (needs or placeholders or packages)))
+    listed = f'{", ".join(shown[:3])}{"..." if len(shown) > 3 else ""}'
+    reason = (f'it has package.json and scripts that still need building ({listed})' if needs
+              else f'it has package.json and pages with placeholders that a build fills in ({listed})' if placeholders
+              else f'it has package.json and scripts that load packages by name, which a build bundles ({listed})' if packages
               else 'it has package.json and no HTML page')
     built = sorted('/'.join(parts[:-1]) for parts in html if parts[-1].lower() == 'index.html' and 2 <= len(parts) <= 3 and parts[-2].lower() in BUILT)
     extra = f' The zip also holds a built copy in the {_show(built[0])} folder: zip that folder on its own and import it.' if built else ''
@@ -169,7 +216,10 @@ def read_files(payload) -> dict:
         if folded in seen:
             raise EngineError(f'Two of the chosen files are named {_show(name)}. Rename one and import again. Nothing was imported.', 400)
         seen.add(folded)
-        entries.append((name, item['html'].encode('utf-8')))
+        try:
+            entries.append((name, item['html'].encode('utf-8')))
+        except UnicodeEncodeError:
+            raise EngineError(f'{_show(name)} holds characters that are not valid text. Save the file as UTF-8 and choose it again. Nothing was imported.', 400)
     if sum(len(body) for _, body in entries) > MAX_UNPACKED:
         raise EngineError(f'The chosen files add up to more than {_size(MAX_UNPACKED)}, the most a site import takes. Choose fewer files. Nothing was imported.', 413)
     kept: dict[str, tuple[str, bytes]] = {}
@@ -282,7 +332,7 @@ def read_archive(data: bytes) -> dict:
                 skipped.append({'file': path, 'reason': str(error)})
                 continue
         files[path] = (kind, body)
-    source = _project(names, {path: body for path, (kind, body) in files.items() if kind == 'page'})
+    source = _project(names, files)
     if source:
         raise EngineError(source, 400)
     return {'files': files, 'skipped': skipped, 'ignored': ignored}
