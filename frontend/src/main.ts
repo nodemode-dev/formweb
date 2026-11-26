@@ -444,7 +444,7 @@ const libraryPanel = installLibrary({
     const at = anchor && anchor !== root && siblings.includes(anchor) ? siblings.indexOf(anchor) + 1 : siblings.length;
     return { page: currentPage().id, parent: root, index: at < siblings.length ? at : undefined };
   },
-  select: id => { selectedId = id; update(state()); },
+  select: id => { selectNode(id); canvas.bring(id); },
   openPage: id => {
     const page = state().site.pages.find(entry => entry.id === id);
     if (!page) return;
@@ -2232,7 +2232,7 @@ registerCommands([
   { id: 'file.new', label: 'New site...', menu: 'File', run: () => openDialog('new') },
   { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
   { id: 'file.import', label: 'Import .fweb or .fpub file...', menu: 'File', run: () => importer.click() },
-  { id: 'file.import-html', label: 'Import HTML...', menu: 'File', run: () => { openDock('left'); setSidebar('library'); libraryPanel.showTab('import'); }, enabled: ready },
+  { id: 'file.import-html', label: 'Import HTML files...', menu: 'File', run: () => { if (home.isShown) home.dismiss(); if (layout.state.left !== 'open' || activeSidebar !== 'library') toggleLeft('library'); libraryPanel.importHtml(); }, enabled: ready },
   { id: 'file.import-site', label: 'Import site from zip...', menu: 'File', run: () => { if (home.isShown) home.dismiss(); if (layout.state.left !== 'open' || activeSidebar !== 'library') toggleLeft('library'); libraryPanel.importSite(); }, enabled: ready },
   { id: 'file.save', label: 'Save', menu: 'File', keys: ['Mod+S'], global: true, group: 1, run: saveProject, enabled: ready },
   { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },

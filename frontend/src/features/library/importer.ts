@@ -3,38 +3,62 @@ import { element, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import { labelAttr, t } from '../../i18n';
 import type { LibResult, LibraryHooks } from './types';
-import { bringChoice } from './bring';
+import { bringChoice, type Bring } from './bring';
+
+/** One page into the open page as a code section, converted to elements when asked; answers with the sentence to show. */
+export async function importSection(hooks: LibraryHooks, body: { html: string; css?: string; name?: string }, bring: Bring, progress: (message: string) => void, made?: (ids: string[]) => void): Promise<string> {
+  const where = hooks.placement();
+  const result = await libraryMutate<LibResult>('/api/library/import-html', { ...body, parent: where.parent, index: where.index, page: where.page });
+  let message = result.warnings?.[0] || t('HTML section imported.');
+  let note = t('HTML section imported.');
+  let root = result.root;
+  if (result.root && bring === 'elements') {
+    progress(t('Converting...'));
+    try { const done = await hooks.convert([result.root]); root = done.root || root; message = note = done.message + ' ' + t('Undo once to get the section back as code, twice to remove it.'); }
+    catch (error) { message = note = t('HTML section imported.') + ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
+  }
+  if (root) hooks.select(root);
+  made?.([result.root, root].filter((id): id is string => !!id));
+  hooks.notify(note, false);
+  return message;
+}
 
 /**
- * Import HTML: paste a whole page (or pick an .html file) and optionally some CSS; the server turns it into one code
- * section placed like any other insert. The kit's reduced, onTheme and token helpers are provided there.
+ * The Library's import view: three separate ways in, in this order. HTML files (one or several, picked and reviewed in
+ * the site import view), a whole site in a .zip (the same review), and pasted HTML code, which the server turns into one
+ * code section placed like any other insert. The kit's reduced, onTheme and token helpers are provided there.
  */
 export class HtmlImport {
   readonly element = element('div', 'fw-lib-view fw-lib-import');
   private name = element('input');
   private html = element('textarea', 'fw-lib-area fw-lib-code');
   private css = element('textarea', 'fw-lib-area fw-lib-code');
-  private file = element('input');
   private note = element('p', 'fw-lib-note');
   private go = element('button', 'fw-lib-insert primary');
   private bring = bringChoice('Bring it in as');
   private busy = false;
 
-  constructor(private hooks: LibraryHooks, openSite: () => void) {
+  constructor(private hooks: LibraryHooks, openFiles: () => void, openSite: () => void) {
     const scroller = element('div', 'fw-lib-scroll');
-    const site = element('button', 'fw-lib-choose fw-lib-site-open', t('Import site from zip...'));
-    site.type = 'button';
-    site.prepend(icon('upload'));
-    site.addEventListener('click', openSite);
-    const help = element('p', 'fw-lib-help', t('Brings in one web page made somewhere else as a section of this page. Paste its HTML or choose the .html file: its styles and main script come along, and the script runs in Preview and on the published site.'));
-    labelAttr(help, 'title', 'Turns one whole HTML page into a code section. Its styles and first module script come along, and the formai kit helpers reduced, onTheme and token are provided. A code section runs its own JavaScript in Preview and in exports.');
-    scroller.append(
-      element('h3', 'fw-lib-subhead', t('Import a whole site')),
-      element('p', 'fw-lib-help', t('A .zip of a static site made elsewhere: every HTML file becomes a page, with its stylesheets, pictures and fonts. You review the pages before anything changes.')),
-      site,
-      element('h3', 'fw-lib-subhead', t('Import HTML')),
-      help
-    );
+    const part = (english: string, help: string, ...body: HTMLElement[]): HTMLElement => {
+      const box = element('section', 'fw-lib-import-part');
+      box.append(element('h3', 'fw-lib-subhead', t(english)), element('p', 'fw-lib-help', t(help)), ...body);
+      return box;
+    };
+    const chooser = (english: string, run: () => void): HTMLButtonElement => {
+      const button = element('button', 'fw-lib-choose', t(english));
+      button.type = 'button';
+      button.prepend(icon('folder'));
+      button.addEventListener('click', run);
+      return button;
+    };
+    const files = part('HTML files', 'Choose one or several .html files. Each becomes a new page, or a single file can go into this page as a section.', chooser('Choose .html files...', openFiles));
+    files.querySelector('.fw-lib-choose')?.classList.add('fw-lib-files-open');
+    const site = part('A whole site in a .zip', 'A .zip of a static site made elsewhere: every HTML file becomes a page, with its stylesheets, pictures and fonts. You review the pages before anything changes.', chooser('Choose a .zip file...', openSite));
+    site.querySelector('.fw-lib-choose')?.classList.add('fw-lib-site-open');
+    const paste = part('Paste HTML code', 'Paste the HTML of one page to add it to this page as a section. Its styles and main script come along, and the script runs in Preview and on the published site.');
+    labelAttr(paste.querySelector('.fw-lib-help')!, 'title', 'Turns one whole HTML page into a code section. Its styles and first module script come along, and the formai kit helpers reduced, onTheme and token are provided. A code section runs its own JavaScript in Preview and in exports.');
+    scroller.append(files, site, paste);
     this.name.type = 'text';
     this.name.maxLength = 120;
     this.name.setAttribute('aria-label', t('Section name'));
@@ -46,35 +70,19 @@ export class HtmlImport {
     this.css.rows = 4;
     this.css.spellcheck = false;
     this.css.setAttribute('aria-label', t('Extra CSS'));
-    this.file.type = 'file';
-    this.file.accept = '.html,.htm,text/html';
-    this.file.hidden = true;
-    const pick = element('button', 'fw-lib-choose', t('Choose an .html file'));
-    pick.type = 'button';
-    pick.prepend(icon('folder'));
-    pick.addEventListener('click', () => this.file.click());
-    this.file.addEventListener('change', () => {
-      const chosen = this.file.files?.[0];
-      this.file.value = '';
-      if (!chosen) return;
-      chosen.text().then(body => { this.html.value = body; if (!this.name.value) this.name.value = chosen.name.replace(/\.html?$/i, ''); this.say(chosen.name, false); })
-        .catch(error => this.say(error instanceof Error ? error.message : String(error), true));
-    });
     const field = (label: string, control: HTMLElement): HTMLElement => {
       const wrap = element('div', 'field');
       wrap.append(element('span', 'field-label', label), control);
       return wrap;
     };
     const fields = element('div', 'fw-lib-fields');
-    fields.append(field(t('Section name'), this.name), field(t('HTML'), this.html), pick, this.file, field(t('Extra CSS (optional)'), this.css));
-    scroller.append(fields, this.bring.element);
+    fields.append(field(t('Section name'), this.name), field(t('HTML'), this.html), field(t('Extra CSS (optional)'), this.css));
     this.note.setAttribute('role', 'status');
     this.go.type = 'button';
     this.go.append(icon('plus'), element('span', '', t('Import as section')));
     this.go.addEventListener('click', () => void this.submit());
-    const foot = element('div', 'fw-lib-foot');
-    foot.append(this.note, this.go);
-    this.element.append(scroller, foot);
+    paste.append(fields, this.bring.element, this.go, this.note);
+    this.element.append(scroller);
   }
 
   private say(message: string, error: boolean): void {
@@ -84,26 +92,13 @@ export class HtmlImport {
 
   private async submit(): Promise<void> {
     if (this.busy) return;
-    if (!this.html.value.trim()) { this.say(t('Paste a page or choose an .html file first.'), true); this.html.focus(); return; }
+    if (!this.html.value.trim()) { this.say(t('Paste the HTML of a page first.'), true); this.html.focus(); return; }
     this.busy = true;
     this.go.disabled = true;
     this.say('', false);
     try {
-      const where = this.hooks.placement();
-      const result = await libraryMutate<LibResult>('/api/library/import-html', {
-        html: this.html.value, css: this.css.value || undefined, name: this.name.value.trim() || undefined,
-        parent: where.parent, index: where.index, page: where.page
-      });
-      let message = result.warnings?.[0] || t('HTML section imported.');
-      let note = t('HTML section imported.');
-      if (result.root && this.bring.value() === 'elements') {
-        this.say(t('Converting...'), false);
-        try { const done = await this.hooks.convert([result.root]); message = note = done.message + ' ' + t('Undo once to get the pages back as code, twice to remove them.'); }
-        catch (error) { message = note = t('HTML section imported.') + ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
-      }
-      if (result.root) this.hooks.select(result.root);
-      this.say(message, false);
-      this.hooks.notify(note, false);
+      const body = { html: this.html.value, css: this.css.value || undefined, name: this.name.value.trim() || undefined };
+      this.say(await importSection(this.hooks, body, this.bring.value(), message => this.say(message, false)), false);
     } catch (error) {
       this.say(error instanceof Error ? error.message : String(error), true);
     } finally {

@@ -9,7 +9,7 @@ const CHOICES: [Bring, string, string][] = [
 ];
 
 /** The "Bring pages in as" choice shared by Import HTML and Import site from zip; mounted once, painted by state. */
-export function bringChoice(heading: string): { element: HTMLElement; value(): Bring; disable(on: boolean): void } {
+export function bringChoice(heading: string): { element: HTMLElement; value(): Bring; disable(on: boolean): void; heading(english: string): void } {
   const box = element('div', 'fw-lib-bring');
   const head = element('h3', 'fw-lib-subhead');
   label(head, heading);
@@ -40,5 +40,14 @@ export function bringChoice(heading: string): { element: HTMLElement; value(): B
   labelAttr(group, 'aria-label', heading);
   paint();
   box.append(head, group);
-  return { element: box, value: () => chosen, disable: on => buttons.forEach(button => { button.disabled = on; }) };
+  let named = heading;
+  return {
+    element: box, value: () => chosen, disable: on => buttons.forEach(button => { button.disabled = on; }),
+    heading: english => {
+      if (english === named) return;
+      named = english;
+      label(head, english);
+      labelAttr(group, 'aria-label', english);
+    }
+  };
 }
