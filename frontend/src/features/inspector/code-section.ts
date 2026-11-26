@@ -44,6 +44,7 @@ export function parseImport(source: string): { html: string; css: string; js: st
 
 export function installCodeSection(ctx: InspectorContext): { update(next: EditorState, node: SiteNode): void } {
   const block = ctx.section(ctx.panes.content, 'Code section');
+  block.dataset.codeSection = '';
   const body = element('div', 'fw-ext-group');
   block.append(body);
 

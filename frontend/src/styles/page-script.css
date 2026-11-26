@@ -1,0 +1,4 @@
+.icon[data-glyph] > svg { display: none; }
+.icon[data-glyph="box"] > svg[data-for="box"], .icon[data-glyph="code"] > svg[data-for="code"], .icon[data-glyph="script"] > svg[data-for="script"] { display: block; }
+.fw-pane-script > :not(.fw-script-note) { display: none !important; }
+.fw-script-note { margin: 0; padding: var(--space-4); }

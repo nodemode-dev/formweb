@@ -34,6 +34,16 @@ function subtreeIds(site: Site, root: string): Set<string> {
 function scopedFragment(url: string, ids: Record<string, string>): string {
   return url.startsWith('#') && ids[url.slice(1)] ? '#' + ids[url.slice(1)] : url;
 }
+export function codeKind(site: Site, id: string): 'script' | 'code' | '' {
+  const sections = (site.extensions?.code as { sections?: Record<string, { html?: string; js?: string } | null> } | undefined)?.sections;
+  const section = sections?.[id];
+  if (!section || typeof section !== 'object') return '';
+  return !section.html?.trim() && section.js?.trim() ? 'script' : 'code';
+}
+function posterWords(kind: string): [string, string] {
+  if (kind === 'script') return [t('Page script'), t('Runs in Preview and on the published site, not on this canvas.')];
+  return [kind === 'code' ? t('Code section') : t('Component'), ''];
+}
 const REVEAL_MS = 2000;
 const REVEAL_MARGIN = 24;
 function shift(start: number, end: number, low: number, high: number, center: boolean): number {
@@ -91,7 +101,7 @@ export class Canvas {
     if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.scope);
   }
 
-  private syncPoster(node: HTMLElement, key: string, id: string, tag: string): void {
+  private syncPoster(site: Site, node: HTMLElement, key: string, id: string, tag: string): void {
     const doc = this.doc;
     if (!doc) return;
     const dark = Object.prototype.hasOwnProperty.call(this.posters, id) ? this.posters[id] : undefined;
@@ -111,9 +121,20 @@ export class Canvas {
         poster.setAttribute('draggable', 'false');
         poster.setAttribute('style', 'display:block;width:100%;height:100%;object-fit:cover;pointer-events:none');
       } else {
-        poster.setAttribute('style', 'display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:48px;outline:1px dashed color-mix(in srgb, currentColor 40%, transparent);outline-offset:-1px;font-size:12px;pointer-events:none');
-        poster.textContent = t('Component');
+        poster.setAttribute('style', 'display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;text-align:center;width:100%;height:100%;min-height:48px;font-size:12px;pointer-events:none');
+        const note = doc.createElement('span');
+        note.setAttribute('style', 'font-size:11px;opacity:.7');
+        poster.append(doc.createElement('span'), note);
       }
+    }
+    if (wanted === 'div') {
+      const kind = codeKind(site, id) || 'component';
+      const [title, line] = posterWords(kind);
+      if (poster.getAttribute('data-fw-poster') !== kind) poster.setAttribute('data-fw-poster', kind);
+      const [head, note] = Array.from(poster.children) as HTMLElement[];
+      if (head.textContent !== title) head.textContent = title;
+      if (note.textContent !== line) note.textContent = line;
+      if (note.hidden !== !line) note.hidden = !line;
     }
     if (wanted === 'img' && poster.getAttribute('src') !== url) poster.setAttribute('src', url!);
     if (poster.parentNode !== node || node.lastChild !== poster) node.append(poster);
@@ -154,7 +175,7 @@ export class Canvas {
         resolve();
       }, { once: true });
     });
-    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%}html{color-scheme:light}body{color:CanvasText;background:Canvas}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected],[data-fw-marked]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-marked]{outline-style:dashed!important}[data-fw-reveal]{animation:fwReveal .5s ease-in-out 4 alternate}@keyframes fwReveal{from{outline-offset:2px}to{outline-offset:10px}}@media (prefers-reduced-motion:reduce){[data-fw-reveal]{animation:none;outline-offset:6px}}[data-fw-id]:hover{cursor:default}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}a[data-fw-href]{text-decoration:underline}a,button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark],html:not([data-theme]) [data-fw-theme-only=light],body>[hidden]{display:none!important}</style></head><body></body></html>';
+    this.frame.srcdoc = '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src https: http: data: blob:; media-src https: http: blob:; style-src \'unsafe-inline\'; font-src data: http: https:; form-action \'none\'"><style>*{box-sizing:border-box;scrollbar-width:none}*::-webkit-scrollbar{display:none;width:0;height:0}html,body{margin:0;min-height:100%}html{color-scheme:light}body{color:CanvasText;background:Canvas}button,input,select,textarea{font:inherit}img,video{max-width:100%}[data-fw-selected],[data-fw-marked]{outline:2px solid #f97316!important;outline-offset:2px}[data-fw-marked]{outline-style:dashed!important}div[data-fw-poster]{outline:1px dashed color-mix(in srgb, currentColor 40%, transparent);outline-offset:-1px}[data-fw-poster=script]{pointer-events:auto!important}html[data-fw-dragging] [data-fw-poster]{pointer-events:none!important}[data-fw-selected]>[data-fw-poster=script],[data-fw-marked]>[data-fw-poster=script]{outline:2px solid #f97316;outline-offset:2px}[data-fw-marked]>[data-fw-poster=script]{outline-style:dashed}[data-fw-reveal]{animation:fwReveal .5s ease-in-out 4 alternate}@keyframes fwReveal{from{outline-offset:2px}to{outline-offset:10px}}@media (prefers-reduced-motion:reduce){[data-fw-reveal]{animation:none;outline-offset:6px}}[data-fw-id]:hover{cursor:default}[data-fw-text][contenteditable=true]{outline:1px dashed #f97316;min-width:1em;display:inline-block}a{color:inherit}a[data-fw-href]{text-decoration:underline}a,button{cursor:default}input,textarea,select{max-width:100%}html[data-theme=dark] [data-fw-theme-only=light],html[data-theme=light] [data-fw-theme-only=dark],html:not([data-theme]) [data-fw-theme-only=light],body>[hidden]{display:none!important}</style></head><body></body></html>';
     new ResizeObserver(() => this.fit()).observe(stage);
   }
 
@@ -180,7 +201,7 @@ export class Canvas {
 
   private find(id: string): HTMLElement | undefined {
     if (!this.doc) return undefined;
-    return [...this.doc.querySelectorAll<HTMLElement>(`[data-fw-id="${CSS.escape(id)}"]`)].find(node => node.getClientRects().length > 0);
+    return [...this.doc.querySelectorAll<HTMLElement>(`[data-fw-id="${CSS.escape(id)}"]`)].map(node => node.getClientRects().length > 0 ? node : node.querySelector<HTMLElement>(':scope > [data-fw-poster=script]')).find(node => !!node && node.getClientRects().length > 0) ?? undefined;
   }
 
   private bringInto(target: HTMLElement, center: boolean): void {
@@ -416,7 +437,7 @@ export class Canvas {
         const childId = (child as HTMLElement).dataset.fwId;
         if (childId && !data.children.includes(childId)) child.remove();
       }
-      this.syncPoster(node, key, id, tag);
+      this.syncPoster(site, node, key, id, tag);
     }
     return node;
   }

@@ -18,6 +18,7 @@ const paths = {
   check: '<path d="m5 12 4 4 10-10"/>',
   close: '<path d="m6 6 12 12M18 6 6 18"/>',
   code: '<path d="m8 6-6 6 6 6m8-12 6 6-6 6m-5 2 2-16"/>',
+  script: '<path d="M14 3H5v18h14V8l-5-5Zm0 0v5h5m-9 4-2 2.5 2 2.5m4-5 2 2.5-2 2.5"/>',
   save: '<path d="M4 3h13l4 4v14H3V3h1Zm3 0v6h10V3M7 21v-8h10v8"/>',
   folder: '<path d="M3 6h7l2 3h9v11H3V6Z"/>',
   history: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',

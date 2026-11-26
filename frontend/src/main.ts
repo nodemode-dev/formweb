@@ -55,6 +55,7 @@ import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { installDecorativeImage } from './features/decorative-image';
 import { installPageSlug } from './features/page-slug';
+import { installScriptPanes, isPageScript, layerGlyph, paintGlyph } from './features/inspector/script-note';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 import './styles/stage-head.css';
@@ -502,6 +503,7 @@ const pagePane = element('div');
 const motionPane = element('div');
 motionPane.hidden = true;
 inspectorScroll.append(designPane, motionPane, contentPane, pagePane);
+const scriptPanes = installScriptPanes([designPane, motionPane]);
 inspector.append(inspectorIdentity, inspectorTabs, inspectorScroll, dockStrip('right', [{ command: 'window.design', label: 'Design', icon: 'sliders' }, { command: 'window.content', label: 'Content', icon: 'text' }, { command: 'page.settings', label: 'Page', icon: 'page' }], { command: 'window.toggle-right', label: 'Expand right panel', icon: 'chevronsLeft' }));
 const inspectorSearch = installInspectorSearch({
   after: inspectorTabs, scroll: inspectorScroll, select: setInspector,
@@ -1520,12 +1522,13 @@ function update(next: EditorState): void {
   paintSelectMode();
   keyed(layersList, layers, item => item.node.id, () => {
     const row = button('', undefined, undefined, 'list-row layer-row');
-    row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
+    row.append(layerGlyph(), element('span', 'row-label'), element('span', 'row-detail'));
     row.addEventListener('click', event => layerRowClick(event, row.dataset.key!));
     row.addEventListener('contextmenu', event => showLayerMenu(event, row.dataset.key!));
     panel.layerRow(row, event => showLayerMenu(event, row.dataset.key!));
     return row;
   }, (row, item) => {
+    paintGlyph(row.children[0], site, item.node.id);
     text(row.children[1] as HTMLElement, item.node.name);
     text(row.children[2] as HTMLElement, item.node.componentId ? 'instance' : item.node.tag);
     row.style.setProperty('--depth', String(item.depth));
@@ -1629,7 +1632,7 @@ function update(next: EditorState): void {
   if (dialogMode === 'locales') updateLocales();
   if (dialogMode === 'tokens') updateTokens();
   updateBrand(next);
-  setInspector(activeInspector);
+  setInspector(scriptPanes.update(isPageScript(site, node.id) && selectedIds().length < 2, activeInspector));
   setSidebar(activeSidebar);
   reportSelection();
   revealApp();
