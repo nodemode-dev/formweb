@@ -4,7 +4,7 @@ use std::time::{Duration, Instant};
 
 use tauri::{Manager, Runtime, WebviewWindow};
 
-pub const SPLASH_MIN: Duration = Duration::from_millis(2600);
+pub const SPLASH_MIN: Duration = Duration::from_millis(500);
 pub const BACKGROUND: tauri::window::Color = tauri::window::Color(10, 10, 10, 255);
 const BAR_FINISH: Duration = Duration::from_millis(220);
 const FALLBACK: Duration = Duration::from_secs(20);
@@ -14,6 +14,10 @@ static REVEALED: AtomicBool = AtomicBool::new(false);
 
 pub fn mark_launch() {
     let _ = LAUNCH.set(Instant::now());
+}
+
+pub fn since_launch() -> Duration {
+    LAUNCH.get_or_init(Instant::now).elapsed()
 }
 
 pub const BUILD_VISIBLE: bool = !cfg!(target_os = "macos");
@@ -38,6 +42,7 @@ pub fn close_splash<R: Runtime>(app: &tauri::AppHandle<R>) {
 
 #[tauri::command(async)]
 pub fn app_ready<R: Runtime>(app: tauri::AppHandle<R>) {
+    crate::start_times::mark(&crate::start_times::EDITOR_READY);
     show_main(&app);
 }
 
@@ -58,8 +63,10 @@ fn show_main<R: Runtime>(app: &tauri::AppHandle<R>) {
         let _ = main.show();
         let _ = main.set_focus();
         crate::traffic_lights::place(&main.as_ref().window());
+        crate::start_times::mark(&crate::start_times::WINDOW_SHOWN);
     }
     close_splash(app);
+    crate::start_times::report();
 }
 
 #[cfg(target_os = "macos")]
