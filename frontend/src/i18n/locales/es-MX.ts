@@ -92,4 +92,7 @@ export default {
   "Click to add a stop": "Haz clic para agregar una parada",
   "A clicked choice shows on the page and is written when you press Keep. With this off, choices are written at once.": "Una opción en la que haces clic se muestra en la página y se guarda cuando presionas Conservar. Con esto desactivado, las opciones se guardan al instante.",
   "A clicked choice now shows on the page until you press Keep.": "Una opción en la que haces clic se muestra ahora en la página hasta que presiones Conservar.",
+  "{0} could not be saved to {1}. Check that the folder exists and has free space, then try again.": "No se pudo guardar {0} en {1}. Verifica que la carpeta exista y tenga espacio libre, y vuelve a intentarlo.",
+  "Kept 1 style rule for the content the page's script builds without checking whether the converted elements use it: checking took too long, so every rule was kept.": "Se conservó 1 regla de estilo para el contenido que construye el script de la página sin verificar si los elementos convertidos la usan: la verificación tardaba demasiado, así que se conservaron todas las reglas.",
+  "Kept {0} style rules for the content the page's script builds without checking which ones the converted elements use: checking took too long, so every rule was kept.": "Se conservaron {0} reglas de estilo para el contenido que construye el script de la página sin verificar cuáles usan los elementos convertidos: la verificación tardaba demasiado, así que se conservaron todas las reglas.",
 } as Record<string, string>;
