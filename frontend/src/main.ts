@@ -577,7 +577,9 @@ function addStyle(container: HTMLElement, label: string, key: string, choices?: 
   control.setAttribute('data-style', key);
   control.addEventListener('change', () => void run(() => setStyle(key, control.value)));
   styleFields.set(key, control);
-  const wrapper = field(label, control, full);
+  const wrapper = field(label, control, full) as HTMLLabelElement;
+  control.id = `fw-style-${key}`;
+  wrapper.htmlFor = control.id;
   wrapper.querySelector('.field-label')!.append(resetButton(label, key));
   container.append(wrapper);
 }
