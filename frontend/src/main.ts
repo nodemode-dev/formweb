@@ -1907,7 +1907,8 @@ function closeDialog(): void {
   scrim.hidden = true;
   dialogMode = '';
   lastFocus?.focus();
-  if (document.activeElement === document.body) {
+  const active = document.activeElement;
+  if (!active || active === document.body || scrim.contains(active)) {
     const tab = inspectorTabs.querySelector<HTMLElement>('button.active');
     (tab?.getClientRects().length ? tab : auditButton).focus({ preventScroll: true });
   }
