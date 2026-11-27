@@ -28,7 +28,7 @@ export const SCALES: Readonly<Record<string, Scale>> = {
   'left': scale('px', { px: r(-200, 1600, 1), '%': r(-100, 100, 1), rem: r(-12, 100, 0.25), em: r(-12, 100, 0.25), vw: r(-50, 100, 1), vh: r(-50, 100, 1) }, 0, SIGNED),
 };
 
-const NUMBER = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)([a-z%]*)$/i;
+const NUMBER = /^([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?)([a-z%]*)$/i;
 
 export function parse(key: string, text: string): Amount | null {
   const table = SCALES[key];

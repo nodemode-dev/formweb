@@ -2,7 +2,7 @@ export interface Rgba { r: number; g: number; b: number; a: number }
 export interface Hsva { h: number; s: number; v: number; a: number }
 
 const clamp = (value: number, low: number, high: number): number => Math.min(high, Math.max(low, value));
-const NUMBER = '[+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:e[+-]?\\d+)?';
+const NUMBER = '[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[+-]?\\d+)?';
 
 export function parseHex(text: string): Rgba | null {
   const match = /^#?([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(text.trim());
@@ -20,6 +20,7 @@ function args(text: string, names: string): string[] | null {
   const parts = body.includes(',') ? body.split(',').map(part => part.trim()) : body.split('/').length === 2
     ? [...body.split('/')[0].trim().split(/\s+/), body.split('/')[1].trim()] : body.split(/\s+/);
   if (body.includes(',') && body.includes('/')) return null;
+  if (!body.includes(',')) return parts.length === (body.split('/').length === 2 ? 4 : 3) ? parts : null;
   return parts.length === 3 || parts.length === 4 ? parts : null;
 }
 
@@ -136,20 +137,6 @@ export function hueStops(steps = 6): string {
   return Array.from({ length: steps + 1 }, (_, index) => toHex(hsvToRgb({ h: index * 360 / steps % 360, s: 1, v: 1, a: 1 }))).join(', ');
 }
 
-export function topLevelCommas(text: string): number {
-  let depth = 0;
-  let commas = 0;
-  let quote = '';
-  for (const char of text) {
-    if (quote) { if (char === quote) quote = ''; continue; }
-    if (char === '"' || char === '\'') quote = char;
-    else if (char === '(') depth++;
-    else if (char === ')') depth--;
-    else if (char === ',' && depth === 0) commas++;
-  }
-  return commas;
-}
-
 export function isGradient(text: string): boolean {
   const value = text.trim();
   return /^(?:repeating-)?(?:linear|radial|conic)-gradient\(.*\)$/is.test(value) && closesAtEnd(value);
@@ -177,7 +164,7 @@ export function gradientColors(text: string): string[] {
     else if (char === ')') depth--;
     else if (index === inner.length || char === ',' && depth === 0) { parts.push(inner.slice(from, index).trim()); from = index + 1; }
   }
-  return parts.map(part => part.replace(/(?:\s+[-+]?(?:\d+\.?\d*|\.\d+)(?:%|[a-z]+)?)+$/i, '').trim()).filter(Boolean);
+  return parts.map(part => part.replace(/(?:\s+[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:%|[a-z]+)?)+$/i, '').trim()).filter(Boolean);
 }
 
 export function varName(text: string): string | null {

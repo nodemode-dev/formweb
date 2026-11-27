@@ -130,14 +130,28 @@ export function installControls(options: ControlOptions): InstalledKit {
       syncOne(entry);
     });
   }
+  const pressed = new Set<string>();
   const release = (event: Event): void => {
+    if (event instanceof PointerEvent) pressed.delete(`p${event.pointerId}`);
+    else if (event instanceof KeyboardEvent) pressed.delete(event.code);
     upgraded.forEach(entry => {
-      if (!entry.gesture) return;
-      if (event.type !== 'keyup') entry.gesture.released = true;
+      const gesture = entry.gesture;
+      if ((entry.stale.size || gesture?.dead) && !pressed.size) {
+        const stale = entry.stale;
+        window.setTimeout(() => {
+          if (entry.stale === stale) entry.stale = new Set();
+          if (gesture?.dead && entry.gesture === gesture) entry.gesture = null;
+        });
+      }
+      if (!gesture || gesture.dead) return;
+      if (event.type !== 'keyup') gesture.released = true;
       later(entry);
     });
   };
   for (const type of ['pointerup', 'pointercancel', 'keyup']) window.addEventListener(type, release, true);
+  window.addEventListener('pointerdown', event => pressed.add(`p${event.pointerId}`), true);
+  window.addEventListener('keydown', event => { if (!event.repeat) pressed.add(event.code); }, true);
+  window.addEventListener('blur', () => pressed.clear());
   function moved(): boolean {
     const now = options.scope('');
     if (identity === now) return false;
@@ -248,7 +262,7 @@ export function installControls(options: ControlOptions): InstalledKit {
         const gesture = entry.gesture;
         if (gesture && (gesture.dead || gesture.scope !== scope)) { gesture.dead = true; gesture.values.add(value); return; }
         if (gesture) { gesture.held = value; gesture.values.add(value); gesture.released = false; }
-        else { entry.gesture = { scope, held: value, values: new Set([value]), dead: false, released: false }; entry.stale.delete(value); }
+        else { entry.gesture = { scope, held: value, values: new Set([value]), dead: false, released: false }; entry.stale = new Set(); }
         if (input.value !== next) input.value = next;
       },
       restore() {
@@ -261,7 +275,11 @@ export function installControls(options: ControlOptions): InstalledKit {
         const entered = next.trim();
         const gesture = entry.gesture;
         if (gesture && (gesture.dead || gesture.scope !== options.scope(key))) { entry.stale = gesture.values; entry.gesture = null; return; }
-        if (!gesture && entry.stale.delete(entered)) return;
+        if (!gesture && entry.stale.size) {
+          const stray = entry.stale.has(entered);
+          entry.stale = new Set();
+          if (stray) return;
+        }
         const shownNow = held(key);
         if (entered === committed(key, values().value) && (shownNow === null || shownNow === entered)) { field.restore(); syncOne(entry); return; }
         if ((shownNow === null || shownNow === entered) && input.value !== next) input.value = next;
@@ -289,7 +307,7 @@ export function installControls(options: ControlOptions): InstalledKit {
     const typed = (): void => syncOne(entry);
     input.addEventListener('input', typed);
     input.addEventListener('change', typed);
-    input.addEventListener('blur', () => { if (!inflight.has(options.scope(key)) && held(key) === null && options.state()) { field.restore(); syncOne(entry); } });
+    input.addEventListener('blur', () => { if (document.hasFocus() && !inflight.has(options.scope(key)) && held(key) === null && options.state()) { field.restore(); syncOne(entry); } });
     if (raw(key)) { try { control.setRaw?.(true); } catch { } }
     paint(entry);
   }

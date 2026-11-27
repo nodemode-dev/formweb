@@ -90,9 +90,9 @@ export function isColor(text: string): boolean {
 }
 
 function parsePercent(text: string): number | null {
-  const match = /^(-?\d*\.?\d+)%$/.exec(text);
+  const match = /^(-?(?:\d+(?:\.\d+)?|\.\d+))%$/.exec(text);
   if (match) return Number(match[1]);
-  return /^0*\.?0+$/.test(text) ? 0 : null;
+  return /^(?:0+(?:\.0+)?|\.0+)$/.test(text) ? 0 : null;
 }
 
 function parseStop(text: string): { color: string; position: number | null } | null {
@@ -110,7 +110,7 @@ function parsePosition(words: string[]): string | null {
   if (!words.length || words.length > 4) return null;
   for (const word of words) {
     if (POSITION_WORDS.includes(word)) continue;
-    if (/^-?\d*\.?\d+(%|px|em|rem)$/.test(word) || /^0+$/.test(word)) continue;
+    if (/^-?(?:\d+(?:\.\d+)?|\.\d+)(%|px|em|rem)$/.test(word) || /^0+$/.test(word)) continue;
     return null;
   }
   return words.join(' ');
@@ -138,7 +138,7 @@ function parseRadialHead(text: string, gradient: Gradient): boolean {
 }
 
 function parseLinearHead(text: string, gradient: Gradient): boolean | null {
-  const angle = /^(-?\d*\.?\d+)deg$/.exec(text);
+  const angle = /^(-?(?:\d+(?:\.\d+)?|\.\d+))deg$/.exec(text);
   if (angle) {
     gradient.angle = Number(angle[1]);
     return true;
@@ -244,7 +244,7 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
 }
 
 function channel(text: string, scale: number): number | null {
-  const match = /^(-?\d*\.?\d+)(%?)$/.exec(text);
+  const match = /^(-?(?:\d+(?:\.\d+)?|\.\d+))(%?)$/.exec(text);
   if (!match) return null;
   return match[2] ? Number(match[1]) / 100 * scale : Number(match[1]);
 }
@@ -271,7 +271,7 @@ export function toRgba(text: string): Rgba | null {
     const [r, g, b] = rgb as number[];
     return { r: clamp(r, 0, 255), g: clamp(g, 0, 255), b: clamp(b, 0, 255), a: clamp(alpha) };
   }
-  const h = /^(-?\d*\.?\d+)(deg)?$/.exec(pieces[0]);
+  const h = /^(-?(?:\d+(?:\.\d+)?|\.\d+))(deg)?$/.exec(pieces[0]);
   const s = channel(pieces[1], 1);
   const l = channel(pieces[2], 1);
   if (!h || s === null || l === null) return null;

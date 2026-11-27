@@ -12,7 +12,7 @@
 .fw-grad-fill { position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px var(--border-soft); pointer-events: none; }
 .fw-grad-track { position: absolute; inset: 0 0 calc(-1 * var(--space-3)); touch-action: none; }
 .fw-grad-handle { position: absolute; bottom: 0; width: 14px; height: calc(100% - 4px); margin-left: -7px; border: 2px solid var(--text-primary); border-radius: var(--radius-xs); background-color: var(--cv-checker-a); background-image: conic-gradient(var(--cv-checker-b) 25%, transparent 0 50%, var(--cv-checker-b) 0 75%, transparent 0); background-size: 6px 6px; box-shadow: 0 0 0 1px var(--line-0), var(--shadow-sm); cursor: grab; }
-.fw-grad-chip { position: absolute; inset: 0; background: var(--fw-grad-stop, transparent); }
+.fw-grad-chip { position: absolute; inset: 0; background-color: var(--fw-grad-stop, transparent); }
 .fw-grad-handle.is-selected { outline: 2px solid var(--accent-color); outline-offset: 1px; }
 .fw-grad-handle:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
 .fw-grad.is-dragging .fw-grad-handle, .fw-grad.is-dragging .fw-grad-bar { cursor: grabbing; }
