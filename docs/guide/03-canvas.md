@@ -70,7 +70,7 @@ To put elements side by side or in columns, select their container and choose **
 
 Rest the mouse on a row in the Layers list and its element gets a light orange outline on the canvas, thinner and paler than the selection outline. Rest it on an element on the canvas and the element gets the same outline, and its row in the Layers list is tinted. Nothing scrolls and nothing is selected; move the mouse away and the outline goes. The selected element and the page itself never get a hover outline.
 
-Hover outlines do not show while you drag, edit text, have a menu or Quick insert open, or are in Preview, and a touch or a pen never draws them. **View > Show hover outlines** turns them off, and on again. They are on at first, stay as you left them in this browser and are never saved with the site.
+Hover outlines do not show while you drag, edit text, have a menu or Quick insert open, try a choice in the right panel (see [Try a choice before keeping it](04-right-panel.md#try-a-choice-before-keeping-it)), or are in Preview, and a touch or a pen never draws them. **View > Show hover outlines** turns them off, and on again. They are on at first, stay as you left them in this browser and are never saved with the site.
 
 ### On a touch screen or with a pen
 

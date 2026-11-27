@@ -19,6 +19,58 @@ With a Page script selected (a script imported without HTML of its own), the pan
 
 Many fields show a grey placeholder such as Auto / inherit. That means the element has no value of its own and uses what it inherits. A field you have set gets a **Reset** link that removes your value again.
 
+## Try a choice before keeping it
+
+In the Design tab, a click on a choice puts it on the page first, without saving it. You see how it looks, then keep it or put the page back. This works in the groups of buttons (**Display**, **Direction**, **Align**, **Justify**, **Wrap** and **Text alignment**) and in the fields that are lists (**Align self**, **Justify self**, **Object fit**, **Weight**, **Capitals**, **Kerning**, **Position** and **Overflow**).
+
+1. In Coldmere, click the paragraph under the big heading on the home page, the one that begins Boiler servicing, repairs. The panel shows **Hm lead**.
+2. In the Typography section, find **Text alignment** and click **Center**. The paragraph is centered on the page, and a bar under the field, as wide as the panel, says **Trying: Center**, with **Keep** and **Revert** under that.
+
+![Coldmere's home page with the paragraph Boiler servicing, repairs... centered on the canvas; in the right panel, Text alignment has Center outlined as the choice being tried, the group has a dashed outline, and the bar under it reads Trying: Center on its first row and Keep Enter, Revert Escape on the second](images/panel-try-bar.webp)
+
+3. Press the Right arrow key. The paragraph is aligned to the right and the bar says **Trying: Right**. Press it again for **Justify**. Nothing has been saved yet: the revision number at the right end of the status line stays the same.
+4. Press Enter, or click **Keep**. The choice is saved, as one undo step, and the bar goes. Ctrl+Z (Cmd+Z on a Mac) takes it back.
+5. Click **Center** again, then press Escape, or click **Revert**. The paragraph is as it was, and the status line says "Not kept: Text alignment is unchanged."
+
+More about trying a choice:
+
+- Left and Right (or Up and Down) try the next or the previous choice, and Home and End the first and the last. Tab goes from the choices to **Keep**, then to **Revert**.
+- The choice being tried has an outline of its own. The saved choice keeps its filled look, so you always see both.
+- Click the choice that is already saved to try the field with no value of its own: the bar says **Trying: Inherit**, and the page shows what the element would get without it (on Tablet or Mobile, the value from a wider breakpoint). **Keep** then removes the value.
+- Moving the pointer over the choices changes nothing. Only a click or a key tries a choice.
+- On a slow computer, after **Keep** the page keeps showing your choice while it is being saved, and the bar shows that it is waiting.
+- **Keep** on the choice that is already saved saves nothing and simply closes the bar.
+- The bar always stays inside the right panel. A long name ends in "..." (point at it to read all of it), and in a narrow panel the key names next to Keep and Revert are left out.
+
+### In a list
+
+1. Click the house picture on the home page. The panel shows **Hm hero img**.
+2. In the Appearance section, click **Object fit**. A list opens under it; the saved item, **Inherit**, has a tick.
+3. Click **contain**. The picture shows it on the page, the bar says **Trying: contain**, and the list stays open, so you can try another.
+
+![The Object fit list open under the field: Inherit with a tick, cover, contain outlined as the item being tried, and fill; the field itself still reads Inherit, and the bar under the list, across the panel, reads Trying: contain with Keep Enter and Revert Escape under it](images/panel-try-list.webp)
+
+4. Press Down to try the next item, or type a letter to jump to the next item that starts with it. Press Enter, or click **Keep**, to keep it; the list closes and the field shows it. Press Escape, click **Revert**, or click outside the list to put the page back.
+
+The field shows the saved value until you keep a choice. With the focus on the field, Space, Enter, Up, Down or Alt+Down opens the list without trying anything.
+
+### What ends a trial
+
+Keep and Enter save the choice. These put the page back and save nothing:
+
+- Revert or Escape.
+- Selecting another element, on the canvas, in Layers or with Select parent.
+- Picking another breakpoint or page, turning on the Live responsive preview, or opening Preview as published, Home or a dialog.
+- Clicking into another field or pressing Tab past Revert, trying a choice in another field, or starting to drag a slider.
+- Undo (Ctrl+Z or Cmd+Z, the Undo button in the top bar, or **Edit > Undo**). During a trial, Undo only puts the page back; nothing earlier is undone. The next Undo undoes as usual.
+- Any other command, such as Duplicate or the field's **Reset**. The page is put back first, then the command runs.
+
+Scrolling the page or the panel, a click on empty space in the panel, and switching to another app leave the trial on, so you can look at it. Save and Search commands leave it on too. If the assistant or another window changes the same field of the same element while you are trying a choice, the trial ends and the status line says "The element was changed elsewhere, so the trial was dropped."
+
+### Turn trying off
+
+Open **Edit > Settings...** (Ctrl+, or Cmd+, on a Mac), click **Interface**, and clear **Try choices on the page before keeping them** under Design fields; **View > Try choices before keeping them** does the same from the menu. With it off, a click on a choice, or a pick in a list, is saved at once, and the lists are the browser's own. The setting is kept in this browser only and is never saved with the site.
+
 ## Sliders, color pickers and layout choosers
 
 You do not have to type CSS to style an element. Seventeen fields in the Design tab have a control beside their text box: a slider, a color swatch or a layout button.
@@ -28,8 +80,8 @@ The text box always stays. What it holds is the value that is saved and exported
 A few things are true of every control:
 
 - **One change is one undo step.** One drag, one click on a color or a layout, or one key held down is one step. Ctrl+Z (Cmd+Z on a Mac) takes it back, also while the focus is still on the slider, the swatch, a stop, a button, the picker's square or bars, or a layout in the chooser. In a text box, Ctrl+Z undoes your typing in that box. From a unit list, press Tab (or click elsewhere) first.
-- **Delete is safe.** While the focus is on a swatch, a slider, a unit list, a layout button, the `</>` switch, or anything inside the color picker or the layout chooser, Delete and Backspace never remove the selected element.
-- **Nothing happens on the page until you let go or click.** While you drag, the text box shows the new value; the value is kept when you release the mouse button. Press Escape during the drag to keep the old value. Resting the pointer on a choice changes nothing.
+- **Delete is safe.** While the focus is on a swatch, a slider, a unit list, a layout button, the `</>` switch, or anything inside the color picker or the layout chooser, Delete and Backspace never remove the selected element. The same holds for the choice buttons (such as Display), the lists described above, the Keep and Revert bar, the Design, Motion, Content and Page tabs, and the section titles such as Layout and Typography. After a click on a field's **Reset**, the focus moves to that field.
+- **The page follows the drag, and the value is kept when you let go.** While you drag (or hold an arrow key), the text box and the element on the page show the new value; nothing is saved until you release the mouse button or the key. Press Escape during the drag to put the old value back, on the page too. Resting the pointer on a choice changes nothing.
 - **A value the control cannot show is left alone.** If the field holds something the control cannot draw, such as two values (`8px 16px`), `calc(...)` or a word such as `auto`, the control hides and the text box holds the value exactly as typed. The control comes back as soon as the field holds a value it can show. Nothing in the panel moves when this happens.
 
 ### Sliders and units
@@ -40,7 +92,7 @@ A few things are true of every control:
 
 1. In Coldmere, click the house picture on the home page. The panel shows **Hm hero img**.
 2. In the Appearance section, find **Radius**. It reads `28px`.
-3. Drag the slider's thumb to the right. The text box counts up as you drag; the picture's corners change when you let go.
+3. Drag the slider's thumb to the right. The text box counts up and the picture's corners grow rounder as you drag; the new radius is kept when you let go.
 4. Press Ctrl+Z (Cmd+Z on a Mac). The radius is `28px` again.
 
 More about sliders:
@@ -65,7 +117,7 @@ More about sliders:
 
 What the picker holds, from top to bottom:
 
-- **The square** sets how strong and how light the color is: drag in it, or click.
+- **The square** sets how strong and how light the color is: drag in it, or click. While you drag in the square or along the bars, the element on the page shows the color; it is kept when you let go.
 - **The rainbow bar** sets the hue, and **the bar under it** sets the opacity, from see-through on the left to solid on the right. When the field has no color yet, or holds black, white or a grey, a click on the rainbow bar gives that hue at once, fairly strong and light, which you can then adjust in the square.
 - **The text box** next to the small chip takes a color code: type `#5b4636`, `5b4636` or `rgb(91, 70, 54)` and press Enter.
 - **The eyedropper button** at the end of that row (tooltip Pick a color from the screen) lets you click anywhere on your screen to take its color. It is there only when your browser or system offers it.
@@ -90,7 +142,7 @@ The picker of **Background** has two tabs at the top: **Solid** and **Gradient**
 What you can do in the tab:
 
 - **Linear** or **Radial**: a gradient along a line, or out from a point.
-- **The bar** shows the gradient with a handle for each stop. Click the bar to add a stop, drag a handle to move it, and click a handle to select it. **Position** shows where the selected stop sits, in percent.
+- **The bar** shows the gradient with a handle for each stop. Click the bar to add a stop, drag a handle to move it (the page shows the gradient as you drag), and click a handle to select it. **Position** shows where the selected stop sits, in percent.
 - **Add stop** (the + button) adds a stop and **Remove stop** (the bin button) removes the selected one. A gradient always keeps at least two stops.
 - **The square and bars** under the bar set the selected stop's color, as on the Solid tab.
 - **Angle** (in degrees) and the eight arrows set the direction of a linear gradient. A radial gradient offers **Circle** or **Ellipse** there instead.
@@ -124,6 +176,22 @@ Each of these fields has a small `</>` switch at the right of its label (its too
 To choose for every field at once, open **Edit > Settings...** (Ctrl+, or Cmd+, on a Mac), click **Interface**, and set **Show in Design fields** under Design fields to **Controls** or **CSS text**. Fields you switched yourself keep their own choice; **Use for all fields** makes them follow the setting again. **View > Show controls in Design fields** switches the same setting from the menu.
 
 These choices are kept in this browser only. They are never saved with the site, and they never change a value.
+
+## Motion presets
+
+The **Presets** section at the top of the Motion tab sets a movement for the selected element with one click, and shows it to you on the page.
+
+1. In Coldmere, click the heading Warm rooms, working taps, no fuss., then click the **Motion** tab.
+2. Under **Presets**, click **Fade up**. The preset is set, as one undo step, and the heading plays it once on the page: it starts faint and a little lower and ends exactly as it was.
+3. Click **Play again**, under the presets, to watch it once more. Play again saves nothing.
+4. Press Ctrl+Z (Cmd+Z on a Mac) to take it back. A click on a preset that is set also removes it.
+5. Click **Split words**. It is set, but it does not play on the canvas: **Play again** is off, and the line under it says "This effect plays in Preview and on the published site."
+
+![The Presets section of the Motion tab for Hm h1: Split words is marked as set; under the presets and the Classic effects sits the Play again button, greyed out, and under it the sentence This effect plays in Preview and on the published site.](images/panel-motion-presets.webp)
+
+**Fade up**, **Fade in**, **Scale in**, **Blur in**, **Slide from left**, **Slide from right** and **Stagger children** play on the page. **Spin** and **Float** show a short loop and stop where they began. The other presets and the classic effects (such as **Split words**, **Typewriter**, **Count up** or **Parallax**) are set as usual but do not play on the canvas; watch them in [Preview](06-preview.md). The line under Play again names this only when nothing the element has can be played on the canvas. When it also has a preset that plays, Play again plays that one and the line stays empty.
+
+Selecting another element, picking another breakpoint or page, turning on Preview, Undo, another preset, or a change made by the assistant stops a preset that is playing, and the element shows its saved look at once. When your system asks for reduced motion, nothing plays, Play again is off, and the line says "Your system asks for reduced motion, so nothing is played here."
 
 ## Search properties
 

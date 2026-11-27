@@ -6,7 +6,7 @@ The user guide teaches FormWeb to a person who has never used it: plain words, n
 - [Your first site](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/01-first-site.md): from an empty page to an exported zip.
 - [Pages and layers](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/02-pages-and-layers.md)
 - [Working on the canvas](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/03-canvas.md): select, the right-click menu, dragging with the layout grid it snaps to, View > Show layout outlines and View > Show hover outlines.
-- [The right panel](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/04-right-panel.md): tabs, sliders, the color picker and gradients, the grid layout chooser, Search properties and breakpoints.
+- [The right panel](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/04-right-panel.md): tabs, trying a choice before keeping it, sliders, the color picker and gradients, the grid layout chooser, motion presets, Search properties and breakpoints.
 - [Page background and theme colors](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/05-background-and-theme-colors.md)
 - [Preview](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/06-preview.md)
 - [Audit](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/07-audit.md)
