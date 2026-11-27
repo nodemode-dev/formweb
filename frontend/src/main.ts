@@ -141,6 +141,7 @@ function section(container: HTMLElement, title: string, hint = ''): HTMLElement 
   if (hint) { const note = element('span', 'hint'); label(note, hint); head.append(note); head.classList.toggle('has-note', hint.length > NOTE_BELOW); }
   head.setAttribute('role', 'button');
   head.tabIndex = 0;
+  head.dataset.ownKeys = '';
   head.setAttribute('aria-expanded', 'true');
   const toggle = (): void => { const collapsed = node.classList.toggle('is-collapsed'); head.setAttribute('aria-expanded', String(!collapsed)); };
   head.addEventListener('click', event => { if (!(event.target as Element).closest('button, input, select, a')) toggle(); });

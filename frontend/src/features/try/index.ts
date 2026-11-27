@@ -159,7 +159,7 @@ export function installTry(options: TryOptions): TryKit {
           if (entry.value === null) { entry.end('reverted'); return; }
           if (options.scope() !== entry.scope || options.node() !== entry.node || !options.editing()) { entry.end('dropped'); return; }
           const value = entry.value;
-          if (value.trim() === options.stored(owner.key).trim()) { entry.end('reverted'); return; }
+          if (value.trim() === options.stored(owner.key).trim()) { entry.value = null; unsay(); entry.end('reverted'); return; }
           entry.pending = true;
           shelter(entry);
           bar.pending(true);

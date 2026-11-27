@@ -65,7 +65,7 @@ export function mountBar(overlay: HTMLElement, actions: TryBarActions): TryBar {
   text.setAttribute('aria-live', 'polite');
   const keep = button('Keep', 'Enter', 'fw-try-keep');
   const revert = button('Revert', 'Escape', 'fw-try-revert');
-  keep.querySelector('.fw-try-key')!.append(spinner());
+  keep.append(spinner());
   root.append(text, keep, revert);
   overlay.append(root);
 
@@ -74,6 +74,7 @@ export function mountBar(overlay: HTMLElement, actions: TryBarActions): TryBar {
   let shownName = '';
   let last: Box | null = null;
   let width = 0;
+  let edge = 0;
   let frame = 0;
   let waiting = 0;
   let busy = false;
@@ -87,10 +88,17 @@ export function mountBar(overlay: HTMLElement, actions: TryBarActions): TryBar {
   const place = (force: boolean): void => {
     if (!owner) return;
     const anchor = boxOf(owner.anchor);
-    const size = root.offsetWidth;
-    if (!force && same(last, anchor) && size === width) return;
+    const panel = (clip ?? owner.anchor.parentElement ?? owner.anchor).getBoundingClientRect();
+    const size = Math.round(Math.min(panel.width - 2 * GAP, window.innerWidth - 2 * MARGIN));
+    if (!force && same(last, anchor) && size === width && panel.left === edge) return;
     last = anchor;
-    width = size;
+    edge = panel.left;
+    if (size !== width || force) {
+      width = size;
+      root.style.width = `${size}px`;
+      root.classList.remove('is-tight');
+      if (root.scrollWidth > root.clientWidth) root.classList.add('is-tight');
+    }
     const height = root.offsetHeight;
     const keepClear = { ...anchor };
     for (const node of owner.inside?.() ?? []) {
@@ -110,7 +118,7 @@ export function mountBar(overlay: HTMLElement, actions: TryBarActions): TryBar {
       if (anchor.bottom <= view.top) top = Math.max(top, view.top + GAP);
       else if (anchor.top >= view.bottom) top = Math.min(top, view.bottom - height - GAP);
     }
-    const left = Math.max(MARGIN, Math.min(anchor.left, window.innerWidth - size - MARGIN));
+    const left = Math.max(MARGIN, Math.min(panel.left + GAP, window.innerWidth - size - MARGIN));
     const x = `${Math.round(left)}px`;
     const y = `${Math.round(top)}px`;
     if (root.style.left !== x) root.style.left = x;
@@ -200,7 +208,7 @@ export function mountBar(overlay: HTMLElement, actions: TryBarActions): TryBar {
       if (!again) {
         owner = next;
         last = null;
-        clip = scroller(next.anchor);
+        clip = scroller(next.anchor) ?? (next.inside?.() ?? []).map(scroller).find(Boolean) ?? null;
         if (root.hidden) {
           root.style.left = '0px';
           root.style.top = '0px';
@@ -210,6 +218,7 @@ export function mountBar(overlay: HTMLElement, actions: TryBarActions): TryBar {
       }
       if (shownName !== name || !again) {
         label(text, 'Trying: {0}', [{ t: name }]);
+        labelAttr(text, 'title', 'Trying: {0}', [{ t: name }]);
         shownName = name;
       }
       place(!again);

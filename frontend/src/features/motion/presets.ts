@@ -75,7 +75,6 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
   let current: SiteNode | undefined;
   let parent = '';
   let latest: EditorState | undefined;
-  let laterFor = '';
   let playedAt = -1;
   let playedIn = '';
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -121,7 +120,6 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
       void ctx.set(preset.kind, node.id, entry).then(() => {
         if (!current || current.id !== node.id || !latest) return;
         if (!matches(preset, current, ctx.motion(latest)[preset.kind][node.id])) return;
-        laterFor = shows ? '' : node.id;
         refresh();
         if (!shows || still()) return;
         const at = latest.revision;
@@ -145,11 +143,7 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
       const attrs: Record<string, string | null> = { ...node.attrs, 'data-fw-effect': on ? null : preset.effect };
       if (on) attrs['data-fw-effect-speed'] = null;
       player.stop();
-      void ctx.run(() => ctx.nodePatch({ attrs })).then(() => {
-        if (on || !current || current.id !== node.id || current.attrs['data-fw-effect'] !== preset.effect) return;
-        laterFor = node.id;
-        refresh();
-      });
+      void ctx.run(() => ctx.nodePatch({ attrs }));
     });
     effectGroup.append(choice);
     return { preset, choice };
@@ -183,7 +177,7 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
     const id = current.id;
     const elsewhere = !!current.attrs['data-fw-effect'] || (['text', 'counters', 'pointer'] as const).some(kind => !!group[kind][id]) || (!!loop && loop.type !== 'spin' && loop.type !== 'float');
     const quiet = still();
-    const said = quiet ? REDUCED : elsewhere && (!playable || laterFor === current.id) ? SHOWN_LATER : '';
+    const said = quiet ? REDUCED : elsewhere && !playable ? SHOWN_LATER : '';
     if (said) label(note, said);
     else if (note.textContent) note.textContent = '';
     const off = quiet || !playable;
@@ -207,7 +201,6 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
     update(next, node) {
       const playing = player.playing();
       if (playing && (playing !== node.id || next.revision !== playedAt || viewOf() !== playedIn || !live())) player.stop();
-      if (current?.id !== node.id) laterFor = '';
       latest = next;
       current = node;
       const owner = Object.values(next.site.nodes).find(candidate => candidate.children.includes(node.id));
