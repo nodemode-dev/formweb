@@ -1,0 +1,1 @@
+.layer-row[data-fw-hover]:not(.active):not(.is-multi) { background: var(--accent-tint); }

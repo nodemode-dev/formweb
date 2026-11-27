@@ -20,7 +20,14 @@ from .config import MAX_IMAGE_BYTES, MAX_SITE_ARCHIVE_BYTES
 from .engine import EngineError
 
 MAX_ENTRIES = 1000
+MAX_RAW_ENTRIES = 40000
+MAX_PEEK = 200000
+PEEK_BYTES = 16 * 1024 * 1024
+PEEK_KEEP = 100
 MAX_LISTING = 2 * 1024 * 1024
+MAX_NAME = 255
+BUILD_SCRIPTS = ('.ts', '.tsx', '.jsx', '.vue', '.svelte')
+BUILT = ('dist', 'build')
 MAX_UNPACKED = 128 * 1024 * 1024
 MAX_DEPTH = 12
 MAX_RATIO = 100
@@ -70,57 +77,219 @@ def _ext(path: str) -> str:
     return name.rsplit('.', 1)[-1].lower() if '.' in name else ''
 
 
+def _parts(name: str) -> list[str]:
+    return [part for part in name.replace('\\', '/').split('/') if part not in ('', '.')]
+
+
+def _ignored(parts: list[str]) -> bool:
+    return parts[0] == '__MACOSX' or 'node_modules' in parts or any(part.startswith('.') for part in parts)
+
+
+def _peek(data: bytes, end: int, listing: int) -> list[list[str]]:
+    """The names _project reads from the archive's file list, read record by record without zipfile, only to choose the
+    sentence for an archive that is refused before it is opened. Bounded by records read and bytes scanned, and it keeps
+    at most PEEK_KEEP names of each kind."""
+    position = end - listing if 0 < listing <= end else struct.unpack('<I', data[end + 16:end + 20])[0]
+    stop, records, names, kept = min(end, position + PEEK_BYTES), 0, [], {'package': 0, 'page': 0, 'build': 0}
+    while position + 46 <= stop and records < MAX_PEEK and data[position:position + 4] == b'PK\x01\x02':
+        records += 1
+        flags = struct.unpack('<H', data[position + 8:position + 10])[0]
+        length, extra, comment = struct.unpack('<HHH', data[position + 28:position + 34])
+        raw = data[position + 46:position + 46 + length].lower()
+        position += 46 + length + extra + comment
+        kind = ('package' if raw.endswith(b'package.json') else 'page' if raw.endswith((b'.html', b'.htm'))
+                else 'build' if raw.endswith(tuple(item.encode() for item in BUILD_SCRIPTS)) else None)
+        if kind is None or kept[kind] >= PEEK_KEEP:
+            continue
+        parts = _parts(data[position - length - extra - comment:position - extra - comment].decode('utf-8' if flags & 0x800 else 'cp437', errors='replace'))
+        if parts and not _ignored(parts):
+            kept[kind] += 1
+            names.append(parts)
+    return names
+
+
+def _bare(script: str) -> str | None:
+    """The first package a module script loads by name (a bare specifier), which only a build or an import map resolves."""
+    for match in re.finditer(r'''^[ \t]*(?:import\s*["']|import\b[^'"`;()]*?\bfrom\s*["']|export\b[^'"`;()]*?\bfrom\s*["'])([^"'\s]+)["']''', script, re.M):
+        specifier = match.group(1)
+        if not specifier.startswith(('.', '/')) and ':' not in specifier:
+            return specifier
+    return None
+
+
+def _project(names: list[list[str]], files: dict | None = None) -> str | None:
+    """The refusal for a project's source rather than a built site. It needs a package.json at the top or one folder
+    down, and then one of: no HTML page; a .ts, .tsx, .jsx, .vue or .svelte file under that project's src folder; or,
+    with the pages' text, a page that loads such a script, holds a %PUBLIC_URL% placeholder, or loads a module script
+    that imports a package by name while no page has an import map. Without the pages' text (a refusal for count or
+    size), a .tsx, .jsx, .vue or .svelte file anywhere, or a .ts file under any src folder, counts too."""
+    homes = [parts[:-1] for parts in names if parts[-1].lower() == 'package.json' and len(parts) <= 2]
+    if not homes:
+        return None
+    html = [parts for parts in names if _ext(parts[-1]) in ('html', 'htm')]
+    builds = [parts for parts in names if parts[-1].lower().endswith(BUILD_SCRIPTS)]
+    found = [parts for parts in builds if any(parts[:len(home) + 1] == home + ['src'] and len(parts) > len(home) + 1 for home in homes)]
+    if files is None:
+        found += [parts for parts in builds if not parts[-1].lower().endswith('.ts') or 'src' in parts[:-1]]
+    found.sort(key=lambda parts: (parts[-1].rsplit('.', 1)[0].lower() not in ('main', 'index'), len(parts), '/'.join(parts).lower()))
+    needs, placeholders, packages = ['/'.join(parts) for parts in found], [], []
+    if files is not None:
+        mapped = False
+        top = names[0][0] + '/' if names and all(len(parts) > 1 for parts in names) and len({parts[0] for parts in names}) == 1 else ''
+        for path, (kind, body) in files.items():
+            if kind != 'page':
+                continue
+            document = _text(body)
+            if '%PUBLIC_URL%' in document:
+                placeholders.append(top + path)
+            for tag in re.finditer(r'<script\b[^>]*>', document, re.I):
+                attrs = _attrs(tag.group(0))
+                sort = attrs.get('type', '').strip().lower()
+                mapped = mapped or sort == 'importmap'
+                source = attrs.get('src', '').strip()
+                address = urlsplit(source)
+                if not source or address.scheme or address.netloc:
+                    continue
+                target = unquote(address.path)
+                target = posixpath.normpath(target.lstrip('/') if target.startswith('/') else posixpath.join(posixpath.dirname(path), target))
+                if target.lower().endswith(BUILD_SCRIPTS):
+                    needs.append(top + target)
+                elif sort == 'module':
+                    script = files.get(target)
+                    if script and script[0] == 'script' and _bare(_text(script[1])):
+                        packages.append(f'{top + target} loads {_bare(_text(script[1]))}')
+        if mapped:
+            packages = []
+    if html and not needs and not placeholders and not packages:
+        return None
+    shown = list(dict.fromkeys(_show(item) for item in (needs or placeholders or packages)))
+    listed = f'{", ".join(shown[:3])}{"..." if len(shown) > 3 else ""}'
+    reason = (f'it has package.json and scripts that still need building ({listed})' if needs
+              else f'it has package.json and pages with placeholders that a build fills in ({listed})' if placeholders
+              else f'it has package.json and scripts that load packages by name, which a build bundles ({listed})' if packages
+              else 'it has package.json and no HTML page')
+    built = sorted('/'.join(parts[:-1]) for parts in html if parts[-1].lower() == 'index.html' and 2 <= len(parts) <= 3 and parts[-2].lower() in BUILT)
+    extra = f' The zip also holds a built copy in the {_show(built[0])} folder: zip that folder on its own and import it.' if built else ''
+    return (f'This zip is a project\'s source, not a finished site: {reason}. Build it first (usually npm run build), then zip the output folder '
+            f'(often dist or build) and import that.{extra} Nothing was imported.')
+
+
+def _too_many(count: int, names: list[list[str]]) -> EngineError:
+    return EngineError(_project(names) or f'The archive holds {count:,} files outside system and dependency folders; a site import takes at most {MAX_ENTRIES:,}. '
+                       'Zip only the folder that holds the finished site\'s pages, styles, scripts and pictures, then import that. Nothing was imported.', 413)
+
+
+def _too_large(names: list[list[str]]) -> EngineError:
+    return EngineError(_project(names) or f'The archive unpacks to more than {_size(MAX_UNPACKED)}, the most a site import takes. '
+                       'Leave out large videos and files the site does not use, then zip it again. Nothing was imported.', 413)
+
+
+def _unopened(data: bytes, end: int, listing: int, sentence: str) -> EngineError:
+    return EngineError(_project(_peek(data, end, listing)) or sentence, 413)
+
+
+def loose(body: bytes):
+    """The decoded JSON body of a loose-files import, checked by read_files."""
+    try:
+        return json.loads(body)
+    except (ValueError, RecursionError) as error:
+        raise EngineError('The list of files to import is not valid JSON. Nothing was imported.', 400) from error
+
+
+def read_files(payload) -> dict:
+    """Loose HTML files sent as JSON, read into the same structure read_archive gives for a zip holding them at its top level."""
+    files = payload.get('files') if isinstance(payload, dict) else None
+    if not isinstance(files, list) or not all(isinstance(item, dict) and isinstance(item.get('name'), str) and isinstance(item.get('html'), str) for item in files):
+        raise EngineError('Send the pages as {"files": [{"name": "about.html", "html": "..."}]}. Nothing was imported.', 400)
+    if not files:
+        raise EngineError('Choose at least one .html file to import. Nothing was imported.', 400)
+    if len(files) > MAX_PAGES:
+        raise EngineError(f'{len(files):,} files were chosen; a site import brings at most {MAX_PAGES} pages. Choose fewer files, or zip the site and import the zip. Nothing was imported.', 413)
+    entries, seen = [], set()
+    for item in files:
+        name = item['name'].replace('\\', '/').rsplit('/', 1)[-1].strip()
+        if not name or len(name) > MAX_NAME or not name.isprintable() or name.startswith('.'):
+            raise EngineError(f'The file name {_show(name) or "(empty)"} cannot be imported. Give the file an ordinary name such as about.html. Nothing was imported.', 400)
+        if _ext(name) not in ('html', 'htm'):
+            raise EngineError(f'{_show(name)} is not an HTML file. Only .html and .htm files can be imported on their own; zip a site to bring its styles and pictures. Nothing was imported.', 400)
+        folded = unicodedata.normalize('NFC', name).casefold()
+        if folded in seen:
+            raise EngineError(f'Two of the chosen files are named {_show(name)}. Rename one and import again. Nothing was imported.', 400)
+        seen.add(folded)
+        try:
+            entries.append((name, item['html'].encode('utf-8')))
+        except UnicodeEncodeError:
+            raise EngineError(f'{_show(name)} holds characters that are not valid text. Save the file as UTF-8 and choose it again. Nothing was imported.', 400)
+    if sum(len(body) for _, body in entries) > MAX_UNPACKED:
+        raise EngineError(f'The chosen files add up to more than {_size(MAX_UNPACKED)}, the most a site import takes. Choose fewer files. Nothing was imported.', 413)
+    kept: dict[str, tuple[str, bytes]] = {}
+    skipped: list[dict] = []
+    for name, body in sorted(entries, key=lambda entry: entry[0].lower()):
+        if len(body) > FILE_CAPS['page']:
+            skipped.append({'file': name, 'reason': f'Larger than the {_size(FILE_CAPS["page"])} a file of this type may be.'})
+            continue
+        kept[name] = ('page', body)
+    return {'files': kept, 'skipped': skipped, 'ignored': 0}
+
+
 def read_archive(data: bytes) -> dict:
     """Entries kept by kind with their bytes, the skipped ones with a reason, and how many system files were ignored."""
     if not data:
-        raise EngineError('Choose a .zip file that holds the site.')
+        raise EngineError('Choose a .zip file that holds the site. Nothing was imported.')
     if len(data) > MAX_SITE_ARCHIVE_BYTES:
-        raise EngineError(f'The archive is larger than {_size(MAX_SITE_ARCHIVE_BYTES)}, the most a site import takes.', 413)
+        raise EngineError(f'The archive is larger than {_size(MAX_SITE_ARCHIVE_BYTES)}, the most a site import takes. Zip only the folder that holds the finished site, '
+                          'leaving out large videos and files it does not use. Nothing was imported.', 413)
     end = data.rfind(b'PK\x05\x06', max(0, len(data) - 65558))
     if end < 0 or len(data) < end + 22:
-        raise EngineError('This file is not a zip archive FormWeb can read.', 400)
+        raise EngineError('This file is not a zip archive FormWeb can read. Nothing was imported.', 400)
     count, listing = struct.unpack('<HI', data[end + 10:end + 16])
-    if count > MAX_ENTRIES:
-        raise EngineError(f'The archive holds {count:,} entries; a site import takes at most {MAX_ENTRIES:,}. Nothing was imported.', 413)
+    if count > MAX_RAW_ENTRIES:
+        raise _unopened(data, end, listing, f'The archive holds {count:,} entries, more than the {MAX_RAW_ENTRIES:,} a site import opens, counting the system and dependency folders it '
+                        'leaves out. Zip only the folder that holds the finished site, then import that. Nothing was imported.')
     if listing > MAX_LISTING:
-        raise EngineError('The archive\'s list of files is far longer than a website needs, so it was not opened.', 413)
+        raise _unopened(data, end, listing, 'The archive\'s list of files is far longer than a website needs, so it was not opened. Zip only the folder that holds the finished site, '
+                        'without dependency folders such as node_modules, then import that. Nothing was imported.')
     try:
         archive = zipfile.ZipFile(io.BytesIO(data))
         infos = archive.infolist()
     except (zipfile.BadZipFile, zipfile.LargeZipFile, ValueError, OSError, EOFError):
-        raise EngineError('This file is not a zip archive FormWeb can read.', 400)
-    if len(infos) > MAX_ENTRIES:
-        raise EngineError(f'The archive holds {len(infos):,} entries; a site import takes at most {MAX_ENTRIES:,}. Nothing was imported.', 413)
+        raise EngineError('This file is not a zip archive FormWeb can read. Nothing was imported.', 400)
+    if len(infos) > MAX_RAW_ENTRIES:
+        raise _unopened(data, end, listing, f'The archive holds {len(infos):,} entries, more than the {MAX_RAW_ENTRIES:,} a site import opens, counting the system and dependency folders it '
+                        'leaves out. Zip only the folder that holds the finished site, then import that. Nothing was imported.')
     kept, ignored, seen = [], 0, set()
     for info in infos:
         raw = info.filename
         name = raw.replace('\\', '/')
-        parts = [part for part in name.split('/') if part not in ('', '.')]
+        parts = _parts(raw)
         if (info.external_attr >> 16) & 0o170000 == stat.S_IFLNK:
-            raise EngineError(f'The archive holds a link ({_show(raw)}). Links are not allowed in a site import, so nothing was imported.', 400)
+            raise EngineError(f'The archive holds a link ({_show(raw)}). Links are not allowed in a site import. Nothing was imported.', 400)
         if '\x00' in name or name.startswith('/') or re.match(r'^[A-Za-z]:', name) or '..' in parts:
-            raise EngineError(f'The archive names a file outside its own folder ({_show(raw)}), so nothing was imported.', 400)
+            raise EngineError(f'The archive names a file outside its own folder ({_show(raw)}). Nothing was imported.', 400)
         if info.flag_bits & 0x1:
-            raise EngineError('The archive is password protected. Make the zip again without a password.', 400)
+            raise EngineError('The archive is password protected. Make the zip again without a password. Nothing was imported.', 400)
         if info.is_dir() or not parts:
+            continue
+        if _ignored(parts):
+            ignored += 1
             continue
         if len(parts) > MAX_DEPTH:
             raise EngineError(f'The archive has folders more than {MAX_DEPTH} levels deep ({_show(raw)}). Nothing was imported.', 400)
-        if parts[0] == '__MACOSX' or 'node_modules' in parts or any(part.startswith('.') for part in parts):
-            ignored += 1
-            continue
         key = '/'.join(parts)
         folded = unicodedata.normalize('NFC', key).casefold()
         if folded in seen:
             raise EngineError(f'The archive holds {_show(key)} twice. Nothing was imported.', 400)
         seen.add(folded)
         if info.file_size > 1024 * 1024 and info.file_size > MAX_RATIO * max(info.compress_size, 1):
-            raise EngineError(f'{_show(key)} expands far more than a website file would, so the archive was not opened.', 400)
+            raise EngineError(f'{_show(key)} expands far more than a website file would, so the archive was not opened. Nothing was imported.', 400)
         kept.append((parts, info))
+    names = [parts for parts, _ in kept]
+    if len(kept) > MAX_ENTRIES:
+        raise _too_many(len(kept), names)
     if kept and all(len(parts) > 1 for parts, _ in kept) and len({parts[0] for parts, _ in kept}) == 1:
         kept = [(parts[1:], info) for parts, info in kept]
     if sum(info.file_size for _, info in kept) > MAX_UNPACKED:
-        raise EngineError(f'The archive unpacks to more than {_size(MAX_UNPACKED)}, the most a site import takes.', 413)
+        raise _too_large(names)
     files: dict[str, tuple[str, bytes]] = {}
     skipped: list[dict] = []
     total = 0
@@ -145,7 +314,7 @@ def read_archive(data: bytes) -> dict:
             continue
         total += len(body)
         if total > MAX_UNPACKED:
-            raise EngineError(f'The archive unpacks to more than {_size(MAX_UNPACKED)}, the most a site import takes.', 413)
+            raise _too_large(names)
         if kind == 'asset':
             wanted = STORED.get(extension, extension)
             try:
@@ -163,6 +332,9 @@ def read_archive(data: bytes) -> dict:
                 skipped.append({'file': path, 'reason': str(error)})
                 continue
         files[path] = (kind, body)
+    source = _project(names, files)
+    if source:
+        raise EngineError(source, 400)
     return {'files': files, 'skipped': skipped, 'ignored': ignored}
 
 
@@ -404,7 +576,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             warnings.append(f'The script was left out: {error}')
     if foreign:
         warnings.append(left_out_scripts(foreign))
-    for found, noun, where in ((outside_scripts, 'external script', ''), (outside_styles, 'external stylesheet', ' in the page head, which an import leaves out')):
+    for found, noun, where in ((outside_scripts, 'external script', ''), (outside_styles, 'external stylesheet', ' in the page head')):
         if found:
             shown = sorted(found)
             warnings.append(f'{len(shown)} {noun}{"s" if len(shown) != 1 else ""}{where} {"is" if len(shown) == 1 else "are"} not brought along: {", ".join(shown[:5])}{"..." if len(shown) > 5 else ""}.')

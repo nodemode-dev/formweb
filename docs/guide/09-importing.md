@@ -1,31 +1,41 @@
 # Importing
 
-You can bring work into FormWeb in three ways: one HTML page as a section, a whole static site from a zip, or a FormWeb project file.
+You can bring work into FormWeb in four ways: one or several `.html` files as new pages or as a section, pasted HTML code as a section, a whole static site from a zip, or a FormWeb project file.
 
 ## Follow along
 
-Import HTML is shown on **Harbour Ferries** and Import site from zip on **Coldmere Plumbing** (both under **Help > Demos**). For the zip you need a small static site of your own, zipped: a few `.html` files, their CSS and pictures.
+Pasted HTML is shown on **Harbour Ferries** and Import site from zip on **Coldmere Plumbing** (both under **Help > Demos**). For the files you need one or two `.html` pages of your own; for the zip, a small static site of your own, zipped: a few `.html` files, their CSS and pictures.
 
 ## Two ways to bring a page in
 
-Both Import HTML and Import site from zip ask how the page should arrive, under **Bring it in as** and **Bring pages in as**:
+Every import asks how the page should arrive, under **Bring it in as** (a section) and **Bring pages in as** (new pages):
 
 - **Editable elements (recommended for editing).** Each heading, paragraph, picture, link, list, table and box becomes an ordinary FormWeb element, the same as one you inserted yourself: you click it on the canvas, double-click to change its text, restyle it in the right panel and drag it to another place. The look is measured at desktop width; responsive rules are not carried over, and scripts and frames stay as small code sections.
-- **Code sections (exact copy, edited as code).** The page stays exactly as written, scripts and responsive rules included, and runs in Preview and the export. On the canvas it is one block, a strip labelled Component, that you edit as HTML, CSS and JavaScript in the right panel.
+- **Code sections (exact copy, edited as code).** The page stays exactly as written, scripts and responsive rules included, and runs in Preview and the export. On the canvas it is one block labelled Code section, which you edit as HTML, CSS and JavaScript in the right panel.
 
 ![The review of a one-page zip: Pages lists Brightwater Studio from index.html going to /home, Add them has Add as new pages chosen, and Bring pages in as offers Editable elements (recommended for editing), chosen, and Code sections (exact copy, edited as code), each with its sentence; Import 1 page waits at the bottom](images/import-bring-choice.webp)
 
 Editable elements is chosen when the view opens. You can also change your mind later: a page brought in as code can be converted at any time (see [Convert a code section to elements](#convert-a-code-section-to-elements) below), and a conversion is one undo step.
 
-## One page: Import HTML
+## HTML files: Import HTML files
 
-Import HTML turns a whole HTML page, with its styles and first script, into a section of the open page: editable elements, or one **code section** that keeps the HTML and CSS as code and runs in Preview and in the export, not on the canvas.
+No zip is needed for pages you have as `.html` files.
 
-1. Choose **File > Import HTML...**. The left panel opens the **Library** at its **Import HTML** view.
+1. Choose **File > Import HTML files...** (also in the command search, Ctrl+K). The file picker opens at once. Behind it the left panel opens the **Library** at its **Import HTML** view, which has three parts: **HTML files**, **A whole site in a .zip** and **Paste HTML code**. If you close the picker, **Choose .html files...** in the first part opens it again.
+2. Pick one `.html` file, or several at once (Ctrl+click or Shift+click in the picker, Cmd+click on a Mac). The view lists the files you chose with their size.
+3. Choose how they come in:
+   - **As new pages** (the default): each file becomes a page. FormWeb shows the same **Review** as for a zip (see [A whole site](#a-whole-site-import-site-from-zip) below): each page with the address it will get, from its file name (`about.html` becomes `/about`, `index.html` becomes `/`), **Add them** and **Bring pages in as**. Click **Import 1 page**, or **Import 2 pages** and so on. The import is one undo step.
+   - **As a section of this page**: offered when you picked exactly one file. The page goes into the open page as one section, after the selected section, with its styles and main script, and its file name as the section's name. Choose **Bring it in as**, then click **Import as section**. The new section is selected and the canvas scrolls to it. With several files picked, this choice is greyed out and the view says that a section takes one file.
 
-![The Import HTML view of the Library: at the top Import a whole site with an Import site from zip... button, then Import HTML with its explanation, a Section name field (Taken from the page title), an HTML box and a Choose an .html file button](images/import-html-panel.webp)
+A file brings its own `<style>` blocks and its first script. Stylesheets, scripts and pictures it loads from other files are not brought along; for those, zip the site and use Import site from zip. At most 100 files, 64 MiB together, are taken at once, and a file over 1 MiB is skipped with the reason in the review. Choose **Choose other files...** to start again with other files, or the back button **Import HTML** to return to the three parts.
 
-2. Paste the page's HTML in the **HTML** box, or click **Choose an .html file**. In Harbour Ferries, paste this:
+## Pasted code: Paste HTML code
+
+Paste HTML code turns a whole HTML page, with its styles and first script, into a section of the open page: editable elements, or one **code section** that keeps the HTML and CSS as code and runs in Preview and in the export, not on the canvas.
+
+1. Open the **Library** (its icon in the rail, or **Window > Library**) and click its **Import HTML** tab, or choose **File > Import HTML files...** and close the file picker. Scroll to the third part, **Paste HTML code**.
+
+2. Paste the page's HTML in the **HTML** box. In Harbour Ferries, paste this:
 
    ```html
    <!doctype html><html><head><title>Winter timetable notice</title><style>.notice{padding:32px;background:#fff4d6;font-family:Georgia,serif}.notice h2{margin:0 0 8px}</style></head><body><div class="notice"><h2>Winter timetable</h2><p>From 1 October the Gull Island boat sails at weekends only.</p></div></body></html>
@@ -35,9 +45,9 @@ Import HTML turns a whole HTML page, with its styles and first script, into a se
 
 ![The Import HTML view after pasting: the HTML box holds the pasted code, showing its last characters, and the orange Import as section button waits at the bottom of the panel](images/import-html-pasted.webp)
 
-4. Click **Import as section** at the bottom of the panel. The status line says "HTML section imported." and the new section, here **Winter timetable notice**, is selected. With the page itself selected, as here, it goes at the end of the page. With **Editable elements** the panel says instead what was converted, for example "Converted 4 elements.", and the notice's heading and paragraph are layers you can click.
+4. Click **Import as section** under the paste part. The status line says "HTML section imported." and the new section, here **Winter timetable notice**, is selected. With the page itself selected, as here, it goes at the end of the page. With **Editable elements** the panel says instead what was converted, for example "Converted 4 elements.", and the notice's heading and paragraph are layers you can click.
 
-On the canvas a code section is drawn as a plain strip labelled Component, because its code does not run there:
+On the canvas a code section is drawn as a plain block labelled Code section, because its code does not run there:
 
 ![The bottom of Harbour Ferries on the canvas: the dark footer, and under it a thin strip labelled Component, which is the imported code section, selected](images/import-html-canvas.webp)
 
@@ -47,12 +57,16 @@ On the canvas a code section is drawn as a plain strip labelled Component, becau
 
 Import HTML turns on code sections for the site if they were off. Pictures and scripts that the pasted page loads by a relative path (such as `img/photo.png`) are not brought along: upload them separately, or use Import site from zip.
 
+### A page script
+
+When a code section holds only a script and no HTML, as when a page converted to elements keeps its script, it is a **Page script**. Its layer has a page icon with code brackets, and on the canvas its block reads **Page script**, with "Runs in Preview and on the published site, not on this canvas." under it. Click the block to select it; it gets the orange outline. The right panel then opens the **Content** tab on its **Code section** settings, where you edit the script. A script has no box on the page, so the **Design** and **Motion** tabs only say that their settings do not apply to it, and its right-click menu has no Text style, Background, Spacing or Size. If you were on Design or Motion before, selecting another element takes you back there.
+
 ## A whole site: Import site from zip
 
 This brings in a static site built elsewhere: every HTML file becomes a page.
 
-1. Choose **File > Import site from zip...**, or click **Import site from zip...** at the top of the Import HTML view.
-2. Click **Choose a .zip file** and pick your zip.
+1. Choose **File > Import site from zip...**, or click **Choose a .zip file...** in the **A whole site in a .zip** part of the Import HTML view.
+2. The file picker opens; pick your zip. If you close the picker, click **Choose a .zip file** in the view behind it. This picker also takes loose `.html` files, which then come in as described under [HTML files](#html-files-import-html-files).
 
 ![The Import site from zip view: a back button to Import HTML, the explanation of what an import does, and the Choose a .zip file button](images/import-site-panel.webp)
 
@@ -90,7 +104,11 @@ Pictures (PNG, JPEG, GIF, WebP, SVG), MP4 and WebM videos and WOFF2 fonts go int
 
 Left out, with a note in the review: the rest of the page head, stylesheets and scripts loaded from other websites, scripts after the first one, scripts that are not JavaScript (such as JSON-LD structured data; Import HTML leaves them out the same way), other font formats, icons in ICO format, and any other kind of file.
 
-The zip may be up to 64 MiB, with at most 1,000 files and 100 pages. A zip with a password, links, or files outside its own folder is refused as a whole. System files such as `__MACOSX` folders are ignored, and a single top folder is stripped.
+The zip may be up to 64 MiB and 128 MiB unpacked, with at most 1,000 files and 100 pages. System and dependency folders (`__MACOSX`, `node_modules` and folders whose name starts with a dot) are ignored and do not count toward the 1,000, though the whole zip may hold at most 40,000 entries with them. A zip with a password, links, or files outside its own folder is refused as a whole, and a single top folder is stripped. When a zip is refused for its size or its number of files, the message says what to do: usually, zip only the folder that holds the finished site.
+
+### A project's source is refused
+
+A site made with a build tool has two forms: its source, which a browser cannot show as it is, and the finished site the build writes, often into a folder called `dist` or `build`. A zip of the source is refused with a message, and nothing is imported. FormWeb takes a zip as source when it has a `package.json` at the top (or one folder down) and something only a build can turn into a page: no HTML page at all, source files such as `.ts`, `.tsx`, `.jsx`, `.vue` or `.svelte` in its `src` folder or loaded by a page, a placeholder such as `%PUBLIC_URL%` in a page, or a script that loads a package by its name. The message says which of these it found. Build the project first (usually `npm run build`), then zip the output folder and import that zip. When the zip already holds a built copy in a `dist` or `build` folder, the message names that folder: zip that folder on its own. A finished site that only has a `package.json` beside its pages is imported as usual, and `package.json` is listed as skipped.
 
 ## Convert a code section to elements
 
@@ -136,7 +154,7 @@ Five small sites were imported as editable elements and compared at 1440 px with
 
 | Site | Exported page | On the canvas |
 | --- | --- | --- |
-| One-page landing page (header, hero, three feature columns in a flex row, footer) | 0.0% | 0.0% (plus the thin Component strip of the kept script below the footer) |
+| One-page landing page (header, hero, three feature columns in a flex row, footer) | 0.0% | 0.0% (plus the thin Page script block of the kept script below the footer) |
 | Three pages with a shared stylesheet, a CSS grid gallery of six pictures and links between the pages | 0.0% on each page | 0.0% on each page |
 | An old editor's page: tables for layout, inline styles, `<font>` and `<center>` tags | 1.1% | 1.3% |
 | A small-business page styled with a CSS framework's classes: navigation bar, hero photo as a CSS background under a dark gradient, three cards, four footer columns | 0.0% | not measured; looks the same |

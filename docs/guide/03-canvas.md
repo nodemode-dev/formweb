@@ -12,6 +12,7 @@ The examples use **Coldmere Plumbing** (**Help > Demos > Coldmere Plumbing**), o
 - Click a step of that path to select a parent.
 - Ctrl+click (Cmd+click on a Mac) or Shift+click adds an element to the selection or takes it out. On a Mac, Ctrl+click is a right-click and opens the canvas menu, so use Cmd or Shift there.
 - Double-click text to edit it in place. Click outside it to keep the change.
+- Code sections do not run on the canvas, so each is drawn as a plain block that reads Code section, Component or Page script. A Page script, a script with no HTML, has no box of its own, so click its block to select it (see [A page script](09-importing.md#a-page-script)).
 
 ## The right-click menu
 
@@ -64,6 +65,12 @@ To put elements side by side or in columns, select their container and choose **
 ### See the structure without dragging
 
 **View > Show layout outlines** (Ctrl+Alt+G, or Cmd+Option+G on a Mac) outlines the container of the selected element and every container around it, up to the page, and draws the cells of any CSS grid among them, so you can see the structure before you drag. It is off at first, stays as you left it in this browser, is never saved with the site or exported, and is not shown in Preview.
+
+### Hover outlines
+
+Rest the mouse on a row in the Layers list and its element gets a light orange outline on the canvas, thinner and paler than the selection outline. Rest it on an element on the canvas and the element gets the same outline, and its row in the Layers list is tinted. Nothing scrolls and nothing is selected; move the mouse away and the outline goes. The selected element and the page itself never get a hover outline.
+
+Hover outlines do not show while you drag, edit text, have a menu or Quick insert open, or are in Preview, and a touch or a pen never draws them. **View > Show hover outlines** turns them off, and on again. They are on at first, stay as you left them in this browser and are never saved with the site.
 
 ### On a touch screen or with a pen
 

@@ -40,6 +40,7 @@ import { installInspector } from './features/inspector';
 import { installPageBackground, startChoices, startCommands } from './features/inspector/page-background';
 import { installCanvasMenu } from './features/canvas-menu';
 import { installInspectorSearch, sectionId } from './features/inspector/search';
+import { installControls } from './features/inspector/controls';
 import { installLibrary } from './features/library';
 import { convertSections, installConvert } from './features/convert';
 import { installInsertFlyout } from './features/panel/insert-flyout';
@@ -50,11 +51,13 @@ import { installPanel } from './features/panel';
 import { canvasClick, installSelection, isMulti, isSelected, layerClick, topMost, pageClick, paintLayerRow, paintPageRow, selectedIds, selectedPageIds, selectNodes } from './features/selection';
 import { anyCopyable, anyRemovable, canStep, copySelected, countLabel, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, selectionNote, selectionTitle, stepSelected } from './features/selection-actions';
 import { installCanvasDrag } from './features/canvas-drag';
+import { installHoverOutline } from './features/hover-outline';
 import { installSelectMode, paintSelectMode } from './features/select-mode';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
 import { installDecorativeImage } from './features/decorative-image';
 import { installPageSlug } from './features/page-slug';
+import { installScriptPanes, isPageScript, layerGlyph, paintGlyph } from './features/inspector/script-note';
 import { isLang, label, labelAttr, labelText, language, languages, onLanguage, setLanguage, startLanguage, startPageTranslator, t } from './i18n';
 import './styles/features.css';
 import './styles/stage-head.css';
@@ -225,7 +228,7 @@ function setStyle(name: string, content: string): Promise<EditorState> {
     return Promise.reject(new Error('Brand restriction is on: pick a brand or team library value from the list (var(--brand-...) or var(--lib-...)), or ask a project manager to turn it off in Window > Brand kit.'));
   }
   const next = { [name]: entered || null };
-  return nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } });
+  return controlKit.track(name, entered, nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } }));
 }
 function setAttribute(name: string, content: string): Promise<EditorState> {
   return nodePatch({ attrs: { [name]: content.trim() || null } });
@@ -444,7 +447,7 @@ const libraryPanel = installLibrary({
     const at = anchor && anchor !== root && siblings.includes(anchor) ? siblings.indexOf(anchor) + 1 : siblings.length;
     return { page: currentPage().id, parent: root, index: at < siblings.length ? at : undefined };
   },
-  select: id => { selectedId = id; update(state()); },
+  select: id => { selectNode(id); canvas.bring(id); },
   openPage: id => {
     const page = state().site.pages.find(entry => entry.id === id);
     if (!page) return;
@@ -502,6 +505,7 @@ const pagePane = element('div');
 const motionPane = element('div');
 motionPane.hidden = true;
 inspectorScroll.append(designPane, motionPane, contentPane, pagePane);
+const scriptPanes = installScriptPanes([designPane, motionPane]);
 inspector.append(inspectorIdentity, inspectorTabs, inspectorScroll, dockStrip('right', [{ command: 'window.design', label: 'Design', icon: 'sliders' }, { command: 'window.content', label: 'Content', icon: 'text' }, { command: 'page.settings', label: 'Page', icon: 'page' }], { command: 'window.toggle-right', label: 'Expand right panel', icon: 'chevronsLeft' }));
 const inspectorSearch = installInspectorSearch({
   after: inspectorTabs, scroll: inspectorScroll, select: setInspector,
@@ -574,7 +578,9 @@ function addStyle(container: HTMLElement, label: string, key: string, choices?: 
   control.setAttribute('data-style', key);
   control.addEventListener('change', () => void run(() => setStyle(key, control.value)));
   styleFields.set(key, control);
-  const wrapper = field(label, control, full);
+  const wrapper = field(label, control, full) as HTMLLabelElement;
+  control.id = `fw-style-${key}`;
+  wrapper.htmlFor = control.id;
   wrapper.querySelector('.field-label')!.append(resetButton(label, key));
   container.append(wrapper);
 }
@@ -1227,6 +1233,13 @@ const inspectorExt = installInspector({
   panes: { design: designPane, content: contentPane, tokens: tokensPane, motion: motionPane },
   anchors: { afterAttributes: attributesSection, stageBefore: viewportReadout }
 });
+const controlKit = installControls({
+  fields: styleFields, overlay, state: () => lastState, setStyle, scope: key => `${currentNode().id}|${breakpoint}|${key}`,
+  setStyles: styles => { const next = Object.fromEntries(Object.entries(styles).map(([name, content]) => [name, content.trim() || null])); return nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } }); },
+  status: (message, error) => status(message, error),
+  values: key => { const node = currentNode(); return { value: (breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {})[key] || '', inherited: node.styles[key] || '' }; },
+  changed: () => { value(designFieldsSelect, controlKit.defaultRaw() ? 'css' : 'controls'); designFieldsAll.disabled = !controlKit.own(); }
+});
 const settingsPane = dialogPane('settings');
 applyTheme();
 const themeSelect = select(Object.entries(THEMES).map(([id, profile]) => ({ id, name: profile.label })));
@@ -1246,6 +1259,12 @@ autoShowHome.checked = homePref();
 autoShowHome.addEventListener('change', () => setHomePref(autoShowHome.checked));
 const autoShowHomeLabel = element('label', 'checkbox-field');
 autoShowHomeLabel.append(autoShowHome, element('span', '', 'Show the Home screen at launch'));
+const designFieldsSelect = select([{ id: 'controls', name: 'Controls' }, { id: 'css', name: 'CSS text' }]);
+designFieldsSelect.value = controlKit.defaultRaw() ? 'css' : 'controls';
+designFieldsSelect.addEventListener('change', () => controlKit.setDefaultRaw(designFieldsSelect.value === 'css'));
+const designFieldsAll = button('Use for all fields', undefined, () => { controlKit.clearRaw(); status('Every Design field now follows this setting.'); });
+designFieldsAll.disabled = !controlKit.own();
+const designFieldsNote = element('p', 'micro', 'Controls puts sliders, color swatches and choosers next to the Design fields; CSS text shows the typed value only. The switch in a field\'s label changes that field alone.');
 const prefsIcons: Record<string, Icon> = { General: 'pfGeneral', Interface: 'pfInterface', Plugins: 'pfPlugins' };
 const prefsPages = element('div', 'fw-prefs-pages');
 const prefsNav = element('div', 'fw-prefs-nav');
@@ -1414,7 +1433,7 @@ resetPrefs.addEventListener('click', () => { resetPrefs.hidden = true; resetRow.
 const tokenNote = element('p', 'micro', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.');
 const endpointNote = element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`);
 prefsAdd('General', prefsGroup('Startup', autoShowHomeLabel), prefsGroup('Reset', resetPrefs, resetRow));
-prefsAdd('Interface', prefsGroup('Theme', field('Editor theme', themeSelect)), prefsGroup('Language', field('Editor language', languageSelect)));
+prefsAdd('Interface', prefsGroup('Theme', field('Editor theme', themeSelect)), prefsGroup('Language', field('Editor language', languageSelect)), prefsGroup('Design fields', field('Show in Design fields', designFieldsSelect), designFieldsNote, designFieldsAll));
 prefsAdd('Plugins', prefsGroup('Server access', tokenNote, field('Server access token', authToken), endpointNote));
 settingsPane.append(prefsPages);
 prefsMark('General');
@@ -1520,12 +1539,13 @@ function update(next: EditorState): void {
   paintSelectMode();
   keyed(layersList, layers, item => item.node.id, () => {
     const row = button('', undefined, undefined, 'list-row layer-row');
-    row.append(icon('box'), element('span', 'row-label'), element('span', 'row-detail'));
+    row.append(layerGlyph(), element('span', 'row-label'), element('span', 'row-detail'));
     row.addEventListener('click', event => layerRowClick(event, row.dataset.key!));
     row.addEventListener('contextmenu', event => showLayerMenu(event, row.dataset.key!));
     panel.layerRow(row, event => showLayerMenu(event, row.dataset.key!));
     return row;
   }, (row, item) => {
+    paintGlyph(row.children[0], site, item.node.id);
     text(row.children[1] as HTMLElement, item.node.name);
     text(row.children[2] as HTMLElement, item.node.componentId ? 'instance' : item.node.tag);
     row.style.setProperty('--depth', String(item.depth));
@@ -1557,9 +1577,10 @@ function update(next: EditorState): void {
   text(scopeLabel, breakpoint === 'desktop' ? 'Desktop base' : breakpoint + ' override');
   const override = breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {};
   styleFields.forEach((control, name) => {
-    value(control, override[name] || '');
+    value(control, controlKit.shown(name, override[name] || ''));
     if (control instanceof HTMLInputElement) control.placeholder = node.styles[name] || 'Auto / inherit';
   });
+  controlKit.sync();
   segmentFields.forEach((buttons, name) => {
     const own = override[name] || '';
     const inherited = breakpoint === 'desktop' ? '' : node.styles[name] || '';
@@ -1629,7 +1650,7 @@ function update(next: EditorState): void {
   if (dialogMode === 'locales') updateLocales();
   if (dialogMode === 'tokens') updateTokens();
   updateBrand(next);
-  setInspector(activeInspector);
+  setInspector(scriptPanes.update(isPageScript(site, node.id) && selectedIds().length < 2, activeInspector));
   setSidebar(activeSidebar);
   reportSelection();
   revealApp();
@@ -2232,7 +2253,7 @@ registerCommands([
   { id: 'file.new', label: 'New site...', menu: 'File', run: () => openDialog('new') },
   { id: 'file.projects', label: 'Open project...', menu: 'File', run: () => openDialog('projects'), enabled: ready },
   { id: 'file.import', label: 'Import .fweb or .fpub file...', menu: 'File', run: () => importer.click() },
-  { id: 'file.import-html', label: 'Import HTML...', menu: 'File', run: () => { openDock('left'); setSidebar('library'); libraryPanel.showTab('import'); }, enabled: ready },
+  { id: 'file.import-html', label: 'Import HTML files...', menu: 'File', run: () => { if (home.isShown) home.dismiss(); if (layout.state.left !== 'open' || activeSidebar !== 'library') toggleLeft('library'); libraryPanel.importHtml(); }, enabled: ready },
   { id: 'file.import-site', label: 'Import site from zip...', menu: 'File', run: () => { if (home.isShown) home.dismiss(); if (layout.state.left !== 'open' || activeSidebar !== 'library') toggleLeft('library'); libraryPanel.importSite(); }, enabled: ready },
   { id: 'file.save', label: 'Save', menu: 'File', keys: ['Mod+S'], global: true, group: 1, run: saveProject, enabled: ready },
   { id: 'file.download', label: 'Download .fweb project', menu: 'File', group: 1, run: downloadProject, enabled: ready },
@@ -2286,6 +2307,7 @@ registerCommands([
   { id: 'view.refresh', label: 'Refresh live responsive preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
   { id: 'view.preview-full', label: 'Preview as published', menu: 'View', keys: ['Mod+Shift+P'], group: 1, run: () => fullPreview.toggle(), enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
+  { id: 'view.design-controls', label: 'Show controls in Design fields', menu: 'View', group: 2, run: () => { controlKit.setDefaultRaw(!controlKit.defaultRaw()); status(controlKit.defaultRaw() ? 'Design fields show the CSS text only.' : 'Design fields show their controls.'); }, checked: () => !controlKit.defaultRaw() },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: ['Mod+K'], global: true, group: 2, run: () => commandSearch.show() },
   { id: 'view.menus-in-window', label: 'Menus in Window', menu: 'View', group: 2, enabled: desktopMac, checked: menusInWindow, run: () => { const on = !menusInWindow(); setMenusInWindow(on); status(on ? 'The menus stay in the window from the next start.' : 'The menus go to the menu bar from the next start.'); } },
   { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => toggleLeft('pages'), checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
@@ -2323,6 +2345,7 @@ installSelection({ ready, site: () => state().site, primary: () => selectedId, s
 installSelectionActions({ idle: () => !!scrim.hidden, pageRoot: () => currentPage().root, status, copyNote });
 registerCommands(installSelectMode({ heads: [{ head: pagesHead, kind: 'pages' }, { head: layersHead, kind: 'layers' }], lists: [pagesList, layersList], frame: canvas.frame, loaded: canvas.loaded(), ready, status: message => status(message) }));
 registerCommands(installCanvasDrag({ frame: canvas.frame, stage, overlay, loaded: () => canvas.loaded(), state, ready, editing: () => !preview, root: () => currentPage().root, selectionIds: selectedIds, select: selectNode, commands, run, status }).commands);
+registerCommands(installHoverOutline({ frame: canvas.frame, loaded: () => canvas.loaded(), list: layersList, ready, editing: () => !preview && !fullPreview.isOpen, busy: () => insertFlyout.isOpen() || !scrim.hidden, root: () => currentPage().root, selectionIds: selectedIds, status: message => status(message) }));
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });

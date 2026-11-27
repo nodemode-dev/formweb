@@ -322,26 +322,32 @@ async def library_import_html(request: Request):
     return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': warnings + ([site_import.left_out_scripts(foreign)] if foreign else [])}
 
 
-async def _archive(request: Request) -> bytes:
+async def _archive(request: Request) -> bytes | dict | list:
     body = bytearray()
     async for chunk in request.stream():
         body.extend(chunk)
         if len(body) > MAX_SITE_ARCHIVE_BYTES:
-            raise EngineError('The archive is larger than 64 MiB, the most a site import takes.', 413)
-    return bytes(body)
+            raise EngineError('The upload is larger than 64 MiB, the most a site import takes. Zip only the folder that holds the finished site, leaving out large videos and files it does not use. Nothing was imported.', 413)
+    if request.headers.get('content-type', '').split(';', 1)[0].strip().lower() != 'application/json':
+        return bytes(body)
+    return site_import.loose(bytes(body))
 
 
-async def review_site(data: bytes) -> dict:
-    archive = await asyncio.to_thread(site_import.read_archive, data)
+def _read(data) -> dict:
+    return site_import.read_archive(data) if isinstance(data, (bytes, bytearray)) else site_import.read_files(data)
+
+
+async def review_site(data) -> dict:
+    archive = await asyncio.to_thread(_read, data)
     site, revision = await _current()
     result = await asyncio.to_thread(site_import.plan, archive, site, kit_script)
     return {**site_import.review(result), 'revision': revision}
 
 
-async def import_site(data: bytes, mode: str, revision: int | None) -> dict:
+async def import_site(data, mode: str, revision: int | None) -> dict:
     if mode not in ('new', 'replace'):
         raise EngineError('Mode must be new or replace.')
-    archive = await asyncio.to_thread(site_import.read_archive, data)
+    archive = await asyncio.to_thread(_read, data)
     site, current = await _current()
     if revision is not None and revision != current:
         raise EngineError('The site changed after the review. Review the archive again before importing.', 409)
@@ -349,7 +355,7 @@ async def import_site(data: bytes, mode: str, revision: int | None) -> dict:
     commands, pages = await asyncio.to_thread(site_import.commands, result, site, mode, archive, kit_script)
     assets = site_import.store_assets(result, archive, studio)
     outcome = await studio.mutate('batch', {'commands': commands, 'expectedRevision': current})
-    studio.access.record('library.import-site', {'pages': pages, 'assets': assets, 'mode': mode, 'bytes': len(data)})
+    studio.access.record('library.import-site', {'pages': pages, 'assets': assets, 'mode': mode, 'bytes': len(data) if isinstance(data, (bytes, bytearray)) else sum(len(body) for _, body in archive['files'].values())})
     skipped = result['skipped']
     warnings = [f'{page["name"]}: {warning}' for page in result['pages'] for warning in page['warnings']]
     return {**(outcome if isinstance(outcome, dict) else {}), 'pages': pages, 'assets': assets, 'skipped': skipped, 'warnings': warnings,

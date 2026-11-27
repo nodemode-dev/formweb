@@ -1,6 +1,7 @@
 import { commands, state } from '../api';
 import { commands as registry } from '../commands/registry';
 import type { CommandDef } from '../ui/shell';
+import { codeKind } from '../ui/canvas';
 import { ctrlClickOffMac, menuKeyPressed, showContextMenu, type MenuEntry, type MenuItem, type OpenMenu } from '../ui/context-menu';
 import { t } from '../i18n';
 import { invoke } from './panel';
@@ -37,7 +38,7 @@ type Link = { id: string; label: string; tab: 'design' | 'content'; kind: 'style
 
 const VECTOR = new Set(['g', 'path', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'text', 'textPath', 'symbol', 'use', 'pattern', 'tspan', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon']);
 const TEXT_TAGS = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'span', 'a', 'button', 'label', 'li', 'blockquote', 'figcaption', 'strong', 'em', 'small', 'b', 'i', 'summary', 'legend', 'dt', 'dd', 'td', 'th', 'caption', 'code', 'pre', 'time']);
-const html = (node: SiteNode): boolean => !VECTOR.has(node.tag);
+const html = (node: SiteNode): boolean => !VECTOR.has(node.tag) && codeKind(state().site, node.id) !== 'script';
 const LINKS: Link[] = [
   { id: 'inspector.text-style', label: 'Text style', tab: 'design', kind: 'style', key: 'font-size', applies: node => html(node) && node.tag !== 'svg' && (!!node.text || TEXT_TAGS.has(node.tag)) },
   { id: 'inspector.background', label: 'Background', tab: 'design', kind: 'style', key: 'background', applies: node => html(node) && node.tag !== 'img' && node.tag !== 'svg' },

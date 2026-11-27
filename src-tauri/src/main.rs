@@ -28,6 +28,7 @@ mod downloads;
 mod engine_start;
 mod render;
 mod reveal;
+mod start_times;
 mod text_edit;
 mod traffic_lights;
 #[cfg(windows)]
@@ -415,6 +416,7 @@ fn main() {
                         Ok(child) => child,
                         Err(failure) => engine_failed(&handle, failure, packaged),
                     };
+                    start_times::mark(&start_times::SERVICE_STARTED);
                     capture_window_key(&mut child);
                     #[cfg(unix)]
                     SERVICE_GROUP.store(child.id() as i32, std::sync::atomic::Ordering::SeqCst);
@@ -430,6 +432,7 @@ fn main() {
                         engine_failed(&handle, failure, packaged);
                     }
                 }
+                start_times::mark(&start_times::SERVICE_READY);
                 let main_thread = handle.clone();
                 let _ = handle.run_on_main_thread(move || open_editor(&main_thread));
             });

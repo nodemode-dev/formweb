@@ -4,23 +4,48 @@ import { icon } from '../../ui/icons';
 import { label, t } from '../../i18n';
 import type { LibraryHooks, SitePage, SiteResult, SiteReview, SiteSkip } from './types';
 import { bringChoice } from './bring';
-import { state } from '../../api';
+import { importSection } from './importer';
+import { state, subscribe } from '../../api';
 
 type Mode = 'new' | 'replace';
+type Use = 'pages' | 'section';
+type Loose = { name: string; html: string };
 
 const size = (bytes: number): string => bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MiB` : `${Math.max(1, Math.round(bytes / 1024))} KiB`;
+const HTML_ACCEPT = '.html,.htm,text/html';
+const isHtml = (file: File): boolean => /\.html?$/i.test(file.name);
+const isZip = (file: File): boolean => /\.zip$/i.test(file.name);
+/** Decodes a picked page exactly as the service decodes one inside a zip: UTF-8 (a byte order mark dropped), else Windows-1252 with its five unassigned bytes as U+FFFD. */
+function decode(bytes: ArrayBuffer): string {
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+  catch { return new TextDecoder('windows-1252').decode(bytes).replace(/[\u0081\u008d\u008f\u0090\u009d]/g, '�'); }
+}
 
 /**
- * Import site from zip: pick a .zip holding a static site, read the server's review of it (pages and their routes,
- * assets, what is skipped and why), choose new pages or replacing matching routes, then import in one undo step.
+ * Import HTML files or a site from a zip: pick one .zip holding a static site, or one or several loose .html files,
+ * read the server's review (pages and their routes, assets, what is skipped and why), choose new pages or replacing
+ * matching routes, then import in one undo step. A single loose file can instead go into the open page as a section.
  * Every block is mounted once and shown by `hidden`; the lists are keyed.
  */
 export class SiteImport {
   readonly element = element('div', 'fw-lib-view fw-lib-import fw-lib-site');
   private file = element('input');
+  private title = element('h3', 'fw-lib-subhead');
+  private help = element('div', 'fw-lib-site-help');
+  private helpHtml = element('p', 'fw-lib-help');
+  private helpZip = element('p', 'fw-lib-help');
+  private made: string[] = [];
   private pick = element('button', 'fw-lib-choose');
-  private chosen = element('p', 'fw-lib-site-file');
+  private pickLabel = element('span');
+  private chosen = element('div', 'fw-lib-site-files');
+  private uses = element('div', 'fw-seg fw-lib-site-modes fw-lib-site-uses');
+  private asPages = element('button', 'fw-seg-btn');
+  private asSection = element('button', 'fw-seg-btn');
+  private useNote = element('p', 'fw-lib-row-meta fw-lib-site-use-note');
+  private section = element('p', 'fw-lib-help fw-lib-site-section');
+  private scroller = element('div', 'fw-lib-scroll');
   private review = element('div', 'fw-lib-site-review');
+  private reviewTail = element('div', 'fw-lib-site-skipped');
   private counts = element('p', 'fw-lib-row-text');
   private pages = element('div', 'fw-lib-site-list');
   private modes = element('div', 'fw-seg fw-lib-site-modes');
@@ -33,30 +58,50 @@ export class SiteImport {
   private go = element('button', 'fw-lib-insert primary');
   private goLabel = element('span');
   private bring = bringChoice('Bring pages in as');
+  private working = '';
   private current: File | null = null;
+  private loose: Loose[] | null = null;
+  private picked: File[] = [];
+  private kind: 'html' | 'site' = 'site';
+  private use: Use = 'pages';
   private plan: SiteReview | null = null;
   private mode: Mode = 'new';
   private busy = false;
   private done = false;
 
-  constructor(private hooks: LibraryHooks, back: () => void) {
-    const scroller = element('div', 'fw-lib-scroll');
+  constructor(private hooks: LibraryHooks, back: () => void, private show: () => void) {
+    const scroller = this.scroller;
     const backButton = element('button', 'fw-lib-choose fw-lib-site-back');
     backButton.type = 'button';
     backButton.append(icon('chevronLeft'), element('span', '', t('Import HTML')));
     backButton.addEventListener('click', back);
+    text(this.helpHtml, t('Each file becomes a new page at the address shown in the review, or a single file goes into the open page as a section.'));
+    text(this.helpZip, t('Brings a static site made elsewhere into this site: every HTML file in the zip becomes a page, with its stylesheets, pictures and WOFF2 fonts. After the review you choose whether the pages arrive as editable elements or as code sections. Links between the pages follow their new addresses, and outside links stay as they are.'));
+    this.help.append(this.helpHtml, this.helpZip);
+    subscribe(next => { if (this.finished && this.made.length && !this.made.some(id => next.site.nodes[id] || next.site.pages.some(page => page.id === id))) this.reset(); });
     this.file.type = 'file';
-    this.file.accept = '.zip,application/zip';
+    this.file.multiple = true;
     this.file.hidden = true;
     this.file.addEventListener('change', () => {
-      const picked = this.file.files?.[0];
+      const picked = Array.from(this.file.files || []);
       this.file.value = '';
-      if (picked) void this.read(picked);
+      if (picked.length) void this.read(picked);
     });
     this.pick.type = 'button';
-    this.pick.append(icon('folder'), element('span', '', t('Choose a .zip file')));
-    this.pick.addEventListener('click', () => this.choose());
+    this.pick.append(icon('folder'), this.pickLabel);
+    this.pick.addEventListener('click', () => this.choose(this.kind));
     this.chosen.setAttribute('aria-live', 'polite');
+    for (const [button, use, english] of [[this.asPages, 'pages', 'As new pages'], [this.asSection, 'section', 'As a section of this page']] as [HTMLButtonElement, Use, string][]) {
+      button.type = 'button';
+      label(button, english);
+      button.setAttribute('role', 'radio');
+      button.addEventListener('click', () => { if (!button.disabled) { this.use = use; this.paint(); this.reveal(); } });
+      this.uses.append(button);
+    }
+    this.uses.setAttribute('role', 'radiogroup');
+    this.uses.setAttribute('aria-label', t('Bring the files in'));
+    this.section.hidden = true;
+    text(this.section, t('The page goes into the open page as one section, after the selected section. Its styles and main script come along.'));
     for (const [button, mode, english] of [[this.fresh, 'new', 'Add as new pages'], [this.replace, 'replace', 'Replace matching routes']] as [HTMLButtonElement, Mode, string][]) {
       button.type = 'button';
       label(button, english);
@@ -68,33 +113,52 @@ export class SiteImport {
     this.modes.setAttribute('aria-label', t('How to add the pages'));
     label(this.skippedHead, 'Skipped');
     this.review.hidden = true;
+    this.reviewTail.hidden = true;
+    this.bring.element.hidden = true;
     this.review.append(
       element('h3', 'fw-lib-subhead', t('Review')), this.counts,
       element('h3', 'fw-lib-subhead', t('Pages')), this.pages,
-      element('h3', 'fw-lib-subhead', t('Add them')), this.modes, this.modeNote,
-      this.bring.element,
-      this.skippedHead, this.skipped
+      element('h3', 'fw-lib-subhead', t('Add them')), this.modes, this.modeNote
     );
-    scroller.append(
-      backButton,
-      element('h3', 'fw-lib-subhead', t('Import site from zip')),
-      element('p', 'fw-lib-help', t('Brings a static site made elsewhere into this site: every HTML file in the zip becomes a page, with its stylesheets, pictures and WOFF2 fonts. After the review you choose whether the pages arrive as editable elements or as code sections. Links between the pages follow their new addresses, and outside links stay as they are.')),
-      this.pick, this.file, this.chosen, this.review
-    );
+    this.reviewTail.append(this.skippedHead, this.skipped);
+    scroller.append(backButton, this.title, this.help, this.pick, this.file, this.chosen, this.uses, this.useNote, this.review, this.section, this.bring.element, this.reviewTail, this.note);
     this.note.setAttribute('role', 'status');
     this.go.type = 'button';
     this.go.disabled = true;
     this.go.append(icon('upload'), this.goLabel);
     this.go.addEventListener('click', () => void this.submit());
     const foot = element('div', 'fw-lib-foot');
-    foot.append(this.note, this.go);
+    foot.append(this.go);
     this.element.append(scroller, foot);
     this.paint();
   }
 
-  /** Opens the file picker; File > Import site from zip... lands here. */
-  choose(): void {
-    if (!this.busy) this.file.click();
+  /** Opens the file picker inside the caller's click: .html files only, or a .zip (loose .html files allowed too). */
+  choose(kind: 'html' | 'site'): void {
+    if (this.busy) return;
+    this.reset();
+    this.kind = kind;
+    this.file.accept = kind === 'html' ? HTML_ACCEPT : `.zip,application/zip,${HTML_ACCEPT}`;
+    this.file.click();
+  }
+
+  /** True once an import has finished: the view then holds nothing the person still needs. */
+  get finished(): boolean { return this.done && !this.busy; }
+
+  /** Back to the clean waiting state: no files, review, note or finished button, scrolled to the top. */
+  reset(): void {
+    if (this.busy) return;
+    this.made = [];
+    this.picked = [];
+    this.current = null;
+    this.loose = null;
+    this.plan = null;
+    this.mode = 'new';
+    this.use = 'pages';
+    this.done = false;
+    this.say('', false);
+    this.paint();
+    this.scroller.scrollTop = 0;
   }
 
   private say(message: string, error: boolean): void {
@@ -102,45 +166,117 @@ export class SiteImport {
     this.note.classList.toggle('is-error', error);
   }
 
+  /** Keeps a refusal sentence in view; the note is the scroller's last child, so this scrolls and moves nothing. */
+  private reveal(): void {
+    if (this.note.classList.contains('is-error') && this.note.textContent) this.note.scrollIntoView({ block: 'nearest' });
+  }
+
+  /** Work in progress reads on the import button, so the note changes only once, to the result. */
+  private progress(message: string): void {
+    this.working = message;
+    text(this.goLabel, message);
+  }
+
   private setBusy(on: boolean): void {
     this.busy = on;
+    if (!on) this.working = '';
     this.pick.disabled = on;
     this.bring.disable(on);
     this.element.setAttribute('aria-busy', String(on));
     this.paint();
   }
 
-  private async read(picked: File): Promise<void> {
+  private async read(files: File[]): Promise<void> {
     if (this.busy) return;
-    this.current = picked;
+    const zips = files.filter(isZip);
+    const pages = files.filter(isHtml);
+    this.picked = files;
+    this.current = null;
+    this.loose = null;
     this.plan = null;
     this.mode = 'new';
+    this.use = 'pages';
     this.done = false;
-    text(this.chosen, `${picked.name} (${size(picked.size)})`);
-    if (picked.size > 64 * 1024 * 1024) {
-      this.current = null;
+    this.say('', false);
+    this.show();
+    if (zips.length + pages.length !== files.length || (zips.length && files.length > 1)) {
       this.paint();
-      this.say(t('The archive is larger than 64 MiB, the most a site import takes.'), true);
+      this.say(t('Choose one .zip file, or one or more .html files.'), true);
+      this.reveal();
       return;
     }
-    this.say(t('Reading the archive...'), false);
+    if (files.reduce((sum, file) => sum + file.size, 0) > 64 * 1024 * 1024) {
+      this.paint();
+      this.say(zips.length ? t('The archive is larger than 64 MiB, the most a site import takes.') : t('The files are larger than 64 MiB together, the most an import takes.'), true);
+      this.reveal();
+      return;
+    }
+    this.working = zips.length ? t('Reading the archive...') : t('Reading the files...');
     this.setBusy(true);
     try {
-      this.plan = await request<SiteReview>('/api/library/import-site/review', picked);
-      this.say(this.plan.pages.length ? '' : t('The archive has no HTML page that can be imported.'), !this.plan.pages.length);
+      if (zips.length) this.current = zips[0];
+      else this.loose = await Promise.all(pages.map(async file => ({ name: file.name, html: decode(await file.arrayBuffer()) })));
+      this.plan = await request<SiteReview>('/api/library/import-site/review', this.body());
+      const empty = !this.plan.pages.length;
+      if (empty) this.loose = null;
+      this.say(empty ? (zips.length ? t('The archive has no HTML page that can be imported.') : t('None of the files is an HTML page that can be imported.')) : '', empty);
     } catch (error) {
       this.current = null;
+      this.loose = null;
       this.say(error instanceof Error ? error.message : String(error), true);
     } finally {
       this.setBusy(false);
+      this.reveal();
     }
+  }
+
+  private body(): File | { files: Loose[] } {
+    return this.current || { files: this.loose || [] };
   }
 
   private paint(): void {
     const plan = this.plan;
-    if (this.review.hidden === !!plan) this.review.hidden = !plan;
+    const html = !!this.picked.length && this.picked.every(isHtml);
+    const one = html && this.picked.length === 1;
+    if (!one && this.use === 'section') this.use = 'pages';
+    const section = this.use === 'section';
+    text(this.title, html ? t('Import HTML files') : t('Import site from zip'));
+    for (const [node, on] of [[this.helpHtml, html], [this.helpZip, !html]] as [HTMLElement, boolean][]) {
+      node.classList.toggle('is-on', on);
+      node.setAttribute('aria-hidden', String(!on));
+    }
+    text(this.pickLabel, this.picked.length ? t('Choose other files...') : t('Choose a .zip file'));
+    keyed(this.chosen, this.picked, file => file.name, () => {
+      const node = element('div', 'fw-lib-site-chosen');
+      node.append(element('span', 'fw-lib-site-chosen-name'), element('span', 'fw-lib-row-meta'));
+      return node;
+    }, (node, file) => {
+      const [name, meta] = Array.from(node.children) as HTMLElement[];
+      text(name, file.name);
+      text(meta, size(file.size));
+    });
+    if (this.uses.hidden === html) this.uses.hidden = !html;
+    this.asPages.disabled = this.done;
+    this.asSection.disabled = this.done || !one;
+    for (const [button, use] of [[this.asPages, 'pages'], [this.asSection, 'section']] as [HTMLButtonElement, Use][]) {
+      button.classList.toggle('is-on', this.use === use);
+      button.setAttribute('aria-checked', String(this.use === use));
+    }
+    text(this.useNote, html && !one ? t('A section takes one file. Choose a single file to add it to this page as a section.') : '');
+    if (this.section.hidden === section) this.section.hidden = !section;
+    const showReview = !!plan && !section;
+    if (this.review.hidden === showReview) this.review.hidden = !showReview;
+    if (this.reviewTail.hidden === showReview) this.reviewTail.hidden = !showReview;
+    const showBring = showReview || section;
+    this.bring.heading(section ? 'Bring it in as' : 'Bring pages in as');
+    if (this.bring.element.hidden === showBring) this.bring.element.hidden = !showBring;
     const count = plan?.pages.length ?? 0;
-    text(this.goLabel, this.done ? t('Imported') : count === 1 ? t('Import 1 page') : count ? t('Import {0} pages', [count]) : t('Import site'));
+    if (section) {
+      text(this.goLabel, this.working || (this.done ? t('Imported') : t('Import as section')));
+      this.go.disabled = this.busy || this.done || !this.loose?.length;
+      return;
+    }
+    text(this.goLabel, this.working || (this.done ? t('Imported') : count === 1 ? t('Import 1 page') : count ? t('Import {0} pages', [count]) : html ? t('Import pages') : t('Import site')));
     this.go.disabled = this.busy || this.done || !plan || !count;
     if (!plan) { keyed(this.pages, [], () => '', () => element('div'), () => undefined); keyed(this.skipped, [], () => '', () => element('div'), () => undefined); return; }
     if (this.mode === 'replace' && !plan.canReplace) this.mode = 'new';
@@ -149,7 +285,7 @@ export class SiteImport {
       plan.assets.count === 1 ? t('1 asset ({0}).', [size(plan.assets.bytes)]) : t('{0} assets ({1}).', [plan.assets.count, size(plan.assets.bytes)]),
       plan.supportFiles === 1 ? t('1 stylesheet or script.') : plan.supportFiles ? t('{0} stylesheets and scripts.', [plan.supportFiles]) : '',
       plan.skipped.length === 1 ? t('1 file is skipped.') : plan.skipped.length ? t('{0} files are skipped.', [plan.skipped.length]) : '',
-      plan.ignored ? t('{0} system files are ignored.', [plan.ignored]) : ''
+      plan.ignored === 1 ? t('1 file in a system or dependency folder is ignored.') : plan.ignored ? t('{0} files in system and dependency folders are ignored.', [plan.ignored]) : ''
     ];
     text(this.counts, parts.filter(Boolean).join(' '));
     this.fresh.disabled = this.done;
@@ -188,19 +324,39 @@ export class SiteImport {
     if (meta.hidden) meta.hidden = false;
   }
 
+  private async placeSection(): Promise<void> {
+    const page = this.loose?.[0];
+    if (this.busy || !page) return;
+    this.working = t('Importing...');
+    this.setBusy(true);
+    try {
+      const message = await importSection(this.hooks, { html: page.html, name: page.name.replace(/\.html?$/i, '') }, this.bring.value(), note => this.progress(note), ids => { this.made = ids; });
+      this.done = true;
+      this.say(message, false);
+    } catch (error) {
+      this.say(error instanceof Error ? error.message : String(error), true);
+    } finally {
+      this.setBusy(false);
+      this.note.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
   private async submit(): Promise<void> {
+    if (this.use === 'section') return this.placeSection();
     const plan = this.plan;
-    if (this.busy || !plan || !this.current) return;
-    this.say(t('Importing...'), false);
+    if (this.busy || !plan || (!this.current && !this.loose)) return;
+    this.working = t('Importing...');
     this.setBusy(true);
     try {
       const query = `?mode=${this.mode}&revision=${encodeURIComponent(String(plan.revision))}`;
-      const result = await libraryMutate<SiteResult>('/api/library/import-site' + query, this.current);
+      const result = await libraryMutate<SiteResult>('/api/library/import-site' + query, this.body());
       let message = result.message || t('Site imported.');
       this.done = true;
+      this.made = result.pages || [];
       this.current = null;
+      this.loose = null;
       if (this.bring.value() === 'elements' && result.pages?.length) {
-        this.say(t('Converting...'), false);
+        this.progress(t('Converting...'));
         const site = state().site;
         const hosts = result.pages.flatMap(id => site.nodes[site.pages.find(page => page.id === id)?.root || '']?.children || []);
         try { message += ' ' + (await this.hooks.convert(hosts)).message + ' ' + t('Undo once to get the pages back as code, twice to remove them.'); }
@@ -213,6 +369,7 @@ export class SiteImport {
       this.say(error instanceof Error ? error.message : String(error), true);
     } finally {
       this.setBusy(false);
+      this.note.scrollIntoView({ block: 'nearest' });
     }
   }
 }

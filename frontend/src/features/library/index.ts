@@ -10,7 +10,7 @@ import type { LibIndex, LibResult, LibSection, LibraryHooks } from './types';
 import '../../styles/library.css';
 
 export type { LibraryHooks } from './types';
-export type LibraryPanel = { element: HTMLElement; setVisible: (on: boolean) => void; showTab: (id: Tab) => void; importSite: () => void };
+export type LibraryPanel = { element: HTMLElement; setVisible: (on: boolean) => void; showTab: (id: Tab) => void; importSite: () => void; importHtml: () => void };
 
 type Tab = 'sections' | 'kits' | 'import';
 
@@ -42,8 +42,14 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
   });
   const kits = new Kits(hooks, page => hooks.openPage(page));
   let site = false;
-  const importer = new HtmlImport(hooks, () => importSite());
-  const siteImport = new SiteImport(hooks, () => { site = false; paint(); });
+  const importer = new HtmlImport(hooks, () => importHtml(), () => importSite());
+  const siteImport = new SiteImport(hooks, () => { site = false; settle(); paint(); }, () => { tab = 'import'; site = true; paint(); });
+  /** A finished import is not kept for later: coming back finds the import view in its waiting state. */
+  function settle(): void {
+    if (!siteImport.finished) return;
+    siteImport.reset();
+    site = false;
+  }
 
   const tabs = element('div', 'fw-seg fw-lib-tabs');
   tabs.setAttribute('role', 'tablist');
@@ -54,7 +60,7 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
     button.type = 'button';
     if (id === 'kits') labelAttr(button, 'title', 'Presets and starters');
     button.setAttribute('role', 'tab');
-    button.addEventListener('click', () => { tab = id; paint(); });
+    button.addEventListener('click', () => { if (id === 'import' && tab !== 'import') settle(); tab = id; paint(); });
     buttons.set(id, button);
     tabs.append(button);
   }
@@ -77,11 +83,18 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
     const showDetail = tab === 'sections' && !!opened;
     if (detail.element.hidden === showDetail) detail.element.hidden = !showDetail;
   }
+  /** Both open the system file picker in the same click; HTML files with the import view behind it, a zip with the review view. */
   function importSite(): void {
     tab = 'import';
     site = true;
     paint();
-    siteImport.choose();
+    siteImport.choose('site');
+  }
+  function importHtml(): void {
+    tab = 'import';
+    site = false;
+    paint();
+    siteImport.choose('html');
   }
   function open(section: LibSection): void {
     opened = section.id;
@@ -127,7 +140,9 @@ export function installLibrary(hooks: LibraryHooks): LibraryPanel {
   return {
     element: root,
     importSite,
+    importHtml,
     setVisible(on: boolean): void {
+      if (on && root.hidden) { settle(); paint(); }
       if (root.hidden === on) root.hidden = !on;
       if (on) void load();
     },
