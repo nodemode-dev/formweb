@@ -63,11 +63,12 @@ export function installCrumbs(nav: HTMLElement, hooks: CrumbHooks): Crumbs {
         if (!item) return more;
         const crumb = element('button', 'fw-crumb');
         crumb.type = 'button';
+        crumb.append(element('span', 'fw-crumb-name'));
         crumb.addEventListener('click', () => hooks.pick(crumb.dataset.key!));
         return crumb;
       }, (crumb, item) => {
         if (!item) return;
-        text(crumb, item.name);
+        text(crumb.firstElementChild as HTMLElement, item.name);
         crumb.title = `Select ${item.name} <${item.tag}>`;
         const on = item.id === current;
         crumb.classList.toggle('is-current', on);
