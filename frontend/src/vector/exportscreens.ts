@@ -1,5 +1,6 @@
 import { label, labelAttr, t } from '../i18n';
 import { element } from '../ui/dom';
+import { deliverFile, saveBlob } from '../ui/downloads';
 import type { Host } from './host';
 import { svgOf } from './store';
 import { boards } from './artboards';
@@ -154,17 +155,7 @@ async function rasterize(source: Source, scale: number, format: Exclude<Format, 
   } finally { release(); }
 }
 
-function download(blob: Blob, name: string): void {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.rel = 'noopener';
-  document.body.append(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
-}
+const download = (blob: Blob, name: string): Promise<boolean> => deliverFile(name, started => saveBlob(blob, name, started));
 
 const pause = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 export const safeName = (value: string): string => value.replace(/[^\w.@+-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
@@ -191,7 +182,7 @@ export async function exportScreens(host: Host, svgId: string, options: ExportOp
   const written: string[] = [];
   const queue: { blob: Blob; name: string }[] = [];
   await queueFiles(source, base, options, queue);
-  for (const item of queue) { download(item.blob, item.name); written.push(item.name); await pause(200); }
+  for (const item of queue) { if (await download(item.blob, item.name)) written.push(item.name); await pause(200); }
   return written;
 }
 
@@ -215,7 +206,7 @@ export async function exportArtboards(host: Host, items: { id: string; name: str
   }
   if (!queue.length) throw new Error(t('No artboards on this page to export.'));
   const written: string[] = [];
-  for (const file of queue) { download(file.blob, file.name); written.push(file.name); await pause(200); }
+  for (const file of queue) { if (await download(file.blob, file.name)) written.push(file.name); await pause(200); }
   return written;
 }
 

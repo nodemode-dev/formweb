@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "The editor talks HTTP to its local FormWeb service; through Tauri it asks the shell for the GPU renderer (probe, thumbnail, diff), to show the window, for the files the system asked it to open, for text edits and to show the last downloaded file in its folder. The window shows the page the service serves on 127.0.0.1 (8240 to 8279), a remote origin to Tauri, so the capability lists those addresses and every app command has an allow permission (build.rs).",
+  "description": "The editor talks HTTP to its local FormWeb service; through Tauri it asks the shell for the GPU renderer (probe, thumbnail, diff), to show the window, for the files the system asked it to open, for text edits, to show the last downloaded file in its folder, and where downloads are saved (the place chosen in Preferences, the system folder dialog, and the save dialog of ask each time, all opened by the shell). The window shows the page the service serves on 127.0.0.1 (8240 to 8279), a remote origin to Tauri, so the capability lists those addresses and every app command has an allow permission (build.rs).",
   "windows": ["main"],
   "remote": { "urls": ["http://127.0.0.1:(82[4-7][0-9])/*"] },
-  "permissions": ["core:default", "core:window:allow-start-dragging", "core:window:allow-toggle-maximize", "allow-render-probe", "allow-render-thumbnail", "allow-render-diff", "allow-app-ready", "allow-set-window-title", "allow-text-edit", "allow-take-opened-file", "allow-reveal-download"]
+  "permissions": ["core:default", "core:window:allow-start-dragging", "core:window:allow-toggle-maximize", "allow-render-probe", "allow-render-thumbnail", "allow-render-diff", "allow-app-ready", "allow-set-window-title", "allow-text-edit", "allow-take-opened-file", "allow-reveal-download", "allow-set-export-place", "allow-choose-export-folder", "allow-ask-export-place"]
 }

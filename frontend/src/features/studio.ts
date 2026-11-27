@@ -2,6 +2,7 @@ import { accept, command, download, request, state, subscribe } from '../api';
 import type { EditorState } from '../types';
 import { element, keyed, labelPieces, options, text } from '../ui/dom';
 import { icon } from '../ui/icons';
+import { deliverFile } from '../ui/downloads';
 import { label, t } from '../i18n';
 import { authoringActions } from './authoring';
 import { serviceActions } from './services';
@@ -216,8 +217,8 @@ export class FeatureStudio {
       else {
         const path = typeof view.spec.path === 'function' ? view.spec.path(params) : view.spec.path!;
         if (view.spec.download) {
-          await download(path, view.spec.download);
-          response = { downloaded: view.spec.download };
+          const file = view.spec.download;
+          response = { downloaded: await deliverFile(file, started => download(path, file, started)) ? file : null };
         } else {
           const body = { ...params };
           if (typeof view.spec.path === 'function') { delete body.id; delete body.source; delete body.email; }

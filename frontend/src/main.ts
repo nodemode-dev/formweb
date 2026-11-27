@@ -18,7 +18,8 @@ import { DemoPreview } from './ui/demo-preview';
 import { unsavedWork } from './ui/unsaved';
 import { watchOpenedFiles } from './ui/opened-file';
 import { Notice } from './ui/notice';
-import { deliver, isBusy } from './ui/downloads';
+import { deliver, isBusy, useNotice } from './ui/downloads';
+import { exportFolderRow, resetExportFolder } from './features/export-folder';
 import { flash, issueField, rowOf, scrollNearest } from './ui/reveal';
 import { FeatureStudio } from './features/studio';
 import { RuntimePreview } from './features/runtime-preview';
@@ -53,6 +54,7 @@ import { canvasClick, installSelection, isMulti, isSelected, layerClick, topMost
 import { anyCopyable, anyRemovable, canStep, copySelected, countLabel, cutSelected, deletePagesNote, deleteSelectedPages, duplicateSelected, holdsMany, installSelectionActions, pasteMany, removeSelected, selectionNote, selectionTitle, stepSelected } from './features/selection-actions';
 import { installCanvasDrag } from './features/canvas-drag';
 import { installHoverOutline } from './features/hover-outline';
+import { installAuditMarkers } from './features/audit-markers';
 import { installSelectMode, paintSelectMode } from './features/select-mode';
 import { sectionToggle } from './features/panel/fold';
 import { watchHelp } from './ui/help-fit';
@@ -244,6 +246,7 @@ brand.title = 'formweb by nodemode.ai';
 const menus = menuModel(commandRegistry);
 const menubar = new Menubar(menus, overlay);
 const titleTools = element('div', 'fw-title-tools');
+titleTools.dataset.ownKeys = '';
 const topActions = element('div', 'top-actions');
 async function toggleAgents(): Promise<void> {
   const result = await request<{ enabled?: boolean; agentsEnabled?: boolean }>('/api/agents', { enabled: !agentsEnabled });
@@ -269,6 +272,7 @@ if (document.documentElement.classList.contains('has-overlay-titlebar')) {
 }
 
 const toolbar = element('div', 'toolbar');
+toolbar.dataset.ownKeys = '';
 const projectIdentity = element('div', 'project-identity');
 const projectName = element('span', 'project-name', 'Connecting to site engine');
 projectIdentity.append(icon('globe'), projectName);
@@ -1070,7 +1074,24 @@ publishPane.append(field('Publication slug', publishSlug), publishOutput, publis
 const auditPane = dialogPane('audit');
 const auditSummary = element('p', 'empty-note', 'Run the Rust engine audit to review this site.');
 const auditList = element('div');
-auditPane.append(auditSummary, auditList);
+const auditMarkers = installAuditMarkers({
+  frame: canvas.frame, stage, overlay, dialog: scrim, loaded: () => canvas.loaded(), page: () => currentPage().id,
+  editing: () => !preview && !fullPreview.isOpen && !demoPreview.isOpen && !featureStudio.opened && !!home.root.hidden, busy: () => tryKit.busy(),
+  pick: (id, message, again) => {
+    const page = state().site.pages.find(item => descendants(item.root).has(id));
+    if (!page || !state().site.nodes[id]) return;
+    pageId = page.id;
+    selectedId = id;
+    update(state());
+    canvas.reveal(selectedId);
+    scrollNearest(layersList, rowOf(layersList, selectedId));
+    const line = t('Selected {0}: {1}', [currentNode().name, message]);
+    status(line);
+    notice.show(line, { error: true, action: { label: 'Show again', run: again } });
+  },
+  rescue: () => inspectorTabButtons.get(activeInspector), status
+});
+auditPane.append(auditSummary, auditMarkers.row, auditList);
 
 const cmsPane = dialogPane('cms');
 const cmsLayout = element('div', 'dialog-pane');
@@ -1455,6 +1476,7 @@ const resetPrefs = button('Reset All Preferences...', 'trash', undefined, 'fw-pr
 const resetNote = element('p', 'micro', 'Every FormWeb preference on this device goes back to its default and the editor reloads. Your sites and projects are kept.');
 const resetConfirm = button('Reset', undefined, () => {
   try { for (const key of Object.keys(localStorage)) if (key.startsWith('formweb.') || ['nodemode_ui_settings', 'formweb_theme', 'formweb_language', 'formweb_shortcuts', 'formweb_workspace', 'formweb_terminal', 'fw.vector.pathfinder'].includes(key)) localStorage.removeItem(key); } catch { }
+  resetExportFolder();
   location.reload();
 }, 'fw-prefs-danger');
 const resetCancel = button('Cancel', undefined, () => { resetRow.hidden = true; resetPrefs.hidden = false; });
@@ -1464,7 +1486,8 @@ resetRow.append(resetNote, resetConfirm, resetCancel);
 resetPrefs.addEventListener('click', () => { resetPrefs.hidden = true; resetRow.hidden = false; });
 const tokenNote = element('p', 'micro', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.');
 const endpointNote = element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`);
-prefsAdd('General', prefsGroup('Startup', autoShowHomeLabel), prefsGroup('Reset', resetPrefs, resetRow));
+prefsAdd('General', prefsGroup('Startup', autoShowHomeLabel), prefsGroup('Where exports are saved', exportFolderRow()), prefsGroup('Reset', resetPrefs, resetRow));
+useNotice(notice);
 prefsAdd('Interface', prefsGroup('Theme', field('Editor theme', themeSelect)), prefsGroup('Language', field('Editor language', languageSelect)), prefsGroup('Design fields', field('Show in Design fields', designFieldsSelect), designFieldsNote, designFieldsAll, tryChoicesLabel, tryChoicesNote));
 prefsAdd('Plugins', prefsGroup('Server access', tokenNote, field('Server access token', authToken), endpointNote));
 settingsPane.append(prefsPages);
@@ -1675,6 +1698,7 @@ function update(next: EditorState): void {
   if (passwordGatesFor !== site.id) void loadPasswordGates().catch(() => undefined);
   canvas.mark(selectedIds());
   canvas.render(site, page, selectedId, widths[breakpoint], locale, breakpoint);
+  auditMarkers.sync(next);
   runtimePreview.update(preview, next, page.id, locale, widths[breakpoint]);
   if (refreshPreviewButton.classList.contains('active') !== preview) refreshPreviewButton.classList.toggle('active', preview);
   if (refreshPreviewButton.getAttribute('aria-pressed') !== String(preview)) refreshPreviewButton.setAttribute('aria-pressed', String(preview));
@@ -1696,7 +1720,7 @@ async function saveProject(): Promise<void> {
 }
 async function downloadProject(): Promise<void> {
   const file = state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '.fweb';
-  await deliver(file, { desktop: 'Saved {0} to your Downloads folder.', placed: 'Saved {0} to {1}.', browser: 'Downloaded {0}. Your browser lists it with its downloads.' }, notice, started => download('/api/project-file', file, started));
+  if (!await deliver(file, { desktop: 'Saved {0} to your Downloads folder.', placed: 'Saved {0} to {1}.', browser: 'Downloaded {0}. Your browser lists it with its downloads.' }, notice, started => download('/api/project-file', file, started))) { status('Nothing was saved.'); return; }
   status('Editable .fweb project downloaded.');
 }
 const NOT_FOUND_BASE_KEY = "The 404 page links its styles and pages from / because the base URL is still example.com. Set the base URL to the site's public address before you deploy it under a path.";
@@ -1725,6 +1749,7 @@ function baseUrlAction(warning: string): { label: string; run: () => unknown } |
 async function exportSite(): Promise<void> {
   const file = state().site.name.toLowerCase().replace(/[^a-z0-9-]+/g, '-') + '-site.zip';
   const headers = await deliver(file, { desktop: 'Exported {0} to your Downloads folder.', placed: 'Exported {0} to {1}.', browser: 'Downloaded {0}. Your browser lists it with its downloads.' }, notice, started => download(`/api/export?locale=${encodeURIComponent(locale)}`, file, started), exportButton);
+  if (!headers) { status('Nothing was saved.'); return; }
   const warning = notFoundBaseWarning();
   status([t('Static site exported for {0}.', [{ lang: locale }]), warning, localFormWarning(localFormHeader(headers))], false, baseUrlAction(warning));
 }
@@ -1789,7 +1814,8 @@ async function downloadQr(): Promise<void> {
   const url = qrUrl.value.trim() || pageAddress();
   const format = qrFormat.value || 'png';
   const name = currentPage().slug.replace(/[^a-z0-9-]+/gi, '-').replace(/^-|-$/g, '') || 'home';
-  await download(`/api/qr?format=${format}&scale=10&dark=${encodeURIComponent(qrDark.value)}&light=${encodeURIComponent(qrLight.value)}&url=${encodeURIComponent(url)}`, `qr-${name}.${format}`);
+  const file = `qr-${name}.${format}`;
+  if (!await deliver(file, { desktop: 'Saved {0} to your Downloads folder.', placed: 'Saved {0} to {1}.', browser: 'Downloaded {0}. Your browser lists it with its downloads.' }, notice, started => download(`/api/qr?format=${format}&scale=10&dark=${encodeURIComponent(qrDark.value)}&light=${encodeURIComponent(qrLight.value)}&url=${encodeURIComponent(url)}`, file, started))) { status('Nothing was saved.'); return; }
   status(`QR code downloaded for ${url}.`);
 }
 async function moveLayer(direction: number): Promise<void> {
@@ -1988,6 +2014,7 @@ function showIssue(row: HTMLElement): void {
 }
 async function auditSite(): Promise<void> {
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
+  auditMarkers.fresh(result);
   openDialog('audit');
   text(auditSummary, result.issues.length === 1 ? '1 issue found. Select an element to resolve it in the inspector.' : result.issues.length ? t('{0} issues found. Select an element to resolve it in the inspector.', [result.issues.length]) : 'No issues found by the built-in audit. Review content and exported pages before release.');
   keyed(auditList, result.issues.map((issue, index) => ({ ...issue, key: `${issue.code}-${issue.page || ''}-${issue.node || ''}-${index}` })), issue => issue.key, () => {
@@ -2342,6 +2369,7 @@ registerCommands([
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
   { id: 'view.design-controls', label: 'Show controls in Design fields', menu: 'View', group: 2, run: () => { controlKit.setDefaultRaw(!controlKit.defaultRaw()); status(controlKit.defaultRaw() ? 'Design fields show the CSS text only.' : 'Design fields show their controls.'); }, checked: () => !controlKit.defaultRaw() },
   { id: 'view.try-choices', label: 'Try choices before keeping them', menu: 'View', group: 2, run: () => { tryKit.setEnabled(!tryKit.enabled()); tryChoices.checked = tryKit.enabled(); status(tryKit.enabled() ? 'A clicked choice now shows on the page until you press Keep.' : 'Clicked choices are now written at once.'); }, checked: () => tryKit.enabled() },
+  { id: 'view.audit-markers', label: 'Show audit markers', menu: 'View', group: 2, run: () => auditMarkers.set(!auditMarkers.enabled()), checked: () => auditMarkers.enabled(), enabled: ready },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: ['Mod+K'], global: true, group: 2, run: () => commandSearch.show() },
   { id: 'view.menus-in-window', label: 'Menus in Window', menu: 'View', group: 2, enabled: desktopMac, checked: menusInWindow, run: () => { const on = !menusInWindow(); setMenusInWindow(on); status(on ? 'The menus stay in the window from the next start.' : 'The menus go to the menu bar from the next start.'); } },
   { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => toggleLeft('pages'), checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
