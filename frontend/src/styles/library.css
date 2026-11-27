@@ -110,3 +110,8 @@
 .fw-lib-bring-option.is-on { border-color: var(--accent-line); background: var(--accent-wash); }
 .fw-lib-bring-option:disabled { cursor: default; }
 .fw-lib-bring-option .fw-lib-row-meta { color: var(--text-secondary); }
+.fw-lib-bring-why { display: grid; margin: 0 0 var(--space-2); }
+.fw-lib-bring-why[hidden] { display: none; }
+.fw-lib-bring-why > .fw-lib-row-meta { grid-area: 1 / 1; margin: 0; color: var(--text-secondary); overflow-wrap: anywhere; }
+.fw-lib-bring-why > :not(.is-on) { visibility: hidden; }
+.fw-lib-site-item > .fw-lib-site-outside { color: var(--text-secondary); }

@@ -22,7 +22,9 @@ export type LibIndex = { categories: string[]; sections: LibSection[]; component
 export type LibResult = { root?: string; pages?: string[]; warnings?: string[]; changed?: boolean };
 /** POST /api/library/import-site/review: what importing a site zip would do, nothing changed yet. */
 export type SiteSkip = { file: string; reason: string };
-export type SitePage = { file: string; name: string; title: string; description: string; route: string; newRoute: string; replaces: { id: string; name: string; safe: boolean } | null; bytes: number; warnings: string[] };
+/** A stylesheet or script a page loads from another host: named in the review, never fetched. */
+export type SiteOutside = { kind: 'stylesheet' | 'script'; host: string; url: string };
+export type SitePage = { file: string; name: string; title: string; description: string; route: string; newRoute: string; replaces: { id: string; name: string; safe: boolean } | null; bytes: number; warnings: string[]; outside?: SiteOutside[]; outsideMore?: number };
 export type SiteReview = { pages: SitePage[]; assets: { count: number; bytes: number }; supportFiles: number; skipped: SiteSkip[]; ignored: number; canReplace: boolean; replaceNote: string; notes: string[]; revision: number };
 /** POST /api/library/import-site: the batch state plus the pages made, assets stored and files skipped. */
 export type SiteResult = { pages?: string[]; assets?: number; skipped?: SiteSkip[]; warnings?: string[]; message?: string };

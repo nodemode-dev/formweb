@@ -13,7 +13,7 @@ import unicodedata
 import zipfile
 import zlib
 from html import escape, unescape
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 from .assets import SIZE_LIMITS, check_upload_svg, ingest, own_asset, sniff_extension
 from .config import MAX_IMAGE_BYTES, MAX_SITE_ARCHIVE_BYTES
@@ -62,6 +62,51 @@ TITLE = re.compile(r'<title\b[^>]*(?:>|\Z)(.*?)(?:</title\s*>|\Z)', re.I | re.S)
 PAIR = re.compile(r'''([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>=`]+)))?''')
 CSS_URL = re.compile(r'''url\(\s*(?:"([^"]*)"|'([^']*)'|([^()'"\s]*))\s*\)''', re.I)
 CSS_IMPORT = re.compile(r'''@import\s+(?:url\(\s*)?["']?([^"')\s;]+)["']?\s*\)?([^;{}@]*);''', re.I)
+OUTSIDE_SHOWN = 20
+URL_MAX = 2048
+HOST_MAX = 253
+HOST_CHARS = frozenset('abcdefghijklmnopqrstuvwxyz0123456789-')
+DEFAULT_PORTS = {'http': 80, 'https': 443}
+
+
+def outside_file(kind: str, reference: str) -> dict | None:
+    """A file a page loads from another host, as the review names it: its kind, the lower-cased ASCII host (with the port
+    only when it is not the scheme's default; any port of a protocol-relative URL) and the URL without credentials. None
+    for anything that is not plainly an http, https or protocol-relative URL with a host of letters, digits and hyphens."""
+    value = reference.strip(' \t\n\r\f').replace('\t', '').replace('\n', '').replace('\r', '')
+    if not value or len(value) > URL_MAX or not value.isprintable():
+        return None
+    try:
+        parts = urlsplit(value)
+        port = parts.port
+        raw = parts.hostname or ''
+    except ValueError:
+        return None
+    scheme = parts.scheme.lower()
+    if not (scheme in DEFAULT_PORTS or (not scheme and value.startswith('//'))) or not parts.netloc:
+        return None
+    raw = raw[:-1] if raw.endswith('.') else raw
+    if not raw or len(raw) > HOST_MAX:
+        return None
+    try:
+        host = raw.encode('idna').decode('ascii').lower()
+    except (UnicodeError, ValueError):
+        return None
+    if len(host) > HOST_MAX or not all(0 < len(label) <= 63 and label[0] != '-' and label[-1] != '-' and set(label) <= HOST_CHARS for label in host.split('.')):
+        return None
+    shown = host if port is None or port == DEFAULT_PORTS.get(scheme) else f'{host}:{port}'
+    return {'kind': kind, 'host': shown, 'url': urlunsplit((scheme, shown, parts.path, parts.query, parts.fragment))}
+
+
+def outside_list(found: list[tuple[str, str]]) -> tuple[list[dict], int]:
+    """The outside files of one page in document order, each URL once: at most OUTSIDE_SHOWN, and how many more there are."""
+    listed, seen = [], set()
+    for kind, reference in found:
+        item = outside_file(kind, reference)
+        if item and item['url'] not in seen:
+            seen.add(item['url'])
+            listed.append(item)
+    return listed[:OUTSIDE_SHOWN], max(0, len(listed) - OUTSIDE_SHOWN)
 
 
 def _show(name: str) -> str:
@@ -383,6 +428,7 @@ class Site:
         self.loops: set = set()
         self.deep: set = set()
         self.outside: list[str] = []
+        self.listing: list[tuple[str, str]] | None = None
         self.assets ={path: '/api/assets/' + hashlib.sha256(body).hexdigest() + '.' + STORED.get(_ext(path), _ext(path))
                        for path, (kind, body) in files.items() if kind == 'asset'}
 
@@ -437,6 +483,8 @@ class Site:
         def imported(match):
             found = self.locate(match.group(1), base)
             if found is None and not match.group(1).strip().lower().startswith('data:'):
+                if self.listing is not None:
+                    self.listing.append(('stylesheet', match.group(1)))
                 if match.group(0) not in self.outside:
                     self.outside.append(match.group(0))
                 return ''
@@ -511,7 +559,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     missing: set = set()
     warnings: list[str] = []
     outside_scripts, outside_styles = set(), set()
-    site.used, site.room, site.overflow, site.loops, site.deep, site.outside = set(), CSS_CAP, False, set(), set(), []
+    site.used, site.room, site.overflow, site.loops, site.deep, site.outside, site.listing = set(), CSS_CAP, False, set(), set(), [], []
     title = TITLE.search(document)
     title = re.sub(r'\s+', ' ', unescape(title.group(1))).strip()[:200] if title else ''
     description = ''
@@ -539,6 +587,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
                 found = site.locate(source, base)
                 if found is None:
                     outside_scripts.add(source[:120])
+                    site.listing.append(('script', source))
                 elif found[0] in site.files and site.files[found[0]][0] == 'script':
                     content = _text(site.files[found[0]][1])
                     if content.strip():
@@ -554,6 +603,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             href = attrs.get('href', '')
             found = site.locate(href, base)
             if found is None:
+                site.listing.append(('stylesheet', href))
                 if href.strip() and block.start() < body_at:
                     outside_styles.add(href[:120])
             elif found[0] in site.files and site.files[found[0]][0] == 'style':
@@ -565,6 +615,8 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
                 styles.append(f'@media {media} {{\n{css}\n}}' if media and media.lower() != 'all' else css)
             else:
                 missing.add(href)
+    outside, more = outside_list(site.listing)
+    site.listing = None
     script, module = '', False
     if scripts:
         if len(scripts) > 1:
@@ -598,7 +650,8 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
         shown = sorted(missing)
         warnings.append(f'{len(shown)} reference{"s" if len(shown) != 1 else ""} point{"" if len(shown) != 1 else "s"} at files that were skipped or are not in the archive: {", ".join(item[:80] for item in shown[:5])}{"..." if len(shown) > 5 else ""}.')
     name = (title or posixpath.basename(path).rsplit('.', 1)[0] or 'Imported page')[:120]
-    return {'file': path, 'name': name, 'title': title, 'description': description, 'html': markup, 'css': css, 'js': script.strip(), 'module': module and bool(script.strip()), 'warnings': warnings, 'overflow': site.overflow}
+    return {'file': path, 'name': name, 'title': title, 'description': description, 'html': markup, 'css': css, 'js': script.strip(), 'module': module and bool(script.strip()), 'warnings': warnings, 'overflow': site.overflow,
+            'outside': outside, 'outsideMore': more}
 
 
 def _emptiable(site: dict, root: str) -> bool:
@@ -681,7 +734,7 @@ def plan(archive: dict, site: dict, kit_script) -> dict:
 
 def review(result: dict) -> dict:
     pages = [{'file': p['file'], 'name': p['name'], 'title': p['title'], 'description': p['description'], 'route': p['route'], 'newRoute': p['newRoute'],
-              'replaces': p['replaces'], 'bytes': p['bytes'], 'warnings': p['warnings']} for p in result['pages']]
+              'replaces': p['replaces'], 'bytes': p['bytes'], 'warnings': p['warnings'], 'outside': p['outside'], 'outsideMore': p['outsideMore']} for p in result['pages']]
     matched = [p['replaces'] for p in pages if p['replaces']]
     blocked = [m['name'] for m in matched if not m['safe']]
     reason = ''

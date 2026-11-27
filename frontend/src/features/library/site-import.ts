@@ -1,10 +1,10 @@
 import { libraryMutate, request } from '../../api';
 import { element, keyed, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
-import { label, t } from '../../i18n';
+import { label, onLanguage, t } from '../../i18n';
 import type { LibraryHooks, SitePage, SiteResult, SiteReview, SiteSkip } from './types';
-import { bringChoice } from './bring';
-import { importSection } from './importer';
+import { bringChoice, type BringWhy } from './bring';
+import { hostList, importSection, joined, missingHosts } from './importer';
 import { state, subscribe } from '../../api';
 
 type Mode = 'new' | 'replace';
@@ -15,6 +15,27 @@ const size = (bytes: number): string => bytes >= 1048576 ? `${(bytes / 1048576).
 const HTML_ACCEPT = '.html,.htm,text/html';
 const isHtml = (file: File): boolean => /\.html?$/i.test(file.name);
 const isZip = (file: File): boolean => /\.zip$/i.test(file.name);
+const loadsOutside = (page: SitePage): boolean => !!page.outside?.length;
+/** The hosts the given pages load files from, each once, in the order they first appear. */
+const hostsOf = (pages: SitePage[]): string[] => [...new Set(pages.flatMap(page => (page.outside || []).map(item => item.host)))];
+/** "1 stylesheet from a and 2 scripts from b": the page's outside files grouped by host and kind, four groups at most. */
+function outsideSentence(page: SitePage): string {
+  const groups = new Map<string, { kind: string; host: string; count: number }>();
+  for (const item of page.outside || []) {
+    const key = `${item.kind} ${item.host}`;
+    const group = groups.get(key);
+    if (group) group.count += 1;
+    else groups.set(key, { kind: item.kind, host: item.host, count: 1 });
+  }
+  if (!groups.size) return '';
+  const all = [...groups.values()];
+  const pieces = all.slice(0, 4).map(({ kind, host, count }) => kind === 'stylesheet'
+    ? count === 1 ? t('1 stylesheet from {0}', [host]) : t('{0} stylesheets from {1}', [count, host])
+    : count === 1 ? t('1 script from {0}', [host]) : t('{0} scripts from {1}', [count, host]));
+  const rest = all.slice(4).reduce((sum, group) => sum + group.count, 0) + (page.outsideMore || 0);
+  if (rest) pieces.push(rest === 1 ? t('1 more file') : t('{0} more files', [rest]));
+  return t('This page takes part of its look from the web: {0}. These files are not brought along.', [joined(pieces)]);
+}
 /** Decodes a picked page exactly as the service decodes one inside a zip: UTF-8 (a byte order mark dropped), else Windows-1252 with its five unassigned bytes as U+FFFD. */
 function decode(bytes: ArrayBuffer): string {
   try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
@@ -79,6 +100,7 @@ export class SiteImport {
     text(this.helpZip, t('Brings a static site made elsewhere into this site: every HTML file in the zip becomes a page, with its stylesheets, pictures and WOFF2 fonts. After the review you choose whether the pages arrive as editable elements or as code sections. Links between the pages follow their new addresses, and outside links stay as they are.'));
     this.help.append(this.helpHtml, this.helpZip);
     subscribe(next => { if (this.finished && this.made.length && !this.made.some(id => next.site.nodes[id] || next.site.pages.some(page => page.id === id))) this.reset(); });
+    onLanguage(() => this.paint());
     this.file.type = 'file';
     this.file.multiple = true;
     this.file.hidden = true;
@@ -197,6 +219,7 @@ export class SiteImport {
     this.mode = 'new';
     this.use = 'pages';
     this.done = false;
+    this.bring.choose('elements');
     this.say('', false);
     this.show();
     if (zips.length + pages.length !== files.length || (zips.length && files.length > 1)) {
@@ -217,6 +240,7 @@ export class SiteImport {
       if (zips.length) this.current = zips[0];
       else this.loose = await Promise.all(pages.map(async file => ({ name: file.name, html: decode(await file.arrayBuffer()) })));
       this.plan = await request<SiteReview>('/api/library/import-site/review', this.body());
+      this.bring.choose(this.plan.pages.some(loadsOutside) ? 'code' : 'elements');
       const empty = !this.plan.pages.length;
       if (empty) this.loose = null;
       this.say(empty ? (zips.length ? t('The archive has no HTML page that can be imported.') : t('None of the files is an HTML page that can be imported.')) : '', empty);
@@ -269,6 +293,7 @@ export class SiteImport {
     if (this.reviewTail.hidden === showReview) this.reviewTail.hidden = !showReview;
     const showBring = showReview || section;
     this.bring.heading(section ? 'Bring it in as' : 'Bring pages in as');
+    this.bring.explain(this.why(section));
     if (this.bring.element.hidden === showBring) this.bring.element.hidden = !showBring;
     const count = plan?.pages.length ?? 0;
     if (section) {
@@ -300,14 +325,39 @@ export class SiteImport {
     if (this.skippedHead.hidden === !!plan.skipped.length) this.skippedHead.hidden = !plan.skipped.length;
   }
 
+  /** Why the choice started on code sections, and what elements would miss; null when no page loads files from the web. */
+  private why(section: boolean): BringWhy | null {
+    const pages = this.plan?.pages || [];
+    const loading = pages.filter(loadsOutside);
+    if (!loading.length) return null;
+    const hosts = hostList(hostsOf(loading));
+    if (section || pages.length === 1) return {
+      code: t('Kept as code, so the page keeps its own scripts and rules, responsive ones included. The files it loads from the web are not brought along either way.'),
+      elements: t('As elements, the page arrives without the files it loads from {0}, so part of its look will be missing.', [hosts])
+    };
+    if (loading.length === 1) return {
+      code: t('Kept as code, because 1 of {0} pages loads files from the web. As code the pages keep their own scripts and rules, responsive ones included; those files are not brought along either way.', [pages.length]),
+      elements: t('As elements, 1 of {0} pages arrives without the files it loads from {1}, so part of its look will be missing.', [pages.length, hosts])
+    };
+    return {
+      code: t('Kept as code, because {0} of {1} pages load files from the web. As code the pages keep their own scripts and rules, responsive ones included; those files are not brought along either way.', [loading.length, pages.length]),
+      elements: t('As elements, {0} of {1} pages arrive without the files they load from {2}, so part of their look will be missing.', [loading.length, pages.length, hosts])
+    };
+  }
+
   private row(): HTMLElement {
     const node = element('div', 'fw-lib-site-item');
-    node.append(element('span', 'fw-lib-row-name'), element('span', 'fw-lib-site-route'), element('span', 'fw-lib-row-meta'));
+    const outside = element('span', 'fw-lib-row-meta fw-lib-site-outside');
+    outside.dataset.noI18n = '';
+    node.append(element('span', 'fw-lib-row-name'), element('span', 'fw-lib-site-route'), outside, element('span', 'fw-lib-row-meta'));
     return node;
   }
 
   private fillPage(node: HTMLElement, page: SitePage): void {
-    const [name, route, meta] = Array.from(node.children) as HTMLElement[];
+    const [name, route, outside, meta] = Array.from(node.children) as HTMLElement[];
+    const web = outsideSentence(page);
+    text(outside, web);
+    if (outside.hidden === !web) outside.hidden = !web;
     text(name, page.name);
     const replacing = this.mode === 'replace' && page.replaces;
     text(route, `${page.file} → ${replacing ? page.route : page.newRoute}`);
@@ -317,9 +367,10 @@ export class SiteImport {
   }
 
   private fillSkip(node: HTMLElement, item: SiteSkip): void {
-    const [name, route, meta] = Array.from(node.children) as HTMLElement[];
+    const [name, route, outside, meta] = Array.from(node.children) as HTMLElement[];
     text(name, item.file);
     if (!route.hidden) route.hidden = true;
+    if (!outside.hidden) outside.hidden = true;
     text(meta, t(item.reason));
     if (meta.hidden) meta.hidden = false;
   }
@@ -330,7 +381,7 @@ export class SiteImport {
     this.working = t('Importing...');
     this.setBusy(true);
     try {
-      const message = await importSection(this.hooks, { html: page.html, name: page.name.replace(/\.html?$/i, '') }, this.bring.value(), note => this.progress(note), ids => { this.made = ids; });
+      const message = await importSection(this.hooks, { html: page.html, name: page.name.replace(/\.html?$/i, '') }, this.bring.value(), note => this.progress(note), ids => { this.made = ids; }, hostsOf(this.plan?.pages.slice(0, 1) || []));
       this.done = true;
       this.say(message, false);
     } catch (error) {
@@ -359,7 +410,7 @@ export class SiteImport {
         this.progress(t('Converting...'));
         const site = state().site;
         const hosts = result.pages.flatMap(id => site.nodes[site.pages.find(page => page.id === id)?.root || '']?.children || []);
-        try { message += ' ' + (await this.hooks.convert(hosts)).message + ' ' + t('Undo once to get the pages back as code, twice to remove them.'); }
+        try { message += ' ' + [(await this.hooks.convert(hosts)).message, missingHosts(hostsOf(plan.pages)), t('Undo once to get the pages back as code, twice to remove them.')].filter(Boolean).join(' '); }
         catch (error) { message += ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
       }
       this.say(message, false);

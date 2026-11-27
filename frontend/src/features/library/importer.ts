@@ -5,8 +5,24 @@ import { labelAttr, t } from '../../i18n';
 import type { LibResult, LibraryHooks } from './types';
 import { bringChoice, type Bring } from './bring';
 
+/** Words joined as a list: "a", "a and b", "a, b and c". */
+export function joined(items: string[]): string {
+  if (items.length < 2) return items[0] || '';
+  return t('{0} and {1}', [items.slice(0, -1).reduce((list, item) => t('{0}, {1}', [list, item])), items[items.length - 1]]);
+}
+
+/** Host names for a sentence: at most three, then how many more. */
+export function hostList(hosts: string[]): string {
+  if (hosts.length <= 3) return joined(hosts);
+  const rest = hosts.length - 3;
+  return rest === 1 ? t('{0} and 1 more host', [hosts.slice(0, 3).join(', ')]) : t('{0} and {1} more hosts', [hosts.slice(0, 3).join(', '), rest]);
+}
+
+/** The result sentence for pages brought in as elements without the files they load from the web. */
+export const missingHosts = (hosts: string[]): string => hosts.length ? t('Files from {0} were not brought along, so part of the look may be missing.', [hostList(hosts)]) : '';
+
 /** One page into the open page as a code section, converted to elements when asked; answers with the sentence to show. */
-export async function importSection(hooks: LibraryHooks, body: { html: string; css?: string; name?: string }, bring: Bring, progress: (message: string) => void, made?: (ids: string[]) => void): Promise<string> {
+export async function importSection(hooks: LibraryHooks, body: { html: string; css?: string; name?: string }, bring: Bring, progress: (message: string) => void, made?: (ids: string[]) => void, hosts: string[] = []): Promise<string> {
   const where = hooks.placement();
   const result = await libraryMutate<LibResult>('/api/library/import-html', { ...body, parent: where.parent, index: where.index, page: where.page });
   let message = result.warnings?.[0] || t('HTML section imported.');
@@ -14,7 +30,7 @@ export async function importSection(hooks: LibraryHooks, body: { html: string; c
   let root = result.root;
   if (result.root && bring === 'elements') {
     progress(t('Converting...'));
-    try { const done = await hooks.convert([result.root]); root = done.root || root; message = note = done.message + ' ' + t('Undo once to get the section back as code, twice to remove it.'); }
+    try { const done = await hooks.convert([result.root]); root = done.root || root; message = note = [done.message, missingHosts(hosts), t('Undo once to get the section back as code, twice to remove it.')].filter(Boolean).join(' '); }
     catch (error) { message = note = t('HTML section imported.') + ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
   }
   if (root) hooks.select(root);
