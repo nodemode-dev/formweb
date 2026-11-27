@@ -214,6 +214,14 @@ export function installTry(options: TryOptions): TryKit {
     aimed = shown && within(target, SURFACE) ? performance.now() : 0;
   }, true);
 
+  const host = options.canvas as Partial<{ frame: HTMLIFrameElement; loaded(): Promise<void> }>;
+  void host.loaded?.().then(() => {
+    host.frame?.contentDocument?.addEventListener('pointerdown', () => {
+      const entry = current;
+      if (entry && !entry.over && !entry.pending && entry.value !== null) entry.trial.revert();
+    }, true);
+  });
+
   document.addEventListener('pointerdown', event => { if (aimed && !within(event.target, MENU)) aimed = 0; }, true);
   document.addEventListener('input', event => { if (aimed && !within(event.target, MENU)) aimed = 0; }, true);
   document.addEventListener('keydown', event => {
