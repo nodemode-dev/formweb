@@ -1,9 +1,9 @@
-import { arrange, backdropLayers, carryAttrs, compact, emptyOutcome, families, layerName, LINK_FORCED, mapTag, pickFonts, READ, reduceStyles, ROOT_FORCED, scopeSelector, VOID_TAGS, type FontFaceRule, type Outcome, type Part, type Run, type SiteFont } from './rules';
+import { arrange, backdropLayers, bodyQualified, carryAttrs, compact, emptyOutcome, families, guardSelector, KEEP_BYTES, KEEP_RULES, layerName, LINK_FORCED, mapTag, pickFonts, READ, reduceStyles, ROOT_FORCED, scopeSelector, scriptWords, selectorList, subjectClasses, VOID_TAGS, type FontFaceRule, type Outcome, type Part, type Run, type SiteFont } from './rules';
 import { t } from '../../i18n';
 
 export interface Source { html: string; css: string; js: string; module: boolean }
-export interface Planned { id: string; parent: string; tag: string; name: string; text: string; attrs: Record<string, string>; styles: Record<string, string>; code?: { enabled: true; html: string; js?: string; module?: boolean } }
-export interface Plan { rootStyles: Record<string, string>; nodes: Planned[]; fonts: Record<string, SiteFont> | null; outcome: Outcome; rest?: { before: string; after: string; css: string } }
+export interface Planned { id: string; parent: string; tag: string; name: string; text: string; attrs: Record<string, string>; styles: Record<string, string>; code?: { enabled: true; html: string; css?: string; js?: string; module?: boolean } }
+export interface Plan { rootStyles: Record<string, string>; nodes: Planned[]; fonts: Record<string, SiteFont> | null; outcome: Outcome; rest?: { before: string; after: string; css: string; kept?: string } }
 export interface Options { origin: string; keepScript: boolean; fonts: Record<string, SiteFont>; taken: (id: string) => boolean; limit: number; depth: number; seconds: number; scope?: string }
 
 const SKIPPED = new Set(['STYLE', 'LINK', 'META', 'BASE', 'TITLE']);
@@ -82,7 +82,7 @@ function frameDocument(origin: string, css: string, body: string, bodyAttrs: str
 }
 
 /** A hidden, sandboxed frame with no scripts and no network beyond the site's own pictures; removed when done. */
-async function openFrame(srcdoc: string, origin: string): Promise<{ doc: Document; close: () => void }> {
+async function openFrame(srcdoc: string, origin: string): Promise<{ doc: Document; frame: HTMLIFrameElement; close: () => void }> {
   const frame = document.createElement('iframe');
   frame.setAttribute('sandbox', 'allow-same-origin');
   frame.setAttribute('csp', policy(origin));
@@ -96,7 +96,7 @@ async function openFrame(srcdoc: string, origin: string): Promise<{ doc: Documen
   await loaded;
   const doc = frame.contentDocument;
   if (!doc) { frame.remove(); throw new Error(t('The page could not be measured in this browser.')); }
-  return { doc, close: () => frame.remove() };
+  return { doc, frame, close: () => frame.remove() };
 }
 
 function read(view: Window, el: Element, names: readonly string[]): Record<string, string> {
@@ -156,6 +156,196 @@ export function scopedCss(css: string, prefix: string): string {
   return out.join('\n');
 }
 
+/** The measuring frame's height (`.fw-convert-frame` in convert.css), and the height it is read at a second time. */
+const FRAME_H = 900, TALL = 1300;
+const HEIGHTS = ['height', 'min-height', 'max-height'];
+const round = (n: number): number => Math.round(n * 100) / 100;
+
+/** A measured length that followed the frame's height, written in vh again (with a fixed part in calc() if it had one). */
+function inVh(short: string, tall: string): string | null {
+  const a = parseFloat(short), b = parseFloat(tall);
+  if (!short.endsWith('px') || !tall.endsWith('px') || !Number.isFinite(a) || !Number.isFinite(b) || Math.abs(b - a) < 0.5) return null;
+  const per = (b - a) * 100 / (TALL - FRAME_H), rest = a - per * FRAME_H / 100;
+  if (Math.abs(rest) < 0.5) return `${round(per)}vh`;
+  return `calc(${round(per)}vh ${rest < 0 ? '-' : '+'} ${round(Math.abs(rest))}px)`;
+}
+
+/**
+ * Heights the page took from the window. The frame is measured with `html` hidden, so `100vh` reads as the frame's
+ * 900 px and `height: 100%` stays a percentage that the element's new parent cannot resolve: the page collapsed to
+ * its content, or kept 900 px on a taller canvas. Every written height that changes when the frame is made taller is
+ * written in vh again, and a root whose height was a percentage of the window becomes a min-height in vh, with its
+ * children's percentages of it, so the converted page fills the canvas and the preview as the original filled the
+ * window.
+ */
+function fillWindow(view: Window, frame: HTMLIFrameElement, root: Record<string, string> | null, sized: [{ parent: string; styles: Record<string, string> }, Element][]): void {
+  const doc = view.document;
+  const entries: [Record<string, string>, Element][] = [...(root ? [[root, doc.body] as [Record<string, string>, Element]] : []), ...sized.map(([node, el]) => [node.styles, el] as [Record<string, string>, Element])]
+    .filter(([styles]) => HEIGHTS.some(name => /px$|%$/.test(styles[name] || '')));
+  if (!entries.length) return;
+  const page = read(view, doc.documentElement, ['height']).height;
+  const short = entries.map(([, el]) => read(view, el, HEIGHTS));
+  frame.style.height = `${TALL}px`;
+  void frame.offsetHeight;
+  const tall = entries.map(([, el]) => read(view, el, HEIGHTS));
+  const pageTall = read(view, doc.documentElement, ['height']).height;
+  frame.style.height = '';
+  entries.forEach(([styles], index) => {
+    for (const name of HEIGHTS) {
+      if (styles[name] !== short[index][name]) continue;
+      const value = inVh(short[index][name], tall[index][name]);
+      if (value) styles[name] = value;
+    }
+  });
+  if (!root) return;
+  const vhOf = (value: string | null | undefined): number => value && value.endsWith('vh') && !value.startsWith('calc') ? parseFloat(value) : NaN;
+  const pageVh = page.endsWith('%') ? parseFloat(page) : vhOf(inVh(page, pageTall));
+  if (!Number.isFinite(pageVh)) return;
+  const share = (value: string | undefined, of: number): number => value?.endsWith('%') ? round(parseFloat(value) * of / 100) : NaN;
+  const own = share(root.height, pageVh), least = share(root['min-height'], pageVh);
+  const fill = Math.max(Number.isFinite(own) ? own : 0, Number.isFinite(least) ? least : 0);
+  if (!fill) return;
+  if (root.height?.endsWith('%')) delete root.height;
+  if (!(vhOf(root['min-height']) >= fill)) root['min-height'] = `${fill}vh`;
+  if (!Number.isFinite(own)) return;
+  for (const [node] of sized) {
+    if (node.parent !== '') continue;
+    const child = Math.max(share(node.styles.height, own) || 0, share(node.styles['min-height'], own) || 0);
+    if (!child) continue;
+    if (node.styles.height?.endsWith('%')) delete node.styles.height;
+    node.styles['min-height'] = `${child}vh`;
+  }
+}
+
+export interface Kept { css: string; rules: number; all: boolean; over: number }
+
+/** How long checking which rules the converted elements use may take before every rule is kept unchecked. */
+const MATCH_MS = 2000;
+/** Added to a kept selector's subject so it cannot match a converted element (every element carries this attribute). */
+const GUARD = ':where(:not([data-fw-node]))';
+const GROUPS = new Set(['CSSMediaRule', 'CSSSupportsRule', 'CSSContainerRule', 'CSSLayerBlockRule']);
+const kindOf = (rule: CSSRule): string => rule.constructor.name;
+
+function groupHead(rule: CSSRule): string {
+  const kind = kindOf(rule);
+  if (kind === 'CSSMediaRule') return `@media ${(rule as CSSMediaRule).media.mediaText}`;
+  if (kind === 'CSSSupportsRule') return `@supports ${(rule as CSSSupportsRule).conditionText}`;
+  if (kind === 'CSSLayerBlockRule') return `@layer ${(rule as CSSLayerBlockRule).name}`.trim();
+  const text = rule.cssText, at = text.indexOf('{');
+  return at > 0 ? text.slice(0, at).trim() : '';
+}
+
+/**
+ * The page's style rules kept for what its script builds. A selector is kept when it matched no converted element in
+ * the measuring frame (the page as written, scripts not run), or when it did but its subject requires classes the
+ * script names (the script may build more of them); the other selectors of a list are left out. Custom properties
+ * of every rule stay, so kept rules still find their var() values. Each kept selector looks only inside `prefix`
+ * (the converted root) and is guarded so it cannot restyle a converted element. `@keyframes` and `@font-face` stay
+ * when a kept rule names them, `@media`, `@supports`, `@container` and `@layer` blocks keep only their kept rules,
+ * `@import` never stays (the browser's parse of a constructed sheet drops it). Parsing and serialising are the
+ * browser's, in the measuring frame's realm; nothing is applied or fetched there.
+ */
+async function keepRules(view: Window, doc: Document, css: string, converted: Set<Element>, words: Set<string>, prefix: string): Promise<Kept> {
+  const Sheet = (view as unknown as { CSSStyleSheet: typeof CSSStyleSheet }).CSSStyleSheet;
+  const sheet = new Sheet(), scratch = new Sheet();
+  const none: Kept = { css: '', rules: 0, all: false, over: 0 };
+  let slice = performance.now();
+  const breathe = async (): Promise<void> => { if (performance.now() - slice > 40) { await new Promise(resolve => setTimeout(resolve, 0)); slice = performance.now(); } };
+  try { sheet.replaceSync(css); } catch { return none; }
+  const styleRules: CSSStyleRule[] = [];
+  const collect = (list: CSSRuleList): void => {
+    for (let i = 0; i < list.length; i++) {
+      const rule = list[i];
+      if (isStyle(rule)) styleRules.push(rule);
+      else if (GROUPS.has(kindOf(rule))) collect((rule as CSSGroupingRule).cssRules);
+    }
+  };
+  collect(sheet.cssRules);
+  if (!styleRules.length) return none;
+  const used = (selector: string): boolean => {
+    let found: NodeListOf<Element>;
+    try { found = doc.querySelectorAll(selector); } catch { return false; }
+    for (let i = 0; i < found.length; i++) if (converted.has(found[i])) return true;
+    return false;
+  };
+  const lists = new Map<CSSStyleRule, string[]>();
+  const keeps = new Map<CSSStyleRule, boolean[]>();
+  const deadline = performance.now() + MATCH_MS;
+  let all = false;
+  for (const rule of styleRules) {
+    const list = selectorList(rule.selectorText);
+    lists.set(rule, list);
+    if (all) continue;
+    await breathe();
+    if (performance.now() > deadline) { all = true; continue; }
+    keeps.set(rule, list.map(selector => !used(selector) || (() => { const classes = subjectClasses(selector); return !!classes.length && classes.every(name => words.has(name)); })()));
+  }
+  if (all) keeps.clear();
+
+  const encoder = new TextEncoder();
+  let bytes = 0, rules = 0, over = 0;
+  const valid = (text: string): boolean => { try { scratch.insertRule(text, 0); scratch.deleteRule(0); return true; } catch { return false; } };
+  let full = false;
+  const room = (text: string): boolean => {
+    const size = encoder.encode(text).length + 1;
+    if (rules >= KEEP_RULES || bytes + size > KEEP_BYTES) { full ||= rules >= KEEP_RULES || bytes > KEEP_BYTES - 256; return false; }
+    bytes += size;
+    return true;
+  };
+  const customsOf = (style: CSSStyleDeclaration): string[] => {
+    const customs: string[] = [];
+    for (let i = 0; i < style.length; i++) {
+      const name = style.item(i);
+      if (name.startsWith('--')) customs.push(`${name}:${style.getPropertyValue(name)}${style.getPropertyPriority(name) ? ' !important' : ''}`);
+    }
+    return customs;
+  };
+  const styleTexts = (rule: CSSStyleRule): string[] => {
+    const list = lists.get(rule)!, keep = keeps.get(rule) || list.map(() => true);
+    const style = rule.style, scope = (selector: string): string => scopeSelector(selector, prefix);
+    const customs = customsOf(style);
+    const texts: string[] = [];
+    if (customs.length) { const text = `${list.map(scope).join(', ')}{${customs.join(';')}}`; if (valid(text)) texts.push(text); }
+    let kept = list.filter((selector, index) => keep[index] && !bodyQualified(selector)).map(scope).filter(selector => selector !== prefix).map(selector => guardSelector(selector, GUARD));
+    const nested = (rule as CSSStyleRule & { cssRules?: CSSRuleList }).cssRules;
+    const body = `{${style.cssText}${nested ? Array.from(nested).map(inner => inner.cssText).join('') : ''}}`;
+    if (kept.length && !valid(kept.join(', ') + body)) kept = kept.filter(selector => valid(selector + body));
+    if (kept.length && style.length) texts.push(kept.join(', ') + body);
+    return texts;
+  };
+  const emit = async (list: CSSRuleList): Promise<string[]> => {
+    const out: string[] = [];
+    for (let i = 0; i < list.length; i++) {
+      const rule = list[i];
+      if (isStyle(rule)) {
+        if (full) { if ((keeps.get(rule) || [true]).some(Boolean) || customsOf(rule.style).length) over++; continue; }
+        await breathe();
+        const texts = styleTexts(rule);
+        if (!texts.length) continue;
+        if (room(texts.join(''))) { out.push(...texts); rules++; } else over++;
+      } else if (GROUPS.has(kindOf(rule))) {
+        const inner = await emit((rule as CSSGroupingRule).cssRules), head = groupHead(rule);
+        if (inner.length && head) { out.push(`${head}{${inner.join('\n')}}`); bytes += head.length + 2; }
+      }
+    }
+    return out;
+  };
+  const body = await emit(sheet.cssRules);
+  if (!body.length) return { ...none, over, all };
+  const names = new Set<string>();
+  scriptWords(body.join('\n').toLowerCase(), names, 200000);
+  const head: string[] = [];
+  for (let i = 0; i < sheet.cssRules.length; i++) {
+    const rule = sheet.cssRules[i], kind = kindOf(rule);
+    const wanted = kind === 'CSSLayerStatementRule' || kind === 'CSSPropertyRule'
+      || (kind === 'CSSKeyframesRule' && names.has((rule as CSSKeyframesRule).name.toLowerCase()))
+      || (kind === 'CSSFontFaceRule' && families((rule as CSSFontFaceRule).style.getPropertyValue('font-family')).some(family => family.split(' ').every(word => names.has(word))));
+    if (!wanted) continue;
+    if (room(rule.cssText)) head.push(rule.cssText); else over++;
+  }
+  return { css: [...head, ...body].join('\n'), rules, all, over };
+}
+
 /** The blocks a page too large for one conversion can be converted by, one at a time: its top-level elements. */
 export function blocks(source: Source): { blocks: Block[]; total: number } {
   const { doc } = sanitize(source);
@@ -207,6 +397,8 @@ export async function measure(source: Source, options: Options, only?: number): 
     doc.querySelectorAll('[data-fwk-i]').forEach(el => sources.set(el.getAttribute('data-fwk-i')!, el));
     const nodes: Planned[] = [];
     const used = new Set<string>();
+    const converted = new Set<Element>(), words = new Set<string>();
+    let script: Planned | undefined;
     let serial = 0;
     const stem = `cv${Math.random().toString(36).slice(2, 7)}`;
     const fresh = (): string => { let id = `${stem}-${++serial}`; while (options.taken(id)) id = `${stem}-${++serial}`; return id; };
@@ -255,9 +447,12 @@ export async function measure(source: Source, options: Options, only?: number): 
       rootMeasured['background-color'] = page['background-color'];
     }
     const rootStyles = settle(rootMeasured, bare.doc.body, ROOT_FORCED);
+    const sized: [{ parent: string; styles: Record<string, string> }, Element][] = [];
 
     const keptHtml = (from: Element, frameEl: Element, bareParent: Element): string => {
       const copy = from.cloneNode(true) as Element;
+      converted.add(frameEl);
+      frameEl.querySelectorAll('*').forEach(el => converted.add(el));
       const pairs: [Element, Element, Element][] = [];
       const twin = bare.doc.importNode(frameEl, true) as Element;
       twin.removeAttribute('style');
@@ -289,6 +484,7 @@ export async function measure(source: Source, options: Options, only?: number): 
       const html = part === 'script' ? (() => { const copy = from.cloneNode(true) as Element; copy.removeAttribute('data-fwk-i'); return copy.outerHTML; })() : keptHtml(from, frameEl, bareParent);
       outcome.parts[part] = (outcome.parts[part] || 0) + 1;
       nodes.push({ id: fresh(), parent, tag: PHRASING.has(parentTag) ? 'span' : 'div', name: part === 'script' ? 'Script' : `Code ${from.tagName.toLowerCase()}`, text: '', attrs: {}, styles: { display: 'contents' }, code: { enabled: true, html } });
+      if (part === 'script') { script ??= nodes[nodes.length - 1]; scriptWords(from.textContent || '', words); }
     };
 
     const gather = (frameParent: Element, runs: Run<Element>[]): void => {
@@ -331,7 +527,9 @@ export async function measure(source: Source, options: Options, only?: number): 
         const measured = read(view, el, READ);
         const styles = settle(measured, twin, rule.tag === 'a' ? LINK_FORCED : []);
         const id = fresh();
+        converted.add(el);
         nodes.push({ id, parent, tag: rule.tag, name: layerName(rule.tag, { id: from.id, className: from.getAttribute('class') || '' }), text: '', attrs: carried.attrs, styles });
+        sized.push([nodes[nodes.length - 1], el]);
         if (!VOID_TAGS.has(rule.tag)) backdrop(measured, id, styles);
         children(el, twin, id, rule.tag, depth + 1);
       }
@@ -340,7 +538,7 @@ export async function measure(source: Source, options: Options, only?: number): 
     const ROOT = '';
     const top = only === undefined ? original.doc.body : original.doc.body.children[only];
     if (!top) throw new Error(t('That part of the page is no longer there.'));
-    if (only === undefined) { backdrop(rootMeasured, ROOT, rootStyles); children(original.doc.body, bare.doc.body, ROOT, 'body', 1); }
+    if (only === undefined) { converted.add(top); backdrop(rootMeasured, ROOT, rootStyles); children(original.doc.body, bare.doc.body, ROOT, 'body', 1); }
     else {
       const from = sources.get(top.getAttribute('data-fwk-i') || '') || top;
       const rule = mapTag(from.tagName);
@@ -351,19 +549,36 @@ export async function measure(source: Source, options: Options, only?: number): 
       const measured = read(view, top, READ);
       const styles = settle(measured, twin, rule.tag === 'a' ? LINK_FORCED : []);
       const id = fresh();
+      converted.add(top);
       nodes.push({ id, parent: ROOT, tag: rule.tag, name: layerName(rule.tag, { id: from.id, className: from.getAttribute('class') || '' }), text: '', attrs: carried.attrs, styles });
+      sized.push([nodes[nodes.length - 1], top]);
       if (!VOID_TAGS.has(rule.tag)) backdrop(measured, id, styles);
       children(top, twin, id, rule.tag, 2);
     }
     if (only === undefined && options.keepScript && source.js.trim()) {
       outcome.parts.script = (outcome.parts.script || 0) + 1;
       nodes.push({ id: fresh(), parent: ROOT, tag: 'div', name: 'Page script', text: '', attrs: {}, styles: { display: 'contents' }, code: { enabled: true, html: '', js: source.js, ...(source.module ? { module: true } : {}) } });
+      script = nodes[nodes.length - 1];
+      scriptWords(source.js, words);
+    }
+    fillWindow(view, original.frame, only === undefined ? rootStyles : null, sized);
+    const scope = only === undefined ? options.scope : nodes.find(node => node.parent === ROOT)?.id;
+    const hostScript = only !== undefined && options.keepScript && !!source.js.trim();
+    if (hostScript) scriptWords(source.js, words);
+    let keptCss = '';
+    if ((script?.code || hostScript) && scope) {
+      const kept = await keepRules(view, original.doc, css, converted, words, `[data-fw-node="${scope}"]`);
+      if (kept.css && script?.code) script.code.css = kept.css;
+      else keptCss = kept.css;
+      outcome.kept = kept.rules;
+      outcome.keptAll = kept.all ? kept.rules : 0;
+      outcome.keptOver = kept.over;
     }
     outcome.converted = nodes.filter(node => !node.code).length;
     if (rootStyles['font-family']) families(rootStyles['font-family']).forEach(name => used.add(name));
     const fonts = pickFonts(rules.faces, used, options.fonts);
     const changed = JSON.stringify(fonts) !== JSON.stringify(options.fonts);
-    const rest = only === undefined ? undefined : { ...split(source.html, only), css: scopedCss(css, `[data-fw-node="${SCOPE}"]`) };
+    const rest = only === undefined ? undefined : { ...split(source.html, only), css: scopedCss(css, `[data-fw-node="${SCOPE}"]`), kept: keptCss };
     return { rootStyles, nodes, fonts: changed ? fonts : null, outcome, rest };
   } finally {
     original.close();

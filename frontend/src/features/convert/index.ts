@@ -89,7 +89,7 @@ function partCommands(site: EditorState['site'], host: SiteNode, record: Section
   }
   list.push(...adds(plan, parent => parent || owner.id));
   if (root) list.push({ command: 'node.move', params: { id: root.id, parent: owner.id, index: at } });
-  if (plan.rest.after || record.js) list.push({ command: 'code.section.set', params: { node: host.id, value: { ...record, enabled: record.enabled !== false, html: plan.rest.after, css: scoped(host.id) } } });
+  if (plan.rest.after || record.js) list.push({ command: 'code.section.set', params: { node: host.id, value: { ...record, enabled: record.enabled !== false, html: plan.rest.after, css: scoped(host.id) + (record.js && plan.rest.kept ? `\n${plan.rest.kept}` : '') } } });
   else list.push({ command: 'node.remove', params: { id: host.id } });
   return list;
 }
@@ -116,6 +116,18 @@ function drop(plans: [Plan, string][], message: string): number {
   return removed;
 }
 
+/** Takes the style rules kept for scripts out of the plans when the engine refused the batch for a section's CSS or the site's size. */
+function dropKept(plans: [Plan, string][], message: string): number {
+  if (!message.includes('invalid css') && !message.includes('site exceeds')) return 0;
+  let removed = 0;
+  for (const [plan] of plans) {
+    for (const item of plan.nodes) if (item.code?.css) { delete item.code.css; removed++; }
+    if (plan.rest?.kept) { plan.rest.kept = ''; removed++; }
+    if (plan.outcome.kept) { plan.outcome.keptDropped += plan.outcome.kept; plan.outcome.kept = 0; plan.outcome.keptAll = 0; }
+  }
+  return removed;
+}
+
 async function apply(build: () => Command[], plans: [Plan, string][]): Promise<{ state: EditorState; left: number }> {
   let left = 0;
   for (let attempt = 0; ; attempt++) {
@@ -123,6 +135,7 @@ async function apply(build: () => Command[], plans: [Plan, string][]): Promise<{
       return { state: await send(build()), left };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      if (attempt < RETRIES && dropKept(plans, message)) continue;
       const removed = attempt < RETRIES ? drop(plans, message) : 0;
       if (!removed) throw error;
       left += removed;
@@ -172,6 +185,7 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
   const outcome = plans.map(plan => plan.outcome).reduce((all, one) => ({
     converted: all.converted + one.converted, responsive: all.responsive + one.responsive, effects: all.effects + one.effects, floats: all.floats + one.floats,
     pictures: all.pictures + one.pictures, refused: all.refused + one.refused, scripted: all.scripted + one.scripted, left: all.left + one.left,
+    kept: all.kept + one.kept, keptAll: all.keptAll + one.keptAll, keptOver: all.keptOver + one.keptOver, keptDropped: all.keptDropped + one.keptDropped,
     parts: Object.fromEntries([...new Set([...Object.keys(all.parts), ...Object.keys(one.parts)])].map(key => [key, (all.parts[key as keyof typeof all.parts] || 0) + (one.parts[key as keyof typeof one.parts] || 0)]))
   }));
   outcome.left += left;
@@ -189,6 +203,8 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
   box.hidden = true;
   box.setAttribute('role', 'dialog');
   box.setAttribute('aria-modal', 'false');
+  box.tabIndex = -1;
+  box.dataset.ownKeys = '';
   const title = element('h2', 'fw-convert-title');
   label(title, 'Convert to editable elements');
   box.setAttribute('aria-label', t('Convert to editable elements'));
@@ -225,9 +241,13 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
   let target = '';
   let busy = false;
 
-  const close = (): void => { if (!box.hidden) box.hidden = true; };
+  const close = (): void => {
+    if (box.hidden) return;
+    if (box.contains(document.activeElement)) document.querySelector<HTMLElement>('.inspector-tabs .active, .inspector-tabs button')?.focus({ preventScroll: true });
+    box.hidden = true;
+  };
   const say = (message: string, error = false): void => { text(note, message); note.classList.toggle('is-error', error); };
-  const setBusy = (on: boolean): void => { busy = on; go.disabled = on || !parts.hidden; box.setAttribute('aria-busy', String(on)); for (const button of Array.from(parts.querySelectorAll('button'))) (button as HTMLButtonElement).disabled = on || (button as HTMLButtonElement).dataset.big === '1'; };
+  const setBusy = (on: boolean): void => { if (on && box.contains(document.activeElement)) box.focus({ preventScroll: true }); busy = on; go.disabled = on || !parts.hidden; box.setAttribute('aria-busy', String(on)); for (const button of Array.from(parts.querySelectorAll('button'))) (button as HTMLButtonElement).disabled = on || (button as HTMLButtonElement).dataset.big === '1'; };
 
   function paintParts(list: Block[]): void {
     if (partsHead.hidden !== !list.length) { partsHead.hidden = !list.length; parts.hidden = !list.length; }
@@ -267,9 +287,10 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
     if (busy || !target) return undefined;
     setBusy(true);
     say(t('Converting...'));
+    const chosen = host.selected();
     try {
       const done = await convertSections([target], scriptBox.checked || scriptRow.hidden === true, part);
-      finish(done);
+      finish(done, chosen);
       if (part !== undefined) {
         const record = sectionOf(state().site, target);
         if (record?.html?.trim()) { const next = blocks(sourceOf(record)); paintParts(next.blocks); say(done.message); return done; }
@@ -291,9 +312,10 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
     }
   }
 
-  function finish(done: Converted): void {
-    const after = state().revision;
-    if (done.root && state().site.nodes[done.root]) host.select(done.root);
+  /** Selects what the conversion made, unless the person chose another element while it ran. */
+  function finish(done: Converted, chosen: string): void {
+    const after = state().revision, now = host.selected();
+    if (done.root && state().site.nodes[done.root] && (now === chosen || !state().site.nodes[now])) host.select(done.root);
     host.notify(done.message, () => {
       if (state().revision !== after) { host.status(t('The site changed after the conversion. Use Edit > Undo to step back.'), true); return; }
       return host.undo();
@@ -313,17 +335,18 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
     params: {
       node: { type: 'string', description: 'The code section element to convert. Default: the selected element.' },
       nodes: { type: 'array', description: 'Several code section elements to convert in one undo step.' },
-      keepScript: { type: 'boolean', description: 'Keep the page\'s script as a small code section (default true).' },
+      keepScript: { type: 'boolean', description: 'Keep the page\'s script as a small code section, with the style rules the converted elements do not use, for what the script builds (default true).' },
       part: { type: 'integer', min: 0, description: 'Convert only this top-level block of the section (0 is the first), for a page too large for one conversion.' }
     },
     enabled: () => host.ready() && anySection(),
-    description: 'Turn a code section (an imported page or any section of plain HTML and CSS) into ordinary FormWeb elements with their own text, links, pictures and base styles measured at desktop width, in one undo step. Scripts, inline frames and vector graphics stay as small code sections in place; responsive rules are not carried over. Without parameters it opens a short dialog for the selected element; with node or nodes it converts at once and returns the result sentence.',
+    description: 'Turn a code section (an imported page or any section of plain HTML and CSS) into ordinary FormWeb elements with their own text, links, pictures and base styles measured at desktop width, in one undo step. Scripts, inline frames and vector graphics stay as small code sections in place; responsive rules are not carried over. A kept script keeps the style rules no converted element uses, so what it builds is styled in Preview and the export. Without parameters it opens a short dialog for the selected element; with node or nodes it converts at once and returns the result sentence.',
     when: 'Use when the person wants to edit an imported page or a code section visually: click a heading, change its text, restyle it or move it.',
     run: async (params?: Record<string, unknown>) => {
       const list = Array.isArray(params?.nodes) ? (params!.nodes as unknown[]).filter((id): id is string => typeof id === 'string') : typeof params?.node === 'string' ? [params.node] : null;
       if (!list) { if (convertible(host.selected())) open(host.selected()); else host.status(t('Select a code section that holds HTML to convert.'), true); return undefined; }
+      const chosen = host.selected();
       const done = await convertSections(list, params?.keepScript !== false, typeof params?.part === 'number' ? params.part : undefined);
-      finish(done);
+      finish(done, chosen);
       return { message: done.message, converted: done.converted, root: done.root };
     }
   }];

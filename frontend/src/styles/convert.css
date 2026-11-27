@@ -2,6 +2,7 @@
 .fw-convert { position: fixed; top: 50%; left: 50%; z-index: var(--z-popover); display: flex; flex-direction: column; gap: var(--space-3); width: min(440px, calc(100vw - 2 * var(--space-6))); max-height: min(560px, calc(100vh - 2 * var(--space-6))); padding: var(--space-4); overflow-y: auto; scrollbar-width: none; transform: translate(-50%, -50%); border: 1px solid var(--border-light); border-radius: var(--radius-xl); background: var(--bg-secondary); box-shadow: var(--shadow-window); color: var(--text-primary); font-size: var(--fs-12); line-height: 1.45; pointer-events: auto; }
 .fw-convert::-webkit-scrollbar { display: none; }
 .fw-convert[hidden], .fw-convert [hidden] { display: none; }
+.fw-convert:focus { outline: none; }
 .fw-convert-title { margin: 0; font-size: var(--fs-14); font-weight: 600; }
 .fw-convert-text { margin: 0; color: var(--text-secondary); }
 .fw-convert .checkbox-field { margin-top: 0; }

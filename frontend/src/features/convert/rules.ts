@@ -281,10 +281,16 @@ export interface Outcome {
   refused: number;
   scripted: number;
   left: number;
+  /** Style rules kept for the page's script, those of them kept without checking (time bound), those past the
+   * bounds, and those dropped because the engine did not take them. */
+  kept: number;
+  keptAll: number;
+  keptOver: number;
+  keptDropped: number;
 }
 
 export function emptyOutcome(): Outcome {
-  return { converted: 0, parts: {}, responsive: 0, effects: 0, floats: 0, pictures: 0, refused: 0, scripted: 0, left: 0 };
+  return { converted: 0, parts: {}, responsive: 0, effects: 0, floats: 0, pictures: 0, refused: 0, scripted: 0, left: 0, kept: 0, keptAll: 0, keptOver: 0, keptDropped: 0 };
 }
 
 type Say = (english: string, values?: readonly (string | number)[]) => string;
@@ -311,6 +317,11 @@ export function summary(outcome: Outcome, say: Say, count: SayCount): string {
   if (outcome.floats) lines.push(count(outcome.floats, '1 float was left out: FormWeb has no float property.', '{0} floats were left out: FormWeb has no float property.', [outcome.floats]));
   if (outcome.scripted) lines.push(count(outcome.scripted, '1 event handler or script link was left out.', '{0} event handlers and script links were left out.', [outcome.scripted]));
   if (outcome.refused + outcome.left) lines.push(count(outcome.refused + outcome.left, '1 value the engine does not take was left out.', '{0} values the engine does not take were left out.', [outcome.refused + outcome.left]));
+  const checked = outcome.kept - outcome.keptAll;
+  if (checked > 0) lines.push(count(checked, 'Kept 1 style rule for what the page\'s script builds.', 'Kept {0} style rules for what the page\'s script builds.', [checked]));
+  if (outcome.keptAll) lines.push(count(outcome.keptAll, 'Kept 1 style rule for what the page\'s script builds without checking whether the converted elements use it: checking took too long, so every rule was kept.', 'Kept {0} style rules for what the page\'s script builds without checking which ones the converted elements use: checking took too long, so every rule was kept.', [outcome.keptAll]));
+  if (outcome.keptOver) lines.push(count(outcome.keptOver, '1 more style rule was left out: at most {1} rules and {2} KB are kept for a script.', '{0} more style rules were left out: at most {1} rules and {2} KB are kept for a script.', [outcome.keptOver, KEEP_RULES, KEEP_BYTES / 1024]));
+  if (outcome.keptDropped) lines.push(count(outcome.keptDropped, 'The style rule kept for the page\'s script was left out: the engine did not take it.', 'The {0} style rules kept for the page\'s script were left out: the engine did not take them.', [outcome.keptDropped]));
   return lines.join(' ');
 }
 
@@ -337,6 +348,96 @@ export function scopeSelector(list: string, prefix: string): string {
     if (body) return (prefix + part.slice(body[0].length)).trim();
     return part ? `${prefix} ${part}` : prefix;
   }).filter(Boolean).join(', ');
+}
+
+/** The most style rules and bytes kept for a page's script, under the engine's 256 KiB for a code section's CSS. */
+export const KEEP_RULES = 3000;
+export const KEEP_BYTES = 192 * 1024;
+
+/** The selectors of one list, split at commas outside parentheses, brackets and strings, in one pass. */
+export function selectorList(list: string): string[] {
+  const parts: string[] = [];
+  let depth = 0, start = 0, quote = '';
+  for (let i = 0; i < list.length; i++) {
+    const c = list[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === '\'') quote = c;
+    else if (c === '(' || c === '[') depth++;
+    else if (c === ')' || c === ']') depth = Math.max(0, depth - 1);
+    else if (c === ',' && !depth) { parts.push(list.slice(start, i).trim()); start = i + 1; }
+  }
+  parts.push(list.slice(start).trim());
+  return parts.filter(Boolean);
+}
+
+const IDENT = (c: string): boolean => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c === '-' || c === '_' || c > '\u007f';
+
+/** The subject of one selector (the compound after its last combinator): where it starts, where a pseudo-element
+ * begins (or the end), and the class names it requires. One pass, no backtracking. */
+function subjectOf(selector: string): { start: number; end: number; classes: string[] } {
+  let depth = 0, start = 0, end = -1, quote = '';
+  for (let i = 0; i < selector.length; i++) {
+    const c = selector[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === '\'') quote = c;
+    else if (c === '(' || c === '[') depth++;
+    else if (c === ')' || c === ']') depth = Math.max(0, depth - 1);
+    else if (depth) continue;
+    else if (c === ' ' || c === '>' || c === '+' || c === '~' || c === '\n' || c === '\t') { start = i + 1; end = -1; }
+    else if (c === ':' && selector[i + 1] === ':' && end < 0) { end = i; i++; }
+  }
+  if (end < 0) end = selector.length;
+  const classes: string[] = [];
+  depth = 0; quote = '';
+  for (let i = start; i < end; i++) {
+    const c = selector[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === '\'') quote = c;
+    else if (c === '(' || c === '[') depth++;
+    else if (c === ')' || c === ']') depth = Math.max(0, depth - 1);
+    else if (c === '.' && !depth) {
+      let name = '';
+      for (i++; i < end && (IDENT(selector[i]) || selector[i] === '\\'); i++) name += selector[i] === '\\' ? selector[++i] || '' : selector[i];
+      i--;
+      if (name) classes.push(name);
+    }
+  }
+  return { start, end, classes };
+}
+
+/** Whether a selector asks more of the page's body than being the body (`body.dark`, `body:has(...)`): the converted
+ * root that stands for the body carries none of that, and `scopeSelector` would drop the condition. */
+export function bodyQualified(selector: string): boolean {
+  const part = selector.trim().replace(/^(?:html|:root)(?:\s*>\s*|\s+)/i, '');
+  return part.slice(0, 4).toLowerCase() === 'body' && '.#:['.includes(part[4] || ' ');
+}
+
+/** The class names the subject of one selector requires. */
+export const subjectClasses = (selector: string): string[] => subjectOf(selector).classes;
+
+/**
+ * One kept selector made unable to match a converted element: `guard` goes on its subject, before any
+ * pseudo-element. A subject that requires a class is left as it is, since converted elements carry no class; it
+ * still matches an element the page's script gives that class.
+ */
+export function guardSelector(selector: string, guard: string): string {
+  const subject = subjectOf(selector);
+  if (subject.classes.length) return selector;
+  return selector.slice(0, subject.end) + guard + selector.slice(subject.end);
+}
+
+/** The words a script is written with (names, strings split at anything but letters, digits, - and _), at most `limit`. */
+export function scriptWords(code: string, into: Set<string>, limit = 50000): void {
+  let word = '';
+  for (let i = 0; i <= code.length && into.size < limit; i++) {
+    const c = code[i];
+    if (c !== undefined && IDENT(c)) { word += c; continue; }
+    if (word && word.length <= 120) into.add(word);
+    word = '';
+  }
 }
 
 export type Layer = { kind: 'picture'; src: string; fit: string; position: string } | { kind: 'paint'; image: string };
