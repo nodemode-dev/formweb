@@ -14,7 +14,8 @@ export interface AuditMarkersHost {
   page: () => string;
   editing: () => boolean;
   busy: () => boolean;
-  pick: (id: string, message: string, again: () => void) => void;
+  pick: (id: string, message: string, again: () => void) => string;
+  unsay: (line: string) => void;
   rescue: () => (HTMLElement | null | undefined)[];
   status: (message: string, error?: boolean) => void;
 }
@@ -39,7 +40,7 @@ const MAX_TEXT = 300;
 const MAX_LINES = 20;
 const MAX_NAME = 80;
 const SIZE = 20;
-const INSET = 2;
+const GONE_MS = 5000;
 const RANK: Record<string, number> = { error: 3, warning: 2, info: 1 };
 const SHAPE = ['info', 'info', 'warning', 'error'];
 
@@ -59,6 +60,9 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
   let answer: Answer | null = null;
   let failed = false;
   let failedAt = '';
+  let picked = '';
+  let pickedAt = 0;
+  let line = '';
   let said = false;
   let out = false;
   let due = false;
@@ -88,7 +92,7 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
   box.dataset.ownKeys = '';
   const boxLabel = element('label', 'checkbox-field');
   boxLabel.append(box, element('span', '', 'Show audit markers on the page'));
-  const about = element('p', 'micro', 'Puts a small marker on each element of this page that has an issue. Click a marker to select the element.');
+  const about = element('p', 'micro', 'Puts a small marker on each element of this page that has an issue. Markers show on the page when this dialog is closed. Click a marker to select the element.');
   const note = element('p', 'micro fw-audit-note');
   const row = element('div', 'fw-audit-switch');
   row.append(boxLabel, about, note);
@@ -196,7 +200,15 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
   function activate(id: string): void {
     const dot = shown.find(item => item.id === id);
     if (!dot || blocked()) return;
-    host.pick(id, dot.messages[0] || '', () => activate(id));
+    if (!current?.site.nodes[id]) {
+      shown = shown.filter(item => item.id !== id);
+      fill();
+      place();
+      return;
+    }
+    line = host.pick(id, dot.messages[0] || '', () => activate(id));
+    picked = id;
+    pickedAt = performance.now();
     const after = shown.find(item => item.id === id);
     if (after && after.messages.length > 1) {
       open = id;
@@ -237,6 +249,7 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
     }
     const still = map.still();
     const seen = map.visible();
+    const room = host.stage.getBoundingClientRect();
     const active = focused();
     const nodes = [...layer.children] as HTMLElement[];
     const spots = nodes.map(node => {
@@ -244,8 +257,9 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
       const rect: Box | null = at ? bounds(at) : null;
       if (!rect) return '';
       const corner = still.toParent(rect.left + rect.width, rect.top);
-      const left = Math.round(corner.x - SIZE - INSET), top = Math.round(corner.y + INSET);
-      return left >= seen.left && top >= seen.top && left + SIZE <= seen.left + seen.width && top + SIZE <= seen.top + seen.height ? `${left},${top}` : '';
+      if (corner.x < seen.left - 0.5 || corner.y < seen.top - 0.5 || corner.x > seen.left + seen.width + 0.5 || corner.y > seen.top + seen.height + 0.5) return '';
+      const left = Math.round(corner.x) - SIZE / 2, top = Math.round(corner.y) - SIZE / 2;
+      return left >= room.left && top >= room.top && left + SIZE <= room.right && top + SIZE <= room.bottom ? `${left},${top}` : '';
     });
     for (let index = 0; index < nodes.length; index++) {
       const node = nodes[index], id = node.dataset.key || '', spot = spots[index];
@@ -357,6 +371,8 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
 
   function sync(next: EditorState): void {
     current = next;
+    if (picked && !next.site.nodes[picked] && line && performance.now() - pickedAt < GONE_MS) host.unsay(line);
+    if (picked && !next.site.nodes[picked]) picked = '';
     if (!on) return;
     if (!valid() && failedAt !== `${next.site.id}:${next.revision}`) want();
     if (answer) paint(); else poke();
@@ -380,8 +396,9 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
     poke();
   };
   for (const type of ['pointerdown', 'pointerup', 'pointercancel', 'pointermove', 'keydown', 'keyup', 'click', 'focusin', 'input', 'change', 'scroll', 'transitionend']) window.addEventListener(type, watch, { capture: true, passive: true });
-  window.addEventListener('resize', poke);
-  const sized = new ResizeObserver(poke);
+  const now = (): void => { if (on) place(); };
+  window.addEventListener('resize', now);
+  const sized = new ResizeObserver(now);
   sized.observe(host.stage);
   sized.observe(host.frame);
   new MutationObserver(poke).observe(host.dialog, { attributes: true, attributeFilter: ['hidden'] });
@@ -392,7 +409,7 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
     if (!at || !view) return;
     doc = at;
     for (const type of ['pointerdown', 'pointerup', 'pointercancel', 'pointermove', 'dblclick', 'focusout', 'keyup', 'scroll', 'load']) at.addEventListener(type, watch, { capture: true, passive: true });
-    new view.ResizeObserver(poke).observe(at.documentElement);
+    new view.ResizeObserver(now).observe(at.documentElement);
     new view.MutationObserver(poke).observe(at.documentElement, { attributes: true, attributeFilter: ['data-fw-dragging', 'data-fw-holding'] });
     poke();
   });

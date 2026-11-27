@@ -1079,7 +1079,7 @@ const auditMarkers = installAuditMarkers({
   editing: () => !preview && !fullPreview.isOpen && !demoPreview.isOpen && !featureStudio.opened && !!home.root.hidden, busy: () => tryKit.busy(),
   pick: (id, message, again) => {
     const page = state().site.pages.find(item => descendants(item.root).has(id));
-    if (!page || !state().site.nodes[id]) return;
+    if (!page || !state().site.nodes[id]) return '';
     pageId = page.id;
     selectedId = id;
     update(state());
@@ -1088,7 +1088,9 @@ const auditMarkers = installAuditMarkers({
     const line = t('Selected {0}: {1}', [currentNode().name, message]);
     status(line);
     notice.show(line, { error: true, action: { label: 'Show again', run: again } });
+    return line;
   },
+  unsay: line => { if (statusMessage.textContent === line) { status(''); notice.hide(); } },
   rescue: () => [inspectorTabButtons.get(activeInspector), auditButton], status
 });
 auditPane.append(auditSummary, auditMarkers.row, auditList);
@@ -1905,6 +1907,10 @@ function closeDialog(): void {
   scrim.hidden = true;
   dialogMode = '';
   lastFocus?.focus();
+  if (document.activeElement === document.body) {
+    const tab = inspectorTabs.querySelector<HTMLElement>('button.active');
+    (tab?.getClientRects().length ? tab : auditButton).focus({ preventScroll: true });
+  }
 }
 async function createSite(name: string, starter: string): Promise<void> {
   await replace('/api/new', { name, blank: true });

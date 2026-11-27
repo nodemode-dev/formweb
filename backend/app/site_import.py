@@ -601,6 +601,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     missing: set = set()
     warnings: list[str] = []
     outside_scripts, outside_styles = set(), set()
+    named_scripts = named_styles = True
     site.used, site.room, site.overflow, site.loops, site.deep, site.outside, site.listing = set(), CSS_CAP, False, set(), set(), [], []
     title = TITLE.search(document)
     title = re.sub(r'\s+', ' ', unescape(title.group(1))).strip()[:200] if title else ''
@@ -631,6 +632,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
                     site.listing.append(('script', source))
                 if found is None:
                     outside_scripts.add(source[:120])
+                    named_scripts = named_scripts and outside_file('script', source) is not None
                 elif found[0] in site.files and site.files[found[0]][0] == 'script':
                     content = _text(site.files[found[0]][1])
                     if content.strip():
@@ -650,6 +652,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             if found is None:
                 if href.strip() and block.start() < body_at:
                     outside_styles.add(href[:120])
+                    named_styles = named_styles and outside_file('stylesheet', href) is not None
             elif found[0] in site.files and site.files[found[0]][0] == 'style':
                 inlined.add(whole)
                 if not site.take(found[0]):
@@ -672,8 +675,11 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             warnings.append(f'The script was left out: {error}')
     if foreign:
         warnings.append(left_out_scripts(foreign))
-    for found, noun, where in ((outside_scripts, 'external script', ''), (outside_styles, 'external stylesheet', ' in the page head')):
+    covered = []
+    for found, noun, where, named in ((outside_scripts, 'external script', '', named_scripts), (outside_styles, 'external stylesheet', ' in the page head', named_styles)):
         if found:
+            if named and not more:
+                covered.append(len(warnings))
             shown = sorted(found)
             warnings.append(f'{len(shown)} {noun}{"s" if len(shown) != 1 else ""}{where} {"is" if len(shown) == 1 else "are"} not brought along: {", ".join(shown[:5])}{"..." if len(shown) > 5 else ""}.')
     if site.loops:
@@ -695,7 +701,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
         warnings.append(f'{len(shown)} reference{"s" if len(shown) != 1 else ""} point{"" if len(shown) != 1 else "s"} at files that were skipped or are not in the archive: {", ".join(item[:80] for item in shown[:5])}{"..." if len(shown) > 5 else ""}.')
     name = (title or posixpath.basename(path).rsplit('.', 1)[0] or 'Imported page')[:120]
     return {'file': path, 'name': name, 'title': title, 'description': description, 'html': markup, 'css': css, 'js': script.strip(), 'module': module and bool(script.strip()), 'warnings': warnings, 'overflow': site.overflow,
-            'outside': outside, 'outsideMore': more}
+            'outside': outside, 'outsideMore': more, 'outsideWarnings': covered}
 
 
 def _emptiable(site: dict, root: str) -> bool:
@@ -778,7 +784,8 @@ def plan(archive: dict, site: dict, kit_script) -> dict:
 
 def review(result: dict) -> dict:
     pages = [{'file': p['file'], 'name': p['name'], 'title': p['title'], 'description': p['description'], 'route': p['route'], 'newRoute': p['newRoute'],
-              'replaces': p['replaces'], 'bytes': p['bytes'], 'warnings': p['warnings'], 'outside': p['outside'], 'outsideMore': p['outsideMore']} for p in result['pages']]
+              'replaces': p['replaces'], 'bytes': p['bytes'], 'warnings': p['warnings'], 'outside': p['outside'], 'outsideMore': p['outsideMore'],
+              'outsideWarnings': p['outsideWarnings']} for p in result['pages']]
     matched = [p['replaces'] for p in pages if p['replaces']]
     blocked = [m['name'] for m in matched if not m['safe']]
     reason = ''

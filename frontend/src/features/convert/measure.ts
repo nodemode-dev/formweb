@@ -217,6 +217,30 @@ function fillWindow(view: Window, frame: HTMLIFrameElement, root: Record<string,
   }
 }
 
+/**
+ * Line heights the page wrote as a ratio (`font: 15px/1.5`) read back as pixels, and pixels are inherited as they
+ * are: content the kept script builds inside a converted element then got the parent's 22.5px instead of 1.5 times
+ * its own size. A probe child with another font size tells a ratio (its line height follows its size) from a length
+ * (it keeps the parent's), and a ratio is written back unitless. The element's own line box is the same either way,
+ * and converted children already state their own value when it differs.
+ */
+function lineRatios(view: Window, entries: [Record<string, string>, Element][]): void {
+  const doc = view.document;
+  for (const [styles, el] of entries) {
+    const written = styles['line-height'];
+    if (!written?.endsWith('px') || VOID_TAGS.has(el.localName)) continue;
+    const size = parseFloat(read(view, el, ['font-size'])['font-size']), height = parseFloat(written);
+    if (!(size > 0) || !(height > 0)) continue;
+    const probe = doc.createElement('fw-probe');
+    probe.setAttribute('style', `display:block;font-size:${round(size * 2 + 3)}px`);
+    el.append(probe);
+    const inner = parseFloat(read(view, probe, ['line-height'])['line-height']);
+    probe.remove();
+    const ratio = Math.round(height / size * 10000) / 10000;
+    if (Math.abs(inner - ratio * (size * 2 + 3)) < 0.6 && Math.abs(inner - height) > 0.6) styles['line-height'] = String(ratio);
+  }
+}
+
 export interface Kept { css: string; rules: number; all: boolean; over: number; clash: number }
 
 /** How long checking which rules the converted elements use may take before every rule is kept unchecked. */
@@ -600,6 +624,7 @@ export async function measure(source: Source, options: Options, only?: number): 
       scriptWords(source.js, words);
     }
     fillWindow(view, original.frame, only === undefined ? rootStyles : null, sized);
+    lineRatios(view, [...(only === undefined ? [[rootStyles, original.doc.body] as [Record<string, string>, Element]] : []), ...sized.map(([node, el]) => [node.styles, el] as [Record<string, string>, Element])]);
     const scope = only === undefined ? options.scope : nodes.find(node => node.parent === ROOT)?.id;
     const hostScript = only !== undefined && options.keepScript && !!source.js.trim();
     if (hostScript) scriptWords(source.js, words);

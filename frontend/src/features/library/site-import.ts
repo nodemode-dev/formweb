@@ -361,7 +361,7 @@ export class SiteImport {
     text(name, page.name);
     const replacing = this.mode === 'replace' && page.replaces;
     text(route, `${page.file} → ${replacing ? page.route : page.newRoute}`);
-    const notes = [replacing ? t('Replaces the content of {0}.', [page.replaces!.name]) : page.newRoute !== page.route ? t('{0} is taken, so it gets {1}.', [page.route, page.newRoute]) : '', ...page.warnings.map(item => t(item))].filter(Boolean);
+    const notes = [replacing ? t('Replaces the content of {0}.', [page.replaces!.name]) : page.newRoute !== page.route ? t('{0} is taken, so it gets {1}.', [page.route, page.newRoute]) : '', ...page.warnings.filter((_, index) => !page.outsideWarnings?.includes(index)).map(item => t(item))].filter(Boolean);
     text(meta, notes.join(' '));
     meta.hidden = !notes.length;
   }

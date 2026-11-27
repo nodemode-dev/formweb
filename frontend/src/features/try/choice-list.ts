@@ -57,6 +57,7 @@ export function installChoiceLists(kit: TryKit, options: TryOptions): void {
   const bar = (): HTMLElement | null => document.querySelector<HTMLElement>('[data-try-bar]');
   const inBar = (node: Node | null): boolean => !!node && !!bar()?.contains(node);
   const live = (): boolean => !!trial && !trial.over;
+  const inMenus = (node: Node | null): boolean => node instanceof Element && !!node.closest('.fw-menubar, .fw-menu');
 
   function aria(select: HTMLSelectElement): void {
     if (kit.enabled()) {
@@ -286,13 +287,13 @@ export function installChoiceLists(kit: TryKit, options: TryOptions): void {
 
   function outside(event: Event): void {
     const target = event.target as Node;
-    if (!field || pop.contains(target) || field.select.contains(target) || inBar(target)) return;
+    if (!field || pop.contains(target) || field.select.contains(target) || inBar(target) || (live() && inMenus(target))) return;
     close();
   }
 
   function moved(event: FocusEvent): void {
     const target = event.target as Node;
-    if (!field || pop.contains(target) || target === field.select || inBar(target)) return;
+    if (!field || pop.contains(target) || target === field.select || inBar(target) || (live() && inMenus(target))) return;
     if (live()) { if (!trial!.pending) trial!.revert(); return; }
     hide();
   }
