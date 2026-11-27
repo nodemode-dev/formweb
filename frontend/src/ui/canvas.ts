@@ -1,5 +1,6 @@
 import type { Collection, Page, Site } from '../types';
 import { t } from '../i18n';
+import type { LayerFrame, LayerName } from '../features/try/types';
 
 type ItemContext = { collection: string; item: Collection['items'][number]; ids: Record<string, string>; suffix: string };
 
@@ -78,6 +79,7 @@ export class Canvas {
   private faceCss = '';
   private faceStyle?: HTMLStyleElement;
   private motionFrame: Record<string, Record<string, string>> | null = null;
+  private layers: Record<LayerName, LayerFrame | null> = { play: null, trial: null };
   private posters: Record<string, string> = {};
   private posterLights: Record<string, string> = {};
   private posterNodes = new Map<string, HTMLElement>();
@@ -92,6 +94,26 @@ export class Canvas {
     if (JSON.stringify(next) === JSON.stringify(this.motionFrame)) return;
     this.motionFrame = next;
     if (this.last) this.render(this.last.site, this.last.page, this.last.selected, this.last.width, this.last.locale, this.last.scope);
+  }
+
+  setLayer(name: LayerName, frame: LayerFrame | null): void {
+    const next = frame && Object.keys(frame).length ? frame : null;
+    const before = this.layers[name];
+    if (JSON.stringify(next) === JSON.stringify(before)) return;
+    this.layers[name] = next ? JSON.parse(JSON.stringify(next)) as LayerFrame : null;
+    if (!this.last || !this.doc) return;
+    const touched = new Map<string, Set<string>>();
+    for (const id of new Set([...Object.keys(before || {}), ...Object.keys(next || {})])) {
+      if (JSON.stringify(before?.[id]) === JSON.stringify(next?.[id])) continue;
+      touched.set(id, new Set([...Object.keys(before?.[id] || {}), ...Object.keys(next?.[id] || {})].map(cssName)));
+    }
+    const { site, scope } = this.last;
+    for (const [key, node] of this.nodes) {
+      if (key.endsWith(':list')) continue;
+      const id = node.dataset.fwId!;
+      const only = touched.get(id);
+      if (only && site.nodes[id]) this.restyle(node, key, site, id, scope, only);
+    }
   }
 
   setPosters(posters: Record<string, string>, lights: Record<string, string> = {}): void {
@@ -392,24 +414,7 @@ export class Canvas {
       if (previous === 'src') this.imageSources.delete(key);
     }
     this.attrs.set(key, nextAttrs);
-    const effective = { ...data.styles };
-    const picked = site.breakpoints.find(breakpoint => breakpoint.id === scope);
-    const matching = [...site.breakpoints].filter(breakpoint => breakpoint.maxWidth === 100000 || (picked !== undefined && breakpoint.maxWidth >= picked.maxWidth)).sort((a, b) => b.maxWidth - a.maxWidth);
-    matching.forEach(breakpoint => Object.assign(effective, data.breakpoints?.[breakpoint.id]));
-    const framed = this.motionFrame?.[id];
-    if (framed) for (const [name, content] of Object.entries(framed)) {
-      for (const own of Object.keys(effective)) if (cssName(own) === cssName(name)) delete effective[own];
-      effective[name] = content;
-    }
-    const nextStyles = new Set<string>();
-    for (const [name, content] of Object.entries(effective)) {
-      const property = cssName(name);
-      if (!safeStyle(property, content)) continue;
-      nextStyles.add(property);
-      if (node.style.getPropertyValue(property) !== content) node.style.setProperty(property, content);
-    }
-    for (const previous of this.styles.get(key) || []) if (!nextStyles.has(previous)) node.style.removeProperty(previous);
-    this.styles.set(key, nextStyles);
+    this.restyle(node, key, site, id, scope);
     if (!voidTags.has(tag)) {
       if (['textarea', 'option'].includes(tag)) {
         if (this.doc.activeElement !== node && node.textContent !== displayedText) node.textContent = displayedText;
@@ -440,6 +445,38 @@ export class Canvas {
       this.syncPoster(site, node, key, id, tag);
     }
     return node;
+  }
+
+  private restyle(node: HTMLElement, key: string, site: Site, id: string, scope: string, only?: Set<string>): void {
+    const data = site.nodes[id];
+    const effective: Record<string, string> = { ...data.styles };
+    const picked = site.breakpoints.find(breakpoint => breakpoint.id === scope);
+    const matching = [...site.breakpoints].filter(breakpoint => breakpoint.maxWidth === 100000 || (picked !== undefined && breakpoint.maxWidth >= picked.maxWidth)).sort((a, b) => b.maxWidth - a.maxWidth);
+    matching.forEach(breakpoint => Object.assign(effective, data.breakpoints?.[breakpoint.id]));
+    const base = !picked || picked.maxWidth === 100000;
+    const over = (frame: Record<string, string | null> | undefined): void => {
+      if (frame) for (const [name, content] of Object.entries(frame)) {
+        for (const own of Object.keys(effective)) if (cssName(own) === cssName(name)) delete effective[own];
+        if (content !== null) { effective[name] = content; continue; }
+        if (base) continue;
+        const wider: Record<string, string> = { ...data.styles };
+        matching.forEach(breakpoint => { if (breakpoint.id !== scope) Object.assign(wider, data.breakpoints?.[breakpoint.id]); });
+        const found = Object.keys(wider).filter(own => cssName(own) === cssName(name)).pop();
+        if (found !== undefined) effective[found] = wider[found];
+      }
+    };
+    over(this.motionFrame?.[id]);
+    over(this.layers.play?.[id]);
+    over(this.layers.trial?.[id]);
+    const nextStyles = new Set<string>();
+    for (const [name, content] of Object.entries(effective)) {
+      const property = cssName(name);
+      if (!safeStyle(property, content)) continue;
+      nextStyles.add(property);
+      if ((!only || only.has(property)) && node.style.getPropertyValue(property) !== content) node.style.setProperty(property, content);
+    }
+    for (const previous of this.styles.get(key) || []) if (!nextStyles.has(previous) && (!only || only.has(previous))) node.style.removeProperty(previous);
+    this.styles.set(key, nextStyles);
   }
 
   private bindEvents(doc: Document): void {
