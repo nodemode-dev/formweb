@@ -90,4 +90,6 @@ export default {
   "Type {0} by hand: hide its control and edit the CSS text only. Press again to bring the control back.": "Escribir {0} a mano: oculta su control y edita solo el texto CSS. Presiona de nuevo para recuperar el control.",
   "No brand or team colors yet. Add them in Window > Brand kit.": "Aún no hay colores de marca ni de equipo. Agrégalos en Ventana > Kit de marca.",
   "Click to add a stop": "Haz clic para agregar una parada",
+  "A clicked choice shows on the page and is written when you press Keep. With this off, choices are written at once.": "Una opción en la que haces clic se muestra en la página y se guarda cuando presionas Conservar. Con esto desactivado, las opciones se guardan al instante.",
+  "A clicked choice now shows on the page until you press Keep.": "Una opción en la que haces clic se muestra ahora en la página hasta que presiones Conservar.",
 } as Record<string, string>;
