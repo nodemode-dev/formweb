@@ -49,11 +49,9 @@ function tab(id: string, name: string, sections: HTMLElement[]): SearchTab {
 let search: InspectorSearch;
 let input: HTMLInputElement;
 let scroll: HTMLElement;
-let picked: string[];
 
 beforeEach(() => {
   document.body.replaceChildren();
-  picked = [];
   const tabs = [
     tab('design', 'Design', [
       section('Appearance', [{ label: 'Background', style: 'background' }, { label: 'Radius', style: 'border-radius' }, { label: 'Shadow', style: 'box-shadow' }, { label: 'Object fit', style: 'object-fit', hidden: true }]),
@@ -73,7 +71,7 @@ beforeEach(() => {
   scroll = document.createElement('div');
   scroll.append(...tabs.map(entry => entry.pane));
   document.body.append(head, ...tabs.map(entry => entry.button), scroll);
-  search = installInspectorSearch({ after: head, scroll, tabs, select: id => { picked.push(id); } });
+  search = installInspectorSearch({ after: head, scroll, tabs });
   input = document.querySelector<HTMLInputElement>('.inspector-search-input')!;
 });
 
@@ -83,7 +81,7 @@ function query(value: string): void {
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 const names = (): string[] => Array.from(document.querySelectorAll('.inspector-result')).map(row => row.querySelector('.inspector-result-name')!.textContent || '');
-const groups = (): string[] => Array.from(document.querySelectorAll('.inspector-results-group')).map(row => row.textContent || '');
+const groups = (): string[] => Array.from(document.querySelectorAll('.inspector-result-place')).map(row => row.textContent || '');
 function key(name: string): void {
   input.dispatchEvent(new KeyboardEvent('keydown', { key: name, bubbles: true, cancelable: true }));
 }
@@ -200,22 +198,20 @@ describe('what a query never lists', () => {
 });
 
 describe('going to a result and back', () => {
-  it('Enter on a result switches to its tab, opens its folded section and focuses the field', () => {
+  it('Enter, the arrow keys and a click on a result go nowhere: the folded section stays folded and focus stays in the box', () => {
     query('alternative');
-    key('Enter');
-    expect(picked).toEqual(['content']);
+    expect(names()).toContain('Alternative text');
     const target = document.querySelector<HTMLInputElement>('[data-attr="alt"]')!;
-    expect(target.closest('.inspector-section')!.classList.contains('is-collapsed')).toBe(false);
-    expect(document.activeElement).toBe(target);
-  });
-
-  it('Down then Enter goes to the second result', () => {
-    query('spacing');
-    const second = names()[1];
+    const folded = target.closest('.inspector-section')!;
+    expect(folded.classList.contains('is-collapsed')).toBe(true);
+    const before = document.body.innerHTML;
+    key('Enter');
     key('ArrowDown');
     key('Enter');
-    const label = document.activeElement?.closest('.field')?.querySelector('.field-label')?.textContent || '';
-    expect(label.startsWith(second)).toBe(true);
+    document.querySelector<HTMLElement>('.inspector-result')!.click();
+    expect(folded.classList.contains('is-collapsed')).toBe(true);
+    expect(document.activeElement).toBe(input);
+    expect(document.body.innerHTML).toBe(before);
   });
 
   it('Escape clears the search and shows the panel again at the same scroll position', () => {
