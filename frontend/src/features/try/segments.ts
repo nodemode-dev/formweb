@@ -3,19 +3,10 @@ import type { Trial, TrialOwner, TryKit, TryOptions } from './types';
 import '../../styles/try-bar.css';
 
 const STEPS: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
-const FOCUSABLE = 'button:not(:disabled), select:not(:disabled), input:not(:disabled), [tabindex]:not([tabindex="-1"])';
-
 const shown = (node: HTMLElement): boolean => node.isConnected && node.getClientRects().length > 0;
 
-function shelter(group: HTMLElement): void {
-  let at = group.parentElement;
-  while (at && at !== document.body) {
-    if (shown(at)) {
-      const next = Array.from(at.querySelectorAll<HTMLElement>(FOCUSABLE)).find(node => !group.contains(node) && shown(node));
-      if (next) { next.focus({ preventScroll: true }); return; }
-    }
-    at = at.parentElement;
-  }
+function shelter(): void {
+  Array.from(document.querySelectorAll<HTMLElement>('.inspector-tabs button.active')).find(shown)?.focus({ preventScroll: true });
 }
 
 function installGroup(kit: TryKit, options: TryOptions, key: string, buttons: HTMLButtonElement[]): void {
@@ -49,7 +40,10 @@ function installGroup(kit: TryKit, options: TryOptions, key: string, buttons: HT
         if (trial !== mine) return;
         trial = null;
         unmark();
-        if (group.contains(document.activeElement) && !shown(document.activeElement as HTMLElement)) shelter(group);
+        if (group.contains(document.activeElement) && !shown(document.activeElement as HTMLElement)) {
+          const stay = buttons.find(button => button.getAttribute('aria-pressed') === 'true' && shown(button)) ?? buttons.find(button => !button.disabled && shown(button));
+          if (stay) stay.focus({ preventScroll: true }); else shelter();
+        }
       }
     };
     const mine = kit.begin(owner);
@@ -60,7 +54,7 @@ function installGroup(kit: TryKit, options: TryOptions, key: string, buttons: HT
   const put = (button: HTMLButtonElement | null): void => {
     const current = live() ?? start();
     mark(button);
-    current.put(button ? button.dataset.value || '' : '', button ? (button.textContent || '').trim() : t('None'));
+    current.put(button ? button.dataset.value || '' : '', button ? (button.textContent || '').trim() : t('Inherit'));
   };
 
   const usable = (): HTMLButtonElement[] => buttons.filter(button => !button.disabled && shown(button));

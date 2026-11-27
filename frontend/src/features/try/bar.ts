@@ -133,12 +133,8 @@ export function mountBar(overlay: HTMLElement, actions: TryBarActions): TryBar {
     const target = !anchor || !visible(anchor) ? null
       : anchor.matches(FOCUSABLE) ? anchor
       : anchor.querySelector<HTMLElement>('[data-trying]:not(:disabled)') ?? anchor.querySelector<HTMLElement>('[aria-pressed="true"]:not(:disabled)') ?? anchor.querySelector<HTMLElement>(FOCUSABLE);
-    if (target) { target.focus({ preventScroll: true }); return; }
-    for (let at = anchor?.parentElement; at && at !== document.body; at = at.parentElement) {
-      if (!visible(at)) continue;
-      const next = Array.from(at.querySelectorAll<HTMLElement>(FOCUSABLE)).find(visible);
-      if (next) { next.focus({ preventScroll: true }); return; }
-    }
+    const tab = target ? null : Array.from(document.querySelectorAll<HTMLElement>('.inspector-tabs button.active')).find(visible);
+    (target ?? tab)?.focus({ preventScroll: true });
   };
 
   const pending = (on: boolean): void => {
@@ -166,6 +162,7 @@ export function mountBar(overlay: HTMLElement, actions: TryBarActions): TryBar {
     clip = null;
     last = null;
     shownName = '';
+    text.textContent = '';
     listen(false);
     cancelAnimationFrame(frame);
     frame = 0;
@@ -200,21 +197,22 @@ export function mountBar(overlay: HTMLElement, actions: TryBarActions): TryBar {
     element: root,
     show(next, name) {
       const again = owner === next && !root.hidden;
+      if (!again) {
+        owner = next;
+        last = null;
+        clip = scroller(next.anchor);
+        if (root.hidden) {
+          root.style.left = '0px';
+          root.style.top = '0px';
+          root.hidden = false;
+          listen(true);
+        }
+      }
       if (shownName !== name || !again) {
-        label(text, 'Trying: {0}', [name]);
+        label(text, 'Trying: {0}', [{ t: name }]);
         shownName = name;
       }
-      if (again) { place(false); return; }
-      owner = next;
-      last = null;
-      clip = scroller(next.anchor);
-      if (root.hidden) {
-        root.style.left = '0px';
-        root.style.top = '0px';
-        root.hidden = false;
-        listen(true);
-      }
-      place(true);
+      place(!again);
     },
     pending,
     hide,

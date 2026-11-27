@@ -493,6 +493,7 @@ const inspectorTag = element('div', 'inspector-tag');
 inspectorLabel.append(inspectorName, inspectorTag);
 inspectorIdentity.append(icon('box'), inspectorLabel, collapseButton({ command: 'window.toggle-right', label: 'Collapse right panel', icon: 'chevronsRight' }));
 const inspectorTabs = element('div', 'inspector-tabs');
+inspectorTabs.dataset.ownKeys = '';
 const inspectorTabButtons = new Map<string, HTMLButtonElement>();
 for (const id of ['design', 'motion', 'content', 'page']) {
   const node = button(id[0].toUpperCase() + id.slice(1), undefined, () => setInspector(id), 'quiet');
@@ -570,7 +571,13 @@ function resetButton(label: string, key: string): HTMLButtonElement {
   labelAttr(reset, 'aria-label', 'Reset {0} to the inherited value', [{ t: label }]);
   reset.dataset.reset = key;
   reset.hidden = true;
-  reset.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); void run(() => setStyle(key, '')); });
+  reset.addEventListener('click', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const segments = segmentFields.get(key);
+    (styleFields.get(key) ?? segments?.find(node => node.classList.contains('is-on')) ?? segments?.[0])?.focus({ preventScroll: true });
+    void run(() => setStyle(key, ''));
+  });
   resetButtons.set(key, reset);
   return reset;
 }

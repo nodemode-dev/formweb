@@ -52,6 +52,7 @@ export function installChoiceLists(kit: TryKit, options: TryOptions): void {
   let frame = 0;
   let placedAt = '';
   let made = 0;
+  let held: { target: Field; seen: string; frame: number } | null = null;
 
   const bar = (): HTMLElement | null => document.querySelector<HTMLElement>('[data-try-bar]');
   const inBar = (node: Node | null): boolean => !!node && !!bar()?.contains(node);
@@ -134,7 +135,7 @@ export function installChoiceLists(kit: TryKit, options: TryOptions): void {
     const shown = Math.min(height, room);
     let top = under ? box.bottom + GAP : box.top - GAP - shown;
     top = Math.max(MARGIN, Math.min(top, window.innerHeight - shown - MARGIN));
-    const left = Math.max(MARGIN, Math.min(box.left, window.innerWidth - width - MARGIN));
+    const left = Math.max(MARGIN, Math.min(box.left, window.innerWidth - (height > room ? pop.offsetWidth : width) - MARGIN));
     pop.style.left = `${Math.round(left)}px`;
     pop.style.top = `${Math.round(top)}px`;
   }
@@ -342,10 +343,46 @@ export function installChoiceLists(kit: TryKit, options: TryOptions): void {
     tryAt(index);
   });
 
+  function follow(): void {
+    if (!held) return;
+    const { target } = held;
+    if (document.activeElement !== target.select) { held = null; return; }
+    const now = options.stored(target.key);
+    if (now !== held.seen) {
+      held.seen = now;
+      if (kit.enabled() && !field && target.select.value !== now) target.select.value = now;
+    }
+    held.frame = requestAnimationFrame(follow);
+  }
+
+  function hold(target: Field): void {
+    if (held) cancelAnimationFrame(held.frame);
+    held = { target, seen: options.stored(target.key), frame: requestAnimationFrame(follow) };
+  }
+
+  function onward(from: HTMLElement): HTMLElement | null {
+    const stops = Array.from(document.querySelectorAll<HTMLElement>('a[href], button, input, select, textarea, [tabindex]'))
+      .filter(node => node.tabIndex >= 0 && !(node as HTMLButtonElement).disabled && !node.closest('[hidden], [inert]') && rendered(node) && !pop.contains(node) && !inBar(node));
+    return stops.find(node => node !== from && !from.contains(node) && !!(from.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)) || null;
+  }
+
+  document.addEventListener('keydown', event => {
+    if (!field || event.key !== 'Tab' || event.shiftKey || event.ctrlKey || event.metaKey || event.altKey) return;
+    const at = event.target as HTMLElement;
+    if (!live() || trial!.pending || !inBar(at)) return;
+    const buttons = Array.from(bar()!.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+    if (at !== bar() && at !== buttons.at(-1)) return;
+    const next = onward(field.select);
+    if (!next) return;
+    event.preventDefault();
+    event.stopPropagation();
+    next.focus();
+  }, true);
+
   for (const target of fields) {
     const { select } = target;
     aria(select);
-    select.addEventListener('focus', () => aria(select));
+    select.addEventListener('focus', () => { aria(select); hold(target); });
     select.addEventListener('mousedown', event => {
       aria(select);
       if (!kit.enabled() || select.disabled || event.button !== 0) return;

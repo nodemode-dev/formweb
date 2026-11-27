@@ -8,7 +8,7 @@
 .fw-try-revert { border-color: var(--line-2); background: transparent; color: var(--text-primary); }
 .fw-try-key { position: relative; color: var(--text-muted); font-size: var(--fs-11); font-weight: 400; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
 .fw-try-btn:disabled { opacity: 0.55; }
-.fw-try-wait { position: absolute; top: 50%; left: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; color: var(--accent-ink); visibility: hidden; }
+.fw-try-wait { position: absolute; top: 50%; left: 50%; width: var(--space-4); height: var(--space-4); margin: calc(var(--space-4) / -2) 0 0 calc(var(--space-4) / -2); color: var(--accent-ink); visibility: hidden; }
 .fw-try-bar.is-waiting .fw-try-keep .fw-try-key { color: transparent; }
 .fw-try-bar.is-waiting .fw-try-wait { visibility: visible; animation: fw-try-turn 1.2s linear infinite; }
 @keyframes fw-try-turn { to { transform: rotate(360deg); } }

@@ -5,9 +5,21 @@ import { installChoiceLists } from './choice-list';
 import type { LayerFrame, Trial, TrialEnd, TrialOwner, TryKit, TryOptions } from './types';
 
 const STORE = 'formweb.try-choices';
-const PASS = new Set(['edit.copy', 'view.try-choices']);
+const PASS = new Set(['edit.copy', 'file.save', 'view.search', 'view.try-choices']);
+const SURFACE = '.fw-menubar, .fw-menu, .fw-search-pop, [data-cmd]';
+const MENU = '.fw-menubar, .fw-menu, .fw-search-pop';
+const LANDING_MS = 30000;
+const AIMED_MS = 15000;
 
-type Live = { trial: Trial; owner: TrialOwner; node: string; scope: string; base: string; value: string | null; pending: boolean; over: boolean; end(how: TrialEnd, message?: string): void };
+type Live = { trial: Trial; owner: TrialOwner; node: string; scope: string; base: string; value: string | null; pending: boolean; over: boolean; detached: boolean; end(how: TrialEnd, message?: string): void };
+
+function ended(owner: TrialOwner, how: TrialEnd): void {
+  try { owner.ended(how); } catch (error) { console.error(error); }
+}
+
+function within(target: EventTarget | null, selector: string): boolean {
+  return target instanceof Element && !!target.closest(selector);
+}
 
 function readOn(): boolean {
   try { return localStorage.getItem(STORE) !== '0'; } catch { return true; }
@@ -26,6 +38,20 @@ export function installTry(options: TryOptions): TryKit {
   let liveNode = '';
   let liveScope = '';
   let watching = 0;
+  let aimed = 0;
+  let said = '';
+  let swallowing = false;
+  let repeat = false;
+
+  const say = (message: string, error = false): void => {
+    said = message;
+    options.status(message, error);
+  };
+  const unsay = (): void => {
+    const line = document.querySelector('.status-message');
+    if (said && line && line.textContent === said) options.status('');
+    said = '';
+  };
 
   const draw = (): void => {
     const frame: LayerFrame = {};
@@ -43,7 +69,8 @@ export function installTry(options: TryOptions): TryKit {
     const editing = options.editing();
     if (lives.size && (scope !== liveScope || !editing)) lives.clear();
     const entry = current;
-    if (entry && !entry.over && !entry.pending) {
+    if (entry && entry.pending && (scope !== entry.scope || !editing)) retire();
+    else if (entry && !entry.over && !entry.pending) {
       if (fromSync && options.exists && !options.exists(entry.node)) entry.end('dropped', t('The element was changed elsewhere, so the trial was dropped.'));
       else if (scope !== entry.scope || !editing) entry.end('dropped');
       else if (fromSync && options.stored(entry.trial.key) !== entry.base) entry.end('dropped', t('The element was changed elsewhere, so the trial was dropped.'));
@@ -93,6 +120,7 @@ export function installTry(options: TryOptions): TryKit {
       pending: false,
       over: false,
       trial: undefined as unknown as Trial,
+      detached: false,
       end(how, message) {
         if (entry.over) return;
         entry.over = true;
@@ -106,15 +134,17 @@ export function installTry(options: TryOptions): TryKit {
           bar.hide();
         }
         draw();
-        if (message) options.status(message, how === 'refused');
-        else if (how === 'reverted' && shown) options.status(t('Not kept: {0} is unchanged.', [owner.label]));
-        owner.ended(how);
+        if (message && how === 'refused') { said = ''; options.status(message, true); }
+        else if (message) say(message);
+        else if (how === 'reverted' && shown) say(t('Not kept: {0} is unchanged.', [{ t: owner.label }]));
+        else if (how === 'kept') unsay();
+        if (!entry.detached) ended(owner, how);
       }
     };
     entry.trial = {
       key: owner.key,
-      get pending() { return entry.pending; },
-      get over() { return entry.over; },
+      get pending() { return entry.pending && !entry.detached; },
+      get over() { return entry.over || entry.detached; },
       value: () => entry.value ?? options.stored(owner.key),
       put(value: string, name: string) {
         if (entry.over || entry.pending || current !== entry) return;
@@ -125,18 +155,29 @@ export function installTry(options: TryOptions): TryKit {
       },
       async keep() {
         if (entry.over || entry.pending) return;
-        if (entry.value === null) { entry.end('reverted'); return; }
-        if (options.scope() !== entry.scope || options.node() !== entry.node || !options.editing()) { entry.end('dropped'); return; }
-        const value = entry.value;
-        if (value.trim() === options.stored(owner.key).trim()) { entry.end('reverted'); return; }
-        entry.pending = true;
-        shelter(entry);
-        bar.pending(true);
-        let failure: unknown = null;
-        try { await options.setStyle(owner.key, value); } catch (error) { failure = error ?? new Error(t('The change was refused.')); }
-        if (entry.over) return;
-        if (failure) entry.end('refused', failure instanceof Error ? failure.message : String(failure));
-        else entry.end('kept');
+        try {
+          if (entry.value === null) { entry.end('reverted'); return; }
+          if (options.scope() !== entry.scope || options.node() !== entry.node || !options.editing()) { entry.end('dropped'); return; }
+          const value = entry.value;
+          if (value.trim() === options.stored(owner.key).trim()) { entry.end('reverted'); return; }
+          entry.pending = true;
+          shelter(entry);
+          bar.pending(true);
+          const late = setTimeout(() => {
+            if (entry.over || !entry.pending) return;
+            if (current === entry) retire();
+            if (landing.delete(entry)) draw();
+          }, LANDING_MS);
+          let failure: unknown = null;
+          try { await options.setStyle(owner.key, value); } catch (error) { failure = error ?? new Error(t('The change was refused.')); }
+          clearTimeout(late);
+          if (entry.over) return;
+          if (failure) entry.end('refused', failure instanceof Error ? failure.message : String(failure));
+          else entry.end('kept');
+        } catch (error) {
+          console.error(error);
+          if (!entry.over) { entry.pending = false; entry.end('dropped'); }
+        }
       },
       revert() {
         if (entry.over || entry.pending) return;
@@ -152,8 +193,11 @@ export function installTry(options: TryOptions): TryKit {
     if (entry.pending) {
       landing.add(entry);
       current = null;
+      entry.detached = true;
+      shelter(entry);
       bar.pending(false);
       bar.hide();
+      ended(entry.owner, 'dropped');
       return;
     }
     entry.trial.revert();
@@ -163,10 +207,22 @@ export function installTry(options: TryOptions): TryKit {
     const entry = current;
     if (!entry || entry.over || entry.pending) return;
     const target = event.target as Node | null;
-    if (!target || target === document.body) return;
+    if (!target || target === document.body || within(target, '.fw-search-pop')) return;
     if (bar.element.contains(target) || entry.owner.anchor.contains(target) || (entry.owner.inside?.() ?? []).some(part => part.contains(target))) return;
+    const shown = entry.value !== null;
     entry.trial.revert();
+    aimed = shown && within(target, SURFACE) ? performance.now() : 0;
   }, true);
+
+  document.addEventListener('pointerdown', event => { if (aimed && !within(event.target, MENU)) aimed = 0; }, true);
+  document.addEventListener('input', event => { if (aimed && !within(event.target, MENU)) aimed = 0; }, true);
+  document.addEventListener('keydown', event => {
+    repeat = event.repeat;
+    const undo = (event.ctrlKey || event.metaKey) && event.code === 'KeyZ';
+    if (aimed && !undo && !['Control', 'Meta', 'Shift', 'Alt'].includes(event.key) && !within(event.target, MENU)) aimed = 0;
+    if (!undo) swallowing = false;
+  }, true);
+  document.addEventListener('keyup', event => { if (event.code === 'KeyZ' || event.key === 'Control' || event.key === 'Meta') swallowing = false; }, true);
 
   document.addEventListener('focusout', event => {
     const entry = current;
@@ -187,6 +243,7 @@ export function installTry(options: TryOptions): TryKit {
       if (!next && current) { if (current.pending) retire(); else current.end('dropped'); }
     },
     begin(owner: TrialOwner): Trial {
+      aimed = 0;
       retire();
       const entry = create(owner);
       current = entry;
@@ -218,11 +275,21 @@ export function installTry(options: TryOptions): TryKit {
       draw();
     },
     intercept(command: string): boolean {
+      if (PASS.has(command)) return false;
+      const undo = command === 'edit.undo';
+      const wasAimed = aimed && performance.now() - aimed < AIMED_MS;
+      aimed = 0;
+      if (undo && swallowing && repeat) return true;
+      swallowing = false;
       const entry = current;
-      if (!entry || entry.over || entry.pending || PASS.has(command)) return false;
+      if (!entry || entry.over || entry.pending) {
+        if (undo && wasAimed) { swallowing = true; return true; }
+        return false;
+      }
       const shown = entry.value !== null;
       entry.trial.revert();
-      return shown && command === 'edit.undo';
+      if (undo && shown) { swallowing = true; return true; }
+      return false;
     },
     sync() { check(true); }
   };

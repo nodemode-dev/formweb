@@ -164,8 +164,9 @@ export class Commands {
 
   run(id: string, params?: Record<string, unknown>): boolean {
     const command = this.map.get(id);
-    if (!command || !this.enabled(command)) return false;
+    if (!command) return false;
     if (this.intercept?.(id)) return true;
+    if (!this.enabled(command)) return false;
     const label = this.label(command);
     void this.execute(() => command.run(params));
     this.onRun?.(command, label);
@@ -174,8 +175,9 @@ export class Commands {
 
   async call(id: string, params?: Record<string, unknown>): Promise<{ ran: boolean; result?: unknown }> {
     const command = this.map.get(id);
-    if (!command || !this.enabled(command)) return { ran: false };
-    if (this.intercept?.(id)) return { ran: true };
+    if (!command) return { ran: false };
+    this.intercept?.(id);
+    if (!this.enabled(command)) return { ran: false };
     const label = this.label(command);
     const result = await command.run(params);
     this.onRun?.(command, label);
