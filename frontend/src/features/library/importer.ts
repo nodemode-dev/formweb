@@ -15,19 +15,21 @@ export function joined(items: string[]): string {
 export function hostList(hosts: string[]): string {
   if (hosts.length <= 3) return joined(hosts);
   const rest = hosts.length - 3;
-  return rest === 1 ? t('{0} and 1 more host', [hosts.slice(0, 3).join(', ')]) : t('{0} and {1} more hosts', [hosts.slice(0, 3).join(', '), rest]);
+  const first = hosts.slice(0, 3).reduce((list, host) => t('{0}, {1}', [list, host]));
+  return rest === 1 ? t('{0} and 1 more host', [first]) : t('{0} and {1} more hosts', [first, rest]);
 }
 
 /** The result sentence for pages brought in as elements without the files they load from the web. */
-export const missingHosts = (hosts: string[]): string => hosts.length ? t('Files from {0} were not brought along, so part of the look may be missing.', [hostList(hosts)]) : '';
+export const missingHosts = (hosts: string[]): string => hosts.length ? t('Files from {0} were not brought along, so part of the look or behaviour may be missing.', [hostList(hosts)]) : '';
 
 /** One page into the open page as a code section, converted to elements when asked; answers with the sentence to show. */
-export async function importSection(hooks: LibraryHooks, body: { html: string; css?: string; name?: string }, bring: Bring, progress: (message: string) => void, made?: (ids: string[]) => void, hosts: string[] = []): Promise<string> {
+export async function importSection(hooks: LibraryHooks, body: { html: string; css?: string; name?: string }, bring: Bring, progress: (message: string) => void, made?: (ids: string[]) => void): Promise<string> {
   const where = hooks.placement();
   const result = await libraryMutate<LibResult>('/api/library/import-html', { ...body, parent: where.parent, index: where.index, page: where.page });
   let message = result.warnings?.[0] || t('HTML section imported.');
   let note = t('HTML section imported.');
   let root = result.root;
+  const hosts = [...new Set((result.outside || []).map(item => item.host))];
   if (result.root && bring === 'elements') {
     progress(t('Converting...'));
     try { const done = await hooks.convert([result.root]); root = done.root || root; message = note = [done.message, missingHosts(hosts), t('Undo once to get the section back as code, twice to remove it.')].filter(Boolean).join(' '); }

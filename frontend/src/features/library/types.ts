@@ -19,7 +19,7 @@ export type LibPreset = { id: string; name?: string; description?: string };
 export type LibStarter = { id: string; name?: string; description?: string; preset?: string; pages?: { name?: string; slug?: string; sections?: string[] }[] };
 export type LibIndex = { categories: string[]; sections: LibSection[]; components: LibComponent[]; presets: LibPreset[]; starters: LibStarter[] };
 /** What a mutating library route adds to the batch state. */
-export type LibResult = { root?: string; pages?: string[]; warnings?: string[]; changed?: boolean };
+export type LibResult = { root?: string; pages?: string[]; warnings?: string[]; changed?: boolean; outside?: SiteOutside[]; outsideMore?: number };
 /** POST /api/library/import-site/review: what importing a site zip would do, nothing changed yet. */
 export type SiteSkip = { file: string; reason: string };
 /** A stylesheet or script a page loads from another host: named in the review, never fetched. */

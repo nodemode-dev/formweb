@@ -4,7 +4,7 @@ import { t } from '../../i18n';
 export interface Source { html: string; css: string; js: string; module: boolean }
 export interface Planned { id: string; parent: string; tag: string; name: string; text: string; attrs: Record<string, string>; styles: Record<string, string>; code?: { enabled: true; html: string; css?: string; js?: string; module?: boolean } }
 export interface Plan { rootStyles: Record<string, string>; nodes: Planned[]; fonts: Record<string, SiteFont> | null; outcome: Outcome; rest?: { before: string; after: string; css: string; kept?: string } }
-export interface Options { origin: string; keepScript: boolean; fonts: Record<string, SiteFont>; taken: (id: string) => boolean; limit: number; depth: number; seconds: number; scope?: string }
+export interface Options { origin: string; keepScript: boolean; fonts: Record<string, SiteFont>; taken: (id: string) => boolean; limit: number; depth: number; seconds: number; scope?: string; siteNames?: Set<string> }
 
 const SKIPPED = new Set(['STYLE', 'LINK', 'META', 'BASE', 'TITLE']);
 
@@ -217,7 +217,7 @@ function fillWindow(view: Window, frame: HTMLIFrameElement, root: Record<string,
   }
 }
 
-export interface Kept { css: string; rules: number; all: boolean; over: number }
+export interface Kept { css: string; rules: number; all: boolean; over: number; clash: number }
 
 /** How long checking which rules the converted elements use may take before every rule is kept unchecked. */
 const MATCH_MS = 2000;
@@ -239,16 +239,20 @@ function groupHead(rule: CSSRule): string {
  * The page's style rules kept for what its script builds. A selector is kept when it matched no converted element in
  * the measuring frame (the page as written, scripts not run), or when it did but its subject requires classes the
  * script names (the script may build more of them); the other selectors of a list are left out. Custom properties
- * of every rule stay, so kept rules still find their var() values. Each kept selector looks only inside `prefix`
- * (the converted root) and is guarded so it cannot restyle a converted element. `@keyframes` and `@font-face` stay
- * when a kept rule names them, `@media`, `@supports`, `@container` and `@layer` blocks keep only their kept rules,
- * `@import` never stays (the browser's parse of a constructed sheet drops it). Parsing and serialising are the
- * browser's, in the measuring frame's realm; nothing is applied or fetched there.
+ * of every rule stay, so kept rules still find their var() values. Each kept selector looks only inside the
+ * converted root `tag` and is guarded so it cannot restyle a converted element. `@media`, `@supports`, `@container`
+ * and `@layer` blocks keep only their kept rules, `@layer` statements only the layers kept blocks use, and `@import`
+ * never stays (the browser's parse of a constructed sheet drops it). `@keyframes`, `@font-face` and `@property` reach
+ * the whole page, so they stay only when a kept rule names them, and never take a name the site's own styles use
+ * (`site`, lower case words): a clashing keyframes name gets the root's id as a suffix through the CSSOM, a clashing
+ * font face or property is left out and counted. Parsing and serialising are the browser's, in the measuring
+ * frame's realm; nothing is applied or fetched there.
  */
-async function keepRules(view: Window, doc: Document, css: string, converted: Set<Element>, words: Set<string>, prefix: string): Promise<Kept> {
+async function keepRules(view: Window, doc: Document, css: string, converted: Set<Element>, words: Set<string>, tag: string, site: Set<string>): Promise<Kept> {
   const Sheet = (view as unknown as { CSSStyleSheet: typeof CSSStyleSheet }).CSSStyleSheet;
   const sheet = new Sheet(), scratch = new Sheet();
-  const none: Kept = { css: '', rules: 0, all: false, over: 0 };
+  const prefix = `[data-fw-node="${tag}"]`;
+  const none: Kept = { css: '', rules: 0, all: false, over: 0, clash: 0 };
   let slice = performance.now();
   const breathe = async (): Promise<void> => { if (performance.now() - slice > 40) { await new Promise(resolve => setTimeout(resolve, 0)); slice = performance.now(); } };
   try { sheet.replaceSync(css); } catch { return none; }
@@ -275,12 +279,31 @@ async function keepRules(view: Window, doc: Document, css: string, converted: Se
   for (const rule of styleRules) {
     const list = selectorList(rule.selectorText);
     lists.set(rule, list);
-    if (all) continue;
-    await breathe();
-    if (performance.now() > deadline) { all = true; continue; }
-    keeps.set(rule, list.map(selector => !used(selector) || (() => { const classes = subjectClasses(selector); return !!classes.length && classes.every(name => words.has(name)); })()));
+    const keep: boolean[] = [];
+    for (const selector of list) {
+      if (all) break;
+      await breathe();
+      if (performance.now() > deadline) { all = true; break; }
+      const classes = subjectClasses(selector);
+      keep.push(!used(selector) || (!!classes.length && classes.every(name => words.has(name))));
+    }
+    if (!all) keeps.set(rule, keep);
   }
   if (all) keeps.clear();
+  const renamed = new Map<string, string>();
+  for (let i = 0; i < sheet.cssRules.length; i++) {
+    const rule = sheet.cssRules[i];
+    if (kindOf(rule) !== 'CSSKeyframesRule' || !site.has((rule as CSSKeyframesRule).name.toLowerCase())) continue;
+    const name = (rule as CSSKeyframesRule).name, fresh = `${name}-${tag}`;
+    (rule as CSSKeyframesRule).name = fresh;
+    renamed.set(name, fresh);
+  }
+  if (renamed.size) for (const rule of styleRules) {
+    const names = rule.style.getPropertyValue('animation-name');
+    if (!names) continue;
+    const list = names.split(',').map(name => name.trim());
+    if (list.some(name => renamed.has(name))) rule.style.setProperty('animation-name', list.map(name => renamed.get(name) || name).join(', '), rule.style.getPropertyPriority('animation-name'));
+  }
 
   const encoder = new TextEncoder();
   let bytes = 0, rules = 0, over = 0;
@@ -310,7 +333,7 @@ async function keepRules(view: Window, doc: Document, css: string, converted: Se
     const nested = (rule as CSSStyleRule & { cssRules?: CSSRuleList }).cssRules;
     const body = `{${style.cssText}${nested ? Array.from(nested).map(inner => inner.cssText).join('') : ''}}`;
     if (kept.length && !valid(kept.join(', ') + body)) kept = kept.filter(selector => valid(selector + body));
-    if (kept.length && style.length) texts.push(kept.join(', ') + body);
+    if (kept.length && (style.length || nested?.length)) texts.push(kept.join(', ') + body);
     return texts;
   };
   const emit = async (list: CSSRuleList): Promise<string[]> => {
@@ -325,25 +348,40 @@ async function keepRules(view: Window, doc: Document, css: string, converted: Se
         if (room(texts.join(''))) { out.push(...texts); rules++; } else over++;
       } else if (GROUPS.has(kindOf(rule))) {
         const inner = await emit((rule as CSSGroupingRule).cssRules), head = groupHead(rule);
-        if (inner.length && head) { out.push(`${head}{${inner.join('\n')}}`); bytes += head.length + 2; }
+        if (inner.length && head) { out.push(`${head}{${inner.join('\n')}}`); bytes += head.length + 2; if (kindOf(rule) === 'CSSLayerBlockRule') layers.add((rule as CSSLayerBlockRule).name); }
       }
     }
     return out;
   };
+  const layers = new Set<string>();
   const body = await emit(sheet.cssRules);
   if (!body.length) return { ...none, over, all };
   const names = new Set<string>();
   scriptWords(body.join('\n').toLowerCase(), names, 200000);
+  const named = (family: string, set: Set<string>): boolean => family.split(' ').every(word => set.has(word));
   const head: string[] = [];
+  let clash = 0;
   for (let i = 0; i < sheet.cssRules.length; i++) {
     const rule = sheet.cssRules[i], kind = kindOf(rule);
-    const wanted = kind === 'CSSLayerStatementRule' || kind === 'CSSPropertyRule'
-      || (kind === 'CSSKeyframesRule' && names.has((rule as CSSKeyframesRule).name.toLowerCase()))
-      || (kind === 'CSSFontFaceRule' && families((rule as CSSFontFaceRule).style.getPropertyValue('font-family')).some(family => family.split(' ').every(word => names.has(word))));
-    if (!wanted) continue;
-    if (room(rule.cssText)) head.push(rule.cssText); else over++;
+    let text = rule.cssText;
+    if (kind === 'CSSLayerStatementRule') {
+      const list = Array.from((rule as CSSLayerStatementRule).nameList).filter(name => layers.has(name));
+      if (!list.length) continue;
+      text = `@layer ${list.join(', ')};`;
+    } else if (kind === 'CSSPropertyRule') {
+      const name = (rule as CSSPropertyRule).name.toLowerCase();
+      if (!names.has(name)) continue;
+      if (site.has(name)) { clash++; continue; }
+    } else if (kind === 'CSSKeyframesRule') {
+      if (!names.has((rule as CSSKeyframesRule).name.toLowerCase())) continue;
+    } else if (kind === 'CSSFontFaceRule') {
+      const list = families((rule as CSSFontFaceRule).style.getPropertyValue('font-family'));
+      if (!list.some(family => named(family, names))) continue;
+      if (list.some(family => named(family, site))) { clash++; continue; }
+    } else continue;
+    if (room(text)) head.push(text); else over++;
   }
-  return { css: [...head, ...body].join('\n'), rules, all, over };
+  return { css: [...head, ...body].join('\n'), rules, all, over, clash };
 }
 
 /** The blocks a page too large for one conversion can be converted by, one at a time: its top-level elements. */
@@ -567,12 +605,13 @@ export async function measure(source: Source, options: Options, only?: number): 
     if (hostScript) scriptWords(source.js, words);
     let keptCss = '';
     if ((script?.code || hostScript) && scope) {
-      const kept = await keepRules(view, original.doc, css, converted, words, `[data-fw-node="${scope}"]`);
+      const kept = await keepRules(view, original.doc, css, converted, words, scope, options.siteNames || new Set());
       if (kept.css && script?.code) script.code.css = kept.css;
       else keptCss = kept.css;
       outcome.kept = kept.rules;
       outcome.keptAll = kept.all ? kept.rules : 0;
       outcome.keptOver = kept.over;
+      outcome.keptClash = kept.clash;
     }
     outcome.converted = nodes.filter(node => !node.code).length;
     if (rootStyles['font-family']) families(rootStyles['font-family']).forEach(name => used.add(name));

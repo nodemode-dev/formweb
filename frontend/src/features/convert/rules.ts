@@ -282,15 +282,17 @@ export interface Outcome {
   scripted: number;
   left: number;
   /** Style rules kept for the page's script, those of them kept without checking (time bound), those past the
-   * bounds, and those dropped because the engine did not take them. */
+   * bounds, fonts and registered properties left out because the site uses their names, and rules dropped because
+   * the section or the site would have been too large. */
   kept: number;
   keptAll: number;
   keptOver: number;
+  keptClash: number;
   keptDropped: number;
 }
 
 export function emptyOutcome(): Outcome {
-  return { converted: 0, parts: {}, responsive: 0, effects: 0, floats: 0, pictures: 0, refused: 0, scripted: 0, left: 0, kept: 0, keptAll: 0, keptOver: 0, keptDropped: 0 };
+  return { converted: 0, parts: {}, responsive: 0, effects: 0, floats: 0, pictures: 0, refused: 0, scripted: 0, left: 0, kept: 0, keptAll: 0, keptOver: 0, keptClash: 0, keptDropped: 0 };
 }
 
 type Say = (english: string, values?: readonly (string | number)[]) => string;
@@ -318,10 +320,11 @@ export function summary(outcome: Outcome, say: Say, count: SayCount): string {
   if (outcome.scripted) lines.push(count(outcome.scripted, '1 event handler or script link was left out.', '{0} event handlers and script links were left out.', [outcome.scripted]));
   if (outcome.refused + outcome.left) lines.push(count(outcome.refused + outcome.left, '1 value the engine does not take was left out.', '{0} values the engine does not take were left out.', [outcome.refused + outcome.left]));
   const checked = outcome.kept - outcome.keptAll;
-  if (checked > 0) lines.push(count(checked, 'Kept 1 style rule for what the page\'s script builds.', 'Kept {0} style rules for what the page\'s script builds.', [checked]));
-  if (outcome.keptAll) lines.push(count(outcome.keptAll, 'Kept 1 style rule for what the page\'s script builds without checking whether the converted elements use it: checking took too long, so every rule was kept.', 'Kept {0} style rules for what the page\'s script builds without checking which ones the converted elements use: checking took too long, so every rule was kept.', [outcome.keptAll]));
-  if (outcome.keptOver) lines.push(count(outcome.keptOver, '1 more style rule was left out: at most {1} rules and {2} KB are kept for a script.', '{0} more style rules were left out: at most {1} rules and {2} KB are kept for a script.', [outcome.keptOver, KEEP_RULES, KEEP_BYTES / 1024]));
-  if (outcome.keptDropped) lines.push(count(outcome.keptDropped, 'The style rule kept for the page\'s script was left out: the engine did not take it.', 'The {0} style rules kept for the page\'s script were left out: the engine did not take them.', [outcome.keptDropped]));
+  if (checked > 0) lines.push(count(checked, 'Kept 1 style rule for the content the page\'s script builds.', 'Kept {0} style rules for the content the page\'s script builds.', [checked]));
+  if (outcome.keptAll) lines.push(count(outcome.keptAll, 'Kept 1 style rule for the content the page\'s script builds without checking whether the converted elements use it: checking took too long, so every rule was kept.', 'Kept {0} style rules for the content the page\'s script builds without checking which ones the converted elements use: checking took too long, so every rule was kept.', [outcome.keptAll]));
+  if (outcome.keptOver) lines.push(count(outcome.keptOver, '1 more style rule was left out: at most {1} rules and {2} KiB are kept for a script.', '{0} more style rules were left out: at most {1} rules and {2} KiB are kept for a script.', [outcome.keptOver, KEEP_RULES, KEEP_BYTES / 1024]));
+  if (outcome.keptClash) lines.push(count(outcome.keptClash, '1 font or registered property from the page\'s stylesheet was left out because the site already uses its name.', '{0} fonts or registered properties from the page\'s stylesheet were left out because the site already uses their names.', [outcome.keptClash]));
+  if (outcome.keptDropped) lines.push(count(outcome.keptDropped, 'The style rule kept for the content the page\'s script builds was left out because the page\'s code would be too large.', 'The {0} style rules kept for the content the page\'s script builds were left out because the page\'s code would be too large.', [outcome.keptDropped]));
   return lines.join(' ');
 }
 
@@ -371,6 +374,8 @@ export function selectorList(list: string): string[] {
   return parts.filter(Boolean);
 }
 
+/** Pseudo-elements a stylesheet may still write with one colon. */
+const LEGACY = ['before', 'after', 'first-line', 'first-letter'];
 const IDENT = (c: string): boolean => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c === '-' || c === '_' || c > '\u007f';
 
 /** The subject of one selector (the compound after its last combinator): where it starts, where a pseudo-element
@@ -387,6 +392,7 @@ function subjectOf(selector: string): { start: number; end: number; classes: str
     else if (depth) continue;
     else if (c === ' ' || c === '>' || c === '+' || c === '~' || c === '\n' || c === '\t') { start = i + 1; end = -1; }
     else if (c === ':' && selector[i + 1] === ':' && end < 0) { end = i; i++; }
+    else if (c === ':' && end < 0 && LEGACY.some(name => selector.slice(i + 1, i + 1 + name.length).toLowerCase() === name && !IDENT(selector[i + 1 + name.length] || ' '))) end = i;
   }
   if (end < 0) end = selector.length;
   const classes: string[] = [];

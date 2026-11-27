@@ -15,7 +15,7 @@ export interface AuditMarkersHost {
   editing: () => boolean;
   busy: () => boolean;
   pick: (id: string, message: string, again: () => void) => void;
-  rescue: () => HTMLElement | null | undefined;
+  rescue: () => (HTMLElement | null | undefined)[];
   status: (message: string, error?: boolean) => void;
 }
 
@@ -24,7 +24,7 @@ export interface AuditMarkers {
   enabled: () => boolean;
   set: (on: boolean) => void;
   sync: (next: EditorState) => void;
-  fresh: (answer: { issues: AuditIssue[] }) => void;
+  fresh: (answer: { issues: AuditIssue[] }, site: string, revision: number) => void;
 }
 
 interface Answer { site: string; revision: number; issues: AuditIssue[] }
@@ -58,6 +58,7 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
   let current: EditorState | null = null;
   let answer: Answer | null = null;
   let failed = false;
+  let failedAt = '';
   let said = false;
   let out = false;
   let due = false;
@@ -145,8 +146,11 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
 
   function rescue(): void {
     if (!focused()) return;
-    const target = host.rescue();
-    if (target?.isConnected) target.focus({ preventScroll: true });
+    for (const target of host.rescue()) {
+      if (!target?.isConnected || !target.getClientRects().length || (target as HTMLButtonElement).disabled) continue;
+      target.focus({ preventScroll: true });
+      if (document.activeElement === target) return;
+    }
   }
 
   function close(): void {
@@ -312,6 +316,7 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
       out = false;
       if (!on) return;
       failed = true;
+      failedAt = `${site}:${revision}`;
       paint();
       if (!said) { said = true; host.status('The audit could not be run, so the audit markers are hidden.', true); }
       return;
@@ -327,6 +332,7 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
     const issues = Array.isArray(result?.issues) ? result.issues.slice(0, MAX_ISSUES) : [];
     answer = { site, revision, issues };
     failed = false;
+    failedAt = '';
     said = false;
     paint();
   }
@@ -337,7 +343,7 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
     box.checked = on;
     remember(on);
     if (on) {
-      if (valid()) paint(); else { answer = null; failed = false; paint(); want(); }
+      if (valid()) paint(); else { answer = null; failed = false; failedAt = ''; paint(); want(); }
     } else {
       if (timer) { clearTimeout(timer); timer = 0; }
       due = false;
@@ -352,13 +358,15 @@ export function installAuditMarkers(host: AuditMarkersHost): AuditMarkers {
   function sync(next: EditorState): void {
     current = next;
     if (!on) return;
-    if (!valid()) want();
+    if (!valid() && failedAt !== `${next.site.id}:${next.revision}`) want();
     if (answer) paint(); else poke();
   }
 
-  function fresh(result: { issues: AuditIssue[] }): void {
+  function fresh(result: { issues: AuditIssue[] }, site: string, revision: number): void {
     if (!current) return;
-    take(result, current.site.id, current.revision);
+    if (current.site.id === site && current.revision === revision) { take(result, site, revision); return; }
+    failedAt = '';
+    want();
   }
 
   const watch = (event: Event): void => {

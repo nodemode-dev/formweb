@@ -36,26 +36,38 @@ function read(): ExportChoice {
 
 let current = read();
 
-function hand(choice: ExportChoice): void {
-  const bridge = core();
-  if (!bridge) return;
-  try {
-    void bridge.invoke('set_export_place', { mode: choice.mode, path: choice.path }).catch(() => undefined);
-  } catch {
-    return;
-  }
-}
-
 const listeners = new Set<() => void>();
 
-function keep(choice: ExportChoice): void {
+function store(choice: ExportChoice): void {
   current = choice;
   try {
     if (choice.mode === 'downloads' && !choice.path) localStorage.removeItem(KEY);
     else localStorage.setItem(KEY, JSON.stringify(choice));
   } catch { }
-  hand(choice);
   listeners.forEach(listener => listener());
+}
+
+function settle(sent: ExportChoice, answer: unknown): void {
+  if (sent !== current || !answer || typeof answer !== 'object') return;
+  const { mode, folder } = answer as { mode?: unknown; folder?: unknown };
+  const shown = typeof folder === 'string' && folder.length <= PATH_MAX ? folder : '';
+  if (current.mode === 'folder' && mode !== 'folder') store({ mode: 'downloads', path: '' });
+  else if (current.path !== shown) store({ mode: current.mode, path: shown });
+}
+
+function hand(choice: ExportChoice, forget = false): void {
+  const bridge = core();
+  if (!bridge) return;
+  try {
+    void bridge.invoke('set_export_place', { mode: choice.mode, path: choice.path, forget }).then(answer => settle(choice, answer), () => undefined);
+  } catch {
+    return;
+  }
+}
+
+function keep(choice: ExportChoice): void {
+  store(choice);
+  hand(choice);
 }
 
 hand(current);
@@ -67,7 +79,7 @@ export const exportChoice = (): ExportChoice => current;
 export function resetExportFolder(): void {
   try { localStorage.removeItem(KEY); } catch { }
   current = DEFAULT;
-  hand(DEFAULT);
+  hand(DEFAULT, true);
 }
 
 export function forgetAnswer(): void {
@@ -80,7 +92,7 @@ export async function beforeDownload(name: string): Promise<boolean> {
   try {
     return (await bridge.invoke('ask_export_place', { name: name.slice(0, NAME_MAX) })) === true;
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -115,7 +127,7 @@ export function exportFolderRow(): HTMLElement {
   shown.dataset.noI18n = '';
   const none = element('span', 'fw-export-path is-empty', 'No folder chosen yet.');
   pick.append(choose, shown, none);
-  const note = element('p', 'micro', 'Export static site, Download project and the other downloads follow this choice. If the chosen folder cannot be used when a file is saved, the file goes to Downloads and the notice says so.');
+  const note = element('p', 'micro', 'Every download from the editor follows this choice: Export static site, Download .fweb project, QR codes and picture exports. With Ask each time, each file asks where it goes. If the chosen folder cannot be used when a file is saved, the file goes to Downloads and the notice says so.');
   row.append(option('downloads', 'The Downloads folder'), option('folder', 'A folder you choose'), pick, option('ask', 'Ask each time'), note);
   const paint = (): void => {
     for (const [mode, radio] of radios) if (radio.checked !== (current.mode === mode)) radio.checked = current.mode === mode;
@@ -133,7 +145,7 @@ export function exportFolderRow(): HTMLElement {
     choosing = true;
     choose.setAttribute('aria-busy', 'true');
     try {
-      const folder = await bridge.invoke('choose_export_folder', { start: current.path });
+      const folder = await bridge.invoke('choose_export_folder');
       if (typeof folder !== 'string' || !folder || folder.length > PATH_MAX) return false;
       keep({ mode: 'folder', path: folder });
       return true;

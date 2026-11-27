@@ -1,4 +1,4 @@
-import { label, labelAttr, t } from '../i18n';
+import { label, labelAttr, t, tn } from '../i18n';
 import { element } from '../ui/dom';
 import { deliverFile, saveBlob } from '../ui/downloads';
 import type { Host } from './host';
@@ -182,7 +182,7 @@ export async function exportScreens(host: Host, svgId: string, options: ExportOp
   const written: string[] = [];
   const queue: { blob: Blob; name: string }[] = [];
   await queueFiles(source, base, options, queue);
-  for (const item of queue) { if (await download(item.blob, item.name)) written.push(item.name); await pause(200); }
+  for (const item of queue) { if (!await download(item.blob, item.name)) break; written.push(item.name); await pause(200); }
   return written;
 }
 
@@ -206,7 +206,7 @@ export async function exportArtboards(host: Host, items: { id: string; name: str
   }
   if (!queue.length) throw new Error(t('No artboards on this page to export.'));
   const written: string[] = [];
-  for (const file of queue) { if (await download(file.blob, file.name)) written.push(file.name); await pause(200); }
+  for (const file of queue) { if (!await download(file.blob, file.name)) break; written.push(file.name); await pause(200); }
   return written;
 }
 
@@ -342,14 +342,14 @@ class ExportDialog {
 
   private async run(): Promise<void> {
     const host = this.host;
-    if (!host || (!this.svg && !this.scope.all.checked)) return;
+    if (!host || (!this.svg && !this.scope.all.checked) || this.go.getAttribute('aria-disabled') === 'true') return;
     const formats = FORMATS.map(f => f.id).filter(id => this.formats.get(id)?.checked);
     const scales = this.scales.filter(s => s.on.checked).map(s => ({ scale: s.scale, suffix: s.suffix.value.trim() }));
     const raster = formats.some(f => !VECTOR.has(f));
     if (!formats.length) { label(this.status, 'Choose at least one format.'); return; }
     if (raster && !scales.length) { label(this.status, 'Choose at least one scale.'); return; }
     if (new Set(scales.map(s => safeName(s.suffix))).size !== scales.length) { label(this.status, 'Each scale needs a different suffix.'); return; }
-    this.go.disabled = true;
+    this.go.setAttribute('aria-disabled', 'true');
     label(this.status, 'Exporting...');
     try {
       const options: ExportOptions = {
@@ -357,12 +357,13 @@ class ExportDialog {
         quality: Number(this.quality.value) || 90, background: this.transparent.checked ? null : this.bg.value, jpgBackground: this.jpgBg.value
       };
       const files = this.scope.all.checked ? await exportArtboards(host, pageArtboards(host), options) : await exportScreens(host, this.svg, options);
-      label(this.status, 'Exported {0} files.', [files.length]);
-      host.notify(t('Exported {0} files.', [files.length]));
+      const said = files.length ? tn(files.length, 'Exported {0} file.', 'Exported {0} files.') : t('Nothing was saved.');
+      this.status.textContent = said;
+      host.notify(said);
     } catch (error) {
       if (error instanceof Error) this.status.textContent = error.message;
       else label(this.status, 'Export failed.');
-    } finally { this.go.disabled = false; }
+    } finally { this.go.removeAttribute('aria-disabled'); }
   }
 
   open(host: Host, svg: string): void {

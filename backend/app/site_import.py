@@ -13,7 +13,7 @@ import unicodedata
 import zipfile
 import zlib
 from html import escape, unescape
-from urllib.parse import unquote, urlsplit, urlunsplit
+from urllib.parse import unquote, urlsplit
 
 from .assets import SIZE_LIMITS, check_upload_svg, ingest, own_asset, sniff_extension
 from .config import MAX_IMAGE_BYTES, MAX_SITE_ARCHIVE_BYTES
@@ -61,41 +61,83 @@ META = re.compile(r'<meta\b[^>]*(?:>|\Z)', re.I)
 TITLE = re.compile(r'<title\b[^>]*(?:>|\Z)(.*?)(?:</title\s*>|\Z)', re.I | re.S)
 PAIR = re.compile(r'''([A-Za-z_:][-A-Za-z0-9_:.]*)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>=`]+)))?''')
 CSS_URL = re.compile(r'''url\(\s*(?:"([^"]*)"|'([^']*)'|([^()'"\s]*))\s*\)''', re.I)
-CSS_IMPORT = re.compile(r'''@import\s+(?:url\(\s*)?["']?([^"')\s;]+)["']?\s*\)?([^;{}@]*);''', re.I)
+CSS_IMPORT = re.compile(r'''@import\s++(?:url\(\s*+)?["']?([^"')\s;]++)["']?\s*+\)?([^;{}@]*+);''', re.I)
 OUTSIDE_SHOWN = 20
 URL_MAX = 2048
 HOST_MAX = 253
 HOST_CHARS = frozenset('abcdefghijklmnopqrstuvwxyz0123456789-')
+SCHEME_CHARS = frozenset('abcdefghijklmnopqrstuvwxyz0123456789+-.')
+C0_SPACE = ''.join(chr(code) for code in range(0x21))
+DEVIATIONS = frozenset('ßς‌‍ẞ')
 DEFAULT_PORTS = {'http': 80, 'https': 443}
 
 
+def _number(part: str) -> int | None:
+    """One part of a host that ends in a number, read as browsers read it: 0x hex, a leading 0 octal, else decimal."""
+    if not part:
+        return None
+    digits, base = (part[2:], 16) if part[:2].lower() == '0x' else (part[1:], 8) if len(part) > 1 and part[0] == '0' else (part, 10)
+    if not digits:
+        return 0
+    return int(digits, base) if all(c in '0123456789abcdef'[:base] for c in digits.lower()) else None
+
+
+def _ipv4(host: str) -> str | None:
+    """The dotted form browsers give a host whose last label is a number; None when they would refuse the URL."""
+    parts = host.split('.')
+    numbers = [_number(part) for part in parts] if len(parts) <= 4 else [None]
+    if None in numbers or any(n > 255 for n in numbers[:-1]) or numbers[-1] >= 256 ** (5 - len(numbers)):
+        return None
+    value = numbers[-1] + sum(n * 256 ** (3 - i) for i, n in enumerate(numbers[:-1]))
+    return '.'.join(str(value >> shift & 255) for shift in (24, 16, 8, 0))
+
+
 def outside_file(kind: str, reference: str) -> dict | None:
-    """A file a page loads from another host, as the review names it: its kind, the lower-cased ASCII host (with the port
-    only when it is not the scheme's default; any port of a protocol-relative URL) and the URL without credentials. None
-    for anything that is not plainly an http, https or protocol-relative URL with a host of letters, digits and hyphens."""
-    value = reference.strip(' \t\n\r\f').replace('\t', '').replace('\n', '').replace('\r', '')
+    """A file a page loads from another host, as the review names it: its kind, the host a browser would ask (lower-cased
+    ASCII, IPv4 in dotted form, the port only when it is not the scheme's default) and the URL without credentials. Read
+    the way browsers read http and https references: C0 controls and spaces trimmed, tabs and line breaks removed, a
+    backslash before the host taken as a slash, the last @ ending the credentials. None for anything else, and for every
+    form whose host depends on the page's own scheme or that browsers might read another way."""
+    value = reference.strip(C0_SPACE).replace('\t', '').replace('\n', '').replace('\r', '')
     if not value or len(value) > URL_MAX or not value.isprintable():
         return None
+    colon = value.find(':')
+    scheme = value[:colon].lower() if colon > 0 and value[0].isascii() and value[0].isalpha() and set(value[:colon].lower()) <= SCHEME_CHARS else ''
+    if scheme and scheme not in DEFAULT_PORTS:
+        return None
+    lead = value[colon + 1:] if scheme else value
+    if len(lead) < 2 or lead[0] not in '/\\' or lead[1] not in '/\\':
+        return None
+    tail = lead.lstrip('/\\')
+    end = next((i for i, c in enumerate(tail) if c in '/\\?#'), len(tail))
+    authority, after = tail[:end].rsplit('@', 1)[-1], tail[end:]
+    raw, _, port_text = authority.partition(':')
+    if not raw or raw.startswith('[') or len(raw) > HOST_MAX or not (port_text == '' or (port_text.isascii() and port_text.isdigit() and int(port_text) <= 65535)):
+        return None
+    if any(c in '%\\@' or c.isspace() for c in raw) or any(c in DEVIATIONS or unicodedata.ucd_3_2_0.category(c) == 'Cn' for c in raw if not c.isascii()):
+        return None
     try:
-        parts = urlsplit(value)
-        port = parts.port
-        raw = parts.hostname or ''
-    except ValueError:
-        return None
-    scheme = parts.scheme.lower()
-    if not (scheme in DEFAULT_PORTS or (not scheme and value.startswith('//'))) or not parts.netloc:
-        return None
-    raw = raw[:-1] if raw.endswith('.') else raw
-    if not raw or len(raw) > HOST_MAX:
-        return None
-    try:
-        host = raw.encode('idna').decode('ascii').lower()
+        host = (raw if raw.isascii() else raw.encode('idna').decode('ascii')).lower()
+        for label in host.split('.'):
+            if label.startswith('xn--'):
+                label.encode('ascii').decode('idna')
     except (UnicodeError, ValueError):
         return None
-    if len(host) > HOST_MAX or not all(0 < len(label) <= 63 and label[0] != '-' and label[-1] != '-' and set(label) <= HOST_CHARS for label in host.split('.')):
+    labels = host.split('.')
+    if host.endswith('.') or len(host) > HOST_MAX:
+        return None
+    if labels[-1].isdigit() or _number(labels[-1]) is not None and labels[-1][:2] == '0x':
+        host = _ipv4(host)
+        if host is None:
+            return None
+    elif not all(0 < len(label) <= 63 and label[0] != '-' and label[-1] != '-' and set(label) <= HOST_CHARS for label in labels):
+        return None
+    port = int(port_text) if port_text else None
+    if not scheme and port in (80, 443):
         return None
     shown = host if port is None or port == DEFAULT_PORTS.get(scheme) else f'{host}:{port}'
-    return {'kind': kind, 'host': shown, 'url': urlunsplit((scheme, shown, parts.path, parts.query, parts.fragment))}
+    cut = next((i for i, c in enumerate(after) if c in '?#'), len(after))
+    return {'kind': kind, 'host': shown, 'url': f'{scheme + ":" if scheme else ""}//{shown}{after[:cut].replace(chr(92), "/")}{after[cut:]}'}
 
 
 def outside_list(found: list[tuple[str, str]]) -> tuple[list[dict], int]:
@@ -482,9 +524,9 @@ class Site:
     def css(self, text: str, base: str, missing: set, depth: int = 0, seen: frozenset = frozenset(), source: str = '') -> str:
         def imported(match):
             found = self.locate(match.group(1), base)
+            if self.listing is not None and (found is None or found[0] not in self.files):
+                self.listing.append(('stylesheet', match.group(1)))
             if found is None and not match.group(1).strip().lower().startswith('data:'):
-                if self.listing is not None:
-                    self.listing.append(('stylesheet', match.group(1)))
                 if match.group(0) not in self.outside:
                     self.outside.append(match.group(0))
                 return ''
@@ -585,9 +627,10 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
                 continue
             if source is not None:
                 found = site.locate(source, base)
+                if found is None or found[0] not in site.files:
+                    site.listing.append(('script', source))
                 if found is None:
                     outside_scripts.add(source[:120])
-                    site.listing.append(('script', source))
                 elif found[0] in site.files and site.files[found[0]][0] == 'script':
                     content = _text(site.files[found[0]][1])
                     if content.strip():
@@ -602,8 +645,9 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
                 continue
             href = attrs.get('href', '')
             found = site.locate(href, base)
-            if found is None:
+            if found is None or found[0] not in site.files:
                 site.listing.append(('stylesheet', href))
+            if found is None:
                 if href.strip() and block.start() < body_at:
                     outside_styles.add(href[:120])
             elif found[0] in site.files and site.files[found[0]][0] == 'style':
@@ -745,6 +789,14 @@ def review(result: dict) -> dict:
     return {'pages': pages, 'assets': {'count': len(result['assets']), 'bytes': result['assetBytes']}, 'supportFiles': result['support'],
             'skipped': result['skipped'], 'ignored': result['ignored'], 'canReplace': bool(matched) and not blocked, 'replaceNote': reason,
             'notes': ['Each page arrives as one code section: its HTML, CSS and first script, editable as code. Code sections run in Preview and in exports, not on the canvas.']}
+
+
+def outside_of(document: str) -> tuple[list[dict], int]:
+    """The outside files of one page given as text (Import HTML as a section), listed as the review lists them."""
+    if len(document) > FILE_CAPS['page']:
+        return [], 0
+    page = _page(Site({}), 'page.html', document.encode('utf-8', 'replace'), lambda script: (script, False))
+    return page['outside'], page['outsideMore']
 
 
 def summary(pages: int, assets: int, skipped: int) -> str:

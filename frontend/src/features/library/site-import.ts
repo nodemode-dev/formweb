@@ -34,7 +34,7 @@ function outsideSentence(page: SitePage): string {
     : count === 1 ? t('1 script from {0}', [host]) : t('{0} scripts from {1}', [count, host]));
   const rest = all.slice(4).reduce((sum, group) => sum + group.count, 0) + (page.outsideMore || 0);
   if (rest) pieces.push(rest === 1 ? t('1 more file') : t('{0} more files', [rest]));
-  return t('This page takes part of its look from the web: {0}. These files are not brought along.', [joined(pieces)]);
+  return t('This page loads files from the web: {0}. These files are not brought along.', [joined(pieces)]);
 }
 /** Decodes a picked page exactly as the service decodes one inside a zip: UTF-8 (a byte order mark dropped), else Windows-1252 with its five unassigned bytes as U+FFFD. */
 function decode(bytes: ArrayBuffer): string {
@@ -332,16 +332,16 @@ export class SiteImport {
     if (!loading.length) return null;
     const hosts = hostList(hostsOf(loading));
     if (section || pages.length === 1) return {
-      code: t('Kept as code, so the page keeps its own scripts and rules, responsive ones included. The files it loads from the web are not brought along either way.'),
-      elements: t('As elements, the page arrives without the files it loads from {0}, so part of its look will be missing.', [hosts])
+      code: t('Kept as code, so the page keeps its own scripts and style rules, responsive ones included. The files it loads from the web are not brought along either way.'),
+      elements: t('As elements, the page arrives without the files it loads from {0}, so part of its look or behaviour may be missing.', [hosts])
     };
     if (loading.length === 1) return {
-      code: t('Kept as code, because 1 of {0} pages loads files from the web. As code the pages keep their own scripts and rules, responsive ones included; those files are not brought along either way.', [pages.length]),
-      elements: t('As elements, 1 of {0} pages arrives without the files it loads from {1}, so part of its look will be missing.', [pages.length, hosts])
+      code: t('Kept as code, because 1 of {0} pages loads files from the web. As code the pages keep their own scripts and style rules, responsive ones included; those files are not brought along either way.', [pages.length]),
+      elements: t('As elements, 1 of {0} pages arrives without the files it loads from {1}, so part of its look or behaviour may be missing.', [pages.length, hosts])
     };
     return {
-      code: t('Kept as code, because {0} of {1} pages load files from the web. As code the pages keep their own scripts and rules, responsive ones included; those files are not brought along either way.', [loading.length, pages.length]),
-      elements: t('As elements, {0} of {1} pages arrive without the files they load from {2}, so part of their look will be missing.', [loading.length, pages.length, hosts])
+      code: t('Kept as code, because {0} of {1} pages load files from the web. As code the pages keep their own scripts and style rules, responsive ones included; those files are not brought along either way.', [loading.length, pages.length]),
+      elements: t('As elements, {0} of {1} pages arrive without the files they load from {2}, so part of their look or behaviour may be missing.', [loading.length, pages.length, hosts])
     };
   }
 
@@ -381,7 +381,7 @@ export class SiteImport {
     this.working = t('Importing...');
     this.setBusy(true);
     try {
-      const message = await importSection(this.hooks, { html: page.html, name: page.name.replace(/\.html?$/i, '') }, this.bring.value(), note => this.progress(note), ids => { this.made = ids; }, hostsOf(this.plan?.pages.slice(0, 1) || []));
+      const message = await importSection(this.hooks, { html: page.html, name: page.name.replace(/\.html?$/i, '') }, this.bring.value(), note => this.progress(note), ids => { this.made = ids; });
       this.done = true;
       this.say(message, false);
     } catch (error) {

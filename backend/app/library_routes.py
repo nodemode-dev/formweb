@@ -319,7 +319,9 @@ async def library_import_html(request: Request):
     result = await studio.mutate('batch', {'commands': commands, 'expectedRevision': revision})
     studio.access.record('library.import-html', {'node': host, 'bytes': len(document)})
     warnings = [] if shim or not module else ['The script ran as a module with no kit helpers.']
-    return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': warnings + ([site_import.left_out_scripts(foreign)] if foreign else [])}
+    outside, more = await asyncio.to_thread(site_import.outside_of, document)
+    return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': warnings + ([site_import.left_out_scripts(foreign)] if foreign else []),
+            'outside': outside, 'outsideMore': more}
 
 
 async def _archive(request: Request) -> bytes | dict | list:

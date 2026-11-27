@@ -7,7 +7,7 @@ import type { CommandDef } from '../../ui/shell';
 import type { MenuEntry } from '../../ui/context-menu';
 import type { Command, EditorState, SiteNode } from '../../types';
 import { blocks, measure, SCOPE, TooLarge, type Block, type Plan, type Planned, type Source } from './measure';
-import { refusal, ROOT_FORCED, summary, type SiteFont } from './rules';
+import { refusal, ROOT_FORCED, scriptWords, summary, type SiteFont } from './rules';
 import '../../styles/convert.css';
 
 export const CONVERT_ID = 'library.convert-section';
@@ -94,6 +94,17 @@ function partCommands(site: EditorState['site'], host: SiteNode, record: Section
   return list;
 }
 
+/** The words the site's own styles, tokens, fonts and code use, lower case, leaving out the sections being converted:
+ * page-wide names (keyframes, font faces, registered properties) a kept stylesheet must not take. */
+function siteNames(site: EditorState['site'], skip: Set<string>): Set<string> {
+  const code = site.extensions?.code as { sections?: Record<string, unknown> } | undefined;
+  const sections = Object.fromEntries(Object.entries(code?.sections || {}).filter(([id]) => !skip.has(id)));
+  const text = JSON.stringify([Object.values(site.nodes).map(node => [node.styles, node.breakpoints]), site.tokens, site.extensions?.design, { ...code, sections }]);
+  const names = new Set<string>();
+  scriptWords(text.toLowerCase(), names, 500000);
+  return names;
+}
+
 function fontsCommand(site: EditorState['site'], fonts: Record<string, SiteFont> | null): Command[] {
   if (!fonts) return [];
   const before = ((site.extensions?.design as { fonts?: Record<string, SiteFont> } | undefined)?.fonts) || {};
@@ -149,6 +160,7 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
   const hosts = ids.map(id => site.nodes[id]).filter((node): node is SiteNode => !!node && !!sectionOf(site, node.id)?.html?.trim());
   if (!hosts.length) throw new Error(t('Select a code section that holds HTML to convert.'));
   const taken = new Set(Object.keys(site.nodes));
+  const names = keepScript ? siteNames(site, new Set(hosts.map(host => host.id))) : undefined;
   let fonts = { ...(((site.extensions?.design as { fonts?: Record<string, SiteFont> } | undefined)?.fonts) || {}) };
   const plans: Plan[] = [];
   const done: SiteNode[] = [];
@@ -157,7 +169,7 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
     let plan: Plan;
     try {
       plan = await measure(sourceOf(sectionOf(site, host.id)!), {
-        origin: location.origin, keepScript, fonts, taken: id => taken.has(id), limit: LIMIT, depth: DEPTH, seconds: SECONDS, scope: host.id
+        origin: location.origin, keepScript, fonts, taken: id => taken.has(id), limit: LIMIT, depth: DEPTH, seconds: SECONDS, scope: host.id, siteNames: names
       }, part);
     } catch (error) {
       if (!(error instanceof TooLarge) || hosts.length === 1) throw error;
@@ -185,7 +197,7 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
   const outcome = plans.map(plan => plan.outcome).reduce((all, one) => ({
     converted: all.converted + one.converted, responsive: all.responsive + one.responsive, effects: all.effects + one.effects, floats: all.floats + one.floats,
     pictures: all.pictures + one.pictures, refused: all.refused + one.refused, scripted: all.scripted + one.scripted, left: all.left + one.left,
-    kept: all.kept + one.kept, keptAll: all.keptAll + one.keptAll, keptOver: all.keptOver + one.keptOver, keptDropped: all.keptDropped + one.keptDropped,
+    kept: all.kept + one.kept, keptAll: all.keptAll + one.keptAll, keptOver: all.keptOver + one.keptOver, keptClash: all.keptClash + one.keptClash, keptDropped: all.keptDropped + one.keptDropped,
     parts: Object.fromEntries([...new Set([...Object.keys(all.parts), ...Object.keys(one.parts)])].map(key => [key, (all.parts[key as keyof typeof all.parts] || 0) + (one.parts[key as keyof typeof one.parts] || 0)]))
   }));
   outcome.left += left;
@@ -243,7 +255,11 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
 
   const close = (): void => {
     if (box.hidden) return;
-    if (box.contains(document.activeElement)) document.querySelector<HTMLElement>('.inspector-tabs .active, .inspector-tabs button')?.focus({ preventScroll: true });
+    if (box.contains(document.activeElement)) {
+      const shown = (node: HTMLElement | null): node is HTMLElement => !!node && node.getClientRects().length > 0;
+      const tab = document.querySelector<HTMLElement>('.inspector-tabs button.active'), audit = document.querySelector<HTMLElement>('[data-cmd="page.audit"]');
+      (shown(tab) ? tab : shown(audit) ? audit : null)?.focus({ preventScroll: true });
+    }
     box.hidden = true;
   };
   const say = (message: string, error = false): void => { text(note, message); note.classList.toggle('is-error', error); };
@@ -339,7 +355,7 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
       part: { type: 'integer', min: 0, description: 'Convert only this top-level block of the section (0 is the first), for a page too large for one conversion.' }
     },
     enabled: () => host.ready() && anySection(),
-    description: 'Turn a code section (an imported page or any section of plain HTML and CSS) into ordinary FormWeb elements with their own text, links, pictures and base styles measured at desktop width, in one undo step. Scripts, inline frames and vector graphics stay as small code sections in place; responsive rules are not carried over. A kept script keeps the style rules no converted element uses, so what it builds is styled in Preview and the export. Without parameters it opens a short dialog for the selected element; with node or nodes it converts at once and returns the result sentence.',
+    description: 'Turn a code section (an imported page or any section of plain HTML and CSS) into ordinary FormWeb elements with their own text, links, pictures and base styles measured at desktop width, in one undo step. Scripts, inline frames and vector graphics stay as small code sections in place; responsive rules are not carried over. A kept script keeps the style rules no converted element uses, and the class rules the script names, so what it builds is styled in Preview and the export. Without parameters it opens a short dialog for the selected element; with node or nodes it converts at once and returns the result sentence.',
     when: 'Use when the person wants to edit an imported page or a code section visually: click a heading, change its text, restyle it or move it.',
     run: async (params?: Record<string, unknown>) => {
       const list = Array.isArray(params?.nodes) ? (params!.nodes as unknown[]).filter((id): id is string => typeof id === 'string') : typeof params?.node === 'string' ? [params.node] : null;

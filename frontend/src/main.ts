@@ -1089,7 +1089,7 @@ const auditMarkers = installAuditMarkers({
     status(line);
     notice.show(line, { error: true, action: { label: 'Show again', run: again } });
   },
-  rescue: () => inspectorTabButtons.get(activeInspector), status
+  rescue: () => [inspectorTabButtons.get(activeInspector), auditButton], status
 });
 auditPane.append(auditSummary, auditMarkers.row, auditList);
 
@@ -2013,8 +2013,9 @@ function showIssue(row: HTMLElement): void {
   notice.show(line, { error: true, action: { label: 'Show again', run: () => { if (row.isConnected && row.dataset.key === key) (row.children[2] as HTMLButtonElement).click(); } } });
 }
 async function auditSite(): Promise<void> {
+  const asked = state();
   const result = await request<{ issues: AuditIssue[]; counts: Record<string, number> }>('/api/audit');
-  auditMarkers.fresh(result);
+  auditMarkers.fresh(result, asked.site.id, asked.revision);
   openDialog('audit');
   text(auditSummary, result.issues.length === 1 ? '1 issue found. Select an element to resolve it in the inspector.' : result.issues.length ? t('{0} issues found. Select an element to resolve it in the inspector.', [result.issues.length]) : 'No issues found by the built-in audit. Review content and exported pages before release.');
   keyed(auditList, result.issues.map((issue, index) => ({ ...issue, key: `${issue.code}-${issue.page || ''}-${issue.node || ''}-${index}` })), issue => issue.key, () => {
