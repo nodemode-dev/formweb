@@ -5,29 +5,31 @@ import { SYNONYMS } from './search-terms';
 import '../../styles/inspector-search.css';
 
 export interface SearchTab { id: string; button: HTMLElement; pane: HTMLElement }
-export interface SearchOptions { after: HTMLElement; scroll: HTMLElement; tabs: SearchTab[]; select(id: string): void }
+export interface SearchOptions { after: HTMLElement; scroll: HTMLElement; tabs: SearchTab[] }
 export interface InspectorSearch { focus(): void; clear(): void }
 
 interface Entry {
   key: string;
   group: string;
-  tab: string;
-  tabName: string;
-  sectionName: string;
-  isSection: boolean;
+  parent: string;
+  kind: 'section' | 'field' | 'choice';
   name: string;
+  place: string;
   css: string;
-  target: HTMLElement;
   off: boolean;
   words: { name: string; prop: string; place: string };
 }
-interface Row { key: string; heading?: string; entry?: Entry }
+interface Row { key: string; entry: Entry; value: number; order: number }
 
 const MAX_ROWS = 120;
-const PULSE_MS = 1600;
+const MAX_ENTRIES = 4000;
+const MAX_CHOICES = 64;
+const MAX_TEXT = 120;
+const SEP = ' > ';
 const FIELDS = '.field, .checkbox-field, :scope > button, .inspect-actions > button';
+const OWNER = '.field, .checkbox-field';
 const norm = (value: string): string => value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-const clean = (value: string | null | undefined): string => (value || '').replace(/\s+/g, ' ').trim();
+const clean = (value: string | null | undefined): string => (value || '').slice(0, MAX_TEXT * 4).replace(/\s+/g, ' ').trim().slice(0, MAX_TEXT);
 const GROUPS = SYNONYMS.map(group => group.map(norm));
 
 export function sectionId(title: string): string {
@@ -62,6 +64,7 @@ function rank(entry: Entry, token: string): number {
   if (name.includes(token)) return 2;
   if (prop.includes(token)) return 3;
   const own = ` ${name} ${prop}`;
+  if (entry.kind === 'choice') return place.includes(token) ? 5 : -1;
   if (token.length >= 2) {
     for (const group of GROUPS) {
       if (!group.some(member => member === token || member.startsWith(token))) continue;
@@ -86,9 +89,7 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
   input.type = 'text';
   input.autocomplete = 'off';
   input.spellcheck = false;
-  input.setAttribute('role', 'combobox');
-  input.setAttribute('aria-autocomplete', 'list');
-  input.setAttribute('aria-expanded', 'false');
+  input.maxLength = MAX_TEXT;
   labelAttr(input, 'placeholder', 'Search properties');
   labelAttr(input, 'aria-label', 'Search properties');
   const clearButton = element('button', 'inspector-search-clear');
@@ -102,9 +103,12 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
 
   const results = element('div', 'inspector-results');
   results.hidden = true;
+  const note = element('p', 'inspector-results-note');
+  note.id = 'inspector-results-note';
+  label(note, 'Each result shows where to find it. Open that tab and section to use it.');
   const list = element('div', 'inspector-results-list');
   list.id = 'inspector-results-list';
-  list.setAttribute('role', 'listbox');
+  list.setAttribute('role', 'list');
   const empty = element('p', 'inspector-results-empty');
   empty.setAttribute('role', 'status');
   empty.hidden = true;
@@ -114,45 +118,61 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
   more.hidden = true;
   label(more, 'Showing the first {0} results. Type more to narrow it down.', [MAX_ROWS]);
   labelAttr(more, 'title', 'Showing the first {0} results. Type more to narrow it down.', [MAX_ROWS]);
-  results.append(list, more, empty);
-  input.setAttribute('aria-controls', list.id);
+  results.append(note, list, more, empty);
+  input.setAttribute('aria-describedby', note.id);
   options.after.after(bar);
   options.scroll.before(results);
 
-  const entries = new Map<string, Entry>();
   let index: Entry[] = [];
   let dirty = true;
   let open = false;
   let queued = false;
   let savedTop = 0;
-  let activeKey = '';
-  let pulsing: HTMLElement | null = null;
-  let pulseTimer = 0;
-  let picks: Entry[] = [];
-  let serial = 0;
 
   function build(): Entry[] {
     const found: Entry[] = [];
-    entries.clear();
     for (const tab of options.tabs) {
       const tabName = clean(tab.button.textContent);
       const sections = new Map<string, number>();
       tab.pane.querySelectorAll<HTMLElement>('.inspector-section').forEach(section => {
-        if (!shown(section, tab.pane)) return;
+        if (found.length >= MAX_ENTRIES || !shown(section, tab.pane)) return;
         const head = section.querySelector<HTMLElement>(':scope > .section-title');
         const sectionName = clean(head?.firstElementChild?.textContent);
         if (!head || !sectionName) return;
+        const where = `${tabName}${SEP}${sectionName}`;
         const place = norm(`${sectionName} ${tabName}`);
         const id = section.dataset.section || sectionId(sectionName);
         const nth = sections.get(id) || 0;
         sections.set(id, nth + 1);
         const base = `${tab.id}|${id}|${nth}`;
-        const add = (entry: Omit<Entry, 'words' | 'group' | 'tab' | 'tabName' | 'sectionName'>, prop: string): void => {
-          const made: Entry = { ...entry, group: base, tab: tab.id, tabName, sectionName, words: { name: norm(entry.name), prop: norm(prop), place } };
-          found.push(made);
-          entries.set(made.key, made);
+        const add = (entry: Omit<Entry, 'words' | 'group'>, prop: string, words = place): void => {
+          if (found.length < MAX_ENTRIES) found.push({ ...entry, group: base, words: { name: norm(entry.name), prop: norm(prop), place: words } });
         };
-        add({ key: `${base}|`, isSection: true, name: sectionName, css: '', target: head, off: false }, '');
+        const mine = <T extends HTMLElement>(root: HTMLElement, selector: string, owner: HTMLElement | null): T[] =>
+          Array.from(root.querySelectorAll<T>(selector)).filter(node => node.closest('.inspector-section') === section && node.closest(OWNER) === owner && shown(node, section));
+        const choices = (parent: string, field: string, off: boolean, groups: HTMLElement[], selects: HTMLSelectElement[]): void => {
+          const at = field ? `${where}${SEP}${field}` : where;
+          const words = norm(`${field} ${sectionName} ${tabName}`);
+          const seen = new Map<string, number>();
+          const one = (name: string, value: string, disabled: boolean): void => {
+            if (!name) return;
+            const slug = `${parent}|c|${norm(value || name)}`;
+            const n = seen.get(slug) || 0;
+            seen.set(slug, n + 1);
+            add({ key: `${slug}|${n}`, kind: 'choice', parent, name, place: at, css: '', off: off || disabled }, value, words);
+          };
+          for (const group of groups) {
+            Array.from(group.querySelectorAll<HTMLButtonElement>('.fw-seg-btn')).slice(0, MAX_CHOICES).forEach(button => {
+              if (shown(button, group)) one(clean(button.textContent || button.getAttribute('aria-label')), clean(button.dataset.value), button.disabled);
+            });
+          }
+          for (const select of selects) {
+            Array.from(select.options).slice(0, MAX_CHOICES).forEach(option => {
+              if (option.value && !option.hidden) one(clean(option.text), clean(option.value), select.disabled || option.disabled);
+            });
+          }
+        };
+        add({ key: `${base}|`, kind: 'section', parent: '', name: sectionName, place: where, css: '', off: false }, '');
         const counts = new Map<string, number>();
         const done = new Map<HTMLElement, string>();
         section.querySelectorAll<HTMLElement>(FIELDS).forEach(node => {
@@ -169,7 +189,14 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
           const seen = counts.get(slug) || 0;
           counts.set(slug, seen + 1);
           const control = controlOf(node) as (HTMLElement & { disabled?: boolean }) | null;
-          add({ key: `${base}|${slug}|${seen}`, isSection: false, name, css, target: node, off: !!control?.disabled }, prop);
+          const key = `${base}|${slug}|${seen}`;
+          const off = !!control?.disabled;
+          add({ key, kind: 'field', parent: '', name, place: where, css, off }, prop);
+          if (node.tagName !== 'BUTTON') choices(key, name, off, mine(node, '.fw-seg', node), mine<HTMLSelectElement>(node, 'select[data-style]', node));
+        });
+        mine(section, '.fw-seg', null).forEach((group, at) => {
+          const head = group.previousElementSibling;
+          choices(`${base}|set|${at}`, head?.matches('.field-label') ? clean(head.textContent) : '', false, [group], []);
         });
       });
     }
@@ -178,62 +205,47 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
 
   function score(entry: Entry, tokens: string[]): number {
     let total = 0;
+    let own = entry.kind !== 'choice';
     for (const token of tokens) {
       const best = rank(entry, token);
       if (best < 0) return -1;
+      if (best < 5) own = true;
       total += best;
     }
-    return total;
+    return own ? total : -1;
   }
 
-  function createRow(row: Row): HTMLElement {
-    if (row.heading !== undefined) {
-      const head = element('div', 'inspector-results-group');
-      head.setAttribute('role', 'presentation');
-      head.dataset.noI18n = '';
-      return head;
-    }
+  function createRow(): HTMLElement {
     const node = element('div', 'inspector-result');
-    node.setAttribute('role', 'option');
-    node.id = `inspector-result-${++serial}`;
+    node.setAttribute('role', 'listitem');
+    const words = element('span', 'inspector-result-text');
+    words.dataset.noI18n = '';
     const name = element('span', 'inspector-result-name');
-    name.dataset.noI18n = '';
+    const dot = element('span', 'inspector-result-dot');
+    text(dot, ' · ');
+    const place = element('span', 'inspector-result-place');
+    words.append(name, dot, place);
     const css = element('span', 'inspector-result-css');
     css.dataset.noI18n = '';
     const off = element('span', 'inspector-result-off');
     label(off, 'Unavailable');
     off.hidden = true;
-    node.append(name, css, off);
-    node.addEventListener('pointerdown', event => event.preventDefault());
-    node.addEventListener('click', () => { const entry = entries.get(node.dataset.key || ''); if (entry) pick(entry); });
+    node.append(words, css, off);
     return node;
   }
 
   function updateRow(node: HTMLElement, row: Row): void {
-    if (row.heading !== undefined) { text(node, row.heading); return; }
-    const entry = row.entry!;
-    const [name, css, off] = Array.from(node.children) as HTMLElement[];
+    const entry = row.entry;
+    const [words, css, off] = Array.from(node.children) as HTMLElement[];
+    const [name, , place] = Array.from(words.children) as HTMLElement[];
     text(name, entry.name);
+    text(place, entry.place);
     text(css, entry.css);
     if (off.hidden === entry.off) off.hidden = !entry.off;
-    node.classList.toggle('is-off', entry.off);
-    node.classList.toggle('is-section', entry.isSection);
-    node.setAttribute('aria-label', `${entry.tabName}, ${entry.sectionName}${entry.isSection ? '' : `, ${entry.name}`}`);
-    if (entry.off) labelAttr(node, 'title', 'Not available for the current selection'); else node.removeAttribute('title');
-  }
-
-  function mark(scrollTo: boolean): void {
-    let current: HTMLElement | null = null;
-    Array.from(list.children).forEach(child => {
-      const node = child as HTMLElement;
-      if (node.dataset.key === activeKey) current = node;
-      const on = node.dataset.key === activeKey;
-      if (node.classList.contains('is-active') !== on) node.classList.toggle('is-active', on);
-      if (node.getAttribute('role') === 'option') node.setAttribute('aria-selected', String(on));
-    });
-    const node = current as HTMLElement | null;
-    if (node) input.setAttribute('aria-activedescendant', node.id); else input.removeAttribute('aria-activedescendant');
-    if (node && scrollTo) node.scrollIntoView({ block: 'nearest' });
+    if (node.classList.contains('is-off') !== entry.off) node.classList.toggle('is-off', entry.off);
+    if (node.classList.contains('is-section') !== (entry.kind === 'section')) node.classList.toggle('is-section', entry.kind === 'section');
+    if (node.classList.contains('is-choice') !== (entry.kind === 'choice')) node.classList.toggle('is-choice', entry.kind === 'choice');
+    if (entry.off) labelAttr(node, 'title', 'Not available for the current selection'); else if (node.hasAttribute('title')) node.removeAttribute('title');
   }
 
   function refresh(): void {
@@ -245,67 +257,35 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
     if (options.scroll.hidden !== on) options.scroll.hidden = on;
     if (!on && open) options.scroll.scrollTop = savedTop;
     open = on;
-    input.setAttribute('aria-expanded', String(on));
-    if (!on) { picks = []; return; }
+    if (!on) return;
     if (dirty) { index = build(); dirty = false; }
-    const scored = index.map((entry, order) => ({ entry, order, value: score(entry, tokens) })).filter(item => item.value >= 0);
-    const groups = new Map<string, { best: number; order: number; items: typeof scored }>();
+    const scored: Row[] = [];
+    const values = new Map<string, number>();
+    index.forEach((entry, order) => {
+      const value = score(entry, tokens);
+      if (value < 0) return;
+      scored.push({ key: entry.key, entry, value, order });
+      values.set(entry.key, value);
+    });
+    const groups = new Map<string, { best: number; order: number; items: Row[] }>();
     for (const item of scored) {
+      const parent = values.get(item.entry.parent);
+      if (parent !== undefined && parent > item.value) item.value = parent;
       const id = item.entry.group;
       const group = groups.get(id);
       if (group) { group.best = Math.min(group.best, item.value); group.items.push(item); }
       else groups.set(id, { best: item.value, order: item.order, items: [item] });
     }
     const rows: Row[] = [];
-    picks = [];
-    Array.from(groups.entries()).sort((a, b) => a[1].best - b[1].best || a[1].order - b[1].order).forEach(([id, group]) => {
+    Array.from(groups.values()).sort((a, b) => a.best - b.best || a.order - b.order).forEach(group => {
       if (rows.length >= MAX_ROWS) return;
-      const first = group.items[0].entry;
-      rows.push({ key: `g|${id}`, heading: `${first.tabName} > ${first.sectionName}` });
-      group.items.sort((a, b) => a.value - b.value || a.order - b.order).forEach(item => {
-        if (rows.length >= MAX_ROWS) return;
-        rows.push({ key: item.entry.key, entry: item.entry });
-        picks.push(item.entry);
-      });
+      group.items.sort((a, b) => a.value - b.value || a.order - b.order);
+      rows.push(...group.items.slice(0, MAX_ROWS - rows.length));
     });
     keyed(list, rows, row => row.key, createRow, updateRow);
     if (empty.hidden !== rows.length > 0) empty.hidden = rows.length > 0;
-    const capped = groups.size + scored.length > MAX_ROWS;
+    const capped = scored.length > MAX_ROWS;
     if (more.hidden === capped) more.hidden = !capped;
-    if (!picks.some(entry => entry.key === activeKey)) activeKey = picks[0]?.key || '';
-    mark(false);
-  }
-
-  function move(step: number): void {
-    if (!picks.length) return;
-    const at = picks.findIndex(entry => entry.key === activeKey);
-    activeKey = picks[(at + step + picks.length) % picks.length].key;
-    mark(true);
-  }
-
-  function pulse(target: HTMLElement): void {
-    if (pulsing) pulsing.classList.remove('fw-search-hit');
-    clearTimeout(pulseTimer);
-    void target.offsetWidth;
-    target.classList.add('fw-search-hit');
-    pulsing = target;
-    pulseTimer = window.setTimeout(() => { target.classList.remove('fw-search-hit'); if (pulsing === target) pulsing = null; }, PULSE_MS);
-  }
-
-  function pick(chosen: Entry): void {
-    input.value = '';
-    refresh();
-    if (dirty) { index = build(); dirty = false; }
-    const entry = entries.get(chosen.key);
-    if (!entry || !entry.target.isConnected) return;
-    options.select(entry.tab);
-    for (let at = entry.target.closest<HTMLElement>('.inspector-section'); at; at = at.parentElement?.closest<HTMLElement>('.inspector-section') || null) {
-      if (at.classList.contains('is-collapsed')) at.querySelector<HTMLElement>(':scope > .section-title')?.click();
-    }
-    entry.target.scrollIntoView({ block: entry.isSection ? 'start' : 'center' });
-    const control = entry.isSection ? entry.target : controlOf(entry.target);
-    if (control && !(control as HTMLButtonElement).disabled) control.focus({ preventScroll: true });
-    pulse(entry.isSection ? entry.target.parentElement || entry.target : entry.target);
   }
 
   function clear(): void {
@@ -313,19 +293,17 @@ export function installInspectorSearch(options: SearchOptions): InspectorSearch 
     refresh();
   }
 
-  input.addEventListener('input', () => { activeKey = ''; refresh(); });
+  input.addEventListener('input', refresh);
   input.addEventListener('keydown', event => {
-    if (event.isComposing) return;
-    if (event.key === 'ArrowDown') { event.preventDefault(); move(1); }
-    else if (event.key === 'ArrowUp') { event.preventDefault(); move(-1); }
-    else if (event.key === 'Enter') {
-      const entry = picks.find(item => item.key === activeKey);
-      if (entry) { event.preventDefault(); pick(entry); }
-    } else if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      if (input.value) clear(); else input.blur();
-    }
+    if (event.isComposing || event.key !== 'Escape') return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (input.value) { clear(); return; }
+    const tab = options.tabs.find(item => !item.pane.hidden && item.button.getClientRects().length);
+    if (tab) tab.button.focus({ preventScroll: true }); else input.blur();
+  });
+  results.addEventListener('mousedown', event => {
+    if (event.target !== results || (event.offsetX < results.clientWidth && event.offsetY < results.clientHeight)) event.preventDefault();
   });
   clearButton.addEventListener('click', () => { clear(); input.focus(); });
 

@@ -515,7 +515,7 @@ inspectorScroll.append(designPane, motionPane, contentPane, pagePane);
 const scriptPanes = installScriptPanes([designPane, motionPane]);
 inspector.append(inspectorIdentity, inspectorTabs, inspectorScroll, dockStrip('right', [{ command: 'window.design', label: 'Design', icon: 'sliders' }, { command: 'window.content', label: 'Content', icon: 'text' }, { command: 'page.settings', label: 'Page', icon: 'page' }], { command: 'window.toggle-right', label: 'Expand right panel', icon: 'chevronsLeft' }));
 const inspectorSearch = installInspectorSearch({
-  after: inspectorTabs, scroll: inspectorScroll, select: setInspector,
+  after: inspectorTabs, scroll: inspectorScroll,
   tabs: Object.entries({ design: designPane, motion: motionPane, content: contentPane, page: pagePane }).map(([id, pane]) => ({ id, pane, button: inspectorTabButtons.get(id)! }))
 });
 const rail = new Rail([

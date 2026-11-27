@@ -100,7 +100,7 @@ const META: Record<string, Meta> = {
   'vector.grid.prefs': { description: 'Open the dialog for gridline spacing and subdivisions.' },
   'vector.outline': { description: 'Show the edited SVG as thin unfilled outlines without changing the document. Outside vector editing the key is Redo.', when: 'Use to inspect overlapping artwork.' },
   'view.search': { description: 'Open the command search.' },
-  'inspector.search': { description: 'Open the right panel and focus Search properties, which filters every inspector tab by label, section, CSS property or a synonym and jumps to the chosen field.', when: 'Use when the person looks for a property and does not know which tab holds it.' },
+  'inspector.search': { description: 'Open the right panel and focus Search properties, which lists the settings, list items, segment choices and motion presets of every inspector tab that match a label, section, CSS property, value or synonym, each with the tab and section where it is.', when: 'Use when the person looks for a property and does not know which tab holds it.' },
   'vector.lasso': { description: 'Lasso tool: drag a freehand loop to select the shapes (or anchors, in direct selection mode) inside it; Shift adds, Alt removes.' },
   'vector.wand': { description: 'Magic Wand tool: click a shape to select every shape in the same SVG with a similar fill, stroke, weight or opacity (tolerances in the Vector panel Select section).' },
   'vector.eyedropper': { description: 'Eyedropper tool: click a shape to copy its fill, stroke, weight, opacity and dash onto the selected shapes as one undo step.' },
