@@ -1,0 +1,3 @@
+.fw-play-row { display: grid; justify-items: start; gap: var(--space-2); margin-top: var(--space-3); }
+.fw-play-again { height: var(--ctl-sm); min-height: var(--ctl-sm); }
+.fw-play-note { margin: 0; width: 100%; height: 4.8em; color: var(--text-muted); font-size: var(--fs-10); line-height: 1.6; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }

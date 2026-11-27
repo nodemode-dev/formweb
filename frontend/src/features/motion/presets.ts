@@ -1,7 +1,13 @@
 import { element } from '../../ui/dom';
 import { label, labelAttr } from '../../i18n';
 import type { MotionContext, MotionEditor, MotionKind } from './context';
-import type { SiteNode } from '../../types';
+import type { EditorState, SiteNode } from '../../types';
+import { createPlayer, playableKind } from './play';
+import '../../styles/motion-play.css';
+
+const PLAY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>';
+const SHOWN_LATER = 'This effect plays in Preview and on the published site.';
+const REDUCED = 'Your system asks for reduced motion, so nothing is played here.';
 
 interface MotionPreset {
   id: string;
@@ -61,12 +67,34 @@ function matches(preset: MotionPreset, node: SiteNode, entry: unknown): boolean 
   const stored = entry as Record<string, unknown>;
   const keys = ACTIVE_KEYS[preset.kind] || [];
   if (preset.kind === 'counters') return true;
-  return keys.every(key => target[key] === undefined ? stored[key] === undefined || stored[key] === false || stored[key] === 0 : JSON.stringify(target[key]) === JSON.stringify(stored[key]));
+  const sorted = (value: unknown): string => JSON.stringify(value && typeof value === 'object' && !Array.isArray(value) ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) : value);
+  return keys.every(key => target[key] === undefined ? stored[key] === undefined || stored[key] === false || stored[key] === 0 : sorted(target[key]) === sorted(stored[key]));
 }
 
 export function installPresets(ctx: MotionContext, container: HTMLElement): MotionEditor {
   let current: SiteNode | undefined;
   let parent = '';
+  let latest: EditorState | undefined;
+  let laterFor = '';
+  let playedAt = -1;
+  let playedIn = '';
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const viewOf = (): string => ctx.breakpoint?.() ?? 'desktop';
+  let calm = reduced.matches;
+  const still = (): boolean => {
+    if (reduced.matches !== calm) { calm = reduced.matches; queueMicrotask(refresh); }
+    return calm;
+  };
+  const live = (): boolean => !still() && (ctx.editing?.() ?? true) && !ctx.canvas.outer.hidden && !ctx.canvas.frame.closest('[inert]') && ctx.canvas.frame.getClientRects().length > 0;
+  const player = createPlayer(ctx.canvas, live);
+  const start = (node: SiteNode, first?: MotionKind): void => {
+    if (!latest) return;
+    const group = ctx.motion(latest);
+    const kind = playableKind(group, node, first);
+    if (!kind || !player.play(node.id, kind, group[kind][node.id], node.children)) return;
+    playedAt = latest.revision;
+    playedIn = viewOf();
+  };
   const block = ctx.section(container, 'Presets');
   const help = element('p', 'micro');
   label(help, 'One click sets the effect for the selected element. Click an active preset again to remove it.');
@@ -86,8 +114,21 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
     choice.addEventListener('click', () => {
       if (!current) return;
       const node = current;
-      if (choice.classList.contains('is-on')) void ctx.remove(preset.kind, node.id);
-      else void ctx.set(preset.kind, node.id, preset.make(node, parent));
+      player.stop();
+      if (choice.classList.contains('is-on')) { void ctx.remove(preset.kind, node.id); return; }
+      const entry = preset.make(node, parent);
+      const shows = preset.kind === 'reveals' || (preset.kind === 'loops' && (entry.type === 'spin' || entry.type === 'float'));
+      void ctx.set(preset.kind, node.id, entry).then(() => {
+        if (!current || current.id !== node.id || !latest) return;
+        if (!matches(preset, current, ctx.motion(latest)[preset.kind][node.id])) return;
+        laterFor = shows ? '' : node.id;
+        refresh();
+        if (!shows || still()) return;
+        const at = latest.revision;
+        requestAnimationFrame(() => setTimeout(() => {
+          if (current && current.id === node.id && latest && latest.revision === at && !player.playing()) start(current, preset.kind);
+        }));
+      });
     });
     motionGroup.append(choice);
     return { preset, choice };
@@ -103,14 +144,59 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
       const on = node.attrs['data-fw-effect'] === preset.effect;
       const attrs: Record<string, string | null> = { ...node.attrs, 'data-fw-effect': on ? null : preset.effect };
       if (on) attrs['data-fw-effect-speed'] = null;
-      void ctx.run(() => ctx.nodePatch({ attrs }));
+      player.stop();
+      void ctx.run(() => ctx.nodePatch({ attrs })).then(() => {
+        if (on || !current || current.id !== node.id || current.attrs['data-fw-effect'] !== preset.effect) return;
+        laterFor = node.id;
+        refresh();
+      });
     });
     effectGroup.append(choice);
     return { preset, choice };
   });
   const effectLabel = element('span', 'field-label');
   label(effectLabel, 'Classic effects');
-  block.append(motionGroup, effectLabel, effectGroup);
+  const row = element('div', 'fw-play-row');
+  const again = element('button', 'fw-play-again');
+  again.type = 'button';
+  again.disabled = true;
+  const glyph = element('span', 'icon');
+  glyph.innerHTML = PLAY_ICON;
+  const caption = element('span');
+  label(caption, 'Play again');
+  again.append(glyph, caption);
+  const note = element('p', 'fw-play-note');
+  note.setAttribute('aria-live', 'polite');
+  row.append(again, note);
+  block.append(motionGroup, effectLabel, effectGroup, row);
+
+  again.addEventListener('click', () => {
+    player.stop();
+    if (current && !still()) start(current);
+  });
+
+  function refresh(): void {
+    if (!current || !latest) return;
+    const group = ctx.motion(latest);
+    const playable = !!playableKind(group, current);
+    const loop = group.loops[current.id] as { type?: string } | undefined;
+    const id = current.id;
+    const elsewhere = !!current.attrs['data-fw-effect'] || (['text', 'counters', 'pointer'] as const).some(kind => !!group[kind][id]) || (!!loop && loop.type !== 'spin' && loop.type !== 'float');
+    const quiet = still();
+    const said = quiet ? REDUCED : elsewhere && (!playable || laterFor === current.id) ? SHOWN_LATER : '';
+    if (said) label(note, said);
+    else if (note.textContent) note.textContent = '';
+    const off = quiet || !playable;
+    if (again.disabled !== off) {
+      if (off && document.activeElement === again) motionButtons[0].choice.focus();
+      again.disabled = off;
+    }
+  }
+
+  reduced.addEventListener('change', () => {
+    if (still()) player.stop();
+    refresh();
+  });
 
   const mark = (choice: HTMLButtonElement, on: boolean): void => {
     if (choice.classList.contains('is-on') !== on) choice.classList.toggle('is-on', on);
@@ -119,12 +205,17 @@ export function installPresets(ctx: MotionContext, container: HTMLElement): Moti
 
   return {
     update(next, node) {
+      const playing = player.playing();
+      if (playing && (playing !== node.id || next.revision !== playedAt || viewOf() !== playedIn || !live())) player.stop();
+      if (current?.id !== node.id) laterFor = '';
+      latest = next;
       current = node;
       const owner = Object.values(next.site.nodes).find(candidate => candidate.children.includes(node.id));
       parent = owner ? owner.id : '';
       const group = ctx.motion(next);
       for (const { preset, choice } of motionButtons) mark(choice, matches(preset, node, group[preset.kind][node.id]));
       for (const { preset, choice } of effectButtons) mark(choice, node.attrs['data-fw-effect'] === preset.effect);
+      refresh();
     }
   };
 }
