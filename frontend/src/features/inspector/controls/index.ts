@@ -6,6 +6,7 @@ import { readBrand } from '../../brand-kit';
 import type { ColorToken, Control, ControlFactory, ControlHost, ControlKit, StyleField } from './types';
 import { register as registerSlider } from './slider';
 import { register as registerColor } from './color';
+import { register as registerGradient } from './gradient';
 import { register as registerGrid } from './grid';
 import '../../../styles/controls.css';
 
@@ -73,6 +74,7 @@ export function installControls(options: ControlOptions): InstalledKit {
     installed = true;
     registerSlider();
     registerColor();
+    registerGradient();
     registerGrid();
   }
   const stored = load();

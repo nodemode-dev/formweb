@@ -1,0 +1,28 @@
+.fw-grad { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-2); min-width: 0; }
+.fw-grad-row { display: flex; align-items: center; gap: var(--space-2); min-height: var(--ctl-md); }
+.fw-grad-spacer { flex: 1; }
+.fw-grad-label { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-secondary); font-size: var(--fs-11); white-space: nowrap; }
+.fw-grad-unit { color: var(--text-muted); font-size: var(--fs-11); }
+.fw-grad .fw-grad-number { width: 64px; min-height: var(--ctl-md); padding: 0 var(--space-2); font-variant-numeric: tabular-nums; }
+.fw-grad-kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px; border: 1px solid var(--line-1); border-radius: var(--radius); background: var(--surface-field); flex: 1; }
+.fw-grad .fw-grad-choice { min-height: var(--ctl-sm); padding: 0 var(--space-2); border-color: transparent; border-radius: var(--radius-sm); background: transparent; color: var(--text-secondary); font-size: var(--fs-11); }
+.fw-grad .fw-grad-choice:hover { background: var(--bg-hover); }
+.fw-grad .fw-grad-choice[aria-pressed='true'] { background: var(--surface-raised); color: var(--text-primary); }
+.fw-grad-bar { position: relative; height: var(--ctl-md); margin: 0 var(--space-2) var(--space-3); border-radius: var(--radius-sm); background-color: var(--cv-checker-a); background-image: conic-gradient(var(--cv-checker-b) 25%, transparent 0 50%, var(--cv-checker-b) 0 75%, transparent 0); background-size: 8px 8px; cursor: copy; }
+.fw-grad-fill { position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px var(--border-soft); pointer-events: none; }
+.fw-grad-track { position: absolute; inset: 0 0 calc(-1 * var(--space-3)); touch-action: none; }
+.fw-grad-handle { position: absolute; bottom: 0; width: 14px; height: calc(100% - 4px); margin-left: -7px; border: 2px solid var(--text-primary); border-radius: var(--radius-xs); background-color: var(--cv-checker-a); background-image: conic-gradient(var(--cv-checker-b) 25%, transparent 0 50%, var(--cv-checker-b) 0 75%, transparent 0); background-size: 6px 6px; box-shadow: 0 0 0 1px var(--line-0), var(--shadow-sm); cursor: grab; }
+.fw-grad-chip { position: absolute; inset: 0; background: var(--fw-grad-stop, transparent); }
+.fw-grad-handle.is-selected { outline: 2px solid var(--accent-color); outline-offset: 1px; }
+.fw-grad-handle:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 2px; }
+.fw-grad.is-dragging .fw-grad-handle, .fw-grad.is-dragging .fw-grad-bar { cursor: grabbing; }
+.fw-grad .fw-grad-icon { width: var(--ctl-md); min-height: var(--ctl-md); padding: 0; background: transparent; border-color: transparent; color: var(--text-secondary); }
+.fw-grad .fw-grad-icon:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-primary); }
+.fw-grad-shape { display: grid; min-height: calc(var(--ctl-md) * 2 + var(--space-2)); align-content: start; }
+.fw-grad-angle, .fw-grad-radial { display: grid; gap: var(--space-2); }
+.fw-grad-directions { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
+.fw-grad .fw-grad-direction { width: auto; min-width: 0; min-height: var(--ctl-sm); }
+.fw-grad .fw-grad-direction .icon { transform: rotate(var(--fw-grad-turn, 0deg)); }
+.fw-grad .fw-grad-direction[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent-text); }
+.fw-grad .fw-grad-action { min-height: var(--ctl-md); font-size: var(--fs-11); }
+.fw-grad:not(.is-proposal) .fw-grad-use { visibility: hidden; }
