@@ -40,6 +40,7 @@ import { installInspector } from './features/inspector';
 import { installPageBackground, startChoices, startCommands } from './features/inspector/page-background';
 import { installCanvasMenu } from './features/canvas-menu';
 import { installInspectorSearch, sectionId } from './features/inspector/search';
+import { installControls } from './features/inspector/controls';
 import { installLibrary } from './features/library';
 import { convertSections, installConvert } from './features/convert';
 import { installInsertFlyout } from './features/panel/insert-flyout';
@@ -227,7 +228,7 @@ function setStyle(name: string, content: string): Promise<EditorState> {
     return Promise.reject(new Error('Brand restriction is on: pick a brand or team library value from the list (var(--brand-...) or var(--lib-...)), or ask a project manager to turn it off in Window > Brand kit.'));
   }
   const next = { [name]: entered || null };
-  return nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } });
+  return controlKit.track(name, entered, nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } }));
 }
 function setAttribute(name: string, content: string): Promise<EditorState> {
   return nodePatch({ attrs: { [name]: content.trim() || null } });
@@ -1232,6 +1233,13 @@ const inspectorExt = installInspector({
   panes: { design: designPane, content: contentPane, tokens: tokensPane, motion: motionPane },
   anchors: { afterAttributes: attributesSection, stageBefore: viewportReadout }
 });
+const controlKit = installControls({
+  fields: styleFields, overlay, state: () => lastState, setStyle, scope: key => `${currentNode().id}|${breakpoint}|${key}`,
+  setStyles: styles => { const next = Object.fromEntries(Object.entries(styles).map(([name, content]) => [name, content.trim() || null])); return nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } }); },
+  status: (message, error) => status(message, error),
+  values: key => { const node = currentNode(); return { value: (breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {})[key] || '', inherited: node.styles[key] || '' }; },
+  changed: () => { value(designFieldsSelect, controlKit.defaultRaw() ? 'css' : 'controls'); designFieldsAll.disabled = !controlKit.own(); }
+});
 const settingsPane = dialogPane('settings');
 applyTheme();
 const themeSelect = select(Object.entries(THEMES).map(([id, profile]) => ({ id, name: profile.label })));
@@ -1251,6 +1259,12 @@ autoShowHome.checked = homePref();
 autoShowHome.addEventListener('change', () => setHomePref(autoShowHome.checked));
 const autoShowHomeLabel = element('label', 'checkbox-field');
 autoShowHomeLabel.append(autoShowHome, element('span', '', 'Show the Home screen at launch'));
+const designFieldsSelect = select([{ id: 'controls', name: 'Controls' }, { id: 'css', name: 'CSS text' }]);
+designFieldsSelect.value = controlKit.defaultRaw() ? 'css' : 'controls';
+designFieldsSelect.addEventListener('change', () => controlKit.setDefaultRaw(designFieldsSelect.value === 'css'));
+const designFieldsAll = button('Use for all fields', undefined, () => { controlKit.clearRaw(); status('Every Design field now follows this setting.'); });
+designFieldsAll.disabled = !controlKit.own();
+const designFieldsNote = element('p', 'micro', 'Controls puts sliders, color swatches and choosers next to the Design fields; CSS text shows the typed value only. The switch in a field\'s label changes that field alone.');
 const prefsIcons: Record<string, Icon> = { General: 'pfGeneral', Interface: 'pfInterface', Plugins: 'pfPlugins' };
 const prefsPages = element('div', 'fw-prefs-pages');
 const prefsNav = element('div', 'fw-prefs-nav');
@@ -1419,7 +1433,7 @@ resetPrefs.addEventListener('click', () => { resetPrefs.hidden = true; resetRow.
 const tokenNote = element('p', 'micro', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.');
 const endpointNote = element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`);
 prefsAdd('General', prefsGroup('Startup', autoShowHomeLabel), prefsGroup('Reset', resetPrefs, resetRow));
-prefsAdd('Interface', prefsGroup('Theme', field('Editor theme', themeSelect)), prefsGroup('Language', field('Editor language', languageSelect)));
+prefsAdd('Interface', prefsGroup('Theme', field('Editor theme', themeSelect)), prefsGroup('Language', field('Editor language', languageSelect)), prefsGroup('Design fields', field('Show in Design fields', designFieldsSelect), designFieldsNote, designFieldsAll));
 prefsAdd('Plugins', prefsGroup('Server access', tokenNote, field('Server access token', authToken), endpointNote));
 settingsPane.append(prefsPages);
 prefsMark('General');
@@ -1563,9 +1577,10 @@ function update(next: EditorState): void {
   text(scopeLabel, breakpoint === 'desktop' ? 'Desktop base' : breakpoint + ' override');
   const override = breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {};
   styleFields.forEach((control, name) => {
-    value(control, override[name] || '');
+    value(control, controlKit.shown(name, override[name] || ''));
     if (control instanceof HTMLInputElement) control.placeholder = node.styles[name] || 'Auto / inherit';
   });
+  controlKit.sync();
   segmentFields.forEach((buttons, name) => {
     const own = override[name] || '';
     const inherited = breakpoint === 'desktop' ? '' : node.styles[name] || '';
@@ -2292,6 +2307,7 @@ registerCommands([
   { id: 'view.refresh', label: 'Refresh live responsive preview', menu: 'View', group: 1, run: () => { runtimePreview.refresh(); if (!preview) { preview = true; update(state()); } }, enabled: ready },
   { id: 'view.preview-full', label: 'Preview as published', menu: 'View', keys: ['Mod+Shift+P'], group: 1, run: () => fullPreview.toggle(), enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
+  { id: 'view.design-controls', label: 'Show controls in Design fields', menu: 'View', group: 2, run: () => { controlKit.setDefaultRaw(!controlKit.defaultRaw()); status(controlKit.defaultRaw() ? 'Design fields show the CSS text only.' : 'Design fields show their controls.'); }, checked: () => !controlKit.defaultRaw() },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: ['Mod+K'], global: true, group: 2, run: () => commandSearch.show() },
   { id: 'view.menus-in-window', label: 'Menus in Window', menu: 'View', group: 2, enabled: desktopMac, checked: menusInWindow, run: () => { const on = !menusInWindow(); setMenusInWindow(on); status(on ? 'The menus stay in the window from the next start.' : 'The menus go to the menu bar from the next start.'); } },
   { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => toggleLeft('pages'), checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },

@@ -1,0 +1,22 @@
+.fw-ctl-row { display: flex; align-items: center; min-width: 0; }
+.fw-ctl-row > input { flex: 1 1 auto; min-width: 0; width: auto; text-overflow: ellipsis; }
+.fw-ctl-lead, .fw-ctl-trail { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--space-1); min-width: 0; }
+.fw-ctl-lead:not(:empty) { margin-right: var(--space-1); }
+.fw-ctl-trail:not(:empty) { margin-left: var(--space-1); }
+.fw-ctl-lead:empty, .fw-ctl-trail:empty, .fw-ctl-below:empty { display: none; }
+.fw-ctl-below { display: block; min-width: 0; }
+.fw-ctl[data-ctl='off'] .fw-ctl-slot, .fw-ctl[data-ctl='raw'] .fw-ctl-below { visibility: hidden; }
+.fw-ctl[data-ctl='raw'] .fw-ctl-lead, .fw-ctl[data-ctl='raw'] .fw-ctl-trail { display: none; }
+
+.fw-ctl-raw { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 22px; min-height: 0; height: 18px; padding: 0; border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-secondary); cursor: pointer; }
+.fw-ctl-raw .icon, .fw-ctl-raw svg { width: 12px; height: 12px; }
+.fw-ctl-raw:hover { background: var(--bg-hover); color: var(--text-primary); }
+.fw-ctl-raw[aria-pressed='true'] { background: var(--accent-tint-strong); color: var(--accent-color); }
+.fw-ctl-raw:focus-visible { outline: 2px solid var(--accent-color); outline-offset: 1px; }
+.field-label > .fw-reset[hidden] + .fw-ctl-raw { margin-left: auto; }
+
+.inspector .form-grid > .field.fw-ctl:not(.full) > .field-label { padding-right: 24px; }
+.inspector .form-grid > .field.fw-ctl:not(.full) > .field-label > .fw-ctl-raw { position: absolute; top: 0; right: 0; background: var(--bg-secondary); }
+.inspector .form-grid > .field.fw-ctl:not(.full) > .field-label > .fw-ctl-raw:hover { background: linear-gradient(var(--bg-hover), var(--bg-hover)), var(--bg-secondary); }
+.inspector .form-grid > .field.fw-ctl:not(.full) > .field-label > .fw-ctl-raw[aria-pressed='true'] { background: linear-gradient(var(--accent-tint-strong), var(--accent-tint-strong)), var(--bg-secondary); }
+.inspector .form-grid > .field.fw-ctl:not(.full) > .field-label > .fw-reset { right: 24px; max-width: calc(100% - 24px); }
