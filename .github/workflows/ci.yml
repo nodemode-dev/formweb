@@ -86,7 +86,7 @@ jobs:
 
   window:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - name: Apt mirror fallback
         if: runner.os == 'Linux'
