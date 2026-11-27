@@ -12,7 +12,8 @@ export function installKeymap(registry: Commands, ready: () => boolean): void {
     const mod = comboOf(event).includes('Mod+');
     const target = event.target as Element | null;
     const typing = !!target?.closest?.(TYPING);
-    if (typing && !(command.global && mod)) return;
+    const history = command.id === 'edit.undo' || command.id === 'edit.redo';
+    if (typing && !(mod && (command.global || (history && target?.matches?.('select[data-style]'))))) return;
     if (!mod && target?.closest?.(OWN_KEYS)) return;
     if (command.native?.()) return;
     if (event.repeat && !command.repeat) { if (mod) event.preventDefault(); return; }

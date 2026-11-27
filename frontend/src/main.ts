@@ -41,6 +41,7 @@ import { installPageBackground, startChoices, startCommands } from './features/i
 import { installCanvasMenu } from './features/canvas-menu';
 import { installInspectorSearch, sectionId } from './features/inspector/search';
 import { installControls } from './features/inspector/controls';
+import { installTry } from './features/try';
 import { installLibrary } from './features/library';
 import { convertSections, installConvert } from './features/convert';
 import { installInsertFlyout } from './features/panel/insert-flyout';
@@ -140,6 +141,7 @@ function section(container: HTMLElement, title: string, hint = ''): HTMLElement 
   if (hint) { const note = element('span', 'hint'); label(note, hint); head.append(note); head.classList.toggle('has-note', hint.length > NOTE_BELOW); }
   head.setAttribute('role', 'button');
   head.tabIndex = 0;
+  head.dataset.ownKeys = '';
   head.setAttribute('aria-expanded', 'true');
   const toggle = (): void => { const collapsed = node.classList.toggle('is-collapsed'); head.setAttribute('aria-expanded', String(!collapsed)); };
   head.addEventListener('click', event => { if (!(event.target as Element).closest('button, input, select, a')) toggle(); });
@@ -492,6 +494,7 @@ const inspectorTag = element('div', 'inspector-tag');
 inspectorLabel.append(inspectorName, inspectorTag);
 inspectorIdentity.append(icon('box'), inspectorLabel, collapseButton({ command: 'window.toggle-right', label: 'Collapse right panel', icon: 'chevronsRight' }));
 const inspectorTabs = element('div', 'inspector-tabs');
+inspectorTabs.dataset.ownKeys = '';
 const inspectorTabButtons = new Map<string, HTMLButtonElement>();
 for (const id of ['design', 'motion', 'content', 'page']) {
   const node = button(id[0].toUpperCase() + id.slice(1), undefined, () => setInspector(id), 'quiet');
@@ -569,7 +572,15 @@ function resetButton(label: string, key: string): HTMLButtonElement {
   labelAttr(reset, 'aria-label', 'Reset {0} to the inherited value', [{ t: label }]);
   reset.dataset.reset = key;
   reset.hidden = true;
-  reset.addEventListener('click', event => { event.preventDefault(); event.stopPropagation(); void run(() => setStyle(key, '')); });
+  reset.addEventListener('click', event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const segments = segmentFields.get(key);
+    const control = styleFields.get(key);
+    (control ?? segments?.find(node => node.classList.contains('is-on')) ?? segments?.[0])?.focus({ preventScroll: true });
+    if (control) control.value = '';
+    void run(() => setStyle(key, ''));
+  });
   resetButtons.set(key, reset);
   return reset;
 }
@@ -1230,15 +1241,29 @@ tokensPane.append(element('p', 'empty-note', 'Site tokens are exported as CSS cu
 const inspectorExt = installInspector({
   section, field, select, input, button, addStyle, addSegments, setStyle, nodePatch, run, status, insertionParent, makeNode, selectNode, canvas,
   showLayers: () => setSidebar('pages'),
+  breakpoint: () => breakpoint,
+  editing: () => !preview && !fullPreview.isOpen,
   panes: { design: designPane, content: contentPane, tokens: tokensPane, motion: motionPane },
   anchors: { afterAttributes: attributesSection, stageBefore: viewportReadout }
+});
+const tryKit = installTry({
+  canvas, overlay, fields: styleFields, segments: segmentFields,
+  scope: () => `${currentNode().id}|${breakpoint}|${pageId}`,
+  node: () => currentNode().id,
+  exists: id => !!lastState?.site.nodes[id],
+  stored: key => { const node = currentNode(); return (breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {})[key] || ''; },
+  inherited: key => breakpoint === 'desktop' ? '' : currentNode().styles[key] || '',
+  editing: () => !preview && !fullPreview.isOpen && !!scrim.hidden && !demoPreview.isOpen && !featureStudio.opened && !!home.root.hidden,
+  setStyle,
+  status: (message, error) => status(message, error)
 });
 const controlKit = installControls({
   fields: styleFields, overlay, state: () => lastState, setStyle, scope: key => `${currentNode().id}|${breakpoint}|${key}`,
   setStyles: styles => { const next = Object.fromEntries(Object.entries(styles).map(([name, content]) => [name, content.trim() || null])); return nodePatch(breakpoint === 'desktop' ? { styles: next } : { breakpoints: { [breakpoint]: next } }); },
   status: (message, error) => status(message, error),
   values: key => { const node = currentNode(); return { value: (breakpoint === 'desktop' ? node.styles : node.breakpoints[breakpoint] || {})[key] || '', inherited: node.styles[key] || '' }; },
-  changed: () => { value(designFieldsSelect, controlKit.defaultRaw() ? 'css' : 'controls'); designFieldsAll.disabled = !controlKit.own(); }
+  changed: () => { value(designFieldsSelect, controlKit.defaultRaw() ? 'css' : 'controls'); designFieldsAll.disabled = !controlKit.own(); },
+  trial: { live: (key, value) => tryKit.live(key, value), settled: key => tryKit.settled(key) }
 });
 const settingsPane = dialogPane('settings');
 applyTheme();
@@ -1265,6 +1290,13 @@ designFieldsSelect.addEventListener('change', () => controlKit.setDefaultRaw(des
 const designFieldsAll = button('Use for all fields', undefined, () => { controlKit.clearRaw(); status('Every Design field now follows this setting.'); });
 designFieldsAll.disabled = !controlKit.own();
 const designFieldsNote = element('p', 'micro', 'Controls puts sliders, color swatches and choosers next to the Design fields; CSS text shows the typed value only. The switch in a field\'s label changes that field alone.');
+const tryChoices = element('input');
+tryChoices.type = 'checkbox';
+tryChoices.checked = tryKit.enabled();
+tryChoices.addEventListener('change', () => tryKit.setEnabled(tryChoices.checked));
+const tryChoicesLabel = element('label', 'checkbox-field');
+tryChoicesLabel.append(tryChoices, element('span', '', 'Try choices on the page before keeping them'));
+const tryChoicesNote = element('p', 'micro', 'A clicked choice shows on the page and is written when you press Keep. With this off, choices are written at once.');
 const prefsIcons: Record<string, Icon> = { General: 'pfGeneral', Interface: 'pfInterface', Plugins: 'pfPlugins' };
 const prefsPages = element('div', 'fw-prefs-pages');
 const prefsNav = element('div', 'fw-prefs-nav');
@@ -1433,7 +1465,7 @@ resetPrefs.addEventListener('click', () => { resetPrefs.hidden = true; resetRow.
 const tokenNote = element('p', 'micro', 'For a server launched with FORMWEB_AUTH_TOKEN, enter its token below. It is stored only for this browser tab.');
 const endpointNote = element('p', 'micro', `API endpoint: ${apiBase || 'same origin'} /api. The API and MCP use the same authoritative Rust document.`);
 prefsAdd('General', prefsGroup('Startup', autoShowHomeLabel), prefsGroup('Reset', resetPrefs, resetRow));
-prefsAdd('Interface', prefsGroup('Theme', field('Editor theme', themeSelect)), prefsGroup('Language', field('Editor language', languageSelect)), prefsGroup('Design fields', field('Show in Design fields', designFieldsSelect), designFieldsNote, designFieldsAll));
+prefsAdd('Interface', prefsGroup('Theme', field('Editor theme', themeSelect)), prefsGroup('Language', field('Editor language', languageSelect)), prefsGroup('Design fields', field('Show in Design fields', designFieldsSelect), designFieldsNote, designFieldsAll, tryChoicesLabel, tryChoicesNote));
 prefsAdd('Plugins', prefsGroup('Server access', tokenNote, field('Server access token', authToken), endpointNote));
 settingsPane.append(prefsPages);
 prefsMark('General');
@@ -1581,6 +1613,7 @@ function update(next: EditorState): void {
     if (control instanceof HTMLInputElement) control.placeholder = node.styles[name] || 'Auto / inherit';
   });
   controlKit.sync();
+  tryKit.sync();
   segmentFields.forEach((buttons, name) => {
     const own = override[name] || '';
     const inherited = breakpoint === 'desktop' ? '' : node.styles[name] || '';
@@ -2308,6 +2341,7 @@ registerCommands([
   { id: 'view.preview-full', label: 'Preview as published', menu: 'View', keys: ['Mod+Shift+P'], group: 1, run: () => fullPreview.toggle(), enabled: ready },
   { id: 'view.theme', label: 'Light theme', menu: 'View', group: 2, run: () => setTheme(readChoice().theme === 'light' ? 'studio' : 'light'), checked: () => readChoice().theme === 'light' },
   { id: 'view.design-controls', label: 'Show controls in Design fields', menu: 'View', group: 2, run: () => { controlKit.setDefaultRaw(!controlKit.defaultRaw()); status(controlKit.defaultRaw() ? 'Design fields show the CSS text only.' : 'Design fields show their controls.'); }, checked: () => !controlKit.defaultRaw() },
+  { id: 'view.try-choices', label: 'Try choices before keeping them', menu: 'View', group: 2, run: () => { tryKit.setEnabled(!tryKit.enabled()); tryChoices.checked = tryKit.enabled(); status(tryKit.enabled() ? 'A clicked choice now shows on the page until you press Keep.' : 'Clicked choices are now written at once.'); }, checked: () => tryKit.enabled() },
   { id: 'view.search', label: 'Search commands', menu: 'View', keys: ['Mod+K'], global: true, group: 2, run: () => commandSearch.show() },
   { id: 'view.menus-in-window', label: 'Menus in Window', menu: 'View', group: 2, enabled: desktopMac, checked: menusInWindow, run: () => { const on = !menusInWindow(); setMenusInWindow(on); status(on ? 'The menus stay in the window from the next start.' : 'The menus go to the menu bar from the next start.'); } },
   { id: 'window.layers', label: 'Pages and layers', menu: 'Window', run: () => toggleLeft('pages'), checked: () => activeSidebar === 'pages' && layout.state.left === 'open' },
@@ -2345,7 +2379,7 @@ installSelection({ ready, site: () => state().site, primary: () => selectedId, s
 installSelectionActions({ idle: () => !!scrim.hidden, pageRoot: () => currentPage().root, status, copyNote });
 registerCommands(installSelectMode({ heads: [{ head: pagesHead, kind: 'pages' }, { head: layersHead, kind: 'layers' }], lists: [pagesList, layersList], frame: canvas.frame, loaded: canvas.loaded(), ready, status: message => status(message) }));
 registerCommands(installCanvasDrag({ frame: canvas.frame, stage, overlay, loaded: () => canvas.loaded(), state, ready, editing: () => !preview, root: () => currentPage().root, selectionIds: selectedIds, select: selectNode, commands, run, status }).commands);
-registerCommands(installHoverOutline({ frame: canvas.frame, loaded: () => canvas.loaded(), list: layersList, ready, editing: () => !preview && !fullPreview.isOpen, busy: () => insertFlyout.isOpen() || !scrim.hidden, root: () => currentPage().root, selectionIds: selectedIds, status: message => status(message) }));
+registerCommands(installHoverOutline({ frame: canvas.frame, loaded: () => canvas.loaded(), list: layersList, ready, editing: () => !preview && !fullPreview.isOpen, busy: () => insertFlyout.isOpen() || !scrim.hidden || tryKit.busy(), root: () => currentPage().root, selectionIds: selectedIds, status: message => status(message) }));
 const vector = installVector({ canvas, getSelected: () => selectedId, select: selectNode, pageRoot: () => currentPage().root, notify: message => status(message, true), panelHost: document.body });
 registerCommands(vector.commands);
 const wishlist = installWishlist({ state, commands: batch => commands(batch), selected: () => selectedId, select: selectNode, notify: status, audit: () => request<{ issues: AuditIssue[] }>('/api/audit') });
@@ -2359,6 +2393,7 @@ const mayReplace = async (): Promise<boolean> => !(await unsavedWork()) || home.
 const demoHooks: DemoHooks = { mayReplace: () => { demoPreview.close(); return mayReplace(); }, load: loadProjectFile, opened: () => home.dismiss(), notify: message => status(message), failed: message => { status(message, true); home.notice(message); } };
 const demoPreview = new DemoPreview(id => void openDemo(demoHooks, id));
 registerCommands(demoCommands(demoHooks, ready, { show: id => demoPreview.show(id), close: () => demoPreview.close(), isOpen: () => demoPreview.isOpen }));
+commandRegistry.intercept = id => tryKit.intercept(id);
 commandRegistry.gate = item => (!demoPreview.isOpen || item.id.startsWith('demo.')) && (!fullPreview.isOpen || item.id === 'view.preview-full');
 menubar.build();
 menubar.blocked = () => !scrim.hidden || featureStudio.opened || demoPreview.isOpen || fullPreview.isOpen;

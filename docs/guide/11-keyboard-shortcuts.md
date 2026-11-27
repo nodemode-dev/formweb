@@ -104,6 +104,12 @@ These keys belong to the Pages and Layers lists, menus and text fields rather th
 | Escape | Select several is on | Turn it off and keep the selection |
 | Up, Down, Enter | Quick insert, Search properties | Move through the list and choose |
 | Escape | Preview as published | Close it |
+| Left, Right (or Up, Down), Home, End | A choice button in the Design tab, such as Center in Text alignment | Try the next or previous choice, or the first or last, on the page without saving it |
+| Space, Enter, Up, Down, Alt+Down | A Design field that is a list, such as Weight or Object fit | Open the list without trying anything |
+| Up, Down, Home, End, a letter | The open list of a Design field | Try that item on the page; the list stays open |
+| Enter / Escape | A choice being tried: on the choice, in the list, or on the Keep and Revert bar | Keep it (one undo step) / put the page back |
+| Tab | A choice being tried | Go to Keep, then Revert; Tab from Revert moves on and puts the page back |
+| Ctrl+Z (Cmd+Z on a Mac) | While a choice is being tried | Put the page back; nothing earlier is undone |
 | Left, Right (or Up, Down), Home, End | A slider under a Design field | One step, or the lowest or highest value; Shift with an arrow moves ten steps. A key held down is one undo step |
 | Up, Down | The text box of a Design field with a slider, holding one number such as `12px` | Step by one slider step and keep the unit (`12px` to `13px`, `1rem` to `1.25rem`, `0.5` to `0.51` for Opacity); with Shift, ten steps. Not while the field is switched to CSS text |
 | Escape | While dragging a slider, or in the color picker during a drag | Put the old value back |
@@ -112,8 +118,8 @@ These keys belong to the Pages and Layers lists, menus and text fields rather th
 | Arrow keys, Enter, Space | The layout chooser of Grid columns or Grid rows | Move between the layouts and choose one |
 | Arrow keys, Home, End, Delete | A stop handle on the Gradient tab | Move the stop (Shift for 10 %), send it to an end, remove it |
 | Escape | The color picker or the layout chooser | Close it and go back to its button |
-| Ctrl+Z, Ctrl+Shift+Z (Cmd on a Mac) | A slider, a swatch, a gradient stop, a button of a control (such as the layout button or the `</>` switch), the color picker's square and bars, or a layout in the chooser | Undo and Redo, as anywhere else. In a text box they undo typing in that box; from a unit list, press Tab or click elsewhere first |
-| Delete, Backspace | Any part of a control, as above | Nothing happens to the selected element (on a gradient stop, the stop is removed) |
+| Ctrl+Z, Ctrl+Shift+Z (Cmd on a Mac) | A slider, a swatch, a gradient stop, a button of a control (such as the layout button or the `</>` switch), the color picker's square and bars, a layout in the chooser, or a Design field that is a list, such as Weight | Undo and Redo, as anywhere else. In a text box they undo typing in that box; from a unit list, press Tab or click elsewhere first |
+| Delete, Backspace | Any part of a control, as above, a choice button such as a Display choice, a Design list and its open list, the Keep and Revert bar, the Design, Motion, Content and Page tabs, or a section title such as Layout | Nothing happens to the selected element (on a gradient stop, the stop is removed) |
 
 ## Next
 

@@ -29,6 +29,7 @@ export interface ControlOptions {
   changed?(): void;
   setStyles?(styles: Record<string, string>): Promise<unknown>;
   scope(key: string): string;
+  trial?: { live(key: string, value: string | null): void; settled(key: string): void };
 }
 
 export interface InstalledKit extends ControlKit {
@@ -65,7 +66,7 @@ function englishLabel(head: HTMLElement | null, key: string): string {
 }
 
 interface Gesture { scope: string; held: string; values: Set<string>; dead: boolean; released: boolean }
-interface Upgraded { field: StyleField; control: Control; toggle: HTMLButtonElement; shown: boolean; gesture: Gesture | null; stale: Set<string> }
+interface Upgraded { field: StyleField; control: Control; toggle: HTMLButtonElement; shown: boolean; gesture: Gesture | null; stale: Set<string>; live: string | null }
 
 let installed = false;
 
@@ -110,11 +111,23 @@ export function installControls(options: ControlOptions): InstalledKit {
   };
   const committed = (key: string, stored: string): string => inflight.get(options.scope(key))?.at(-1)?.value ?? stored;
   const shown = (key: string, stored: string): string => held(key) ?? committed(key, stored);
+  function live(entry: Upgraded, value: string | null): void {
+    if (value === null) {
+      if (entry.live === null) return;
+      entry.live = null;
+    } else entry.live = options.scope(entry.field.key);
+    options.trial?.live(entry.field.key, value);
+  }
   function settle(key: string, scope: string): void {
     const list = inflight.get(scope);
     if (!list || list.length) return;
     inflight.delete(scope);
     const entry = upgraded.get(key);
+    const open = entry?.gesture;
+    if (entry && entry.live === scope && !(open && !open.dead && open.scope === scope)) {
+      entry.live = null;
+      options.trial?.settled(key);
+    }
     if (entry && entry.gesture) { later(entry); return; }
     if (!entry || options.scope(key) !== scope || document.activeElement === entry.field.input) return;
     entry.field.restore();
@@ -163,6 +176,7 @@ export function installControls(options: ControlOptions): InstalledKit {
       const gesture = entry.gesture;
       if (gesture) gesture.dead = true;
       if (cancel) { try { cancel.call(entry.control); } catch { } }
+      live(entry, null);
       entry.stale = new Set();
       if (!gesture) return;
       if (cancel) { entry.stale = gesture.values; entry.gesture = null; } else gesture.dead = true;
@@ -260,21 +274,24 @@ export function installControls(options: ControlOptions): InstalledKit {
         const value = next.trim();
         const scope = options.scope(key);
         const gesture = entry.gesture;
-        if (gesture && (gesture.dead || gesture.scope !== scope)) { gesture.dead = true; gesture.values.add(value); return; }
+        if (gesture && (gesture.dead || gesture.scope !== scope)) { gesture.dead = true; gesture.values.add(value); live(entry, null); return; }
         if (gesture) { gesture.held = value; gesture.values.add(value); gesture.released = false; }
         else { entry.gesture = { scope, held: value, values: new Set([value]), dead: false, released: false }; entry.stale = new Set(); }
         if (input.value !== next) input.value = next;
+        live(entry, value);
       },
       restore() {
         entry.gesture = null;
         const stored = committed(key, values().value);
         if (input.value !== stored) input.value = stored;
+        const flying = inflight.get(options.scope(key))?.at(-1);
+        live(entry, flying && entry.live === options.scope(key) ? flying.value : null);
         settle(key, options.scope(key));
       },
       async commit(next: string) {
         const entered = next.trim();
         const gesture = entry.gesture;
-        if (gesture && (gesture.dead || gesture.scope !== options.scope(key))) { entry.stale = gesture.values; entry.gesture = null; return; }
+        if (gesture && (gesture.dead || gesture.scope !== options.scope(key))) { entry.stale = gesture.values; entry.gesture = null; live(entry, null); return; }
         if (!gesture && entry.stale.size) {
           const stray = entry.stale.has(entered);
           entry.stale = new Set();
@@ -297,7 +314,7 @@ export function installControls(options: ControlOptions): InstalledKit {
     };
     let control: Control;
     try { control = factory(field, host); } catch (error) { console.error(error); continue; }
-    entry = { field, control, toggle, shown: false, gesture: null, stale: new Set() };
+    entry = { field, control, toggle, shown: false, gesture: null, stale: new Set(), live: null };
     upgraded.set(key, entry);
     toggle.addEventListener('click', event => {
       event.preventDefault();

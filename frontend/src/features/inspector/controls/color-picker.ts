@@ -300,6 +300,7 @@ export class Picker {
   refresh(target: PickerTarget, value: string): void {
     if (!this.isOpen(target)) return;
     this.guard();
+    if (this.restricted()) for (const area of [this.area, ...this.mounted.flatMap(item => item.areas)]) if (area.dragging()) area.cancel();
     this.paintSets(value);
     this.paintTabs();
     if (value === this.seen) return;
