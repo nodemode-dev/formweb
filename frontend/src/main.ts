@@ -576,7 +576,9 @@ function resetButton(label: string, key: string): HTMLButtonElement {
     event.preventDefault();
     event.stopPropagation();
     const segments = segmentFields.get(key);
-    (styleFields.get(key) ?? segments?.find(node => node.classList.contains('is-on')) ?? segments?.[0])?.focus({ preventScroll: true });
+    const control = styleFields.get(key);
+    (control ?? segments?.find(node => node.classList.contains('is-on')) ?? segments?.[0])?.focus({ preventScroll: true });
+    if (control) control.value = '';
     void run(() => setStyle(key, ''));
   });
   resetButtons.set(key, reset);
