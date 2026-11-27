@@ -65,7 +65,16 @@ Keep and Enter save the choice. These put the page back and save nothing:
 - Undo (Ctrl+Z or Cmd+Z, the Undo button in the top bar, or **Edit > Undo**). During a trial, Undo only puts the page back; nothing earlier is undone. The next Undo undoes as usual.
 - Any other command, such as Duplicate or the field's **Reset**. The page is put back first, then the command runs.
 
-Scrolling the page or the panel, a click on empty space in the panel, and switching to another app leave the trial on, so you can look at it. Save and Search commands leave it on too. If the assistant or another window changes the same field of the same element while you are trying a choice, the trial ends and the status line says "The element was changed elsewhere, so the trial was dropped."
+Scrolling the page or the panel, a click on empty space in the panel, and switching to another app leave the trial on, so you can look at it. Copy, Save, Search commands, Try choices before keeping them, Show audit markers and Show hover outlines leave it on too.
+
+Opening a menu in the menu bar does not end a trial. What happens next depends on what you choose:
+
+- One of the commands just named, for example **View > Show audit markers**: the trial stays, and the focus goes back to the choice or the list you were trying.
+- **Edit > Undo**: the page is put back and nothing else is undone.
+- Any other command: the page is put back first, then the command runs.
+- Closing the menu with Escape, or with a click on empty space in the panel, leaves the trial on. A click on the page puts it back.
+
+This works the same while a list field's list is open. If the assistant or another window changes the same field of the same element while you are trying a choice, the trial ends and the status line says "The element was changed elsewhere, so the trial was dropped."
 
 ### Turn trying off
 
@@ -195,37 +204,41 @@ Selecting another element, picking another breakpoint or page, turning on Previe
 
 ## Search properties
 
-You do not have to know which tab or section holds a setting. Type its name in **Search properties**, the field under the tabs (or press Ctrl+Alt+F, Cmd+Option+F on a Mac).
+You do not have to know which tab or section holds a setting. Type its name in **Search properties**, the field under the tabs (or press Ctrl+Alt+F, Cmd+Option+F on a Mac), and the list tells you where it is.
 
 1. In Coldmere, click the house picture on the home page.
 2. Click **Search properties** and type `rounded`.
-3. The list shows Design > Appearance > **Radius**, with its CSS name `border-radius` on the right.
+3. The list shows **Radius · Design > Appearance**, with its CSS name `border-radius` on the right, and the choice **Rounded · Design > Effects > Clip presets**. A sentence above the list says "Each result shows where to find it. Open that tab and section to use it."
 
-![The right panel for Hm hero img with rounded typed in Search properties; the only result is Radius under Design > Appearance, with border-radius on the right](images/panel-search-rounded.webp)
+![The right panel for Hm hero img with rounded typed in Search properties; under the sentence about where to find each result, the rows read Rounded · Design > Effects > Clip presets and Radius · Design > Appearance, with border-radius on the right](images/panel-search-rounded.webp)
 
-4. Press Enter, or click Radius. The panel switches to that tab, opens the section, scrolls to the field, puts the cursor in it and outlines it for a moment.
+4. Press Escape in the search field to clear it; the panel comes back exactly as you left it, with the same tab and scroll position.
+5. In the **Design** tab, find the **Appearance** section and change **Radius** there.
 
-![The Appearance section after the jump: the Radius field, holding 28px with px in the unit list after it, is outlined in orange](images/panel-search-jump.webp)
+The list only shows where things are. A row cannot be picked: clicking it, Enter and the arrow keys do nothing, and the cursor stays in the search field. Escape in an empty search field moves to the tab buttons.
 
-5. Change the value and press Enter. Press Escape in the search field to clear it; the panel comes back exactly as you left it.
+Besides fields, the list finds choices: the buttons of a segment group, the items of a list field and the motion presets. A choice names its field too. For example `800` lists **800 · Design > Typography > Weight**, and `fade` lists **Fade up · Motion > Presets**, **Fade in · Motion > Presets**, **Scroll fade · Motion > Presets > Classic effects** and **Opacity · Design > Appearance**.
 
-A search matches the setting's label, its section, its CSS name and some everyday words. These queries were tried in this version:
+A search matches the setting's label, its section, its CSS name and some everyday words. These queries were tried in this version, with the house picture selected:
 
 | You type | You get |
 | --- | --- |
-| `background` | Background and Color (Design > Appearance), Page background (Page) |
-| `colour` or `color` | Background and Color |
-| `rounded` or `corner` | Radius |
+| `background` | Background and Color (Design > Appearance); Background, Page background, Site background and the choices Same as another page... and This page only (Page > Page background); Remove background... (Content > HTML attributes) |
+| `colour` | The same rows as `background`, in another order |
+| `color` | Color and Background (Design > Appearance); the Blend mode choices color-dodge, color-burn and color (Design > Effects > Blend mode); then the Page background and Remove background... rows |
+| `rounded` | The choice Rounded (Design > Effects > Clip presets) and Radius (Design > Appearance) |
+| `corner` | Radius |
 | `elevation` | Shadow |
 | `spacing` | Letter spacing, Gap, Padding, Margin |
 | `font size` | Font size, Line height |
 | `alt` | Alternative text, Accessible label (Content > HTML attributes) |
 | `href` | Link URL, Image / media URL, URL, URL slug, Base URL |
-| `seo` | Title, Description, Hide this page from search engines (Page > Search & metadata) |
+| `seo` | Title, Description, the section Search & metadata, Hide this page from search engines (Page > Search & metadata); Decorative image (no description) (Content > HTML attributes) |
+| `800` or `weight 800` | The choice 800 (Design > Typography > Weight) |
 
-![Search properties with alt typed: Content > HTML attributes lists Alternative text and Accessible label](images/panel-search-alt.webp)
+![Search properties with alt typed: under the sentence about where to find each result, the rows read Alternative text · Content > HTML attributes and Accessible label · Content > HTML attributes](images/panel-search-alt.webp)
 
-When you type several words, every word must match. Up and Down move through the results.
+When you type several words, every word must match. A choice is found by its own name or value: `weight` alone lists the Weight field, not each weight. A setting the selected element cannot use is listed as Unavailable.
 
 ## Breakpoints: different styles for different screens
 
@@ -247,7 +260,7 @@ The big heading on Coldmere's home page is large on a phone. Make it smaller the
 1. Click the heading Warm rooms, working taps, no fuss.
 2. Pick **Mobile** in the breakpoint list (or click the phone button). The canvas narrows to 390 px.
 3. Look at **Style scope** in the Element section of the Design tab: it says mobile override.
-4. In Search properties type `font size` and press Enter.
+4. Find **Font size** in the Design tab's **Typography** section (Search properties lists it as **Font size · Design > Typography** if you need to look it up).
 5. Type `34px` and press Enter. The heading shrinks on the canvas.
 
 ![Coldmere at the Mobile breakpoint: the breakpoint list reads Mobile and the width box 390; the canvas shows the phone layout with the heading on two lines; in the right panel Font size reads 34px with a Reset link, px in its unit list and its slider under it](images/panel-breakpoint-mobile.webp)

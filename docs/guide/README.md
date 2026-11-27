@@ -40,9 +40,9 @@ A demo opens as a new site that is not saved yet. Your saved projects are not to
 4. [The right panel](04-right-panel.md): the tabs, trying a choice before keeping it, sliders, the color picker and gradients, the grid layout chooser, motion presets, Search properties, and editing a breakpoint.
 5. [Page background and theme colors](05-background-and-theme-colors.md): why a new page is white, the site background every page can share, starting a page with the home page's background, matching another page, one page or all pages, the site's theme colors.
 6. [Preview](06-preview.md): Preview as published, and the Live responsive preview on the canvas.
-7. [Audit](07-audit.md): what the audit checks and how Select takes you to the problem.
-8. [Export and publishing](08-export-and-publish.md): the zip file, where it goes, and Send to FormPublisher.
-9. [Importing](09-importing.md): HTML files as pages or a section, pasted HTML, a whole site from a zip, and .fweb and .fpub files.
+7. [Audit](07-audit.md): what the audit checks, how Select takes you to the problem, and audit markers on the page.
+8. [Export and publishing](08-export-and-publish.md): the zip file, where it goes and how to choose that in the desktop app, and Send to FormPublisher.
+9. [Importing](09-importing.md): HTML files as pages or a section, pages that load files from the web, pasted HTML, a whole site from a zip, a page whose script builds part of it, and .fweb and .fpub files.
 10. [Components and the Library](10-components-and-library.md): reusable parts and ready-made sections.
 11. [Keyboard shortcuts](11-keyboard-shortcuts.md): every shortcut the app registers.
 12. [Coming from Dreamweaver or another visual builder](12-coming-from-other-builders.md): where to find the things you already know.

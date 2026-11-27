@@ -1,6 +1,6 @@
 # Testing the desktop app by hand
 
-These steps check four things that only the desktop app does, because it saves downloads itself and hands links to the system browser: the export notice, Show in folder, the " (1)" name for a second copy, and Open in browser. Run them on each system before a release and write the result in the table below. Step 6 reads how long the app took to start.
+These steps check four things that only the desktop app does, because it saves downloads itself and hands links to the system browser: the export notice, Show in folder, the " (1)" name for a second copy, and Open in browser. Run them on each system before a release and write the result in the table below. Step 6 reads how long the app took to start, and step 7 checks where exports are saved (0.35.0).
 
 ## What has been run
 
@@ -12,7 +12,7 @@ These steps check four things that only the desktop app does, because it saves d
 | 2026-11-25 | macOS | Not run | Nothing | Not verified |
 | 2026-11-25 | Windows | Not run | Nothing | Not verified |
 
-The Windows and macOS code of the shell was compiled for those systems on Linux (`cargo check` for `x86_64-pc-windows-gnu` and `aarch64-apple-darwin`), which shows that it builds, not that it works. The 0.32.0 start-up change (step 6) was checked the same way for `x86_64-pc-windows-msvc` only, and has not been run on any system.
+The Windows and macOS code of the shell was compiled for those systems on Linux (`cargo check` for `x86_64-pc-windows-gnu` and `aarch64-apple-darwin`), which shows that it builds, not that it works. The 0.32.0 start-up change (step 6) was checked the same way for `x86_64-pc-windows-msvc` only, and has not been run on any system. The 0.35.0 export folder (step 7) was compiled with `cargo check --locked` and `--tests` for `x86_64-pc-windows-msvc` and `aarch64-apple-darwin`; its pure functions (the safe file name, the " (1)" numbering, the folder check, the record file) were run in a separate crate, and the editor's side was run in a browser with a stand-in for the shell. The app itself, the system dialogs and the web views' handling of the chosen place have not been run on any system.
 
 ## Before you start (every system)
 
@@ -88,6 +88,32 @@ macOS:
 3. Start it from Terminal, for example `/Applications/FormWeb.app/Contents/MacOS/<that name> 2>&1 | grep start-up`, wait for the window, then quit the app.
 
 On both, expect one line starting `[formweb] start-up:` with four values. Start the app twice and write down both lines, to compare a first start with a second one. When "service ready" is close to "editor ready", most of the wait is the service starting; on Windows that includes the service unpacking itself, between "service started" and "service ready". To see the `service already running` form, start a service first with `./formweb serve` from a copy of the source of the same version.
+
+## 7. Where exports are saved
+
+The app keeps the folder you choose in a small file of its own, `export-folder.json`, in its settings folder:
+
+- macOS: `~/Library/Application Support/ai.nodemode.formweb/`.
+- Windows: `%APPDATA%\ai.nodemode.formweb\`.
+
+1. Open Edit > Settings... (Ctrl+, or Cmd+,), then General. Expect "Where exports are saved" with three choices: "The Downloads folder" is chosen, and "No folder chosen yet." shows under "A folder you choose".
+2. Export static site. Expect the usual notice naming your Downloads folder, the file there, and Show in folder selecting it.
+3. In Settings choose "A folder you choose". Expect the system folder dialog. Make a new folder with a space and an accent in its name (for example `Exports été`) and choose it. Expect its full path next to Choose folder..., the full path also as the tooltip, and `export-folder.json` in the settings folder holding that folder.
+4. Export static site. Expect first "Saving coldmere-plumbing-heating-site.zip...", then "Exported coldmere-plumbing-heating-site.zip to" that folder. The file is in that folder; nothing new is in Downloads.
+5. Press Show in folder. Expect Finder (macOS) or File Explorer (Windows) on that folder with the zip selected.
+6. Export again. Expect `coldmere-plumbing-heating-site (1).zip` in the same folder and in the notice. Choose File > Download .fweb project twice: expect `coldmere-plumbing-heating.fweb`, then `coldmere-plumbing-heating (1).fweb` there.
+7. Quit the app and open it again. Expect Settings still on "A folder you choose" with the same path, and the next export goes there.
+8. Make the folder read-only (macOS: Get Info > Sharing & Permissions, everyone Read only; Windows: Properties > Security, deny Write for your user), then export. Expect the file in Downloads and a red notice: "The chosen folder <path> is missing or cannot be written, so coldmere-plumbing-heating-site.zip was saved to <Downloads>." Show in folder selects it in Downloads. Give the write permission back.
+9. Delete or rename the chosen folder (or choose a folder on a USB stick and remove the stick), then export. Expect the same red notice and the file in Downloads.
+10. Choose "Ask each time" and export. Expect the system save dialog before anything is saved, with `coldmere-plumbing-heating-site.zip` filled in. Choose the Desktop. Expect "Exported coldmere-plumbing-heating-site.zip to" the Desktop folder, and the file on the Desktop.
+11. Export again in ask mode and press Cancel. Expect no file anywhere and the status line "Nothing was saved.". The Export button keeps the focus, so pressing Backspace now removes nothing.
+12. In ask mode, rename the file in the dialog (for example `test.zip`). Expect the file saved under that name and the notice naming it.
+13. In ask mode, choose the name of a file that already exists and confirm Replace. Note whether the old file is replaced or a " (1)" copy is made, and write it in the table (the web view decides this; neither is wrong).
+14. In ask mode, press Export, choose a place, and at once choose File > Download .fweb project. Expect the second dialog only after the first file has started, and each file in the place chosen for it.
+15. Edit > Settings..., General, Reset All Preferences..., Reset. Expect the editor to reload with "The Downloads folder" chosen, `export-folder.json` gone, and the next export in Downloads.
+16. Choose a folder with a very long path (several nested folders, about 200 characters). Expect the path cut with "..." on one line, nothing in the dialog moving, and exports saved there.
+17. In ask mode, edit a drawing (an SVG on a page) and choose Vector > Export for Screens... with PNG and SVG ticked, then Export. Press Cancel in the first save dialog: expect no second dialog, nothing saved, and "Nothing was saved." in the Export for Screens window. Run it again, save the first file and cancel the second: expect "Exported 1 file.".
+18. With "A folder you choose", edit `export-folder.json` so it names another existing folder, quit and open the app, and export. Expect the file in that other folder, because the app reads its own file. Delete the file, quit and open the app: expect Settings on "The Downloads folder" and "No folder chosen yet.".
 
 ## When something fails
 

@@ -17,9 +17,23 @@ The example uses **Harbour Ferries** (**Help > Demos > Harbour Ferries**). Run t
 ### Where the file goes
 
 - **In a browser**, the zip is downloaded like any other file: the notice says "Downloaded harbour-ferries-site.zip. Your browser lists it with its downloads." Open your browser's downloads list to find it, usually in your Downloads folder.
-- **In the FormWeb desktop app**, the zip is saved straight to your Downloads folder, without asking. The notice says "Exported harbour-ferries-site.zip to" and the folder, and has a **Show in folder** button that shows the file in Finder or File Explorer (on Linux it opens the folder). If a file of that name is already there, the new one is named, for example, `harbour-ferries-site (1).zip`, and the notice gives the real name. The desktop app is not pictured in this guide.
+- **In the FormWeb desktop app**, the zip is saved straight to your Downloads folder at first, without asking; you can choose another place (see below). The notice says "Exported harbour-ferries-site.zip to" and the folder, and has a **Show in folder** button that shows the file in Finder or File Explorer (on Linux it opens the folder). If a file of that name is already there, the new one is named, for example, `harbour-ferries-site (1).zip`, and the notice gives the real name. The desktop app is not pictured in this guide.
 
 The notice stays for about 12 seconds, longer while your pointer is on it. If the export fails, it says so in red.
+
+### Choose where exports are saved
+
+Open **Edit > Settings...** (Ctrl+, or Cmd+, on a Mac) and look under **General**, **Where exports are saved**. In a browser this row only says that the browser decides where downloads go: your browser's own settings choose the folder.
+
+![The General part of Preferences in a browser: Startup with Show the Home screen at launch ticked, Where exports are saved with the sentence In a browser, the browser decides where downloads go, and Reset with the Reset All Preferences... button](images/export-folder-row.webp)
+
+In the desktop app the row has three choices:
+
+- **The Downloads folder**, chosen at first.
+- **A folder you choose**: click **Choose folder...**, pick a folder in the system's folder dialog, and its path shows beside the button. Every export goes there, and the notice names that folder.
+- **Ask each time**: the system's save dialog opens before anything is saved, with the file's name filled in. Choose a place, or press Cancel; then nothing is saved and the status line says "Nothing was saved."
+
+Export static site, Download .fweb project, QR codes and picture exports all follow this choice. If the chosen folder has been deleted, renamed, unplugged or cannot be written when a file is saved, the file goes to your Downloads folder instead, and a red notice says that the chosen folder is missing or cannot be written and names where the file went. The choice is kept by the app, so it is still there after a restart; **Reset All Preferences** puts it back to the Downloads folder.
 
 ### What is in the zip
 
