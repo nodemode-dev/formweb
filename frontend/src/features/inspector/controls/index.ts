@@ -6,6 +6,7 @@ import { readBrand } from '../../brand-kit';
 import type { ColorToken, Control, ControlFactory, ControlHost, ControlKit, StyleField } from './types';
 import { register as registerSlider } from './slider';
 import { register as registerColor } from './color';
+import { register as registerGrid } from './grid';
 import '../../../styles/controls.css';
 
 const factories = new Map<string, ControlFactory>();
@@ -72,6 +73,7 @@ export function installControls(options: ControlOptions): InstalledKit {
     installed = true;
     registerSlider();
     registerColor();
+    registerGrid();
   }
   const stored = load();
   stored.fields = stored.fields && typeof stored.fields === 'object' ? stored.fields : {};
