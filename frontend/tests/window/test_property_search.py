@@ -49,13 +49,14 @@ def test_the_shortcut_opens_a_closed_right_panel_and_focuses_the_search_field(im
 
 
 def test_the_plan_example_queries_give_results_grouped_by_tab_and_section(image_selected):
-    groups = image_selected.page.locator("#inspector-results-list .inspector-results-group")
+    groups = image_selected.page.locator("#inspector-results-list .inspector-result-place")
     for query, wanted in EXAMPLES.items():
         search(image_selected).fill(query)
         expect(image_selected.page.locator("#inspector-results-list .inspector-result").first).to_be_visible()
         names = set(result_names(image_selected))
         assert wanted <= names, f"{query!r} gave {sorted(names)}"
-        assert all(re.fullmatch(r"(Design|Motion|Content|Page) > .+", g) for g in groups.all_inner_texts()), query
+        places = groups.all_inner_texts()
+        assert places and all(re.fullmatch(r"(Design|Motion|Content|Page) > .+", g) for g in places), query
     search(image_selected).fill("PADDING")
     expect(image_selected.page.locator("#inspector-results-list .inspector-result").first).to_be_visible()
     upper = result_names(image_selected)
@@ -66,11 +67,8 @@ def test_the_plan_example_queries_give_results_grouped_by_tab_and_section(image_
 
 def grouped_results(editor):
     return editor.page.locator("#inspector-results-list").evaluate(
-        """list => { let group = ''; const out = [];
-        for (const node of list.children) {
-            if (node.classList.contains('inspector-results-group')) group = node.textContent.trim();
-            else if (node.classList.contains('inspector-result')) out.push([group, node.querySelector('.inspector-result-name').textContent.trim()]);
-        } return out; }"""
+        """list => Array.from(list.querySelectorAll('.inspector-result')).map(node =>
+            [node.querySelector('.inspector-result-place').textContent.trim(), node.querySelector('.inspector-result-name').textContent.trim()])"""
     )
 
 
@@ -99,15 +97,29 @@ def test_no_field_result_name_ends_with_the_text_of_a_button_for_an_image(image_
         assert not joined, f"{query!r}: {joined}"
 
 
-def test_enter_switches_to_the_tab_of_the_field_and_focuses_it(image_selected):
+def test_a_result_shows_its_place_as_text_and_enter_or_a_click_on_it_goes_nowhere(image_selected):
     tab(image_selected, "Content").click()
     expect(tab(image_selected, "Content")).to_have_class(re.compile(r"\bactive\b"))
     search(image_selected).fill("rounded")
-    expect(image_selected.page.locator("#inspector-results-list .inspector-result").first).to_contain_text("Radius")
+    row = image_selected.page.locator("#inspector-results-list .inspector-result").filter(has_text="Radius").first
+    expect(row).to_be_visible()
+    expect(row.locator(".inspector-result-place")).to_have_text(re.compile(r"^Design > .+"))
     search(image_selected).press("Enter")
-    expect(tab(image_selected, "Design")).to_have_class(re.compile(r"\bactive\b"))
-    focused = image_selected.page.evaluate("document.activeElement.closest('.field')?.querySelector('.field-label')?.firstChild?.textContent.trim()")
-    assert focused == "Radius"
+    search(image_selected).press("ArrowDown")
+    search(image_selected).press("Enter")
+    row.click()
+    expect(row).to_be_visible()
+    expect(tab(image_selected, "Content")).to_have_class(re.compile(r"\bactive\b"))
+    expect(tab(image_selected, "Design")).not_to_have_class(re.compile(r"\bactive\b"))
+    expect(search(image_selected)).to_be_focused()
+    expect(search(image_selected)).to_have_value("rounded")
+
+
+def test_a_motion_preset_is_found_and_listed_with_its_place(image_selected):
+    search(image_selected).fill("fade up")
+    rows = image_selected.page.locator("#inspector-results-list .inspector-result")
+    expect(rows.first).to_be_visible()
+    assert ["Motion > Presets", "Fade up"] in grouped_results(image_selected)
 
 
 def test_a_query_with_no_match_says_no_matching_properties(image_selected):
