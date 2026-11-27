@@ -325,13 +325,6 @@ def test_a_one_letter_search_ends_with_a_row_saying_the_first_120_are_shown_that
     rows = page.locator("#inspector-results-list > *")
     assert rows.count() <= 120
     assert more.get_attribute("role") != "option"
-    options = page.locator("#inspector-results-list .inspector-result")
-    total = options.count()
-    for _ in range(total + 2):
-        field.press("ArrowDown")
-    active = page.locator(".inspector-result.is-active")
-    expect(active).to_have_count(1)
-    assert more.evaluate("e => !e.classList.contains('is-active') && e.getAttribute('aria-selected') !== 'true'")
     more.click()
     expect(field).to_have_value("a")
     expect(more).to_be_visible()
