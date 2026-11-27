@@ -5,7 +5,7 @@ import { installChoiceLists } from './choice-list';
 import type { LayerFrame, Trial, TrialEnd, TrialOwner, TryKit, TryOptions } from './types';
 
 const STORE = 'formweb.try-choices';
-const PASS = new Set(['edit.copy', 'file.save', 'view.search', 'view.try-choices']);
+const PASS = new Set(['edit.copy', 'file.save', 'view.search', 'view.try-choices', 'view.audit-markers']);
 const SURFACE = '.fw-menubar, .fw-menu, .fw-search-pop, [data-cmd]';
 const MENU = '.fw-menubar, .fw-menu, .fw-search-pop';
 const LANDING_MS = 30000;
