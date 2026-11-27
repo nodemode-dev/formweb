@@ -3030,7 +3030,7 @@ export default [
   "Perubahan ditolak.",
   "Tampilkan penanda audit",
   "Tampilkan penanda audit di halaman",
-  "Memasang penanda kecil pada setiap elemen di halaman ini yang memiliki masalah. Klik penanda untuk memilih elemennya.",
+  "Memasang penanda kecil pada setiap elemen di halaman ini yang memiliki masalah. Penanda tampil di halaman saat dialog ini ditutup. Klik penanda untuk memilih elemennya.",
   "1 masalah tidak memiliki elemen, jadi tidak memiliki penanda.",
   "{0} masalah tidak memiliki elemen, jadi tidak memiliki penanda.",
   "Penanda digambar pada {0} elemen pertama dari {1} elemen bermasalah di halaman ini.",
@@ -3083,4 +3083,5 @@ export default [
   "1 font atau properti terdaftar dari lembar gaya halaman ditinggalkan karena situs sudah memakai namanya.",
   "{0} font atau properti terdaftar dari lembar gaya halaman ditinggalkan karena situs sudah memakai namanya.",
   "{0} file diekspor.",
+  "Setiap hasil menunjukkan tempat menemukannya. Buka tab dan bagian itu untuk menggunakannya.",
 ] as readonly string[];

@@ -3030,7 +3030,7 @@ export default [
   "A alteração foi recusada.",
   "Mostrar marcadores de auditoria",
   "Mostrar marcadores de auditoria na página",
-  "Coloca um pequeno marcador em cada elemento desta página que tem um problema. Clique em um marcador para selecionar o elemento.",
+  "Coloca um pequeno marcador em cada elemento desta página que tem um problema. Os marcadores aparecem na página quando esta caixa de diálogo está fechada. Clique em um marcador para selecionar o elemento.",
   "1 problema não tem elemento, então não tem marcador.",
   "{0} problemas não têm elemento, então não têm marcador.",
   "Os marcadores são desenhados nos primeiros {0} de {1} elementos com problemas desta página.",
@@ -3083,4 +3083,5 @@ export default [
   "1 fonte ou propriedade registrada da folha de estilo da página foi deixada de fora porque o site já usa o nome dela.",
   "{0} fontes ou propriedades registradas da folha de estilo da página foram deixadas de fora porque o site já usa os nomes delas.",
   "{0} arquivo exportado.",
+  "Cada resultado mostra onde encontrá-lo. Abra essa aba e essa seção para usá-lo.",
 ] as readonly string[];

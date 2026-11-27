@@ -3030,7 +3030,7 @@ export default [
   "Die Änderung wurde abgelehnt.",
   "Audit-Markierungen anzeigen",
   "Audit-Markierungen auf der Seite anzeigen",
-  "Setzt eine kleine Markierung auf jedes Element dieser Seite, das ein Problem hat. Klicke auf eine Markierung, um das Element auszuwählen.",
+  "Setzt eine kleine Markierung auf jedes Element dieser Seite, das ein Problem hat. Die Markierungen erscheinen auf der Seite, wenn dieser Dialog geschlossen ist. Klicke auf eine Markierung, um das Element auszuwählen.",
   "1 Problem hat kein Element und daher keine Markierung.",
   "{0} Probleme haben kein Element und daher keine Markierung.",
   "Markierungen werden an den ersten {0} von {1} Elementen mit Problemen auf dieser Seite gezeichnet.",
@@ -3083,4 +3083,5 @@ export default [
   "1 Schrift oder registrierte Eigenschaft aus dem Stylesheet der Seite wurde weggelassen, weil die Website ihren Namen schon verwendet.",
   "{0} Schriften oder registrierte Eigenschaften aus dem Stylesheet der Seite wurden weggelassen, weil die Website ihre Namen schon verwendet.",
   "{0} Datei exportiert.",
+  "Jedes Ergebnis zeigt, wo es zu finden ist. Öffne diesen Tab und Abschnitt, um es zu verwenden.",
 ] as readonly string[];

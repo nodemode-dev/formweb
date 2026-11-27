@@ -3030,7 +3030,7 @@ export default [
   "A módosítást elutasították.",
   "Auditjelölők megjelenítése",
   "Auditjelölők megjelenítése az oldalon",
-  "Kis jelölőt tesz az oldal minden olyan elemére, amelynek problémája van. Kattints egy jelölőre az elem kijelöléséhez.",
+  "Kis jelölőt tesz az oldal minden olyan elemére, amelynek problémája van. A jelölők akkor látszanak az oldalon, amikor ez a párbeszédpanel be van zárva. Kattints egy jelölőre az elem kijelöléséhez.",
   "1 problémához nem tartozik elem, ezért nincs jelölője.",
   "{0} problémához nem tartozik elem, ezért nincs jelölőjük.",
   "A jelölők az oldal {1} problémás eleméből az első {0} elemen jelennek meg.",
@@ -3083,4 +3083,5 @@ export default [
   "Az oldal stíluslapjáról 1 betűtípus vagy regisztrált tulajdonság kimaradt, mert a webhely már használja a nevét.",
   "Az oldal stíluslapjáról {0} betűtípus vagy regisztrált tulajdonság kimaradt, mert a webhely már használja a nevüket.",
   "{0} fájl exportálva.",
+  "Minden találat megmutatja, hol található. A használatához nyissa meg azt a lapot és szakaszt.",
 ] as readonly string[];

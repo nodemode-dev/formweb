@@ -3030,7 +3030,7 @@ export default [
   "Zmiana została odrzucona.",
   "Pokaż znaczniki audytu",
   "Pokazuj znaczniki audytu na stronie",
-  "Umieszcza mały znacznik na każdym elemencie tej strony, który ma problem. Kliknij znacznik, aby zaznaczyć element.",
+  "Umieszcza mały znacznik na każdym elemencie tej strony, który ma problem. Znaczniki pojawiają się na stronie, gdy to okno dialogowe jest zamknięte. Kliknij znacznik, aby zaznaczyć element.",
   "1 problem nie ma elementu, więc nie ma znacznika.",
   "Problemy bez elementu: {0}, więc nie mają znaczników.",
   "Znaczniki są rysowane na pierwszych {0} z {1} elementów z problemami na tej stronie.",
@@ -3083,4 +3083,5 @@ export default [
   "Pominięto 1 czcionkę lub zarejestrowaną właściwość z arkusza stylów strony, bo witryna już używa jej nazwy.",
   "Pominięte czcionki lub zarejestrowane właściwości z arkusza stylów strony: {0}, bo witryna już używa ich nazw.",
   "Wyeksportowano plików: {0}.",
+  "Każdy wynik pokazuje, gdzie go znaleźć. Otwórz tę kartę i sekcję, aby go użyć.",
 ] as readonly string[];

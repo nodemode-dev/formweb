@@ -3030,7 +3030,7 @@ export const KEYS: readonly string[] = [
   "The change was refused.",
   "Show audit markers",
   "Show audit markers on the page",
-  "Puts a small marker on each element of this page that has an issue. Click a marker to select the element.",
+  "Puts a small marker on each element of this page that has an issue. Markers show on the page when this dialog is closed. Click a marker to select the element.",
   "1 issue has no element, so it has no marker.",
   "{0} issues have no element, so they have no marker.",
   "Markers are drawn on the first {0} of {1} elements with issues on this page.",
@@ -3083,4 +3083,5 @@ export const KEYS: readonly string[] = [
   "1 font or registered property from the page's stylesheet was left out because the site already uses its name.",
   "{0} fonts or registered properties from the page's stylesheet were left out because the site already uses their names.",
   "Exported {0} file.",
+  "Each result shows where to find it. Open that tab and section to use it.",
 ];

@@ -3030,7 +3030,7 @@ export default [
   "Endringen ble avvist.",
   "Vis revisjonsmarkører",
   "Vis revisjonsmarkører på siden",
-  "Setter en liten markør på hvert element på denne siden som har et problem. Klikk på en markør for å velge elementet.",
+  "Setter en liten markør på hvert element på denne siden som har et problem. Markørene vises på siden når denne dialogen er lukket. Klikk på en markør for å velge elementet.",
   "1 problem har ikke noe element, så det har ingen markør.",
   "{0} problemer har ikke noe element, så de har ingen markør.",
   "Markører tegnes på de første {0} av {1} elementer med problemer på denne siden.",
@@ -3083,4 +3083,5 @@ export default [
   "1 skrift eller registrert egenskap fra sidens stilark ble utelatt fordi nettstedet allerede bruker navnet.",
   "{0} skrifter eller registrerte egenskaper fra sidens stilark ble utelatt fordi nettstedet allerede bruker navnene.",
   "Eksporterte {0} fil.",
+  "Hvert resultat viser hvor det finnes. Åpne den fanen og seksjonen for å bruke det.",
 ] as readonly string[];

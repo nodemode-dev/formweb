@@ -3030,7 +3030,7 @@ export default [
   "Ändringen avvisades.",
   "Visa granskningsmarkörer",
   "Visa granskningsmarkörer på sidan",
-  "Sätter en liten markör på varje element på den här sidan som har ett problem. Klicka på en markör för att markera elementet.",
+  "Sätter en liten markör på varje element på den här sidan som har ett problem. Markörerna visas på sidan när den här dialogrutan är stängd. Klicka på en markör för att markera elementet.",
   "1 problem har inget element, så det har ingen markör.",
   "{0} problem har inget element, så de har ingen markör.",
   "Markörer ritas på de första {0} av {1} element med problem på den här sidan.",
@@ -3083,4 +3083,5 @@ export default [
   "1 typsnitt eller registrerad egenskap från sidans formatmall utelämnades eftersom webbplatsen redan använder namnet.",
   "{0} typsnitt eller registrerade egenskaper från sidans formatmall utelämnades eftersom webbplatsen redan använder namnen.",
   "{0} fil exporterades.",
+  "Varje resultat visar var det finns. Öppna den fliken och sektionen för att använda det.",
 ] as readonly string[];

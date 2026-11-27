@@ -3030,7 +3030,7 @@ export default [
   "La modification a été refusée.",
   "Afficher les marqueurs d’audit",
   "Afficher les marqueurs d’audit sur la page",
-  "Place un petit marqueur sur chaque élément de cette page qui a un problème. Cliquez sur un marqueur pour sélectionner l’élément.",
+  "Place un petit marqueur sur chaque élément de cette page qui a un problème. Les marqueurs s’affichent sur la page quand cette boîte de dialogue est fermée. Cliquez sur un marqueur pour sélectionner l’élément.",
   "1 problème n’a pas d’élément, il n’a donc pas de marqueur.",
   "{0} problèmes n’ont pas d’élément, ils n’ont donc pas de marqueur.",
   "Les marqueurs sont dessinés sur les {0} premiers des {1} éléments ayant des problèmes sur cette page.",
@@ -3083,4 +3083,5 @@ export default [
   "1 police ou propriété enregistrée de la feuille de style de la page a été laissée de côté, car le site utilise déjà son nom.",
   "{0} polices ou propriétés enregistrées de la feuille de style de la page ont été laissées de côté, car le site utilise déjà leurs noms.",
   "{0} fichier exporté.",
+  "Chaque résultat indique où le trouver. Ouvrez cet onglet et cette section pour l’utiliser.",
 ] as readonly string[];

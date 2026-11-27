@@ -3030,7 +3030,7 @@ export default [
   "De wijziging is geweigerd.",
   "Auditmarkeringen tonen",
   "Auditmarkeringen op de pagina tonen",
-  "Zet een kleine markering op elk element van deze pagina dat een probleem heeft. Klik op een markering om het element te selecteren.",
+  "Zet een kleine markering op elk element van deze pagina dat een probleem heeft. De markeringen verschijnen op de pagina als dit dialoogvenster gesloten is. Klik op een markering om het element te selecteren.",
   "1 probleem heeft geen element, dus het heeft geen markering.",
   "{0} problemen hebben geen element, dus ze hebben geen markering.",
   "Markeringen worden getekend op de eerste {0} van {1} elementen met problemen op deze pagina.",
@@ -3083,4 +3083,5 @@ export default [
   "1 lettertype of geregistreerde eigenschap uit de stylesheet van de pagina is weggelaten omdat de site die naam al gebruikt.",
   "{0} lettertypen of geregistreerde eigenschappen uit de stylesheet van de pagina zijn weggelaten omdat de site die namen al gebruikt.",
   "{0} bestand geëxporteerd.",
+  "Elk resultaat laat zien waar het staat. Open dat tabblad en die sectie om het te gebruiken.",
 ] as readonly string[];

@@ -3030,7 +3030,7 @@ export default [
   "Thay đổi đã bị từ chối.",
   "Hiện điểm đánh dấu kiểm toán",
   "Hiện điểm đánh dấu kiểm toán trên trang",
-  "Đặt một điểm đánh dấu nhỏ lên mỗi phần tử của trang này có vấn đề. Nhấp vào một điểm đánh dấu để chọn phần tử đó.",
+  "Đặt một điểm đánh dấu nhỏ lên mỗi phần tử của trang này có vấn đề. Điểm đánh dấu hiện trên trang khi hộp thoại này đóng. Nhấp vào một điểm đánh dấu để chọn phần tử đó.",
   "1 vấn đề không có phần tử, nên không có điểm đánh dấu.",
   "{0} vấn đề không có phần tử, nên không có điểm đánh dấu.",
   "Điểm đánh dấu được vẽ trên {0} phần tử đầu tiên trong số {1} phần tử có vấn đề trên trang này.",
@@ -3083,4 +3083,5 @@ export default [
   "Đã bỏ 1 phông chữ hoặc thuộc tính đã đăng ký từ biểu định kiểu của trang, vì trang web đã dùng tên đó.",
   "Đã bỏ {0} phông chữ hoặc thuộc tính đã đăng ký từ biểu định kiểu của trang, vì trang web đã dùng các tên đó.",
   "Đã xuất {0} tệp.",
+  "Mỗi kết quả cho biết nơi tìm thấy nó. Mở tab và phần đó để dùng.",
 ] as readonly string[];

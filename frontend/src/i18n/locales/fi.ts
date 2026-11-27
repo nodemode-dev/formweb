@@ -3030,7 +3030,7 @@ export default [
   "Muutos hylättiin.",
   "Näytä auditointimerkit",
   "Näytä auditointimerkit sivulla",
-  "Lisää pienen merkin jokaiseen tämän sivun elementtiin, jossa on ongelma. Valitse elementti napsauttamalla merkkiä.",
+  "Lisää pienen merkin jokaiseen tämän sivun elementtiin, jossa on ongelma. Merkit näkyvät sivulla, kun tämä valintaikkuna on suljettu. Valitse elementti napsauttamalla merkkiä.",
   "1 ongelmalla ei ole elementtiä, joten sillä ei ole merkkiä.",
   "Ongelmia ilman elementtiä: {0}, joten niillä ei ole merkkiä.",
   "Merkit piirretään tämän sivun {1} ongelmallisesta elementistä ensimmäisiin {0}.",
@@ -3083,4 +3083,5 @@ export default [
   "1 fontti tai rekisteröity ominaisuus jätettiin pois sivun tyylitiedostosta, koska sivusto käyttää jo sen nimeä.",
   "{0} fonttia tai rekisteröityä ominaisuutta jätettiin pois sivun tyylitiedostosta, koska sivusto käyttää jo niiden nimiä.",
   "Viety {0} tiedosto.",
+  "Jokainen tulos näyttää, mistä sen löytää. Avaa kyseinen välilehti ja osio käyttääksesi sitä.",
 ] as readonly string[];

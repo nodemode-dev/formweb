@@ -3030,7 +3030,7 @@ export default [
   "Změna byla odmítnuta.",
   "Zobrazit značky auditu",
   "Zobrazovat značky auditu na stránce",
-  "Umístí malou značku na každý prvek této stránky, který má problém. Kliknutím na značku prvek vyberete.",
+  "Umístí malou značku na každý prvek této stránky, který má problém. Značky se na stránce zobrazí, když je tento dialog zavřený. Kliknutím na značku prvek vyberete.",
   "1 problém nemá prvek, proto nemá značku.",
   "Problémy bez prvku: {0}, proto nemají značku.",
   "Značky se kreslí na prvních {0} z {1} prvků s problémy na této stránce.",
@@ -3083,4 +3083,5 @@ export default [
   "Vynecháno 1 písmo nebo registrovaná vlastnost ze stylů stránky, protože web už používá jeho název.",
   "Vynechaná písma nebo registrované vlastnosti ze stylů stránky: {0}, protože web už používá jejich názvy.",
   "Exportováno souborů: {0}.",
+  "Každý výsledek ukazuje, kde ho najdete. Otevřete tuto kartu a sekci, abyste ho mohli použít.",
 ] as readonly string[];

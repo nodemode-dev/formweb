@@ -3030,7 +3030,7 @@ export default [
   "Ændringen blev afvist.",
   "Vis auditmarkører",
   "Vis auditmarkører på siden",
-  "Sætter en lille markør på hvert element på denne side, der har et problem. Klik på en markør for at vælge elementet.",
+  "Sætter en lille markør på hvert element på denne side, der har et problem. Markørerne vises på siden, når denne dialog er lukket. Klik på en markør for at vælge elementet.",
   "1 problem har intet element, så det har ingen markør.",
   "{0} problemer har intet element, så de har ingen markør.",
   "Markører tegnes på de første {0} af {1} elementer med problemer på denne side.",
@@ -3083,4 +3083,5 @@ export default [
   "1 skrifttype eller registreret egenskab fra sidens stylesheet blev udeladt, fordi webstedet allerede bruger navnet.",
   "{0} skrifttyper eller registrerede egenskaber fra sidens stylesheet blev udeladt, fordi webstedet allerede bruger navnene.",
   "{0} fil eksporteret.",
+  "Hvert resultat viser, hvor det findes. Åbn den fane og sektion for at bruge det.",
 ] as readonly string[];

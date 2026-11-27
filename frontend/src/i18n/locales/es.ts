@@ -3030,7 +3030,7 @@ export default [
   "Se rechazó el cambio.",
   "Mostrar marcadores de auditoría",
   "Mostrar marcadores de auditoría en la página",
-  "Pone un pequeño marcador en cada elemento de esta página que tiene un problema. Haz clic en un marcador para seleccionar el elemento.",
+  "Pone un pequeño marcador en cada elemento de esta página que tiene un problema. Los marcadores se ven en la página cuando este diálogo está cerrado. Haz clic en un marcador para seleccionar el elemento.",
   "1 problema no tiene elemento, así que no tiene marcador.",
   "{0} problemas no tienen elemento, así que no tienen marcador.",
   "Los marcadores se dibujan en los primeros {0} de {1} elementos con problemas de esta página.",
@@ -3083,4 +3083,5 @@ export default [
   "Se omitió 1 fuente o propiedad registrada de la hoja de estilo de la página porque el sitio ya usa su nombre.",
   "Se omitieron {0} fuentes o propiedades registradas de la hoja de estilo de la página porque el sitio ya usa sus nombres.",
   "Se exportó {0} archivo.",
+  "Cada resultado indica dónde encontrarlo. Abre esa pestaña y esa sección para usarlo.",
 ] as readonly string[];

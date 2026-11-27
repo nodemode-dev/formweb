@@ -3030,7 +3030,7 @@ export default [
   "La modifica è stata rifiutata.",
   "Mostra indicatori dell’audit",
   "Mostra indicatori dell’audit sulla pagina",
-  "Mette un piccolo indicatore su ogni elemento di questa pagina che ha un problema. Fai clic su un indicatore per selezionare l’elemento.",
+  "Mette un piccolo indicatore su ogni elemento di questa pagina che ha un problema. Gli indicatori compaiono sulla pagina quando questa finestra di dialogo è chiusa. Fai clic su un indicatore per selezionare l’elemento.",
   "1 problema non ha un elemento, quindi non ha un indicatore.",
   "{0} problemi non hanno un elemento, quindi non hanno un indicatore.",
   "Gli indicatori sono disegnati sui primi {0} di {1} elementi con problemi in questa pagina.",
@@ -3083,4 +3083,5 @@ export default [
   "1 font o proprietà registrata del foglio di stile della pagina è stato escluso perché il sito usa già il suo nome.",
   "{0} font o proprietà registrate del foglio di stile della pagina sono stati esclusi perché il sito usa già i loro nomi.",
   "Esportato {0} file.",
+  "Ogni risultato indica dove trovarlo. Apri quella scheda e quella sezione per usarlo.",
 ] as readonly string[];

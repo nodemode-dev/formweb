@@ -3030,7 +3030,7 @@ export default [
   "Değişiklik reddedildi.",
   "Denetim işaretçilerini göster",
   "Denetim işaretçilerini sayfada göster",
-  "Bu sayfada sorunu olan her öğeye küçük bir işaretçi koyar. Öğeyi seçmek için bir işaretçiye tıklayın.",
+  "Bu sayfada sorunu olan her öğeye küçük bir işaretçi koyar. İşaretçiler, bu iletişim kutusu kapalıyken sayfada görünür. Öğeyi seçmek için bir işaretçiye tıklayın.",
   "1 sorunun öğesi yok, bu yüzden işaretçisi de yok.",
   "{0} sorunun öğesi yok, bu yüzden işaretçileri de yok.",
   "İşaretçiler, bu sayfada sorunu olan {1} öğenin ilk {0} tanesine çizilir.",
@@ -3083,4 +3083,5 @@ export default [
   "Sayfanın stil sayfasındaki 1 yazı tipi veya kayıtlı özellik, site adını zaten kullandığı için dışarıda bırakıldı.",
   "Sayfanın stil sayfasındaki {0} yazı tipi veya kayıtlı özellik, site adlarını zaten kullandığı için dışarıda bırakıldı.",
   "{0} dosya dışa aktarıldı.",
+  "Her sonuç nerede bulunacağını gösterir. Kullanmak için o sekmeyi ve bölümü açın.",
 ] as readonly string[];
