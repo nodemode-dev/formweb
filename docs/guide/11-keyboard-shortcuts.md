@@ -104,6 +104,16 @@ These keys belong to the Pages and Layers lists, menus and text fields rather th
 | Escape | Select several is on | Turn it off and keep the selection |
 | Up, Down, Enter | Quick insert, Search properties | Move through the list and choose |
 | Escape | Preview as published | Close it |
+| Left, Right (or Up, Down), Home, End | A slider under a Design field | One step, or the lowest or highest value; Shift with an arrow moves ten steps. A key held down is one undo step |
+| Up, Down | The text box of a Design field with a slider, holding one number such as `12px` | Step by one slider step and keep the unit (`12px` to `13px`, `1rem` to `1.25rem`, `0.5` to `0.51` for Opacity); with Shift, ten steps. Not while the field is switched to CSS text |
+| Escape | While dragging a slider, or in the color picker during a drag | Put the old value back |
+| Enter, Space | A color swatch, or the layout button of Grid columns or Grid rows | Open the color picker or the layout chooser |
+| Arrow keys, Home, End | The color picker's square, hue and opacity bars | Change the color step by step; Shift for bigger steps |
+| Arrow keys, Enter, Space | The layout chooser of Grid columns or Grid rows | Move between the layouts and choose one |
+| Arrow keys, Home, End, Delete | A stop handle on the Gradient tab | Move the stop (Shift for 10 %), send it to an end, remove it |
+| Escape | The color picker or the layout chooser | Close it and go back to its button |
+| Ctrl+Z, Ctrl+Shift+Z (Cmd on a Mac) | A slider, a swatch, a gradient stop, a button of a control (such as the layout button or the `</>` switch), the color picker's square and bars, or a layout in the chooser | Undo and Redo, as anywhere else. In a text box they undo typing in that box; from a unit list, press Tab or click elsewhere first |
+| Delete, Backspace | Any part of a control, as above | Nothing happens to the selected element (on a gradient stop, the stop is removed) |
 
 ## Next
 

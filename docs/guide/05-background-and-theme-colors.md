@@ -44,6 +44,7 @@ The section starts with three choices. The one the page uses now is chosen:
 With **This page only** chosen:
 
 - **Background** takes a color such as `#f3efe6`, a color name, a gradient, or one of the site's colors such as `var(--paper)`. Press Enter to keep it. If the browser cannot read what you typed as a background (for example two values run together, like `var(--bg)#f3efe6`), the field goes back to what it was and the status line says why.
+- This field takes typed values only. To pick the color or build a gradient with the mouse instead, click the page itself (the first row in the Layers list, **Page**) and use the swatch before **Background** in the Appearance section of the Design tab. With **Desktop** picked it sets the same background as this field. See [The color picker](04-right-panel.md#the-color-picker) and [Gradients](04-right-panel.md#gradients).
 - The note under the field says what the page uses now, and which other pages use the same value (for example "Home +7 uses var(--bg)").
 - **Clear** (also **Page > Clear page background**) removes this page's own background. The page is white again.
 - If the color is so dark that black text cannot be read on it, and the page has no text color of its own, the page's text turns white in the same step. A notice at the bottom right says so, with **Undo** to put the text back as it was while keeping the new background. A light color, or **Clear**, later turns it back. Any other text color you chose yourself is never changed. On a site with light and dark themes the text is left alone, because one fixed color cannot suit both themes, and so are gradients, pictures and see-through colors. The same goes for the site background: pages on it, and new pages that start on it, get white text when it is dark.
@@ -87,6 +88,8 @@ Coldmere's pages use `var(--paper)` as their background, which is `#f6f4ef`.
 ![The Design system tokens dialog of Coldmere Plumbing: the note Site tokens are exported as CSS custom properties. Use var(--token-name) in element style fields., then rows such as --accent #e0892b, --accent-ink #a1520c, --accent-soft #f2c48a, --btn-bg #0d5c63, --btn-bg-hover #0a474d, --btn-ink #ffffff and --deep #0f3b40](images/background-theme-colors.webp)
 
 3. Find the token, type a new value in its field, and press Enter.
+
+The site's color tokens are also the **SITE COLORS** of the color picker beside the Color and Background fields of the Design tab. Click one there, and the element gets the token, such as `var(--paper)`, not a copy of its color code (see [The color picker](04-right-panel.md#the-color-picker)).
 
 In Harbour Ferries the pages use `var(--bg)`, which is `#f3f6f7`. Setting `--bg` to `#efe8da` turns every page that uses it warm beige at once, on the canvas and in the export. Undo puts it back.
 

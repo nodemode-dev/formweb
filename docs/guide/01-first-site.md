@@ -81,7 +81,7 @@ Now give the paragraph a warm brown that goes with the beige:
 3. Click **Color** in the results (Background is listed first, so do not just press Enter).
 4. Type `#5b4636` and press Enter.
 
-You can type a color as `#5b4636`, as a name such as `white`, or as one of the site's own colors such as `var(--paper)` (see [Page background and theme colors](05-background-and-theme-colors.md)).
+You can type a color as `#5b4636`, as a name such as `white`, or as one of the site's own colors such as `var(--paper)` (see [Page background and theme colors](05-background-and-theme-colors.md)). Or click the small swatch before the field and pick the color with the mouse (see [The color picker](04-right-panel.md#the-color-picker)).
 
 ## 6. Check the space inside the section
 
@@ -89,9 +89,9 @@ A new section starts with 64 px of space inside it, its padding. To see it or ch
 
 1. Click **Section** in the Layers list.
 2. In Search properties type `padding` and press Enter. The Padding field reads `64px`.
-3. To change it, type another value, such as `48px`, and press Enter. This walkthrough keeps `64px`.
+3. To change it, type another value, such as `48px`, and press Enter, or drag the slider under the field. This walkthrough keeps `64px`.
 
-![The Layout fields of the right panel: Gap reads 24px and Padding reads 64px, both with a Reset link](images/first-site-padding.webp)
+![The Layout fields of the right panel: Width and Height are empty; Gap reads 24px and Padding reads 64px, both with a Reset link, a px unit list and a slider](images/first-site-padding.webp)
 
 The **Reset** link next to a field removes your value, so the field goes back to what it inherits.
 

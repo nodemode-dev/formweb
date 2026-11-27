@@ -37,7 +37,7 @@ A demo opens as a new site that is not saved yet. Your saved projects are not to
 1. [Your first site](01-first-site.md): from an empty page to an exported zip, every step pictured. Start here.
 2. [Pages and layers](02-pages-and-layers.md): add, rename, reorder and fold pages and layers, set the home page, select several layers at once.
 3. [Working on the canvas](03-canvas.md): select, the right-click menu, drag to move, hover outlines, wrap in a container, copy and paste styles.
-4. [The right panel](04-right-panel.md): the tabs, Search properties, and editing a breakpoint.
+4. [The right panel](04-right-panel.md): the tabs, sliders, the color picker and gradients, the grid layout chooser, Search properties, and editing a breakpoint.
 5. [Page background and theme colors](05-background-and-theme-colors.md): why a new page is white, the site background every page can share, starting a page with the home page's background, matching another page, one page or all pages, the site's theme colors.
 6. [Preview](06-preview.md): Preview as published, and the Live responsive preview on the canvas.
 7. [Audit](07-audit.md): what the audit checks and how Select takes you to the problem.
