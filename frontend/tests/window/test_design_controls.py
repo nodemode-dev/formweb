@@ -373,15 +373,6 @@ def test_reset_clears_an_upgraded_field_and_its_control_shows_the_unset_value_in
     expect(slider(word, "Width")).to_have_attribute("aria-valuenow", "240")
 
 
-def test_enter_on_a_property_search_result_lands_in_the_text_input_of_a_field_with_a_control(word):
-    search = word.page.get_by_placeholder("Search properties")
-    search.fill("background")
-    expect(word.page.locator("#inspector-results-list .inspector-result").first).to_contain_text("Background")
-    search.press("Enter")
-    expect(field(word, "background")).to_be_focused()
-    expect(named(word, "Choose Background")).to_be_visible()
-
-
 @pytest.mark.parametrize("key, label, value", [("order", "Order", "5"), ("width", "Width", "100px")])
 def test_a_click_on_the_name_of_a_field_puts_the_cursor_in_its_input_and_keeps_the_value(word, key, label, value):
     type_value(word, key, value)

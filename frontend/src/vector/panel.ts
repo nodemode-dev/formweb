@@ -1,4 +1,5 @@
 import { element, value } from '../ui/dom';
+import { deliverFile, saveBlob } from '../ui/downloads';
 import { label, labelAttr, tn, type Value } from '../i18n';
 import { openAverage } from './averagedialog';
 import { openPathfinderOptions } from './pfdialog';
@@ -309,12 +310,8 @@ export class VectorPanel {
   download(): void {
     const markup = this.editor.exportText();
     if (!markup) { this.editor.notify('Select a vector shape to export.'); return; }
-    const url = URL.createObjectURL(new Blob([markup], { type: 'image/svg+xml' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'vector.svg';
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const blob = new Blob([markup], { type: 'image/svg+xml' });
+    void deliverFile('vector.svg', started => saveBlob(blob, 'vector.svg', started)).catch(() => undefined);
   }
 
   update(): void {

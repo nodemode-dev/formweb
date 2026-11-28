@@ -7,7 +7,7 @@ import secrets
 from fastapi import APIRouter, Request
 from starlette.responses import FileResponse
 
-from . import library, site_import
+from . import library, outside_fetch, site_import
 from .assets import ingest, own_asset
 from .code_components import build_component
 from .config import MAX_SITE_ARCHIVE_BYTES
@@ -319,7 +319,9 @@ async def library_import_html(request: Request):
     result = await studio.mutate('batch', {'commands': commands, 'expectedRevision': revision})
     studio.access.record('library.import-html', {'node': host, 'bytes': len(document)})
     warnings = [] if shim or not module else ['The script ran as a module with no kit helpers.']
-    return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': warnings + ([site_import.left_out_scripts(foreign)] if foreign else [])}
+    outside, more = await asyncio.to_thread(site_import.outside_of, document)
+    return {**(result if isinstance(result, dict) else {}), 'root': host, 'warnings': warnings + ([site_import.left_out_scripts(foreign)] if foreign else []),
+            'outside': outside, 'outsideMore': more}
 
 
 async def _archive(request: Request) -> bytes | dict | list:
@@ -344,22 +346,52 @@ async def review_site(data) -> dict:
     return {**site_import.review(result), 'revision': revision}
 
 
-async def import_site(data, mode: str, revision: int | None) -> dict:
+async def import_site(data, mode: str, revision: int | None, outside: str | None = None) -> dict:
     if mode not in ('new', 'replace'):
         raise EngineError('Mode must be new or replace.')
     archive = await asyncio.to_thread(_read, data)
     site, current = await _current()
     if revision is not None and revision != current:
         raise EngineError('The site changed after the review. Review the archive again before importing.', 409)
-    result = await asyncio.to_thread(site_import.plan, archive, site, kit_script)
-    commands, pages = await asyncio.to_thread(site_import.commands, result, site, mode, archive, kit_script)
+    fetched = outside_fetch.kept(outside) if outside else None
+    result = await asyncio.to_thread(site_import.plan, archive, site, kit_script, fetched)
+    commands, pages = await asyncio.to_thread(site_import.commands, result, site, mode, archive, kit_script, fetched)
     assets = site_import.store_assets(result, archive, studio)
+    fonts = site_import.store_fonts(result, fetched or {}, studio)
     outcome = await studio.mutate('batch', {'commands': commands, 'expectedRevision': current})
     studio.access.record('library.import-site', {'pages': pages, 'assets': assets, 'mode': mode, 'bytes': len(data) if isinstance(data, (bytes, bytearray)) else sum(len(body) for _, body in archive['files'].values())})
     skipped = result['skipped']
     warnings = [f'{page["name"]}: {warning}' for page in result['pages'] for warning in page['warnings']]
-    return {**(outcome if isinstance(outcome, dict) else {}), 'pages': pages, 'assets': assets, 'skipped': skipped, 'warnings': warnings,
-            'message': site_import.summary(len(pages), assets, len(skipped))}
+    answer = {**(outcome if isinstance(outcome, dict) else {}), 'pages': pages, 'assets': assets, 'skipped': skipped, 'warnings': warnings,
+              'message': site_import.summary(len(pages), assets, len(skipped))}
+    if outside:
+        files, seen = [], set()
+        for page in result['pages']:
+            for item in [*page.get('brought', []), *({'kind': 'font', 'host': fetched[url]['host'], 'url': url, 'bytes': len(fetched[url]['body'])} for url in page.get('fontsUsed', []))]:
+                if item['url'] not in seen:
+                    seen.add(item['url'])
+                    files.append(item)
+        if fetched is None:
+            warnings.append('The files from the web ticked in the review were forgotten (more than 20 minutes passed or FormWeb restarted), so nothing from the web came along. Tick them again in a new review.')
+        unused = [url for url in (fetched or {}) if url not in seen]
+        if unused:
+            warnings.append(f'{len(unused)} downloaded file{"s" if len(unused) != 1 else ""} {"was" if len(unused) == 1 else "were"} not used by any imported page: {", ".join(u[:120] for u in unused[:5])}{"..." if len(unused) > 5 else ""}.')
+        answer['outside'] = {'files': files, 'fonts': fonts, 'pages': [page['file'] for page in result['pages'] if page.get('brought') or page.get('fontsUsed')]}
+    return answer
+
+
+@router.post('/api/library/outside/fetch')
+async def library_outside_fetch(request: Request):
+    studio.access.authorize('edit')
+    body = await _body(request)
+    return await asyncio.to_thread(outside_fetch.fetch, body.get('url'), body.get('kind'), body.get('token'))
+
+
+@router.post('/api/library/outside/drop')
+async def library_outside_drop(request: Request):
+    studio.access.authorize('edit')
+    body = await _body(request)
+    return outside_fetch.drop(body.get('token'), body.get('url'))
 
 
 @router.post('/api/library/import-site/review')
@@ -369,6 +401,6 @@ async def library_review_site(request: Request):
 
 
 @router.post('/api/library/import-site')
-async def library_import_site(request: Request, mode: str = 'new', revision: int | None = None):
+async def library_import_site(request: Request, mode: str = 'new', revision: int | None = None, outside: str | None = None):
     studio.access.authorize('edit')
-    return await import_site(await _archive(request), mode, revision)
+    return await import_site(await _archive(request), mode, revision, outside)

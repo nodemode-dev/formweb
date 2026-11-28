@@ -9,6 +9,9 @@ const APP_COMMANDS: &[&str] = &[
     "text_edit",
     "take_opened_file",
     "reveal_download",
+    "set_export_place",
+    "choose_export_folder",
+    "ask_export_place",
 ];
 
 fn main() {

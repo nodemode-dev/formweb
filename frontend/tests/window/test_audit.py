@@ -68,10 +68,8 @@ def test_after_select_a_notice_keeps_the_issue_in_view_and_show_again_goes_back_
 def test_with_one_issue_the_summary_reads_1_issue_found(harbour):
     harbour.page_row("p-routes").click()
     expect(harbour.page_row("p-routes")).to_have_attribute("aria-current", "page")
-    search = harbour.page.get_by_placeholder("Search properties")
-    search.fill("description")
-    search.press("Enter")
-    field = harbour.page.locator("*:focus")
+    harbour.page.locator(".inspector button.quiet", has_text="Page").click()
+    field = harbour.page.locator('[data-field="seo.description"]')
     expect(field).to_be_editable()
     field.fill("")
     field.press("Tab")

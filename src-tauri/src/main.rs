@@ -383,7 +383,7 @@ fn main() {
                 traffic_lights::place(window);
             }
         })
-        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready, traffic_lights::set_window_title, text_edit::text_edit, take_opened_file, downloads::reveal_download])
+        .invoke_handler(tauri::generate_handler![render::render_probe, render::render_thumbnail, render::render_diff, reveal::app_ready, traffic_lights::set_window_title, text_edit::text_edit, take_opened_file, downloads::reveal_download, downloads::set_export_place, downloads::choose_export_folder, downloads::ask_export_place])
         .setup(|app| {
             reveal::round_splash(app.handle());
             let handle = app.handle().clone();

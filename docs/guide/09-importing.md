@@ -15,7 +15,7 @@ Every import asks how the page should arrive, under **Bring it in as** (a sectio
 
 ![The review of a one-page zip: Pages lists Brightwater Studio from index.html going to /home, Add them has Add as new pages chosen, and Bring pages in as offers Editable elements (recommended for editing), chosen, and Code sections (exact copy, edited as code), each with its sentence; Import 1 page waits at the bottom](images/import-bring-choice.webp)
 
-Editable elements is chosen when the view opens. You can also change your mind later: a page brought in as code can be converted at any time (see [Convert a code section to elements](#convert-a-code-section-to-elements) below), and a conversion is one undo step.
+Editable elements is chosen when the view opens, except when a page loads stylesheets or scripts from other websites (see [Pages that load files from the web](#pages-that-load-files-from-the-web)). You can also change your mind later: a page brought in as code can be converted at any time (see [Convert a code section to elements](#convert-a-code-section-to-elements) below), and a conversion is one undo step.
 
 ## HTML files: Import HTML files
 
@@ -28,6 +28,34 @@ No zip is needed for pages you have as `.html` files.
    - **As a section of this page**: offered when you picked exactly one file. The page goes into the open page as one section, after the selected section, with its styles and main script, and its file name as the section's name. Choose **Bring it in as**, then click **Import as section**. The new section is selected and the canvas scrolls to it. With several files picked, this choice is greyed out and the view says that a section takes one file.
 
 A file brings its own `<style>` blocks and its first script. Stylesheets, scripts and pictures it loads from other files are not brought along; for those, zip the site and use Import site from zip. At most 100 files, 64 MiB together, are taken at once, and a file over 1 MiB is skipped with the reason in the review. Choose **Choose other files...** to start again with other files, or the back button **Import HTML** to return to the three parts.
+
+### Pages that load files from the web
+
+Many pages take part of their look or behaviour from files on other websites: a stylesheet or a script loaded from another address. The review names them for each page, in plain words, and since 0.36.0 lets you tick the ones to bring along (see [Bringing files from the web along](#bringing-files-from-the-web-along)). For example, with two files picked, one of which loads two stylesheets and a script from other websites (the picture was taken before 0.36.0, so it shows no ticks):
+
+![The review of two HTML files: Opening hours goes to /opening-hours; Tide table goes to /tide-table, with the sentence This page loads files from the web: 2 stylesheets from styles.example.com and 1 script from scripts.example.org. These files are not brought along.; under Bring pages in as, Code sections is chosen, with the reason Kept as code, because 1 of 2 pages loads files from the web. As code the pages keep their own scripts and style rules, responsive ones included; those files are not brought along either way.](images/import-outside-files.webp)
+
+- Each website is named once, with how many stylesheets and scripts come from it. The names are plain text: they are not links, and FormWeb never opens them.
+- This sentence replaces the older, longer note that listed each address, so the row says it once. The older note still shows when the sentence cannot name every file, for example for a script written into the page as a `data:` address or a page that loads more than 20 files.
+- When at least one page loads such files, **Bring pages in as** starts on **Code sections**, and the sentence under it says why. You can still pick **Editable elements**; the sentence then says which websites' files will be missing, and after the import the result names them again, for example "Files from styles.example.com and scripts.example.org were not brought along, so part of the look or behaviour may be missing."
+- Nothing is downloaded from those websites unless you tick a file. Without a tick the page arrives without that file: as code it keeps its own scripts and style rules, as elements it keeps the look the browser measured without them.
+- A page that loads nothing from other websites starts on **Editable elements**, as before, and shows no such sentence. The choice is made once, when the review appears; picking other files decides again. Ticking files never changes your choice.
+
+#### Bringing files from the web along
+
+Under the page's sentence, each file it loads from another website has a row: what it is (**Stylesheet**, **Script** or **Font file**), the website's name as plain text, and a tick. Every tick is off when the review appears. The sentence above the rows says what a tick does: FormWeb on this computer downloads that file from its website now, and the file becomes part of your site. Nothing is downloaded without a tick.
+
+- Tick a row and it says **Downloading** in place; when the file has arrived, the row shows its size. Nothing else in the review moves while it downloads.
+- A stylesheet that uses font files lists them under it, indented, each with its own tick. Untick the stylesheet and its font rows go with it.
+- If the file cannot be brought, the tick goes off again and the row says why, for example that the file is too large or is not a stylesheet.
+- Untick a row to forget the file. Two pages that load the same file share one row state and one download.
+- The sentence beside **Bring pages in as** follows your ticks: with every file ticked and downloaded it says the pages keep their look either way; otherwise it names the websites whose files will be missing.
+- Press **Import**. If a file is still downloading, the button says "Waiting for the downloads..." and the import starts when it has arrived. The ticked files become part of the site: a stylesheet's rules join the page's styles, with its licence comment and a line naming where it came from; a script runs before the page's own; a WOFF2 font becomes one of the site's files. Preview and the export then load nothing from those websites. The result says how many came along, for example "3 files from the web came along. 1 font from the web is now part of this site."
+- Picking other files, **Back**, **Cancel** or finishing the import forgets the downloads. If FormWeb was restarted between your ticks and **Import**, nothing from the web comes along and the result asks you to tick the files again in a new review.
+
+Limits: only `https` addresses; only websites on the public internet; at most 256 KiB for a stylesheet, 512 KiB for a script and 2 MiB for a font, and 10 seconds for each file; at most 30 files and 8 MiB in one review. Fonts must be WOFF2; a font rule that also names another format is left out unless every file it names was downloaded. An address that starts with `//` is named but cannot be ticked. **Import HTML as a section** has no ticks yet.
+
+When a page that brought files along comes in as **Editable elements**, its script runs first in a sealed frame with no network, and the page is measured as it looks after the script ran, so the classes the script sets and the style rules it makes count. The class and id of the page's `body` are kept on a wrapper around its content, so a background or font set on the body arrives too. If the script has not finished after about 5 seconds, the page is measured without running it and the result says so. A script that never stops at all freezes the editor window during the conversion; reload the window and the site comes back with that page as code.
 
 ## Pasted code: Paste HTML code
 
@@ -72,13 +100,13 @@ This brings in a static site built elsewhere: every HTML file becomes a page.
 
 3. Nothing changes yet. FormWeb shows a **Review** of what it found:
    - the counts, for example "3 pages. 1 asset (42 KiB). 1 stylesheet or script. 1 file is skipped.";
-   - **Pages**: each page with its file and the address it will get. `index.html` becomes `/`, `about.html` becomes `/about`, `blog/index.html` becomes `/blog`. When your site already uses an address, the page gets another one and the review says why, for example "/about is taken, so it gets /about-2.";
+   - **Pages**: each page with its file and the address it will get. `index.html` becomes `/`, `about.html` becomes `/about`, `blog/index.html` becomes `/blog`. When your site already uses an address, the page gets another one and the review says why, for example "/about is taken, so it gets /about-2.". A page that loads stylesheets or scripts from other websites names them, as described under [Pages that load files from the web](#pages-that-load-files-from-the-web);
    - **Add them**: **Add as new pages** (the default), or **Replace matching routes**, which keeps your existing page and its address and swaps its content. Replacing is offered only when nothing else on your site points into that page; otherwise the review says why it is not offered;
    - **Skipped**: each file left out, with the reason.
 
 ![The review for a three-page zip imported into Coldmere Plumbing: 3 pages, 1 asset (42 KiB), 1 stylesheet or script, 1 file is skipped; Mill Lane Pottery from index.html goes to /home because / is taken; About us from about.html goes to /about-2 because /about is taken; Journal from blog/index.html goes to /blog; Add as new pages is chosen and Replace matching routes is greyed out with the reason; notes.txt is skipped because this type of file is not part of a static site import](images/import-site-review.webp)
 
-   - **Bring pages in as**: **Editable elements** (chosen) or **Code sections**, as described above.
+   - **Bring pages in as**: **Editable elements** (chosen, unless a page loads files from the web) or **Code sections**, as described above.
 
 4. Click **Import 3 pages** (the button names the count). The status line says "Imported 3 pages and 1 asset. 1 file was skipped." The import is one undo step. With **Editable elements** the pages are then converted, a second undo step, and the panel adds the result, for example:
 
@@ -124,7 +152,12 @@ Any code section that holds plain HTML and CSS, an imported page or one you wrot
 
 3. A notice gives the result, such as "Converted 48 elements. 3 parts stayed as code: a script, an inline frame, a vector graphic. Responsive rules were not carried over. Check it at phone width in Preview, then adjust under each breakpoint.", with an **Undo** button. The last sentence appears whenever the page had responsive rules; [Making it responsive again](#making-it-responsive-again) below says how. The conversion is one undo step, so Ctrl+Z (Cmd+Z on a Mac) brings the code section back exactly.
 
-The section's element stays where it was and takes the page body's look (background, font, colour and spacing); everything inside it becomes its children. When the section is the only thing on its page, as after a site import, the page's padding is set to 0 and the section gets a minimum height of the window when it has a background, so the page fills the window as the original did.
+The section's element stays where it was and takes the page body's look (background, font, colour and spacing); everything inside it becomes its children. When the section is the only thing on its page, as after a site import, the page's padding is set to 0 and the section gets a minimum height of the window when it has a background, so the page fills the window as the original did. A page that filled the window in its own way (for example with `height: 100%` on the page, or `min-height: 100vh`) fills the canvas and Preview to at least their height too, with its footer at the bottom, instead of shrinking to its content.
+
+### A page whose script builds part of it
+
+Some pages build part of their content with their script after they load, such as a list of cards drawn from data in the script. On the canvas that part is empty, because scripts do not run there; in Preview and the export the script builds it. When you convert such a page with **Keep the page's script as a code section** ticked, the style rules of the page that none of the converted elements use stay with the script, so what the script builds still has its look in Preview and the export. The result says how many, for example "Kept 6 style rules for the content the page's script builds." The converted elements keep the look that was measured, and the rules kept for the script reach only what is inside the converted page.
+A few rules are left out, and the result says so: rules past 3,000 or 192 KiB for one script; a font or a registered CSS property from the page's stylesheet whose name the site already uses (an animation with such a name is kept under a new name instead); and, if the page's code would grow too large to save, all of them. On a very large or slow stylesheet the check of which rules are used stops after two seconds and every rule is kept instead, which the result also says. Without the script ticked, no rules are kept, as before.
 
 ### How a conversion works
 

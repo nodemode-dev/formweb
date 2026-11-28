@@ -65,20 +65,22 @@ Do the same for the paragraph (`Six Tuesday evenings at the wheel. Clay, glazes 
 
 ## 5. Set colors with Search properties
 
-The right panel has hundreds of settings. You do not need to know where each one lives: type its name in **Search properties**, the field under the tabs.
+The right panel has hundreds of settings. You do not need to know where each one lives: type its name in **Search properties**, the field under the tabs, and the list tells you which tab and section hold it.
 
 1. In the Layers list, click **Section**.
-2. Click **Search properties** and type `background`. The list shows the matching settings, grouped by tab and section.
-3. Press Enter, or click **Background**. The panel jumps to the Background field and puts the cursor in it.
+2. Click **Search properties** and type `background`. Each row of the list names a setting and where it is. The first row reads **Background · Design > Appearance**: the Background field is in the **Design** tab, in its **Appearance** section.
+3. Press Escape to clear the search; the panel's fields come back. In the **Design** tab, find the **Appearance** section and click in the **Background** field.
 4. Select what is in the field, type `#f4ece1` and press Enter. The section turns a light beige.
 
-![The right panel with background typed in Search properties; the results list Design > Appearance with Background and Color, then Page > Page background with Page background, Site background and more](images/first-site-search-background.webp)
+![The right panel with background typed in Search properties; under the sentence Each result shows where to find it. Open that tab and section to use it., the rows read Background · Design > Appearance, Color · Design > Appearance, Background · Page > Page background, Page background · Page > Page background and Site background · Page > Page background](images/first-site-search-background.webp)
+
+The rows only show where things are: clicking a row or pressing Enter does nothing.
 
 Now give the paragraph a warm brown that goes with the beige:
 
 1. In the Layers list, click **Paragraph**.
-2. In Search properties type `colour` (either spelling works).
-3. Click **Color** in the results (Background is listed first, so do not just press Enter).
+2. In Search properties type `colour` (either spelling works). The list shows **Color · Design > Appearance**.
+3. Press Escape, and click in the **Color** field of the Design tab's Appearance section.
 4. Type `#5b4636` and press Enter.
 
 You can type a color as `#5b4636`, as a name such as `white`, or as one of the site's own colors such as `var(--paper)` (see [Page background and theme colors](05-background-and-theme-colors.md)). Or click the small swatch before the field and pick the color with the mouse (see [The color picker](04-right-panel.md#the-color-picker)).
@@ -88,7 +90,7 @@ You can type a color as `#5b4636`, as a name such as `white`, or as one of the s
 A new section starts with 64 px of space inside it, its padding. To see it or change it:
 
 1. Click **Section** in the Layers list.
-2. In Search properties type `padding` and press Enter. The Padding field reads `64px`.
+2. In Search properties type `padding`. The first row reads **Padding · Design > Layout**. Press Escape and look at the **Padding** field in the Design tab's Layout section: it reads `64px`.
 3. To change it, type another value, such as `48px`, and press Enter, or drag the slider under the field. This walkthrough keeps `64px`.
 
 ![The Layout fields of the right panel: Width and Height are empty; Gap reads 24px and Padding reads 64px, both with a Reset link, a px unit list and a slider](images/first-site-padding.webp)

@@ -102,7 +102,8 @@ These keys belong to the Pages and Layers lists, menus and text fields rather th
 | Escape | Several rows selected | Go back to one |
 | Escape | While dragging | Cancel the drag |
 | Escape | Select several is on | Turn it off and keep the selection |
-| Up, Down, Enter | Quick insert, Search properties | Move through the list and choose |
+| Up, Down, Enter | Quick insert | Move through the list and choose |
+| Escape | Search properties | Clear the search; in an empty search field, move to the tab buttons. The list of results cannot be moved through or picked from: it only shows where each setting is |
 | Escape | Preview as published | Close it |
 | Left, Right (or Up, Down), Home, End | A choice button in the Design tab, such as Center in Text alignment | Try the next or previous choice, or the first or last, on the page without saving it |
 | Space, Enter, Up, Down, Alt+Down | A Design field that is a list, such as Weight or Object fit | Open the list without trying anything |
@@ -119,7 +120,8 @@ These keys belong to the Pages and Layers lists, menus and text fields rather th
 | Arrow keys, Home, End, Delete | A stop handle on the Gradient tab | Move the stop (Shift for 10 %), send it to an end, remove it |
 | Escape | The color picker or the layout chooser | Close it and go back to its button |
 | Ctrl+Z, Ctrl+Shift+Z (Cmd on a Mac) | A slider, a swatch, a gradient stop, a button of a control (such as the layout button or the `</>` switch), the color picker's square and bars, a layout in the chooser, or a Design field that is a list, such as Weight | Undo and Redo, as anywhere else. In a text box they undo typing in that box; from a unit list, press Tab or click elsewhere first |
-| Delete, Backspace | Any part of a control, as above, a choice button such as a Display choice, a Design list and its open list, the Keep and Revert bar, the Design, Motion, Content and Page tabs, or a section title such as Layout | Nothing happens to the selected element (on a gradient stop, the stop is removed) |
+| Delete, Backspace | Any part of a control, as above, a choice button such as a Display choice, a Design list and its open list, the Keep and Revert bar, the Design, Motion, Content and Page tabs, a section title such as Layout, a button in the toolbar (such as Audit, Export or a breakpoint button), an audit marker, or the Convert to editable elements window while it works | Nothing happens to the selected element (on a gradient stop, the stop is removed) |
+| Enter, Space | An audit marker on the canvas | Select its element and show its issues |
 
 ## Next
 

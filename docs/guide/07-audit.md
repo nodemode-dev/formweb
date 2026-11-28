@@ -7,8 +7,8 @@ The audit reads your whole site and lists what could stop people or search engin
 The example uses **Harbour Ferries** (**Help > Demos > Harbour Ferries**). Out of the box the demo passes the audit, so first make a small mistake on purpose:
 
 1. Click **Routes** in the PAGES list.
-2. In Search properties type `description` and press Enter. The page's **Description** field (Page tab, Search & metadata) gets the cursor.
-3. Select its text, delete it, and press Tab.
+2. Open the **Page** tab of the right panel and find the **Description** field in its **Search & metadata** section. (Typing `description` in Search properties lists it as **Description · Page > Search & metadata**.)
+3. Click in the field, select its text, delete it, and press Tab.
 4. Click **Home** in the PAGES list to go back to the home page.
 
 ## Run the audit
@@ -30,6 +30,22 @@ The notice stays for about 30 seconds, and as long as your pointer is on it. **S
 3. Type a description and press Tab. Run the audit again: the issue is gone.
 
 For an issue about an element, Select opens its page, selects the element, scrolls the canvas to it and makes its outline pulse for about two seconds.
+
+## See the issues on the page: audit markers
+
+Audit markers put a small marker on every element of the open page that has an issue, so you can see where the problems are without opening the list. They are off at first.
+
+1. On the Home page of Harbour Ferries, click the **See the routes** button on the canvas, open the **Content** tab, type `#` in **Link URL** and press Tab. The button now links nowhere, which the audit reports.
+2. Click **Audit**. Above the list, tick **Show audit markers on the page**. The sentence under it reads "Puts a small marker on each element of this page that has an issue. Markers show on the page when this dialog is closed. Click a marker to select the element."; when some issues are about the whole page or site, such as a missing description, it also says how many have no marker.
+3. Close the dialog. A marker with the number 1 sits on the top right corner of the **See the routes** button, centred on the corner, so half of it lies outside the button and the button's text stays readable. **View > Show audit markers** turns the markers on and off from the menu too.
+
+![The Harbour Ferries home page on the canvas with audit markers on: a yellow diamond with 1 centred on the top right corner of the See the routes button, and a yellow diamond with 2 centred on the top right corner of a small picture beside it](images/audit-markers.webp)
+
+Each marker shows how many issues its element has. A yellow diamond is a warning and a blue circle a note. Point at a marker to read its issues in a tooltip; pointing changes nothing. Click it (or press Enter or Space on it) to select its element: the status line and the notice at the bottom right name the issue, as Select in the dialog does, and when the element has several issues a small list under the marker shows each one. In the picture above, the marker with 2 belongs to a picture from another website that has no alt text; its list names both issues. Escape or a click elsewhere closes the list.
+
+4. With the button selected, type `/routes` back into **Link URL** and press Tab. Within a moment the marker goes; you do not need to run the audit again. Make a new mistake and a marker appears the same way.
+
+Markers follow the page as you scroll, zoom, resize the window, change breakpoint or open another page. A marker whose corner is out of view is hidden; it is never moved to the edge of the canvas. They are hidden while you preview the page, drag on the canvas, try a choice, edit text or have a dialog open, and come back afterwards. At most 200 markers are drawn on a page; the dialog says so when there are more. Your choice is remembered in this browser only; it is never saved with the site or exported, and Reset All Preferences turns it off. With the markers off, the audit runs only when you ask for it.
 
 ## What it checks
 

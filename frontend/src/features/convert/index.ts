@@ -1,4 +1,4 @@
-import { commands as send, state } from '../../api';
+import { commands as send, state, upload } from '../../api';
 import { commands as registry } from '../../commands/registry';
 import { element, keyed, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
@@ -7,7 +7,9 @@ import type { CommandDef } from '../../ui/shell';
 import type { MenuEntry } from '../../ui/context-menu';
 import type { Command, EditorState, SiteNode } from '../../types';
 import { blocks, measure, SCOPE, TooLarge, type Block, type Plan, type Planned, type Source } from './measure';
-import { refusal, ROOT_FORCED, summary, type SiteFont } from './rules';
+import { refusal, ROOT_FORCED, scriptWords, summary, type SiteFont } from './rules';
+import { runSealed } from './sealed';
+import { picture, pictureSizes } from './snapshot';
 import '../../styles/convert.css';
 
 export const CONVERT_ID = 'library.convert-section';
@@ -18,6 +20,8 @@ const BATCH = 4000;
 const DEPTH = 60;
 const SECONDS = 20;
 const RETRIES = 40;
+/** Off while the export copies every asset the site names, the poster of a code section included. */
+const PICTURE_IN_SITE = false as boolean;
 
 export interface ConvertHost {
   overlay: HTMLElement;
@@ -44,7 +48,26 @@ function nodeOf(item: Planned): Record<string, unknown> {
   return { id: item.id, tag: item.tag, name: item.name, text: item.text, children: [], attrs: item.attrs, styles: item.styles, breakpoints: {} };
 }
 
-function adds(plan: Plan, parent: (planned: string) => string): Command[] {
+/** The picture of what a page's script builds, stored as a site asset; '' when none could be made. */
+async function posterOf(snapshot: string, width: number, height: number): Promise<string> {
+  try {
+    const blob = await picture(snapshot, width, height);
+    if (!blob) return '';
+    const stored = await upload(new File([blob], 'script-picture.png', { type: 'image/png' }));
+    if (typeof stored.url !== 'string' || !stored.url.startsWith('/api/assets/')) return '';
+    pictureSizes.set(stored.url, [width, height]);
+    return stored.url;
+  } catch {
+    return '';
+  }
+}
+
+const withPoster = (list: Command[], url: string): Command[] => url ? list.map(item => {
+  const value = item.command === 'code.section.set' ? (item.params as { value?: SectionRecord }).value : undefined;
+  return value && value.js?.trim() && !value.html?.trim() ? { ...item, params: { ...item.params, value: { ...value, poster: url } } } : item;
+}) : list;
+
+function adds(plan: Plan,parent: (planned: string) => string): Command[] {
   const list: Command[] = [];
   for (const item of plan.nodes) {
     list.push({ command: 'node.add', params: { parent: parent(item.parent), node: nodeOf(item) } });
@@ -89,9 +112,20 @@ function partCommands(site: EditorState['site'], host: SiteNode, record: Section
   }
   list.push(...adds(plan, parent => parent || owner.id));
   if (root) list.push({ command: 'node.move', params: { id: root.id, parent: owner.id, index: at } });
-  if (plan.rest.after || record.js) list.push({ command: 'code.section.set', params: { node: host.id, value: { ...record, enabled: record.enabled !== false, html: plan.rest.after, css: scoped(host.id) } } });
+  if (plan.rest.after || record.js) list.push({ command: 'code.section.set', params: { node: host.id, value: { ...record, enabled: record.enabled !== false, html: plan.rest.after, css: scoped(host.id) + (record.js && plan.rest.kept ? `\n${plan.rest.kept}` : '') } } });
   else list.push({ command: 'node.remove', params: { id: host.id } });
   return list;
+}
+
+/** The words the site's own styles, tokens, fonts and code use, lower case, leaving out the sections being converted:
+ * page-wide names (keyframes, font faces, registered properties) a kept stylesheet must not take. */
+function siteNames(site: EditorState['site'], skip: Set<string>): Set<string> {
+  const code = site.extensions?.code as { sections?: Record<string, unknown> } | undefined;
+  const sections = Object.fromEntries(Object.entries(code?.sections || {}).filter(([id]) => !skip.has(id)));
+  const text = JSON.stringify([Object.values(site.nodes).map(node => [node.styles, node.breakpoints]), site.tokens, site.extensions?.design, { ...code, sections }]);
+  const names = new Set<string>();
+  scriptWords(text.toLowerCase(), names, 500000);
+  return names;
 }
 
 function fontsCommand(site: EditorState['site'], fonts: Record<string, SiteFont> | null): Command[] {
@@ -116,6 +150,18 @@ function drop(plans: [Plan, string][], message: string): number {
   return removed;
 }
 
+/** Takes the style rules kept for scripts out of the plans when the engine refused the batch for a section's CSS or the site's size. */
+function dropKept(plans: [Plan, string][], message: string): number {
+  if (!message.includes('invalid css') && !message.includes('site exceeds')) return 0;
+  let removed = 0;
+  for (const [plan] of plans) {
+    for (const item of plan.nodes) if (item.code?.css) { delete item.code.css; removed++; }
+    if (plan.rest?.kept) { plan.rest.kept = ''; removed++; }
+    if (plan.outcome.kept) { plan.outcome.keptDropped += plan.outcome.kept; plan.outcome.kept = 0; plan.outcome.keptAll = 0; }
+  }
+  return removed;
+}
+
 async function apply(build: () => Command[], plans: [Plan, string][]): Promise<{ state: EditorState; left: number }> {
   let left = 0;
   for (let attempt = 0; ; attempt++) {
@@ -123,6 +169,7 @@ async function apply(build: () => Command[], plans: [Plan, string][]): Promise<{
       return { state: await send(build()), left };
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      if (attempt < RETRIES && dropKept(plans, message)) continue;
       const removed = attempt < RETRIES ? drop(plans, message) : 0;
       if (!removed) throw error;
       left += removed;
@@ -131,20 +178,30 @@ async function apply(build: () => Command[], plans: [Plan, string][]): Promise<{
 }
 
 /** Measures and converts code sections in one batch (one undo step). `part` converts one top-level block of one section. */
-export async function convertSections(ids: string[], keepScript: boolean, part?: number): Promise<Converted> {
+export async function convertSections(ids: string[], keepScript: boolean, part?: number, run?: boolean): Promise<Converted> {
   const site = state().site;
   const hosts = ids.map(id => site.nodes[id]).filter((node): node is SiteNode => !!node && !!sectionOf(site, node.id)?.html?.trim());
   if (!hosts.length) throw new Error(t('Select a code section that holds HTML to convert.'));
   const taken = new Set(Object.keys(site.nodes));
+  const names = keepScript ? siteNames(site, new Set(hosts.map(host => host.id))) : undefined;
   let fonts = { ...(((site.extensions?.design as { fonts?: Record<string, SiteFont> } | undefined)?.fonts) || {}) };
   const plans: Plan[] = [];
   const done: SiteNode[] = [];
-  let skipped: TooLarge | null = null, skips = 0, size = 0;
+  const shots: string[] = [];
+  let skipped: TooLarge | null = null, skips = 0, size = 0, unrun = 0;
   for (const host of hosts) {
     let plan: Plan;
+    let source = sourceOf(sectionOf(site, host.id)!);
+    let shot = '';
+    if (run === true && source.js.trim()) {
+      const sealed = await runSealed(source);
+      if (sealed) source = { ...source, html: sealed.html, css: [source.css, sealed.css].filter(Boolean).join('\n') };
+      else unrun++;
+      if (PICTURE_IN_SITE && sealed && keepScript && sealed.snapshot) shot =await posterOf(sealed.snapshot, sealed.width, sealed.height);
+    }
     try {
-      plan = await measure(sourceOf(sectionOf(site, host.id)!), {
-        origin: location.origin, keepScript, fonts, taken: id => taken.has(id), limit: LIMIT, depth: DEPTH, seconds: SECONDS, scope: host.id
+      plan = await measure(source, {
+        origin: location.origin, keepScript, fonts, taken: id => taken.has(id), limit: LIMIT, depth: DEPTH, seconds: SECONDS, scope: host.id, siteNames: names
       }, part);
     } catch (error) {
       if (!(error instanceof TooLarge) || hosts.length === 1) throw error;
@@ -159,25 +216,28 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
     if (plan.fonts) fonts = plan.fonts;
     plans.push(plan);
     done.push(host);
+    shots.push(shot);
   }
   if (!plans.length) throw skipped!;
   let fresh = `cvpart-${Math.random().toString(36).slice(2, 7)}`;
   while (taken.has(fresh)) fresh += 'x';
   const build = (): Command[] => [
     ...fontsCommand(site, plans.reduce<Record<string, SiteFont> | null>((last, plan) => plan.fonts || last, null)),
-    ...done.flatMap((host, index) => part === undefined ? wholeCommands(site, host, plans[index]) : partCommands(site, host, sectionOf(site, host.id)!, plans[index], fresh))
+    ...done.flatMap((host, index) => withPoster(part === undefined ? wholeCommands(site, host, plans[index]) : partCommands(site, host, sectionOf(site, host.id)!, plans[index], fresh), shots[index]))
   ];
   if (build().length > BATCH) throw new TooLarge('count', plans.reduce((sum, plan) => sum + plan.nodes.length, 0), LIMIT);
   const { left } = await apply(build, plans.map((plan, index): [Plan, string] => [plan, done[index].id]));
   const outcome = plans.map(plan => plan.outcome).reduce((all, one) => ({
     converted: all.converted + one.converted, responsive: all.responsive + one.responsive, effects: all.effects + one.effects, floats: all.floats + one.floats,
     pictures: all.pictures + one.pictures, refused: all.refused + one.refused, scripted: all.scripted + one.scripted, left: all.left + one.left,
+    kept: all.kept + one.kept, keptAll: all.keptAll + one.keptAll, keptOver: all.keptOver + one.keptOver, keptClash: all.keptClash + one.keptClash, keptDropped: all.keptDropped + one.keptDropped,
     parts: Object.fromEntries([...new Set([...Object.keys(all.parts), ...Object.keys(one.parts)])].map(key => [key, (all.parts[key as keyof typeof all.parts] || 0) + (one.parts[key as keyof typeof one.parts] || 0)]))
   }));
   outcome.left += left;
   const root = part === undefined ? done[0].id : plans[0].nodes.find(item => item.parent === '')?.id || null;
   const stayed = skips ? ' ' + tn(skips, '1 page was too large to convert at once and stayed a code section: convert it one part at a time with Convert to editable elements.', '{0} pages were too large to convert at once and stayed code sections: convert each one part at a time with Convert to editable elements.', [skips]) : '';
-  return { message: summary(outcome, t, tn) + stayed, converted: outcome.converted, root };
+  const quiet = unrun ? ' ' + tn(unrun, 'The script of 1 page did not finish in time, so that page was measured without running it.', 'The scripts of {0} pages did not finish in time, so those pages were measured without running them.', [unrun]) : '';
+  return { message: summary(outcome, t, tn) + stayed + quiet, converted: outcome.converted, root };
 }
 
 /**
@@ -189,6 +249,8 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
   box.hidden = true;
   box.setAttribute('role', 'dialog');
   box.setAttribute('aria-modal', 'false');
+  box.tabIndex = -1;
+  box.dataset.ownKeys = '';
   const title = element('h2', 'fw-convert-title');
   label(title, 'Convert to editable elements');
   box.setAttribute('aria-label', t('Convert to editable elements'));
@@ -225,9 +287,17 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
   let target = '';
   let busy = false;
 
-  const close = (): void => { if (!box.hidden) box.hidden = true; };
+  const close = (): void => {
+    if (box.hidden) return;
+    if (box.contains(document.activeElement)) {
+      const shown = (node: HTMLElement | null): node is HTMLElement => !!node && node.getClientRects().length > 0;
+      const tab = document.querySelector<HTMLElement>('.inspector-tabs button.active'), audit = document.querySelector<HTMLElement>('[data-cmd="page.audit"]');
+      (shown(tab) ? tab : shown(audit) ? audit : null)?.focus({ preventScroll: true });
+    }
+    box.hidden = true;
+  };
   const say = (message: string, error = false): void => { text(note, message); note.classList.toggle('is-error', error); };
-  const setBusy = (on: boolean): void => { busy = on; go.disabled = on || !parts.hidden; box.setAttribute('aria-busy', String(on)); for (const button of Array.from(parts.querySelectorAll('button'))) (button as HTMLButtonElement).disabled = on || (button as HTMLButtonElement).dataset.big === '1'; };
+  const setBusy = (on: boolean): void => { if (on && box.contains(document.activeElement)) box.focus({ preventScroll: true }); busy = on; go.disabled = on || !parts.hidden; box.setAttribute('aria-busy', String(on)); for (const button of Array.from(parts.querySelectorAll('button'))) (button as HTMLButtonElement).disabled = on || (button as HTMLButtonElement).dataset.big === '1'; };
 
   function paintParts(list: Block[]): void {
     if (partsHead.hidden !== !list.length) { partsHead.hidden = !list.length; parts.hidden = !list.length; }
@@ -267,9 +337,10 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
     if (busy || !target) return undefined;
     setBusy(true);
     say(t('Converting...'));
+    const chosen = host.selected();
     try {
       const done = await convertSections([target], scriptBox.checked || scriptRow.hidden === true, part);
-      finish(done);
+      finish(done, chosen);
       if (part !== undefined) {
         const record = sectionOf(state().site, target);
         if (record?.html?.trim()) { const next = blocks(sourceOf(record)); paintParts(next.blocks); say(done.message); return done; }
@@ -291,9 +362,10 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
     }
   }
 
-  function finish(done: Converted): void {
-    const after = state().revision;
-    if (done.root && state().site.nodes[done.root]) host.select(done.root);
+  /** Selects what the conversion made, unless the person chose another element while it ran. */
+  function finish(done: Converted, chosen: string): void {
+    const after = state().revision, now = host.selected();
+    if (done.root && state().site.nodes[done.root] && (now === chosen || !state().site.nodes[now])) host.select(done.root);
     host.notify(done.message, () => {
       if (state().revision !== after) { host.status(t('The site changed after the conversion. Use Edit > Undo to step back.'), true); return; }
       return host.undo();
@@ -313,17 +385,19 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
     params: {
       node: { type: 'string', description: 'The code section element to convert. Default: the selected element.' },
       nodes: { type: 'array', description: 'Several code section elements to convert in one undo step.' },
-      keepScript: { type: 'boolean', description: 'Keep the page\'s script as a small code section (default true).' },
-      part: { type: 'integer', min: 0, description: 'Convert only this top-level block of the section (0 is the first), for a page too large for one conversion.' }
+      keepScript: { type: 'boolean', description: 'Keep the page\'s script as a small code section, with the style rules the converted elements do not use, for what the script builds (default true).' },
+      part: { type: 'integer', min: 0, description: 'Convert only this top-level block of the section (0 is the first), for a page too large for one conversion.' },
+      run: { type: 'boolean', description: 'Run the page\'s script first in a sealed frame with no network, and measure the page as it stands after the script ran (default false).' }
     },
     enabled: () => host.ready() && anySection(),
-    description: 'Turn a code section (an imported page or any section of plain HTML and CSS) into ordinary FormWeb elements with their own text, links, pictures and base styles measured at desktop width, in one undo step. Scripts, inline frames and vector graphics stay as small code sections in place; responsive rules are not carried over. Without parameters it opens a short dialog for the selected element; with node or nodes it converts at once and returns the result sentence.',
+    description: 'Turn a code section (an imported page or any section of plain HTML and CSS) into ordinary FormWeb elements with their own text, links, pictures and base styles measured at desktop width, in one undo step. Scripts, inline frames and vector graphics stay as small code sections in place; responsive rules are not carried over. A kept script keeps the style rules no converted element uses, and the class rules the script names, so what it builds is styled in Preview and the export. Without parameters it opens a short dialog for the selected element; with node or nodes it converts at once and returns the result sentence.',
     when: 'Use when the person wants to edit an imported page or a code section visually: click a heading, change its text, restyle it or move it.',
     run: async (params?: Record<string, unknown>) => {
       const list = Array.isArray(params?.nodes) ? (params!.nodes as unknown[]).filter((id): id is string => typeof id === 'string') : typeof params?.node === 'string' ? [params.node] : null;
       if (!list) { if (convertible(host.selected())) open(host.selected()); else host.status(t('Select a code section that holds HTML to convert.'), true); return undefined; }
-      const done = await convertSections(list, params?.keepScript !== false, typeof params?.part === 'number' ? params.part : undefined);
-      finish(done);
+      const chosen = host.selected();
+      const done = await convertSections(list, params?.keepScript !== false, typeof params?.part === 'number' ? params.part : undefined, params?.run === true);
+      finish(done, chosen);
       return { message: done.message, converted: done.converted, root: done.root };
     }
   }];

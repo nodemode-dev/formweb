@@ -5,13 +5,15 @@ import { installChoiceLists } from './choice-list';
 import type { LayerFrame, Trial, TrialEnd, TrialOwner, TryKit, TryOptions } from './types';
 
 const STORE = 'formweb.try-choices';
-const PASS = new Set(['edit.copy', 'file.save', 'view.search', 'view.try-choices']);
+const PASS = new Set(['edit.copy', 'file.save', 'view.search', 'view.try-choices', 'view.audit-markers', 'view.hover-outline']);
 const SURFACE = '.fw-menubar, .fw-menu, .fw-search-pop, [data-cmd]';
 const MENU = '.fw-menubar, .fw-menu, .fw-search-pop';
+const MENUS = '.fw-menubar, .fw-menu';
 const LANDING_MS = 30000;
 const AIMED_MS = 15000;
 
 type Live = { trial: Trial; owner: TrialOwner; node: string; scope: string; base: string; value: string | null; pending: boolean; over: boolean; detached: boolean; end(how: TrialEnd, message?: string): void };
+type Parked = { entry: Live; back: HTMLElement };
 
 function ended(owner: TrialOwner, how: TrialEnd): void {
   try { owner.ended(how); } catch (error) { console.error(error); }
@@ -19,6 +21,11 @@ function ended(owner: TrialOwner, how: TrialEnd): void {
 
 function within(target: EventTarget | null, selector: string): boolean {
   return target instanceof Element && !!target.closest(selector);
+}
+
+function inMenubar(target: EventTarget | null): boolean {
+  if (within(target, '.fw-menubar')) return true;
+  return within(target, '.fw-menu') && !!document.querySelector('.fw-menubar [aria-expanded="true"]');
 }
 
 function readOn(): boolean {
@@ -39,6 +46,7 @@ export function installTry(options: TryOptions): TryKit {
   let liveScope = '';
   let watching = 0;
   let aimed = 0;
+  let parked: Parked | null = null;
   let said = '';
   let swallowing = false;
   let repeat = false;
@@ -64,6 +72,17 @@ export function installTry(options: TryOptions): TryKit {
 
   const hidden = (entry: Live): boolean => !entry.owner.anchor.isConnected || entry.owner.anchor.getClientRects().length === 0;
 
+  const owns = (entry: Live, target: EventTarget | null): boolean => target instanceof Node
+    && (bar.element.contains(target) || entry.owner.anchor.contains(target) || (entry.owner.inside?.() ?? []).some(part => part.contains(target)));
+
+  const unpark = (spot: Parked): void => {
+    const now = document.activeElement;
+    if (!document.hasFocus() || (now && now !== document.body && !(within(now, MENUS) && now.getClientRects().length === 0))) return;
+    if (parked === spot) parked = null;
+    const back = [spot.back, spot.entry.owner.anchor, ...(spot.entry.owner.inside?.() ?? [])].find(node => node.isConnected && node.getClientRects().length > 0 && !(node as HTMLButtonElement).disabled && !node.closest('[inert]'));
+    back?.focus({ preventScroll: true });
+  };
+
   const check = (fromSync: boolean): void => {
     const scope = options.scope();
     const editing = options.editing();
@@ -85,6 +104,7 @@ export function installTry(options: TryOptions): TryKit {
       watching = 0;
       if (!current && !lives.size) return;
       check(false);
+      if (parked && parked.entry === current && !current.pending) unpark(parked);
       if (current || lives.size) watching = requestAnimationFrame(tick);
     };
     watching = requestAnimationFrame(tick);
@@ -208,7 +228,12 @@ export function installTry(options: TryOptions): TryKit {
     if (!entry || entry.over || entry.pending) return;
     const target = event.target as Node | null;
     if (!target || target === document.body || within(target, '.fw-search-pop')) return;
-    if (bar.element.contains(target) || entry.owner.anchor.contains(target) || (entry.owner.inside?.() ?? []).some(part => part.contains(target))) return;
+    if (owns(entry, target)) { parked = null; return; }
+    if (inMenubar(target)) {
+      if (parked?.entry !== entry) parked = { entry, back: owns(entry, event.relatedTarget) ? event.relatedTarget as HTMLElement : entry.owner.anchor };
+      return;
+    }
+    parked = null;
     const shown = entry.value !== null;
     entry.trial.revert();
     aimed = shown && within(target, SURFACE) ? performance.now() : 0;
@@ -252,6 +277,7 @@ export function installTry(options: TryOptions): TryKit {
     },
     begin(owner: TrialOwner): Trial {
       aimed = 0;
+      parked = null;
       retire();
       const entry = create(owner);
       current = entry;
@@ -283,6 +309,8 @@ export function installTry(options: TryOptions): TryKit {
       draw();
     },
     intercept(command: string): boolean {
+      const spot = parked;
+      if (spot && within(document.activeElement, MENUS)) setTimeout(() => unpark(spot));
       if (PASS.has(command)) return false;
       const undo = command === 'edit.undo';
       const wasAimed = aimed && performance.now() - aimed < AIMED_MS;

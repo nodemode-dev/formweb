@@ -9,9 +9,9 @@ The user guide teaches FormWeb to a person who has never used it: plain words, n
 - [The right panel](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/04-right-panel.md): tabs, trying a choice before keeping it, sliders, the color picker and gradients, the grid layout chooser, motion presets, Search properties and breakpoints.
 - [Page background and theme colors](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/05-background-and-theme-colors.md)
 - [Preview](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/06-preview.md)
-- [Audit](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/07-audit.md)
-- [Export and publishing](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/08-export-and-publish.md)
-- [Importing](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/09-importing.md)
+- [Audit](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/07-audit.md): the audit, Select, and audit markers on the page.
+- [Export and publishing](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/08-export-and-publish.md): the zip, and where the desktop app saves exports.
+- [Importing](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/09-importing.md): the review names files a page loads from the web; a converted page keeps the style rules its script needs.
 - [Components and the Library](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/10-components-and-library.md)
 - [Keyboard shortcuts](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/11-keyboard-shortcuts.md)
 - [Coming from Dreamweaver or another visual builder](https://github.com/nodemode-dev/formweb/blob/main/docs/guide/12-coming-from-other-builders.md)
