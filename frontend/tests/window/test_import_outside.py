@@ -110,7 +110,7 @@ def test_the_review_row_names_both_hosts_as_plain_text_with_how_many_files_each_
     expect(sentence).to_be_visible()
     expect(sentence).to_contain_text("1 stylesheet from cdn.example.net")
     expect(sentence).to_contain_text("1 script from code.example.org")
-    expect(sentence).to_contain_text("not brought along")
+    expect(sentence).to_contain_text("Only the ticked files are brought along")
     assert sentence.evaluate("e => [e.children.length, !!e.closest('a, [href], [role=link]')]") == [0, False]
     assert view.locator('a, [href*="example."], [src*="example."], [role="link"]').count() == 0
 
@@ -279,7 +279,7 @@ def test_a_row_whose_outside_files_are_all_named_says_so_once_and_not_again_in_t
     row = rows(view).first
     expect(web_sentence(row)).to_contain_text("1 script from code.example.org")
     words = row.inner_text()
-    assert words.count("not brought along") == 1, words
+    assert words.count("Only the ticked files are brought along") == 1, words
     assert "external script" not in words and "external stylesheet" not in words, words
     assert "https://" not in words, words
 
