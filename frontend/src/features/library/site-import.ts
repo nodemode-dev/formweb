@@ -580,7 +580,7 @@ export class SiteImport {
         try {
           const plain = sections(result.pages.filter(id => !ran.includes(id)));
           const done = [plain.length ? (await this.hooks.convert(plain)).message : '', ran.length ? (await convertSections(sections(ran), true, undefined, true)).message : ''];
-          message += ' ' + [...done, missingHosts(missing), t('Undo once to get the pages back as code, twice to remove them.')].filter(Boolean).join(' ');
+          message += ' ' + [...done, missingHosts(missing), plain.length && ran.length ? t('Undo twice to get the pages back as code, three times to remove them.') : t('Undo once to get the pages back as code, twice to remove them.')].filter(Boolean).join(' ');
         }
         catch (error) { message += ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
       }
