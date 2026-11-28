@@ -1,6 +1,7 @@
 import type { Collection, Page, Site } from '../types';
 import { t } from '../i18n';
 import type { LayerFrame, LayerName } from '../features/try/types';
+import { pictureSizes } from '../features/convert/snapshot';
 
 type ItemContext = { collection: string; item: Collection['items'][number]; ids: Record<string, string>; suffix: string };
 
@@ -157,6 +158,14 @@ export class Canvas {
       if (head.textContent !== title) head.textContent = title;
       if (note.textContent !== line) note.textContent = line;
       if (note.hidden !== !line) note.hidden = !line;
+    }
+    if (wanted === 'img' && codeKind(site, id) === 'script') {
+      const words = t('A picture of what the script of this page builds. The real thing runs in Preview and on the published site.');
+      if (poster.getAttribute('alt') !== words) { poster.setAttribute('alt', words); poster.setAttribute('title', words); }
+      const size = pictureSizes.get(url!);
+      const look = size ? `display:block;width:${size[0]}px;max-width:100%;height:auto;aspect-ratio:${size[0]}/${size[1]};pointer-events:none` : 'display:block;max-width:100%;height:auto;pointer-events:none';
+      if (poster.getAttribute('style') !== look) poster.setAttribute('style', look);
+      if (size && poster.getAttribute('width') !== String(size[0])) { poster.setAttribute('width', String(size[0])); poster.setAttribute('height', String(size[1])); }
     }
     if (wanted === 'img' && poster.getAttribute('src') !== url) poster.setAttribute('src', url!);
     if (poster.parentNode !== node || node.lastChild !== poster) node.append(poster);

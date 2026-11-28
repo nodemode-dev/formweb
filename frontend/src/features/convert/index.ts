@@ -1,4 +1,4 @@
-import { commands as send, state } from '../../api';
+import { commands as send, state, upload } from '../../api';
 import { commands as registry } from '../../commands/registry';
 import { element, keyed, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
@@ -9,6 +9,7 @@ import type { Command, EditorState, SiteNode } from '../../types';
 import { blocks, measure, SCOPE, TooLarge, type Block, type Plan, type Planned, type Source } from './measure';
 import { refusal, ROOT_FORCED, scriptWords, summary, type SiteFont } from './rules';
 import { runSealed } from './sealed';
+import { picture, pictureSizes } from './snapshot';
 import '../../styles/convert.css';
 
 export const CONVERT_ID = 'library.convert-section';
@@ -19,6 +20,8 @@ const BATCH = 4000;
 const DEPTH = 60;
 const SECONDS = 20;
 const RETRIES = 40;
+/** Off while the export copies every asset the site names, the poster of a code section included. */
+const PICTURE_IN_SITE = false as boolean;
 
 export interface ConvertHost {
   overlay: HTMLElement;
@@ -45,7 +48,26 @@ function nodeOf(item: Planned): Record<string, unknown> {
   return { id: item.id, tag: item.tag, name: item.name, text: item.text, children: [], attrs: item.attrs, styles: item.styles, breakpoints: {} };
 }
 
-function adds(plan: Plan, parent: (planned: string) => string): Command[] {
+/** The picture of what a page's script builds, stored as a site asset; '' when none could be made. */
+async function posterOf(snapshot: string, width: number, height: number): Promise<string> {
+  try {
+    const blob = await picture(snapshot, width, height);
+    if (!blob) return '';
+    const stored = await upload(new File([blob], 'script-picture.png', { type: 'image/png' }));
+    if (typeof stored.url !== 'string' || !stored.url.startsWith('/api/assets/')) return '';
+    pictureSizes.set(stored.url, [width, height]);
+    return stored.url;
+  } catch {
+    return '';
+  }
+}
+
+const withPoster = (list: Command[], url: string): Command[] => url ? list.map(item => {
+  const value = item.command === 'code.section.set' ? (item.params as { value?: SectionRecord }).value : undefined;
+  return value && value.js?.trim() && !value.html?.trim() ? { ...item, params: { ...item.params, value: { ...value, poster: url } } } : item;
+}) : list;
+
+function adds(plan: Plan,parent: (planned: string) => string): Command[] {
   const list: Command[] = [];
   for (const item of plan.nodes) {
     list.push({ command: 'node.add', params: { parent: parent(item.parent), node: nodeOf(item) } });
@@ -165,14 +187,17 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
   let fonts = { ...(((site.extensions?.design as { fonts?: Record<string, SiteFont> } | undefined)?.fonts) || {}) };
   const plans: Plan[] = [];
   const done: SiteNode[] = [];
+  const shots: string[] = [];
   let skipped: TooLarge | null = null, skips = 0, size = 0, unrun = 0;
   for (const host of hosts) {
     let plan: Plan;
     let source = sourceOf(sectionOf(site, host.id)!);
+    let shot = '';
     if (run === true && source.js.trim()) {
       const sealed = await runSealed(source);
       if (sealed) source = { ...source, html: sealed.html, css: [source.css, sealed.css].filter(Boolean).join('\n') };
       else unrun++;
+      if (PICTURE_IN_SITE && sealed && keepScript && sealed.snapshot) shot =await posterOf(sealed.snapshot, sealed.width, sealed.height);
     }
     try {
       plan = await measure(source, {
@@ -191,13 +216,14 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
     if (plan.fonts) fonts = plan.fonts;
     plans.push(plan);
     done.push(host);
+    shots.push(shot);
   }
   if (!plans.length) throw skipped!;
   let fresh = `cvpart-${Math.random().toString(36).slice(2, 7)}`;
   while (taken.has(fresh)) fresh += 'x';
   const build = (): Command[] => [
     ...fontsCommand(site, plans.reduce<Record<string, SiteFont> | null>((last, plan) => plan.fonts || last, null)),
-    ...done.flatMap((host, index) => part === undefined ? wholeCommands(site, host, plans[index]) : partCommands(site, host, sectionOf(site, host.id)!, plans[index], fresh))
+    ...done.flatMap((host, index) => withPoster(part === undefined ? wholeCommands(site, host, plans[index]) : partCommands(site, host, sectionOf(site, host.id)!, plans[index], fresh), shots[index]))
   ];
   if (build().length > BATCH) throw new TooLarge('count', plans.reduce((sum, plan) => sum + plan.nodes.length, 0), LIMIT);
   const { left } = await apply(build, plans.map((plan, index): [Plan, string] => [plan, done[index].id]));

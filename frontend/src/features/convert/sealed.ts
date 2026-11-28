@@ -38,17 +38,31 @@ cr=Object.getOwnPropertyDescriptor(CSSStyleSheet.prototype,'cssRules').get,on=Ob
 ct2=Object.getOwnPropertyDescriptor(CSSRule.prototype,'cssText').get,ad=Object.getOwnPropertyDescriptor(Document.prototype,'adoptedStyleSheets'),
 tn=Object.getOwnPropertyDescriptor(Element.prototype,'localName').get,oh=Object.getOwnPropertyDescriptor(Element.prototype,'outerHTML').get,
 ael=EventTarget.prototype.addEventListener,asl=Array.prototype.slice,acc=Array.prototype.concat,ssl=String.prototype.slice,S=String,N=Number,
-nm=Object.getOwnPropertyDescriptor(Attr.prototype,'name').get,vl=Object.getOwnPropertyDescriptor(Attr.prototype,'value').get,start=now(),sent=false,timer=0,me=D.currentScript;
+nm=Object.getOwnPropertyDescriptor(Attr.prototype,'name').get,vl=Object.getOwnPropertyDescriptor(Attr.prototype,'value').get,start=now(),sent=false,timer=0,me=D.currentScript,
+cn=Object.getOwnPropertyDescriptor(Node.prototype,'childNodes').get,nt=Object.getOwnPropertyDescriptor(Node.prototype,'nodeType').get,dt=Object.getOwnPropertyDescriptor(CharacterData.prototype,'data').get,
+gpv=CSSStyleDeclaration.prototype.getPropertyValue,gbr=Element.prototype.getBoundingClientRect,io=String.prototype.indexOf,ce=Math.ceil,cca=String.prototype.charCodeAt,
+rl=Object.getOwnPropertyDescriptor(DOMRectReadOnly.prototype,'left').get,rt=Object.getOwnPropertyDescriptor(DOMRectReadOnly.prototype,'top').get,
+rr=Object.getOwnPropertyDescriptor(DOMRectReadOnly.prototype,'right').get,rb=Object.getOwnPropertyDescriptor(DOMRectReadOnly.prototype,'bottom').get,
+TAGS={div:1,span:1,p:1,ul:1,ol:1,li:1,a:1,b:1,i:1,em:1,strong:1,small:1,h1:1,h2:1,h3:1,h4:1,h5:1,h6:1,section:1,article:1,header:1,footer:1,nav:1,main:1,aside:1,button:1,label:1,table:1,thead:1,tbody:1,tr:1,td:1,th:1,time:1,code:1,pre:1,br:1,hr:1,sup:1,sub:1,mark:1,figure:1,figcaption:1,blockquote:1,dl:1,dt:1,dd:1},
+LOOK=["display","box-sizing","width","height","margin-top","margin-right","margin-bottom","margin-left","padding-top","padding-right","padding-bottom","padding-left","border-top-width","border-right-width","border-bottom-width","border-left-width","border-top-style","border-right-style","border-bottom-style","border-left-style","border-top-color","border-right-color","border-bottom-color","border-left-color","border-top-left-radius","border-top-right-radius","border-bottom-right-radius","border-bottom-left-radius","background-color","background-image","color","font-family","font-size","font-weight","font-style","line-height","letter-spacing","text-align","text-transform","text-decoration-line","white-space","flex-direction","flex-wrap","justify-content","align-items","row-gap","column-gap","opacity","box-shadow","list-style-type","overflow-x","overflow-y","vertical-align"];
 if(me)me.remove();
+function esc(s){var o="";for(var i=0;i<s.length;i++){var c=ap(cca,s,[i]);o+=c===38?"&amp;":c===60?"&lt;":c===62?"&gt;":c===34?"&quot;":c<32&&c!==9&&c!==10&&c!==13?" ":s[i];}return o;}
+function snap(el,st){if(st.n>=B.snapElements||st.c>B.snapChars){st.over=true;return "";}var name=S(ap(tn,el,[]));if(name==="script"||name==="style")return "";if(!TAGS[name]){if(name==="svg"||name==="img"||name==="iframe"||name==="object"||name==="embed"||name==="link"||name==="video"||name==="audio"||name==="canvas")return "";name="div";}
+st.n++;st.c+=1024;var cs=ap(gcs,W,[el]),style="";for(var p=0;p<LOOK.length;p++){var v=S(ap(gpv,cs,[LOOK[p]]));if(ap(io,v,["url("])!==-1&&ap(io,v,['url("data:'])===-1)continue;if(v)style+=LOOK[p]+":"+v+";";}
+var out="<"+name+' style="'+esc(style)+'">';if(name==="br"||name==="hr")return out;var kids=ap(cn,el,[]);for(var k=0;k<kids.length&&!st.over;k++){var t=ap(nt,kids[k],[]);if(t===3){var d=S(ap(dt,kids[k],[]));st.c+=d.length;if(st.c>B.snapChars){st.over=true;break;}out+=esc(d);}else if(t===1)out+=snap(kids[k],st);}
+return out+"</"+name+">";}
 function post(){if(sent)return;sent=true;var out={id:ID,rules:[],elements:[],built:[],snapshot:"",width:0,height:0},chars=0;
 try{var sheets=ap(asl,ap(sh,D,[]),[]);if(ad&&ad.get)sheets=ap(acc,sheets,[ap(asl,ap(ad.get,D,[])||[],[])]);
 for(var s=0;s<sheets.length&&out.rules.length<B.rules;s++){var node=null;try{node=ap(on,sheets[s],[]);}catch(e){}if(node&&ap(ha,node,[${JSON.stringify(OWN)}]))continue;
 var list;try{list=ap(cr,sheets[s],[]);}catch(e){continue;}for(var r=0;r<list.length&&out.rules.length<B.rules;r++){var text=ap(ct2,list[r],[]);if(text.length>B.ruleChars||chars+text.length>B.cssChars)continue;chars+=text.length;out.rules[out.rules.length]=text;}}
-var marked=ap(qsa,D,["[${MARK}]"]);for(var i=0;i<marked.length&&i<B.elements;i++){var el=marked[i],at=ap(an,el,[]),pairs=[];
+var bk=[],marked=ap(qsa,D,["[${MARK}]"]);for(var i=0;i<marked.length&&i<B.elements;i++){var el=marked[i],at=ap(an,el,[]),pairs=[];
 for(var a=0;a<at.length&&a<B.attrs;a++)pairs[pairs.length]=[ap(ssl,S(ap(nm,at[a],[])),[0,B.nameChars]),ap(ssl,S(ap(vl,at[a],[])),[0,B.valueChars])];
-var built=0,kids=ap(ch,el,[]);for(var k=0;k<kids.length;k++)if(!ap(ha,kids[k],["${MARK}"])&&ap(tn,kids[k],[])!=="script")built++;
+var built=0,kids=ap(ch,el,[]);for(var k=0;k<kids.length;k++)if(!ap(ha,kids[k],["${MARK}"])&&ap(tn,kids[k],[])!=="script"){built++;bk[bk.length]=kids[k];}
 var index=N(ap(ga,el,["${MARK}"]));out.elements[out.elements.length]=[index,pairs];if(built&&out.built.length<B.built)out.built[out.built.length]=[index,built];}
 }catch(e){}
+try{var state={n:0,c:0,over:false},html="",L=1e9,T=1e9,R=-1e9,Bo=-1e9;for(var q=0;q<bk.length&&!state.over;q++){var box=ap(gbr,bk[q],[]),x0=N(ap(rl,box,[])),y0=N(ap(rt,box,[])),x1=N(ap(rr,box,[])),y1=N(ap(rb,box,[]));
+if(x0<L)L=x0;if(y0<T)T=y0;if(x1>R)R=x1;if(y1>Bo)Bo=y1;html+=snap(bk[q],state);}
+var w=ce(R-L),h=ce(Bo-T);if(html&&!state.over&&html.length<=B.snapChars&&w>0&&h>0&&w<=1600&&h<=4000){out.snapshot=html;out.width=w;out.height=h;}}catch(e){}
 try{ap(pm,P,[out,"*"]);}catch(e){}}
 function later(){if(sent)return;ct(timer);var left=B.ms-500-(now()-start);timer=st(post,Math.max(0,Math.min(B.quiet,left)));}
 st(post,B.ms-500);
