@@ -471,6 +471,10 @@ class Site:
         self.deep: set = set()
         self.outside: list[str] = []
         self.listing: list[tuple[str, str]] | None = None
+        self.fetched: dict = {}
+        self.brought: list[dict] = []
+        self.fonts_used: set = set()
+        self.notes: dict = {}
         self.assets ={path: '/api/assets/' + hashlib.sha256(body).hexdigest() + '.' + STORED.get(_ext(path), _ext(path))
                        for path, (kind, body) in files.items() if kind == 'asset'}
 
@@ -527,6 +531,11 @@ class Site:
             if self.listing is not None and (found is None or found[0] not in self.files):
                 self.listing.append(('stylesheet', match.group(1)))
             if found is None and not match.group(1).strip().lower().startswith('data:'):
+                item = outside_file('stylesheet', match.group(1))
+                merged = self.outside_css(item['url']) if item else None
+                if merged is not None:
+                    media = match.group(2).strip()
+                    return f'@media {media} {{\n{merged}\n}}' if media and merged else merged
                 if match.group(0) not in self.outside:
                     self.outside.append(match.group(0))
                 return ''
@@ -561,6 +570,69 @@ class Site:
 
         own = CSS_URL.sub(url, CSS_IMPORT.sub(hold, text.replace('\x00', '')))
         return re.sub(r'\x00(\d+)\x00', lambda m: held[int(m.group(1))], own)
+
+    def outside_css(self, address: str) -> str | None:
+        """A downloaded stylesheet the person ticked, ready to stand where its link or @import stood: its own @import
+        left out, its fetched fonts pointing at their stored assets, every other outside url() and every @font-face
+        whose font was not fetched left out, its licence comment kept with a line naming where it came from. None
+        when it was not downloaded or no longer fits; an empty string when this page already holds it."""
+        from .outside_fetch import font_faces, resolve
+        record = self.fetched.get(address)
+        if not record or record['kind'] != 'stylesheet' or record['text'] is None:
+            return None
+        if any(item['url'] == address for item in self.brought):
+            return ''
+        text = record['text'].replace('\x00', '')
+        if len(text.encode()) > self.room:
+            self.notes.setdefault('large', []).append(address)
+            return None
+        self.room -= len(text.encode())
+        counts = {'import': 0, 'face': 0, 'url': 0}
+
+        def no_import(match):
+            counts['import'] += 1
+            return ''
+
+        def other(match):
+            if next(g for g in match.group(1, 2, 3) if g is not None).strip().lower().startswith('data:'):
+                return match.group(0)
+            counts['url'] += 1
+            return 'none'
+
+        text = CSS_IMPORT.sub(no_import, text)
+        lead, rest = '', text.lstrip()
+        if rest.startswith('/*') and rest.find('*/', 2) >= 0:
+            end = rest.find('*/', 2) + 2
+            lead, text = rest[:end] + '\n', rest[end:]
+        parts, at = [], 0
+        for start, end in font_faces(text):
+            parts.append(CSS_URL.sub(other, text[at:start]))
+            block, fonts, whole = text[start:end], [], True
+            for match in CSS_URL.finditer(block):
+                value = next(g for g in match.group(1, 2, 3) if g is not None)
+                if value.strip().lower().startswith('data:'):
+                    continue
+                target = resolve(address, value)
+                font = self.fetched.get(target) if target else None
+                if font and font['kind'] == 'font' and target in record['fonts']:
+                    fonts.append(target)
+                else:
+                    whole = False
+            if whole:
+                self.fonts_used.update(fonts)
+                parts.append(CSS_URL.sub(lambda m: self.font_address(resolve(address, next(g for g in m.group(1, 2, 3) if g is not None))) or m.group(0), block))
+            else:
+                counts['face'] += 1
+            at = end
+        parts.append(CSS_URL.sub(other, text[at:]))
+        for key, count in counts.items():
+            self.notes[key] = self.notes.get(key, 0) + count
+        self.brought.append({'kind': 'stylesheet', 'host': record['host'], 'url': address, 'bytes': len(record['body'])})
+        return f'{lead}/* Downloaded from {address.replace("*/", "*%2F")} */\n' + ''.join(parts).strip()
+
+    def font_address(self, address: str | None) -> str | None:
+        font = self.fetched.get(address) if address else None
+        return f'url("/api/assets/{hashlib.sha256(font["body"]).hexdigest()}.woff2")' if font and font['kind'] == 'font' else None
 
     def markup(self, text: str, base: str, missing: set) -> str:
         def attribute(match):
@@ -603,6 +675,7 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     outside_scripts, outside_styles = set(), set()
     named_scripts = named_styles = True
     site.used, site.room, site.overflow, site.loops, site.deep, site.outside, site.listing = set(), CSS_CAP, False, set(), set(), [], []
+    site.brought, site.fonts_used, site.notes, raw, extra = [], set(), {}, body, []
     title = TITLE.search(document)
     title = re.sub(r'\s+', ' ', unescape(title.group(1))).strip()[:200] if title else ''
     description = ''
@@ -630,7 +703,11 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
                 found = site.locate(source, base)
                 if found is None or found[0] not in site.files:
                     site.listing.append(('script', source))
-                if found is None:
+                item = outside_file('script', source) if found is None else None
+                record = site.fetched.get(item['url']) if item else None
+                if record and record['kind'] == 'script' and record['text'] is not None:
+                    extra.append((record['text'], module, item['url'], record, source))
+                elif found is None:
                     outside_scripts.add(source[:120])
                     named_scripts = named_scripts and outside_file('script', source) is not None
                 elif found[0] in site.files and site.files[found[0]][0] == 'script':
@@ -649,7 +726,13 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             found = site.locate(href, base)
             if found is None or found[0] not in site.files:
                 site.listing.append(('stylesheet', href))
-            if found is None:
+            item = outside_file('stylesheet', href) if found is None else None
+            merged = site.outside_css(item['url']) if item else None
+            if merged is not None:
+                inlined.add(whole)
+                media = attrs.get('media', '').strip()
+                styles.append(f'@media {media} {{\n{merged}\n}}' if media and media.lower() != 'all' and merged else merged)
+            elif found is None:
                 if href.strip() and block.start() < body_at:
                     outside_styles.add(href[:120])
                     named_styles = named_styles and outside_file('stylesheet', href) is not None
@@ -673,6 +756,24 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
             module = any(item[1] for item in scripts)
         except EngineError as error:
             warnings.append(f'The script was left out: {error}')
+    if extra:
+        joined, wanted = [], module if script.strip() else extra[0][1]
+        room = JS_CAP - len(script.encode())
+        for text, kind, address, record, source in extra:
+            if any(item['url'] == address for item in site.brought):
+                continue
+            if kind != wanted:
+                warnings.append(f'The {"module" if kind else "classic"} script from {address[:120]} was left out: it cannot be joined with the page\'s {"module" if wanted else "classic"} script.')
+            elif len(text.encode()) + 2 > room:
+                warnings.append(f'The script from {address[:120]} was left out: with it the page\'s script passes 512 KiB, the most a code section holds.')
+            else:
+                room -= len(text.encode()) + 2
+                joined.append(text.strip())
+                site.brought.append({'kind': 'script', 'host': record['host'], 'url': address, 'bytes': len(record['body'])})
+                continue
+            outside_scripts.add(source[:120])
+        if joined:
+            script, module = '\n;\n'.join([*joined, script.strip()]).strip(), wanted
     if foreign:
         warnings.append(left_out_scripts(foreign))
     covered = []
@@ -699,8 +800,26 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     if missing:
         shown = sorted(missing)
         warnings.append(f'{len(shown)} reference{"s" if len(shown) != 1 else ""} point{"" if len(shown) != 1 else "s"} at files that were skipped or are not in the archive: {", ".join(item[:80] for item in shown[:5])}{"..." if len(shown) > 5 else ""}.')
+    if len(css.encode()) > CSS_CAP and any(item['kind'] == 'stylesheet' for item in site.brought):
+        kept = site.fetched
+        site.fetched = {address: record for address, record in kept.items() if record['kind'] != 'stylesheet'}
+        try:
+            page = _page(site, path, raw, kit_script)
+        finally:
+            site.fetched = kept
+        page['warnings'].append('The stylesheets downloaded from the web were left out: with them the page\'s styles pass 256 KiB, the most a code section holds.')
+        return page
+    notes = site.notes
+    for address in notes.get('large', []):
+        warnings.append(f'The stylesheet from {address[:120]} was left out: with it the page\'s styles pass 256 KiB, the most a code section holds.')
+    if notes.get('import'):
+        warnings.append(f'{notes["import"]} @import in the stylesheets downloaded from the web {"was" if notes["import"] == 1 else "were"} not followed and left out.')
+    if notes.get('face'):
+        warnings.append(f'{notes["face"]} @font-face rule{"s" if notes["face"] != 1 else ""} of the stylesheets downloaded from the web {"was" if notes["face"] == 1 else "were"} left out because {"its" if notes["face"] == 1 else "their"} font files were not downloaded.')
+    if notes.get('url'):
+        warnings.append(f'{notes["url"]} other address{"es" if notes["url"] != 1 else ""} in the stylesheets downloaded from the web {"was" if notes["url"] == 1 else "were"} left out, so the page asks no outside host.')
     name = (title or posixpath.basename(path).rsplit('.', 1)[0] or 'Imported page')[:120]
-    return {'file': path, 'name': name, 'title': title, 'description': description, 'html': markup, 'css': css, 'js': script.strip(), 'module': module and bool(script.strip()), 'warnings': warnings, 'overflow': site.overflow,
+    return {'brought': list(site.brought), 'fontsUsed': sorted(site.fonts_used), 'file': path, 'name': name, 'title': title, 'description': description, 'html': markup, 'css': css, 'js': script.strip(), 'module': module and bool(script.strip()), 'warnings': warnings, 'overflow': site.overflow,
             'outside': outside, 'outsideMore': more, 'outsideWarnings': covered}
 
 
@@ -727,11 +846,12 @@ def _emptiable(site: dict, root: str) -> bool:
     return not (inside & named)
 
 
-def plan(archive: dict, site: dict, kit_script) -> dict:
+def plan(archive: dict, site: dict, kit_script, fetched: dict | None = None) -> dict:
     """What an import would do to this site, in both modes, without changing anything."""
     files = archive['files']
     skipped = list(archive['skipped'])
     resolver = Site(files)
+    resolver.fetched = fetched or {}
     pages = sorted((path for path, (kind, _) in files.items() if kind == 'page'), key=lambda p: (p.count('/'), not re.search(r'(^|/)index\.html?$', p), p.lower()))
     if len(pages) > MAX_PAGES:
         skipped += [{'file': path, 'reason': f'A site import brings at most {MAX_PAGES} pages.'} for path in pages[MAX_PAGES:]]
@@ -813,7 +933,7 @@ def summary(pages: int, assets: int, skipped: int) -> str:
     return made
 
 
-def commands(result: dict, site: dict, mode: str, archive: dict, kit_script) -> tuple[list[dict], list[str]]:
+def commands(result: dict, site: dict, mode: str, archive: dict, kit_script, fetched: dict | None = None) -> tuple[list[dict], list[str]]:
     """One batch: new pages (or matching pages emptied, in replace mode) each holding one code section host."""
     if not result['pages']:
         raise EngineError('The archive has no HTML page that can be imported.', 400)
@@ -822,6 +942,7 @@ def commands(result: dict, site: dict, mode: str, archive: dict, kit_script) -> 
     resolver_routes = {p['file']: (p['route'] if mode == 'replace' and p['replaces'] else p['newRoute']) for p in result['pages']}
     resolver = Site(archive['files'])
     resolver.routes = resolver_routes
+    resolver.fetched = fetched or {}
     ids = {page['id'] for page in site.get('pages') or []} | set((site.get('nodes') or {}).keys()) | set((site.get('components') or {}).keys()) | set((site.get('collections') or {}).keys())
     made, removals, opened = [], [], []
     if not result['allow']:
@@ -863,3 +984,12 @@ def store_assets(result: dict, archive: dict, studio) -> int:
         stored = ingest(archive['files'][path][1], 'application/octet-stream', posixpath.basename(path))
         own_asset(studio, stored['id'])
     return len(result['assets'])
+
+
+def store_fonts(result: dict, fetched: dict, studio) -> int:
+    """The downloaded font files the imported pages use, stored as the site's own assets as archive fonts are."""
+    used = sorted({address for page in result['pages'] for address in page.get('fontsUsed', [])})
+    for address in used:
+        stored = ingest(fetched[address]['body'], 'application/octet-stream', 'font.woff2')
+        own_asset(studio, stored['id'])
+    return len(used)
