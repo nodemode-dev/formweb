@@ -625,6 +625,13 @@ class Site:
                 counts['face'] += 1
             at = end
         parts.append(CSS_URL.sub(other, text[at:]))
+        plain = re.sub(r'\\([0-9a-fA-F]{1,6})[ \t\n\r\f]?|\\(.)', lambda m: (chr(int(m.group(1), 16)) if int(m.group(1), 16) < 0x110000 else ' ') if m.group(1) else m.group(2), ''.join(parts)).lower()
+        left = any(not plain[m.end():m.end() + 12].startswith(('data:', '/api/assets/')) for m in re.finditer(r'url\(\s*["\']?', plain))
+        if left or '@import' in plain or 'image-set(' in plain:
+            self.room += len(text.encode())
+            self.fonts_used.difference_update(record['fonts'])
+            self.notes.setdefault('odd', []).append(address)
+            return None
         for key, count in counts.items():
             self.notes[key] = self.notes.get(key, 0) + count
         self.brought.append({'kind': 'stylesheet', 'host': record['host'], 'url': address, 'bytes': len(record['body'])})
@@ -816,6 +823,8 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
         page['warnings'].append('The stylesheets downloaded from the web were left out: with them the page\'s styles pass 256 KiB, the most a code section holds.')
         return page
     notes = site.notes
+    for address in notes.get('odd', []):
+        warnings.append(f'The stylesheet from {address[:120]} was left out: it names other addresses in a form that cannot be checked, so with it the page could ask an outside host.')
     for address in notes.get('large', []):
         warnings.append(f'The stylesheet from {address[:120]} was left out: with it the page\'s styles pass 256 KiB, the most a code section holds.')
     if notes.get('import'):
@@ -995,7 +1004,15 @@ def store_assets(result: dict, archive: dict, studio) -> int:
 def store_fonts(result: dict, fetched: dict, studio) -> int:
     """The downloaded font files the imported pages use, stored as the site's own assets as archive fonts are."""
     used = sorted({address for page in result['pages'] for address in page.get('fontsUsed', [])})
+    kept = 0
     for address in used:
-        stored = ingest(fetched[address]['body'], 'application/octet-stream', 'font.woff2')
+        try:
+            stored = ingest(fetched[address]['body'], 'application/octet-stream', 'font.woff2')
+        except EngineError:
+            for page in result['pages']:
+                if address in page.get('fontsUsed', []):
+                    page['warnings'].append(f'The font from {address[:120]} is not a font file the site can keep, so it was left out and the text falls back to the next font.')
+            continue
         own_asset(studio, stored['id'])
-    return len(used)
+        kept += 1
+    return kept

@@ -175,7 +175,7 @@ def _get(url: str, kind: str) -> tuple[bytes, str, str]:
             target = (parts.path or '/') + ('?' + parts.query if parts.query else '')
             request = (f'GET {target} HTTP/1.1\r\nHost: {current["host"]}\r\nUser-Agent: FormWeb\r\nAccept: {ACCEPT[kind]}\r\n'
                        'Accept-Encoding: identity\r\nConnection: close\r\n\r\n')
-            if any(c in target for c in '\r\n ') or len(request) > URL_MAX + 400:
+            if any(c in target for c in '\r\n ') or not request.isascii() or len(request) > URL_MAX + 400:
                 raise EngineError('The address holds characters that cannot be sent.')
             stream.settimeout(max(0.1, deadline - time.monotonic()))
             stream.sendall(request.encode('ascii', 'strict'))
