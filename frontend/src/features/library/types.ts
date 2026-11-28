@@ -23,11 +23,15 @@ export type LibResult = { root?: string; pages?: string[]; warnings?: string[]; 
 /** POST /api/library/import-site/review: what importing a site zip would do, nothing changed yet. */
 export type SiteSkip = { file: string; reason: string };
 /** A stylesheet or script a page loads from another host: named in the review, never fetched. */
-export type SiteOutside = { kind: 'stylesheet' | 'script'; host: string; url: string };
+export type SiteOutside = { kind: 'stylesheet' | 'script' | 'font'; host: string; url: string };
+/** POST /api/library/outside/fetch: one file the service downloaded for this review, kept under the token, never sent back. */
+export type OutsideFetched = { token: string; url: string; kind: SiteOutside['kind']; host: string; bytes: number; type: string; fonts: { url: string; host: string }[]; fontsMore: number };
+/** One outside file as the review holds it: whether the person wants it and where its download stands. */
+export type OutsideFile = SiteOutside & { want: boolean; status: 'idle' | 'loading' | 'ready' | 'error'; bytes: number; error: string; fonts: string[]; parent: string };
 export type SitePage = { file: string; name: string; title: string; description: string; route: string; newRoute: string; replaces: { id: string; name: string; safe: boolean } | null; bytes: number; warnings: string[]; outside?: SiteOutside[]; outsideMore?: number; outsideWarnings?: number[] };
 export type SiteReview = { pages: SitePage[]; assets: { count: number; bytes: number }; supportFiles: number; skipped: SiteSkip[]; ignored: number; canReplace: boolean; replaceNote: string; notes: string[]; revision: number };
 /** POST /api/library/import-site: the batch state plus the pages made, assets stored and files skipped. */
-export type SiteResult = { pages?: string[]; assets?: number; skipped?: SiteSkip[]; warnings?: string[]; message?: string };
+export type SiteResult = { pages?: string[]; assets?: number; skipped?: SiteSkip[]; warnings?: string[]; message?: string; outside?: { files?: { kind: string; host: string; url: string; bytes: number }[]; fonts?: number; pages?: string[] } };
 
 export type LibraryHooks = {
   /** Where an insert goes: the page, its parent, and the index after the selected top-level section (none means the end). */

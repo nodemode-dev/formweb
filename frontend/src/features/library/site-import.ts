@@ -2,10 +2,11 @@ import { libraryMutate, request } from '../../api';
 import { element, keyed, text } from '../../ui/dom';
 import { icon } from '../../ui/icons';
 import { label, onLanguage, t } from '../../i18n';
-import type { LibraryHooks, SitePage, SiteResult, SiteReview, SiteSkip } from './types';
+import type { LibraryHooks, OutsideFetched, OutsideFile, SitePage, SiteResult, SiteReview, SiteSkip } from './types';
 import { bringChoice, type BringWhy } from './bring';
 import { hostList, importSection, joined, missingHosts } from './importer';
 import { state, subscribe } from '../../api';
+import { convertSections } from '../convert';
 
 type Mode = 'new' | 'replace';
 type Use = 'pages' | 'section';
@@ -34,8 +35,9 @@ function outsideSentence(page: SitePage): string {
     : count === 1 ? t('1 script from {0}', [host]) : t('{0} scripts from {1}', [count, host]));
   const rest = all.slice(4).reduce((sum, group) => sum + group.count, 0) + (page.outsideMore || 0);
   if (rest) pieces.push(rest === 1 ? t('1 more file') : t('{0} more files', [rest]));
-  return t('This page loads files from the web: {0}. These files are not brought along.', [joined(pieces)]);
+  return t('This page loads files from the web: {0}. Only the ticked files are brought along.', [joined(pieces)]);
 }
+const KIND_WORD: Record<OutsideFile['kind'], () => string> = { stylesheet: () => t('Stylesheet'), script: () => t('Script'), font: () => t('Font file') };
 /** Decodes a picked page exactly as the service decodes one inside a zip: UTF-8 (a byte order mark dropped), else Windows-1252 with its five unassigned bytes as U+FFFD. */
 function decode(bytes: ArrayBuffer): string {
   try { return new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
@@ -89,13 +91,17 @@ export class SiteImport {
   private mode: Mode = 'new';
   private busy = false;
   private done = false;
+  private token: string | null = null;
+  private outside = new Map<string, OutsideFile>();
+  private round = 0;
+  private line: Promise<unknown> = Promise.resolve();
 
   constructor(private hooks: LibraryHooks, back: () => void, private show: () => void) {
     const scroller = this.scroller;
     const backButton = element('button', 'fw-lib-choose fw-lib-site-back');
     backButton.type = 'button';
     backButton.append(icon('chevronLeft'), element('span', '', t('Import HTML')));
-    backButton.addEventListener('click', back);
+    backButton.addEventListener('click', () => { if (!this.busy) this.forget(); back(); });
     text(this.helpHtml, t('Each file becomes a new page at the address shown in the review, or a single file goes into the open page as a section.'));
     text(this.helpZip, t('Brings a static site made elsewhere into this site: every HTML file in the zip becomes a page, with its stylesheets, pictures and WOFF2 fonts. After the review you choose whether the pages arrive as editable elements or as code sections. Links between the pages follow their new addresses, and outside links stay as they are.'));
     this.help.append(this.helpHtml, this.helpZip);
@@ -145,6 +151,8 @@ export class SiteImport {
     this.reviewTail.append(this.skippedHead, this.skipped);
     scroller.append(backButton, this.title, this.help, this.pick, this.file, this.chosen, this.uses, this.useNote, this.review, this.section, this.bring.element, this.reviewTail, this.note);
     this.note.setAttribute('role', 'status');
+    this.note.tabIndex = -1;
+    this.note.dataset.ownKeys = '';
     this.go.type = 'button';
     this.go.disabled = true;
     this.go.append(icon('upload'), this.goLabel);
@@ -170,6 +178,7 @@ export class SiteImport {
   /** Back to the clean waiting state: no files, review, note or finished button, scrolled to the top. */
   reset(): void {
     if (this.busy) return;
+    this.forget();
     this.made = [];
     this.picked = [];
     this.current = null;
@@ -212,6 +221,7 @@ export class SiteImport {
     if (this.busy) return;
     const zips = files.filter(isZip);
     const pages = files.filter(isHtml);
+    this.forget();
     this.picked = files;
     this.current = null;
     this.loose = null;
@@ -240,6 +250,7 @@ export class SiteImport {
       if (zips.length) this.current = zips[0];
       else this.loose = await Promise.all(pages.map(async file => ({ name: file.name, html: decode(await file.arrayBuffer()) })));
       this.plan = await request<SiteReview>('/api/library/import-site/review', this.body());
+      for (const item of this.plan.pages.flatMap(page => (page.outside || []).slice(0, 60))) if (!this.outside.has(item.url) && this.outside.size < 400) this.outside.set(item.url, { kind: item.kind, host: item.host, url: item.url, want: false, status: 'idle', bytes: 0, error: '', fonts: [], parent: '' });
       this.bring.choose(this.plan.pages.some(loadsOutside) ? 'code' : 'elements');
       const empty = !this.plan.pages.length;
       if (empty) this.loose = null;
@@ -331,6 +342,19 @@ export class SiteImport {
     const loading = pages.filter(loadsOutside);
     if (!loading.length) return null;
     const hosts = hostList(hostsOf(loading));
+    const listed = loading.flatMap(page => page.outside || []);
+    if (listed.some(item => this.outside.get(item.url)?.want)) {
+      const short = [...new Set(listed.filter(item => this.outside.get(item.url)?.status !== 'ready').map(item => item.host))];
+      if (!short.length && !loading.some(page => page.outsideMore)) {
+        const kept = t('Every file the pages load from the web is ticked and downloaded, so the pages keep their look either way.');
+        return { code: kept, elements: kept };
+      }
+      const names = short.length ? hostList(short) : hosts;
+      return {
+        code: t('Kept as code, so the pages keep their own scripts and style rules. Files from {0} are not ticked or not downloaded, so they will be missing either way.', [names]),
+        elements: t('As elements, the pages arrive without the files from {0} that are not ticked or not downloaded, so part of their look or behaviour may be missing.', [names])
+      };
+    }
     if (section || pages.length === 1) return {
       code: t('Kept as code, so the page keeps its own scripts and style rules, responsive ones included. The files it loads from the web are not brought along either way.'),
       elements: t('As elements, the page arrives without the files it loads from {0}, so part of its look or behaviour may be missing.', [hosts])
@@ -349,15 +373,66 @@ export class SiteImport {
     const node = element('div', 'fw-lib-site-item');
     const outside = element('span', 'fw-lib-row-meta fw-lib-site-outside');
     outside.dataset.noI18n = '';
-    node.append(element('span', 'fw-lib-row-name'), element('span', 'fw-lib-site-route'), outside, element('span', 'fw-lib-row-meta'));
+    const files = element('div', 'fw-lib-out');
+    files.hidden = true;
+    files.append(element('p', 'fw-lib-row-meta fw-lib-out-help', t('A tick has FormWeb on this computer download that file from its host now, and the file becomes part of the site. Nothing is downloaded without a tick.')), element('div', 'fw-lib-out-list'));
+    node.append(element('span', 'fw-lib-row-name'), element('span', 'fw-lib-site-route'), outside, element('span', 'fw-lib-row-meta'), files);
     return node;
   }
 
+  /** One outside file: a checkbox with its kind, host and size; mounted once, painted by state, never rebuilt. */
+  private fileRow(url: string): HTMLElement {
+    const node = element('label', 'fw-lib-out-row');
+    const box = element('input');
+    box.type = 'checkbox';
+    box.dataset.ownKeys = '';
+    box.addEventListener('change', () => this.tick(url, box.checked));
+    const size = element('span', 'fw-lib-out-size');
+    size.setAttribute('aria-live', 'polite');
+    const said = element('span', 'fw-lib-out-said');
+    said.setAttribute('role', 'status');
+    node.append(box, element('span', 'fw-lib-out-kind'), element('span', 'fw-lib-out-host'), size, said);
+    return node;
+  }
+
+  private fillFile(node: HTMLElement, file: OutsideFile): void {
+    const [box, kind, host, weight, said] = Array.from(node.children) as HTMLElement[];
+    const check = box as HTMLInputElement;
+    if (check.checked !== file.want) check.checked = file.want;
+    if (check.disabled !== (this.busy || this.done)) check.disabled = this.busy || this.done;
+    node.classList.toggle('is-font', !!file.parent);
+    node.classList.toggle('is-error', file.status === 'error');
+    text(kind, KIND_WORD[file.kind]());
+    text(host, file.host);
+    host.title = file.url.slice(0, 2048);
+    text(weight, file.status === 'loading' ? t('Downloading') : file.status === 'ready' ? size(file.bytes) : '');
+    text(said, file.status === 'error' ? file.error : '');
+    said.title = file.status === 'error' ? file.error : '';
+  }
+
+  /** The page's outside files in its order, each stylesheet followed by the font files it names. */
+  private filesOf(page: SitePage): OutsideFile[] {
+    const rows: OutsideFile[] = [];
+    for (const item of page.outside || []) {
+      const file = this.outside.get(item.url);
+      if (!file || rows.includes(file)) continue;
+      rows.push(file);
+      for (const font of file.fonts) { const entry = this.outside.get(font); if (entry && !rows.includes(entry)) rows.push(entry); }
+    }
+    return rows;
+  }
+
   private fillPage(node: HTMLElement, page: SitePage): void {
-    const [name, route, outside, meta] = Array.from(node.children) as HTMLElement[];
+    const [name, route, outside, meta, files] = Array.from(node.children) as HTMLElement[];
     const web = outsideSentence(page);
     text(outside, web);
     if (outside.hidden === !web) outside.hidden = !web;
+    const rows = this.filesOf(page);
+    const list = files.lastElementChild as HTMLElement;
+    const keep = new Set(rows.map(file => file.url));
+    for (const child of Array.from(list.children) as HTMLElement[]) if (!keep.has(child.dataset.key || '')) child.remove();
+    keyed(list, rows, file => file.url, file => this.fileRow(file.url), (row, file) => this.fillFile(row, file));
+    if (files.hidden === !!rows.length) files.hidden = !rows.length;
     text(name, page.name);
     const replacing = this.mode === 'replace' && page.replaces;
     text(route, `${page.file} → ${replacing ? page.route : page.newRoute}`);
@@ -367,12 +442,88 @@ export class SiteImport {
   }
 
   private fillSkip(node: HTMLElement, item: SiteSkip): void {
-    const [name, route, outside, meta] = Array.from(node.children) as HTMLElement[];
+    const [name, route, outside, meta, files] = Array.from(node.children) as HTMLElement[];
     text(name, item.file);
     if (!route.hidden) route.hidden = true;
     if (!outside.hidden) outside.hidden = true;
+    if (!files.hidden) files.hidden = true;
     text(meta, t(item.reason));
     if (meta.hidden) meta.hidden = false;
+  }
+
+  /** A tick asks the service for that one file; an untick forgets it there, with the font rows only it named. */
+  private tick(url: string, on: boolean): void {
+    const file = this.outside.get(url);
+    if (!file || this.busy || this.done) return;
+    if (this.note.classList.contains('is-error')) this.say('', false);
+    file.want = on;
+    if (on && (file.status === 'idle' || file.status === 'error')) {
+      file.status = 'loading';
+      file.error = '';
+      this.fetchFile(url, this.round);
+    } else if (!on && file.status !== 'loading') {
+      const token = this.token;
+      if (file.status === 'ready') this.enqueue(() => this.dropFile(token, url));
+      this.clearFile(file);
+    }
+    this.paint();
+  }
+
+  private clearFile(file: OutsideFile): void {
+    for (const font of file.fonts) this.outside.delete(font);
+    file.fonts = [];
+    file.status = 'idle';
+    file.bytes = 0;
+    file.error = '';
+  }
+
+  /** Downloads and drops run one after another, so the first answer's token is the one every later call sends. */
+  private enqueue(work: () => Promise<unknown>): void {
+    this.line = this.line.then(work).catch(() => undefined);
+  }
+
+  private dropFile(token: string | null, url: string | null): Promise<unknown> {
+    return token ? request('/api/library/outside/drop', { token, url }).catch(() => undefined) : Promise.resolve();
+  }
+
+  private fetchFile(url: string, round: number): void {
+    this.enqueue(async () => {
+      const file = this.outside.get(url);
+      if (round !== this.round || !file) return;
+      if (!file.want) { this.clearFile(file); this.paint(); return; }
+      try {
+        const answer = await request<OutsideFetched>('/api/library/outside/fetch', { url, kind: file.kind, token: this.token });
+        if (round !== this.round) { void this.dropFile(answer.token, answer.token === this.token ? url : null); return; }
+        this.token = answer.token;
+        if (!file.want) { await this.dropFile(this.token, url); this.clearFile(file); return; }
+        file.status = 'ready';
+        file.bytes = answer.bytes;
+        file.fonts = [];
+        for (const font of (answer.fonts || []).slice(0, 20)) {
+          if (typeof font?.url !== 'string' || font.url.length > 2048 || this.outside.has(font.url)) continue;
+          this.outside.set(font.url, { kind: 'font', host: String(font.host || '').slice(0, 253), url: font.url, want: false, status: 'idle', bytes: 0, error: '', fonts: [], parent: url });
+          file.fonts.push(font.url);
+        }
+      } catch (error) {
+        if (round !== this.round) return;
+        this.clearFile(file);
+        file.want = false;
+        file.status = 'error';
+        file.error = (error instanceof Error ? error.message : String(error)).slice(0, 400);
+        this.say(file.error, true);
+      } finally {
+        if (round === this.round) this.paint();
+      }
+    });
+  }
+
+  /** Forgets every download of this review on the service; a download still out is dropped when it lands. */
+  private forget(keepRows = false): void {
+    if (this.token) void this.dropFile(this.token, null);
+    this.token = null;
+    this.round += 1;
+    this.line = Promise.resolve();
+    if (!keepRows) this.outside.clear();
   }
 
   private async placeSection(): Promise<void> {
@@ -396,12 +547,24 @@ export class SiteImport {
     if (this.use === 'section') return this.placeSection();
     const plan = this.plan;
     if (this.busy || !plan || (!this.current && !this.loose)) return;
+    if (this.element.contains(document.activeElement)) this.note.focus({ preventScroll: true });
     this.working = t('Importing...');
     this.setBusy(true);
     try {
-      const query = `?mode=${this.mode}&revision=${encodeURIComponent(String(plan.revision))}`;
+      if ([...this.outside.values()].some(file => file.status === 'loading')) {
+        this.progress(t('Waiting for the downloads...'));
+        while ([...this.outside.values()].some(file => file.status === 'loading')) await this.line;
+        this.progress(t('Importing...'));
+      }
+      const token = [...this.outside.values()].some(file => file.want && file.status === 'ready') ? this.token : null;
+      const query = `?mode=${this.mode}&revision=${encodeURIComponent(String(plan.revision))}${token ? `&outside=${encodeURIComponent(token)}` : ''}`;
       const result = await libraryMutate<SiteResult>('/api/library/import-site' + query, this.body());
+      this.forget(true);
       let message = result.message || t('Site imported.');
+      const came = (result.outside?.files || []).slice(0, 1000);
+      const fonts = Number(result.outside?.fonts) || 0;
+      if (token) message += ' ' + (!came.length ? t('No file from the web came along: the downloads are no longer kept. Tick the files again in a new review to bring them.')
+        : [came.length === 1 ? t('1 file from the web came along.') : t('{0} files from the web came along.', [came.length]), fonts === 1 ? t('1 font from the web is now part of this site.') : fonts ? t('{0} fonts from the web are now part of this site.', [fonts]) : ''].filter(Boolean).join(' '));
       this.done = true;
       this.made = result.pages || [];
       this.current = null;
@@ -409,8 +572,16 @@ export class SiteImport {
       if (this.bring.value() === 'elements' && result.pages?.length) {
         this.progress(t('Converting...'));
         const site = state().site;
-        const hosts = result.pages.flatMap(id => site.nodes[site.pages.find(page => page.id === id)?.root || '']?.children || []);
-        try { message += ' ' + [(await this.hooks.convert(hosts)).message, missingHosts(hostsOf(plan.pages)), t('Undo once to get the pages back as code, twice to remove them.')].filter(Boolean).join(' '); }
+        const used = new Set((result.outside?.pages || []).slice(0, 1000));
+        const ran = result.pages.length === plan.pages.length ? result.pages.filter((_, index) => used.has(plan.pages[index].file)) : [];
+        const sections = (ids: string[]): string[] => ids.flatMap(id => site.nodes[site.pages.find(page => page.id === id)?.root || '']?.children || []);
+        const brought = new Set(came.map(file => file.url));
+        const missing = hostsOf(plan.pages.map(page => ({ ...page, outside: (page.outside || []).filter(item => !brought.has(item.url)) })));
+        try {
+          const plain = sections(result.pages.filter(id => !ran.includes(id)));
+          const done = [plain.length ? (await this.hooks.convert(plain)).message : '', ran.length ? (await convertSections(sections(ran), true, undefined, true)).message : ''];
+          message += ' ' + [...done, missingHosts(missing), t('Undo once to get the pages back as code, twice to remove them.')].filter(Boolean).join(' ');
+        }
         catch (error) { message += ' ' + t('The pages stayed code sections: {0}', [error instanceof Error ? error.message : String(error)]); }
       }
       this.say(message, false);
