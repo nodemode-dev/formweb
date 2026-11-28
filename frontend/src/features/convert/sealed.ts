@@ -1,4 +1,12 @@
 import type { Source } from './measure';
+import { apiBase } from '../../api';
+
+const local = (rule: string): boolean => {
+  const low = rule.toLowerCase();
+  if (low.includes('@import') || low.includes('image-set(')) return false;
+  for (let at = low.indexOf('url('); at !== -1; at = low.indexOf('url(', at + 4)) if (!/^url\(\s*["']?data:/.test(low.slice(at, at + 16))) return false;
+  return true;
+};
 
 /** Bounds on what the sealed frame may hand back; anything past them is dropped, never trusted. */
 export const SEALED = { ms: 5000, quiet: 300, rules: 4000, ruleChars: 65536, cssChars: 524288, elements: 5000, attrs: 64, nameChars: 64, valueChars: 4096, built: 1000, snapChars: 1048576, snapElements: 300 } as const;
@@ -118,6 +126,13 @@ export function check(data: unknown, id: string, count: number): { rules: string
  */
 export function runSealed(source: Source): Promise<Sealed | null> {
   open?.();
+  if (!document.head.querySelector('meta[data-fw-frames]')) {
+    const meta = document.createElement('meta');
+    meta.setAttribute('data-fw-frames', '');
+    meta.httpEquiv = 'Content-Security-Policy';
+    meta.content = `frame-src 'self' blob:${apiBase ? ' ' + new URL(apiBase, location.href).origin : ''}`;
+    document.head.append(meta);
+  }
   const id = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
   const { srcdoc, doc, list } = frameDocument(source, id);
   const frame = document.createElement('iframe');
@@ -164,5 +179,5 @@ function after(doc: Document, list: Element[], found: NonNullable<ReturnType<typ
       if (el.getAttribute(name) !== value) el.setAttribute(name, value);
     }
   }
-  return { html: (doc.body.attributes.length ? `<body${attrsOf(doc.body)}>` : '') + doc.body.innerHTML, css: found.rules.join('\n'), built: found.built, snapshot: found.snapshot, width: found.width, height: found.height };
+  return { html: (doc.body.attributes.length ? `<body${attrsOf(doc.body)}>` : '') + doc.body.innerHTML, css: found.rules.filter(local).join('\n'), built: found.built, snapshot: found.snapshot, width: found.width, height: found.height };
 }
