@@ -793,6 +793,12 @@ def _page(site: Site, path: str, body: bytes, kit_script) -> dict:
     markup = STRIP.sub('', body)
     markup = LINK.sub(lambda tag: '' if tag.group(0) in inlined else tag.group(0), markup)
     markup = site.markup(markup, base, missing).strip()
+    opened = re.search(r'<body\b[^>]{0,4096}>', document, re.I) if site.brought else None
+    if opened:
+        own = _attrs(opened.group(0))
+        carried = ''.join(f' {key}="{escape(own[key][:2048], quote=True)}"' for key in ('id', 'class') if own.get(key, '').strip())
+        if carried:
+            markup = f'<div{carried}>{markup}</div>'
     css = '\n'.join(part.strip() for part in [*site.outside, *styles] if part.strip())
     if site.outside:
         shown = [CSS_IMPORT.match(statement).group(1)[:120] for statement in site.outside]
