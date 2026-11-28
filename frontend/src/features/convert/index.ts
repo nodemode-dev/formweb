@@ -8,6 +8,7 @@ import type { MenuEntry } from '../../ui/context-menu';
 import type { Command, EditorState, SiteNode } from '../../types';
 import { blocks, measure, SCOPE, TooLarge, type Block, type Plan, type Planned, type Source } from './measure';
 import { refusal, ROOT_FORCED, scriptWords, summary, type SiteFont } from './rules';
+import { runSealed } from './sealed';
 import '../../styles/convert.css';
 
 export const CONVERT_ID = 'library.convert-section';
@@ -155,7 +156,7 @@ async function apply(build: () => Command[], plans: [Plan, string][]): Promise<{
 }
 
 /** Measures and converts code sections in one batch (one undo step). `part` converts one top-level block of one section. */
-export async function convertSections(ids: string[], keepScript: boolean, part?: number): Promise<Converted> {
+export async function convertSections(ids: string[], keepScript: boolean, part?: number, run?: boolean): Promise<Converted> {
   const site = state().site;
   const hosts = ids.map(id => site.nodes[id]).filter((node): node is SiteNode => !!node && !!sectionOf(site, node.id)?.html?.trim());
   if (!hosts.length) throw new Error(t('Select a code section that holds HTML to convert.'));
@@ -164,11 +165,17 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
   let fonts = { ...(((site.extensions?.design as { fonts?: Record<string, SiteFont> } | undefined)?.fonts) || {}) };
   const plans: Plan[] = [];
   const done: SiteNode[] = [];
-  let skipped: TooLarge | null = null, skips = 0, size = 0;
+  let skipped: TooLarge | null = null, skips = 0, size = 0, unrun = 0;
   for (const host of hosts) {
     let plan: Plan;
+    let source = sourceOf(sectionOf(site, host.id)!);
+    if (run === true && source.js.trim()) {
+      const sealed = await runSealed(source);
+      if (sealed) source = { ...source, html: sealed.html, css: [source.css, sealed.css].filter(Boolean).join('\n') };
+      else unrun++;
+    }
     try {
-      plan = await measure(sourceOf(sectionOf(site, host.id)!), {
+      plan = await measure(source, {
         origin: location.origin, keepScript, fonts, taken: id => taken.has(id), limit: LIMIT, depth: DEPTH, seconds: SECONDS, scope: host.id, siteNames: names
       }, part);
     } catch (error) {
@@ -203,7 +210,8 @@ export async function convertSections(ids: string[], keepScript: boolean, part?:
   outcome.left += left;
   const root = part === undefined ? done[0].id : plans[0].nodes.find(item => item.parent === '')?.id || null;
   const stayed = skips ? ' ' + tn(skips, '1 page was too large to convert at once and stayed a code section: convert it one part at a time with Convert to editable elements.', '{0} pages were too large to convert at once and stayed code sections: convert each one part at a time with Convert to editable elements.', [skips]) : '';
-  return { message: summary(outcome, t, tn) + stayed, converted: outcome.converted, root };
+  const quiet = unrun ? ' ' + tn(unrun, 'The script of 1 page did not finish in time, so that page was measured without running it.', 'The scripts of {0} pages did not finish in time, so those pages were measured without running them.', [unrun]) : '';
+  return { message: summary(outcome, t, tn) + stayed + quiet, converted: outcome.converted, root };
 }
 
 /**
@@ -352,7 +360,8 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
       node: { type: 'string', description: 'The code section element to convert. Default: the selected element.' },
       nodes: { type: 'array', description: 'Several code section elements to convert in one undo step.' },
       keepScript: { type: 'boolean', description: 'Keep the page\'s script as a small code section, with the style rules the converted elements do not use, for what the script builds (default true).' },
-      part: { type: 'integer', min: 0, description: 'Convert only this top-level block of the section (0 is the first), for a page too large for one conversion.' }
+      part: { type: 'integer', min: 0, description: 'Convert only this top-level block of the section (0 is the first), for a page too large for one conversion.' },
+      run: { type: 'boolean', description: 'Run the page\'s script first in a sealed frame with no network, and measure the page as it stands after the script ran (default false).' }
     },
     enabled: () => host.ready() && anySection(),
     description: 'Turn a code section (an imported page or any section of plain HTML and CSS) into ordinary FormWeb elements with their own text, links, pictures and base styles measured at desktop width, in one undo step. Scripts, inline frames and vector graphics stay as small code sections in place; responsive rules are not carried over. A kept script keeps the style rules no converted element uses, and the class rules the script names, so what it builds is styled in Preview and the export. Without parameters it opens a short dialog for the selected element; with node or nodes it converts at once and returns the result sentence.',
@@ -361,7 +370,7 @@ export function installConvert(host: ConvertHost): { commands: CommandDef[]; ent
       const list = Array.isArray(params?.nodes) ? (params!.nodes as unknown[]).filter((id): id is string => typeof id === 'string') : typeof params?.node === 'string' ? [params.node] : null;
       if (!list) { if (convertible(host.selected())) open(host.selected()); else host.status(t('Select a code section that holds HTML to convert.'), true); return undefined; }
       const chosen = host.selected();
-      const done = await convertSections(list, params?.keepScript !== false, typeof params?.part === 'number' ? params.part : undefined);
+      const done = await convertSections(list, params?.keepScript !== false, typeof params?.part === 'number' ? params.part : undefined, params?.run === true);
       finish(done, chosen);
       return { message: done.message, converted: done.converted, root: done.root };
     }
